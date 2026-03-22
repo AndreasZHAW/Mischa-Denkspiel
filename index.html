@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#87CEEB">
+  <title>Das Mischa Denkspiel 🏔️</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/game.css">
+
+  <!-- Favicon (emoji) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+</head>
+<body>
+
+  <!-- App mount point -->
+  <div id="app">
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:2rem">
+      🏔️ Laden...
+    </div>
+  </div>
+
+  <!-- State Manager (must load first) -->
+  <script src="js/state.js"></script>
+
+  <!-- World Config -->
+  <script src="js/worlds.js"></script>
+
+  <!-- Game Modules -->
+  <script src="js/games/math.js"></script>
+  <script src="js/games/reaction.js"></script>
+  <script src="js/games/memory.js"></script>
+  <script src="js/games/train.js"></script>
+  <script src="js/games/search.js"></script>
+  <script src="js/games/differences.js"></script>
+
+  <!-- Main App (loads last) -->
+  <script src="js/app.js"></script>
+
+  <!-- Boot -->
+  <script>
+    // Check if returning player
+    const returning = sessionStorage.getItem('mischa_current');
+    if (returning) {
+      const player = State.getPlayer(returning);
+      if (player) {
+        State.setCurrentPlayer(player);
+        App.showWorldMap();
+      } else {
+        App.showWelcome();
+      }
+    } else {
+      App.showWelcome();
+    }
+  </script>
+</body>
+</html>
