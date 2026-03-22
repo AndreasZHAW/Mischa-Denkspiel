@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏔️ Admin — Mischa Denkspiel</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    body { background: #1a1a2e; min-height: 100vh; }
+
+    .admin-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .admin-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: #FFD700;
+      text-shadow: 0 2px 8px rgba(255,215,0,0.3);
+    }
+
+    /* Login box */
+    .login-box {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 380px;
+      margin: 80px auto;
+    }
+    .login-box h2 { color: #FFD700; font-family: 'Fredoka One', cursive; font-size: 1.6rem; margin-bottom: 8px; }
+    .login-box p { color: rgba(255,255,255,0.6); margin-bottom: 24px; font-size: 0.9rem; }
+    .login-box input {
+      width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08); color: white; font-size: 1rem; font-family: 'Nunito', sans-serif;
+      margin-bottom: 14px;
+    }
+    .login-box input:focus { outline: none; border-color: #FFD700; }
+
+    /* Stats cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .stat-card .val { font-family: 'Fredoka One', cursive; font-size: 2rem; color: #FFD700; }
+    .stat-card .lbl { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+    /* Player table */
+    .section-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      color: white;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .player-card:hover { border-color: rgba(255,215,0,0.3); }
+
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .player-name-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .player-emoji { font-size: 1.8rem; }
+    .player-name { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: white; }
+    .player-meta { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    .player-score {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      color: #FFD700;
+    }
+
+    /* World progress bars */
+    .world-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .world-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .world-bar-label { width: 110px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .world-bar-track { flex: 1; height: 10px; background: rgba(255,255,255,0.1); border-radius: 50px; overflow: hidden; }
+    .world-bar-fill { height: 100%; border-radius: 50px; transition: width 0.5s; }
+    .world-bar-count { width: 36px; text-align: right; font-size: 0.75rem; }
+
+    /* Task detail grid */
+    .task-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .task-pip {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: default;
+      position: relative;
+    }
+    .task-pip.done { background: rgba(39,174,96,0.3); color: #27AE60; border: 1px solid rgba(39,174,96,0.4); }
+    .task-pip.joker { background: rgba(255,165,0,0.2); color: #FFA500; border: 1px solid rgba(255,165,0,0.3); }
+    .task-pip.empty { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.08); }
+
+    /* Admin actions */
+    .player-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-admin {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+    }
+    .btn-reset { background: rgba(255,165,0,0.2); color: #FFA500; border: 1px solid rgba(255,165,0,0.3); }
+    .btn-reset:hover { background: rgba(255,165,0,0.35); }
+    .btn-delete { background: rgba(231,76,60,0.2); color: #E74C3C; border: 1px solid rgba(231,76,60,0.3); }
+    .btn-delete:hover { background: rgba(231,76,60,0.35); }
+    .btn-expand { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
+
+    /* Leaderboard */
+    .leaderboard { margin-bottom: 28px; }
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      margin-bottom: 6px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .lb-rank { font-family: 'Fredoka One', cursive; font-size: 1.2rem; width: 32px; text-align: center; }
+    .lb-rank.gold   { color: #FFD700; }
+    .lb-rank.silver { color: #C0C0C0; }
+    .lb-rank.bronze { color: #CD7F32; }
+    .lb-rank.other  { color: rgba(255,255,255,0.4); }
+    .lb-name { flex: 1; color: white; font-weight: 700; }
+    .lb-score { font-family: 'Fredoka One', cursive; color: #FFD700; }
+    .lb-world { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+
+    /* Time display */
+    .time-val { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .task-detail-grid { grid-template-columns: repeat(5, 1fr); }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Toggle detail */
+    .detail-section { display: none; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }
+    .detail-section.open { display: block; }
+  </style>
+</head>
+<body>
+<div class="admin-wrap" id="admin-app">
+  <!-- Login screen shown initially via JS -->
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/worlds.js"></script>
+<script>
+
+const CHAR_EMOJIS = {
+  spongebob:'🧽', patrick:'⭐', mario:'🍄', luigi:'🟢',
+  stickman:'🎨', explorer:'🧭', woman:'👩', man:'👨',
+  ninja:'🥷', astronaut:'🧑‍🚀', detective:'🕵️', princess:'👸',
+  knight:'🏰', scientist:'🧪'
+};
+
+const Admin = {
+  render() {
+    const app = document.getElementById('admin-app');
+    app.innerHTML = `
+      <div class="login-box">
+        <div style="font-size:3rem">🔐</div>
+        <h2>Admin-Bereich</h2>
+        <p>Mischa Denkspiel — Lehreransicht</p>
+        <input type="password" id="admin-pw" placeholder="Admin-Passwort" onkeyup="if(event.key==='Enter')Admin.login()"/>
+        <button class="btn btn-primary btn-full" onclick="Admin.login()">Anmelden ➜</button>
+        <div id="admin-err" style="color:#E74C3C;margin-top:10px;font-size:0.9rem"></div>
+        <div style="margin-top:16px;font-size:0.75rem;color:rgba(255,255,255,0.3)">Standard-Passwort: mischa2024</div>
+      </div>
+    `;
+  },
+
+  login() {
+    const pw = document.getElementById('admin-pw')?.value;
+    if (State.checkAdmin(pw)) {
+      this.showDashboard();
+    } else {
+      document.getElementById('admin-err').textContent = 'Falsches Passwort!';
+    }
+  },
+
+  showDashboard() {
+    const all = State.getAll();
+    const players = Object.values(all);
+    const totalPlayers = players.length;
+    const totalScores = players.reduce((s, p) => s + (p.totalScore || 0), 0);
+    const completedWorlds = players.reduce((s, p) =>
+      s + Object.values(p.worlds).filter(w => w.completed).length, 0);
+    const avgScore = totalPlayers ? Math.round(totalScores / totalPlayers) : 0;
+
+    // Sort by score for leaderboard
+    const ranked = [...players].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+
+    document.getElementById('admin-app').innerHTML = `
+      <div class="admin-header">
+        <div class="admin-title">🏔️ Mischa Denkspiel — Admin</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-admin btn-reset" onclick="Admin.showChangePw()">🔑 Passwort ändern</button>
+          <a href="index.html" class="btn-admin" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);text-decoration:none;padding:7px 14px;border-radius:8px">
+            ← Zurück zum Spiel
+          </a>
+        </div>
+      </div>
+
+      <!-- Global Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="val">${totalPlayers}</div>
+          <div class="lbl">👤 Spieler</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">${totalScores}</div>
+          <div class="lbl">⭐ Gesamtpunkte</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">${avgScore}</div>
+          <div class="lbl">📊 Ø Punkte</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">${completedWorlds}</div>
+          <div class="lbl">🏆 Welten geschafft</div>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="section-title">🏆 Rangliste</div>
+      <div class="leaderboard">
+        ${ranked.length === 0
+          ? '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:20px">Noch keine Spieler</div>'
+          : ranked.slice(0, 10).map((p, i) => {
+              const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'other';
+              const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+              const age = State.getAge(p);
+              const worldsDone = Object.values(p.worlds).filter(w => w.completed).length;
+              return `
+                <div class="lb-row">
+                  <div class="lb-rank ${rankClass}">${rankIcon}</div>
+                  <div style="font-size:1.4rem">${CHAR_EMOJIS[p.character] || '🧭'}</div>
+                  <div class="lb-name">${p.name} <span class="lb-world">Welt ${p.currentWorld}/5 · ${age}J · ${worldsDone} Welten ✓</span></div>
+                  <div class="lb-score">⭐ ${p.totalScore || 0}</div>
+                </div>
+              `;
+            }).join('')
+        }
+      </div>
+
+      <!-- All Players Detail -->
+      <div class="section-title">👥 Alle Spieler (Detail)</div>
+      ${players.length === 0
+        ? '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">Noch keine Spieler registriert</div>'
+        : players.map(p => this.renderPlayerCard(p)).join('')
+      }
+    `;
+  },
+
+  renderPlayerCard(p) {
+    const age = State.getAge(p);
+    const ageGroup = State.getAgeGroup(p);
+    const totalTasks = Object.values(p.worlds).flatMap(w => w.tasks).filter(t => t && t.done).length;
+    const createdDate = new Date(p.createdAt).toLocaleDateString('de-CH');
+    const updatedDate = new Date(p.updatedAt || p.createdAt).toLocaleDateString('de-CH');
+
+    const worldColors = ['#27AE60','#2980B9','#E67E22','#8E44AD','#E74C3C'];
+
+    return `
+      <div class="player-card">
+        <div class="player-top">
+          <div class="player-name-badge">
+            <span class="player-emoji">${CHAR_EMOJIS[p.character] || '🧭'}</span>
+            <div>
+              <div class="player-name">${p.name}</div>
+              <div class="player-meta">
+                ${age} Jahre · Geburt ${p.birthYear} · ${ageGroup} · Seit ${createdDate}
+                <br>Letzte Aktivität: ${updatedDate}
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="player-score">⭐ ${p.totalScore || 0}</div>
+            <div class="player-meta">Welt ${p.currentWorld}/5 · ${totalTasks}/50 Aufgaben</div>
+          </div>
+        </div>
+
+        <!-- World progress bars -->
+        <div class="world-bars">
+          ${WORLDS.map((world, wi) => {
+            const ws = p.worlds[world.id];
+            const done = ws.tasks.filter(t => t && t.done).length;
+            const pct = (done / 10) * 100;
+            const worldScore = ws.tasks.filter(t => t && t.done).reduce((s, t) => s + (t.score || 0), 0);
+            return `
+              <div class="world-bar-row">
+                <span class="world-bar-label">${world.icon} ${world.name}</span>
+                <div class="world-bar-track">
+                  <div class="world-bar-fill" style="width:${pct}%;background:${worldColors[wi]}"></div>
+                </div>
+                <span class="world-bar-count">${done}/10</span>
+                <span class="time-val">⭐${worldScore}</span>
+                ${ws.completed ? '<span style="color:#27AE60;font-size:0.8rem">✓</span>' : ''}
+                ${ws.jokerUsed ? '<span title="Joker verwendet" style="font-size:0.8rem">🃏</span>' : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Actions + Detail toggle -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div class="player-actions">
+            <button class="btn-admin btn-expand" onclick="Admin.toggleDetail('${p.name}')">
+              📋 Detail anzeigen
+            </button>
+            <button class="btn-admin btn-reset" onclick="Admin.resetPlayer('${p.name}')">
+              🔄 Fortschritt zurücksetzen
+            </button>
+            <button class="btn-admin btn-delete" onclick="Admin.deletePlayer('${p.name}')">
+              🗑️ Spieler löschen
+            </button>
+          </div>
+        </div>
+
+        <!-- Detail section (hidden by default) -->
+        <div class="detail-section" id="detail-${p.name.replace(/\s/g,'_')}">
+          ${WORLDS.map(world => {
+            const ws = p.worlds[world.id];
+            return `
+              <div style="margin-bottom:12px">
+                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:5px">
+                  ${world.icon} ${world.name}
+                </div>
+                <div class="task-detail-grid">
+                  ${world.tasks.map((task, ti) => {
+                    const t = ws.tasks[ti];
+                    if (!t || !t.done) return `<div class="task-pip empty" title="Aufgabe ${ti+1}: offen">${ti+1}</div>`;
+                    if (t.joker) return `<div class="task-pip joker" title="Joker">🃏</div>`;
+                    const sec = t.timeMs ? Math.round(t.timeMs/1000) : '?';
+                    const err = t.errors || 0;
+                    return `<div class="task-pip done" title="${task.title}&#10;Score: ${t.score}&#10;Zeit: ${sec}s&#10;Fehler: ${err}">
+                      ${t.score || 0}
+                    </div>`;
+                  }).join('')}
+                </div>
+                <div style="font-size:0.7rem;color:rgba(255,255,255,0.3)">
+                  ${ws.tasks.filter(t=>t&&t.done&&!t.joker).map((t,i)=>{
+                    const sec = t && t.timeMs ? Math.round(t.timeMs/1000) : null;
+                    return sec !== null ? `⏱${sec}s` : '';
+                  }).filter(Boolean).join(' · ')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  toggleDetail(name) {
+    const el = document.getElementById('detail-' + name.replace(/\s/g,'_'));
+    if (el) el.classList.toggle('open');
+  },
+
+  resetPlayer(name) {
+    if (confirm(`Fortschritt von "${name}" wirklich zurücksetzen?\nAlle Punkte und Aufgaben werden gelöscht!`)) {
+      State.resetPlayerProgress(name);
+      this.showDashboard();
+    }
+  },
+
+  deletePlayer(name) {
+    if (confirm(`Spieler "${name}" wirklich LÖSCHEN?\nDies kann nicht rückgängig gemacht werden!`)) {
+      State.deletePlayer(name);
+      this.showDashboard();
+    }
+  },
+
+  showChangePw() {
+    const newPw = prompt('Neues Admin-Passwort eingeben:');
+    if (newPw && newPw.length >= 4) {
+      State.setAdminPw(newPw);
+      alert('✅ Passwort gespeichert!');
+    } else if (newPw !== null) {
+      alert('Passwort muss mindestens 4 Zeichen haben.');
+    }
+  }
+};
+
+Admin.render();
+</script>
+</body>
+</html>
