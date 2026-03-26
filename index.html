@@ -5,36 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#87CEEB">
-  <title>Das Mischa Denkspiel 🏔️</title>
+  <title>Das Mischa Denkspiel ✈️</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/game.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
   <style>
-    /* Extra animations for portal & jenga */
-    @keyframes shake {
-      0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)}
-    }
-    @keyframes starPop {
-      0%{transform:scale(0);opacity:0} 60%{transform:scale(1.4)} 100%{transform:scale(1);opacity:1}
-    }
-    @keyframes circleIn {
-      from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1}
-    }
-    @keyframes foundPop {
-      0%{transform:scale(0.5)} 100%{transform:scale(1)}
-    }
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    @keyframes starPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.4)}100%{transform:scale(1);opacity:1}}
+    @keyframes circleIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+    @keyframes foundPop{0%{transform:scale(0.5)}100%{transform:scale(1)}}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
   <div id="app">
-    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:2rem">
-      🏔️ Laden...
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#87CEEB">
+      <div style="text-align:center">
+        <div style="font-size:3rem;animation:bounce 1s infinite">✈️</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#3D4F2E;margin-top:10px">Mischa Denkspiel lädt...</div>
+      </div>
     </div>
   </div>
 
+  <!-- Firebase SDK (compat version for easy use) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <!-- Core -->
-  <script src="js/state.js"></script>
   <script src="js/worlds.js"></script>
+  <script src="js/firebase-state.js"></script>
 
   <!-- Games -->
   <script src="js/games/math.js"></script>
@@ -51,14 +51,26 @@
 
   <!-- Boot -->
   <script>
-    const ret = sessionStorage.getItem('mischa_current');
-    if (ret) {
-      const p = State.getPlayer(ret);
-      if (p) { State.setCurrentPlayer(p); App.showWorldMap(); }
-      else App.showWelcome();
-    } else {
+    async function boot() {
+      // Firebase init is called in DOMContentLoaded in firebase-state.js
+      // Give it a moment
+      await new Promise(r => setTimeout(r, 400));
+
+      const ret = sessionStorage.getItem('mischa_current');
+      if (ret) {
+        const p = await State.getPlayer(ret);
+        if (p) {
+          State.setCurrentPlayer(p);
+          App.showWorldMap();
+          return;
+        }
+      }
       App.showWelcome();
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(boot, 500);
+    });
   </script>
 </body>
 </html>

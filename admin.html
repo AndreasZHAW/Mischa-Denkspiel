@@ -3,448 +3,330 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏔️ Admin — Mischa Denkspiel</title>
+  <title>🏆 Admin — Mischa Denkspiel</title>
   <link rel="stylesheet" href="css/main.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    body { background: #1a1a2e; min-height: 100vh; }
-
-    .admin-wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-      font-family: 'Nunito', sans-serif;
-    }
-
-    .admin-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .admin-title {
-      font-family: 'Fredoka One', cursive;
-      font-size: 1.8rem;
-      color: #FFD700;
-      text-shadow: 0 2px 8px rgba(255,215,0,0.3);
-    }
-
-    /* Login box */
-    .login-box {
-      background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 20px;
-      padding: 40px;
-      text-align: center;
-      max-width: 380px;
-      margin: 80px auto;
-    }
-    .login-box h2 { color: #FFD700; font-family: 'Fredoka One', cursive; font-size: 1.6rem; margin-bottom: 8px; }
-    .login-box p { color: rgba(255,255,255,0.6); margin-bottom: 24px; font-size: 0.9rem; }
-    .login-box input {
-      width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.08); color: white; font-size: 1rem; font-family: 'Nunito', sans-serif;
-      margin-bottom: 14px;
-    }
-    .login-box input:focus { outline: none; border-color: #FFD700; }
-
-    /* Stats cards */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 14px;
-      margin-bottom: 28px;
-    }
-    .stat-card {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 18px 16px;
-      text-align: center;
-    }
-    .stat-card .val { font-family: 'Fredoka One', cursive; font-size: 2rem; color: #FFD700; }
-    .stat-card .lbl { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
-
-    /* Player table */
-    .section-title {
-      font-family: 'Fredoka One', cursive;
-      font-size: 1.2rem;
-      color: white;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .player-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 14px;
-      transition: border-color 0.2s;
-    }
-    .player-card:hover { border-color: rgba(255,215,0,0.3); }
-
-    .player-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .player-name-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .player-emoji { font-size: 1.8rem; }
-    .player-name { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: white; }
-    .player-meta { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
-
-    .player-score {
-      font-family: 'Fredoka One', cursive;
-      font-size: 1.5rem;
-      color: #FFD700;
-    }
-
-    /* World progress bars */
-    .world-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-    .world-bar-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.6);
-    }
-    .world-bar-label { width: 110px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .world-bar-track { flex: 1; height: 10px; background: rgba(255,255,255,0.1); border-radius: 50px; overflow: hidden; }
-    .world-bar-fill { height: 100%; border-radius: 50px; transition: width 0.5s; }
-    .world-bar-count { width: 36px; text-align: right; font-size: 0.75rem; }
-
-    /* Task detail grid */
-    .task-detail-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 5px;
-      margin-bottom: 8px;
-    }
-    .task-pip {
-      aspect-ratio: 1;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.65rem;
-      font-weight: 700;
-      cursor: default;
-      position: relative;
-    }
-    .task-pip.done { background: rgba(39,174,96,0.3); color: #27AE60; border: 1px solid rgba(39,174,96,0.4); }
-    .task-pip.joker { background: rgba(255,165,0,0.2); color: #FFA500; border: 1px solid rgba(255,165,0,0.3); }
-    .task-pip.empty { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.08); }
-
-    /* Admin actions */
-    .player-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-admin {
-      padding: 7px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 700;
-      font-family: 'Nunito', sans-serif;
-    }
-    .btn-reset { background: rgba(255,165,0,0.2); color: #FFA500; border: 1px solid rgba(255,165,0,0.3); }
-    .btn-reset:hover { background: rgba(255,165,0,0.35); }
-    .btn-delete { background: rgba(231,76,60,0.2); color: #E74C3C; border: 1px solid rgba(231,76,60,0.3); }
-    .btn-delete:hover { background: rgba(231,76,60,0.35); }
-    .btn-expand { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
-
-    /* Leaderboard */
-    .leaderboard { margin-bottom: 28px; }
-    .lb-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.04);
-      margin-bottom: 6px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .lb-rank { font-family: 'Fredoka One', cursive; font-size: 1.2rem; width: 32px; text-align: center; }
-    .lb-rank.gold   { color: #FFD700; }
-    .lb-rank.silver { color: #C0C0C0; }
-    .lb-rank.bronze { color: #CD7F32; }
-    .lb-rank.other  { color: rgba(255,255,255,0.4); }
-    .lb-name { flex: 1; color: white; font-weight: 700; }
-    .lb-score { font-family: 'Fredoka One', cursive; color: #FFD700; }
-    .lb-world { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
-
-    /* Time display */
-    .time-val { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .task-detail-grid { grid-template-columns: repeat(5, 1fr); }
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    /* Toggle detail */
-    .detail-section { display: none; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }
-    .detail-section.open { display: block; }
+    body{background:#0f1729;min-height:100vh;font-family:'Nunito',sans-serif}
+    .aw{max-width:960px;margin:0 auto;padding:20px}
+    .ah{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+    .at{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#FFD700;text-shadow:0 2px 8px rgba(255,215,0,0.3)}
+    .lb{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:15px;padding:15px;margin-bottom:10px}
+    .sl{font-family:'Fredoka One',cursive;font-size:1.1rem;color:white;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .sr{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+    .sc{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;text-align:center}
+    .sv{font-family:'Fredoka One',cursive;font-size:1.8rem;color:#FFD700}
+    .sk{font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:3px}
+    .pc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:16px;margin-bottom:12px;transition:border-color 0.2s}
+    .pc:hover{border-color:rgba(255,215,0,0.2)}
+    .pt{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+    .pn{font-family:'Fredoka One',cursive;font-size:1.1rem;color:white}
+    .pm{font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:2px}
+    .ps{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700}
+    .wb{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+    .wr{display:flex;align-items:center;gap:8px;font-size:0.75rem;color:rgba(255,255,255,0.55)}
+    .wl{width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wt{flex:1;height:9px;background:rgba(255,255,255,0.08);border-radius:50px;overflow:hidden}
+    .wf{height:100%;border-radius:50px;transition:width 0.5s}
+    .wc{width:32px;text-align:right;font-size:0.7rem}
+    .pa{display:flex;gap:6px;flex-wrap:wrap}
+    .ba{padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-size:0.75rem;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.15s}
+    .ba:hover{transform:translateY(-1px)}
+    .br{background:rgba(255,165,0,0.15);color:#FFA500;border:1px solid rgba(255,165,0,0.25)}
+    .bd{background:rgba(231,76,60,0.15);color:#E74C3C;border:1px solid rgba(231,76,60,0.25)}
+    .bg{background:rgba(39,174,96,0.15);color:#27AE60;border:1px solid rgba(39,174,96,0.25)}
+    .bb{background:rgba(74,144,217,0.15);color:#4A90D9;border:1px solid rgba(74,144,217,0.25)}
+    .be{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.1)}
+    .ds{display:none;margin-top:12px;border-top:1px solid rgba(255,255,255,0.07);padding-top:12px}
+    .ds.open{display:block}
+    .tg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px}
+    .tp{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;cursor:default}
+    .td{background:rgba(39,174,96,0.25);color:#27AE60;border:1px solid rgba(39,174,96,0.3)}
+    .tj{background:rgba(255,165,0,0.2);color:#FFA500;border:1px solid rgba(255,165,0,0.25)}
+    .te{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.07)}
+    .lr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);margin-bottom:5px;border:1px solid rgba(255,255,255,0.05)}
+    .login-box{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:20px;padding:40px;text-align:center;max-width:380px;margin:80px auto}
+    .login-box h2{color:#FFD700;font-family:'Fredoka One',cursive;font-size:1.5rem;margin-bottom:6px}
+    .login-box p{color:rgba(255,255,255,0.55);margin-bottom:20px;font-size:0.85rem}
+    .login-box input{width:100%;padding:11px 15px;border-radius:10px;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:1rem;font-family:'Nunito',sans-serif;margin-bottom:12px}
+    .login-box input:focus{outline:none;border-color:#FFD700}
+    .ab{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'Fredoka One',cursive;font-size:1rem;padding:11px 24px;border-radius:50px;border:none;cursor:pointer;transition:transform 0.15s;width:100%}
+    .ab-p{background:linear-gradient(135deg,#FFD700,#FFA500);color:#2C3E50}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+    .modal-box{background:#1a2640;border:2px solid rgba(255,255,255,0.12);border-radius:18px;padding:28px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+    .modal-box h3{font-family:'Fredoka One',cursive;color:white;font-size:1.3rem;margin-bottom:12px}
+    .modal-box input,.modal-box select{width:100%;padding:10px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:0.95rem;font-family:'Nunito',sans-serif;margin-bottom:10px;-webkit-appearance:none}
+    .modal-box input:focus,.modal-box select:focus{outline:none;border-color:#FFD700}
+    .modal-box label{display:block;font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+    .mbtns{display:flex;gap:8px;margin-top:4px}
+    .mb-ok{flex:1;padding:10px;border-radius:50px;border:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#2C3E50;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer}
+    .mb-cancel{flex:1;padding:10px;border-radius:50px;border:2px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.6);font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer}
   </style>
 </head>
 <body>
-<div class="admin-wrap" id="admin-app">
-  <!-- Login screen shown initially via JS -->
-</div>
+<div class="aw" id="admin-app"></div>
+<div id="modal-area"></div>
 
-<script src="js/state.js"></script>
 <script src="js/worlds.js"></script>
+<script src="js/firebase-state.js"></script>
 <script>
 
-const CHAR_EMOJIS = {
-  spongebob:'🧽', patrick:'⭐', mario:'🍄', luigi:'🟢',
-  stickman:'🎨', explorer:'🧭', woman:'👩', man:'👨',
-  ninja:'🥷', astronaut:'🧑‍🚀', detective:'🕵️', princess:'👸',
-  knight:'🏰', scientist:'🧪'
-};
+const CEMOJIS = {spongebob:'🧽',patrick:'⭐',mario:'🍄',luigi:'💚',stickman:'🎨',woman:'👩',man:'👨',girl:'👧',boy:'👦',ninja:'🥷',astronaut:'🧑‍🚀',detective:'🕵️',princess:'👸',knight:'⚔️',scientist:'🧪',explorer:'🧭'};
+const WCOLORS = ['#2980B9','#8E44AD','#27AE60','#E67E22','#E74C3C','#16A085','#D35400','#E30613','#7F8C8D','#2C3E50'];
 
 const Admin = {
+  // ---- LOGIN ----
   render() {
-    const app = document.getElementById('admin-app');
-    app.innerHTML = `
+    document.getElementById('admin-app').innerHTML = `
       <div class="login-box">
-        <div style="font-size:3rem">🔐</div>
-        <h2>Admin-Bereich</h2>
-        <p>Mischa Denkspiel — Lehreransicht</p>
-        <input type="password" id="admin-pw" placeholder="Admin-Passwort" onkeyup="if(event.key==='Enter')Admin.login()"/>
-        <button class="btn btn-primary btn-full" onclick="Admin.login()">Anmelden ➜</button>
-        <div id="admin-err" style="color:#E74C3C;margin-top:10px;font-size:0.9rem"></div>
-        <div style="margin-top:16px;font-size:0.75rem;color:rgba(255,255,255,0.3)">Standard-Passwort: mischa2024</div>
-      </div>
-    `;
+        <div style="font-size:2.5rem">🔐</div>
+        <h2>Admin</h2>
+        <p>Mischa Denkspiel — Lehrerpanel</p>
+        <input type="password" id="apw" placeholder="Admin-Passwort" onkeyup="if(event.key==='Enter')Admin.login()"/>
+        <div class="ab ab-p" onclick="Admin.login()">Anmelden ➜</div>
+        <div id="aerr" style="color:#E74C3C;margin-top:10px;font-size:0.85rem"></div>
+        <div style="margin-top:14px;font-size:0.72rem;color:rgba(255,255,255,0.25)">Standard: mischa2024</div>
+      </div>`;
   },
 
-  login() {
-    const pw = document.getElementById('admin-pw')?.value;
+  async login() {
+    const pw = document.getElementById('apw')?.value;
     if (State.checkAdmin(pw)) {
-      this.showDashboard();
+      await this.showDashboard();
     } else {
-      document.getElementById('admin-err').textContent = 'Falsches Passwort!';
+      document.getElementById('aerr').textContent = '❌ Falsches Passwort!';
     }
   },
 
-  showDashboard() {
-    const all = State.getAll();
+  // ---- DASHBOARD ----
+  async showDashboard() {
+    document.getElementById('admin-app').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:60px">⏳ Lade Spieler...</div>';
+    const all = await State.getAll();
     const players = Object.values(all);
-    const totalPlayers = players.length;
-    const totalScores = players.reduce((s, p) => s + (p.totalScore || 0), 0);
-    const completedWorlds = players.reduce((s, p) =>
-      s + Object.values(p.worlds).filter(w => w.completed).length, 0);
-    const avgScore = totalPlayers ? Math.round(totalScores / totalPlayers) : 0;
-
-    // Sort by score for leaderboard
-    const ranked = [...players].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+    const totalScore = players.reduce((s,p)=>s+(p.totalScore||0),0);
+    const worldsDone = players.reduce((s,p)=>s+Object.values(p.worlds||{}).filter(w=>w.completed).length,0);
+    const ranked = [...players].sort((a,b)=>(b.totalScore||0)-(a.totalScore||0));
 
     document.getElementById('admin-app').innerHTML = `
-      <div class="admin-header">
-        <div class="admin-title">🏔️ Mischa Denkspiel — Admin</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn-admin btn-reset" onclick="Admin.showChangePw()">🔑 Passwort ändern</button>
-          <a href="index.html" class="btn-admin" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);text-decoration:none;padding:7px 14px;border-radius:8px">
-            ← Zurück zum Spiel
-          </a>
+      <div class="ah">
+        <div class="at">🏆 Mischa Denkspiel — Admin</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="ba be" onclick="Admin.showChangePw()">🔑 PW ändern</button>
+          <button class="ba be" onclick="Admin.showDashboard()">🔄 Aktualisieren</button>
+          <a href="index.html" class="ba be" style="text-decoration:none">← Zum Spiel</a>
         </div>
       </div>
 
-      <!-- Global Stats -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="val">${totalPlayers}</div>
-          <div class="lbl">👤 Spieler</div>
-        </div>
-        <div class="stat-card">
-          <div class="val">${totalScores}</div>
-          <div class="lbl">⭐ Gesamtpunkte</div>
-        </div>
-        <div class="stat-card">
-          <div class="val">${avgScore}</div>
-          <div class="lbl">📊 Ø Punkte</div>
-        </div>
-        <div class="stat-card">
-          <div class="val">${completedWorlds}</div>
-          <div class="lbl">🏆 Welten geschafft</div>
-        </div>
+      <!-- Stats -->
+      <div class="sr">
+        <div class="sc"><div class="sv">${players.length}</div><div class="sk">👤 Spieler</div></div>
+        <div class="sc"><div class="sv">${totalScore}</div><div class="sk">⭐ Gesamtpunkte</div></div>
+        <div class="sc"><div class="sv">${players.length?Math.round(totalScore/players.length):0}</div><div class="sk">📊 Ø Punkte</div></div>
+        <div class="sc"><div class="sv">${worldsDone}</div><div class="sk">🏆 Welten ✓</div></div>
       </div>
 
       <!-- Leaderboard -->
-      <div class="section-title">🏆 Rangliste</div>
-      <div class="leaderboard">
-        ${ranked.length === 0
-          ? '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:20px">Noch keine Spieler</div>'
-          : ranked.slice(0, 10).map((p, i) => {
-              const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'other';
-              const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
-              const age = State.getAge(p);
-              const worldsDone = Object.values(p.worlds).filter(w => w.completed).length;
-              return `
-                <div class="lb-row">
-                  <div class="lb-rank ${rankClass}">${rankIcon}</div>
-                  <div style="font-size:1.4rem">${CHAR_EMOJIS[p.character] || '🧭'}</div>
-                  <div class="lb-name">${p.name} <span class="lb-world">Welt ${p.currentWorld}/5 · ${age}J · ${worldsDone} Welten ✓</span></div>
-                  <div class="lb-score">⭐ ${p.totalScore || 0}</div>
+      <div class="sl">🥇 Rangliste (Top 20)</div>
+      <div style="margin-bottom:22px">
+        ${ranked.length===0
+          ? '<div style="color:rgba(255,255,255,0.35);text-align:center;padding:20px">Noch keine Spieler</div>'
+          : ranked.slice(0,20).map((p,i)=>{
+              const icon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+              const age = new Date().getFullYear()-(p.birthYear||2000);
+              const wdone = Object.values(p.worlds||{}).filter(w=>w.completed).length;
+              return `<div class="lr">
+                <div style="font-family:'Fredoka One',cursive;font-size:1rem;width:26px;text-align:center">${icon}</div>
+                <span style="font-size:1.3rem">${CEMOJIS[p.character]||'🧭'}</span>
+                <div style="flex:1">
+                  <div style="color:white;font-weight:700;font-size:0.9rem">${p.name}</div>
+                  <div style="font-size:0.7rem;color:rgba(255,255,255,0.4)">Welt ${p.currentWorld||1}/10 · ${wdone} ✓ · ${age}J</div>
                 </div>
-              `;
+                <div style="font-family:'Fredoka One',cursive;color:#FFD700;font-size:0.95rem">⭐ ${p.totalScore||0}</div>
+              </div>`;
             }).join('')
         }
       </div>
 
-      <!-- All Players Detail -->
-      <div class="section-title">👥 Alle Spieler (Detail)</div>
-      ${players.length === 0
-        ? '<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">Noch keine Spieler registriert</div>'
-        : players.map(p => this.renderPlayerCard(p)).join('')
-      }
-    `;
+      <!-- All players -->
+      <div class="sl">👥 Alle Spieler</div>
+      ${players.length===0
+        ? '<div style="color:rgba(255,255,255,0.35);text-align:center;padding:40px">Noch keine Spieler</div>'
+        : players.map(p=>this.renderPlayer(p)).join('')
+      }`;
   },
 
-  renderPlayerCard(p) {
-    const age = State.getAge(p);
-    const ageGroup = State.getAgeGroup(p);
-    const totalTasks = Object.values(p.worlds).flatMap(w => w.tasks).filter(t => t && t.done).length;
-    const createdDate = new Date(p.createdAt).toLocaleDateString('de-CH');
-    const updatedDate = new Date(p.updatedAt || p.createdAt).toLocaleDateString('de-CH');
+  renderPlayer(p) {
+    const age = new Date().getFullYear()-(p.birthYear||2000);
+    const totalTasks = Object.values(p.worlds||{}).flatMap(w=>w.tasks).filter(t=>t&&t.done).length;
+    const created = new Date(p.createdAt||Date.now()).toLocaleDateString('de-CH');
+    const updated = new Date(p.updatedAt||p.createdAt||Date.now()).toLocaleDateString('de-CH');
 
-    const worldColors = ['#27AE60','#2980B9','#E67E22','#8E44AD','#E74C3C'];
-
-    return `
-      <div class="player-card">
-        <div class="player-top">
-          <div class="player-name-badge">
-            <span class="player-emoji">${CHAR_EMOJIS[p.character] || '🧭'}</span>
-            <div>
-              <div class="player-name">${p.name}</div>
-              <div class="player-meta">
-                ${age} Jahre · Geburt ${p.birthYear} · ${ageGroup} · Seit ${createdDate}
-                <br>Letzte Aktivität: ${updatedDate}
-              </div>
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="player-score">⭐ ${p.totalScore || 0}</div>
-            <div class="player-meta">Welt ${p.currentWorld}/5 · ${totalTasks}/50 Aufgaben</div>
+    return `<div class="pc">
+      <div class="pt">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.6rem">${CEMOJIS[p.character]||'🧭'}</span>
+          <div>
+            <div class="pn">${p.name}</div>
+            <div class="pm">${age} Jahre · ${p.birthYear} · Welt ${p.currentWorld||1}/10 · ${totalTasks}/100 Aufgaben<br>Dabei seit: ${created} · Aktiv: ${updated}</div>
           </div>
         </div>
-
-        <!-- World progress bars -->
-        <div class="world-bars">
-          ${WORLDS.map((world, wi) => {
-            const ws = p.worlds[world.id];
-            const done = ws.tasks.filter(t => t && t.done).length;
-            const pct = (done / 10) * 100;
-            const worldScore = ws.tasks.filter(t => t && t.done).reduce((s, t) => s + (t.score || 0), 0);
-            return `
-              <div class="world-bar-row">
-                <span class="world-bar-label">${world.icon} ${world.name}</span>
-                <div class="world-bar-track">
-                  <div class="world-bar-fill" style="width:${pct}%;background:${worldColors[wi]}"></div>
-                </div>
-                <span class="world-bar-count">${done}/10</span>
-                <span class="time-val">⭐${worldScore}</span>
-                ${ws.completed ? '<span style="color:#27AE60;font-size:0.8rem">✓</span>' : ''}
-                ${ws.jokerUsed ? '<span title="Joker verwendet" style="font-size:0.8rem">🃏</span>' : ''}
-              </div>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- Actions + Detail toggle -->
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          <div class="player-actions">
-            <button class="btn-admin btn-expand" onclick="Admin.toggleDetail('${p.name}')">
-              📋 Detail anzeigen
-            </button>
-            <button class="btn-admin btn-reset" onclick="Admin.resetPlayer('${p.name}')">
-              🔄 Fortschritt zurücksetzen
-            </button>
-            <button class="btn-admin btn-delete" onclick="Admin.deletePlayer('${p.name}')">
-              🗑️ Spieler löschen
-            </button>
-          </div>
-        </div>
-
-        <!-- Detail section (hidden by default) -->
-        <div class="detail-section" id="detail-${p.name.replace(/\s/g,'_')}">
-          ${WORLDS.map(world => {
-            const ws = p.worlds[world.id];
-            return `
-              <div style="margin-bottom:12px">
-                <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:5px">
-                  ${world.icon} ${world.name}
-                </div>
-                <div class="task-detail-grid">
-                  ${world.tasks.map((task, ti) => {
-                    const t = ws.tasks[ti];
-                    if (!t || !t.done) return `<div class="task-pip empty" title="Aufgabe ${ti+1}: offen">${ti+1}</div>`;
-                    if (t.joker) return `<div class="task-pip joker" title="Joker">🃏</div>`;
-                    const sec = t.timeMs ? Math.round(t.timeMs/1000) : '?';
-                    const err = t.errors || 0;
-                    return `<div class="task-pip done" title="${task.title}&#10;Score: ${t.score}&#10;Zeit: ${sec}s&#10;Fehler: ${err}">
-                      ${t.score || 0}
-                    </div>`;
-                  }).join('')}
-                </div>
-                <div style="font-size:0.7rem;color:rgba(255,255,255,0.3)">
-                  ${ws.tasks.filter(t=>t&&t.done&&!t.joker).map((t,i)=>{
-                    const sec = t && t.timeMs ? Math.round(t.timeMs/1000) : null;
-                    return sec !== null ? `⏱${sec}s` : '';
-                  }).filter(Boolean).join(' · ')}
-                </div>
-              </div>
-            `;
-          }).join('')}
+        <div style="text-align:right">
+          <div class="ps">⭐ ${p.totalScore||0}</div>
         </div>
       </div>
-    `;
+
+      <!-- World bars -->
+      <div class="wb">
+        ${(WORLDS||[]).map((world,wi)=>{
+          const ws = (p.worlds||{})[world.id]||{tasks:Array(10).fill(null),jokerUsed:false,completed:false};
+          const done = ws.tasks.filter(t=>t&&t.done).length;
+          const pct  = (done/10)*100;
+          const wscore = ws.tasks.filter(t=>t&&t.done).reduce((s,t)=>s+(t.score||0),0);
+          return `<div class="wr">
+            <span class="wl">${world.icon} ${world.name}</span>
+            <div class="wt"><div class="wf" style="width:${pct}%;background:${WCOLORS[wi]||'#5D6D7E'}"></div></div>
+            <span class="wc">${done}/10</span>
+            <span style="font-size:0.68rem;color:rgba(255,255,255,0.35)">⭐${wscore}</span>
+            ${ws.completed?'<span style="color:#27AE60;font-size:0.75rem">✓</span>':''}
+            ${ws.jokerUsed?'<span style="font-size:0.75rem">🃏</span>':''}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Actions -->
+      <div class="pa">
+        <button class="ba bg" onclick="Admin.showAddPoints('${p.name}')">⭐ Punkte</button>
+        <button class="ba bb" onclick="Admin.showSetWorld('${p.name}')">🌍 Welt setzen</button>
+        <button class="ba bb" onclick="Admin.showResetTasks('${p.name}')">↩️ Aufgaben</button>
+        <button class="ba br" onclick="Admin.resetFull('${p.name}')">🔄 Alles reset</button>
+        <button class="ba be" onclick="Admin.toggleDetail('${p.name}')">📋 Detail</button>
+        <button class="ba bd" onclick="Admin.deletePlayer('${p.name}')">🗑️ Löschen</button>
+      </div>
+
+      <!-- Detail -->
+      <div class="ds" id="det-${p.name.replace(/\s/g,'_')}">
+        ${(WORLDS||[]).map(world=>{
+          const ws = (p.worlds||{})[world.id]||{tasks:Array(10).fill(null)};
+          return `<div style="margin-bottom:10px">
+            <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;margin-bottom:4px">${world.icon} ${world.name}</div>
+            <div class="tg">
+              ${world.tasks.map((task,ti)=>{
+                const t = ws.tasks[ti];
+                if(!t||!t.done) return `<div class="tp te" title="Offen">${ti+1}</div>`;
+                if(t.joker)    return `<div class="tp tj" title="Joker">🃏</div>`;
+                const sec = t.timeMs?Math.round(t.timeMs/1000)+'s':'';
+                const err = t.errors||0;
+                return `<div class="tp td" title="${task.title}&#10;⭐${t.score} · ⏱${sec} · ❌${err}">${t.score||0}</div>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
   },
 
   toggleDetail(name) {
-    const el = document.getElementById('detail-' + name.replace(/\s/g,'_'));
-    if (el) el.classList.toggle('open');
+    document.getElementById('det-'+name.replace(/\s/g,'_'))?.classList.toggle('open');
   },
 
-  resetPlayer(name) {
-    if (confirm(`Fortschritt von "${name}" wirklich zurücksetzen?\nAlle Punkte und Aufgaben werden gelöscht!`)) {
-      State.resetPlayerProgress(name);
-      this.showDashboard();
+  // ---- MODALS ----
+  _modal(html) {
+    document.getElementById('modal-area').innerHTML = `<div class="modal" onclick="Admin._closeModal(event)">${html}</div>`;
+  },
+  _closeModal(e) { if(e.target.classList.contains('modal')) document.getElementById('modal-area').innerHTML=''; },
+  _close() { document.getElementById('modal-area').innerHTML=''; },
+
+  showAddPoints(name) {
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
+      <h3>⭐ Punkte für ${name}</h3>
+      <label>Punkte (positiv = hinzufügen, negativ = abziehen)</label>
+      <input type="number" id="m-pts" value="50" step="10"/>
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._addPoints('${name}')">Speichern</button>
+        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
+      </div>
+    </div>`);
+  },
+
+  async _addPoints(name) {
+    const pts = parseInt(document.getElementById('m-pts')?.value||0);
+    await State.addPoints(name, pts);
+    this._close();
+    await this.showDashboard();
+  },
+
+  showSetWorld(name) {
+    const options = (WORLDS||Array.from({length:10},(_,i)=>({id:i+1,name:`Welt ${i+1}`,icon:'🌍'}))).map(w=>`<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
+      <h3>🌍 Welt setzen für ${name}</h3>
+      <label>Aktuelle Welt</label>
+      <select id="m-world">${options}</select>
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._setWorld('${name}')">Speichern</button>
+        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
+      </div>
+    </div>`);
+  },
+
+  async _setWorld(name) {
+    const w = parseInt(document.getElementById('m-world')?.value||1);
+    await State.setWorld(name, w);
+    this._close();
+    await this.showDashboard();
+  },
+
+  showResetTasks(name) {
+    const worldOpts = (WORLDS||Array.from({length:10},(_,i)=>({id:i+1,name:`Welt ${i+1}`,icon:'🌍'}))).map(w=>`<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+    const taskOpts  = Array.from({length:10},(_,i)=>`<option value="${i}">Ab Aufgabe ${i+1}</option>`).join('');
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
+      <h3>↩️ Aufgaben zurücksetzen für ${name}</h3>
+      <label>Welt</label>
+      <select id="m-rw">${worldOpts}</select>
+      <label>Zurücksetzen ab Aufgabe</label>
+      <select id="m-rt">${taskOpts}</select>
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:10px">Alle Aufgaben ab dieser werden auf "offen" gesetzt.</div>
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._resetTasks('${name}')">Zurücksetzen</button>
+        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
+      </div>
+    </div>`);
+  },
+
+  async _resetTasks(name) {
+    const w = parseInt(document.getElementById('m-rw')?.value||1);
+    const t = parseInt(document.getElementById('m-rt')?.value||0);
+    await State.resetTasksFromIndex(name, w, t);
+    this._close();
+    await this.showDashboard();
+  },
+
+  async resetFull(name) {
+    if (confirm(`Kompletten Fortschritt von "${name}" zurücksetzen?\nAlle Punkte und Aufgaben werden gelöscht!`)) {
+      await State.resetPlayerProgress(name);
+      await this.showDashboard();
     }
   },
 
-  deletePlayer(name) {
-    if (confirm(`Spieler "${name}" wirklich LÖSCHEN?\nDies kann nicht rückgängig gemacht werden!`)) {
-      State.deletePlayer(name);
-      this.showDashboard();
+  async deletePlayer(name) {
+    if (confirm(`Spieler "${name}" LÖSCHEN?\nDies kann nicht rückgängig gemacht werden!`)) {
+      await State.deletePlayer(name);
+      await this.showDashboard();
     }
   },
 
   showChangePw() {
-    const newPw = prompt('Neues Admin-Passwort eingeben:');
-    if (newPw && newPw.length >= 4) {
-      State.setAdminPw(newPw);
-      alert('✅ Passwort gespeichert!');
-    } else if (newPw !== null) {
-      alert('Passwort muss mindestens 4 Zeichen haben.');
-    }
+    const pw = prompt('Neues Admin-Passwort (min. 4 Zeichen):');
+    if (pw && pw.length >= 4) { State.setAdminPw(pw); alert('✅ Passwort gespeichert!'); }
+    else if (pw !== null) alert('Zu kurz!');
   }
 };
 
-Admin.render();
+// Boot
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => Admin.render(), 300);
+});
 </script>
 </body>
 </html>
