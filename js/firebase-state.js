@@ -11,12 +11,12 @@
 // FIREBASE KONFIGURATION — hier deine eigenen Daten eintragen!
 // ============================================================
 const FIREBASE_CONFIG = {
-  apiKey:            "DEIN_API_KEY",
-  authDomain:        "DEIN_PROJEKT.firebaseapp.com",
-  projectId:         "DEIN_PROJEKT_ID",
-  storageBucket:     "DEIN_PROJEKT.appspot.com",
-  messagingSenderId: "DEINE_SENDER_ID",
-  appId:             "DEINE_APP_ID"
+  apiKey:            "AIzaSyBECgS_DLTmLTXABeyFQ2rNKISFyf6jwlE",
+  authDomain:        "mischa-denkspiel.firebaseapp.com",
+  projectId:         "mischa-denkspiel",
+  storageBucket:     "mischa-denkspiel.firebasestorage.app",
+  messagingSenderId: "272799969679",
+  appId:             "1:272799969679:web:930490bc929b3b2747dbfa"
 };
 
 // ============================================================
