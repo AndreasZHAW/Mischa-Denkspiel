@@ -169,7 +169,7 @@ const Admin = {
           <span style="font-size:1.6rem">${CEMOJIS[p.character]||'🧭'}</span>
           <div>
             <div class="pn">${p.name}</div>
-            <div class="pm">${age} Jahre · ${p.birthYear} · Welt ${p.currentWorld||1}/10 · ${totalTasks}/100 Aufgaben<br>Dabei seit: ${created} · Aktiv: ${updated}</div>
+            <div class="pm">${age} Jahre · ${p.birthYear} · Welt ${p.currentWorld||1}/10 · ${totalTasks}/100 Aufgaben<br>Seit: ${created} · Aktiv: ${updated}<br><span style="cursor:pointer;color:#FFD700;font-size:0.7rem" onclick="const s=this.nextSibling;s.style.display=s.style.display==='none'?'inline':'none'">🔑 Passwort anzeigen</span><span style="display:none;color:#FFD700;margin-left:6px;font-size:0.7rem">${p.password||"?"}  </span></div>
           </div>
         </div>
         <div style="text-align:right">

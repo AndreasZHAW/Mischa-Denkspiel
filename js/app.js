@@ -475,6 +475,10 @@ const App = {
         case 'differences': DifferencesGame.start({ worldId, theme: world.diffTheme, onComplete }); break;
         case 'shutthebox':  ShutTheBoxGame.start({ onComplete }); break;
         case 'jenga':       JengaGame.start({ worldId, ageGroup, onComplete }); break;
+        case 'pacman':      PacmanGame.start({ onComplete }); break;
+        case 'slider':      SliderGame.start({ ageGroup, worldId, onComplete }); break;
+        case 'wordsearch':  WordSearchGame.start({ worldId, onComplete }); break;
+        case 'typing':      TypingGame.start({ ageGroup, worldId, onComplete }); break;
         default:
           document.getElementById('game-area').innerHTML = '<div style="padding:20px;text-align:center">🚧 Kommt bald!</div>';
       }
@@ -596,6 +600,10 @@ function getTaskInstruction(type, worldId) {
     differences: '🖼️ <b>Unterschiede finden!</b><br>Tippe auf Stellen die zwischen den zwei Bildern unterschiedlich sind. Fehlklicks kosten Punkte!',
     shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und schliesse Zahlen die zusammen die Würfelsumme ergeben. Ziel: alle 9 Felder schliessen!',
     jenga:       '🗼 <b>Jenga-Turm!</b><br>Beantworte 10 Fragen. Jeder Fehler = ein Stein fällt. Verhindere den Einsturz!',
+    pacman:      '👾 <b>Pac-Man!</b><br>Fresse alle Punkte und weiche den Geistern aus! Steuere mit den Pfeiltasten oder wische auf dem Bildschirm. Power-Punkte machen Geister essbar!',
+    slider:      '🧩 <b>Schiebepuzzle!</b><br>Schiebe die Felder in die richtige Reihenfolge. Tippe auf ein Feld neben dem leeren Feld um es zu verschieben. Weniger Züge = mehr Punkte!',
+    wordsearch:  '🔤 <b>Wörter suchen!</b><br>Finde alle 5 Wörter im Buchstaben-Raster. Wische von einem Buchstaben zum nächsten um ein Wort zu markieren.',
+    typing:      '⌨️ <b>Tipp-Spiel!</b><br>Tippe die angezeigten Wörter so schnell und genau wie möglich ab. 10 Wörter — schnell und fehlerlos tippen gibt die meisten Punkte!',
   };
   return map[type] || 'Los geht\'s!';
 }
