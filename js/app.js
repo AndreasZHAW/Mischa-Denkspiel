@@ -475,7 +475,9 @@ const App = {
         case 'differences': DifferencesGame.start({ worldId, theme: world.diffTheme, onComplete }); break;
         case 'shutthebox':  ShutTheBoxGame.start({ onComplete }); break;
         case 'jenga':       JengaGame.start({ worldId, ageGroup, onComplete }); break;
-        case 'pacman':      PacmanGame.start({ onComplete }); break;
+        case 'balloon':     BalloonGame.start({ ageGroup, worldId, onComplete }); break;
+        case 'simon':       SimonGame.start({ worldId, onComplete }); break;
+        case 'truefalse':   TrueFalseGame.start({ worldId, onComplete }); break;
         case 'slider':      SliderGame.start({ ageGroup, worldId, onComplete }); break;
         case 'wordsearch':  WordSearchGame.start({ worldId, onComplete }); break;
         case 'typing':      TypingGame.start({ ageGroup, worldId, onComplete }); break;
@@ -600,7 +602,10 @@ function getTaskInstruction(type, worldId) {
     differences: '🖼️ <b>Unterschiede finden!</b><br>Tippe auf Stellen die zwischen den zwei Bildern unterschiedlich sind. Fehlklicks kosten Punkte!',
     shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und schliesse Zahlen die zusammen die Würfelsumme ergeben. Ziel: alle 9 Felder schliessen!',
     jenga:       '🗼 <b>Jenga-Turm!</b><br>Beantworte 10 Fragen. Jeder Fehler = ein Stein fällt. Verhindere den Einsturz!',
-    pacman:      '👾 <b>Pac-Man!</b><br>Fresse alle Punkte und weiche den Geistern aus! Steuere mit den Pfeiltasten oder wische auf dem Bildschirm. Power-Punkte machen Geister essbar!',
+    balloon:     '🎈 <b>Ballon-Mathe!</b><br>Eine Rechenaufgabe erscheint — tippe auf den Ballon mit der richtigen Antwort! Sei schnell, falsche Ballons platzen rot.',
+    simon:       '🎨 <b>Simon Says!</b><br>Eine Farb-Sequenz wird angezeigt — merke dir die Reihenfolge und tippe die Farben in der gleichen Reihenfolge nach. Jede Runde wird die Sequenz länger!',
+    truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Lies die Aussage und entscheide schnell: ist sie <b>Wahr ✅</b> oder <b>Falsch ❌</b>? 10 Fragen zur aktuellen Welt!',
+    pacman:      '👾 <b>Pac-Man!</b><br>Fresse alle Punkte und weiche den Geistern aus! Steuere mit den Pfeiltasten ← ↑ → ↓ oder wische über den Bildschirm.',
     slider:      '🧩 <b>Schiebepuzzle!</b><br>Schiebe die Felder in die richtige Reihenfolge. Tippe auf ein Feld neben dem leeren Feld um es zu verschieben. Weniger Züge = mehr Punkte!',
     wordsearch:  '🔤 <b>Wörter suchen!</b><br>Finde alle 5 Wörter im Buchstaben-Raster. Wische von einem Buchstaben zum nächsten um ein Wort zu markieren.',
     typing:      '⌨️ <b>Tipp-Spiel!</b><br>Tippe die angezeigten Wörter so schnell und genau wie möglich ab. 10 Wörter — schnell und fehlerlos tippen gibt die meisten Punkte!',
