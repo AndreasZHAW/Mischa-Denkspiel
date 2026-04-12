@@ -142,7 +142,7 @@ const State = {
     if (!player) return;
     if (!player.worlds[worldIndex]) player.worlds[worldIndex] = { tasks: Array(10).fill(null), jokerUsed: false, completed: false };
 
-    const finalScore = this.calcFinalScore(result);
+    const finalScore = this.calcFinalScore(result, player);
     player.worlds[worldIndex].tasks[taskIndex] = {
       done: true, score: finalScore,
       rawScore: result.rawScore || 0,
@@ -168,11 +168,22 @@ const State = {
     return player;
   },
 
-  calcFinalScore({ rawScore = 100, timeMs = 0, errors = 0, passed = true }) {
+  calcFinalScore({ rawScore = 100, timeMs = 0, errors = 0, passed = true }, player = null) {
     if (!passed) return 0;
     const timePenalty  = Math.min(40, Math.floor(timeMs / 3000));
     const errorPenalty = Math.min(60, errors * 8);
-    return Math.max(5, Math.round(Math.min(100, rawScore) - timePenalty - errorPenalty));
+    let base = Math.max(5, Math.round(Math.min(100, rawScore) - timePenalty - errorPenalty));
+    // Apply star multiplier from shop if active
+    if (player && player.activeStarMultiplier && player.starMultiplierExpires) {
+      if (Date.now() < player.starMultiplierExpires) {
+        base = Math.round(base * player.activeStarMultiplier);
+      } else {
+        // Expired — clear it
+        player.activeStarMultiplier = null;
+        player.starMultiplierExpires = null;
+      }
+    }
+    return base;
   },
 
   async useJoker(playerName, worldIndex, taskIndex) {

@@ -8,7 +8,7 @@ const WORLDS = [
       {type:'memory',title:'Auto-Memory',icon:'🧠'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
       {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
       {type:'flags',title:'Flaggen raten',icon:'🌍'},{type:'wordsearch',title:'Wörter suchen',icon:'🔤'},
-      {type:'slider',title:'Schiebepuzzle',icon:'🧩'},{type:'french',title:'Französisch Quiz',icon:'🇫🇷'},
+      {type:'dart',title:'Dart!',icon:'🎯'},{type:'french',title:'Französisch Quiz',icon:'🇫🇷'},
     ],memoryEmojis:['🚗','🗺️','⛽','🚦','🎒']},
   {id:2,name:'Im Schloss ankommen',icon:'🏰',description:'Willkommen im Schloss!',bannerClass:'w2',color:'#8E44AD',difficulty:'Einfach',
     tasks:[
@@ -16,7 +16,7 @@ const WORLDS = [
       {type:'reaction',title:'Burgtor-Reaktion',icon:'🏰'},{type:'hangman',title:'Galgenmännchen',icon:'🎯'},
       {type:'wordsearch',title:'Ritterwörter',icon:'🔤'},{type:'shutthebox',title:'Shut the Box!',icon:'🎲'},
       {type:'jenga',title:'Turm der Ritter',icon:'🗼'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'slider',title:'Schloss-Puzzle',icon:'🧩'},{type:'riddle',title:'Rätsel',icon:'🤔'},
+      {type:'dart',title:'Schloss-Dart',icon:'🎯'},{type:'riddle',title:'Rätsel',icon:'🤔'},
     ],memoryEmojis:['🏰','👑','⚔️','🛡️','🗝️']},
   {id:3,name:'Baden im Pool',icon:'🏊',description:'Planschen im Pool!',bannerClass:'w3',color:'#27AE60',difficulty:'Einfach',
     tasks:[
@@ -24,7 +24,7 @@ const WORLDS = [
       {type:'memory',title:'Sommer-Memory',icon:'🧠'},{type:'simon',title:'Simon Says',icon:'🎨'},
       {type:'colormix',title:'Farben mischen',icon:'🎨'},{type:'train',title:'Sommer-Quiz',icon:'🚂'},
       {type:'jenga',title:'Sand-Turm',icon:'🗼'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'clock',title:'Uhr lesen',icon:'🕐'},{type:'slider',title:'Pool-Puzzle',icon:'🧩'},
+      {type:'clock',title:'Uhr lesen',icon:'🕐'},{type:'dart',title:'Pool-Dart',icon:'🎯'},
     ],memoryEmojis:['🏊','🌞','🏖️','🍦','🐠']},
   {id:4,name:'Tennis spielen',icon:'🎾',description:'Auf dem Tennisplatz!',bannerClass:'w4',color:'#E67E22',difficulty:'Mittel',
     tasks:[
@@ -56,7 +56,7 @@ const WORLDS = [
       {type:'reaction',title:'Kellner-Reaktion',icon:'🍴'},{type:'train',title:'Français-Quiz',icon:'🚂'},
       {type:'french',title:'Französisch lernen',icon:'🇫🇷'},{type:'shutthebox',title:'Shut the Box!',icon:'🎲'},
       {type:'hangman',title:'Galgenmännchen',icon:'🎯'},{type:'emojistory',title:'Emoji Geschichte',icon:'📖'},
-      {type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},{type:'slider',title:'Essen-Puzzle',icon:'🧩'},
+      {type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},{type:'dart',title:'Restaurant-Dart',icon:'🎯'},
     ],memoryEmojis:['🥐','🍷','🧀','🥗','🍰']},
   {id:8,name:'Fussball schauen',icon:'⚽',description:'VfB Stuttgart schauen!',bannerClass:'w8',color:'#E30613',difficulty:'Schwer',
     tasks:[

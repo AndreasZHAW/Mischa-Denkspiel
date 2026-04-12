@@ -255,8 +255,9 @@ const App = {
               <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">⭐ ${player.totalScore||0}</div>
             </div>
           </div>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:6px 12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.78rem">🌍 Rangliste</button>
+            <button onclick="Shop.open(null,()=>App.showWorldMap())" style="background:rgba(255,215,0,0.3);border:2px solid #FFD700;color:#FFD700;padding:6px 12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.78rem">🛒 Shop</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:6px 12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.78rem">Abmelden</button>
           </div>
         </div>
@@ -284,6 +285,16 @@ const App = {
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
           }).join('')}
+        </div>
+
+        <!-- Floating gift button -->
+        <div style="position:fixed;bottom:24px;right:20px;z-index:50">
+          <button onclick="Shop.openGiftSelector()" style="width:54px;height:54px;border-radius:50%;
+            background:linear-gradient(135deg,#FF69B4,#E91E8C);border:none;cursor:pointer;
+            font-size:1.5rem;box-shadow:0 6px 20px rgba(233,30,140,0.4);
+            display:flex;align-items:center;justify-content:center">
+            🎁
+          </button>
         </div>
       </div>`);
   },
