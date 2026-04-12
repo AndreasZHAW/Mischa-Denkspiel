@@ -371,11 +371,13 @@ const App = {
         <div class="card" style="max-width:480px;padding:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">◀ Welten</button>
-            <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.75rem">🌍 Rangliste</button>
-              <div class="joker-badge ${ws.jokerUsed?'used':''}" onclick="${ws.jokerUsed?'':  `App.showJokerMenu(${worldId})`}">
-                🃏 ${ws.jokerUsed?'(benutzt)':'Joker'}
-              </div>
+              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.75rem">👗 Garderobe</button>
+              <div class="joker-badge ${State.getJokersRemaining(player,worldId)===0?'used':''}"
+              onclick="${State.getJokersRemaining(player,worldId)===0?'':  `App.showJokerMenu(${worldId})`}">
+              🃏 ${State.getJokersRemaining(player,worldId)} Joker
+            </div>
             </div>
           </div>
 
@@ -418,7 +420,9 @@ const App = {
     if (!ws) return;
     const activeTask = ws.tasks.findIndex(t=>!t||!t.done);
     if (activeTask<0) return;
-    if (confirm(`🃏 Joker einsetzen?\nDie aktuelle Aufgabe zählt als geschafft. Nur ein Joker pro Welt!`)) {
+    const rem = State.getJokersRemaining(player, worldId);
+    if (rem === 0) { alert('Keine Joker mehr in dieser Welt!'); return; }
+    if (confirm(`🃏 Joker einsetzen?\nNoch ${rem} Joker in dieser Welt.\nDie aktuelle Aufgabe zählt als geschafft.`)) {
       await State.useJoker(player.name, worldId, activeTask);
       this.showWorld(worldId);
     }
@@ -528,7 +532,7 @@ const App = {
 
   async useJokerInGame(worldId, taskIndex) {
     const player = await State.refreshCurrentPlayer();
-    if (player.worlds?.[worldId]?.jokerUsed) return;
+    if (State.getJokersRemaining(player, worldId) === 0) return;
     if (confirm('🃏 Joker einsetzen? Aufgabe zählt als geschafft!')) {
       await State.useJoker(player.name, worldId, taskIndex);
       this._showTaskComplete(worldId, taskIndex, { rawScore:0, timeMs:0, errors:0, passed:true }, true);

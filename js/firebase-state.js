@@ -188,12 +188,27 @@ const State = {
 
   async useJoker(playerName, worldIndex, taskIndex) {
     const player = await this.getPlayer(playerName);
-    if (!player || player.worlds[worldIndex]?.jokerUsed) return false;
-    player.worlds[worldIndex].jokerUsed = true;
-    player.worlds[worldIndex].tasks[taskIndex] = { done: true, score: 0, joker: true, ts: Date.now() };
+    if (!player) return false;
+    const ws = player.worlds[worldIndex];
+    if (!ws) return false;
+    // How many jokers does this player have per world?
+    const maxJokers = player.maxJokersPerWorld || 1;
+    const jokersUsed = ws.jokersUsed || (ws.jokerUsed ? 1 : 0);
+    if (jokersUsed >= maxJokers) return false;
+    ws.jokersUsed = jokersUsed + 1;
+    ws.jokerUsed = true; // backwards compat
+    ws.tasks[taskIndex] = { done: true, score: 0, joker: true, ts: Date.now() };
     await this.savePlayer(player);
     this.currentPlayer = player;
     return true;
+  },
+
+  getJokersRemaining(player, worldIndex) {
+    const ws = player.worlds?.[worldIndex];
+    if (!ws) return 0;
+    const maxJokers = player.maxJokersPerWorld || 1;
+    const jokersUsed = ws.jokersUsed || (ws.jokerUsed ? 1 : 0);
+    return Math.max(0, maxJokers - jokersUsed);
   },
 
   // ---- ADMIN ACTIONS ----

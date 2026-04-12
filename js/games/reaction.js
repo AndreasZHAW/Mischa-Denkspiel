@@ -67,13 +67,14 @@ const ReactionGame = {
       const isGreen = Math.random() > 0.35;
       c.phase = isGreen ? 'green' : 'red';
       c.canTap = true;
+      c.greenShownAt = isGreen ? Date.now() : null;
       this._updateScreen();
 
       const showTime = isGreen ? 1000 + Math.random() * 900 : 1500 + Math.random() * 600;
       c.timer = setTimeout(() => {
         if (c.round >= c.totalRounds) return;
-        if (isGreen) { c.results[c.round] = 'wrong'; c.errors++; }
-        else         { c.results[c.round] = 'correct'; }
+        if (isGreen) { c.results[c.round] = { result: 'wrong', rt: null }; c.errors++; }
+        else         { c.results[c.round] = { result: 'correct', rt: null }; }
         c.round++;
         c.canTap = false;
         this._updateDots();
@@ -87,8 +88,20 @@ const ReactionGame = {
     if (!c || !c.canTap) return;
     clearTimeout(c.timer);
     const wasGreen = c.phase === 'green';
+    const rt = wasGreen && c.greenShownAt ? Date.now() - c.greenShownAt : null;
     if (!wasGreen) c.errors++;
-    c.results[c.round] = wasGreen ? 'correct' : 'wrong';
+    c.results[c.round] = { result: wasGreen ? 'correct' : 'wrong', rt };
+    // Show reaction time briefly
+    if (wasGreen && rt) {
+      const screen = document.getElementById('reaction-screen');
+      if (screen) {
+        const rtEl = document.createElement('div');
+        rtEl.style.cssText = 'position:absolute;top:10px;right:14px;font-size:0.9rem;font-weight:700;color:rgba(255,255,255,0.9)';
+        rtEl.textContent = rt + ' ms';
+        screen.style.position = 'relative';
+        screen.appendChild(rtEl);
+      }
+    }
     c.round++;
     c.canTap = false;
     this._updateDots();
@@ -98,9 +111,16 @@ const ReactionGame = {
   _updateDots() {
     const c = this.current;
     document.querySelectorAll('.reaction-dot').forEach((dot, i) => {
-      const res = c.results[i];
+      const r = c.results[i];
+      if (!r) return;
+      const res = typeof r === 'object' ? r.result : r;
+      const rt = typeof r === 'object' ? r.rt : null;
       dot.className = 'reaction-dot';
-      if (res === 'correct') { dot.classList.add('correct'); dot.textContent = '✓'; }
+      if (res === 'correct') {
+        dot.classList.add('correct');
+        dot.textContent = rt ? Math.round(rt/10)*10 + '' : '✓';
+        if (rt) dot.title = rt + ' ms';
+      }
       else if (res === 'wrong') { dot.classList.add('wrong'); dot.textContent = '✗'; }
     });
   },
@@ -108,7 +128,10 @@ const ReactionGame = {
   _showResult() {
     const c = this.current;
     clearTimeout(c.timer);
-    const correct = c.results.filter(r => r === 'correct').length;
+    const correct = c.results.filter(r => (typeof r === 'object' ? r.result : r) === 'correct').length;
+    // Average reaction time for correct green taps
+    const rts = c.results.filter(r => typeof r === 'object' && r.rt && r.result === 'correct').map(r => r.rt);
+    const avgRt = rts.length > 0 ? Math.round(rts.reduce((a,b)=>a+b,0)/rts.length) : null;
     const timeMs  = Date.now() - c.startTime;
     const rawScore = Math.round((correct / c.totalRounds) * 100);
     const finalScore = State.calcFinalScore({ rawScore, timeMs, errors: c.errors, passed: correct >= 6 });
@@ -119,7 +142,10 @@ const ReactionGame = {
         <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--mountain-dark);margin:10px 0">
           ${correct}/${c.totalRounds} richtig!
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin:12px 0">
+          <div style="background:#E8F8F5;border-radius:10px;padding:10px;font-size:0.8rem">
+            <div style="font-size:1.2rem">⚡</div><b>${avgRt ? avgRt+' ms' : '—'}</b><br><span style="color:var(--text-mid)">Ø Reaktion</span>
+          </div>
           <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem">
             <div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">Zeit</span>
           </div>

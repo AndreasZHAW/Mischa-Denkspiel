@@ -114,6 +114,7 @@ const Admin = {
         <div class="at">🏆 Mischa Denkspiel — Admin</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="ba be" onclick="Admin.showChangePw()">🔑 PW ändern</button>
+          <button class="ba bg" onclick="Admin.showDiscountPanel()">🏷️ Rabatte</button>
           <button class="ba be" onclick="Admin.showDashboard()">🔄 Aktualisieren</button>
           <a href="index.html" class="ba be" style="text-decoration:none">← Zum Spiel</a>
         </div>
@@ -320,6 +321,76 @@ const Admin = {
     const pw = prompt('Neues Admin-Passwort (min. 4 Zeichen):');
     if (pw && pw.length >= 4) { State.setAdminPw(pw); alert('✅ Passwort gespeichert!'); }
     else if (pw !== null) alert('Zu kurz!');
+  },
+
+  // ---- DISCOUNT / RABATT ----
+  showDiscountPanel() {
+    const discounts = JSON.parse(localStorage.getItem('mischa_discounts') || '{}');
+    const now = Date.now();
+    const SHOP_ITEM_NAMES = {
+      starter_pack:'🎁 Starterpaket', joker_x2:'🃏🃏 2× Joker', joker_x3:'🃏🃏🃏 3× Joker',
+      boost_2x_15:'⭐×2 15Min', boost_4x_15:'⭐×4 15Min', boost_10x_15:'🌟×10 15Min',
+      boost_10x_30:'🌟×10 30Min', boost_10x_60:'🌟×10 1h',
+      skin_swimmer:'🏊 Schwimmer', skin_og:'👴 OG-Mann', skin_dev:'💻 Entwickler',
+      extra_world_unlock:'🔓 Welt freischalten', extra_score_shield:'🛡️ Punkte-Schutz',
+      extra_hint:'💡 Hinweis-Paket', admin_week:'🔐 Admin-Zugang',
+    };
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()" style="max-width:420px">
+      <h3>🏷️ Rabatt verwalten</h3>
+      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:12px">
+        Aktive Rabatte werden für alle Spieler im Shop angezeigt.
+      </p>
+
+      <!-- Active discounts -->
+      <div id="disc-active" style="margin-bottom:14px">
+        ${Object.entries(discounts).filter(([,d])=>d.expiresAt>now).length === 0
+          ? '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem">Keine aktiven Rabatte</div>'
+          : Object.entries(discounts).filter(([,d])=>d.expiresAt>now).map(([id,d])=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;
+              background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);
+              border-radius:8px;padding:7px 10px;margin-bottom:5px;font-size:0.78rem;color:white">
+              <span>${SHOP_ITEM_NAMES[id]||id} — <b style="color:#FFD700">-${d.pct}%</b></span>
+              <span style="color:rgba(255,255,255,0.4)">läuft ab: ${new Date(d.expiresAt).toLocaleDateString('de-CH')}</span>
+            </div>`).join('')
+        }
+      </div>
+
+      <!-- Add new discount -->
+      <label>Artikel</label>
+      <select id="disc-item" style="margin-bottom:8px">
+        ${Object.entries(SHOP_ITEM_NAMES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+      </select>
+
+      <label>Rabatt %</label>
+      <input type="number" id="disc-pct" value="20" min="1" max="90" style="margin-bottom:8px"/>
+
+      <label>Gültig für</label>
+      <select id="disc-dur" style="margin-bottom:14px">
+        <option value="${60*60*1000}">1 Stunde</option>
+        <option value="${6*60*60*1000}">6 Stunden</option>
+        <option value="${24*60*60*1000}" selected>1 Tag</option>
+        <option value="${3*24*60*60*1000}">3 Tage</option>
+        <option value="${7*24*60*60*1000}">1 Woche</option>
+        <option value="${30*24*60*60*1000}">1 Monat</option>
+      </select>
+
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._saveDiscount()">Rabatt aktivieren</button>
+        <button class="mb-cancel" onclick="Admin._close()">Schliessen</button>
+      </div>
+    </div>`);
+  },
+
+  _saveDiscount() {
+    const item = document.getElementById('disc-item')?.value;
+    const pct  = parseInt(document.getElementById('disc-pct')?.value || 0);
+    const dur  = parseInt(document.getElementById('disc-dur')?.value || 0);
+    if (!item || !pct || !dur) return;
+    const discounts = JSON.parse(localStorage.getItem('mischa_discounts') || '{}');
+    discounts[item] = { pct, expiresAt: Date.now() + dur, setAt: Date.now() };
+    localStorage.setItem('mischa_discounts', JSON.stringify(discounts));
+    this._close();
+    alert(`✅ Rabatt von ${pct}% auf "${item}" aktiviert!`);
   }
 };
 
