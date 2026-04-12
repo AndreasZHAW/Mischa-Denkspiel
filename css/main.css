@@ -4,7 +4,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background:var(--sky);color:var(--text-dark);overflow-x:hidden}
 .mountain-bg{position:fixed;bottom:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-.sky-gradient{position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#B8DCEF 60%,#D4EDDA 100%)}
+.sky-gradient{position:absolute;inset:0;background:linear-gradient(180deg,#5DADE2 0%,#AED6F1 45%,#D5EFF5 70%,#C8F0D8 100%)}
 .mountain-svg{position:absolute;bottom:0;width:100%}
 .cloud{position:absolute;background:white;border-radius:50px;opacity:0.85;animation:floatCloud linear infinite}
 .cloud::before,.cloud::after{content:'';position:absolute;background:white;border-radius:50%}

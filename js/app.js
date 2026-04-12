@@ -214,6 +214,13 @@ const App = {
   async doLogin() {
     const name = document.getElementById('l-name')?.value.trim();
     const pw   = document.getElementById('l-pw')?.value.trim();
+    // Validate BEFORE showing loading screen
+    if (!name) {
+      const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Namen eingeben!';e.style.display='block';} return;
+    }
+    if (!pw) {
+      const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Passwort eingeben!';e.style.display='block';} return;
+    }
     this._loading('Anmelden...');
     const res = await State.login(name, pw);
     if (!res.ok) {
@@ -471,16 +478,27 @@ const App = {
         case 'reaction':    ReactionGame.start({ onComplete }); break;
         case 'memory':      MemoryGame.start({ emojis: world.memoryEmojis, onComplete }); break;
         case 'train':       TrainGame.start({ worldId, onComplete }); break;
-        case 'search':      SearchGame.start({ worldId, theme: world.searchTheme, onComplete }); break;
-        case 'differences': DifferencesGame.start({ worldId, theme: world.diffTheme, onComplete }); break;
         case 'shutthebox':  ShutTheBoxGame.start({ onComplete }); break;
         case 'jenga':       JengaGame.start({ worldId, ageGroup, onComplete }); break;
-        case 'balloon':     BalloonGame.start({ ageGroup, worldId, onComplete }); break;
-        case 'simon':       SimonGame.start({ worldId, onComplete }); break;
-        case 'truefalse':   TrueFalseGame.start({ worldId, onComplete }); break;
         case 'slider':      SliderGame.start({ ageGroup, worldId, onComplete }); break;
         case 'wordsearch':  WordSearchGame.start({ worldId, onComplete }); break;
         case 'typing':      TypingGame.start({ ageGroup, worldId, onComplete }); break;
+        case 'balloon':     BalloonGame.start({ ageGroup, worldId, onComplete }); break;
+        case 'simon':       SimonGame.start({ worldId, onComplete }); break;
+        case 'truefalse':   TrueFalseGame.start({ worldId, onComplete }); break;
+        case 'dart':        DartGame.start({ onComplete }); break;
+        case 'anagram':     AnagramGame.start({ worldId, onComplete }); break;
+        case 'colormix':    ColorMixGame.start({ onComplete }); break;
+        case 'clock':       ClockGame.start({ ageGroup, onComplete }); break;
+        case 'flags':       FlagsGame.start({ onComplete }); break;
+        case 'hangman':     HangmanGame.start({ worldId, onComplete }); break;
+        case 'tictactoe':   TicTacToeGame.start({ onComplete }); break;
+        case 'weight':      WeightGame.start({ onComplete }); break;
+        case 'basketball':  BasketballGame.start({ onComplete }); break;
+        case 'emojistory':  EmojiStoryGame.start({ onComplete }); break;
+        case 'geo':         GeoGame.start({ onComplete }); break;
+        case 'french':      FrenchGame.start({ onComplete }); break;
+        case 'riddle':      RiddleGame.start({ onComplete }); break;
         default:
           document.getElementById('game-area').innerHTML = '<div style="padding:20px;text-align:center">🚧 Kommt bald!</div>';
       }
@@ -560,15 +578,66 @@ const App = {
 // HELPERS
 // ============================================================
 function mountainSVG() {
+  const lavRows = [0,1,2,3,4,5,6,7,8,9,10].map(i=>
+    `<rect x="${i*34}" y="156" width="28" height="12" rx="6" fill="#9B59B6" opacity="0.65"/>` +
+    `<rect x="${i*34+4}" y="162" width="20" height="6" rx="3" fill="#7D3C98" opacity="0.5"/>`
+  ).join('');
   return `<svg class="mountain-svg" viewBox="0 0 375 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
-    <polygon points="0,200 60,60 120,200" fill="#A8C898" opacity="0.6"/>
-    <polygon points="80,200 180,20 280,200" fill="#8FAF6F" opacity="0.7"/>
-    <polygon points="220,200 310,50 400,200" fill="#9BBE82" opacity="0.6"/>
-    <polygon points="60,60 75,95 45,95" fill="white" opacity="0.9"/>
-    <polygon points="180,20 200,65 160,65" fill="white" opacity="0.9"/>
-    <polygon points="310,50 328,85 292,85" fill="white" opacity="0.9"/>
-    <rect y="160" width="375" height="40" fill="#7BC47F"/>
-    ${[20,60,100,140,180,220,260,300,340].map((x,i)=>`<circle cx="${x}" cy="162" r="4" fill="${['#FF6B9D','#FFD700','#9B59B6','#FF6B9D','#FFD700'][i%5]}"/><line x1="${x}" y1="162" x2="${x}" y2="178" stroke="#27AE60" stroke-width="1.5"/>`).join('')}
+    <defs>
+      <linearGradient id="chateau-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5DADE2"/><stop offset="100%" stop-color="#AED6F1"/>
+      </linearGradient>
+    </defs>
+    <rect width="375" height="200" fill="url(#chateau-sky)"/>
+    <!-- Hügel -->
+    <ellipse cx="60" cy="130" rx="100" ry="35" fill="#27AE60" opacity="0.3"/>
+    <ellipse cx="310" cy="125" rx="120" ry="40" fill="#1E8449" opacity="0.25"/>
+    <!-- Zypressen links -->
+    <ellipse cx="18" cy="118" rx="7" ry="28" fill="#1A5276" opacity="0.8"/>
+    <ellipse cx="32" cy="122" rx="6" ry="22" fill="#1A5276" opacity="0.7"/>
+    <!-- Zypressen rechts -->
+    <ellipse cx="344" cy="116" rx="7" ry="30" fill="#1A5276" opacity="0.8"/>
+    <ellipse cx="358" cy="121" rx="6" ry="24" fill="#1A5276" opacity="0.7"/>
+    <!-- Hauptgebäude -->
+    <rect x="135" y="90" width="105" height="70" fill="#F0E6D3"/>
+    <rect x="135" y="90" width="105" height="70" fill="none" stroke="#C8A97A" stroke-width="1.5"/>
+    <!-- Dach -->
+    <polygon points="130,90 187,55 245,90" fill="#C0392B"/>
+    <!-- Fenster -->
+    <rect x="148" y="100" width="14" height="18" rx="7" fill="#AED6F1" stroke="#C8A97A" stroke-width="1"/>
+    <rect x="170" y="100" width="14" height="18" rx="7" fill="#AED6F1" stroke="#C8A97A" stroke-width="1"/>
+    <rect x="213" y="100" width="14" height="18" rx="7" fill="#AED6F1" stroke="#C8A97A" stroke-width="1"/>
+    <rect x="192" y="100" width="14" height="18" rx="7" fill="#AED6F1" stroke="#C8A97A" stroke-width="1"/>
+    <!-- Türe -->
+    <rect x="179" y="128" width="18" height="32" rx="9" fill="#8B6914"/>
+    <!-- Linker Turm -->
+    <rect x="108" y="98" width="32" height="62" fill="#E8DCC8"/>
+    <polygon points="104,98 124,68 144,98" fill="#C0392B"/>
+    <rect x="115" y="110" width="11" height="14" rx="5.5" fill="#AED6F1" stroke="#C8A97A" stroke-width="1"/>
+    <!-- Rechter Turm -->
+    <rect x="235" y="98" width="32" height="62" fill="#E8DCC8"/>
+    <polygon points="231,98 251,68 271,98" fill="#C0392B"/>
+    <rect x="249" y="110" width="11" height="14" rx="5.5" fill="#AED6F1" stroke="#C8A97A" stroke-width="1"/>
+    <!-- Türmchen -->
+    <rect x="120" y="62" width="8" height="14" fill="#E8DCC8"/>
+    <polygon points="118,62 124,50 130,62" fill="#922B21"/>
+    <rect x="247" y="62" width="8" height="14" fill="#E8DCC8"/>
+    <polygon points="245,62 251,50 257,62" fill="#922B21"/>
+    <!-- Fahne -->
+    <line x1="188" y1="30" x2="188" y2="55" stroke="#5D6D7E" stroke-width="1.5"/>
+    <polygon points="188,30 205,37 188,44" fill="#E74C3C"/>
+    <!-- Lavendelfelder -->
+    <rect x="0" y="160" width="375" height="40" fill="#7EC8A4"/>
+    ${lavRows}
+    <!-- Sonne -->
+    <circle cx="342" cy="28" r="18" fill="#F9E79F" opacity="0.9"/>
+    <circle cx="342" cy="28" r="13" fill="#F4D03F"/>
+    <!-- Wolken -->
+    <ellipse cx="75" cy="22" rx="26" ry="10" fill="white" opacity="0.85"/>
+    <ellipse cx="88" cy="16" rx="18" ry="12" fill="white" opacity="0.85"/>
+    <ellipse cx="60" cy="18" rx="14" ry="9" fill="white" opacity="0.85"/>
+    <ellipse cx="212" cy="18" rx="22" ry="9" fill="white" opacity="0.75"/>
+    <ellipse cx="224" cy="12" rx="15" ry="11" fill="white" opacity="0.75"/>
   </svg>`;
 }
 
@@ -595,22 +664,32 @@ function worldPathSVG(worldId, doneCount, charEmoji, worldIcon) {
 function getTaskInstruction(type, worldId) {
   const map = {
     math:        '🔢 <b>Rechenaufgabe!</b><br>Löse 10 Aufgaben. Schnelle & fehlerfreie Antworten geben mehr Punkte!',
-    reaction:    '⚡ <b>Reaktionsspiel!</b><br>🟢 <b>Grün = TIPPEN</b> &nbsp;|&nbsp; 🔴 <b>Rot = NICHTS TUN</b>',
-    memory:      '🧠 <b>Memory!</b><br>Finde alle 5 Kartenpaare. Weniger Versuche = mehr Punkte!',
-    train:       '🚂 <b>Zugweichen!</b><br>Lenke den Zug richtig. Tippe auf <b>Links</b> oder <b>Rechts</b>.',
-    search:      '🔍 <b>VfB Wappen suchen!</b><br>Finde 5 versteckte VfB Stuttgart Wappen im Bild. Fehlklicks kosten Punkte!',
-    differences: '🖼️ <b>Unterschiede finden!</b><br>Tippe auf Stellen die zwischen den zwei Bildern unterschiedlich sind. Fehlklicks kosten Punkte!',
-    shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und schliesse Zahlen die zusammen die Würfelsumme ergeben. Ziel: alle 9 Felder schliessen!',
-    jenga:       '🗼 <b>Jenga-Turm!</b><br>Beantworte 10 Fragen. Jeder Fehler = ein Stein fällt. Verhindere den Einsturz!',
-    balloon:     '🎈 <b>Ballon-Mathe!</b><br>Eine Rechenaufgabe erscheint — tippe auf den Ballon mit der richtigen Antwort! Sei schnell, falsche Ballons platzen rot.',
-    simon:       '🎨 <b>Simon Says!</b><br>Eine Farb-Sequenz wird angezeigt — merke dir die Reihenfolge und tippe die Farben in der gleichen Reihenfolge nach. Jede Runde wird die Sequenz länger!',
-    truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Lies die Aussage und entscheide schnell: ist sie <b>Wahr ✅</b> oder <b>Falsch ❌</b>? 10 Fragen zur aktuellen Welt!',
-    pacman:      '👾 <b>Pac-Man!</b><br>Fresse alle Punkte und weiche den Geistern aus! Steuere mit den Pfeiltasten ← ↑ → ↓ oder wische über den Bildschirm.',
-    slider:      '🧩 <b>Schiebepuzzle!</b><br>Schiebe die Felder in die richtige Reihenfolge. Tippe auf ein Feld neben dem leeren Feld um es zu verschieben. Weniger Züge = mehr Punkte!',
-    wordsearch:  '🔤 <b>Wörter suchen!</b><br>Finde alle 5 Wörter im Buchstaben-Raster. Wische von einem Buchstaben zum nächsten um ein Wort zu markieren.',
-    typing:      '⌨️ <b>Tipp-Spiel!</b><br>Tippe die angezeigten Wörter so schnell und genau wie möglich ab. 10 Wörter — schnell und fehlerlos tippen gibt die meisten Punkte!',
+    reaction:    '⚡ <b>Reaktionsspiel!</b><br>🟢 <b>Grün = TIPPEN</b> &nbsp;|&nbsp; 🔴 <b>Rot = NICHTS TUN</b>. Sei blitzschnell!',
+    memory:      '🧠 <b>Memory!</b><br>Finde alle 5 Kartenpaare. Tippe zwei Karten auf — passen sie? Weniger Versuche = mehr Punkte!',
+    train:       '🚂 <b>Zugweichen!</b><br>Lenke den Zug bei jeder Weiche nach <b>Links ◀</b> oder <b>Rechts ▶</b>. Nur eine Seite führt zum Ziel!',
+    shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und schliesse Zahlen die zusammen die Würfelsumme ergeben. Ziel: alle 9 Felder schliessen! Falsche Auswahl kostet Punkte.',
+    jenga:       '🗼 <b>Jenga-Turm!</b><br>Beantworte 10 Fragen. Jede falsche Antwort = ein Stein fällt. Verhindere den Einsturz des Turms!',
+    slider:      '🧩 <b>Schiebepuzzle!</b><br>Tippe auf ein Feld neben dem leeren Feld um es zu verschieben. Bringe alle Felder in die richtige Reihenfolge! Grüne Felder = schon richtig ✅',
+    wordsearch:  '🔤 <b>Wörter suchen!</b><br>Finde alle 5 Wörter im Buchstaben-Raster. <b>Wische</b> von Buchstabe zu Buchstabe um ein Wort zu markieren.',
+    typing:      '⌨️ <b>Tipp-Spiel!</b><br>Tippe die angezeigten Wörter so schnell und genau wie möglich. 10 Wörter — Geschwindigkeit und Genauigkeit zählen!',
+    balloon:     '🎈 <b>Ballon-Mathe!</b><br>Eine Rechenaufgabe erscheint — tippe auf den Ballon mit der richtigen Antwort! Falscher Ballon platzt rot.',
+    simon:       '🎨 <b>Simon Says!</b><br>Schau dir die Farb-Sequenz an und tippe die Farben in <b>der gleichen Reihenfolge</b> nach. Jede Runde wird die Sequenz länger!',
+    truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Lies die Aussage und entscheide schnell: <b>✅ Wahr</b> oder <b>❌ Falsch</b>? 10 Fragen zur aktuellen Welt!',
+    dart:        '🎯 <b>Dart mit Wind!</b><br>Tippe auf die Dartscheibe um zu werfen. Achte auf den Wind — er lenkt deinen Pfeil ab! Ziel: <b>400+ Punkte</b> in 10 Würfen.',
+    anagram:     '🔤 <b>Buchstaben sortieren!</b><br>Tippe die Buchstaben in der <b>richtigen Reihenfolge</b> an um das Wort zu bilden. Falscher Buchstabe = alles zurücksetzen!',
+    colormix:    '🎨 <b>Farben mischen!</b><br>Welche <b>zwei Farben</b> ergeben zusammen die gesuchte Farbe? Tippe auf beide richtigen Farbtöne!',
+    clock:       '🕐 <b>Uhr lesen!</b><br>Schau dir die analoge Uhr an und wähle die richtige Zeit. Achte auf <b>Stunden- und Minutenzeiger</b>!',
+    flags:       '🌍 <b>Flaggen raten!</b><br>Welches Land gehört zu dieser Flagge? 10 Flaggen aus der ganzen Welt!',
+    hangman:     '🎯 <b>Galgenmännchen!</b><br>Rate das versteckte Wort Buchstabe für Buchstabe. Du hast <b>6 Fehler</b> bevor das Männchen komplett ist!',
+    tictactoe:   '❌ <b>Tic-Tac-Toe!</b><br>Spiele 5 Runden gegen die KI. Du bist <b>❌</b>, die KI ist <b>⭕</b>. Drei in einer Reihe gewinnt!',
+    weight:      '⚖️ <b>Gewicht schätzen!</b><br>Was ist schwerer? Tippe auf die richtigere Antwort. Manchmal sind beide <b>gleich schwer</b>!',
+    basketball:  '🏀 <b>Basketball!</b><br>Tippe auf den Knopf wenn die Kraft-Anzeige im <b>grünen Bereich</b> ist. Zu viel oder zu wenig Kraft = kein Korb!',
+    emojistory:  '📖 <b>Emoji-Geschichte!</b><br>Was erzählen diese Emojis? Lies die Geschichte und wähle die richtige Antwort!',
+    geo:         '🗺️ <b>Geo-Quiz!</b><br>Wo liegt das? Beweise dein Wissen über Frankreich, die Schweiz und Europa!',
+    french:      '🇫🇷 <b>Französisch lernen!</b><br>Was bedeutet dieses französische Wort auf Deutsch? Lerne die wichtigsten Wörter für den Frankreich-Urlaub!',
+    riddle:      '🤔 <b>Rätsel!</b><br>Denke nach! Was bin ich? Lies das Rätsel sorgfältig und wähle die klügste Antwort.',
   };
-  return map[type] || 'Los geht\'s!';
+  return map[type] || 'Los geht\'s! Viel Spaß! 🎮';
 }
 
 window.App = App;

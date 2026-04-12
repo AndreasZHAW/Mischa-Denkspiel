@@ -14,8 +14,10 @@
     @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
     @keyframes starPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.4)}100%{transform:scale(1);opacity:1}}
     @keyframes circleIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-    @keyframes foundPop{0%{transform:scale(0.5)}100%{transform:scale(1)}}
+    @keyframes popIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
     @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes floatUp{0%{transform:translateY(0) rotate(-3deg)}100%{transform:translateY(-14px) rotate(3deg)}}
+    @keyframes popBurst{0%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.5}100%{transform:scale(0);opacity:0}}
   </style>
 </head>
 <body>
@@ -27,57 +29,42 @@
       </div>
     </div>
   </div>
-
-  <!-- Firebase SDK (compat version for easy use) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <!-- Core -->
   <script src="js/worlds.js"></script>
   <script src="js/firebase-state.js"></script>
-
   <!-- Games -->
   <script src="js/games/math.js"></script>
   <script src="js/games/reaction.js"></script>
   <script src="js/games/memory.js"></script>
   <script src="js/games/train.js"></script>
-  <script src="js/games/search.js"></script>
-  <script src="js/games/differences.js"></script>
   <script src="js/games/shutthebox.js"></script>
   <script src="js/games/jenga.js"></script>
-  <script src="js/games/pacman.js"></script>
   <script src="js/games/slider.js"></script>
   <script src="js/games/wordsearch.js"></script>
   <script src="js/games/typing.js"></script>
   <script src="js/games/balloon.js"></script>
   <script src="js/games/simon.js"></script>
   <script src="js/games/truefalse.js"></script>
-
+  <script src="js/games/dart.js"></script>
+  <script src="js/games/anagram.js"></script>
+  <script src="js/games/colormix.js"></script>
+  <script src="js/games/minigames.js"></script>
   <!-- App -->
   <script src="js/app.js"></script>
-
-  <!-- Boot -->
   <script>
     async function boot() {
-      // Firebase init is called in DOMContentLoaded in firebase-state.js
-      // Give it a moment
-      await new Promise(r => setTimeout(r, 400));
-
+      await new Promise(r => setTimeout(r, 500));
       const ret = sessionStorage.getItem('mischa_current');
       if (ret) {
         const p = await State.getPlayer(ret);
-        if (p) {
-          State.setCurrentPlayer(p);
-          App.showWorldMap();
-          return;
-        }
+        if (p) { State.setCurrentPlayer(p); App.showWorldMap(); return; }
       }
       App.showWelcome();
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(boot, 500);
-    });
+    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 500));
   </script>
 </body>
 </html>
