@@ -154,19 +154,19 @@ function getShopItems(player) {
   });
 
   // ---- SPECIAL SKINS ----
-  items.push({id:'skin_swimmer', category:'skin', name:'🏊 Schwimmer', icon:'🏊', price:1000, desc:'Schwimmer-Skin! <span style="color:#FFD700">+1.1× Punkte-Bonus</span>', owned:unlockedSkins.includes('swimmer'), skinId:'swimmer'});
-  items.push({id:'skin_kniffler', category:'skin', name:'🎲 Kniffler', icon:'🎲', price:100, desc:'Kniffler-Skin! <span style="color:#FFD700">+1.1× Punkte-Bonus</span>', owned:unlockedSkins.includes('kniffler'), skinId:'kniffler'});
+  items.push({id:'skin_swimmer', category:'skin', name:'🏊 Schwimmer', icon:'🏊', price:1000, desc:'Schwimmer-Skin! <span style="color:#FFD700">🌟 +1.1× Bonus</span>', owned:unlockedSkins.includes('swimmer'), skinId:'swimmer'});
+  items.push({id:'skin_kniffler', category:'skin', name:'🎲 Kniffler', icon:'🎲', price:100, desc:'Kniffler-Skin! <span style="color:#FFD700">+1.1× Bonus</span>', owned:unlockedSkins.includes('kniffler'), skinId:'kniffler'});
 
   // OG-Mann — nur 1 Woche ab Account-Erstellung
   const ogExpires = base + 7*24*60*60*1000;
   if (now < ogExpires || unlockedSkins.includes('og_mann')) {
-    items.push({id:'skin_og', category:'skin', name:'🧓 OG-Mann', icon:'🧓', price:100000, desc:'Legendärer OG-Mann! Limitiert.', limited:true, limitExpires:ogExpires, owned:unlockedSkins.includes('og_mann'), skinId:'og_mann'});
+    items.push({id:'skin_og', category:'skin', name:'🧓 OG-Mann', icon:'🧓', price:100000, desc:'Legendärer OG-Mann! Limitiert. <span style="color:#FFD700">💎 +1.1× Bonus</span>', limited:true, limitExpires:ogExpires, owned:unlockedSkins.includes('og_mann'), skinId:'og_mann'});
   }
 
   // Developer — ultra rare 1 Woche
   const devExpires = base + 7*24*60*60*1000;
   if (now < devExpires || unlockedSkins.includes('developer')) {
-    items.push({id:'skin_dev', category:'skin', name:'💻 Entwickler', icon:'💻', price:1000000000, desc:'Ultra-Rare! Einer von wenigen!', limited:true, limitExpires:devExpires, owned:unlockedSkins.includes('developer'), skinId:'developer', ultraRare:true});
+    items.push({id:'skin_dev', category:'skin', name:'💻 Entwickler', icon:'💻', price:1000000000, desc:'Ultra-Rare! Einer von wenigen! <span style="background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">⚡ +1.1× Bonus</span>', limited:true, limitExpires:devExpires, owned:unlockedSkins.includes('developer'), skinId:'developer', ultraRare:true});
   }
 
   // TEST char — nur 20 Minuten
@@ -266,12 +266,12 @@ const Shop = {
       display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px)`;
 
     ov.innerHTML = `
-      <div id="shop-panel" style="background:linear-gradient(180deg,#0d1b2e,#0f2040);
+      <div id="shop-panel" style="background:linear-gradient(180deg,#0a1628,#0d1f3c,#101535);
         width:100%;max-width:480px;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;
         box-shadow:0 -8px 40px rgba(0,0,0,0.6);animation:slideUp 0.3s ease">
 
         <!-- Sticky header -->
-        <div style="position:sticky;top:0;z-index:10;background:#0d1b2e;padding:16px 18px 12px;
+        <div style="position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#0a1628,#0d1f3cee);padding:16px 18px 12px;
           border-bottom:1px solid rgba(255,255,255,0.08)">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div>

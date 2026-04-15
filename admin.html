@@ -116,6 +116,7 @@ const Admin = {
           <button class="ba be" onclick="Admin.showChangePw()">🔑 PW ändern</button>
           <button class="ba bg" onclick="Admin.showDiscountPanel()">🏷️ Rabatte</button>
           <button class="ba bb" onclick="Admin.showBroadcast()">📢 Nachricht</button>
+          <button class="ba bb" onclick="Admin.showSurveyPanel()" style="background:rgba(39,174,96,0.15);border-color:rgba(39,174,96,0.3);color:#27AE60">📊 Umfrage</button>
           <button class="ba be" onclick="Admin.showDashboard()">🔄 Aktualisieren</button>
           <a href="index.html" class="ba be" style="text-decoration:none">← Zum Spiel</a>
         </div>
@@ -204,6 +205,7 @@ const Admin = {
         <button class="ba bb" onclick="Admin.showResetTasks('${p.name}')">↩️ Aufgaben</button>
         <button class="ba br" onclick="Admin.resetFull('${p.name}')">🔄 Alles reset</button>
         <button class="ba be" onclick="Admin.toggleDetail('${p.name}')">📋 Detail</button>
+            <button class="ba bg" onclick="Admin.showGiftReset('${p.name}')">🔄 Reset schenken</button>
         <button class="ba bd" onclick="Admin.deletePlayer('${p.name}')">🗑️ Löschen</button>
       </div>
 
@@ -419,10 +421,69 @@ const Admin = {
     const item = document.getElementById('disc-item')?.value;
     const pct  = parseInt(document.getElementById('disc-pct')?.value || 0);
     const dur  = parseInt(document.getElementById('disc-dur')?.value || 0);
+    const adminName = State.currentPlayer?.name || 'Admin';
     if (!item || !pct || !dur) return;
     await State.setDiscount(item, pct, dur);
+    // Auto-broadcast discount as message
+    const NAMES = {starter_pack:'Starterpaket',joker_x2:'2× Joker',boost_2x_15:'2× Sterne 15Min',boost_4x_15:'4× Sterne 15Min',boost_10x_15:'10× Sterne 15Min',skin_swimmer:'Schwimmer-Skin',admin_week:'Admin-Zugang',extra_world_unlock:'Welt freischalten',extra_hint:'Hinweis-Paket'};
+    const itemName = NAMES[item] || item;
+    await State.setBroadcast(`Admin ${adminName} hat für "${itemName}" ${pct}% Rabatt hinzugefügt!`, dur, 'info');
+    if (window.showBroadcastBanner) showBroadcastBanner(`Admin ${adminName} hat für "${itemName}" ${pct}% Rabatt hinzugefügt!`);
     this._close();
-    alert(`✅ Rabatt von ${pct}% auf "${item}" aktiviert für alle Spieler weltweit!`);
+    alert('✅ Rabatt aktiviert + Nachricht gesendet!');
+  },
+
+  // ---- SURVEY ----
+  showSurveyPanel() {
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
+      <h3>📊 Umfrage senden</h3>
+      <p style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:10px">Alle Spieler sehen die Umfrage sofort. Sie haben 20 Sekunden zum Abstimmen.</p>
+      <label>Frage</label>
+      <input type="text" id="sv-q" placeholder="Macht ihr gerne Sport?" style="margin-bottom:8px"/>
+      <label>Antwort Grün (links)</label>
+      <input type="text" id="sv-a" placeholder="Ja!" style="margin-bottom:8px"/>
+      <label>Antwort Rot (rechts)</label>
+      <input type="text" id="sv-b" placeholder="Nein!" style="margin-bottom:14px"/>
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._sendSurvey()">Senden 📊</button>
+        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
+      </div>
+    </div>`);
+  },
+
+  async _sendSurvey() {
+    const q  = document.getElementById('sv-q')?.value?.trim();
+    const a  = document.getElementById('sv-a')?.value?.trim() || 'Ja';
+    const b  = document.getElementById('sv-b')?.value?.trim() || 'Nein';
+    if (!q) { alert('Bitte Frage eingeben!'); return; }
+    await State.setBroadcast(q, 25000, 'survey', { optA: a, optB: b });
+    if (window.showSurvey) showSurvey({ text:q, id: Date.now().toString(), type:'survey', extra:{optA:a,optB:b}, expiresAt:Date.now()+25000 });
+    this._close();
+    alert('✅ Umfrage gesendet! Spieler haben 20 Sekunden.');
+  },
+
+  // ---- GIFT RESET ----
+  showGiftReset(playerName) {
+    const player = playerName;
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
+      <h3>🔄 Reset schenken</h3>
+      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:12px">
+        Schenke <b style="color:white">${player}</b> einen Reset.<br>
+        Der Spieler startet von vorne mit einem höheren Multiplikator (×1.3 pro Reset).
+      </p>
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._doGiftReset('${player}')">Reset schenken 🎁</button>
+        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
+      </div>
+    </div>`);
+  },
+
+  async _doGiftReset(playerName) {
+    const ok = await State.giftReset(playerName);
+    this._close();
+    if (ok) alert(`✅ Reset geschenkt! ${playerName} startet neu mit ×1.3 Bonus.`);
+    else alert('❌ Spieler nicht gefunden!');
+    await this.showDashboard();
   }
 };
 

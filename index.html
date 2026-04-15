@@ -64,7 +64,8 @@
         const seen = sessionStorage.getItem('mischa_bc_seen');
         if (seen === data.id) return;
         sessionStorage.setItem('mischa_bc_seen', data.id);
-        showBroadcastBanner(data.text);
+        if (data.type === 'survey') showSurvey(data);
+        else showBroadcastBanner(data.text);
       });
 
       // Start listening for real-time discounts
@@ -83,19 +84,74 @@
       const b = document.createElement('div');
       b.id = 'bc-banner';
       b.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:9999;
-        background:linear-gradient(135deg,#E30613,#8B0000);color:white;
-        padding:10px 16px;text-align:center;font-family:'Fredoka One',cursive;
-        font-size:0.95rem;box-shadow:0 3px 12px rgba(0,0,0,0.3);
-        animation:slideDown 0.4s ease`;
-      b.innerHTML = `📢 ${text} <button onclick="document.getElementById('bc-banner').remove()"
-        style="background:rgba(255,255,255,0.25);border:none;color:white;padding:2px 10px;
-          border-radius:50px;cursor:pointer;margin-left:8px;font-size:0.82rem">✕</button>`;
+        color:white;padding:8px 16px;text-align:center;
+        font-family:'Fredoka One',cursive;font-size:0.95rem;
+        text-shadow:0 1px 4px rgba(0,0,0,0.8);
+        animation:slideDown 0.4s ease;pointer-events:auto`;
+      b.innerHTML = `📢 <span style="font-size:0.88rem">${text}</span>
+        <button onclick="document.getElementById('bc-banner').remove()"
+          style="background:none;border:none;color:rgba(255,255,255,0.7);padding:2px 8px;
+            cursor:pointer;margin-left:6px;font-size:0.82rem">✕</button>`;
       document.body.prepend(b);
-      // Auto-hide after 5 seconds
-      setTimeout(() => b.style.transition='opacity 0.5s', 4500);
-      setTimeout(() => { b.style.opacity='0'; setTimeout(()=>b.remove(),500); }, 5000);
+      setTimeout(() => { b.style.transition='opacity 0.6s'; b.style.opacity='0'; setTimeout(()=>b.remove(),600); }, 5000);
     }
+
+    function showSurvey(data) {
+      document.getElementById('bc-survey')?.remove();
+      const extra = data.extra || {};
+      const surveyId = data.id;
+      if (State.hasVoted(surveyId)) return;
+      const s = document.createElement('div');
+      s.id = 'bc-survey';
+      s.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;
+        max-width:320px;width:90%;animation:popIn 0.4s ease`;
+      // 20 second countdown
+      let timeLeft = 20;
+      s.innerHTML = `
+        <div style="color:white;text-align:center;margin-bottom:10px">
+          <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;text-shadow:0 1px 4px rgba(0,0,0,0.8)">
+            📊 ${data.text}
+          </div>
+          <div id="survey-timer" style="font-size:0.8rem;opacity:0.7;margin-top:2px">⏱ ${timeLeft}s</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button onclick="SurveyUI.vote('${surveyId}','a',this)"
+            style="padding:16px 8px;border-radius:14px;border:none;cursor:pointer;
+              background:rgba(39,174,96,0.85);color:white;font-family:'Fredoka One',cursive;
+              font-size:0.95rem;backdrop-filter:blur(4px);text-shadow:0 1px 3px rgba(0,0,0,0.3)">
+            ✅ ${extra.optA||'Ja'}
+          </button>
+          <button onclick="SurveyUI.vote('${surveyId}','b',this)"
+            style="padding:16px 8px;border-radius:14px;border:none;cursor:pointer;
+              background:rgba(231,76,60,0.85);color:white;font-family:'Fredoka One',cursive;
+              font-size:0.95rem;backdrop-filter:blur(4px);text-shadow:0 1px 3px rgba(0,0,0,0.3)">
+            ❌ ${extra.optB||'Nein'}
+          </button>
+        </div>`;
+      document.body.appendChild(s);
+      const tick = setInterval(() => {
+        timeLeft--;
+        const el = document.getElementById('survey-timer');
+        if (el) el.textContent = '⏱ ' + timeLeft + 's';
+        if (timeLeft <= 0) { clearInterval(tick); s.remove(); }
+      }, 1000);
+    }
+
+    const SurveyUI = {
+      async vote(surveyId, choice, btn) {
+        await State.voteSurvey(surveyId, choice);
+        const s = document.getElementById('bc-survey');
+        if (s) {
+          s.innerHTML = `<div style="color:white;text-align:center;font-family:'Fredoka One',cursive;
+            font-size:1rem;text-shadow:0 1px 4px rgba(0,0,0,0.8)">
+            ✅ Danke für deine Stimme!</div>`;
+          setTimeout(() => s.remove(), 2000);
+        }
+      }
+    };
+    window.SurveyUI = SurveyUI;
     window.showBroadcastBanner = showBroadcastBanner;
+    window.showSurvey = showSurvey;
 
     document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 500));
   </script>

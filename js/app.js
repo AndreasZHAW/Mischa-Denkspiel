@@ -560,14 +560,74 @@ const App = {
               🌀 Nächste Welt!
             </button>` : ''}
           ${allDone && worldId === 10 ? `
-            <button class="btn btn-gold btn-full" style="margin-bottom:10px" onclick="App.showGlobalLeaderboard()">
-              🏆 Zur Weltrangliste!
+            <button class="btn btn-gold btn-full" style="margin-bottom:10px" onclick="App.showResetOffer()">
+              🏆 Alle Welten geschafft! Reset?
             </button>` : ''}
           <button class="btn btn-primary btn-full" onclick="App.showWorld(${worldId})">Weiter in Welt ${worldId} ➜</button>
           <br><br>
           <button class="btn" style="background:#F5F5F5;color:var(--text-mid);font-size:0.9rem" onclick="App.showWorldMap()">Alle Welten</button>
         </div>
       </div>`);
+  },
+
+  async showResetOffer() {
+    const player = await State.refreshCurrentPlayer();
+    const resets = player.resets || 0;
+    const newMult = State._resetMultiplier(resets + 1);
+    const isAdminUnlock = resets >= 9; // 10 resets = admin chat
+
+    this._html(`
+      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
+      <div class="page">
+        <div class="card" style="max-width:400px;text-align:center">
+          <div style="font-size:4rem;margin-bottom:10px">🏆</div>
+          <div class="card-title">Alle 10 Welten geschafft!</div>
+          <div style="font-size:1rem;color:var(--text-mid);margin-bottom:16px">
+            Du hast das gesamte Spiel ${resets > 0 ? `zum ${resets+1}. Mal ` : ''}abgeschlossen!
+          </div>
+          <div style="background:linear-gradient(135deg,#EBF5FB,#D6EAF8);border-radius:14px;padding:16px;margin-bottom:16px">
+            <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--mountain-dark);margin-bottom:6px">
+              🔄 Neu starten mit Bonus
+            </div>
+            <div style="font-size:0.9rem;color:var(--text-mid);margin-bottom:8px">
+              Wenn du zurücksetzt bekommst du einen permanenten Punkte-Multiplikator:
+            </div>
+            <div style="font-family:'Fredoka One',cursive;font-size:2rem;background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60);
+              -webkit-background-clip:text;-webkit-text-fill-color:transparent">
+              ×${newMult.toFixed(1)} Multiplikator!
+            </div>
+            ${isAdminUnlock ? `<div style="margin-top:8px;font-size:0.82rem;color:#E74C3C;font-weight:700">
+              🔐 Nach 10 Resets: Admin-Chat freigeschaltet!
+            </div>` : `<div style="font-size:0.75rem;color:var(--text-mid);margin-top:6px">
+              Nach 10 Resets: Admin-Chat freischalten 🔐
+            </div>`}
+          </div>
+          <button class="btn btn-primary btn-full btn-big" onclick="App._doReset()">
+            🔄 Zurücksetzen & ${newMult.toFixed(1)}× Bonus holen!
+          </button>
+          <button class="btn btn-secondary btn-full" style="margin-top:10px" onclick="App.showWorldMap()">
+            Nein danke, weiter so
+          </button>
+        </div>
+      </div>`);
+  },
+
+  async _doReset() {
+    const player = await State.refreshCurrentPlayer();
+    const resets = (player.resets || 0) + 1;
+    const newMult = State._resetMultiplier(resets);
+    player.resets = resets;
+    player.resetMultiplier = newMult;
+    player.currentWorld = 1;
+    player.worlds = State._emptyWorlds ? State._emptyWorlds() : {};
+    if (!player.worlds[1]) {
+      for (let i=1;i<=10;i++) player.worlds[i]={tasks:Array(10).fill(null),jokerUsed:false,completed:false};
+    }
+    // Unlock admin chat after 10 resets
+    if (resets >= 10) player.adminChatUnlocked = true;
+    await State.savePlayer(player);
+    State.currentPlayer = player;
+    App.showWorldMap();
   },
 
   _portalTransition(fromWorldId) {
@@ -677,6 +737,13 @@ function worldPathSVG(worldId, doneCount, charEmoji, worldIcon) {
 }
 
 function getTaskInstruction(type, worldId) {
+  const ICONS = {
+    math:'🔢', reaction:'⚡', memory:'🧠', train:'🚂', shutthebox:'🎲',
+    jenga:'🗼', slider:'🧩', wordsearch:'🔤', typing:'⌨️', balloon:'🎈',
+    simon:'🎨', truefalse:'❓', dart:'🎯', anagram:'🔤', colormix:'🎨',
+    clock:'🕐', flags:'🌍', hangman:'🎯', tictactoe:'❌', weight:'⚖️',
+    basketball:'🏀', emojistory:'📖', geo:'🗺️', french:'🇫🇷', riddle:'🤔',
+  };
   const map = {
     math:        '🔢 <b>Rechenaufgabe!</b><br>Löse 10 Aufgaben. Schnelle & fehlerfreie Antworten geben mehr Punkte!',
     reaction:    '⚡ <b>Reaktionsspiel!</b><br>🟢 <b>Grün = TIPPEN</b> &nbsp;|&nbsp; 🔴 <b>Rot = NICHTS TUN</b>. Sei blitzschnell!',
@@ -704,7 +771,9 @@ function getTaskInstruction(type, worldId) {
     french:      '🇫🇷 <b>Französisch lernen!</b><br>Was bedeutet dieses französische Wort auf Deutsch? Lerne die wichtigsten Wörter für den Frankreich-Urlaub!',
     riddle:      '🤔 <b>Rätsel!</b><br>Denke nach! Was bin ich? Lies das Rätsel sorgfältig und wähle die klügste Antwort.',
   };
-  return map[type] || 'Los geht\'s! Viel Spaß! 🎮';
+  const icon = ICONS[type] || '🎮';
+  const instr = map[type] || 'Los geht\'s! Viel Spaß!';
+  return `<span style="font-size:1.5rem">${icon}</span><br>${instr}`;
 }
 
 window.App = App;

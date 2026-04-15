@@ -185,6 +185,8 @@ const State = {
     // Apply character multiplier (1.1x per owned skin)
     const charMult = this.getCharacterMultiplier(player);
     if (charMult > 1) base = Math.round(base * charMult);
+    // Apply reset multiplier
+    if (player?.resetMultiplier && player.resetMultiplier > 1) base = Math.round(base * player.resetMultiplier);
     return base;
   },
 
@@ -326,8 +328,8 @@ const State = {
 
   // ---- REAL-TIME BROADCAST ----
   _broadcastUnsub: null,
-  async setBroadcast(text, durationMs) {
-    const data = { text, id: Date.now().toString(), expiresAt: Date.now()+durationMs, setAt: Date.now() };
+  async setBroadcast(text, durationMs, type='info', extra=null) {
+    const data = { text, id: Date.now().toString(), expiresAt: Date.now()+durationMs, setAt: Date.now(), type, extra };
     if (this._useCloud()) await _db.collection('config').doc('broadcast').set(data);
     localStorage.setItem('mischa_broadcast', JSON.stringify(data));
   },
@@ -343,6 +345,43 @@ const State = {
       const poll = () => { try { const d=JSON.parse(localStorage.getItem('mischa_broadcast')||'null'); if(d&&d.expiresAt>Date.now()) callback(d); } catch(e){} };
       poll(); setInterval(poll, 5000);
     }
+  },
+
+  // ---- SURVEY RESULTS ----
+  async voteSurvey(surveyId, choice) {
+    const key = 'mischa_survey_vote';
+    const votes = JSON.parse(localStorage.getItem(key)||'{}');
+    votes[surveyId] = choice;
+    localStorage.setItem(key, JSON.stringify(votes));
+    if (this._useCloud()) {
+      const ref = _db.collection('config').doc('survey_results');
+      const snap = await ref.get();
+      const data = snap.exists ? snap.data() : {};
+      if (!data[surveyId]) data[surveyId] = {a:0, b:0};
+      data[surveyId][choice]++;
+      await ref.set(data);
+    }
+  },
+  hasVoted(surveyId) {
+    try { return JSON.parse(localStorage.getItem('mischa_survey_vote')||'{}')[surveyId] != null; } catch(e){ return false; }
+  },
+
+  // ---- GIFT RESET ----
+  async giftReset(targetName) {
+    const target = await this.getPlayer(targetName);
+    if (!target) return false;
+    target.resets = (target.resets || 0) + 1;
+    const mult = this._resetMultiplier(target.resets);
+    target.resetMultiplier = mult;
+    target.currentWorld = 1;
+    target.worlds = this._emptyWorlds();
+    target.totalScore = 0;
+    await this.savePlayer(target);
+    return true;
+  },
+  _resetMultiplier(resets) {
+    if (resets >= 10) return 2.0;
+    return Math.round((1.0 + resets * 0.3) * 100) / 100;
   },
 
   // ---- REAL-TIME DISCOUNTS ----
