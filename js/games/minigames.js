@@ -753,7 +753,9 @@ const EmojiStoryGame = {
   _render(){
     const c=this.current;if(c.index>=c.qs.length){this._showResult();return;}
     const q=c.qs[c.index];
-    const opts=[q.a,...q.w].sort(()=>Math.random()-0.5);
+    // Store shuffled opts on c so _ans can reference by index
+    c._opts=[q.a,...q.w].sort(()=>Math.random()-0.5);
+    c._correct=q.a;
     document.getElementById('game-area').innerHTML=`
       <div style="text-align:center">
         <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-mid);margin-bottom:10px">
@@ -765,17 +767,19 @@ const EmojiStoryGame = {
           <div style="font-size:0.9rem;color:var(--text-mid)">${q.q}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          ${opts.map(o=>`<button onclick="EmojiStoryGame._ans(${JSON.stringify(o)},${JSON.stringify(q.a)})"
+          ${c._opts.map((o,i)=>`<button onclick="EmojiStoryGame._ans(${i})"
             style="padding:12px;border-radius:12px;border:2px solid #E0E6EE;background:white;
               font-size:0.88rem;cursor:pointer;text-align:left">${o}</button>`).join('')}
         </div>
       </div>`;
   },
-  _ans(chosen,correct){
-    const c=this.current;const ok=chosen===correct;if(!ok)c.errors++;
-    document.querySelectorAll('#game-area button').forEach(b=>{b.disabled=true;
-      if(b.textContent===correct)b.style.cssText+='background:#27AE60;color:white;border-color:#27AE60';
-      if(b.textContent===chosen&&!ok)b.style.cssText+='background:#E74C3C;color:white';
+  _ans(idx){
+    const c=this.current;
+    const chosen=c._opts[idx];const correct=c._correct;
+    const ok=chosen===correct;if(!ok)c.errors++;
+    document.querySelectorAll('#game-area button').forEach((b,i)=>{b.disabled=true;
+      if(c._opts[i]===correct)b.style.cssText+='background:#27AE60;color:white;border-color:#27AE60';
+      if(i===idx&&!ok)b.style.cssText+='background:#E74C3C;color:white';
     });
     c.index++;setTimeout(()=>this._render(),900);
   },

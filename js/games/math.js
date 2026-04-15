@@ -141,6 +141,7 @@ const MathGame = {
     // Timer display
     const elapsed = Math.round((Date.now() - c.startTime) / 1000);
 
+    const hints = State.currentPlayer?.hints || 0;
     document.getElementById('game-area').innerHTML = `
       <div class="math-problem">
         <div class="math-progress-dots">${dotsHTML}</div>
@@ -165,6 +166,24 @@ const MathGame = {
         el.textContent = `Aufgabe ${c.index + 1}/10 · ⏱ ${e2}s · ❌ ${c.errors} Fehler`;
       }
     }, 1000);
+  },
+
+  _hint() {
+    const c = this.current;
+    if (!c || !State.currentPlayer?.hints) return;
+    // Deduct one hint
+    State.currentPlayer.hints--;
+    State.savePlayer(State.currentPlayer);
+    // Add 10s time penalty
+    c.startTime -= 10000;
+    // Highlight correct answer
+    const q = c.questions[c.index];
+    document.querySelectorAll('.math-answer-btn').forEach(btn => {
+      if (parseInt(btn.textContent) === q.answer) {
+        btn.style.outline = '3px solid #FFD700';
+        btn.style.transform = 'scale(1.05)';
+      }
+    });
   },
 
   _answer(chosen) {

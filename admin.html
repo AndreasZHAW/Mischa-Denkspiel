@@ -115,6 +115,7 @@ const Admin = {
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="ba be" onclick="Admin.showChangePw()">🔑 PW ändern</button>
           <button class="ba bg" onclick="Admin.showDiscountPanel()">🏷️ Rabatte</button>
+          <button class="ba bb" onclick="Admin.showBroadcast()">📢 Nachricht</button>
           <button class="ba be" onclick="Admin.showDashboard()">🔄 Aktualisieren</button>
           <a href="index.html" class="ba be" style="text-decoration:none">← Zum Spiel</a>
         </div>
@@ -315,6 +316,38 @@ const Admin = {
       await State.deletePlayer(name);
       await this.showDashboard();
     }
+  },
+
+  showBroadcast() {
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
+      <h3>📢 Nachricht an alle Spieler</h3>
+      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:10px">
+        Alle Spieler sehen diese Nachricht wenn sie den Shop öffnen oder das Spiel laden.
+      </p>
+      <label>Nachrichtentext</label>
+      <input type="text" id="bc-text" placeholder="z.B. Heute 2× Punkte-Event!" style="margin-bottom:8px"/>
+      <label>Gültig für</label>
+      <select id="bc-dur" style="margin-bottom:14px">
+        <option value="${30*60*1000}">30 Minuten</option>
+        <option value="${2*60*60*1000}" selected>2 Stunden</option>
+        <option value="${24*60*60*1000}">1 Tag</option>
+        <option value="${7*24*60*60*1000}">1 Woche</option>
+      </select>
+      <div class="mbtns">
+        <button class="mb-ok" onclick="Admin._sendBroadcast()">Senden 📢</button>
+        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
+      </div>
+    </div>`);
+  },
+
+  _sendBroadcast() {
+    const text = document.getElementById('bc-text')?.value?.trim();
+    const dur = parseInt(document.getElementById('bc-dur')?.value || 0);
+    if (!text) { alert('Bitte Text eingeben!'); return; }
+    const data = { text, id: Date.now().toString(), expiresAt: Date.now()+dur };
+    localStorage.setItem('mischa_broadcast', JSON.stringify(data));
+    this._close();
+    alert('✅ Nachricht gesendet! Alle Spieler sehen sie beim nächsten Shop-Öffnen.');
   },
 
   showChangePw() {
