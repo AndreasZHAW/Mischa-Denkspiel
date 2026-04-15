@@ -154,8 +154,8 @@ function getShopItems(player) {
   });
 
   // ---- SPECIAL SKINS ----
-  items.push({id:'skin_swimmer', category:'skin', name:'🏊 Schwimmer', icon:'🏊', price:1000, desc:'Der Schwimmer-Skin!', owned:unlockedSkins.includes('swimmer'), skinId:'swimmer'});
-  items.push({id:'skin_kniffler', category:'skin', name:'🎲 Kniffler', icon:'🎲', price:100, desc:'Der Kniffler-Skin!', owned:unlockedSkins.includes('kniffler'), skinId:'kniffler'});
+  items.push({id:'skin_swimmer', category:'skin', name:'🏊 Schwimmer', icon:'🏊', price:1000, desc:'Schwimmer-Skin! <span style="color:#FFD700">+1.1× Punkte-Bonus</span>', owned:unlockedSkins.includes('swimmer'), skinId:'swimmer'});
+  items.push({id:'skin_kniffler', category:'skin', name:'🎲 Kniffler', icon:'🎲', price:100, desc:'Kniffler-Skin! <span style="color:#FFD700">+1.1× Punkte-Bonus</span>', owned:unlockedSkins.includes('kniffler'), skinId:'kniffler'});
 
   // OG-Mann — nur 1 Woche ab Account-Erstellung
   const ogExpires = base + 7*24*60*60*1000;
@@ -278,6 +278,7 @@ const Shop = {
               <div style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700">
                 ${isGift?`🎁 Für ${Shop._forPlayer}`:'🛒 Shop'}</div>
               <div style="font-size:0.8rem;color:rgba(255,255,255,0.45)">⭐ <b style="color:#FFD700">${(player.totalScore||0).toLocaleString()}</b> Sterne</div>
+              ${(()=>{const m=State.getCharacterMultiplier(player);return m>1?`<div style="font-size:0.75rem;margin-top:2px;background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60,#4A90D9,#9B59B6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">✨ ${m.toFixed(1)}× Charakter-Bonus aktiv!</div>`:''})()}
             </div>
             <button onclick="Shop.close()" style="background:rgba(255,255,255,0.1);border:none;color:white;
               width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer">✕</button>
@@ -327,7 +328,7 @@ const Shop = {
       <div style="display:flex;align-items:center;gap:9px">
         <div style="font-size:1.7rem;min-width:38px;text-align:center">${item.icon}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-family:'Fredoka One',cursive;font-size:0.88rem;color:${item.maxLuck?'#FFD700':item.ultraRare?'#FFD700':'white'}">${item.name}</div>
+          <div style="font-family:'Fredoka One',cursive;font-size:0.88rem;${item.maxLuck?'background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60,#4A90D9,#9B59B6);-webkit-background-clip:text;-webkit-text-fill-color:transparent':''}color:${!item.maxLuck&&item.ultraRare?'#FFD700':'white'}">${item.maxLuck?'👑 '+item.name:item.name}</div>
           <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:1px;line-height:1.3">${item.desc}</div>
           ${isOwned&&item.permanent?'<div style="font-size:0.7rem;color:#27AE60;margin-top:2px">✅ Besitzt du</div>':''}
           ${activeLeft&&activeLeft>0?`<div id="at-${item.id}" style="font-size:0.7rem;color:#27AE60;margin-top:2px">✅ Aktiv: ${formatTimeLeft(activeLeft)}</div>`:''}

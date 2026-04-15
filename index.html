@@ -58,6 +58,18 @@
   <script>
     async function boot() {
       await new Promise(r => setTimeout(r, 500));
+
+      // Start listening for real-time broadcast
+      State.listenBroadcast(data => {
+        const seen = sessionStorage.getItem('mischa_bc_seen');
+        if (seen === data.id) return;
+        sessionStorage.setItem('mischa_bc_seen', data.id);
+        showBroadcastBanner(data.text);
+      });
+
+      // Start listening for real-time discounts
+      State.listenDiscounts(() => {}); // syncs to localStorage automatically
+
       const ret = sessionStorage.getItem('mischa_current');
       if (ret) {
         const p = await State.getPlayer(ret);
@@ -65,7 +77,30 @@
       }
       App.showWelcome();
     }
+
+    function showBroadcastBanner(text) {
+      document.getElementById('bc-banner')?.remove();
+      const b = document.createElement('div');
+      b.id = 'bc-banner';
+      b.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:9999;
+        background:linear-gradient(135deg,#E30613,#8B0000);color:white;
+        padding:10px 16px;text-align:center;font-family:'Fredoka One',cursive;
+        font-size:0.95rem;box-shadow:0 3px 12px rgba(0,0,0,0.3);
+        animation:slideDown 0.4s ease`;
+      b.innerHTML = `📢 ${text} <button onclick="document.getElementById('bc-banner').remove()"
+        style="background:rgba(255,255,255,0.25);border:none;color:white;padding:2px 10px;
+          border-radius:50px;cursor:pointer;margin-left:8px;font-size:0.82rem">✕</button>`;
+      document.body.prepend(b);
+      // Auto-hide after 5 seconds
+      setTimeout(() => b.style.transition='opacity 0.5s', 4500);
+      setTimeout(() => { b.style.opacity='0'; setTimeout(()=>b.remove(),500); }, 5000);
+    }
+    window.showBroadcastBanner = showBroadcastBanner;
+
     document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 500));
   </script>
+  <style>
+    @keyframes slideDown { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
+  </style>
 </body>
 </html>

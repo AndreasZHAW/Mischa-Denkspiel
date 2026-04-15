@@ -178,11 +178,13 @@ const State = {
       if (Date.now() < player.starMultiplierExpires) {
         base = Math.round(base * player.activeStarMultiplier);
       } else {
-        // Expired — clear it
         player.activeStarMultiplier = null;
         player.starMultiplierExpires = null;
       }
     }
+    // Apply character multiplier (1.1x per owned skin)
+    const charMult = this.getCharacterMultiplier(player);
+    if (charMult > 1) base = Math.round(base * charMult);
     return base;
   },
 
@@ -320,6 +322,58 @@ const State = {
     const player = await this.getCurrentPlayer();
     if (player) this.currentPlayer = await this.getPlayer(player.name);
     return this.currentPlayer;
+  },
+
+  // ---- REAL-TIME BROADCAST ----
+  _broadcastUnsub: null,
+  async setBroadcast(text, durationMs) {
+    const data = { text, id: Date.now().toString(), expiresAt: Date.now()+durationMs, setAt: Date.now() };
+    if (this._useCloud()) await _db.collection('config').doc('broadcast').set(data);
+    localStorage.setItem('mischa_broadcast', JSON.stringify(data));
+  },
+  listenBroadcast(callback) {
+    if (this._broadcastUnsub) this._broadcastUnsub();
+    if (this._useCloud()) {
+      this._broadcastUnsub = _db.collection('config').doc('broadcast').onSnapshot(snap => {
+        if (!snap.exists) return;
+        const d = snap.data();
+        if (d && d.expiresAt > Date.now()) callback(d);
+      });
+    } else {
+      const poll = () => { try { const d=JSON.parse(localStorage.getItem('mischa_broadcast')||'null'); if(d&&d.expiresAt>Date.now()) callback(d); } catch(e){} };
+      poll(); setInterval(poll, 5000);
+    }
+  },
+
+  // ---- REAL-TIME DISCOUNTS ----
+  _discountUnsub: null,
+  async setDiscount(itemId, pct, durationMs) {
+    const data = { pct, expiresAt: Date.now()+durationMs, setAt: Date.now() };
+    if (this._useCloud()) {
+      const snap = await _db.collection('config').doc('discounts').get();
+      const all = snap.exists ? snap.data() : {};
+      all[itemId] = data;
+      await _db.collection('config').doc('discounts').set(all);
+    }
+    const local = JSON.parse(localStorage.getItem('mischa_discounts')||'{}');
+    local[itemId] = data; localStorage.setItem('mischa_discounts', JSON.stringify(local));
+  },
+  listenDiscounts(callback) {
+    if (this._discountUnsub) this._discountUnsub();
+    if (this._useCloud()) {
+      this._discountUnsub = _db.collection('config').doc('discounts').onSnapshot(snap => {
+        if (!snap.exists) return;
+        const data = snap.data()||{};
+        localStorage.setItem('mischa_discounts', JSON.stringify(data));
+        callback(data);
+      });
+    }
+  },
+
+  // ---- CHARACTER MULTIPLIER ----
+  getCharacterMultiplier(player) {
+    const owned = (player?.unlockedSkins||[]).length;
+    return Math.min(3.0, Math.round((1 + owned * 0.1) * 100) / 100);
   }
 };
 

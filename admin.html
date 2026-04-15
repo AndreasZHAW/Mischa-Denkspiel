@@ -340,14 +340,15 @@ const Admin = {
     </div>`);
   },
 
-  _sendBroadcast() {
+  async _sendBroadcast() {
     const text = document.getElementById('bc-text')?.value?.trim();
     const dur = parseInt(document.getElementById('bc-dur')?.value || 0);
     if (!text) { alert('Bitte Text eingeben!'); return; }
-    const data = { text, id: Date.now().toString(), expiresAt: Date.now()+dur };
-    localStorage.setItem('mischa_broadcast', JSON.stringify(data));
+    await State.setBroadcast(text, dur);
     this._close();
-    alert('✅ Nachricht gesendet! Alle Spieler sehen sie beim nächsten Shop-Öffnen.');
+    // Show locally immediately
+    if (window.showBroadcastBanner) showBroadcastBanner(text);
+    alert('✅ Nachricht gesendet an alle Spieler weltweit!');
   },
 
   showChangePw() {
@@ -414,22 +415,24 @@ const Admin = {
     </div>`);
   },
 
-  _saveDiscount() {
+  async _saveDiscount() {
     const item = document.getElementById('disc-item')?.value;
     const pct  = parseInt(document.getElementById('disc-pct')?.value || 0);
     const dur  = parseInt(document.getElementById('disc-dur')?.value || 0);
     if (!item || !pct || !dur) return;
-    const discounts = JSON.parse(localStorage.getItem('mischa_discounts') || '{}');
-    discounts[item] = { pct, expiresAt: Date.now() + dur, setAt: Date.now() };
-    localStorage.setItem('mischa_discounts', JSON.stringify(discounts));
+    await State.setDiscount(item, pct, dur);
     this._close();
-    alert(`✅ Rabatt von ${pct}% auf "${item}" aktiviert!`);
+    alert(`✅ Rabatt von ${pct}% auf "${item}" aktiviert für alle Spieler weltweit!`);
   }
 };
 
 // Boot
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => Admin.render(), 300);
+  setTimeout(() => {
+    Admin.render();
+    // Listen for real-time discounts from Firestore
+    State.listenDiscounts(() => {});
+  }, 300);
 });
 </script>
 </body>
