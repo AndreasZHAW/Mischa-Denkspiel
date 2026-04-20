@@ -90,6 +90,7 @@ const App = {
             <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">🆕 Neu starten</button>
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
             <button class="btn btn-full" style="background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Weltrangliste</button>
+            <button class="btn btn-full" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;margin-top:8px" onclick="location.href='zoo.html'">🦁 Gestalte deinen Zoo!</button>
           </div>
         </div>
       </div>`);

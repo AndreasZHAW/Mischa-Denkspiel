@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1a6b2a">
+<title>🦁 Gestalte deinen Zoo!</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+:root{
+  --zoo-sky1:#5DADE2;--zoo-sky2:#AED6F1;
+  --zoo-grass:#4CAF50;--zoo-grass2:#388E3C;
+  --zoo-path:#C8A96E;--zoo-fence:#8B5E3C;
+  --panel-bg:linear-gradient(160deg,#0d1b2e,#112240);
+  --gold:#FFD700;--diamond:#00CFFF;--rainbow-start:#FF6B6B;
+  --void:#9B59B6;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;
+  font-family:'Nunito',sans-serif;background:#0d1b2e;color:white}
+
+/* ---- SCREENS ---- */
+.zscreen{position:fixed;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:10;padding:16px}
+.zscreen.off{display:none!important}
+
+/* ---- LOGIN ---- */
+#zs-login{background:radial-gradient(ellipse at 50% 0%,#1a3a5c,#0a1020)}
+.z-logo{font-size:4rem;text-align:center;margin-bottom:4px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5))}
+.z-title{font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--gold);
+  text-align:center;text-shadow:0 2px 12px rgba(255,215,0,0.4);margin-bottom:3px}
+.z-sub{color:rgba(255,255,255,0.45);font-size:0.85rem;text-align:center;margin-bottom:20px}
+.z-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);
+  border-radius:22px;padding:26px 22px;width:100%;max-width:370px}
+.z-inp{width:100%;padding:12px 16px;border-radius:12px;border:2px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.08);color:white;font-size:0.95rem;
+  font-family:'Nunito',sans-serif;margin-bottom:10px;transition:border-color .2s}
+.z-inp:focus{outline:none;border-color:var(--gold)}
+.z-inp::placeholder{color:rgba(255,255,255,0.3)}
+.zbtn{width:100%;padding:13px;border-radius:50px;border:none;cursor:pointer;
+  font-family:'Fredoka One',cursive;font-size:1.1rem;transition:transform .15s,box-shadow .15s}
+.zbtn:active{transform:scale(0.96)}
+.zbtn-gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0a00;
+  box-shadow:0 6px 20px rgba(255,165,0,0.35)}
+.zbtn-dim{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);
+  border:1px solid rgba(255,255,255,0.18);margin-top:8px}
+.z-err{color:#ff6b6b;font-size:0.82rem;text-align:center;min-height:18px;margin-bottom:6px}
+
+/* ---- CHAR SELECT ---- */
+#zs-char{background:radial-gradient(ellipse at 50% 0%,#1a3a5c,#0a1020)}
+.z-cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;
+  max-width:360px;width:100%;margin:14px 0}
+.z-copt{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.12);
+  border-radius:14px;padding:10px 5px;text-align:center;cursor:pointer;transition:all .2s}
+.z-copt.sel{border-color:var(--gold);background:rgba(255,215,0,0.12)}
+.z-copt .ce{font-size:2rem;display:block}
+.z-copt .cn{font-size:0.6rem;color:rgba(255,255,255,0.5);margin-top:2px}
+
+/* ---- MODE SELECT ---- */
+#zs-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a5c,#0a1020)}
+.z-mcard{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.12);
+  border-radius:20px;padding:22px 18px;width:100%;max-width:340px;cursor:pointer;
+  text-align:center;margin-bottom:12px;transition:all .25s}
+.z-mcard:hover,.z-mcard:active{border-color:var(--gold);transform:translateY(-2px)}
+.z-micon{font-size:3.5rem;display:block;margin-bottom:8px}
+.z-mtitle{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--gold)}
+.z-mdesc{font-size:0.8rem;color:rgba(255,255,255,0.45);margin-top:4px}
+
+/* ---- ZOO WORLD ---- */
+#zs-zoo{overflow:hidden;padding:0}
+#z-canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---- HUD ---- */
+#z-hud{position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px)}
+.hud-left,.hud-right{display:flex;flex-direction:column;gap:2px}
+.hud-money{font-family:'Fredoka One',cursive;color:var(--gold);font-size:1.05rem}
+.hud-vis{font-size:0.75rem;color:rgba(255,255,255,0.7)}
+.hud-mult{font-size:0.7rem;font-family:'Fredoka One',cursive}
+.hud-btns{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.hbtn{padding:5px 9px;border-radius:50px;border:none;cursor:pointer;
+  font-family:'Fredoka One',cursive;font-size:0.75rem;transition:transform .15s}
+.hbtn:active{transform:scale(0.92)}
+
+/* ---- JOYSTICK ---- */
+#z-jzone{position:fixed;bottom:20px;left:16px;z-index:200;
+  width:110px;height:110px;touch-action:none}
+#z-jbase{width:110px;height:110px;border-radius:50%;
+  background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.3)}
+#z-jthumb{position:absolute;width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,0.55);border:2px solid rgba(255,255,255,0.9);
+  top:33px;left:33px;pointer-events:none}
+
+/* ---- PANELS ---- */
+.zpanel{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.78);
+  display:flex;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(5px);animation:zfadeIn .2s ease}
+.zpanel.off{display:none!important}
+.zpanel-inner{background:var(--panel-bg);width:100%;max-width:420px;
+  border-radius:24px 24px 0 0;padding:20px 16px 34px;
+  max-height:88vh;overflow-y:auto;position:relative;animation:zslideUp .3s ease}
+.pcls{position:sticky;top:0;float:right;background:rgba(255,255,255,0.1);
+  border:none;color:white;width:32px;height:32px;border-radius:50%;
+  font-size:1rem;cursor:pointer;z-index:10;margin-bottom:-32px}
+.ptitle{font-family:'Fredoka One',cursive;color:var(--gold);font-size:1.3rem;
+  text-align:center;margin-bottom:14px;clear:both}
+
+/* ---- ANIMAL CARDS ---- */
+.acard{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+  border-radius:13px;padding:11px 12px;margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;transition:border-color .2s}
+.acard:hover{border-color:rgba(255,215,0,0.3)}
+.ac-em{font-size:2rem;min-width:38px;text-align:center}
+.ac-info{flex:1;min-width:0}
+.ac-name{font-family:'Fredoka One',cursive;color:white;font-size:0.9rem}
+.ac-sub{font-size:0.7rem;margin-top:1px;line-height:1.3}
+.ac-price{text-align:right;flex-shrink:0}
+.ac-cost{font-family:'Fredoka One',cursive;color:var(--gold);font-size:0.82rem}
+.ac-earn{font-size:0.68rem;color:rgba(255,255,255,0.45);margin-top:1px}
+.zbuy{padding:5px 12px;border-radius:50px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0a00;
+  font-family:'Fredoka One',cursive;font-size:0.75rem;margin-top:4px;transition:transform .15s}
+.zbuy:active{transform:scale(0.93)}
+.zbuy:disabled{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.3);cursor:not-allowed}
+
+/* ---- RARITY COLORS ---- */
+.rn{color:#a0a0a0}.rr{color:#4A9EFF}.re{color:#B44FFF}
+.rl{color:#FFB020}.ru{color:#FF4444}.rg{color:#FFD700}
+.rs{background:linear-gradient(90deg,#ff6b6b,#FFD700,#27AE60,#4A90D9,#cc00ff);
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
+
+/* ---- TRAIT BADGES ---- */
+.tb{display:inline-block;padding:1px 5px;border-radius:4px;font-size:0.58rem;font-weight:700;margin:1px}
+.tb-gold{background:#FFD700;color:#333}
+.tb-diamond{background:#00CFFF;color:#fff}
+.tb-rainbow{background:linear-gradient(90deg,#ff6b6b,#27AE60,#4A90D9);color:#fff}
+.tb-void{background:#9B59B6;color:#fff}
+.tb-snow{background:#AED6F1;color:#333}
+.tb-fire{background:linear-gradient(135deg,#FF4500,#FFD700);color:#fff}
+.tb-electric{background:#F4D03F;color:#333}
+.tb-cosmic{background:linear-gradient(135deg,#9B59B6,#1a1a2e);color:#fff}
+.tb-crystal{background:linear-gradient(135deg,#AED6F1,#fff);color:#333}
+
+/* ---- EVENT BANNER ---- */
+#z-evbanner{position:fixed;top:56px;left:50%;transform:translateX(-50%);
+  z-index:250;white-space:nowrap;pointer-events:none;text-align:center;
+  font-family:'Fredoka One',cursive;font-size:1rem;color:white;
+  text-shadow:0 2px 6px rgba(0,0,0,0.7);opacity:0;transition:opacity .5s}
+
+/* ---- GONDOLA TRACK ---- */
+.g-track{width:100%;height:40px;background:rgba(0,0,0,0.3);
+  border-radius:8px;position:relative;overflow:hidden;margin-bottom:10px}
+.g-car{position:absolute;font-size:1.6rem;top:50%;transform:translateY(-50%);
+  transition:left 2.5s linear;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))}
+
+/* ---- SHOP STAR ITEMS ---- */
+.sstar{background:linear-gradient(90deg,rgba(255,215,0,.15),rgba(255,215,0,.05));
+  border:1px solid rgba(255,215,0,.3)}
+
+/* ---- FLOATING TEXTS ---- */
+.flt{position:fixed;pointer-events:none;z-index:400;font-family:'Fredoka One',cursive;
+  font-size:1rem;text-shadow:0 1px 4px rgba(0,0,0,.6);animation:zfloatUp 1.4s ease forwards}
+@keyframes zfloatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(0.8)}}
+@keyframes zfadeIn{from{opacity:0}to{opacity:1}}
+@keyframes zslideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes zpopIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes zsnow{0%{transform:translateY(-20px) rotate(0deg)}100%{transform:translateY(105vh) rotate(360deg)}}
+@keyframes zbeam{0%{transform:scaleY(1) rotate(0deg)}50%{transform:scaleY(1.3) rotate(180deg)}100%{transform:scaleY(1) rotate(360deg)}}
+@keyframes zshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes zrainbow{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+
+/* ---- TOAST ---- */
+#z-toast{position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:500;
+  color:white;font-family:'Fredoka One',cursive;font-size:0.92rem;text-align:center;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;
+  pointer-events:none;max-width:290px;line-height:1.3;white-space:pre-line}
+
+/* ---- REBIRTH GLOW ---- */
+.rebirth-ready{animation:zshake .5s ease infinite;border-color:var(--gold)!important}
+
+/* ---- PROGRESS BAR ---- */
+.zpbar{background:rgba(255,255,255,.1);border-radius:50px;height:6px;overflow:hidden;margin-top:4px}
+.zpbar-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,#27AE60,#FFD700);transition:width .4s}
+
+/* ---- SNOWFLAKES ---- */
+.zsnow{position:fixed;pointer-events:none;z-index:180;
+  animation:zsnow linear infinite;font-size:.9rem;opacity:.8;top:-20px}
+
+/* ---- PARTY BEAMS ---- */
+.zbeam{position:fixed;bottom:0;z-index:180;width:5px;border-radius:3px;
+  opacity:.55;transform-origin:bottom center;animation:zbeam 2s linear infinite}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="zs-login" class="zscreen">
+  <div class="z-logo">🦁</div>
+  <div class="z-title">Gestalte deinen Zoo!</div>
+  <div class="z-sub">Sammle Tiere • Baue deinen Zoo • Werde reich!</div>
+  <div class="z-card">
+    <input class="z-inp" id="z-name" type="text" placeholder="Dein Name" maxlength="20" autocomplete="off"
+      onkeydown="if(event.key==='Enter')Zoo.login()"/>
+    <input class="z-inp" id="z-pw" type="password" placeholder="Passwort" maxlength="24"
+      onkeydown="if(event.key==='Enter')Zoo.login()"/>
+    <div class="z-err" id="z-err"></div>
+    <button class="zbtn zbtn-gold" onclick="Zoo.login()">Anmelden / Registrieren ➜</button>
+    <button class="zbtn zbtn-dim" onclick="location.href='index.html'">← Zurück zum Denkspiel</button>
+  </div>
+</div>
+
+<!-- ===== CHAR SELECT ===== -->
+<div id="zs-char" class="zscreen off">
+  <div class="z-title" style="font-size:1.6rem">Wähle deinen Charakter</div>
+  <div class="z-sub">Wer führt deinen Zoo?</div>
+  <div class="z-cgrid" id="z-cgrid"></div>
+  <button class="zbtn zbtn-gold" id="z-charbtn" onclick="Zoo.confirmChar()"
+    style="max-width:240px;display:none">Los geht's! 🚀</button>
+</div>
+
+<!-- ===== MODE SELECT ===== -->
+<div id="zs-mode" class="zscreen off">
+  <div id="z-modehello" style="font-family:'Fredoka One',cursive;font-size:1.4rem;
+    color:var(--gold);margin-bottom:18px;text-align:center"></div>
+  <div class="z-mcard" onclick="Zoo.startZoo()">
+    <span class="z-micon">🦁</span>
+    <div class="z-mtitle">Gestalte deinen Zoo</div>
+    <div class="z-mdesc">Sammle Tiere, baue Gehege und werde Millionär!</div>
+  </div>
+  <div class="z-mcard" onclick="location.href='index.html'">
+    <span class="z-micon">🧠</span>
+    <div class="z-mtitle">Mischa Denkspiel</div>
+    <div class="z-mdesc">Zum Rechenspiel wechseln</div>
+  </div>
+</div>
+
+<!-- ===== ZOO WORLD ===== -->
+<div id="zs-zoo" class="zscreen off">
+  <canvas id="z-canvas"></canvas>
+  <div id="z-hud">
+    <div class="hud-left">
+      <div class="hud-money" id="z-hmoney">💰 $0</div>
+      <div class="hud-vis" id="z-hvis">👥 0 Besucher</div>
+    </div>
+    <div id="z-hmult" class="hud-mult" style="color:#27AE60;font-size:0.7rem;text-align:center"></div>
+    <div class="hud-right">
+      <div class="hud-btns">
+        <button class="hbtn" style="background:rgba(27,174,96,.7)" onclick="ZUI.openGondola()">🚠 Gondel</button>
+        <button class="hbtn" style="background:rgba(52,152,219,.7)" onclick="ZUI.openShop()">🛒 Shop</button>
+        <button class="hbtn" style="background:rgba(155,89,182,.7)" onclick="ZUI.openRebirth()">🔄 Rebirth</button>
+        <button class="hbtn" style="background:rgba(100,100,100,.7)" onclick="ZUI.openMenu()">☰</button>
+      </div>
+    </div>
+  </div>
+  <!-- Joystick -->
+  <div id="z-jzone">
+    <div id="z-jbase"><div id="z-jthumb"></div></div>
+  </div>
+  <!-- Event banner -->
+  <div id="z-evbanner"></div>
+  <!-- Toast -->
+  <div id="z-toast"></div>
+</div>
+
+<!-- ===== PANELS ===== -->
+
+<!-- Gondola -->
+<div class="zpanel off" id="p-gondola">
+<div class="zpanel-inner">
+  <button class="pcls" onclick="ZUI.close('gondola')">✕</button>
+  <div class="ptitle">🚠 Gondel-Station</div>
+  <!-- Track -->
+  <div class="g-track"><div id="g-car" class="g-car" style="left:-40px">🚠</div></div>
+  <div style="text-align:center;margin-bottom:10px">
+    <span style="font-size:0.78rem;color:rgba(255,255,255,.5)">Nächste Gondel in: </span>
+    <span id="g-timer" style="font-family:'Fredoka One',cursive;color:var(--gold)">2.5s</span>
+  </div>
+  <!-- Current gondola animal -->
+  <div id="g-animal" style="min-height:120px;display:flex;align-items:center;justify-content:center">
+    <div style="color:rgba(255,255,255,.3);font-size:0.9rem">Warte auf Gondel...</div>
+  </div>
+  <!-- Luck upgrades -->
+  <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:0.82rem;margin:12px 0 6px">
+    🍀 Mehr Glück kaufen:
+  </div>
+  <div id="g-luck"></div>
+</div>
+</div>
+
+<!-- Shop -->
+<div class="zpanel off" id="p-shop">
+<div class="zpanel-inner">
+  <button class="pcls" onclick="ZUI.close('shop')">✕</button>
+  <div class="ptitle">🛒 Zoo-Shop</div>
+  <!-- Tab bar -->
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button id="stab-zoo" class="hbtn" style="background:rgba(255,215,0,.25);color:var(--gold);flex:1"
+      onclick="ZUI.shopTab('zoo')">🦁 Zoo</button>
+    <button id="stab-star" class="hbtn" style="background:rgba(255,255,255,.1);flex:1"
+      onclick="ZUI.shopTab('star')">⭐ Sterne</button>
+    <button id="stab-boost" class="hbtn" style="background:rgba(255,255,255,.1);flex:1"
+      onclick="ZUI.shopTab('boost')">⚡ Boosts</button>
+  </div>
+  <div id="s-content"></div>
+</div>
+</div>
+
+<!-- Rebirth -->
+<div class="zpanel off" id="p-rebirth">
+<div class="zpanel-inner">
+  <button class="pcls" onclick="ZUI.close('rebirth')">✕</button>
+  <div class="ptitle">🔄 Wiedergeburt</div>
+  <div id="p-rebirth-content"></div>
+</div>
+</div>
+
+<!-- Enclosure detail -->
+<div class="zpanel off" id="p-enc">
+<div class="zpanel-inner">
+  <button class="pcls" onclick="ZUI.close('enc')">✕</button>
+  <div class="ptitle" id="p-enc-title">Gehege</div>
+  <div id="p-enc-content"></div>
+</div>
+</div>
+
+<!-- Menu -->
+<div class="zpanel off" id="p-menu">
+<div class="zpanel-inner" style="text-align:center">
+  <button class="pcls" onclick="ZUI.close('menu')">✕</button>
+  <div class="ptitle">☰ Menü</div>
+  <div id="p-menu-stats"></div>
+  <button class="zbtn zbtn-dim" style="max-width:260px;margin-bottom:8px"
+    onclick="location.href='index.html'">← Zum Denkspiel</button>
+  <button class="zbtn" style="max-width:260px;background:rgba(231,76,60,.2);
+    border:1px solid rgba(231,76,60,.3);color:#ff6b6b" onclick="Zoo.logout()">Abmelden</button>
+</div>
+</div>
+
+<!-- Admin Spawn -->
+<div class="zpanel off" id="p-admin">
+<div class="zpanel-inner">
+  <button class="pcls" onclick="ZUI.close('admin')">✕</button>
+  <div class="ptitle">👑 Admin — Tier spawnen</div>
+  <div id="p-admin-content"></div>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-state.js"></script>
+<script>
+/* ============================================================
+   ANIMAL + TRAIT DEFINITIONS
+   ============================================================ */
+const ANIMALS = [
+  // Normal
+  {id:'cat',      n:'Katze',          e:'🐱', r:'normal',        w:40,     price:10,    earn:30},
+  {id:'dog',      n:'Hund',           e:'🐶', r:'normal',        w:30,     price:12,    earn:36},
+  {id:'hamster',  n:'Hamster',        e:'🐹', r:'normal',        w:15,     price:15,    earn:45},
+  {id:'dormouse', n:'Siebenschläfer', e:'🐭', r:'normal',        w:15,     price:18,    earn:54},
+  // Selten
+  {id:'fish',     n:'Fisch',          e:'🐠', r:'rare',          w:10,     price:50,    earn:150},
+  {id:'sister',   n:'Die Schwester',  e:'👧', r:'rare',          w:5,      price:80,    earn:240},
+  {id:'brother',  n:'Bruder',         e:'👦', r:'rare',          w:5,      price:80,    earn:240},
+  {id:'kangaroo', n:'Känguru',        e:'🦘', r:'rare',          w:3,      price:120,   earn:360},
+  // Episch
+  {id:'frog',     n:'Frosch',         e:'🐸', r:'epic',          w:2,      price:300,   earn:900},
+  {id:'raccoon',  n:'Waschbär',       e:'🦝', r:'epic',          w:1,      price:500,   earn:1500},
+  {id:'dolphin',  n:'Delphin',        e:'🐬', r:'epic',          w:0.5,    price:800,   earn:2400},
+  {id:'wolf',     n:'Wolf',           e:'🐺', r:'epic',          w:0.25,   price:1200,  earn:3600},
+  // Legendär
+  {id:'jellyfish',n:'Qualle',         e:'🪼', r:'legendary',     w:0.2,    price:3000,  earn:9000},
+  {id:'fox',      n:'Fuchs',          e:'🦊', r:'legendary',     w:0.2,    price:4000,  earn:12000},
+  {id:'tiger',    n:'Tiger',          e:'🐯', r:'legendary',     w:0.1,    price:8000,  earn:24000},
+  // Ultra-Legendär
+  {id:'orca',     n:'Orca',           e:'🐳', r:'ultralegendary',w:0.09,   price:25000,  earn:75000},
+  {id:'caveman',  n:'Steinzeitmensch',e:'🦴', r:'ultralegendary',w:0.005,  price:100000, earn:300000},
+  // Gott
+  {id:'lion',     n:'Löwe',           e:'🦁', r:'god',           w:0.001,  price:500000,  earn:1500000},
+  {id:'mammoth',  n:'Mammut',         e:'🦣', r:'god',           w:0.0009, price:1000000, earn:3000000},
+  // Secret
+  {id:'dino',     n:'Dinosaurier',    e:'🦕', r:'secret',        w:0.00001,price:50000000, earn:150000000},
+  {id:'megalodon',n:'Megalodon',      e:'🦈', r:'secret',        w:0.0000009,price:500000000,earn:1000000000},
+];
+
+const RARITY = {
+  normal:{name:'Normal',cls:'rn',mult:1},
+  rare:{name:'Selten',cls:'rr',mult:2},
+  epic:{name:'Episch',cls:'re',mult:3},
+  legendary:{name:'Legendär',cls:'rl',mult:5},
+  ultralegendary:{name:'Ultra-Legendär',cls:'ru',mult:8},
+  god:{name:'Gott',cls:'rg',mult:15},
+  secret:{name:'SECRET',cls:'rs',mult:50},
+};
+
+// Shiny (max 1 pro Tier)
+const SHINY = [
+  {id:'void',    name:'VOID',     cls:'tb-void',    mult:5,  chance:0.5},
+  {id:'rainbow', name:'RAINBOW',  cls:'tb-rainbow', mult:3,  chance:0.5},
+  {id:'diamond', name:'DIAMOND',  cls:'tb-diamond', mult:2,  chance:1},
+  {id:'gold',    name:'GOLD',     cls:'tb-gold',    mult:1.5,chance:2},
+];
+
+// Extra traits (can stack)
+const TRAITS = [
+  {id:'crystal',  name:'CRYSTAL',   cls:'tb-crystal',  mult:1.4, chance:3},
+  {id:'electric', name:'ELECTRIC',  cls:'tb-electric', mult:1.3, chance:4},
+  {id:'cosmic',   name:'COSMIC',    cls:'tb-cosmic',   mult:1.6, chance:2},
+  {id:'fire',     name:'FIRE',      cls:'tb-fire',     mult:1.5, chance:3},
+  {id:'snow',     name:'SNOW',      cls:'tb-snow',     mult:1.2, chance:5},
+];
+
+const LUCK_UPGRADES = [
+  {mult:1.5, cost:2000,  label:'×1.5 Glück 🍀'},
+  {mult:2,   cost:5000,  label:'×2 Glück 🍀🍀'},
+  {mult:3,   cost:50000, label:'×3 Glück 🍀🍀🍀'},
+  {mult:5,   cost:100000,label:'×5 Glück ⭐ MAX'},
+];
+
+const EVENTS = [
+  {id:'snow',   name:'❄️ Schneesturm', color:'#AED6F1', desc:'Spezielle weiße Gondeln (×3.5)!',    dur:25000},
+  {id:'party',  name:'🎉 Party-Zeit!',  color:'#FF69B4', desc:'Party-Strahlen geben ×4 Multi!',     dur:20000},
+  {id:'golden', name:'✨ Goldregen',    color:'#FFD700', desc:'Alle Einnahmen ×2.5 für kurze Zeit!',dur:18000},
+  {id:'night',  name:'🌙 Magische Nacht',color:'#9B59B6',desc:'Seltenere Tiere erscheinen öfter!',  dur:22000},
+  {id:'rush',   name:'🏃 Rush Hour',   color:'#E74C3C', desc:'Besucher kommen 5× schneller!',       dur:15000},
+  {id:'mega',   name:'💎 Mega-Event',  color:'#00CFFF', desc:'Alles ×3 für kurze Zeit!',            dur:12000},
+];
+
+/* ============================================================
+   HELPER
+   ============================================================ */
+function $m(n) {
+  if(n >= 1e15) return '$'+(n/1e15).toFixed(2)+'Qa';
+  if(n >= 1e12) return '$'+(n/1e12).toFixed(2)+'T';
+  if(n >= 1e9)  return '$'+(n/1e9).toFixed(2)+'B';
+  if(n >= 1e6)  return '$'+(n/1e6).toFixed(2)+'M';
+  if(n >= 1e3)  return '$'+(n/1e3).toFixed(1)+'K';
+  return '$'+Math.floor(n);
+}
+function $stars(n) {
+  if(n >= 1e6) return (n/1e6).toFixed(1)+'M ⭐';
+  if(n >= 1e3) return (n/1e3).toFixed(1)+'K ⭐';
+  return n + ' ⭐';
+}
+function eid(id) { return document.getElementById(id); }
+function show(id) { eid(id)?.classList.remove('off'); }
+function hide(id) { eid(id)?.classList.add('off'); }
+
+function rollAnimal(luck=1, nightEvent=false) {
+  const pool = ANIMALS.map(a => {
+    let w = a.w;
+    if(a.r !== 'normal') w *= Math.pow(luck, 0.6);
+    if(nightEvent && ['epic','legendary','ultralegendary','god','secret'].includes(a.r)) w *= 1.5;
+    return {...a, _w: w};
+  });
+  const total = pool.reduce((s,a)=>s+a._w, 0);
+  let r = Math.random() * total;
+  for(const a of pool) { r -= a._w; if(r<=0) return a; }
+  return pool[0];
+}
+
+function rollShiny() {
+  for(const s of SHINY) {
+    if(Math.random() * 100 < s.chance) return s;
+  }
+  return null;
+}
+
+function rollTraits() {
+  const result = [];
+  for(const t of TRAITS) {
+    if(Math.random() * 100 < t.chance) result.push(t);
+  }
+  return result;
+}
+
+function traitMult(shiny, traits) {
+  let m = shiny ? shiny.mult : 1;
+  (traits||[]).forEach(t => m *= t.mult);
+  return Math.round(m * 100) / 100;
+}
+
+function totalEarnForAnimal(enc, zooState, currentEvent) {
+  if(!enc) return 0;
+  const base = enc.animal.earn;
+  const tm = traitMult(enc.shiny, enc.traits);
+  let total = base * tm;
+  // Zoo upgrades
+  if(zooState.upgrades?.earn_multi) total *= 2;
+  if(zooState.upgrades?.earn_multi2) total *= 2;
+  // Rebirth mult
+  total *= (zooState.rebirthMult || 1);
+  // Temp boosts
+  if(zooState.tempBoosts?.coin2 > Date.now()) total *= 2;
+  // Event
+  if(currentEvent?.id === 'golden') total *= 2.5;
+  if(currentEvent?.id === 'mega')   total *= 3;
+  return total;
+}
+
+function rarityBadge(r, cls='') {
+  const rd = RARITY[r];
+  return `<span class="${rd.cls} ${cls}">${rd.name}</span>`;
+}
+function shinyBadge(shiny) {
+  return shiny ? `<span class="tb ${shiny.cls}">${shiny.name}</span>` : '';
+}
+function traitBadges(traits) {
+  return (traits||[]).map(t=>`<span class="tb ${t.cls}">${t.name}</span>`).join(' ');
+}
+
+/* ============================================================
+   ZOO DATA STATE
+   ============================================================ */
+const ZS = {
+  player: null, playerChar: null, zoo: null,
+  isAdmin: false,
+
+  newZoo() {
+    return {
+      money:150, totalEarned:0, totalVisitors:0,
+      enclosures: Array(5).fill(null),
+      luck:1, luckLevel:0,
+      upgrades:{}, tempBoosts:{},
+      rebirths:0, rebirthMult:1,
+      extraEnc:0, startedAt:Date.now(),
+    };
+  },
+
+  maxEnc() { return 5 + (this.zoo?.extraEnc||0) + (this.zoo?.rebirths||0)*2; },
+
+  visitSpeed() {
+    let ms = 5000;
+    const z = this.zoo;
+    if(!z) return ms;
+    if(z.upgrades?.vis_speed)  ms /= 2;
+    if(z.upgrades?.vis_speed2) ms /= 2;
+    if(ZEngine.currentEvent?.id === 'rush') ms /= 5;
+    ms /= Math.max(1, 1 + (z.rebirths||0) * 0.5);
+    if(z.upgrades?.vis_multi)  ms /= 2;
+    if(z.tempBoosts?.vis_storm > Date.now()) ms /= 10;
+    return Math.max(400, ms);
+  },
+
+  currentLuck() {
+    const z = this.zoo;
+    let l = z?.luck || 1;
+    if(z?.tempBoosts?.lucky_boost > Date.now()) l *= 2;
+    if(ZEngine.currentEvent?.id === 'night') l *= 1.5;
+    return l;
+  },
+
+  async save() {
+    if(!this.player || !this.zoo) return;
+    const key = 'zoo_'+this.player.toLowerCase();
+    this.zoo.savedAt = Date.now();
+    try {
+      if(State._useCloud()) await _db.collection('zoos').doc(key).set(this.zoo);
+    } catch(e){}
+    localStorage.setItem(key, JSON.stringify(this.zoo));
+  },
+
+  async load() {
+    const key = 'zoo_'+this.player.toLowerCase();
+    try {
+      if(State._useCloud()) {
+        const snap = await _db.collection('zoos').doc(key).get();
+        if(snap.exists) { this.zoo = snap.data(); this.fixEnc(); return; }
+      }
+    } catch(e){}
+    const local = localStorage.getItem(key);
+    this.zoo = local ? JSON.parse(local) : this.newZoo();
+    this.fixEnc();
+  },
+
+  fixEnc() {
+    const needed = this.maxEnc();
+    while(this.zoo.enclosures.length < needed) this.zoo.enclosures.push(null);
+  },
+};
+
+/* ============================================================
+   ZOO AUTH
+   ============================================================ */
+const Zoo = {
+  _charSel: null,
+
+  login() {
+    const name = eid('z-name')?.value.trim();
+    const pw   = eid('z-pw')?.value.trim();
+    const err  = eid('z-err');
+    if(!name || name.length < 2) { err.textContent='Name zu kurz!'; return; }
+    if(!pw) { err.textContent='Bitte Passwort eingeben!'; return; }
+    const users = JSON.parse(localStorage.getItem('zoo_users')||'{}');
+    const key = name.toLowerCase();
+    if(!users[key]) {
+      users[key] = {name, pw, char:null, createdAt:Date.now()};
+      localStorage.setItem('zoo_users', JSON.stringify(users));
+      ZS.player = name;
+      ZS.isAdmin = (name.toLowerCase() === 'mischa' || name.toLowerCase() === 'admin');
+      this._showChar();
+    } else {
+      const u = users[key];
+      if(u.pw !== pw) { err.textContent='Falsches Passwort!'; return; }
+      ZS.player = name;
+      ZS.isAdmin = (name.toLowerCase() === 'mischa' || name.toLowerCase() === 'admin');
+      if(!u.char) this._showChar();
+      else { ZS.playerChar = u.char; this._showMode(); }
+    }
+  },
+
+  _showChar() {
+    hide('zs-login'); show('zs-char');
+    const CHARS = [
+      {id:'spongebob',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},
+      {id:'ninja',e:'🥷',n:'Ninja'},{id:'astronaut',e:'🧑‍🚀',n:'Astronaut'},
+      {id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},
+      {id:'detective',e:'🕵️',n:'Detektiv'},{id:'lion',e:'🦁',n:'Löwe'},
+      {id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},
+      {id:'woman',e:'👩',n:'Wanderin'},{id:'man',e:'👨',n:'Wanderer'},
+    ];
+    eid('z-cgrid').innerHTML = CHARS.map(c=>
+      `<div class="z-copt" id="zco-${c.id}" onclick="Zoo._selChar('${c.id}','${c.e}')">
+        <span class="ce">${c.e}</span><span class="cn">${c.n}</span>
+      </div>`).join('');
+  },
+
+  _selChar(id, emoji) {
+    Zoo._charSel = {id, emoji};
+    document.querySelectorAll('.z-copt').forEach(el=>el.classList.remove('sel'));
+    eid(`zco-${id}`)?.classList.add('sel');
+    eid('z-charbtn').style.display='block';
+  },
+
+  confirmChar() {
+    if(!Zoo._charSel) return;
+    const users = JSON.parse(localStorage.getItem('zoo_users')||'{}');
+    const k = ZS.player.toLowerCase();
+    if(users[k]) users[k].char = Zoo._charSel;
+    localStorage.setItem('zoo_users', JSON.stringify(users));
+    ZS.playerChar = Zoo._charSel;
+    this._showMode();
+  },
+
+  _showMode() {
+    hide('zs-char'); hide('zs-login'); show('zs-mode');
+    eid('z-modehello').innerHTML = `${ZS.playerChar?.emoji||''} Hallo ${ZS.player}!`;
+  },
+
+  async startZoo() {
+    hide('zs-mode'); show('zs-zoo');
+    await ZS.load();
+    ZEngine.start();
+  },
+
+  logout() {
+    ZEngine.stop();
+    ZUI.closeAll();
+    hide('zs-zoo');
+    ZS.player=null; ZS.zoo=null; ZS.playerChar=null;
+    eid('z-name').value=''; eid('z-pw').value=''; eid('z-err').textContent='';
+    show('zs-login');
+  },
+};
+
+/* ============================================================
+   ZOO ENGINE
+   ============================================================ */
+const ZEngine = {
+  canvas:null, ctx:null,
+  cam:{x:0,y:0}, player:{x:250,y:350},
+  joy:{active:false,dx:0,dy:0},
+  currentEvent:null, eventParticles:[],
+  snowEls:[], beamEls:[],
+  gondolaPct:0, // 0-100 car position
+  gondolaInterval:null,
+  gondolaCountdown:2500,
+  currentGondola:null,
+  visitTimer:0,
+  _raf:null, _loops:[],
+
+  start() {
+    this.canvas = eid('z-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this._resize();
+    window.addEventListener('resize',()=>this._resize());
+    this._initJoystick();
+    this._raf = requestAnimationFrame(t=>this._drawLoop(t));
+    this._loops.push(setInterval(()=>this._gameLoop(), 100));
+    this._loops.push(setInterval(()=>ZS.save(), 15000));
+    this._loops.push(setInterval(()=>this._tryEvent(), 35000));
+    this._gondolaTick();
+    this._updateHUD();
+    if(ZS.zoo.enclosures.every(e=>!e))
+      ZUI.toast('🚠 Tippe auf die Gondel-Station um dein erstes Tier zu holen!', 5000);
+    if(ZS.isAdmin) {
+      eid('z-hud').insertAdjacentHTML('beforeend',
+        '<button class="hbtn" style="background:rgba(255,165,0,.7)" onclick="ZUI.openAdmin()">👑</button>');
+    }
+  },
+
+  stop() {
+    cancelAnimationFrame(this._raf);
+    this._loops.forEach(clearInterval);
+    this._loops = [];
+    this.snowEls.forEach(e=>e.remove()); this.snowEls=[];
+    this.beamEls.forEach(e=>e.remove()); this.beamEls=[];
+  },
+
+  _resize() {
+    this.canvas.width  = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  },
+
+  /* GAME LOOP */
+  _gameLoop() {
+    const z = ZS.zoo; if(!z) return;
+    ZS.fixEnc();
+    // Move player
+    if(this.joy.active) {
+      this.player.x += this.joy.dx * 4;
+      this.player.y += this.joy.dy * 4;
+      this.cam.x = this.player.x - this.canvas.width/2;
+      this.cam.y = this.player.y - this.canvas.height/2;
+    }
+    // Visitor tick
+    this.visitTimer += 100;
+    if(this.visitTimer >= ZS.visitSpeed()) {
+      this.visitTimer = 0;
+      this._spawnVisitor();
+    }
+    this._updateHUD();
+  },
+
+  _spawnVisitor() {
+    const z = ZS.zoo;
+    const animals = z.enclosures.filter(e=>e);
+    if(!animals.length) return;
+    z.totalVisitors++;
+    let earn = animals.reduce((s,enc)=>s+totalEarnForAnimal(enc,z,this.currentEvent),0);
+    z.money += earn; z.totalEarned = (z.totalEarned||0)+earn;
+    // Floating money
+    const x=15+Math.random()*60, y=35+Math.random()*30;
+    const el=document.createElement('div');
+    el.className='flt'; el.style.cssText=`left:${x}%;top:${y}%;color:#FFD700`;
+    el.textContent='+'+$m(earn);
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1500);
+  },
+
+  _gondolaTick() {
+    this.gondolaInterval = setInterval(()=>{
+      this.gondolaCountdown -= 100;
+      const p = eid('g-timer');
+      if(p) p.textContent = (Math.max(0,this.gondolaCountdown)/1000).toFixed(1)+'s';
+      // Animate car
+      const car = eid('g-car');
+      if(car) {
+        const pct = 1 - (this.gondolaCountdown / 2500);
+        car.style.left = (-40 + pct * (eid('g-track')?.offsetWidth||200+50)) + 'px';
+        // White gondola on snow event
+        car.textContent = (this.currentEvent?.id==='snow' && Math.random()<0.05) ? '⬜' : '🚠';
+      }
+      if(this.gondolaCountdown <= 0) {
+        this.gondolaCountdown = 2500;
+        this._newGondola();
+      }
+    }, 100);
+    this._loops.push(this.gondolaInterval);
+  },
+
+  _newGondola() {
+    const luck = ZS.currentLuck();
+    const isSnowEvent = this.currentEvent?.id === 'snow';
+    const isNightEvent = this.currentEvent?.id === 'night';
+    const animal = rollAnimal(luck, isNightEvent);
+    const shiny  = rollShiny();
+    const traits = rollTraits();
+    // Snow event: 5% chance white gondola = ×3.5 extra
+    const snowBonus = isSnowEvent && Math.random() < 0.05 ? 3.5 : 1;
+    // Party event beam hits = ×4
+    const partyBonus = this.currentEvent?.id === 'party' && Math.random() < 0.15 ? 4 : 1;
+    const extraMult = snowBonus * partyBonus;
+    this.currentGondola = {animal, shiny, traits, extraMult, isWhite: snowBonus>1};
+    if(eid('p-gondola') && !eid('p-gondola').classList.contains('off')) {
+      ZUI._renderGondolaAnimal();
+    }
+  },
+
+  _updateHUD() {
+    const z = ZS.zoo; if(!z) return;
+    eid('z-hmoney').textContent = '💰 '+$m(z.money);
+    eid('z-hvis').textContent = '👥 '+z.totalVisitors.toLocaleString()+' Besucher';
+    const mults=[];
+    if((z.rebirthMult||1)>1) mults.push(`×${z.rebirthMult.toFixed(1)} Rebirth`);
+    if(z.luck>1) mults.push(`🍀×${z.luck}`);
+    if(this.currentEvent) mults.push(this.currentEvent.name);
+    eid('z-hmult').textContent = mults.join(' · ');
+  },
+
+  /* EVENTS */
+  _tryEvent() {
+    if(this.currentEvent) return;
+    if(Math.random() < 0.25) {
+      const ev = EVENTS[Math.floor(Math.random()*EVENTS.length)];
+      this.startEvent(ev);
+    }
+  },
+
+  startEvent(ev) {
+    this.currentEvent = ev;
+    const banner = eid('z-evbanner');
+    banner.textContent = ev.name + ' — ' + ev.desc;
+    banner.style.opacity = '1';
+    setTimeout(()=>{banner.style.opacity='0';},4000);
+    if(ev.id==='snow')  this._startSnow();
+    if(ev.id==='party') this._startParty();
+    ZUI.toast(ev.name+' gestartet! '+ev.desc, 4000);
+    setTimeout(()=>{
+      this.currentEvent=null;
+      this._stopSnow(); this._stopParty();
+    }, ev.dur);
+  },
+
+  _startSnow() {
+    for(let i=0;i<18;i++){
+      const el=document.createElement('div');
+      el.className='zsnow'; el.textContent='❄️';
+      el.style.cssText=`left:${Math.random()*100}vw;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s;top:-20px`;
+      document.getElementById('zs-zoo').appendChild(el);
+      this.snowEls.push(el);
+    }
+  },
+  _stopSnow(){ this.snowEls.forEach(e=>e.remove()); this.snowEls=[]; },
+
+  _startParty() {
+    const cols=['#FF6B6B','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];
+    for(let i=0;i<10;i++){
+      const el=document.createElement('div');
+      el.className='zbeam';
+      const c=cols[i%cols.length];
+      const delay=Math.random()*1.5;
+      el.style.cssText=`left:${5+i*9}%;height:${60+Math.random()*40}px;background:${c};
+        animation-duration:${1.5+Math.random()}s;animation-delay:${delay}s;z-index:185`;
+      document.getElementById('zs-zoo').appendChild(el);
+      this.beamEls.push(el);
+    }
+  },
+  _stopParty(){ this.beamEls.forEach(e=>e.remove()); this.beamEls=[]; },
+
+  /* CANVAS DRAW */
+  _drawLoop(ts) {
+    this._raf = requestAnimationFrame(t=>this._drawLoop(t));
+    this._draw();
+  },
+
+  _draw() {
+    const ctx=this.ctx, W=this.canvas.width, H=this.canvas.height;
+    const cam=this.cam;
+    if(!ctx) return;
+    ctx.clearRect(0,0,W,H);
+
+    // Sky
+    const sky=ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'#5DADE2'); sky.addColorStop(1,'#B8DCE8');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
+
+    // Ground plane
+    const gY=H*0.55-cam.y;
+    ctx.fillStyle='#5DBB63'; ctx.fillRect(0,gY,W,H);
+    ctx.fillStyle='#4CAF50'; ctx.fillRect(0,gY,W,30);
+
+    // Clouds
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    [[80,50,60],[200,30,80],[350,60,50],[500,40,70]].forEach(([x,y,r])=>{
+      const cx2=(x-cam.x*0.3)%W; const cy2=y;
+      ctx.beginPath(); ctx.arc(cx2,cy2,r,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx2+r*0.6,cy2+5,r*0.7,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx2-r*0.5,cy2+8,r*0.6,0,Math.PI*2); ctx.fill();
+    });
+
+    // Path (road)
+    ctx.fillStyle='#D4A04A';
+    ctx.fillRect(W/2-22,gY,44,H-gY);
+
+    // Draw enclosures
+    const z=ZS.zoo; if(!z) return;
+    const cols2=3, eW=105, eH=85, eG=18, sX=70, sY=200;
+    for(let i=0;i<z.enclosures.length;i++){
+      const col=i%cols2, row=Math.floor(i/cols2);
+      const ex=sX+col*(eW+eG)-cam.x;
+      const ey=sY+row*(eH+eG)-cam.y;
+      if(ex<-150||ex>W+60||ey<-100||ey>H+60) continue;
+      // Grass inside
+      ctx.fillStyle=z.enclosures[i]?'#5DBB63':'rgba(93,187,99,0.3)';
+      ctx.fillRect(ex,ey,eW,eH);
+      // Fence
+      ctx.strokeStyle=z.enclosures[i]?'#8B5E3C':'rgba(139,94,60,0.4)';
+      ctx.lineWidth=3; ctx.setLineDash(z.enclosures[i]?[]:[7,4]);
+      ctx.strokeRect(ex,ey,eW,eH); ctx.setLineDash([]);
+      // Shiny glow
+      if(z.enclosures[i]?.shiny) {
+        const sh=z.enclosures[i].shiny;
+        const gc = {gold:'rgba(255,215,0,0.25)',diamond:'rgba(0,207,255,0.2)',
+                    rainbow:'rgba(255,100,100,0.15)',void:'rgba(155,89,182,0.25)'}[sh.id]||'';
+        if(gc){ctx.fillStyle=gc;ctx.fillRect(ex+3,ey+3,eW-6,eH-6);}
+      }
+      // Animal emoji
+      if(z.enclosures[i]) {
+        ctx.font='2.2rem Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(z.enclosures[i].animal.e, ex+eW/2, ey+eH/2-5);
+        ctx.font='0.58rem Arial'; ctx.fillStyle='rgba(255,255,255,0.85)';
+        ctx.fillText(z.enclosures[i].animal.n, ex+eW/2, ey+eH-9);
+      } else {
+        ctx.globalAlpha=0.25; ctx.font='1.8rem Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('🔒', ex+eW/2, ey+eH/2); ctx.globalAlpha=1;
+      }
+      ctx.font='bold 0.6rem Arial'; ctx.fillStyle='rgba(255,255,255,0.5)';
+      ctx.textAlign='left'; ctx.fillText('#'+(i+1), ex+4, ey+12);
+    }
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+
+    // Gondola station building
+    const gsX=520-cam.x, gsY=170-cam.y;
+    // Building
+    const grad2=ctx.createLinearGradient(gsX,gsY,gsX,gsY+80);
+    grad2.addColorStop(0,'#6D4C1F'); grad2.addColorStop(1,'#4A3010');
+    ctx.fillStyle=grad2;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(gsX,gsY,175,80,10);
+    else ctx.rect(gsX,gsY,175,80);
+    ctx.fill();
+    // Gold border
+    ctx.strokeStyle='#FFD700'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.strokeRect(gsX,gsY,175,80);
+    // Roof triangles
+    ctx.fillStyle='#C0392B';
+    ctx.beginPath(); ctx.moveTo(gsX+10,gsY); ctx.lineTo(gsX+50,gsY-25); ctx.lineTo(gsX+90,gsY); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(gsX+90,gsY); ctx.lineTo(gsX+130,gsY-20); ctx.lineTo(gsX+165,gsY); ctx.closePath(); ctx.fill();
+    // Sign
+    ctx.font='bold 0.75rem Arial'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+    ctx.fillText('🚠 Gondel-Station', gsX+87, gsY+22);
+    ctx.font='0.62rem Arial'; ctx.fillStyle='rgba(255,255,255,0.65)';
+    ctx.fillText('Tippe zum Öffnen →', gsX+87, gsY+42);
+    ctx.fillText('Alle 2.5s ein neues Tier!', gsX+87, gsY+60);
+    ctx.textAlign='left';
+
+    // Player
+    const px=this.player.x-cam.x, py=this.player.y-cam.y;
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath();
+    ctx.ellipse(px,py+2,18,6,0,0,Math.PI*2); ctx.fill();
+    ctx.font='2.2rem Arial'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText(ZS.playerChar?.emoji||'🧭', px, py);
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  },
+
+  /* JOYSTICK */
+  _initJoystick() {
+    const base=eid('z-jbase'), thumb=eid('z-jthumb');
+    const R=33;
+    const mv=(cx,cy)=>{
+      const rect=base.getBoundingClientRect();
+      const ox=cx-(rect.left+rect.width/2);
+      const oy=cy-(rect.top+rect.height/2);
+      const d=Math.sqrt(ox*ox+oy*oy);
+      const cl=Math.min(d,R);
+      const nx=d>0?(ox/d)*cl:0, ny=d>0?(oy/d)*cl:0;
+      thumb.style.left=(33+nx)+'px'; thumb.style.top=(33+ny)+'px';
+      this.joy.dx=nx/R; this.joy.dy=ny/R; this.joy.active=d>4;
+    };
+    const up=()=>{ thumb.style.left='33px'; thumb.style.top='33px';
+      this.joy.active=false; this.joy.dx=0; this.joy.dy=0; };
+    base.addEventListener('touchstart',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    base.addEventListener('touchmove', e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    base.addEventListener('touchend',up);
+    base.addEventListener('mousedown',e=>{
+      const mm=ev=>mv(ev.clientX,ev.clientY);
+      const mu=()=>{document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);up();};
+      document.addEventListener('mousemove',mm); document.addEventListener('mouseup',mu); mv(e.clientX,e.clientY);
+    });
+  },
+};
+
+// Canvas click for enclosures + gondola station
+eid('z-canvas')?.addEventListener('click', e=>{
+  if(!ZS.zoo) return;
+  const cam=ZEngine.cam, z=ZS.zoo;
+  const cols2=3,eW=105,eH=85,eG=18,sX=70,sY=200;
+  for(let i=0;i<z.enclosures.length;i++){
+    const col=i%cols2, row=Math.floor(i/cols2);
+    const ex=sX+col*(eW+eG)-cam.x, ey=sY+row*(eH+eG)-cam.y;
+    if(e.clientX>=ex&&e.clientX<=ex+eW&&e.clientY>=ey&&e.clientY<=ey+eH){
+      ZUI.openEnc(i); return;
+    }
+  }
+  const gsX=520-cam.x,gsY=170-cam.y;
+  if(e.clientX>=gsX&&e.clientX<=gsX+175&&e.clientY>=gsY&&e.clientY<=gsY+80){
+    ZUI.openGondola(); return;
+  }
+});
+
+/* ============================================================
+   ZOO UI
+   ============================================================ */
+const ZUI = {
+  _toastTimer: null,
+  _shopTab: 'zoo',
+
+  toast(msg, ms=2500) {
+    const t=eid('z-toast');
+    t.textContent=msg; t.style.opacity='1';
+    clearTimeout(this._toastTimer);
+    this._toastTimer=setTimeout(()=>t.style.opacity='0', ms);
+  },
+
+  closeAll() { ['gondola','shop','rebirth','enc','menu','admin'].forEach(p=>this.close(p)); },
+  close(p)   { hide('p-'+p); },
+
+  /* ---- GONDOLA ---- */
+  openGondola() {
+    show('p-gondola');
+    this._renderLuck();
+    if(!ZEngine.currentGondola) ZEngine._newGondola();
+    else this._renderGondolaAnimal();
+  },
+
+  _renderGondolaAnimal() {
+    const g = ZEngine.currentGondola;
+    const el = eid('g-animal');
+    if(!g||!el) return;
+    const {animal,shiny,traits,extraMult,isWhite} = g;
+    const tm = traitMult(shiny,traits)*extraMult;
+    const cost = animal.price;
+    const z=ZS.zoo; const canAfford=z.money>=cost;
+    const rd=RARITY[animal.r];
+    const encEmpty = z.enclosures.some(e=>!e);
+
+    el.innerHTML=`
+      <div style="text-align:center;animation:zpopIn .4s ease">
+        <div style="font-size:3.5rem;position:relative;display:inline-block;
+          ${shiny?.id==='rainbow'?'animation:zrainbow 2s linear infinite':''}">
+          ${animal.e}
+          ${isWhite?'<span style="position:absolute;top:-8px;right:-10px;font-size:1.2rem">⬜</span>':''}
+        </div>
+        <div style="font-family:\'Fredoka One\',cursive;color:white;font-size:1.2rem;margin-top:4px">
+          ${shinyBadge(shiny)} ${animal.n}
+        </div>
+        <div class="${rd.cls}" style="font-size:0.82rem;margin-bottom:3px">${rd.name}</div>
+        ${traitBadges(traits)}
+        ${extraMult>1?`<div style="color:var(--gold);font-size:0.78rem;margin-top:3px">✨ ×${extraMult.toFixed(1)} Event-Bonus!</div>`:''}
+        <div style="font-size:0.75rem;color:rgba(255,255,255,.45);margin:6px 0">
+          💰 ${$m(animal.earn*tm)} /Besucher · Preis: ${$m(cost)}
+          ${tm>1?` <span style="color:var(--gold)">(×${tm.toFixed(2)} Mult)</span>`:''}
+        </div>
+        <button class="zbuy" ${(!canAfford||!encEmpty)?'disabled':''} onclick="ZUI._buyGondola()"
+          style="font-size:0.9rem;padding:10px 22px">
+          ${!canAfford?'❌ Zu wenig Geld':!encEmpty?'❌ Alle Gehege belegt':'Kaufen 🛒'}
+        </button>
+      </div>`;
+  },
+
+  _buyGondola() {
+    const z=ZS.zoo, g=ZEngine.currentGondola;
+    if(!g) return;
+    const empty=z.enclosures.findIndex(e=>!e);
+    if(empty<0){ this.toast('❌ Alle Gehege belegt! Verkaufe erst ein Tier.'); return; }
+    if(z.money<g.animal.price){ this.toast('❌ Nicht genug Geld!'); return; }
+    z.money -= g.animal.price;
+    z.enclosures[empty] = {animal:{...g.animal}, shiny:g.shiny, traits:g.traits, extraMult:g.extraMult, addedAt:Date.now()};
+    this.toast(`✅ ${g.animal.e} ${g.animal.n} in Gehege ${empty+1}!`, 2500);
+    ZEngine.currentGondola=null;
+    eid('g-animal').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';
+    ZEngine._updateHUD();
+  },
+
+  _renderLuck() {
+    const z=ZS.zoo;
+    const el=eid('g-luck'); if(!el) return;
+    el.innerHTML=LUCK_UPGRADES.map((u,i)=>{
+      const bought=z.luckLevel>i;
+      const active=z.luckLevel===i;
+      const canBuy=active && z.money>=u.cost;
+      if(bought) return `<div class="acard" style="opacity:.5">
+        <div class="ac-em">🍀</div>
+        <div class="ac-info"><div class="ac-name">${u.label}</div>
+          <div style="color:#27AE60;font-size:.7rem">✅ Aktiv</div></div></div>`;
+      if(!active) return '';
+      return `<div class="acard">
+        <div class="ac-em">🍀</div>
+        <div class="ac-info"><div class="ac-name">${u.label}</div>
+          <div class="ac-sub" style="color:var(--gold)">${$m(u.cost)}</div></div>
+        <div class="ac-price">
+          <button class="zbuy" ${!canBuy?'disabled':''} onclick="ZUI._buyLuck(${i})">
+            ${canBuy?'Kaufen':'Zu wenig'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  _buyLuck(i) {
+    const z=ZS.zoo, u=LUCK_UPGRADES[i];
+    if(z.money<u.cost){ this.toast('❌ Nicht genug Geld!'); return; }
+    z.money-=u.cost; z.luck=u.mult; z.luckLevel=i+1;
+    this.toast(`✅ ${u.label} aktiviert!`);
+    this._renderLuck();
+    ZEngine._updateHUD();
+  },
+
+  /* ---- SHOP ---- */
+  shopTab(tab) {
+    this._shopTab=tab;
+    ['zoo','star','boost'].forEach(t=>{
+      const btn=eid('stab-'+t);
+      if(btn) btn.style.background=t===tab?'rgba(255,215,0,.25)':'rgba(255,255,255,.1)';
+    });
+    this._renderShop();
+  },
+
+  openShop() { show('p-shop'); this._renderShop(); },
+
+  _renderShop() {
+    const z=ZS.zoo, el=eid('s-content'); if(!el) return;
+    const tab=this._shopTab;
+    if(tab==='zoo') this._renderShopZoo(el);
+    else if(tab==='star') this._renderShopStar(el);
+    else this._renderShopBoost(el);
+  },
+
+  _renderShopZoo(el) {
+    const z=ZS.zoo;
+    const items = [
+      {id:'vis_speed', name:'🚀 Besucher ×2 schneller',    desc:'Halbe Wartezeit zwischen Besuchern.',   price:1000,  star:false},
+      {id:'vis_speed2',name:'🚀🚀 Besucher ×4 schneller',  desc:'Noch schnellere Besucher!',              price:5000,  star:false, req:'vis_speed'},
+      {id:'vis_multi', name:'👥 ×2 Besucher',              desc:'Doppelt so viele Besucher auf einmal.',  price:2000,  star:false},
+      {id:'earn_multi',name:'💰 ×2 Einnahmen',             desc:'Alle Tier-Einnahmen verdoppelt.',        price:3000,  star:false},
+      {id:'earn_multi2',name:'💰💰 ×4 Einnahmen',          desc:'Nochmal doppelt!',                       price:15000, star:false, req:'earn_multi'},
+      {id:'extra_enc', name:'🏗️ +1 Gehege',               desc:'Ein extra Gehege für ein neues Tier.',   price:5000,  star:false, multi:true},
+      {id:'extra_enc2',name:'🏗️🏗️ +3 Gehege',            desc:'Drei Gehege auf einmal!',                price:30000, star:false, multi:true},
+    ];
+    el.innerHTML = items.map(item=>{
+      const owned=z.upgrades?.[item.id] && !item.multi;
+      const req=!item.req || z.upgrades?.[item.req];
+      if(owned) return `<div class="acard" style="opacity:.5">
+        <div class="ac-em">✅</div>
+        <div class="ac-info"><div class="ac-name">${item.name}</div>
+          <div class="ac-sub">${item.desc}</div></div></div>`;
+      return `<div class="acard ${!req?'opacity:0.4':''}">
+        <div class="ac-em">${item.name.split(' ')[0]}</div>
+        <div class="ac-info"><div class="ac-name">${item.name}</div>
+          <div class="ac-sub">${item.desc}</div>
+          ${!req?`<div style="color:#ff6b6b;font-size:.68rem">Erst ${items.find(i=>i.id===item.req)?.name.split(' ')[0]} kaufen!</div>`:''}
+        </div>
+        <div class="ac-price"><div class="ac-cost">${$m(item.price)}</div>
+          <button class="zbuy" ${!req||z.money<item.price?'disabled':''}
+            onclick="ZUI._buyZooItem('${item.id}',${item.price},${item.multi||false})">
+            ${z.money<item.price?'Zu wenig':'Kaufen'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  _renderShopStar(el) {
+    // Star multiplier purchases using Denkspiel stars
+    const mainPlayer = sessionStorage.getItem('mischa_current');
+    const starBalance = mainPlayer ? (State.currentPlayer?.totalScore||0) : 0;
+    const items = [
+      {id:'sm2x',   name:'⭐×2 Sterne (15 Min)',  price:500,   dur:15*60*1000, mult:2},
+      {id:'sm4x',   name:'⭐×4 Sterne (30 Min)',  price:1000,  dur:30*60*1000, mult:4},
+      {id:'sm8x',   name:'⭐×8 Sterne (30 Min)',  price:5000,  dur:30*60*1000, mult:8},
+      {id:'sm10x',  name:'⭐×10 Sterne (30 Min)', price:10000, dur:30*60*1000, mult:10},
+      {id:'sm10x2', name:'🌟×10 Sterne (1h)',     price:20000, dur:60*60*1000, mult:10},
+      {id:'sm10x3', name:'👑 MAX (1h)',            price:50000, dur:60*60*1000, mult:10},
+    ];
+    const z=ZS.zoo;
+    el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:10px">
+      Diese Artikel kosten Denkspiel-⭐ (aktuell: ${$stars(starBalance)})</div>`+
+      items.map(item=>{
+        const active=z.tempBoosts?.[item.id] > Date.now();
+        const left=active?Math.ceil((z.tempBoosts[item.id]-Date.now())/60000):0;
+        const canBuy=starBalance>=item.price;
+        return `<div class="acard sstar">
+          <div class="ac-em">⭐</div>
+          <div class="ac-info">
+            <div class="ac-name">${item.name}</div>
+            <div class="ac-sub">${item.mult}× Punkte · ${item.dur/60000} Min</div>
+            ${active?`<div style="color:#27AE60;font-size:.7rem">✅ Aktiv noch ${left}min</div>`:''}
+          </div>
+          <div class="ac-price"><div class="ac-cost">${$stars(item.price)}</div>
+            <button class="zbuy" ${!canBuy?'disabled':''}
+              onclick="ZUI._buyStarItem('${item.id}',${item.price},${item.dur},${item.mult})">
+              ${canBuy?'Kaufen':'⭐ Fehlt'}
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+  },
+
+  _renderShopBoost(el) {
+    const z=ZS.zoo;
+    const items=[
+      {id:'coin2',       name:'💰×2 Zoo-$ (15 Min)',      desc:'Doppelte Einnahmen 15 Min',             price:800,  dur:15*60*1000},
+      {id:'coin3',       name:'💰×3 Zoo-$ (10 Min)',      desc:'Dreifache Einnahmen 10 Min',            price:3000, dur:10*60*1000},
+      {id:'lucky_boost', name:'🎰 Glück ×2 (10 Min)',     desc:'Doppeltes Glück für seltenere Tiere',   price:1500, dur:10*60*1000},
+      {id:'vis_storm',   name:'🌊 Besucher-Sturm (5 Min)',desc:'×10 Besucher für 5 Minuten!',           price:3000, dur:5*60*1000},
+      {id:'mega_earn',   name:'👑 MEGA ×5 (3 Min)',       desc:'Fünffache Einnahmen für 3 Minuten!',    price:10000,dur:3*60*1000},
+    ];
+    el.innerHTML=items.map(item=>{
+      const active=z.tempBoosts?.[item.id]>Date.now();
+      const left=active?Math.ceil((z.tempBoosts[item.id]-Date.now())/60000):0;
+      return `<div class="acard">
+        <div class="ac-em">${item.name.split(' ')[0]}</div>
+        <div class="ac-info">
+          <div class="ac-name">${item.name}</div>
+          <div class="ac-sub">${item.desc}</div>
+          ${active?`<div style="color:#27AE60;font-size:.7rem">✅ Aktiv noch ${left}min</div>`:''}
+        </div>
+        <div class="ac-price"><div class="ac-cost">${$m(item.price)}</div>
+          <button class="zbuy" ${z.money<item.price?'disabled':''}
+            onclick="ZUI._buyBoost('${item.id}',${item.price},${item.dur})">
+            ${z.money<item.price?'Zu wenig':'Kaufen'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  _buyZooItem(id,price,multi) {
+    const z=ZS.zoo;
+    if(z.money<price){ this.toast('❌ Nicht genug Geld!'); return; }
+    z.money-=price;
+    if(!z.upgrades) z.upgrades={};
+    z.upgrades[id]=true;
+    if(id.startsWith('extra_enc')){
+      z.extraEnc=(z.extraEnc||0)+(id==='extra_enc2'?3:1);
+      ZS.fixEnc();
+    }
+    this.toast('✅ Gekauft!');
+    this._renderShopZoo(eid('s-content'));
+    ZEngine._updateHUD();
+  },
+
+  _buyStarItem(id,starCost,dur,mult) {
+    const player=State.currentPlayer;
+    if(!player||player.totalScore<starCost){ this.toast('❌ Nicht genug ⭐ im Denkspiel!'); return; }
+    State.addPoints(player.name,-starCost);
+    const exp=Date.now()+dur;
+    if(!ZS.zoo.tempBoosts) ZS.zoo.tempBoosts={};
+    ZS.zoo.tempBoosts[id]=exp;
+    // Apply to main game star multiplier
+    State.currentPlayer.activeStarMultiplier=mult;
+    State.currentPlayer.starMultiplierExpires=exp;
+    State.savePlayer(State.currentPlayer);
+    this.toast(`✅ ${mult}× Sterne-Boost für ${dur/60000} Min aktiv!`);
+    this._renderShopStar(eid('s-content'));
+  },
+
+  _buyBoost(id,price,dur) {
+    const z=ZS.zoo;
+    if(z.money<price){ this.toast('❌ Nicht genug Geld!'); return; }
+    z.money-=price;
+    if(!z.tempBoosts) z.tempBoosts={};
+    z.tempBoosts[id]=Date.now()+dur;
+    this.toast(`✅ Boost aktiv für ${dur/60000} Min!`);
+    this._renderShopBoost(eid('s-content'));
+    ZEngine._updateHUD();
+  },
+
+  /* ---- REBIRTH ---- */
+  openRebirth() { show('p-rebirth'); this._renderRebirth(); },
+
+  _renderRebirth() {
+    const z=ZS.zoo;
+    const rb=z.rebirths||0;
+    const newMult=Math.round((1+(rb+1)*0.5)*100)/100;
+    const epics=z.enclosures.filter(e=>e&&['epic','legendary','ultralegendary','god','secret'].includes(e.animal.r)).length;
+    const rares=z.enclosures.filter(e=>e&&e.animal.r==='rare').length;
+    const canRebirth=epics>=1&&rares>=2&&z.money>=1000;
+    const el=eid('p-rebirth-content');
+    el.innerHTML=`
+      <div style="text-align:center">
+        <div style="font-size:3rem;margin-bottom:8px">🔄</div>
+        <div style="font-family:'Fredoka One',cursive;color:white;font-size:1.05rem;margin-bottom:12px">
+          Wiedergeburt #${rb+1}
+        </div>
+        <div style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);
+          border-radius:12px;padding:12px;margin-bottom:10px;text-align:left">
+          <div style="color:#ff6b6b;font-family:'Fredoka One',cursive;margin-bottom:5px">❌ Nachteile</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.6">
+            • Verlierst alle Tiere<br>• Verlierst all dein Geld<br>
+            • Benötigt: 1 Episch+, 2 Selten, $1.000
+          </div>
+        </div>
+        <div style="background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);
+          border-radius:12px;padding:12px;margin-bottom:14px;text-align:left">
+          <div style="color:#27AE60;font-family:'Fredoka One',cursive;margin-bottom:5px">✅ Vorteile</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.6">
+            • ×${newMult} Geld-Multiplikator<br>• ×1.5 mehr Besucher<br>
+            • +2 Extra-Gehege<br>• Gesamtmult: ×${newMult}
+          </div>
+        </div>
+        <!-- Requirements progress -->
+        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:12px;text-align:left">
+          <div style="font-size:.78rem;margin-bottom:4px;color:rgba(255,255,255,.5)">Anforderungen:</div>
+          <div style="font-size:.8rem;line-height:1.7">
+            ${epics>=1?'✅':'❌'} 1 Episch+ Tier <span style="color:rgba(255,255,255,.4)">(${epics}/1)</span><br>
+            ${rares>=2?'✅':'❌'} 2 Seltene Tiere <span style="color:rgba(255,255,255,.4)">(${rares}/2)</span><br>
+            ${z.money>=1000?'✅':'❌'} $1.000 <span style="color:rgba(255,255,255,.4)">(${$m(z.money)}/${$m(1000)})</span>
+          </div>
+        </div>
+        ${canRebirth
+          ?`<button class="zbtn zbtn-gold" onclick="ZUI._doRebirth()">🔄 Jetzt Wiedergeburt!</button>`
+          :`<button class="zbtn zbtn-dim" disabled>Anforderungen nicht erfüllt</button>`}
+      </div>`;
+  },
+
+  _doRebirth() {
+    if(!confirm('Wirklich alle Tiere und dein Geld verlieren?')) return;
+    const z=ZS.zoo;
+    z.rebirths=(z.rebirths||0)+1;
+    z.rebirthMult=Math.round((1+z.rebirths*0.5)*100)/100;
+    z.enclosures=Array(5+z.rebirths*2).fill(null);
+    z.money=150; z.extraEnc=0;
+    ZS.fixEnc();
+    this.close('rebirth');
+    this.toast(`🔄 Wiedergeburt #${z.rebirths}! ×${z.rebirthMult} Mult aktiv!`,4000);
+    ZEngine._updateHUD();
+  },
+
+  /* ---- ENCLOSURE ---- */
+  openEnc(i) {
+    show('p-enc');
+    eid('p-enc-title').textContent='Gehege #'+(i+1);
+    const z=ZS.zoo, enc=z.enclosures[i];
+    const el=eid('p-enc-content');
+    if(!enc){ el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.35);padding:20px">
+      Leer — hole ein Tier in der Gondel-Station!</div>`; return; }
+    const tm=traitMult(enc.shiny,enc.traits)*(enc.extraMult||1);
+    const earn=totalEarnForAnimal(enc,z,ZEngine.currentEvent);
+    const rd=RARITY[enc.animal.r];
+    el.innerHTML=`
+      <div style="text-align:center;padding:8px 0">
+        <div style="font-size:4rem;margin-bottom:6px;${enc.shiny?.id==='rainbow'?'animation:zrainbow 2s linear infinite':''}">${enc.animal.e}</div>
+        <div style="font-family:'Fredoka One',cursive;color:white;font-size:1.2rem;margin-bottom:4px">
+          ${shinyBadge(enc.shiny)} ${enc.animal.n}
+        </div>
+        <div class="${rd.cls}" style="margin-bottom:6px">${rd.name}</div>
+        ${traitBadges(enc.traits)}
+        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px;
+          margin:12px 0;text-align:left">
+          <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8">
+            💰 Einnahme/Besucher: <b style="color:var(--gold)">${$m(earn)}</b><br>
+            📊 Multiplikator: <b>×${tm.toFixed(2)}</b><br>
+            🏷️ Kaufpreis war: <b>${$m(enc.animal.price)}</b>
+          </div>
+        </div>
+        <button class="zbtn" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);
+          color:#ff6b6b;max-width:220px" onclick="ZUI._sellAnimal(${i})">
+          🗑️ Verkaufen (${$m(enc.animal.price*0.5)})
+        </button>
+      </div>`;
+  },
+
+  _sellAnimal(i) {
+    const z=ZS.zoo, enc=z.enclosures[i];
+    if(!enc) return;
+    const sp=enc.animal.price*0.5;
+    z.money+=sp; z.enclosures[i]=null;
+    this.close('enc');
+    this.toast(`💰 ${enc.animal.e} verkauft für ${$m(sp)}!`);
+    ZEngine._updateHUD();
+  },
+
+  /* ---- MENU ---- */
+  openMenu() {
+    show('p-menu');
+    const z=ZS.zoo;
+    eid('p-menu-stats').innerHTML=`
+      <div style="background:rgba(255,255,255,.06);border-radius:12px;padding:14px;
+        margin-bottom:14px;text-align:left;font-size:.82rem;line-height:1.8;color:rgba(255,255,255,.65)">
+        ${ZS.playerChar?.emoji||''} <b style="color:white">${ZS.player}</b><br>
+        💰 Geld: <b style="color:var(--gold)">${$m(z.money)}</b><br>
+        📈 Gesamt verdient: <b style="color:#27AE60">${$m(z.totalEarned||0)}</b><br>
+        👥 Besucher: <b style="color:white">${z.totalVisitors?.toLocaleString()}</b><br>
+        🐾 Tiere: <b>${z.enclosures.filter(e=>e).length}/${ZS.maxEnc()}</b><br>
+        🔄 Wiedergeburten: <b style="color:#9B59B6">${z.rebirths||0}</b><br>
+        ×Mult: <b style="color:#E74C3C">${(z.rebirthMult||1).toFixed(1)}</b>
+      </div>`;
+  },
+
+  /* ---- ADMIN SPAWN ---- */
+  openAdmin() {
+    if(!ZS.isAdmin) return;
+    show('p-admin');
+    const el=eid('p-admin-content');
+    // Pick animal
+    let html=`<div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:8px">Tier wählen:</div>
+      <select id="adm-animal" style="width:100%;padding:8px;border-radius:8px;background:#1a2a3a;color:white;border:1px solid rgba(255,255,255,.2);margin-bottom:8px">
+        ${ANIMALS.map(a=>`<option value="${a.id}">${a.e} ${a.n} (${RARITY[a.r].name})</option>`).join('')}
+      </select>
+      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:8px">Shiny (optional):</div>
+      <select id="adm-shiny" style="width:100%;padding:8px;border-radius:8px;background:#1a2a3a;color:white;border:1px solid rgba(255,255,255,.2);margin-bottom:8px">
+        <option value="">Kein Shiny</option>
+        ${SHINY.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
+      </select>
+      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:6px">Traits (optional, mehrere möglich):</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+        ${TRAITS.map(t=>`<label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer">
+          <input type="checkbox" value="${t.id}" class="adm-trait"> ${t.name}</label>`).join('')}
+      </div>
+      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:6px">Event starten:</div>
+      <select id="adm-event" style="width:100%;padding:8px;border-radius:8px;background:#1a2a3a;color:white;border:1px solid rgba(255,255,255,.2);margin-bottom:12px">
+        <option value="">Kein Event</option>
+        ${EVENTS.map(e=>`<option value="${e.id}">${e.name} — ${e.desc}</option>`).join('')}
+      </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="zbtn zbtn-gold" onclick="ZUI._adminSpawn()">🦁 Tier spawnen</button>
+        <button class="zbtn" style="background:rgba(231,76,60,.3);color:#ff6b6b"
+          onclick="ZUI._adminEvent()">⚡ Event starten</button>
+      </div>`;
+    el.innerHTML=html;
+  },
+
+  _adminSpawn() {
+    const animalId=eid('adm-animal')?.value;
+    const shinyId=eid('adm-shiny')?.value;
+    const traitChecks=document.querySelectorAll('.adm-trait:checked');
+    const z=ZS.zoo;
+    const animal=ANIMALS.find(a=>a.id===animalId)||ANIMALS[0];
+    const shiny=shinyId?SHINY.find(s=>s.id===shinyId):null;
+    const traits=Array.from(traitChecks).map(c=>TRAITS.find(t=>t.id===c.value)).filter(Boolean);
+    const empty=z.enclosures.findIndex(e=>!e);
+    if(empty<0){this.toast('❌ Alle Gehege belegt!'); return;}
+    z.enclosures[empty]={animal:{...animal},shiny,traits,extraMult:1,addedAt:Date.now(),adminSpawned:true};
+    this.toast(`👑 Admin: ${animal.e} ${animal.n} gespawnt!`,3000);
+    this.close('admin');
+    ZEngine._updateHUD();
+  },
+
+  _adminEvent() {
+    const evId=eid('adm-event')?.value;
+    if(!evId){this.toast('Kein Event ausgewählt!'); return;}
+    const ev=EVENTS.find(e=>e.id===evId);
+    if(ev){ ZEngine.startEvent(ev); this.close('admin'); }
+  },
+};
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded',()=>{
+  // Auto-login from main game session
+  const mainPlayer=sessionStorage.getItem('mischa_current');
+  if(mainPlayer){
+    const users=JSON.parse(localStorage.getItem('zoo_users')||'{}');
+    const u=users[mainPlayer];
+    if(u?.char){
+      ZS.player=mainPlayer;
+      ZS.playerChar=u.char;
+      ZS.isAdmin=(mainPlayer.toLowerCase()==='mischa'||mainPlayer.toLowerCase()==='admin');
+      Zoo._showMode();
+    } else if(u){
+      ZS.player=mainPlayer;
+      ZS.isAdmin=(mainPlayer.toLowerCase()==='mischa'||mainPlayer.toLowerCase()==='admin');
+      Zoo._showChar();
+    }
+  }
+  // Enter to login
+  ['z-name','z-pw'].forEach(id=>{
+    eid(id)?.addEventListener('keydown',e=>{ if(e.key==='Enter') Zoo.login(); });
+  });
+});
+</script>
+</body>
+</html>
