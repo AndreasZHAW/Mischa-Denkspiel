@@ -117,8 +117,10 @@ const Admin = {
           <button class="ba bg" onclick="Admin.showDiscountPanel()">🏷️ Rabatte</button>
           <button class="ba bb" onclick="Admin.showBroadcast()">📢 Nachricht</button>
           <button class="ba bb" onclick="Admin.showSurveyPanel()" style="background:rgba(39,174,96,0.15);border-color:rgba(39,174,96,0.3);color:#27AE60">📊 Umfrage</button>
+          <button class="ba bg" onclick="Admin.showZooPanel()" style="background:rgba(255,165,0,0.15);border-color:rgba(255,165,0,0.4);color:#FFD700">🦁 Zoo-Admin</button>
           <button class="ba be" onclick="Admin.showDashboard()">🔄 Aktualisieren</button>
           <a href="index.html" class="ba be" style="text-decoration:none">← Zum Spiel</a>
+          <a href="zoo.html" class="ba bg" style="text-decoration:none;background:rgba(39,174,96,0.15);border-color:rgba(39,174,96,0.4);color:#27AE60">🦁 Zum Zoo</a>
         </div>
       </div>
 
@@ -351,6 +353,124 @@ const Admin = {
     // Show locally immediately
     if (window.showBroadcastBanner) showBroadcastBanner(text);
     alert('✅ Nachricht gesendet an alle Spieler weltweit!');
+  },
+
+  showZooPanel() {
+    const ANIMALS_ADMIN = [
+      {id:'cat',n:'Katze',e:'🐱',r:'Normal'},{id:'dog',n:'Hund',e:'🐶',r:'Normal'},
+      {id:'hamster',n:'Hamster',e:'🐹',r:'Normal'},{id:'fish',n:'Fisch',e:'🐠',r:'Selten'},
+      {id:'kangaroo',n:'Känguru',e:'🦘',r:'Selten'},{id:'frog',n:'Frosch',e:'🐸',r:'Episch'},
+      {id:'raccoon',n:'Waschbär',e:'🦝',r:'Episch'},{id:'dolphin',n:'Delphin',e:'🐬',r:'Episch'},
+      {id:'wolf',n:'Wolf',e:'🐺',r:'Episch'},{id:'fox',n:'Fuchs',e:'🦊',r:'Legendär'},
+      {id:'tiger',n:'Tiger',e:'🐯',r:'Legendär'},{id:'orca',n:'Orca',e:'🐳',r:'Ultra'},
+      {id:'lion',n:'Löwe',e:'🦁',r:'Gott'},{id:'mammoth',n:'Mammut',e:'🦣',r:'Gott'},
+      {id:'dino',n:'Dinosaurier',e:'🦕',r:'SECRET'},{id:'megalodon',n:'Megalodon',e:'🦈',r:'SECRET'},
+    ];
+    const EVENTS_ADMIN = [
+      {id:'snow',n:'❄️ Schneesturm'},{id:'party',n:'🎉 Party'},
+      {id:'golden',n:'✨ Goldregen'},{id:'night',n:'🌙 Magische Nacht'},
+      {id:'rush',n:'🏃 Rush Hour'},{id:'mega',n:'💎 Mega Event'},
+      {id:'hunt',n:'🎯 Jagdfieber'},{id:'glitch',n:'👾 Glitch'},
+    ];
+    this._modal(`<div class="modal-box" onclick="event.stopPropagation()" style="max-width:440px">
+      <h3>🦁 Zoo-Admin Befehle</h3>
+      <p style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:12px">
+        Diese Befehle werden in der Zoo-Welt angewendet. Der Ziel-Spieler muss im Zoo aktiv sein.
+      </p>
+      <label>Ziel-Spieler</label>
+      <input type="text" id="za-player" placeholder="Spielername" style="margin-bottom:8px"/>
+      <label>Tier spawnen</label>
+      <select id="za-animal" style="margin-bottom:8px">
+        ${ANIMALS_ADMIN.map(a=>`<option value="${a.id}">${a.e} ${a.n} (${a.r})</option>`).join('')}
+      </select>
+      <label>Shiny für Tier</label>
+      <select id="za-shiny" style="margin-bottom:8px">
+        <option value="">Kein Shiny</option>
+        <option value="gold">GOLD (×1.5)</option>
+        <option value="diamond">DIAMOND (×2)</option>
+        <option value="rainbow">RAINBOW (×3)</option>
+        <option value="void">VOID (×5)</option>
+        <option value="glitch">GLITCH (×4)</option>
+      </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <button class="mb-ok" onclick="Admin._zooSpawnAnimal()">🦁 Tier spawnen</button>
+        <button class="mb-cancel" style="background:rgba(0,207,255,.15);border-color:rgba(0,207,255,.4);color:#00CFFF" onclick="Admin._zooGiveMT()">🌀 +50.000 MT geben</button>
+      </div>
+      <label>Event starten</label>
+      <select id="za-event" style="margin-bottom:8px">
+        ${EVENTS_ADMIN.map(e=>`<option value="${e.id}">${e.n}</option>`).join('')}
+      </select>
+      <label>Event-Dauer</label>
+      <select id="za-evdur" style="margin-bottom:12px">
+        <option value="10000">10 Sekunden (Test)</option>
+        <option value="30000" selected>30 Sekunden</option>
+        <option value="60000">1 Minute</option>
+        <option value="120000">2 Minuten</option>
+        <option value="300000">5 Minuten</option>
+      </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <button class="mb-ok" style="background:rgba(231,76,60,.3);border-color:rgba(231,76,60,.5);color:#ff6b6b" onclick="Admin._zooStartEvent()">⚡ Event starten</button>
+        <button class="mb-cancel" onclick="Admin._zooGiveRebirth()">🔄 Reset schenken</button>
+      </div>
+      <button class="mb-cancel" onclick="Admin._close()">Schliessen</button>
+    </div>`);
+  },
+
+  async _zooSpawnAnimal() {
+    const playerName = document.getElementById('za-player')?.value?.trim();
+    const animalId = document.getElementById('za-animal')?.value;
+    const shinyId = document.getElementById('za-shiny')?.value;
+    if (!playerName) { alert('Bitte Spielernamen eingeben!'); return; }
+    // Write to Firebase for Zoo to pick up
+    const cmd = {
+      type: 'spawn_animal',
+      target: playerName.toLowerCase(),
+      animalId, shinyId,
+      id: Date.now().toString(),
+      expiresAt: Date.now() + 30000
+    };
+    if (State._useCloud()) {
+      await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
+    }
+    localStorage.setItem('zoo_admin_cmd', JSON.stringify(cmd));
+    this._close();
+    alert(`✅ Spawn-Befehl für ${playerName} gesendet! Sie sehen das Tier beim nächsten Gondel-Zyklus.`);
+  },
+
+  async _zooGiveMT() {
+    const playerName = document.getElementById('za-player')?.value?.trim();
+    if (!playerName) { alert('Bitte Spielernamen eingeben!'); return; }
+    const cmd = { type:'give_mt', target:playerName.toLowerCase(), amount:50000, id:Date.now().toString(), expiresAt:Date.now()+30000 };
+    if (State._useCloud()) await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
+    localStorage.setItem('zoo_admin_cmd', JSON.stringify(cmd));
+    this._close();
+    alert(`✅ +50.000 MT für ${playerName} gesendet!`);
+  },
+
+  async _zooStartEvent() {
+    const evId = document.getElementById('za-event')?.value;
+    const dur = parseInt(document.getElementById('za-evdur')?.value || 30000);
+    const cmd = { type:'start_event', eventId:evId, dur, id:Date.now().toString(), expiresAt:Date.now()+60000 };
+    if (State._useCloud()) await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
+    localStorage.setItem('zoo_admin_cmd', JSON.stringify(cmd));
+    this._close();
+    alert(`✅ Event ${evId} gestartet für ${dur/1000}s!`);
+  },
+
+  async _zooGiveRebirth() {
+    const playerName = document.getElementById('za-player')?.value?.trim();
+    if (!playerName) { alert('Bitte Spielernamen eingeben!'); return; }
+    const key = 'zoo_' + playerName.toLowerCase();
+    let zoo = null;
+    try { if (State._useCloud()) { const s = await _db.collection('zoos').doc(key).get(); if(s.exists) zoo=s.data(); } } catch(e) {}
+    if (!zoo) { const l = localStorage.getItem(key); zoo = l ? JSON.parse(l) : null; }
+    if (!zoo) { alert('Zoo nicht gefunden!'); return; }
+    zoo.rebirths = (zoo.rebirths||0) + 1;
+    zoo.rebirthMult = Math.round((1 + zoo.rebirths * 0.5)*100)/100;
+    try { if (State._useCloud()) await _db.collection('zoos').doc(key).set(zoo); } catch(e) {}
+    localStorage.setItem(key, JSON.stringify(zoo));
+    this._close();
+    alert(`✅ Reset für ${playerName} geschenkt! Neuer Mult: ×${zoo.rebirthMult}`);
   },
 
   showChangePw() {

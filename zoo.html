@@ -4,524 +4,410 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>🦁 Mischa Zoo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
-:root{
-  --sky-top:#1a3a6b;--sky-bot:#4a90d9;
-  --ground:#2d5a1b;--ground2:#1a3a0d;
-  --path:#c8a050;--fence:#6b3a1a;
-  --gold:#FFD700;--mt:#00CFFF;
-  --panel:#0a1628;--panel2:#0d1f3c;
-  --r-normal:#9e9e9e;--r-rare:#4fc3f7;--r-epic:#ce93d8;
-  --r-legendary:#ffb74d;--r-ultra:#ef5350;--r-god:#FFD700;
-}
+:root{--mt:#00CFFF;--gold:#FFD700;--panel:#0a1628;--ev-h:0}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#000;color:#fff;touch-action:none}
-
-/* SCREENS */
 .scr{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
 .scr.off{display:none!important}
-
-/* LOGIN */
 #s-login{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.logo-anim{font-size:4.5rem;text-align:center;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.ztitle{font-family:'Fredoka One',cursive;font-size:2.4rem;color:var(--gold);text-align:center;text-shadow:0 0 20px rgba(255,215,0,.5)}
-.zsub{color:rgba(255,255,255,.45);font-size:.85rem;text-align:center;margin:4px 0 18px}
-.zcard{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:24px 20px;width:100%;max-width:370px}
-.zinp{width:100%;padding:12px 16px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:.95rem;font-family:'Nunito',sans-serif;margin-bottom:10px;transition:border-color .2s}
-.zinp:focus{outline:none;border-color:var(--gold)}
-.zinp::placeholder{color:rgba(255,255,255,.3)}
-.zbtn{width:100%;padding:13px;border-radius:50px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:1.1rem;transition:transform .15s,box-shadow .15s;margin-top:6px}
-.zbtn:active{transform:scale(.95)}
-.zbtn-gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;box-shadow:0 6px 20px rgba(255,165,0,.35)}
-.zbtn-dim{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
-.zerr{color:#ff6b6b;font-size:.82rem;text-align:center;min-height:18px;margin-bottom:5px}
-
-/* CHAR SELECT */
-#s-char{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;max-width:360px;width:100%;margin:12px 0}
-.copt{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 5px;text-align:center;cursor:pointer;transition:all .2s}
-.copt.sel{border-color:var(--gold);background:rgba(255,215,0,.12)}
-
-/* MODE */
-#s-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.mcard{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:20px;padding:22px 18px;width:100%;max-width:340px;cursor:pointer;text-align:center;margin-bottom:12px;transition:all .25s}
-.mcard:hover,.mcard:active{border-color:var(--gold);transform:translateY(-3px)}
-
-/* ZOO WORLD */
-#s-zoo{overflow:hidden;padding:0;background:#000}
-#zcanvas{position:absolute;inset:0;width:100%;height:100%}
-
-/* HUD */
-#zhud{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px)}
+.lg{font-size:4rem;text-align:center;animation:fl 3s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.zt{font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--gold);text-align:center;text-shadow:0 0 20px rgba(255,215,0,.4)}
+.zs{color:rgba(255,255,255,.4);font-size:.84rem;text-align:center;margin:3px 0 18px}
+.zc{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:24px 20px;width:100%;max-width:370px}
+.zi{width:100%;padding:12px 16px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:.95rem;font-family:'Nunito',sans-serif;margin-bottom:10px;transition:border-color .2s}
+.zi:focus{outline:none;border-color:var(--gold)}.zi::placeholder{color:rgba(255,255,255,.3)}
+.zb{width:100%;padding:12px;border-radius:50px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:1.05rem;transition:transform .15s;margin-top:6px}
+.zb:active{transform:scale(.95)}
+.zb-g{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;box-shadow:0 6px 18px rgba(255,165,0,.35)}
+.zb-d{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
+.ze{color:#ff6b6b;font-size:.82rem;text-align:center;min-height:18px;margin-bottom:5px}
+#s-char,#s-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
+.cgr{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;max-width:360px;width:100%;margin:12px 0}
+.co{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 5px;text-align:center;cursor:pointer;transition:all .2s}
+.co.sel{border-color:var(--gold);background:rgba(255,215,0,.12)}
+.mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:20px;padding:22px 18px;width:100%;max-width:340px;cursor:pointer;text-align:center;margin-bottom:12px;transition:all .25s}
+.mc:hover,.mc:active{border-color:var(--gold);transform:translateY(-3px)}
+#s-zoo{overflow:hidden;padding:0}
+#zcan{position:absolute;inset:0;width:100%;height:100%}
+#zhud{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px)}
 .hmt{font-family:'Fredoka One',cursive;color:var(--mt);font-size:1rem}
-.hbtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
-.hb{padding:4px 8px;border-radius:50px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.72rem}
+.hb{padding:4px 9px;border-radius:50px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.73rem}
 .hb:active{transform:scale(.9)}
-
-/* JOYSTICK */
 #zjoy{position:fixed;bottom:18px;left:14px;z-index:200;width:110px;height:110px;touch-action:none}
-#zjbase{width:110px;height:110px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.35)}
-#zjthumb{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.9);top:33px;left:33px;pointer-events:none}
-
-/* INTERACTION PROMPT */
-#zprompt{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);z-index:200;
-  background:rgba(0,0,0,.7);color:#fff;font-family:'Fredoka One',cursive;font-size:.9rem;
-  padding:8px 18px;border-radius:50px;border:2px solid rgba(255,255,255,.3);
-  pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
-
+#zjb{width:110px;height:110px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.35)}
+#zjt{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.9);top:33px;left:33px;pointer-events:none}
+#zprompt{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);z-index:200;background:rgba(0,0,0,.75);color:#fff;font-family:'Fredoka One',cursive;font-size:.88rem;padding:8px 18px;border-radius:50px;border:2px solid var(--gold);pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
+/* EVENT TIMER bottom right */
+#ev-timer{position:fixed;bottom:20px;right:14px;z-index:200;background:rgba(0,0,0,.7);border-radius:12px;padding:8px 12px;border:2px solid rgba(255,255,255,.15);font-family:'Fredoka One',cursive;font-size:.82rem;text-align:center;min-width:80px;display:none}
 /* PANELS */
-.zpanel{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.8);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
-.zpanel.off{display:none!important}
+.zp{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
+.zp.off{display:none!important}
 .zpi{background:linear-gradient(160deg,#0a1628,#0d1f3c);width:100%;max-width:440px;border-radius:24px 24px 0 0;padding:18px 15px 32px;max-height:90vh;overflow-y:auto;position:relative}
 .pcls{position:sticky;top:0;float:right;background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:.95rem;cursor:pointer;z-index:5;margin-bottom:-30px}
-.ptitle{font-family:'Fredoka One',cursive;color:var(--gold);font-size:1.25rem;text-align:center;margin-bottom:12px;clear:both}
-
-/* ANIMAL CARDS */
-.acard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
-.acem{font-size:1.9rem;min-width:36px;text-align:center}
-.acn{font-family:'Fredoka One',cursive;color:#fff;font-size:.88rem}
-.acs{font-size:.68rem;margin-top:1px;line-height:1.3}
-.zbuy{padding:5px 11px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-family:'Fredoka One',cursive;font-size:.73rem;margin-top:3px}
-.zbuy:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
-
-/* RARITY STYLES */
-.rn{color:var(--r-normal)}.rr{color:var(--r-rare)}.re{color:var(--r-epic)}.rl{color:var(--r-legendary)}.ru{color:var(--r-ultra)}.rg{color:var(--r-god)}
+.pt{font-family:'Fredoka One',cursive;color:var(--gold);font-size:1.25rem;text-align:center;margin-bottom:12px;clear:both}
+.ac{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
+.an{font-family:'Fredoka One',cursive;color:#fff;font-size:.88rem}
+.as{font-size:.68rem;margin-top:1px;line-height:1.3}
+.ab{padding:5px 11px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-family:'Fredoka One',cursive;font-size:.73rem;margin-top:3px}
+.ab:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
+.rn{color:#9e9e9e}.rr{color:#4fc3f7}.re{color:#ce93d8}.rl{color:#ffb74d}.ru{color:#ef5350}.rg{color:#FFD700}
 .rs{background:linear-gradient(90deg,#ff6b6b,#FFD700,#27AE60,#4A90D9,#cc00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
 .tb{display:inline-block;padding:1px 5px;border-radius:4px;font-size:.57rem;font-weight:700;margin:1px}
 .tg{background:#FFD700;color:#333}.td{background:#00CFFF;color:#000}.tr{background:linear-gradient(90deg,#ff6b6b,#27AE60);color:#fff}.tv{background:#9B59B6;color:#fff}
 .tf{background:linear-gradient(135deg,#FF4500,#FFD700);color:#fff}.te{background:#F4D03F;color:#333}.tc{background:linear-gradient(135deg,#9B59B6,#1a1a2e);color:#fff}.tk{background:linear-gradient(135deg,#AED6F1,#fff);color:#333}
-
-/* CURRENCY BADGE */
-.mtbadge{background:rgba(0,207,255,.15);border:1px solid rgba(0,207,255,.35);border-radius:50px;padding:3px 10px;font-family:'Fredoka One',cursive;font-size:.78rem;color:var(--mt)}
-
-/* TOAST */
-#ztoast{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-family:'Fredoka One',cursive;font-size:.9rem;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:290px;line-height:1.3;white-space:pre-line}
-
-/* EVENT BANNER */
-#zebanner{position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:220;white-space:nowrap;pointer-events:none;text-align:center;font-family:'Fredoka One',cursive;font-size:1.05rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);opacity:0;transition:opacity .5s}
-
-/* FLOATING MONEY */
-.flt{position:fixed;pointer-events:none;z-index:400;font-family:'Fredoka One',cursive;font-size:.95rem;text-shadow:0 1px 4px rgba(0,0,0,.6);animation:fltup 1.5s ease forwards}
-@keyframes fltup{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-65px) scale(.8)}}
-
-/* SNOWFLAKES */
-.zsnow{position:fixed;pointer-events:none;z-index:180;top:-24px;animation:zsnow linear infinite;font-size:.9rem;opacity:.8}
+.tgl{background:linear-gradient(90deg,#00ff88,#00ccff,#ff00ff);color:#000;animation:glitch .5s steps(2,end) infinite}
+@keyframes glitch{0%,100%{clip-path:inset(0 0 0 0)}25%{clip-path:inset(40% 0 10% 0);transform:translate(-2px)}75%{clip-path:inset(10% 0 50% 0);transform:translate(2px)}}
+.flt{position:fixed;pointer-events:none;z-index:400;font-family:'Fredoka One',cursive;font-size:.95rem;text-shadow:0 1px 4px rgba(0,0,0,.6);animation:fup 1.5s ease forwards}
+@keyframes fup{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-65px)}}
+.zsnow{position:fixed;pointer-events:none;z-index:180;top:-24px;animation:zsnow linear infinite;opacity:.8}
 @keyframes zsnow{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(108vh) rotate(720deg)}}
-
-/* PARTY BEAMS */
-.zbeam{position:fixed;bottom:0;z-index:178;width:5px;border-radius:3px;opacity:.5;transform-origin:bottom;animation:zbeam 2s ease-in-out infinite}
-@keyframes zbeam{0%,100%{height:60px;opacity:.5}50%{height:130px;opacity:.8}}
-
-/* GONDOLA TRACK */
-.gtrack{width:100%;height:36px;background:rgba(0,0,0,.35);border-radius:8px;position:relative;overflow:hidden;margin-bottom:8px}
-.gcar{position:absolute;font-size:1.5rem;top:50%;transform:translateY(-50%);transition:left 2.5s linear;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-
-/* RARITY BOARD (in gondola) */
-.rarboard{background:rgba(0,0,0,.5);border:2px solid rgba(255,215,0,.4);border-radius:14px;padding:12px;margin-bottom:12px}
-.rarrow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.72rem}
-
-/* QR code display */
-#qr-panel{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
-#qr-panel.off{display:none}
-.qrbox{background:#fff;border-radius:20px;padding:24px;text-align:center;max-width:280px}
-
-/* REBIRTH */
-.reb-req{display:flex;align-items:center;gap:6px;font-size:.8rem;line-height:1.7}
-.reb-ok{color:#27AE60}.reb-no{color:#ff6b6b}
-
-/* ANIMATIONS */
+.zbeam{position:fixed;bottom:0;z-index:178;border-radius:3px;opacity:.55;transform-origin:bottom;animation:zb 2s ease-in-out infinite}
+@keyframes zb{0%,100%{height:60px;opacity:.5}50%{height:140px;opacity:.8}}
+.glitch-px{position:fixed;pointer-events:none;z-index:175;animation:glpx .3s steps(1) infinite}
+@keyframes glpx{0%{opacity:1}50%{opacity:0}100%{opacity:1}}
+#ztoast{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-family:'Fredoka One',cursive;font-size:.9rem;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:290px;line-height:1.3}
+#zebanner{position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:220;white-space:nowrap;pointer-events:none;font-family:'Fredoka One',cursive;font-size:1.05rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);opacity:0;transition:opacity .5s}
 @keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes rainbow{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-
-.tab-btn{padding:7px 10px;border-radius:10px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.75rem;flex:1;transition:background .2s}
-.tab-active{background:rgba(255,215,0,.25);color:var(--gold)}
-.tab-inactive{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
-
-/* STARS exchange */
-.ex-card{background:rgba(0,207,255,.08);border:1px solid rgba(0,207,255,.25);border-radius:12px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+#qrp{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#qrp.off{display:none}
+.qrb{background:#fff;border-radius:20px;padding:24px;text-align:center;max-width:270px}
+.tab{padding:7px 10px;border-radius:10px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.75rem;flex:1;transition:background .2s}
+.ta{background:rgba(255,215,0,.25);color:var(--gold)}.ti{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.ex{background:rgba(0,207,255,.08);border:1px solid rgba(0,207,255,.25);border-radius:12px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+/* GONDOLA CARS in station */
+.gcar-wrap{position:absolute;display:flex;flex-direction:column;align-items:center;transition:left 2.5s linear}
+.gcar-body{width:40px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:2px solid rgba(255,255,255,.4);transition:transform .4s}
+.gcar-open{transform:scaleY(.7)}
+.gcar-rope{width:2px;background:rgba(255,255,255,.4);position:absolute;top:-20px}
+/* RARITY BOARD */
+.rboard{background:rgba(0,0,0,.5);border:2px solid rgba(255,215,0,.35);border-radius:14px;padding:12px;margin-bottom:10px}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.7rem}
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN ===== -->
+<!-- LOGIN -->
 <div id="s-login" class="scr">
-  <div class="logo-anim">🦁</div>
-  <div class="ztitle">Mischa Zoo</div>
-  <div class="zsub">Sammle • Baue • Werde reich in 🌀 Mischataler!</div>
-  <div class="zcard">
-    <input class="zinp" id="zn" type="text" placeholder="Dein Name" maxlength="20" autocomplete="off"
-      onkeydown="if(event.key==='Enter')ZA.login()"/>
-    <input class="zinp" id="zpw" type="password" placeholder="Passwort" maxlength="24"
-      onkeydown="if(event.key==='Enter')ZA.login()"/>
-    <div class="zerr" id="zerr"></div>
-    <button class="zbtn zbtn-gold" onclick="ZA.login()">Anmelden / Registrieren ➜</button>
-    <button class="zbtn zbtn-dim" onclick="location.href='index.html'">← Zum Denkspiel</button>
+  <div class="lg">🦁</div>
+  <div class="zt">Mischa Zoo</div>
+  <div class="zs">Sammle Tiere • Baue Gehege • 🌀 Mischataler verdienen!</div>
+  <div class="zc">
+    <input class="zi" id="zn" type="text" placeholder="Name" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter')ZA.login()"/>
+    <input class="zi" id="zpw" type="password" placeholder="Passwort" maxlength="24" onkeydown="if(event.key==='Enter')ZA.login()"/>
+    <div class="ze" id="zerr"></div>
+    <button class="zb zb-g" onclick="ZA.login()">Anmelden / Registrieren ➜</button>
+    <button class="zb zb-d" onclick="location.href='index.html'">← Zum Denkspiel</button>
   </div>
 </div>
 
-<!-- ===== CHAR ===== -->
+<!-- CHAR SELECT -->
 <div id="s-char" class="scr off">
-  <div class="ztitle" style="font-size:1.6rem">Wähle deinen Charakter</div>
-  <div class="zsub">Wer führt deinen Zoo? 🦁</div>
-  <div class="cgrid" id="cgrid"></div>
-  <button class="zbtn zbtn-gold" id="chbtn" onclick="ZA.confirmChar()" style="max-width:230px;display:none">Los geht's! 🚀</button>
+  <div class="zt" style="font-size:1.6rem">Charakter wählen</div>
+  <div class="zs">Wer führt deinen Zoo? 🦁</div>
+  <div class="cgr" id="cgr"></div>
+  <button class="zb zb-g" id="chbtn" onclick="ZA.confirmChar()" style="max-width:230px;display:none">Los! 🚀</button>
 </div>
 
-<!-- ===== MODE ===== -->
+<!-- MODE -->
 <div id="s-mode" class="scr off">
-  <div id="mhello" style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--gold);margin-bottom:18px;text-align:center"></div>
-  <div class="mcard" onclick="ZA.startZoo()">
+  <div id="mhi" style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:var(--gold);margin-bottom:18px;text-align:center"></div>
+  <div class="mc" onclick="ZA.startZoo()">
     <span style="font-size:3.5rem;display:block;margin-bottom:8px">🦁</span>
     <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--gold)">Mischa Zoo</div>
     <div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-top:4px">Sammle Tiere, baue deinen Zoo!</div>
   </div>
-  <div class="mcard" onclick="location.href='index.html'">
+  <div class="mc" onclick="location.href='index.html'">
     <span style="font-size:3.5rem;display:block;margin-bottom:8px">🧠</span>
-    <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--gold)">Mischa Denkspiel</div>
-    <div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-top:4px">Sterne sammeln für Mischataler tauschen</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--gold)">Denkspiel</div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-top:4px">Sterne → Mischataler tauschen</div>
   </div>
 </div>
 
-<!-- ===== ZOO WORLD ===== -->
+<!-- ZOO WORLD -->
 <div id="s-zoo" class="scr off">
-  <canvas id="zcanvas"></canvas>
+  <canvas id="zcan"></canvas>
   <div id="zhud">
     <div>
-      <div class="hmt" id="hmt">🌀 0 MT</div>
-      <div style="font-size:.7rem;color:rgba(255,255,255,.55)" id="hvis">👥 0 Besucher</div>
+      <div class="hmt" id="hmt">🌀 0</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.55)" id="hvis">👥 0</div>
     </div>
-    <div style="font-size:.68rem;color:#27AE60;font-family:'Fredoka One',cursive;text-align:center" id="hmult"></div>
-    <div class="hbtns">
-      <button class="hb" style="background:rgba(39,174,96,.7)" onclick="ZP.openShop()">🛒 Shop</button>
+    <div style="font-size:.68rem;color:#27AE60;font-family:'Fredoka One',cursive;text-align:center;max-width:120px" id="hmult"></div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="hb" style="background:rgba(39,174,96,.7)" onclick="ZP.openGondola()">🚠 Gondel</button>
+      <button class="hb" style="background:rgba(52,152,219,.7)" onclick="ZP.openShop()">🛒</button>
       <button class="hb" style="background:rgba(155,89,182,.7)" onclick="ZP.openRebirth()">🔄</button>
       <button class="hb" style="background:rgba(100,100,100,.7)" onclick="ZP.openMenu()">☰</button>
-      <button class="hb" style="background:rgba(255,215,0,.25);color:var(--gold)" id="qrbtn" onclick="ZP.showQR()">QR</button>
+      <button class="hb" style="background:rgba(255,215,0,.2);color:var(--gold)" onclick="ZP.showQR()">QR</button>
     </div>
   </div>
-  <!-- Joystick -->
-  <div id="zjoy"><div id="zjbase"><div id="zjthumb"></div></div></div>
-  <!-- Prompt -->
-  <div id="zprompt">⬆️ Drücke um einzutreten</div>
-  <!-- Event banner -->
+  <div id="zjoy"><div id="zjb"><div id="zjt"></div></div></div>
+  <div id="zprompt">🚠 Betreten</div>
+  <div id="ev-timer"></div>
   <div id="zebanner"></div>
-  <!-- Toast -->
   <div id="ztoast"></div>
 </div>
 
-<!-- ===== QR PANEL ===== -->
-<div id="qr-panel" class="off" onclick="ZP.closeQR()">
-  <div class="qrbox" onclick="event.stopPropagation()">
-    <div style="font-size:2rem;margin-bottom:8px">🦁</div>
-    <div style="font-family:'Fredoka One',cursive;color:#1a0800;font-size:1.1rem;margin-bottom:12px">Mischa Denkspiel</div>
-    <!-- QR code using CSS art -->
-    <div style="width:150px;height:150px;margin:0 auto 12px;display:grid;grid-template-columns:repeat(10,15px);grid-template-rows:repeat(10,15px);gap:0" id="qr-grid"></div>
-    <div style="font-size:.75rem;color:#333;margin-bottom:12px">Zum Denkspiel scannen oder tippen</div>
-    <button onclick="location.href='index.html'" style="background:linear-gradient(135deg,#FFD700,#FFA500);border:none;color:#1a0800;padding:10px 22px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.95rem;cursor:pointer">
-      → Zum Denkspiel
-    </button>
+<!-- QR -->
+<div id="qrp" class="off" onclick="ZP.closeQR()">
+  <div class="qrb" onclick="event.stopPropagation()">
+    <div style="font-size:2rem;margin-bottom:6px">🦁</div>
+    <div style="font-family:'Fredoka One',cursive;color:#1a0800;font-size:1.1rem;margin-bottom:10px">Mischa Denkspiel</div>
+    <div id="qrgrid" style="width:140px;height:140px;margin:0 auto 10px;display:grid;grid-template-columns:repeat(10,14px)"></div>
+    <div style="font-size:.72rem;color:#555;margin-bottom:10px">Zum Denkspiel scannen</div>
+    <button onclick="location.href='index.html'" style="background:linear-gradient(135deg,#FFD700,#FFA500);border:none;color:#1a0800;padding:9px 20px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.95rem;cursor:pointer">→ Denkspiel</button>
   </div>
 </div>
 
-<!-- ===== GONDOLA STATION PANEL ===== -->
-<div class="zpanel off" id="p-gond">
+<!-- GONDOLA PANEL -->
+<div class="zp off" id="p-gond">
 <div class="zpi">
   <button class="pcls" onclick="ZP.close('gond')">✕</button>
-  <div class="ptitle">🚠 Gondel-Station</div>
-  <!-- Server info -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <span style="font-size:.75rem;color:rgba(255,255,255,.45)">Server: <b style="color:#27AE60">●</b> Online</span>
-    <span id="g-srv" style="font-size:.75rem;color:rgba(255,255,255,.55)">1/3 Spieler</span>
+  <div class="pt">🚠 Gondel-Station</div>
+  <div style="display:flex;justify-content:space-between;font-size:.73rem;color:rgba(255,255,255,.45);margin-bottom:8px">
+    <span>Server: <b style="color:#27AE60">●</b> Online</span>
+    <span id="gsrv">1/3 Spieler</span>
+    <span>Nächste: <b id="gtimer" style="color:var(--gold)">2.5s</b></span>
   </div>
-  <!-- Gondola track animation -->
-  <div class="gtrack"><div id="gcar" class="gcar" style="left:-40px">🚠</div></div>
-  <div style="text-align:center;margin-bottom:10px">
-    <span style="font-size:.75rem;color:rgba(255,255,255,.45)">Nächste Gondel: </span>
-    <span id="gtimer" style="font-family:'Fredoka One',cursive;color:var(--gold)">2.5s</span>
+  <!-- 3 gondola slots -->
+  <div id="gtrack" style="background:rgba(0,0,0,.4);border-radius:10px;padding:10px;margin-bottom:10px;min-height:80px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:50%;left:0;right:0;height:2px;background:rgba(255,255,255,.2);transform:translateY(-50%)"></div>
+    <div id="gcars" style="display:flex;gap:12px;justify-content:center;align-items:center;height:70px"></div>
   </div>
-  <!-- Current gondola animal -->
+  <!-- Current animal to buy -->
   <div id="g-animal" style="min-height:130px;display:flex;align-items:center;justify-content:center;margin-bottom:10px">
-    <div style="color:rgba(255,255,255,.3)">Warte auf Gondel...</div>
+    <div style="color:rgba(255,255,255,.3);font-size:.9rem">Warte auf Gondel...</div>
   </div>
-  <!-- Luck upgrades -->
-  <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.8rem;margin-bottom:6px">🍀 Mehr Glück kaufen:</div>
+  <!-- Luck -->
+  <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:5px">🍀 Mehr Glück:</div>
   <div id="g-luck"></div>
   <!-- Rarity board -->
-  <div class="rarboard" style="margin-top:12px">
-    <div style="font-family:'Fredoka One',cursive;color:var(--gold);font-size:.85rem;margin-bottom:8px;text-align:center">📋 Seltenheits-Tabelle</div>
-    <div class="rarrow"><span class="rn">Normal</span><span>Katze 40% | Hund 30% | Hamster 15% | Sieben. 15%</span></div>
-    <div class="rarrow"><span class="rr">Selten</span><span>Fisch 10% | Schwester 5% | Bruder 5% | Känguru 3%</span></div>
-    <div class="rarrow"><span class="re">Episch</span><span>Frosch 2% | Waschbär 1% | Delphin 0.5% | Wolf 0.25%</span></div>
-    <div class="rarrow"><span class="rl">Legendär</span><span>Qualle 0.2% | Fuchs 0.2% | Tiger 0.1%</span></div>
-    <div class="rarrow"><span class="ru">Ultra-Leg.</span><span>Orca 0.09% | Steinzeitmensch 0.005%</span></div>
-    <div class="rarrow"><span class="rg">Gott</span><span>Löwe 0.001% | Mammut 0.0009%</span></div>
-    <div class="rarrow"><span class="rs">SECRET</span><span>Dino 0.00001% | Megalodon 0.0000009%</span></div>
-    <div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-top:6px;text-align:center">Glück erhöht die Chancen für seltene Tiere!</div>
+  <div class="rboard" style="margin-top:10px">
+    <div style="font-family:'Fredoka One',cursive;color:var(--gold);font-size:.85rem;margin-bottom:7px;text-align:center">📋 Seltenheiten</div>
+    <div class="rrow"><span class="rn">Normal</span><span>Katze 40% Hund 30% Hamster 15% Sieben. 15%</span></div>
+    <div class="rrow"><span class="rr">Selten</span><span>Fisch 10% Schw. 5% Brud. 5% Känguru 3%</span></div>
+    <div class="rrow"><span class="re">Episch</span><span>Frosch 2% Waschbär 1% Delphin 0.5% Wolf 0.25%</span></div>
+    <div class="rrow"><span class="rl">Legendär</span><span>Qualle 0.2% Fuchs 0.2% Tiger 0.1%</span></div>
+    <div class="rrow"><span class="ru">Ultra-Leg.</span><span>Orca 0.09% Steinzeit 0.005%</span></div>
+    <div class="rrow"><span class="rg">Gott</span><span>Löwe 0.001% Mammut 0.0009%</span></div>
+    <div class="rrow"><span class="rs">SECRET</span><span>Dino 0.00001% Megalodon 0.0000009%</span></div>
+    <div style="font-size:.62rem;color:rgba(255,255,255,.3);margin-top:5px;text-align:center">Traits nur während Events verfügbar!</div>
   </div>
 </div>
 </div>
 
-<!-- ===== SHOP ===== -->
-<div class="zpanel off" id="p-shop">
+<!-- SHOP -->
+<div class="zp off" id="p-shop">
 <div class="zpi">
   <button class="pcls" onclick="ZP.close('shop')">✕</button>
-  <div class="ptitle">🛒 Zoo-Shop</div>
-  <div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.25);border-radius:10px;padding:8px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:.82rem;color:rgba(255,255,255,.6)">Deine Mischataler:</span>
-    <span id="s-bal" class="hmt">🌀 0</span>
+  <div class="pt">🛒 Zoo-Shop</div>
+  <div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.25);border-radius:10px;padding:7px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="ZP.showQR()">
+    <div><div style="font-family:'Fredoka One',cursive;color:var(--gold);font-size:.88rem">📱 Sterne ↔ Mischataler</div>
+    <div style="font-size:.68rem;color:rgba(255,255,255,.4)">Zum QR-Code tippen</div></div>
+    <span style="font-size:1.5rem">🔲</span>
   </div>
-  <!-- QR in shop -->
-  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:10px 12px;margin-bottom:12px;cursor:pointer" onclick="ZP.showQR()">
-    <div>
-      <div style="font-family:'Fredoka One',cursive;color:var(--gold);font-size:.9rem">📱 Zum Denkspiel</div>
-      <div style="font-size:.7rem;color:rgba(255,255,255,.45)">Sterne sammeln → hier zu Mischataler tauschen</div>
-    </div>
-    <div style="width:50px;height:50px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0">🔲</div>
-  </div>
-  <!-- Tabs -->
   <div style="display:flex;gap:5px;margin-bottom:10px">
-    <button id="st-zoo" class="tab-btn tab-active" onclick="ZP.shopTab('zoo')">🦁 Zoo</button>
-    <button id="st-exchange" class="tab-btn tab-inactive" onclick="ZP.shopTab('exchange')">🌀 Tauschen</button>
-    <button id="st-boost" class="tab-btn tab-inactive" onclick="ZP.shopTab('boost')">⚡ Boosts</button>
+    <button id="st-zoo" class="tab ta" onclick="ZP.shopTab('zoo')">🦁 Zoo</button>
+    <button id="st-ex" class="tab ti" onclick="ZP.shopTab('ex')">🌀 Tauschen</button>
+    <button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button>
   </div>
-  <div id="s-content"></div>
+  <div id="scontent"></div>
 </div>
 </div>
 
-<!-- ===== REBIRTH ===== -->
-<div class="zpanel off" id="p-rebirth">
-<div class="zpi">
+<!-- REBIRTH -->
+<div class="zp off" id="p-rebirth"><div class="zpi">
   <button class="pcls" onclick="ZP.close('rebirth')">✕</button>
-  <div class="ptitle">🔄 Wiedergeburt</div>
-  <div id="p-reb-content"></div>
-</div>
-</div>
+  <div class="pt">🔄 Wiedergeburt</div>
+  <div id="prc"></div>
+</div></div>
 
-<!-- ===== ENCLOSURE ===== -->
-<div class="zpanel off" id="p-enc">
-<div class="zpi">
+<!-- ENCLOSURE -->
+<div class="zp off" id="p-enc"><div class="zpi">
   <button class="pcls" onclick="ZP.close('enc')">✕</button>
-  <div class="ptitle" id="p-enc-title">Gehege</div>
-  <div id="p-enc-content"></div>
-</div>
-</div>
+  <div class="pt" id="pent">Gehege</div>
+  <div id="penc"></div>
+</div></div>
 
-<!-- ===== MENU ===== -->
-<div class="zpanel off" id="p-menu">
-<div class="zpi" style="text-align:center">
+<!-- MENU -->
+<div class="zp off" id="p-menu"><div class="zpi" style="text-align:center">
   <button class="pcls" onclick="ZP.close('menu')">✕</button>
-  <div class="ptitle">☰ Menü</div>
-  <div id="p-menu-stats"></div>
-  <button class="zbtn zbtn-dim" style="max-width:260px;margin-bottom:8px" onclick="location.href='index.html'">← Zum Denkspiel</button>
-  <button class="zbtn" style="max-width:260px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:6px" onclick="ZA.logout()">Abmelden</button>
-</div>
-</div>
+  <div class="pt">☰ Menü</div>
+  <div id="pmenu"></div>
+  <button class="zb zb-d" style="max-width:260px;margin-bottom:8px" onclick="location.href='index.html'">← Denkspiel</button>
+  <button class="zb" style="max-width:260px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:6px" onclick="ZA.logout()">Abmelden</button>
+</div></div>
 
-<!-- ===== ADMIN ===== -->
-<div class="zpanel off" id="p-admin">
-<div class="zpi">
+<!-- ADMIN -->
+<div class="zp off" id="p-admin"><div class="zpi">
   <button class="pcls" onclick="ZP.close('admin')">✕</button>
-  <div class="ptitle">👑 Admin — Spawn</div>
-  <div id="p-admin-c"></div>
-</div>
-</div>
+  <div class="pt">👑 Admin Zoo</div>
+  <div id="padmin"></div>
+</div></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="js/firebase-state.js"></script>
 <script>
 // ============================================================
-// DATA
+// DATA — 35+ animals total
 // ============================================================
 const ANIMALS=[
-  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,price:5,earn:0.8},
-  {id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,price:6,earn:1},
-  {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,price:8,earn:1.3},
-  {id:'dormouse',n:'Siebenschläfer',e:'🐭',r:'normal',w:15,price:10,earn:1.6},
-  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,price:30,earn:5},
-  {id:'sister',n:'Die Schwester',e:'👧',r:'rare',w:5,price:45,earn:8},
-  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,price:45,earn:8},
-  {id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,price:70,earn:12},
-  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,price:200,earn:35},
-  {id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,price:350,earn:60},
-  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:0.5,price:600,earn:100},
-  {id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:0.25,price:900,earn:155},
-  {id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:0.2,price:2500,earn:430},
-  {id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:0.2,price:3500,earn:600},
-  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:0.1,price:7000,earn:1200},
-  {id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:0.09,price:22000,earn:3800},
-  {id:'caveman',n:'Steinzeitmensch',e:'🦴',r:'ultralegendary',w:0.005,price:90000,earn:15000},
-  {id:'lion',n:'Löwe',e:'🦁',r:'god',w:0.001,price:450000,earn:75000},
-  {id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:0.0009,price:900000,earn:150000},
-  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:0.00001,price:45000000,earn:8000000},
-  {id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:0.0000009,price:400000000,earn:70000000},
+  // Normal
+  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,price:5,earn:.7},
+  {id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,price:6,earn:.9},
+  {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,price:8,earn:1.2},
+  {id:'dormouse',n:'Siebenschläfer',e:'🐭',r:'normal',w:15,price:10,earn:1.5},
+  {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,price:9,earn:1.1},
+  {id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,price:11,earn:1.3},
+  {id:'chicken',n:'Huhn',e:'🐔',r:'normal',w:8,price:12,earn:1.5},
+  // Selten
+  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,price:30,earn:4.5},
+  {id:'sister',n:'Die Schwester',e:'👧',r:'rare',w:5,price:45,earn:7},
+  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,price:45,earn:7},
+  {id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,price:70,earn:11},
+  {id:'deer',n:'Reh',e:'🦌',r:'rare',w:4,price:55,earn:8.5},
+  {id:'penguin',n:'Pinguin',e:'🐧',r:'rare',w:3.5,price:65,earn:10},
+  {id:'koala',n:'Koala',e:'🐨',r:'rare',w:2.5,price:80,earn:12},
+  // Episch
+  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,price:200,earn:33},
+  {id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,price:350,earn:57},
+  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:.5,price:600,earn:97},
+  {id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:.25,price:900,earn:148},
+  {id:'panda',n:'Panda',e:'🐼',r:'epic',w:.3,price:750,earn:120},
+  {id:'bear',n:'Bär',e:'🐻',r:'epic',w:.2,price:1000,earn:165},
+  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:.15,price:1200,earn:195},
+  // Legendär
+  {id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:.2,price:2500,earn:410},
+  {id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:.2,price:3500,earn:575},
+  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:.1,price:7000,earn:1150},
+  {id:'elephant',n:'Elefant',e:'🐘',r:'legendary',w:.08,price:9000,earn:1480},
+  {id:'gorilla',n:'Gorilla',e:'🦍',r:'legendary',w:.06,price:12000,earn:1970},
+  {id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:.04,price:18000,earn:2960},
+  // Ultra-Legendär
+  {id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:.09,price:22000,earn:3620},
+  {id:'caveman',n:'Steinzeitmensch',e:'🦴',r:'ultralegendary',w:.005,price:90000,earn:14800},
+  {id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',w:.003,price:150000,earn:24700},
+  {id:'phoenix',n:'Phönix',e:'🔥',r:'ultralegendary',w:.002,price:200000,earn:32900},
+  // Gott
+  {id:'lion',n:'Löwe',e:'🦁',r:'god',w:.001,price:450000,earn:74000},
+  {id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:.0009,price:900000,earn:148000},
+  {id:'kraken',n:'Kraken',e:'🦑',r:'god',w:.0005,price:2000000,earn:329000},
+  // Secret
+  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,price:45000000,earn:7400000},
+  {id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,price:400000000,earn:65800000},
 ];
 
 const RARITY={
-  normal:{n:'Normal',cls:'rn',sm:1,em:1},
-  rare:{n:'Selten',cls:'rr',sm:1.5,em:2},
-  epic:{n:'Episch',cls:'re',sm:2,em:3},
-  legendary:{n:'Legendär',cls:'rl',sm:3,em:5},
-  ultralegendary:{n:'Ultra-Legendär',cls:'ru',sm:4,em:8},
-  god:{n:'Gott',cls:'rg',sm:6,em:15},
-  secret:{n:'SECRET',cls:'rs',sm:10,em:50},
+  normal:{n:'Normal',cls:'rn'},rare:{n:'Selten',cls:'rr'},epic:{n:'Episch',cls:'re'},
+  legendary:{n:'Legendär',cls:'rl'},ultralegendary:{n:'Ultra-Legendär',cls:'ru'},
+  god:{n:'Gott',cls:'rg'},secret:{n:'SECRET',cls:'rs'},
 };
 
+// SHINY (permanent visual, always available)
 const SHINY=[
   {id:'void',n:'VOID',cls:'tv',m:5,c:.5},
   {id:'rainbow',n:'RAINBOW',cls:'tr',m:3,c:.5},
   {id:'diamond',n:'DIAMOND',cls:'td',m:2,c:1},
   {id:'gold',n:'GOLD',cls:'tg',m:1.5,c:2},
 ];
+
+// TRAITS — only available during specific events!
 const TRAITS=[
-  {id:'crystal',n:'CRYSTAL',cls:'tk',m:1.4,c:3},
-  {id:'electric',n:'ELECTRIC',cls:'te',m:1.3,c:4},
-  {id:'cosmic',n:'COSMIC',cls:'tc',m:1.6,c:2},
-  {id:'fire',n:'FIRE',cls:'tf',m:1.5,c:3},
+  {id:'crystal',n:'CRYSTAL',cls:'tk',m:1.4,c:5,event:'snow'},
+  {id:'electric',n:'ELECTRIC',cls:'te',m:1.3,c:5,event:'rush'},
+  {id:'cosmic',n:'COSMIC',cls:'tc',m:1.6,c:4,event:'night'},
+  {id:'fire',n:'FIRE',cls:'tf',m:1.5,c:5,event:'golden'},
+  {id:'concert',n:'CONCERT',cls:'tr',m:1.8,c:4,event:'party'},
+  {id:'glitch',n:'GLITCH',cls:'tgl',m:4,c:3,event:'glitch'},
 ];
 
 const LUCK_UPS=[
   {m:1.5,cost:1500,l:'×1.5 Glück 🍀'},
-  {m:2,  cost:4000,l:'×2 Glück 🍀🍀'},
-  {m:3,  cost:40000,l:'×3 Glück 🍀🍀🍀'},
-  {m:5,  cost:85000,l:'×5 Glück ⭐MAX'},
+  {m:2,cost:4000,l:'×2 Glück 🍀🍀'},
+  {m:3,cost:40000,l:'×3 Glück 🍀🍀🍀'},
+  {m:5,cost:85000,l:'×5 🌟 MAX'},
 ];
 
 const EVENTS=[
-  {id:'snow',  n:'❄️ Schneesturm', c:'#AED6F1',d:'Weiße Gondeln geben ×3.5 Bonus!',dur:22000},
-  {id:'party', n:'🎉 Party!',      c:'#FF69B4',d:'Party-Strahlen ×4 Multi!',       dur:18000},
-  {id:'golden',n:'✨ Goldregen',   c:'#FFD700',d:'Alle Einnahmen ×2.5!',           dur:16000},
-  {id:'night', n:'🌙 Magische Nacht',c:'#9B59B6',d:'Seltenere Tiere häufiger!',    dur:20000},
-  {id:'rush',  n:'🏃 Rush Hour',   c:'#E74C3C',d:'Besucher 5× schneller!',         dur:14000},
-  {id:'mega',  n:'💎 Mega Event',  c:'#00CFFF',d:'Alles ×3!',                      dur:10000},
-  {id:'hunt',  n:'🎯 Jagdfieber',  c:'#FF8C00',d:'Tiere ×2 wertvoller!',           dur:18000},
+  {id:'snow',  n:'❄️ Schneesturm',c:'#AED6F1',d:'CRYSTAL Trait + weiße Gondeln ×3.5!',  dur:25000,traitId:'crystal'},
+  {id:'party', n:'🎉 Konzert!',    c:'#FF69B4',d:'CONCERT Trait + Party-Strahlen ×4!',   dur:20000,traitId:'concert'},
+  {id:'golden',n:'✨ Goldregen',   c:'#FFD700',d:'FIRE Trait + Einnahmen ×2.5!',          dur:18000,traitId:'fire'},
+  {id:'night', n:'🌙 Magische Nacht',c:'#9B59B6',d:'COSMIC Trait + seltene Tiere häufiger!',dur:22000,traitId:'cosmic'},
+  {id:'rush',  n:'🏃 Rush Hour',   c:'#E74C3C',d:'ELECTRIC Trait + Besucher 5× schneller!',dur:15000,traitId:'electric'},
+  {id:'mega',  n:'💎 Mega-Event',  c:'#00CFFF',d:'Alles ×3! Alle Traits möglich!',        dur:12000},
+  {id:'glitch',n:'👾 Glitch',      c:'#00ff88',d:'GLITCH Trait! Roboter bringt Tiere!',   dur:18000,traitId:'glitch'},
 ];
 
 // ============================================================
-// REBIRTH REQUIREMENTS (gets harder each time)
+// REBIRTH REQUIREMENTS
 // ============================================================
-function rebirthRequirements(rebirthCount) {
-  const req = [
-    // #1
-    {epic:1, legendary:0, ultra:0, god:0, secret:0, money:1000},
-    // #2
-    {epic:2, legendary:1, ultra:0, god:0, secret:0, money:5000},
-    // #3
-    {epic:3, legendary:2, ultra:1, god:0, secret:0, money:20000},
-    // #4
-    {epic:4, legendary:3, ultra:2, god:1, secret:0, money:100000},
-    // #5+
-    {epic:5, legendary:4, ultra:3, god:2, secret:1, money:500000},
+function rebReq(n){
+  const R=[
+    {epic:1,leg:0,ultra:0,god:0,sec:0,money:1000},
+    {epic:2,leg:1,ultra:0,god:0,sec:0,money:5000},
+    {epic:3,leg:2,ultra:1,god:0,sec:0,money:20000},
+    {epic:4,leg:3,ultra:2,god:1,sec:0,money:100000},
+    {epic:5,leg:4,ultra:3,god:2,sec:1,money:500000},
   ];
-  return req[Math.min(rebirthCount, req.length-1)];
+  return R[Math.min(n,R.length-1)];
 }
 
 // ============================================================
 // HELPERS
 // ============================================================
 function $mt(n){
-  if(n>=1e15) return '🌀'+(n/1e15).toFixed(2)+'Qa';
-  if(n>=1e12) return '🌀'+(n/1e12).toFixed(2)+'T';
-  if(n>=1e9)  return '🌀'+(n/1e9).toFixed(2)+'B';
-  if(n>=1e6)  return '🌀'+(n/1e6).toFixed(2)+'M';
-  if(n>=1e3)  return '🌀'+(n/1e3).toFixed(1)+'K';
+  if(n>=1e15)return '🌀'+(n/1e15).toFixed(2)+'Qa';
+  if(n>=1e12)return '🌀'+(n/1e12).toFixed(2)+'T';
+  if(n>=1e9) return '🌀'+(n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return '🌀'+(n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return '🌀'+(n/1e3).toFixed(1)+'K';
   return '🌀'+Math.floor(n);
 }
-function $st(n){return n>=1e3?Math.round(n/100)/10+'K⭐':n+'⭐'}
+function $st(n){return n>=1000?Math.round(n/100)/10+'K⭐':n+'⭐'}
 function G(id){return document.getElementById(id)}
 function show(id){G(id)?.classList.remove('off')}
 function hide(id){G(id)?.classList.add('off')}
 
 function rollAnimal(luck=1,nightEvt=false){
-  const pool=ANIMALS.map(a=>{
-    let w=a.w;
-    if(a.r!=='normal') w*=Math.pow(luck,.55);
-    if(nightEvt&&['epic','legendary','ultralegendary','god','secret'].includes(a.r)) w*=1.4;
-    return{...a,_w:w};
-  });
-  const tot=pool.reduce((s,a)=>s+a._w,0);
-  let r=Math.random()*tot;
-  for(const a of pool){r-=a._w;if(r<=0)return a;}
-  return pool[0];
+  const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(luck,.55);if(nightEvt&&['epic','legendary','ultralegendary','god','secret'].includes(a.r))w*=1.4;return{...a,_w:w};});
+  const tot=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*tot;
+  for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];
 }
 function rollShiny(){for(const s of SHINY){if(Math.random()*100<s.c)return s;}return null;}
-function rollTraits(){return TRAITS.filter(t=>Math.random()*100<t.c);}
-function tMult(shiny,traits){
-  let m=shiny?shiny.m:1;
-  (traits||[]).forEach(t=>m*=t.m);
-  return Math.round(m*100)/100;
+function rollTraits(eventId){
+  if(!eventId)return[];
+  if(eventId==='mega')return TRAITS.filter(t=>Math.random()*100<t.c*1.5);
+  return TRAITS.filter(t=>t.event===eventId&&Math.random()*100<t.c);
 }
-function earnPerVisitor(enc,zs,ev){
+function tMult(shiny,traits){let m=shiny?shiny.m:1;(traits||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
+function earnPV(enc,zs,ev){
   if(!enc)return 0;
   const base=enc.animal.earn;
   const tm=tMult(enc.shiny,enc.traits)*(enc.extraMult||1);
   let e=base*tm*(zs.rebirthMult||1);
-  if(zs.upgrades?.earn) e*=2;
-  if(zs.upgrades?.earn2) e*=2;
-  if(zs.tempBoosts?.coin>Date.now()) e*=2;
-  if(ev?.id==='golden') e*=2.5;
-  if(ev?.id==='mega')   e*=3;
-  if(ev?.id==='hunt')   e*=2;
+  if(zs.upgrades?.earn)e*=2;if(zs.upgrades?.earn2)e*=2;
+  if((zs.tempBoosts?.coin||0)>Date.now())e*=2;
+  if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;
   return e;
 }
-function rBadge(r){return`<span class="${RARITY[r]?.cls||'rn'}">${RARITY[r]?.n||r}</span>`}
-function sBadge(s){return s?`<span class="tb ${s.cls}">${s.n}</span>`:''}
-function tBadges(ts){return(ts||[]).map(t=>`<span class="tb ${t.cls}">${t.n}</span>`).join('')}
+function rB(r){return`<span class="${RARITY[r]?.cls||'rn'}">${RARITY[r]?.n||r}</span>`}
+function sB(s){return s?`<span class="tb ${s.cls}">${s.n}</span>`:''}
+function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.cls}">${t.n}</span>`).join('')}
 
 // ============================================================
 // STATE
 // ============================================================
 const ZS={
   player:null,playerChar:null,zoo:null,isAdmin:false,
-
-  newZoo(){return{
-    mt:80,totalEarned:0,totalVisitors:0,
-    enclosures:Array(5).fill(null),
-    luck:1,luckLevel:0,upgrades:{},tempBoosts:{},
-    rebirths:0,rebirthMult:1,extraEnc:0,startedAt:Date.now(),
-  };},
-
+  newZoo(){return{mt:80,totalEarned:0,totalVisitors:0,enclosures:Array(5).fill(null),luck:1,luckLevel:0,upgrades:{},tempBoosts:{},rebirths:0,rebirthMult:1,extraEnc:0,startedAt:Date.now()};},
   maxEnc(){return 5+(this.zoo?.extraEnc||0)+(this.zoo?.rebirths||0)*2;},
-
-  visitMs(){
-    const z=this.zoo;if(!z)return 8000;
-    let ms=8000; // slower base - 8 seconds per visitor
-    if(z.upgrades?.vis)  ms/=2;
-    if(z.upgrades?.vis2) ms/=2;
-    if(ZE.currentEvent?.id==='rush') ms/=5;
-    ms/=Math.max(1,1+(z.rebirths||0)*.4);
-    if(z.upgrades?.vis_m) ms/=2;
-    if(z.tempBoosts?.storm>Date.now()) ms/=8;
-    return Math.max(500,ms);
-  },
-
-  curLuck(){
-    const z=this.zoo;
-    let l=z?.luck||1;
-    if(z?.tempBoosts?.lucky>Date.now()) l*=2;
-    if(ZE.currentEvent?.id==='night') l*=1.5;
-    return l;
-  },
-
-  async save(){
-    if(!this.player||!this.zoo)return;
-    const k='zoo_'+this.player.toLowerCase();
-    this.zoo.savedAt=Date.now();
-    try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}
-    localStorage.setItem(k,JSON.stringify(this.zoo));
-  },
-
-  async load(){
-    const k='zoo_'+this.player.toLowerCase();
-    try{if(State._useCloud()){const s=await _db.collection('zoos').doc(k).get();if(s.exists){this.zoo=s.data();this.fixEnc();return;}}}catch(e){}
-    const l=localStorage.getItem(k);
-    this.zoo=l?JSON.parse(l):this.newZoo();
-    this.fixEnc();
-  },
-
+  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upgrades?.vis)ms/=2;if(z.upgrades?.vis2)ms/=2;if(ZE.currentEvent?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.rebirths||0)*.4);if(z.upgrades?.vis_m)ms/=2;if((z.tempBoosts?.storm||0)>Date.now())ms/=8;return Math.max(500,ms);},
+  curLuck(){const z=this.zoo;let l=z?.luck||1;if((z?.tempBoosts?.lucky||0)>Date.now())l*=2;if(ZE.currentEvent?.id==='night')l*=1.5;return l;},
+  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.savedAt=Date.now();try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
+  async load(){const k='zoo_'+this.player.toLowerCase();try{if(State._useCloud()){const s=await _db.collection('zoos').doc(k).get();if(s.exists){this.zoo=s.data();this.fixEnc();return;}}}catch(e){}const l=localStorage.getItem(k);this.zoo=l?JSON.parse(l):this.newZoo();this.fixEnc();},
   fixEnc(){const n=this.maxEnc();while(this.zoo.enclosures.length<n)this.zoo.enclosures.push(null);},
 };
 
@@ -532,8 +418,7 @@ const ZA={
   _cs:null,
   login(){
     const n=G('zn')?.value.trim(),p=G('zpw')?.value.trim(),e=G('zerr');
-    if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
-    if(!p){e.textContent='Bitte Passwort!';return;}
+    if(!n||n.length<2){e.textContent='Name zu kurz!';return;}if(!p){e.textContent='Bitte Passwort!';return;}
     const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();
     if(!us[k]){us[k]={n,p,char:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';this._showChar();}
     else{const u=us[k];if(u.p!==p){e.textContent='Falsches Passwort!';return;}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!u.char)this._showChar();else{ZS.playerChar=u.char;this._showMode();}}
@@ -541,15 +426,11 @@ const ZA={
   _showChar(){
     hide('s-login');show('s-char');
     const CH=[{id:'spongebob',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astronaut'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'detective',e:'🕵️',n:'Detektiv'},{id:'lion',e:'🦁',n:'Löwe'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'}];
-    G('cgrid').innerHTML=CH.map(c=>`<div class="copt" id="co-${c.id}" onclick="ZA._selC('${c.id}','${c.e}')"><span style="font-size:2rem;display:block">${c.e}</span><span style="font-size:.6rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');
+    G('cgr').innerHTML=CH.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:2rem;display:block">${c.e}</span><span style="font-size:.6rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');
   },
-  _selC(id,e){ZA._cs={id,e};document.querySelectorAll('.copt').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
-  confirmChar(){
-    if(!ZA._cs)return;
-    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();
-    if(us[k])us[k].char=ZA._cs;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.playerChar=ZA._cs;this._showMode();
-  },
-  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhello').innerHTML=`${ZS.playerChar?.e||''} Hallo ${ZS.player}!`;},
+  _sel(id,e){ZA._cs={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
+  confirmChar(){if(!ZA._cs)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].char=ZA._cs;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.playerChar=ZA._cs;this._showMode();},
+  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS.playerChar?.e||''} Hallo ${ZS.player}!`;},
   async startZoo(){hide('s-mode');show('s-zoo');await ZS.load();ZE.start();},
   logout(){ZE.stop();ZP.closeAll();hide('s-zoo');ZS.player=ZS.zoo=ZS.playerChar=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');},
 };
@@ -562,442 +443,374 @@ const ZE={
   cam:{x:0,y:0},pl:{x:280,y:380},
   joy:{active:false,dx:0,dy:0},
   nearStation:false,
-  currentEvent:null,
-  snowEls:[],beamEls:[],
-  gondCountdown:2500,
-  currentGondola:null,
+  currentEvent:null,eventEnd:0,
+  snowEls:[],beamEls:[],glitchEls:[],
+  gondCountdown:2500,currentGondola:null,
+  gondolaQueue:[], // 3 pending gondola animals
   visitTimer:0,
+  glitchRobot:{active:false,x:0,y:0,target:null},
   _raf:null,_loops:[],
-  _ts:0,
-
-  // 3D World objects
-  WORLD:{
-    // Ground tiles (for 3D illusion)
-    groundTiles:[],
-    // Trees/decorations
-    trees:[
-      {x:100,y:150},{x:450,y:100},{x:620,y:200},{x:150,y:500},{x:680,y:480},
-      {x:50,y:320},{x:720,y:320},{x:300,y:120},{x:560,y:550},
-    ],
-    // Station position
-    station:{x:420,y:160,w:200,h:120},
-    // Fountain
-    fountain:{x:280,y:200},
-  },
 
   start(){
-    this.canvas=G('zcanvas');this.ctx=this.canvas.getContext('2d');
+    this.canvas=G('zcan');this.ctx=this.canvas.getContext('2d');
     this._resize();window.addEventListener('resize',()=>this._resize());
     this._initJoy();
-    this._raf=requestAnimationFrame(t=>this._loop(t));
-    this._loops.push(setInterval(()=>this._gameTick(),100));
+    this._raf=requestAnimationFrame(()=>this._loop());
+    this._loops.push(setInterval(()=>this._tick(),100));
     this._loops.push(setInterval(()=>ZS.save(),15000));
-    this._loops.push(setInterval(()=>this._tryEvent(),38000));
-    this._gondTick();
-    this._updHUD();
-    if(ZS.zoo.enclosures.every(e=>!e)) ZP.toast('🚠 Laufe zur Gondel-Station um dein erstes Tier zu holen!',6000);
-    if(ZS.isAdmin){
-      G('zhud').insertAdjacentHTML('beforeend','<button class="hb" style="background:rgba(255,165,0,.7)" onclick="ZP.openAdmin()">👑 Admin</button>');
-    }
-    this._buildQR();
+    this._loops.push(setInterval(()=>this._tryEvent(),40000));
+    this._loops.push(setInterval(()=>this._checkAdminCmd(),5000));
+    this._gondTick();this._updHUD();this._buildQR();
+    // Fill gondola queue
+    for(let i=0;i<3;i++)this.gondolaQueue.push(this._makeGondola());
+    if(ZS.zoo.enclosures.every(e=>!e))ZP.toast('🚠 Laufe zur Gondel-Station!',5000);
+    if(ZS.isAdmin)G('zhud').insertAdjacentHTML('beforeend','<button class="hb" style="background:rgba(255,165,0,.7)" onclick="ZP.openAdmin()">👑</button>');
   },
 
-  stop(){
-    cancelAnimationFrame(this._raf);
-    this._loops.forEach(clearInterval);this._loops=[];
-    this.snowEls.forEach(e=>e.remove());this.snowEls=[];
-    this.beamEls.forEach(e=>e.remove());this.beamEls=[];
-  },
-
+  stop(){cancelAnimationFrame(this._raf);this._loops.forEach(clearInterval);this._loops=[];this.snowEls.forEach(e=>e.remove());this.snowEls=[];this.beamEls.forEach(e=>e.remove());this.beamEls=[];this.glitchEls.forEach(e=>e.remove());this.glitchEls=[];},
   _resize(){this.canvas.width=window.innerWidth;this.canvas.height=window.innerHeight;},
+  _loop(){this._raf=requestAnimationFrame(()=>this._loop());this._draw();},
 
-  _loop(ts){
-    this._raf=requestAnimationFrame(t=>this._loop(t));
-    this._draw();
-    this._ts=ts;
-  },
-
-  _gameTick(){
+  _tick(){
     const z=ZS.zoo;if(!z)return;
     ZS.fixEnc();
-    if(this.joy.active){
-      this.pl.x+=this.joy.dx*3.5;
-      this.pl.y+=this.joy.dy*3.5;
-      this.cam.x=this.pl.x-this.canvas.width/2;
-      this.cam.y=this.pl.y-this.canvas.height/2;
-    }
-    // Check near station
-    const st=this.WORLD.station;
-    const dx=this.pl.x-(st.x+st.w/2),dy=this.pl.y-(st.y+st.h/2);
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    const wasNear=this.nearStation;
-    this.nearStation=dist<90;
-    const prompt=G('zprompt');
-    if(prompt){prompt.style.opacity=this.nearStation?'1':'0';}
-    // Visitor tick
+    if(this.joy.active){this.pl.x+=this.joy.dx*3.5;this.pl.y+=this.joy.dy*3.5;this.cam.x=this.pl.x-this.canvas.width/2;this.cam.y=this.pl.y-this.canvas.height/2;}
+    // Near station check
+    const stX=420,stY=185,stR=100;
+    const dx=this.pl.x-stX,dy=this.pl.y-stY;
+    this.nearStation=Math.sqrt(dx*dx+dy*dy)<stR;
+    G('zprompt').style.opacity=this.nearStation?'1':'0';
+    // Visitor
     this.visitTimer+=100;
     if(this.visitTimer>=ZS.visitMs()){this.visitTimer=0;this._spawnVisitor();}
+    // Event timer display
+    this._updEventTimer();
     this._updHUD();
+    // Admin cmd
   },
 
   _spawnVisitor(){
-    const z=ZS.zoo;
-    const anim=z.enclosures.filter(e=>e);
-    if(!anim.length)return;
-    z.totalVisitors++;
-    let earn=anim.reduce((s,enc)=>s+earnPerVisitor(enc,z,this.currentEvent),0);
+    const z=ZS.zoo;const a=z.enclosures.filter(e=>e);if(!a.length)return;
+    z.totalVisitors++;let earn=a.reduce((s,enc)=>s+earnPV(enc,z,this.currentEvent),0);
     z.mt+=earn;z.totalEarned=(z.totalEarned||0)+earn;
-    const x=15+Math.random()*55,y=30+Math.random()*35;
-    const el=document.createElement('div');
-    el.className='flt';el.style.cssText=`left:${x}%;top:${y}%;color:#00CFFF`;
-    el.textContent='+'+$mt(earn);document.body.appendChild(el);
-    setTimeout(()=>el.remove(),1600);
+    const el=document.createElement('div');el.className='flt';
+    el.style.cssText=`left:${15+Math.random()*55}%;top:${30+Math.random()*30}%;color:#00CFFF`;
+    el.textContent='+'+$mt(earn);document.body.appendChild(el);setTimeout(()=>el.remove(),1600);
+  },
+
+  _makeGondola(){
+    const luck=ZS.curLuck(),night=this.currentEvent?.id==='night';
+    const a=rollAnimal(luck,night);const shiny=rollShiny();
+    const traits=rollTraits(this.currentEvent?.id);
+    const snowB=(this.currentEvent?.id==='snow'&&Math.random()<.05)?3.5:1;
+    const partyB=(this.currentEvent?.id==='party'&&Math.random()<.15)?4:1;
+    const isWhite=snowB>1;
+    return{a,shiny,traits,extraMult:snowB*partyB,isWhite};
   },
 
   _gondTick(){
     const iv=setInterval(()=>{
       this.gondCountdown-=100;
       if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gondCountdown)/1000).toFixed(1)+'s';
-      const car=G('gcar');
-      if(car){
-        const pct=1-(this.gondCountdown/2500);
-        const tw=G('p-gond')?.offsetWidth||300;
-        car.style.left=(-40+pct*(tw-20))+'px';
-        // snow event: 5% white car
-        car.textContent=(this.currentEvent?.id==='snow'&&Math.random()<.005)?'⬜':'🚠';
+      if(this.gondCountdown<=0){
+        this.gondCountdown=2500;
+        // Rotate gondola queue
+        this.gondolaQueue.shift();
+        this.gondolaQueue.push(this._makeGondola());
+        this.currentGondola=this.gondolaQueue[0];
+        if(!G('p-gond').classList.contains('off')){ZP._renderGondola();ZP._renderGondolaCars();}
       }
-      if(this.gondCountdown<=0){this.gondCountdown=2500;this._newGondola();}
     },100);
     this._loops.push(iv);
+    this.currentGondola=this.gondolaQueue[0];
   },
 
-  _newGondola(){
-    const luck=ZS.curLuck();
-    const night=this.currentEvent?.id==='night';
-    const a=rollAnimal(luck,night);
-    const shiny=rollShiny(),traits=rollTraits();
-    const snowB=(this.currentEvent?.id==='snow'&&Math.random()<.05)?3.5:1;
-    const partyB=(this.currentEvent?.id==='party'&&Math.random()<.15)?4:1;
-    this.currentGondola={a,shiny,traits,extraMult:snowB*partyB};
-    if(!G('p-gond').classList.contains('off'))ZP._renderGondola();
+  _updEventTimer(){
+    const el=G('ev-timer');if(!el)return;
+    if(this.currentEvent&&this.eventEnd>Date.now()){
+      const rem=Math.ceil((this.eventEnd-Date.now())/1000);
+      el.style.display='block';
+      el.innerHTML=`<div style="font-size:.65rem;color:rgba(255,255,255,.5)">${this.currentEvent.n}</div><div style="color:var(--gold)">⏱ ${rem}s</div>`;
+    }else{el.style.display='none';}
   },
 
   _updHUD(){
     const z=ZS.zoo;if(!z)return;
     G('hmt').textContent='🌀 '+$mt(z.mt).replace('🌀','');
     G('hvis').textContent='👥 '+z.totalVisitors.toLocaleString();
-    const m=[];
-    if((z.rebirthMult||1)>1)m.push(`×${z.rebirthMult.toFixed(1)} Rebirth`);
-    if(z.luck>1)m.push(`🍀×${z.luck}`);
-    if(this.currentEvent)m.push(this.currentEvent.n);
+    const m=[];if((z.rebirthMult||1)>1)m.push(`×${z.rebirthMult.toFixed(1)}`);if(z.luck>1)m.push(`🍀×${z.luck}`);
     G('hmult').textContent=m.join(' · ');
   },
 
-  _tryEvent(){if(!this.currentEvent&&Math.random()<.3){const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEvent(ev);}},
+  _tryEvent(){if(!this.currentEvent&&Math.random()<.28){const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEvent(ev,ev.dur);}},
 
-  startEvent(ev){
-    this.currentEvent=ev;
+  startEvent(ev,dur){
+    this.currentEvent=ev;this.eventEnd=Date.now()+dur;
     const b=G('zebanner');b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';
-    setTimeout(()=>b.style.opacity='0',4500);
+    setTimeout(()=>b.style.opacity='0',4000);
     if(ev.id==='snow')this._startSnow();
     if(ev.id==='party')this._startParty();
+    if(ev.id==='glitch')this._startGlitch();
     ZP.toast(ev.n+'! '+ev.d,4000);
-    setTimeout(()=>{this.currentEvent=null;this._stopSnow();this._stopParty();},ev.dur);
+    setTimeout(()=>{this.currentEvent=null;this.eventEnd=0;this._stopSnow();this._stopParty();this._stopGlitch();},dur);
   },
 
-  _startSnow(){for(let i=0;i<20;i++){const e=document.createElement('div');e.className='zsnow';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowEls.push(e);}},
+  _startSnow(){for(let i=0;i<20;i++){const e=document.createElement('div');e.className='zsnow';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowEls.push(e);}},
   _stopSnow(){this.snowEls.forEach(e=>e.remove());this.snowEls=[];},
-  _startParty(){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbeam';const c=cols[i%cols.length];e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${c};animation-duration:${1.4+Math.random()}s;animation-delay:${Math.random()*1}s;z-index:181`;G('s-zoo').appendChild(e);this.beamEls.push(e);}},
+  _startParty(){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbeam';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;width:5px;background:${cols[i%cols.length]};animation-duration:${1.4+Math.random()}s;animation-delay:${Math.random()}s`;G('s-zoo').appendChild(e);this.beamEls.push(e);}},
   _stopParty(){this.beamEls.forEach(e=>e.remove());this.beamEls=[];},
+  _startGlitch(){
+    // Glitch pixels
+    const colors=['#00ff88','#00ccff','#ff00ff','#ffff00'];
+    for(let i=0;i<15;i++){const e=document.createElement('div');e.className='glitch-px';e.style.cssText=`position:fixed;width:${4+Math.random()*8}px;height:${2+Math.random()*4}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}vw;top:${Math.random()*100}vh;z-index:175;animation-duration:${.2+Math.random()*.3}s`;G('s-zoo').appendChild(e);this.glitchEls.push(e);}
+    ZP.toast('👾 GLITCH EVENT! Fahre mit der Gondel hoch — Roboter bringt Tiere!',5000);
+  },
+  _stopGlitch(){this.glitchEls.forEach(e=>e.remove());this.glitchEls=[];},
 
-  // ---- 3D DRAW ----
+  // Admin command listener
+  async _checkAdminCmd(){
+    let cmd=null;
+    try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}
+    if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');
+    if(!cmd||cmd.expiresAt<Date.now())return;
+    if(cmd.target!==ZS.player?.toLowerCase())return;
+    if(cmd._handled)return;
+    cmd._handled=true;localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));
+    if(cmd.type==='spawn_animal'){
+      const a=ANIMALS.find(x=>x.id===cmd.animalId);if(!a)return;
+      const shiny=cmd.shinyId?SHINY.find(s=>s.id===cmd.shinyId):null;
+      const slot=ZS.zoo.enclosures.findIndex(e=>!e);
+      if(slot>=0){ZS.zoo.enclosures[slot]={animal:{...a},shiny,traits:[],extraMult:1,addedAt:Date.now(),adminSpawned:true};ZP.toast(`👑 Admin: ${a.e} ${a.n} gespawnt!`,3000);}
+    }else if(cmd.type==='give_mt'){ZS.zoo.mt+=(cmd.amount||50000);ZP.toast(`👑 Admin: +${$mt(cmd.amount)} erhalten!`,3000);}
+    else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEvent(ev,cmd.dur||ev.dur);}
+    this._updHUD();
+  },
+
+  // ============================================================
+  // 3D DRAW (Steal a Brainrot style)
+  // ============================================================
   _draw(){
     const ctx=this.ctx,W=this.canvas.width,H=this.canvas.height,cam=this.cam;
-    if(!ctx)return;
-    ctx.clearRect(0,0,W,H);
+    if(!ctx)return;ctx.clearRect(0,0,W,H);
 
-    // 3D Sky gradient (horizon effect)
-    const sky=ctx.createLinearGradient(0,0,0,H*.55);
-    sky.addColorStop(0,'#0a1a3a');sky.addColorStop(0.5,'#1a4a8a');sky.addColorStop(1,'#3a7ad9');
-    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.55);
+    // Gradient sky
+    const sky=ctx.createLinearGradient(0,0,0,H*.6);
+    sky.addColorStop(0,'#0a1a3a');sky.addColorStop(.5,'#1a4a8a');sky.addColorStop(1,'#3a7ad9');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.6);
 
     // Horizon glow
-    const hglow=ctx.createLinearGradient(0,H*.45,0,H*.65);
-    hglow.addColorStop(0,'rgba(255,200,100,.18)');hglow.addColorStop(1,'transparent');
-    ctx.fillStyle=hglow;ctx.fillRect(0,H*.45,W,H*.2);
+    const hg=ctx.createLinearGradient(0,H*.42,0,H*.62);
+    hg.addColorStop(0,'rgba(255,200,100,.12)');hg.addColorStop(1,'transparent');
+    ctx.fillStyle=hg;ctx.fillRect(0,H*.42,W,H*.2);
 
-    // 3D Ground (perspective grid)
-    const groundY=H*.52-cam.y*.05;
-    const ground=ctx.createLinearGradient(0,groundY,0,H);
-    ground.addColorStop(0,'#3a7a25');ground.addColorStop(.3,'#2d5a1b');ground.addColorStop(1,'#1a3a0d');
-    ctx.fillStyle=ground;ctx.fillRect(0,groundY,W,H);
+    // Ground
+    const gY=H*.52-cam.y*.04;
+    const grd=ctx.createLinearGradient(0,gY,0,H);
+    grd.addColorStop(0,'#3a8a25');grd.addColorStop(.3,'#2d5a1b');grd.addColorStop(1,'#1a3a0d');
+    ctx.fillStyle=grd;ctx.fillRect(0,gY,W,H);
 
-    // 3D Grid lines for perspective effect
-    ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=1;
-    for(let i=0;i<12;i++){
-      const t=i/12;
-      const y=groundY+t*(H-groundY);
-      const xOff=(t*W*.6);
-      ctx.beginPath();ctx.moveTo(xOff-cam.x*.2*t,y);ctx.lineTo(W-xOff+cam.x*.2*t,y);ctx.stroke();
-    }
-    for(let i=-4;i<5;i++){
-      const vp={x:W/2,y:groundY};
-      ctx.beginPath();ctx.moveTo(vp.x+i*W*.15,H);ctx.lineTo(vp.x+i*W*.05,groundY);ctx.stroke();
-    }
+    // 3D Perspective grid
+    ctx.strokeStyle='rgba(0,0,0,.1)';ctx.lineWidth=1;
+    for(let i=0;i<14;i++){const t=i/14;const y=gY+t*(H-gY);const x0=W*.5*(1-t);ctx.beginPath();ctx.moveTo(x0-cam.x*.15*t,y);ctx.lineTo(W-x0+cam.x*.15*t,y);ctx.stroke();}
+    for(let i=-5;i<=5;i++){ctx.beginPath();ctx.moveTo(W/2+i*W*.12,H);ctx.lineTo(W/2+i*W*.04,gY);ctx.stroke();}
 
-    // Clouds (parallax slower)
-    this._drawClouds(ctx,W,H,cam);
+    // Clouds
+    ctx.fillStyle='rgba(255,255,255,.8)';
+    [[80,.08,55],[220,.06,70],[400,.1,50],[580,.07,65],[720,.06,48]].forEach(([x,yf,r])=>{
+      const cx2=((x-cam.x*.08)%W+W)%W,cy2=H*yf;
+      ctx.beginPath();ctx.arc(cx2,cy2,r*.7,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx2+r*.5,cy2+5,r*.55,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx2-r*.4,cy2+8,r*.5,0,Math.PI*2);ctx.fill();
+    });
 
-    // Sun / Moon
-    const sunX=W*.82,sunY=H*.12;
-    const sunGrad=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,40);
-    sunGrad.addColorStop(0,'rgba(255,240,100,.9)');sunGrad.addColorStop(.6,'rgba(255,200,50,.5)');sunGrad.addColorStop(1,'transparent');
-    ctx.fillStyle=sunGrad;ctx.beginPath();ctx.arc(sunX,sunY,40,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,230,80,.85)';ctx.beginPath();ctx.arc(sunX,sunY,18,0,Math.PI*2);ctx.fill();
+    // Sun
+    const sx=W*.83,sy=H*.11,sg=ctx.createRadialGradient(sx,sy,0,sx,sy,38);
+    sg.addColorStop(0,'rgba(255,240,80,.9)');sg.addColorStop(.6,'rgba(255,200,50,.4)');sg.addColorStop(1,'transparent');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,38,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,230,70,.85)';ctx.beginPath();ctx.arc(sx,sy,16,0,Math.PI*2);ctx.fill();
 
-    // 3D Objects (sorted by Y for depth)
+    // Path
+    ctx.fillStyle='rgba(200,160,80,.45)';ctx.fillRect(W/2-20,gY,40,H-gY);
+
     const z=ZS.zoo;if(!z)return;
+
+    // Collect objects for painter's sort
     const objs=[];
+    [{x:100,y:160},{x:450,y:108},{x:610,y:195},{x:140,y:490},{x:670,y:478},{x:50,y:310},{x:730,y:315},{x:310,y:125},{x:560,y:545},{x:740,y:220}].forEach(t=>objs.push({t:'tree',wx:t.x,wy:t.y}));
+    const cols=3,eW=100,eH=78,eG=18,sX=60,sY=235;
+    for(let i=0;i<z.enclosures.length;i++){const col=i%cols,row=Math.floor(i/cols);objs.push({t:'enc',i,wx:sX+col*(eW+eG),wy:sY+row*(eH+eG),enc:z.enclosures[i]});}
+    objs.push({t:'station',wx:320,wy:170});
+    objs.push({t:'fountain',wx:180,wy:205});
+    objs.push({t:'player',wx:this.pl.x,wy:this.pl.y});
+    // Glitch robot
+    if(this.currentEvent?.id==='glitch'){objs.push({t:'robot',wx:380,wy:310});}
 
-    // Trees
-    this.WORLD.trees.forEach(t=>{objs.push({type:'tree',wx:t.x,wy:t.y});});
-
-    // Enclosures
-    const cols=3,eW=95,eH=72,eG=16,sX=60,sY=230;
-    for(let i=0;i<z.enclosures.length;i++){
-      const col=i%cols,row=Math.floor(i/cols);
-      objs.push({type:'enc',i,wx:sX+col*(eW+eG),wy:sY+row*(eH+eG),enc:z.enclosures[i]});
-    }
-
-    // Gondola station
-    const st=this.WORLD.station;
-    objs.push({type:'station',wx:st.x,wy:st.y});
-
-    // Fountain
-    const ft=this.WORLD.fountain;
-    objs.push({type:'fountain',wx:ft.x,wy:ft.y});
-
-    // Player
-    objs.push({type:'player',wx:this.pl.x,wy:this.pl.y});
-
-    // Sort by Y (painter's algorithm)
     objs.sort((a,b)=>a.wy-b.wy);
-
-    // Draw all objects
     objs.forEach(obj=>{
-      const sx=obj.wx-cam.x,sy=obj.wy-cam.y;
-      // 3D perspective scale based on Y position
-      const depth=Math.max(.4,Math.min(1.4,(sy+H*.3)/(H*.8)));
-      if(sx<-200||sx>W+200||sy<-200||sy>H+200)return;
-      ctx.save();
-      ctx.translate(sx,sy);
-
-      if(obj.type==='tree'){this._drawTree(ctx,depth);}
-      else if(obj.type==='enc'){this._drawEnc(ctx,obj.enc,obj.i,eW,eH,depth);}
-      else if(obj.type==='station'){this._drawStation(ctx,depth);}
-      else if(obj.type==='fountain'){this._drawFountain(ctx,depth);}
-      else if(obj.type==='player'){this._drawPlayer(ctx,depth);}
+      const sx2=obj.wx-cam.x,sy2=obj.wy-cam.y;
+      const d=Math.max(.35,Math.min(1.5,(sy2+H*.35)/(H*.9)));
+      if(sx2<-250||sx2>W+250||sy2<-250||sy2>H+300)return;
+      ctx.save();ctx.translate(sx2,sy2);
+      if(obj.t==='tree')this._dTree(ctx,d);
+      else if(obj.t==='enc')this._dEnc(ctx,obj.enc,obj.i,eW,eH,d);
+      else if(obj.t==='station')this._dStation(ctx,d);
+      else if(obj.t==='fountain')this._dFountain(ctx,d);
+      else if(obj.t==='player')this._dPlayer(ctx,d);
+      else if(obj.t==='robot')this._dRobot(ctx,d);
       ctx.restore();
     });
-
-    // Path between objects
-    ctx.strokeStyle='rgba(200,160,80,.45)';ctx.lineWidth=22;ctx.setLineDash([]);
-    ctx.beginPath();ctx.moveTo(W/2-cam.x,H-cam.y);ctx.lineTo(W/2-cam.x,groundY+40-cam.y);ctx.stroke();
-
-    // Near station glow
-    if(this.nearStation){
-      const sx=(st.x+st.w/2)-cam.x,sy=(st.y+st.h/2)-cam.y;
-      const glow=ctx.createRadialGradient(sx,sy,0,sx,sy,100);
-      glow.addColorStop(0,'rgba(255,215,0,.15)');glow.addColorStop(1,'transparent');
-      ctx.fillStyle=glow;ctx.beginPath();ctx.arc(sx,sy,100,0,Math.PI*2);ctx.fill();
-    }
   },
 
-  _drawClouds(ctx,W,H,cam){
-    ctx.fillStyle='rgba(255,255,255,.8)';
-    [[90,H*.08,55],[220,H*.05,70],[400,H*.1,50],[580,H*.07,65],[720,H*.06,45]].forEach(([x,y,r])=>{
-      const cx2=(((x-cam.x*.1)%W+W)%W);
-      ctx.beginPath();ctx.arc(cx2,y,r*.7,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.arc(cx2+r*.5,y+5,r*.55,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.arc(cx2-r*.4,y+7,r*.5,0,Math.PI*2);ctx.fill();
-    });
+  _dTree(ctx,d){
+    const h=70*d;
+    ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(0,0,20*d,6*d,0,Math.PI*2,0);ctx.fill();
+    ctx.fillStyle='#6b3a1a';ctx.fillRect(-5*d,-h*.38,10*d,h*.38);
+    const fg=ctx.createRadialGradient(-8*d,-h*.58,0,0,-h*.52,30*d);
+    fg.addColorStop(0,'#6dbf4a');fg.addColorStop(.5,'#3a8f25');fg.addColorStop(1,'#1a5a0d');
+    ctx.fillStyle=fg;ctx.beginPath();ctx.arc(0,-h*.58,30*d,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.14)';ctx.beginPath();ctx.arc(-9*d,-h*.68,11*d,0,Math.PI*2);ctx.fill();
   },
 
-  _drawTree(ctx,d){
-    const h=65*d;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(0,0,20*d,6*d,0,0,Math.PI*2);ctx.fill();
-    // Trunk
-    ctx.fillStyle='#6b3a1a';ctx.fillRect(-5*d,-h*.35,10*d,h*.35);
-    // Foliage (3D ball)
-    const fg=ctx.createRadialGradient(-8*d,-h*.55,0,0,-h*.5,28*d);
-    fg.addColorStop(0,'#5dbf45');fg.addColorStop(.5,'#3a8f25');fg.addColorStop(1,'#1a5a0d');
-    ctx.fillStyle=fg;ctx.beginPath();ctx.arc(0,-h*.55,28*d,0,Math.PI*2);ctx.fill();
-    // Highlight
-    ctx.fillStyle='rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(-8*d,-h*.65,10*d,0,Math.PI*2);ctx.fill();
-  },
-
-  _drawEnc(ctx,enc,i,eW,eH,d){
+  _dEnc(ctx,enc,i,eW,eH,d){
     const w=eW*d,h=eH*d;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(0,h*.5,w*.5,h*.15,0,0,Math.PI*2);ctx.fill();
-    // Ground inside
-    ctx.fillStyle=enc?'#4a8a30':'rgba(74,138,48,.35)';
-    ctx.fillRect(-w/2,-h*.8,w,h*.8);
-    // Walls (3D box effect)
-    // Front face
-    ctx.fillStyle=enc?'#3a6a25':'rgba(58,106,37,.4)';
-    ctx.fillRect(-w/2,-h*.2,w,h*.2);
-    // Fence posts
-    ctx.strokeStyle='#6b3a1a';ctx.lineWidth=3*d;ctx.setLineDash([]);
-    if(enc){ctx.strokeRect(-w/2,-h*.8,w,h*.8);}
-    else{ctx.strokeStyle='rgba(107,58,26,.4)';ctx.setLineDash([6*d,4*d]);ctx.strokeRect(-w/2,-h*.8,w,h*.8);ctx.setLineDash([]);}
-    // Number
-    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font=`bold ${9*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('#'+(i+1),-w/2+9*d,-h*.73);
-    // Shiny glow
-    if(enc?.shiny){
-      const gc={gold:'rgba(255,215,0,.25)',diamond:'rgba(0,207,255,.2)',rainbow:'rgba(255,100,100,.15)',void:'rgba(155,89,182,.25)'}[enc.shiny.id]||'';
-      if(gc){ctx.fillStyle=gc;ctx.fillRect(-w/2,-h*.8,w,h*.8);}
-    }
-    // Animal
+    ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(0,h*.6,w*.5,h*.15,0,Math.PI*2,0);ctx.fill();
+    ctx.fillStyle=enc?'#4a8a30':'rgba(74,138,48,.3)';ctx.fillRect(-w/2,-h*.85,w,h*.85);
+    // 3D side walls
+    ctx.fillStyle=enc?'rgba(0,0,0,.25)':'rgba(0,0,0,.1)';
+    ctx.fillRect(-w/2,-h*.15,w,h*.15);
+    ctx.strokeStyle=enc?'#6b3a1a':'rgba(107,58,26,.35)';ctx.lineWidth=2.5*d;
+    ctx.setLineDash(enc?[]:[7*d,4*d]);ctx.strokeRect(-w/2,-h*.85,w,h*.85);ctx.setLineDash([]);
+    if(enc?.shiny){const gc={gold:'rgba(255,215,0,.2)',diamond:'rgba(0,207,255,.18)',rainbow:'rgba(255,100,100,.13)',void:'rgba(155,89,182,.22)'}[enc.shiny.id]||'';if(gc){ctx.fillStyle=gc;ctx.fillRect(-w/2,-h*.85,w,h*.85);}}
     if(enc){
-      ctx.font=`${26*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(enc.animal.e,0,-h*.45);
-      ctx.font=`${8*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.85)';
-      ctx.fillText(enc.animal.n,0,-h*.12);
-    }else{
-      ctx.globalAlpha=.25;ctx.font=`${22*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('🔒',0,-h*.45);ctx.globalAlpha=1;
-    }
+      ctx.font=`${27*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(enc.animal.e,0,-h*.48);
+      ctx.font=`${8.5*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText(enc.animal.n,0,-h*.14);
+    }else{ctx.globalAlpha=.22;ctx.font=`${23*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔒',0,-h*.48);ctx.globalAlpha=1;}
+    ctx.font=`bold ${9*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.45)';ctx.textAlign='left';ctx.fillText('#'+(i+1),-w/2+4*d,-h*.8);
     ctx.textAlign='left';ctx.textBaseline='alphabetic';
   },
 
-  _drawStation(ctx,d){
-    const w=180*d,h=110*d;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(0,h*.1,w*.45,h*.12,0,0,Math.PI*2);ctx.fill();
-    // Main building
-    const bgrad=ctx.createLinearGradient(0,-h*.9,0,0);
-    bgrad.addColorStop(0,'#7a5030');bgrad.addColorStop(1,'#4a2a10');
-    ctx.fillStyle=bgrad;ctx.fillRect(-w/2,-h*.9,w,h*.9);
+  _dStation(ctx,d){
+    const w=185*d,h=115*d;
+    ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(0,h*.12,w*.48,h*.12,0,Math.PI*2,0);ctx.fill();
+    const bg=ctx.createLinearGradient(0,-h*.95,0,0);bg.addColorStop(0,'#7a5030');bg.addColorStop(1,'#4a2a10');
+    ctx.fillStyle=bg;ctx.fillRect(-w/2,-h*.95,w,h*.95);
     // Roof
-    ctx.fillStyle='#c03020';
-    ctx.beginPath();ctx.moveTo(-w/2,-h*.9);ctx.lineTo(0,-h*1.35);ctx.lineTo(w/2,-h*.9);ctx.closePath();ctx.fill();
-    // Gold trim
-    ctx.strokeStyle='#FFD700';ctx.lineWidth=2.5*d;ctx.setLineDash([]);
-    ctx.strokeRect(-w/2,-h*.9,w,h*.9);
-    // Windows (3D inset)
-    [[-.3],[.3]].forEach(([ox])=>{
-      const wx=ox*w,wy=-h*.6;
-      ctx.fillStyle='rgba(100,180,255,.5)';ctx.fillRect(wx-12*d,wy-14*d,24*d,20*d);
-      ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.5*d;
-      ctx.strokeRect(wx-12*d,wy-14*d,24*d,20*d);
-    });
+    ctx.fillStyle='#c03020';ctx.beginPath();ctx.moveTo(-w/2,-h*.95);ctx.lineTo(0,-h*1.38);ctx.lineTo(w/2,-h*.95);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#8a1810';ctx.beginPath();ctx.moveTo(-w/2,-h*.95);ctx.lineTo(-w/2+20*d,-h*.95);ctx.lineTo(4*d,-h*1.38);ctx.lineTo(0,-h*1.38);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#FFD700';ctx.lineWidth=2.5*d;ctx.setLineDash([]);ctx.strokeRect(-w/2,-h*.95,w,h*.95);
+    // Windows
+    [-.32,.32].forEach(ox=>{ctx.fillStyle='rgba(100,180,255,.45)';ctx.fillRect(ox*w-13*d,-h*.65,26*d,20*d);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5*d;ctx.strokeRect(ox*w-13*d,-h*.65,26*d,20*d);});
     // Door
-    ctx.fillStyle='rgba(60,30,10,.8)';
-    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-14*d,-h*.25,28*d,h*.25,4*d);else ctx.rect(-14*d,-h*.25,28*d,h*.25);ctx.fill();
+    ctx.fillStyle='rgba(60,30,10,.85)';ctx.fillRect(-15*d,-h*.27,30*d,h*.27);
+    ctx.strokeStyle='rgba(255,215,0,.4)';ctx.lineWidth=1.5*d;ctx.strokeRect(-15*d,-h*.27,30*d,h*.27);
     // Sign
-    ctx.fillStyle='var(--gold,#FFD700)';ctx.font=`bold ${11*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('🚠 GONDEL',0,-h*.73);
-    ctx.font=`${8.5*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.7)';
-    ctx.fillText('Tippe zum Öffnen',0,-h*.55);
-    // Gondola cable line
-    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1.5*d;
-    ctx.beginPath();ctx.moveTo(-w/2,-h*.9);ctx.lineTo(-w*.8,-h*1.2);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(w/2,-h*.9);ctx.lineTo(w*.8,-h*1.2);ctx.stroke();
+    ctx.font=`bold ${11.5*d}px Arial`;ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🚡 GONDEL-STATION',0,-h*.77);
+    ctx.font=`${8*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.65)';
+    ctx.fillText('Laufe hinein!',0,-h*.58);
+    // Cables going up
+    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1.5*d;
+    ctx.beginPath();ctx.moveTo(-w*.4,-h*.95);ctx.lineTo(-w*.6,-h*1.4);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w*.4,-h*.95);ctx.lineTo(w*.6,-h*1.4);ctx.stroke();
     ctx.textAlign='left';ctx.textBaseline='alphabetic';
   },
 
-  _drawFountain(ctx,d){
+  _dFountain(ctx,d){
     const r=28*d;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(0,r*.2,r*.8,r*.2,0,0,Math.PI*2);ctx.fill();
-    // Basin
-    const fg=ctx.createRadialGradient(0,0,0,0,0,r);
-    fg.addColorStop(0,'#5090d0');fg.addColorStop(1,'#2050a0');
+    ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,r*.2,r*.8,r*.2,0,Math.PI*2,0);ctx.fill();
+    const fg=ctx.createRadialGradient(0,0,0,0,0,r);fg.addColorStop(0,'#5090d0');fg.addColorStop(1,'#2050a0');
     ctx.fillStyle=fg;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=2*d;ctx.stroke();
-    // Water jet
     ctx.strokeStyle='rgba(150,220,255,.7)';ctx.lineWidth=3*d;
-    ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-15*d,-30*d,0,-25*d);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(15*d,-30*d,0,-25*d);ctx.stroke();
-    ctx.fillStyle='rgba(150,220,255,.8)';ctx.beginPath();ctx.arc(0,-25*d,4*d,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-14*d,-28*d,0,-23*d);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(14*d,-28*d,0,-23*d);ctx.stroke();
+    ctx.fillStyle='rgba(150,220,255,.8)';ctx.beginPath();ctx.arc(0,-23*d,4*d,0,Math.PI*2);ctx.fill();
   },
 
-  _drawPlayer(ctx,d){
-    const s=2.5*d;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,5*d,14*d,5*d,0,0,Math.PI*2);ctx.fill();
-    // Character emoji
-    ctx.font=`${32*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='bottom';
-    ctx.fillText(ZS.playerChar?.e||'🧭',0,0);
-    // Name tag
-    ctx.font=`bold ${9*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.8)';
-    ctx.textAlign='center';ctx.textBaseline='top';
-    ctx.fillText(ZS.player||'',0,2*d);
+  _dPlayer(ctx,d){
+    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(0,5*d,15*d,5*d,0,Math.PI*2,0);ctx.fill();
+    ctx.font=`${34*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(ZS.playerChar?.e||'🧭',0,0);
+    ctx.font=`bold ${9*d}px Arial`;ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(ZS.player||'',0,2*d);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  },
+
+  _dRobot(ctx,d){
+    // Glitch event robot carrying animal
+    ctx.font=`${36*d}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+    // Glitch effect
+    ctx.save();ctx.filter=`hue-rotate(${(Date.now()/50)%360}deg)`;ctx.fillText('🤖',0,-10*d);ctx.restore();
+    ctx.font=`${18*d}px Arial`;ctx.fillText('🦁',14*d,-26*d);
+    ctx.font=`${8*d}px Arial`;ctx.fillStyle='#00ff88';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('GLITCH',0,10*d);
     ctx.textAlign='left';ctx.textBaseline='alphabetic';
   },
 
   _initJoy(){
-    const base=G('zjbase'),thumb=G('zjthumb'),R=33;
+    const base=G('zjb'),thumb=G('zjt'),R=33;
     const mv=(cx,cy)=>{const r=base.getBoundingClientRect();const ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);const d=Math.sqrt(ox*ox+oy*oy),cl=Math.min(d,R);const nx=d>0?(ox/d)*cl:0,ny=d>0?(oy/d)*cl:0;thumb.style.left=(33+nx)+'px';thumb.style.top=(33+ny)+'px';this.joy.dx=nx/R;this.joy.dy=ny/R;this.joy.active=d>4;};
     const up=()=>{thumb.style.left='33px';thumb.style.top='33px';this.joy.active=false;this.joy.dx=this.joy.dy=0;};
     base.addEventListener('touchstart',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    base.addEventListener('touchmove', e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    base.addEventListener('touchmove',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
     base.addEventListener('touchend',up);
     base.addEventListener('mousedown',e=>{const mm=ev=>mv(ev.clientX,ev.clientY);const mu=()=>{document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);up();};document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);mv(e.clientX,e.clientY);});
   },
 
   _buildQR(){
-    // Simple visual QR-like pattern
-    const grid=G('qr-grid');if(!grid)return;
+    const g=G('qrgrid');if(!g)return;
     const pat=[1,1,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0,1,0,1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,1,1];
-    grid.innerHTML=pat.slice(0,100).map(p=>`<div style="width:14px;height:14px;background:${p?'#333':'#fff'}"></div>`).join('');
+    g.innerHTML=pat.slice(0,100).map(p=>`<div style="width:14px;height:14px;background:${p?'#1a0800':'#fff'}"></div>`).join('');
   },
 };
 
-// Canvas click — station + enclosures
-G('zcanvas')?.addEventListener('click',e=>{
+// Canvas click
+G('zcan')?.addEventListener('click',e=>{
   if(!ZS.zoo)return;
   const cam=ZE.cam;
-  const st=ZE.WORLD.station;
-  const sx=(st.x+st.w/2)-cam.x,sy=(st.y+st.h/2)-cam.y;
-  if(Math.abs(e.clientX-sx)<110&&Math.abs(e.clientY-sy)<100){ZP.openGondola();return;}
+  // Station — walk in, so if near just open
+  if(ZE.nearStation){ZP.openGondola();return;}
   // Enclosures
-  const z=ZS.zoo;const cols=3,eW=95,eH=72,eG=16,sX=60,sY=230;
+  const z=ZS.zoo;const cols=3,eW=100,eH=78,eG=18,sX=60,sY=235;
   for(let i=0;i<z.enclosures.length;i++){
     const col=i%cols,row=Math.floor(i/cols);
     const ex=sX+col*(eW+eG)-cam.x,ey=sY+row*(eH+eG)-cam.y;
     if(e.clientX>ex-eW/2&&e.clientX<ex+eW/2&&e.clientY>ey-eH&&e.clientY<ey){ZP.openEnc(i);return;}
   }
 });
-
-// Interact prompt click (near station)
 G('zprompt')?.addEventListener('click',()=>{if(ZE.nearStation)ZP.openGondola();});
 
 // ============================================================
-// PANELS / UI
+// PANELS
 // ============================================================
 const ZP={
-  _toastT:null,
-  _shopTab:'zoo',
-
-  toast(msg,ms=2500){const t=G('ztoast');t.textContent=msg;t.style.opacity='1';clearTimeout(this._toastT);this._toastT=setTimeout(()=>t.style.opacity='0',ms);},
+  _tt:null,_tab:'zoo',
+  toast(msg,ms=2500){const t=G('ztoast');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
   closeAll(){['gond','shop','rebirth','enc','menu','admin'].forEach(p=>this.close(p));},
   close(p){hide('p-'+p);},
+  showQR(){show('qrp');},closeQR(){hide('qrp');},
 
-  showQR(){show('qr-panel');},
-  closeQR(){hide('qr-panel');},
-
-  // ---- GONDOLA ----
   openGondola(){
     show('p-gond');
-    // Server count
-    const sc=1+Math.floor(Math.random()*3);
-    if(G('g-srv'))G('g-srv').textContent=sc+'/3 Spieler';
-    this._renderLuck();
-    if(!ZE.currentGondola)ZE._newGondola();else this._renderGondola();
+    G('gsrv').textContent=(1+Math.floor(Math.random()*3))+'/3 Spieler';
+    this._renderLuck();this._renderGondola();this._renderGondolaCars();
+  },
+
+  _renderGondolaCars(){
+    const el=G('gcars');if(!el)return;
+    // Show 3 gondola cars with animals
+    const q=ZE.gondolaQueue;
+    el.innerHTML=q.map((g,i)=>{
+      const isActive=i===0;
+      const col=g.isWhite?'#EEE':['#C8A050','#8B5E3C','#5a3010'][i%3];
+      const s=g.shiny?g.shiny.cls:'';
+      return`<div style="text-align:center;cursor:${isActive?'pointer':'default'};opacity:${isActive?1:.6}" onclick="${isActive?'ZP._buyG()':'void(0)'}">
+        <div style="width:2px;height:20px;background:rgba(255,255,255,.35);margin:0 auto"></div>
+        <div style="width:44px;height:33px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:${isActive?'pointer':'default'};transition:transform .4s;${isActive?'transform:scaleY(.75)':''}">
+          ${g.a.e}
+        </div>
+        ${isActive?`<div style="font-size:.6rem;color:var(--gold);margin-top:2px">${g.a.n}</div>`:
+          `<div style="font-size:.6rem;color:rgba(255,255,255,.35)">🔒</div>`}
+      </div>`;
+    }).join('');
   },
 
   _renderGondola(){
@@ -1005,23 +818,22 @@ const ZP={
     if(!g||!el)return;
     const {a,shiny,traits,extraMult}=g;
     const tm=tMult(shiny,traits)*extraMult;
-    const cost=a.price;
-    const z=ZS.zoo;const canA=z.mt>=cost;const hasSlot=z.enclosures.some(e=>!e);
+    const z=ZS.zoo;const canA=z.mt>=a.price;const hasSlot=z.enclosures.some(e=>!e);
     const rd=RARITY[a.r];
+    // Check if glitch event — show robot flavor
+    const isGlitch=ZE.currentEvent?.id==='glitch';
     el.innerHTML=`
       <div style="text-align:center;animation:popIn .4s ease">
-        <div style="font-size:3.8rem;${shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}
-          ${a.r==='secret'?'animation:pulse 1s ease-in-out infinite':''}">${a.e}</div>
-        <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.1rem;margin-top:4px">${sBadge(shiny)} ${a.n}</div>
-        <div class="${rd.cls}" style="font-size:.8rem;margin:3px 0">${rd.n}</div>
-        ${tBadges(traits)}
-        ${extraMult>1?`<div style="color:var(--gold);font-size:.75rem;margin-top:3px">✨ ×${extraMult.toFixed(1)} Bonus!</div>`:''}
-        <div style="font-size:.72rem;color:rgba(255,255,255,.45);margin:6px 0">
-          💰 ${$mt(a.earn*tm)} /Besucher · Preis: ${$mt(cost)}
-          ${tm>1?`<span style="color:var(--gold)"> ×${tm.toFixed(2)}</span>`:''}
-        </div>
-        <button class="zbuy" ${(!canA||!hasSlot)?'disabled':''} onclick="ZP._buyG()">
-          ${!canA?'❌ Zu wenig MT':!hasSlot?'❌ Alle Gehege belegt':'Kaufen 🛒'}
+        ${isGlitch?`<div style="font-size:.75rem;color:#00ff88;margin-bottom:4px;font-family:'Fredoka One',cursive">👾 Roboter bringt...</div>`:''}
+        <div style="font-size:3.8rem;${shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}">${a.e}</div>
+        <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.1rem;margin-top:3px">${sB(shiny)} ${a.n}</div>
+        <div class="${rd.cls}" style="font-size:.8rem;margin:2px 0">${rd.n}</div>
+        ${tB(traits)}
+        ${extraMult>1?`<div style="color:var(--gold);font-size:.72rem;margin-top:2px">✨ ×${extraMult.toFixed(1)} Bonus!</div>`:''}
+        ${traits.length>0&&ZE.currentEvent?`<div style="font-size:.68rem;color:rgba(255,255,255,.5);margin-top:1px">Trait nur bei diesem Event!</div>`:''}
+        <div style="font-size:.72rem;color:rgba(255,255,255,.42);margin:5px 0">💰 ${$mt(a.earn*tm)}/Besucher · ${$mt(a.price)}</div>
+        <button class="ab" ${(!canA||!hasSlot)?'disabled':''} onclick="ZP._buyG()">
+          ${!canA?'❌ Zu wenig':!hasSlot?'❌ Alle Gehege voll':'Kaufen 🛒'}
         </button>
       </div>`;
   },
@@ -1034,254 +846,172 @@ const ZP={
     z.mt-=g.a.price;
     z.enclosures[slot]={animal:{...g.a},shiny:g.shiny,traits:g.traits,extraMult:g.extraMult,addedAt:Date.now()};
     this.toast(`✅ ${g.a.e} ${g.a.n} in Gehege ${slot+1}!`,2500);
-    ZE.currentGondola=null;
-    if(G('g-animal'))G('g-animal').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';
-    ZE._updHUD();
+    ZE.gondolaQueue.shift();ZE.gondolaQueue.push(ZE._makeGondola());
+    ZE.currentGondola=ZE.gondolaQueue[0];
+    this._renderGondola();this._renderGondolaCars();ZE._updHUD();
   },
 
   _renderLuck(){
     const z=ZS.zoo,el=G('g-luck');if(!el)return;
     el.innerHTML=LUCK_UPS.map((u,i)=>{
       const bought=z.luckLevel>i,active=z.luckLevel===i,canB=active&&z.mt>=u.cost;
-      if(bought)return`<div class="acard" style="opacity:.5"><div class="acem">🍀</div><div style="flex:1"><div class="acn">${u.l}</div><div style="color:#27AE60;font-size:.7rem">✅ Aktiv</div></div></div>`;
+      if(bought)return`<div class="ac" style="opacity:.5"><div style="min-width:36px;font-size:1.9rem;text-align:center">🍀</div><div><div class="an">${u.l}</div><div style="color:#27AE60;font-size:.7rem">✅ Aktiv</div></div></div>`;
       if(!active)return'';
-      return`<div class="acard"><div class="acem">🍀</div><div style="flex:1"><div class="acn">${u.l}</div><div class="acs" style="color:var(--mt)">${$mt(u.cost)}</div></div><div><button class="zbuy" ${!canB?'disabled':''}onclick="ZP._buyLuck(${i})">${canB?'Kaufen':'Fehlt'}</button></div></div>`;
+      return`<div class="ac"><div style="min-width:36px;font-size:1.9rem;text-align:center">🍀</div><div style="flex:1"><div class="an">${u.l}</div><div class="as" style="color:var(--mt)">${$mt(u.cost)}</div></div><button class="ab" ${!canB?'disabled':''} onclick="ZP._buyLuck(${i})">${canB?'Kaufen':'Fehlt'}</button></div>`;
     }).join('');
   },
+  _buyLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLevel=i+1;this.toast('✅ '+u.l);this._renderLuck();ZE._updHUD();},
 
-  _buyLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig MT!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLevel=i+1;this.toast('✅ '+u.l+' aktiv!');this._renderLuck();ZE._updHUD();},
+  // SHOP
+  openShop(){show('p-shop');this._renderShop();},
+  shopTab(tab){this._tab=tab;['zoo','ex','b'].forEach(t=>{G('st-'+t)?.classList.toggle('ta',t===tab);G('st-'+t)?.classList.toggle('ti',t!==tab);});this._renderShop();},
+  _renderShop(){const el=G('scontent');if(!el)return;if(this._tab==='zoo')this._sZoo(el);else if(this._tab==='ex')this._sEx(el);else this._sB(el);},
 
-  // ---- SHOP ----
-  openShop(){show('p-shop');if(G('s-bal'))G('s-bal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._renderShop();},
-  shopTab(tab){
-    this._shopTab=tab;
-    ['zoo','exchange','boost'].forEach(t=>{G('st-'+t)?.classList.toggle('tab-active',t===tab);G('st-'+t)?.classList.toggle('tab-inactive',t!==tab);});
-    this._renderShop();
-    if(G('s-bal'))G('s-bal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');
-  },
-  _renderShop(){const tab=this._shopTab;const el=G('s-content');if(!el)return;if(tab==='zoo')this._shopZoo(el);else if(tab==='exchange')this._shopExchange(el);else this._shopBoost(el);},
-
-  _shopZoo(el){
+  _sZoo(el){
     const z=ZS.zoo;
-    const ITEMS=[
-      {id:'vis',n:'🚀 Besucher ×2 schneller',d:'Kürzere Wartezeit zwischen Besuchern',p:800},
-      {id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schnellere Besucher!',p:4000,req:'vis'},
-      {id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt so viele Besucher',p:1500},
-      {id:'earn',n:'💰 ×2 Einnahmen',d:'Alle Tier-Einnahmen verdoppelt',p:2500},
-      {id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal verdoppelt!',p:12000,req:'earn'},
-      {id:'enc1',n:'🏗️ +1 Gehege',d:'Extra-Gehege für ein Tier',p:4000,multi:true},
-      {id:'enc3',n:'🏗️🏗️🏗️ +3 Gehege',d:'Drei Gehege auf einmal!',p:25000,multi:true},
+    const IT=[
+      {id:'vis',n:'🚀 Besucher ×2 schneller',d:'Kürzere Wartezeit',p:800},
+      {id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},
+      {id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele Besucher',p:1500},
+      {id:'earn',n:'💰 ×2 Einnahmen',d:'Alle Tier-Einnahmen ×2',p:2500},
+      {id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'},
+      {id:'enc1',n:'🏗️ +1 Gehege',d:'Extra-Gehege',p:4000,multi:true},
+      {id:'enc3',n:'🏗️🏗️🏗️ +3 Gehege',d:'Drei extra Gehege!',p:25000,multi:true},
       {id:'enc5',n:'🏗️×5 Mega-Ausbau',d:'Fünf extra Gehege!',p:100000,multi:true},
     ];
-    el.innerHTML=ITEMS.map(item=>{
+    el.innerHTML=IT.map(item=>{
       const owned=z.upgrades?.[item.id]&&!item.multi;
       const req=!item.req||z.upgrades?.[item.req];
-      if(owned)return`<div class="acard" style="opacity:.5"><div class="acem">✅</div><div style="flex:1"><div class="acn">${item.n}</div></div></div>`;
-      return`<div class="acard"><div class="acem">${item.n.split(' ')[0]}</div><div style="flex:1"><div class="acn">${item.n}</div><div class="acs">${item.d}</div>${!req?`<div style="color:#ff6b6b;font-size:.67rem">Erst ${ITEMS.find(i=>i.id===item.req)?.n.split(' ')[0]} kaufen!</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:var(--mt);font-size:.8rem">${$mt(item.p)}</div><button class="zbuy" ${(!req||z.mt<item.p)?'disabled':''}onclick="ZP._buyZ('${item.id}',${item.p},${item.multi||false})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
+      if(owned)return`<div class="ac" style="opacity:.5"><div style="min-width:36px;font-size:1.5rem">✅</div><div class="an">${item.n}</div></div>`;
+      return`<div class="ac"><div style="min-width:36px;font-size:1.5rem">${item.n.split(' ')[0]}</div><div style="flex:1"><div class="an">${item.n}</div><div class="as">${item.d}</div>${!req?`<div style="color:#ff6b6b;font-size:.67rem">Erst vorherigen kaufen!</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:var(--mt);font-size:.8rem">${$mt(item.p)}</div><button class="ab" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p},${!!item.multi})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
     }).join('');
   },
+  _bZ(id,p,multi){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upgrades)z.upgrades={};z.upgrades[id]=true;if(id.startsWith('enc')){const n=id==='enc3'?3:id==='enc5'?5:1;z.extraEnc=(z.extraEnc||0)+n;ZS.fixEnc();}this.toast('✅ Gekauft!');this._sZoo(G('scontent'));ZE._updHUD();},
 
-  _buyZ(id,price,multi){const z=ZS.zoo;if(z.mt<price){this.toast('❌ Zu wenig MT!');return;}z.mt-=price;if(!z.upgrades)z.upgrades={};z.upgrades[id]=true;if(id.startsWith('enc')){const n=id==='enc3'?3:id==='enc5'?5:1;z.extraEnc=(z.extraEnc||0)+n;ZS.fixEnc();}this.toast('✅ Gekauft!');this._shopZoo(G('s-content'));ZE._updHUD();},
-
-  _shopExchange(el){
-    // Stars → MT and MT → Stars exchange
-    const starBal=State.currentPlayer?.totalScore||0;
-    const RATES=[
-      {stars:100,  mt:50,   label:'100 ⭐ → 50 MT'},
-      {stars:500,  mt:300,  label:'500 ⭐ → 300 MT'},
-      {stars:1000, mt:700,  label:'1.000 ⭐ → 700 MT'},
-      {stars:5000, mt:4000, label:'5.000 ⭐ → 4.000 MT'},
-      {stars:10000,mt:10000,label:'10.000 ⭐ → 10.000 MT ⭐BEST'},
-    ];
-    const REV=[
-      {mt:1000,  stars:500,  label:'1.000 MT → 500 ⭐'},
-      {mt:5000,  stars:2800, label:'5.000 MT → 2.800 ⭐'},
-      {mt:20000, stars:12000,label:'20.000 MT → 12.000 ⭐'},
-    ];
-    el.innerHTML=`
-      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:8px">⭐ Sterne → 🌀 Mischataler</div>
-      <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:8px">Deine Sterne: ${$st(starBal)}</div>
-      ${RATES.map(r=>`<div class="ex-card"><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${r.label}</div></div>
-        <button class="zbuy" ${starBal<r.stars?'disabled':''}onclick="ZP._exchange(${r.stars},${r.mt})">Tauschen</button></div>`).join('')}
-      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.8rem;margin:12px 0 8px">🌀 Mischataler → ⭐ Sterne</div>
-      ${REV.map(r=>`<div class="ex-card"><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${r.label}</div></div>
-        <button class="zbuy" ${(ZS.zoo?.mt||0)<r.mt?'disabled':''}onclick="ZP._exchangeRev(${r.mt},${r.stars})">Tauschen</button></div>`).join('')}`;
+  _sEx(el){
+    const sb=State.currentPlayer?.totalScore||0;
+    const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'},{s:10000,m:10000,l:'10K⭐→10K MT ⭐BEST'}];
+    const V=[{m:1000,s:500,l:'1K MT→500⭐'},{m:5000,s:2800,l:'5K MT→2.8K⭐'},{m:20000,s:12000,l:'20K MT→12K⭐'}];
+    el.innerHTML=`<div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:8px">⭐ Sterne → 🌀 Mischataler</div><div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:8px">Deine ⭐: ${$st(sb)}</div>`+
+    R.map(r=>`<div class="ex"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('')+
+    `<div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.8rem;margin:10px 0 8px">🌀 MT → ⭐ Sterne</div>`+
+    V.map(r=>`<div class="ex"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${r.l}</div><button class="ab" ${(ZS.zoo?.mt||0)<r.m?'disabled':''} onclick="ZP._echR(${r.m},${r.s})">Tauschen</button></div>`).join('');
   },
+  _exch(stars,mt){const p=State.currentPlayer;if(!p||p.totalScore<stars){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-stars);ZS.zoo.mt+=mt;this.toast(`✅ ${stars}⭐→${$mt(mt)}!`);this._sEx(G('scontent'));ZE._updHUD();},
+  _echR(mt,stars){const p=State.currentPlayer;if(!p){this.toast('❌ Denkspiel-Login fehlt!');return;}if(ZS.zoo.mt<mt){this.toast('❌ Zu wenig MT!');return;}ZS.zoo.mt-=mt;State.addPoints(p.name,stars);this.toast(`✅ ${$mt(mt)}→${stars}⭐!`);this._sEx(G('scontent'));ZE._updHUD();},
 
-  _exchange(stars,mt){
-    const p=State.currentPlayer;if(!p||p.totalScore<stars){this.toast('❌ Nicht genug ⭐!');return;}
-    State.addPoints(p.name,-stars);
-    ZS.zoo.mt+=mt;this.toast(`✅ ${stars}⭐ → ${$mt(mt)} getauscht!`);
-    this._shopExchange(G('s-content'));ZE._updHUD();
-  },
-  _exchangeRev(mt,stars){
-    const p=State.currentPlayer;if(!p){this.toast('❌ Nicht eingeloggt im Denkspiel!');return;}
-    if(ZS.zoo.mt<mt){this.toast('❌ Zu wenig MT!');return;}
-    ZS.zoo.mt-=mt;State.addPoints(p.name,stars);this.toast(`✅ ${$mt(mt)} → ${stars}⭐ getauscht!`);
-    this._shopExchange(G('s-content'));ZE._updHUD();
-  },
-
-  _shopBoost(el){
+  _sB(el){
     const z=ZS.zoo;
-    const ITEMS=[
+    const IT=[
       {id:'coin',n:'💰×2 MT (15 Min)',d:'Doppelte Einnahmen 15 Min',p:600,dur:15*60*1000},
-      {id:'coin3',n:'💰×3 MT (10 Min)',d:'Dreifache Einnahmen 10 Min',p:2500,dur:10*60*1000},
-      {id:'lucky',n:'🎰 Glück×2 (10 Min)',d:'Doppeltes Glück für seltene Tiere',p:1200,dur:10*60*1000},
-      {id:'storm',n:'🌊 Besucher-Sturm (5 Min)',d:'×8 Besucher für 5 Minuten!',p:2500,dur:5*60*1000},
-      {id:'mega_b',n:'👑 MEGA×5 (3 Min)',d:'Fünffache Einnahmen 3 Min!',p:9000,dur:3*60*1000},
-      {id:'hunt_b',n:'🦁 Jagdfieber (20 Min)',d:'Tiere doppelt so wertvoll',p:5000,dur:20*60*1000},
+      {id:'coin3',n:'💰×3 MT (10 Min)',d:'Dreifache Einnahmen',p:2500,dur:10*60*1000},
+      {id:'lucky',n:'🎰 Glück×2 (10 Min)',d:'Doppeltes Glück',p:1200,dur:10*60*1000},
+      {id:'storm',n:'🌊 Besucher-Sturm (5 Min)',d:'×8 Besucher!',p:2500,dur:5*60*1000},
+      {id:'mega_b',n:'👑 MEGA×5 (3 Min)',d:'×5 Einnahmen 3 Min!',p:9000,dur:3*60*1000},
     ];
-    el.innerHTML=ITEMS.map(item=>{
-      const active=(z.tempBoosts?.[item.id]||0)>Date.now();
-      const left=active?Math.ceil(((z.tempBoosts[item.id])-Date.now())/60000):0;
-      return`<div class="acard"><div class="acem">${item.n.split(' ')[0]}</div><div style="flex:1"><div class="acn">${item.n}</div><div class="acs">${item.d}</div>${active?`<div style="color:#27AE60;font-size:.7rem">✅ Aktiv noch ${left}min</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:var(--mt);font-size:.8rem">${$mt(item.p)}</div><button class="zbuy" ${z.mt<item.p?'disabled':''}onclick="ZP._boost('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
-    }).join('');
+    el.innerHTML=IT.map(item=>{const a=(z.tempBoosts?.[item.id]||0)>Date.now();const l=a?Math.ceil(((z.tempBoosts[item.id])-Date.now())/60000):0;return`<div class="ac"><div style="min-width:36px;font-size:1.5rem">${item.n.split(' ')[0]}</div><div style="flex:1"><div class="an">${item.n}</div><div class="as">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.7rem">✅ Aktiv ${l}min</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:var(--mt);font-size:.8rem">${$mt(item.p)}</div><button class="ab" ${z.mt<item.p?'disabled':''} onclick="ZP._boost('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');
   },
-  _boost(id,p,dur){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig MT!');return;}z.mt-=p;if(!z.tempBoosts)z.tempBoosts={};z.tempBoosts[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._shopBoost(G('s-content'));ZE._updHUD();},
+  _boost(id,p,dur){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.tempBoosts)z.tempBoosts={};z.tempBoosts[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scontent'));ZE._updHUD();},
 
-  // ---- REBIRTH ----
-  openRebirth(){show('p-rebirth');this._renderRebirth();},
-  _renderRebirth(){
-    const z=ZS.zoo;const rb=z.rebirths||0;
-    const req=rebirthRequirements(rb);
-    const newMult=Math.round((1+(rb+1)*.5)*100)/100;
-    const anims=z.enclosures.filter(e=>e);
-    const epicC=anims.filter(e=>['epic','legendary','ultralegendary','god','secret'].includes(e.animal.r)).length;
-    const legC=anims.filter(e=>['legendary','ultralegendary','god','secret'].includes(e.animal.r)).length;
-    const ultraC=anims.filter(e=>['ultralegendary','god','secret'].includes(e.animal.r)).length;
-    const godC=anims.filter(e=>['god','secret'].includes(e.animal.r)).length;
-    const secretC=anims.filter(e=>e.animal.r==='secret').length;
-
+  // REBIRTH
+  openRebirth(){show('p-rebirth');this._rReb();},
+  _rReb(){
+    const z=ZS.zoo,rb=z.rebirths||0,req=rebReq(rb),newM=Math.round((1+(rb+1)*.5)*100)/100;
+    const a=z.enclosures.filter(e=>e);
+    const ec=a.filter(e=>['epic','legendary','ultralegendary','god','secret'].includes(e.animal.r)).length;
+    const lc=a.filter(e=>['legendary','ultralegendary','god','secret'].includes(e.animal.r)).length;
+    const uc=a.filter(e=>['ultralegendary','god','secret'].includes(e.animal.r)).length;
+    const gc=a.filter(e=>['god','secret'].includes(e.animal.r)).length;
+    const sc=a.filter(e=>e.animal.r==='secret').length;
     const checks=[
-      {ok:epicC>=req.epic,  txt:`${req.epic} Episch+ Tier(e)`,has:epicC},
-      {ok:legC>=req.legendary,   txt:`${req.legendary} Legendär+ Tier(e)`,has:legC,show:req.legendary>0},
-      {ok:ultraC>=req.ultra,     txt:`${req.ultra} Ultra+ Tier(e)`,has:ultraC,show:req.ultra>0},
-      {ok:godC>=req.god,         txt:`${req.god} Gott+ Tier(e)`,has:godC,show:req.god>0},
-      {ok:secretC>=req.secret,   txt:`${req.secret} SECRET Tier(e)`,has:secretC,show:req.secret>0},
-      {ok:z.mt>=req.money,  txt:`${$mt(req.money)}`,has:z.mt},
-    ].filter(c=>c.show!==false);
-
-    const canReb=checks.every(c=>c.ok);
-    G('p-reb-content').innerHTML=`
-      <div style="text-align:center">
-        <div style="font-size:2.8rem;margin-bottom:8px">🔄</div>
-        <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1rem;margin-bottom:10px">Wiedergeburt #${rb+1}</div>
-        <div style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:11px;padding:11px;margin-bottom:9px;text-align:left">
-          <div style="color:#ff6b6b;font-family:'Fredoka One',cursive;margin-bottom:5px">❌ Verlierst:</div>
-          <div style="font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6">• Alle Tiere in den Gehegen<br>• Alle Mischataler<br>• Glück-Upgrades</div>
-        </div>
-        <div style="background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
-          <div style="color:#27AE60;font-family:'Fredoka One',cursive;margin-bottom:5px">✅ Erhältst:</div>
-          <div style="font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6">• ×${newMult} Mischataler-Multiplikator<br>• ×1.5 mehr Besucher<br>• +2 extra Gehege<br>• Gesamt-Mult: ×${newMult}</div>
-        </div>
-        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:12px;text-align:left">
-          <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:5px">Anforderungen${rb>0?` (Wiedergeburt ${rb+1} — schwieriger!)`:''}:</div>
-          ${checks.map(c=>`<div class="reb-req"><span class="${c.ok?'reb-ok':'reb-no'}">${c.ok?'✅':'❌'}</span><span style="font-size:.8rem">${c.txt} <span style="color:rgba(255,255,255,.4)">(${c.has})</span></span></div>`).join('')}
-        </div>
-        ${canReb?`<button class="zbtn zbtn-gold" onclick="ZP._doRebirth()">🔄 Wiedergeburt starten!</button>`:`<button class="zbtn zbtn-dim" disabled>Anforderungen nicht erfüllt</button>`}
-      </div>`;
-  },
-  _doRebirth(){
-    if(!confirm('Wirklich alle Tiere und Mischataler verlieren?'))return;
-    const z=ZS.zoo;z.rebirths=(z.rebirths||0)+1;z.rebirthMult=Math.round((1+z.rebirths*.5)*100)/100;
-    z.enclosures=Array(5+z.rebirths*2+(z.extraEnc||0)).fill(null);z.mt=100;z.extraEnc=0;z.luck=1;z.luckLevel=0;
-    ZS.fixEnc();this.close('rebirth');this.toast(`🔄 Wiedergeburt #${z.rebirths}! ×${z.rebirthMult} Mult!`,4000);ZE._updHUD();
-  },
-
-  // ---- ENCLOSURE ----
-  openEnc(i){
-    show('p-enc');G('p-enc-title').textContent='Gehege #'+(i+1);
-    const z=ZS.zoo,enc=z.enclosures[i],el=G('p-enc-content');
-    if(!enc){el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.35);padding:20px">Leer — hole ein Tier in der Gondel-Station!</div>`;return;}
-    const tm=tMult(enc.shiny,enc.traits)*(enc.extraMult||1);
-    const earn=earnPerVisitor(enc,z,ZE.currentEvent);
-    const rd=RARITY[enc.animal.r];
-    el.innerHTML=`
-      <div style="text-align:center;padding:8px 0">
-        <div style="font-size:4rem;margin-bottom:6px;${enc.shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}">${enc.animal.e}</div>
-        <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.15rem;margin-bottom:3px">${sBadge(enc.shiny)} ${enc.animal.n}</div>
-        <div class="${rd.cls}" style="margin-bottom:5px">${rd.n}</div>${tBadges(enc.traits)}
-        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:11px;margin:11px 0;text-align:left;font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8">
-          💰 Einnahme/Besucher: <b style="color:var(--gold)">${$mt(earn)}</b><br>
-          📊 Multiplikator: <b>×${tm.toFixed(2)}</b><br>
-          🏷️ Kaufpreis: <b>${$mt(enc.animal.price)}</b>
-        </div>
-        <button class="zbtn" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;max-width:220px" onclick="ZP._sell(${i})">
-          🗑️ Verkaufen (${$mt(enc.animal.price*.5)})
-        </button>
-      </div>`;
-  },
-  _sell(i){const z=ZS.zoo,enc=z.enclosures[i];if(!enc)return;const sp=enc.animal.price*.5;z.mt+=sp;z.enclosures[i]=null;this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft für ${$mt(sp)}!`);ZE._updHUD();},
-
-  // ---- MENU ----
-  openMenu(){
-    show('p-menu');const z=ZS.zoo;
-    G('p-menu-stats').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:12px;padding:13px;margin-bottom:12px;text-align:left;font-size:.82rem;line-height:1.85;color:rgba(255,255,255,.65)">
-      ${ZS.playerChar?.e||''} <b style="color:#fff">${ZS.player}</b><br>
-      🌀 Mischataler: <b style="color:var(--mt)">${$mt(z.mt)}</b><br>
-      📈 Gesamt verdient: <b style="color:#27AE60">${$mt(z.totalEarned||0)}</b><br>
-      👥 Besucher: <b>${z.totalVisitors?.toLocaleString()}</b><br>
-      🐾 Tiere: <b>${z.enclosures.filter(e=>e).length}/${ZS.maxEnc()}</b><br>
-      🔄 Wiedergeburten: <b style="color:#9B59B6">${z.rebirths||0}</b><br>
-      ×Mult: <b style="color:#E74C3C">×${(z.rebirthMult||1).toFixed(1)}</b>
+      {ok:ec>=req.epic,t:`${req.epic} Episch+ Tier(e)`,h:ec},
+      ...(req.leg>0?[{ok:lc>=req.leg,t:`${req.leg} Legendär+ Tier(e)`,h:lc}]:[]),
+      ...(req.ultra>0?[{ok:uc>=req.ultra,t:`${req.ultra} Ultra+ Tier(e)`,h:uc}]:[]),
+      ...(req.god>0?[{ok:gc>=req.god,t:`${req.god} Gott+ Tier(e)`,h:gc}]:[]),
+      ...(req.sec>0?[{ok:sc>=req.sec,t:`${req.sec} SECRET Tier(e)`,h:sc}]:[]),
+      {ok:z.mt>=req.money,t:$mt(req.money)+' Mischataler',h:z.mt},
+    ];
+    const can=checks.every(c=>c.ok);
+    G('prc').innerHTML=`<div style="text-align:center">
+      <div style="font-size:2.8rem;margin-bottom:8px">🔄</div>
+      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1rem;margin-bottom:10px">Wiedergeburt #${rb+1}${rb>0?' (schwieriger!)':''}</div>
+      <div style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:11px;padding:11px;margin-bottom:9px;text-align:left">
+        <div style="color:#ff6b6b;font-family:'Fredoka One',cursive;margin-bottom:4px">❌ Verlierst</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6">• Alle Tiere<br>• Alle Mischataler<br>• Glück-Upgrades</div>
+      </div>
+      <div style="background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
+        <div style="color:#27AE60;font-family:'Fredoka One',cursive;margin-bottom:4px">✅ Erhältst</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6">• ×${newM} MT-Mult<br>• ×1.5 mehr Besucher<br>• +2 extra Gehege</div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:12px;text-align:left">
+        <div style="font-size:.77rem;color:rgba(255,255,255,.45);margin-bottom:4px">Anforderungen:</div>
+        ${checks.map(c=>`<div style="display:flex;align-items:center;gap:5px;font-size:.8rem;line-height:1.7"><span style="color:${c.ok?'#27AE60':'#ff6b6b'}">${c.ok?'✅':'❌'}</span>${c.t} <span style="color:rgba(255,255,255,.35)">(${typeof c.h==='number'&&c.h>100?$mt(c.h):c.h})</span></div>`).join('')}
+      </div>
+      ${can?`<button class="zb zb-g" onclick="ZP._doReb()">🔄 Wiedergeburt!</button>`:
+        `<button class="zb" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);cursor:not-allowed" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
+  _doReb(){if(!confirm('Wirklich alle Tiere und MT verlieren?'))return;const z=ZS.zoo;z.rebirths=(z.rebirths||0)+1;z.rebirthMult=Math.round((1+z.rebirths*.5)*100)/100;z.enclosures=Array(5+z.rebirths*2+(z.extraEnc||0)).fill(null);z.mt=100;z.extraEnc=0;z.luck=1;z.luckLevel=0;ZS.fixEnc();this.close('rebirth');this.toast(`🔄 Wiedergeburt #${z.rebirths}! ×${z.rebirthMult} Mult!`,4000);ZE._updHUD();},
 
-  // ---- ADMIN ----
-  openAdmin(){
-    if(!ZS.isAdmin)return;
-    show('p-admin');
-    G('p-admin-c').innerHTML=`
-      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:6px">Tier wählen:</div>
-      <select id="as" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin-bottom:8px">
+  // ENCLOSURE
+  openEnc(i){show('p-enc');G('pent').textContent='Gehege #'+(i+1);const z=ZS.zoo,enc=z.enclosures[i],el=G('penc');
+    if(!enc){el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Leer — hole ein Tier!</div>`;return;}
+    const tm=tMult(enc.shiny,enc.traits)*(enc.extraMult||1),earn=earnPV(enc,z,ZE.currentEvent),rd=RARITY[enc.animal.r];
+    el.innerHTML=`<div style="text-align:center;padding:8px 0">
+      <div style="font-size:4rem;margin-bottom:5px;${enc.shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}">${enc.animal.e}</div>
+      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.15rem;margin-bottom:3px">${sB(enc.shiny)} ${enc.animal.n}</div>
+      <div class="${rd.cls}" style="margin-bottom:5px">${rd.n}</div>${tB(enc.traits)}
+      <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:11px;margin:11px 0;text-align:left;font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8">
+        💰 ${$mt(earn)}/Besucher<br>📊 ×${tm.toFixed(2)} Mult<br>🏷️ Preis: ${$mt(enc.animal.price)}
+      </div>
+      <button class="zb" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;max-width:220px" onclick="ZP._sell(${i})">
+        🗑️ Verkaufen (${$mt(enc.animal.price*.5)})</button>
+    </div>`;
+  },
+  _sell(i){const z=ZS.zoo,enc=z.enclosures[i];if(!enc)return;z.mt+=enc.animal.price*.5;z.enclosures[i]=null;this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZE._updHUD();},
+
+  // MENU
+  openMenu(){show('p-menu');const z=ZS.zoo;G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:12px;padding:13px;margin-bottom:12px;text-align:left;font-size:.82rem;line-height:1.85;color:rgba(255,255,255,.65)">
+    ${ZS.playerChar?.e||''} <b style="color:#fff">${ZS.player}</b><br>🌀 MT: <b style="color:var(--mt)">${$mt(z.mt)}</b><br>
+    📈 Verdient: <b style="color:#27AE60">${$mt(z.totalEarned||0)}</b><br>
+    🐾 Tiere: <b>${z.enclosures.filter(e=>e).length}/${ZS.maxEnc()}</b><br>
+    🔄 Rebirths: <b style="color:#9B59B6">${z.rebirths||0}</b><br>×Mult: <b style="color:#E74C3C">×${(z.rebirthMult||1).toFixed(1)}</b>
+  </div>`;},
+
+  // ADMIN
+  openAdmin(){if(!ZS.isAdmin)return;show('p-admin');
+    G('padmin').innerHTML=`
+      <div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:10px">Admin-Befehle stehen auch in admin.html zur Verfügung.</div>
+      <label style="font-size:.8rem;color:rgba(255,255,255,.5)">Tier spawnen:</label>
+      <select id="as" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 8px">
         ${ANIMALS.map(a=>`<option value="${a.id}">${a.e} ${a.n} (${RARITY[a.r]?.n})</option>`).join('')}
       </select>
-      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:6px">Shiny:</div>
-      <select id="ash" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin-bottom:8px">
-        <option value="">Kein Shiny</option>${SHINY.map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}
+      <label style="font-size:.8rem;color:rgba(255,255,255,.5)">Shiny:</label>
+      <select id="ash" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 8px">
+        <option value="">Kein</option>${SHINY.map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}
       </select>
-      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:6px">Traits:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-        ${TRAITS.map(t=>`<label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="${t.id}" class="at"> ${t.n}</label>`).join('')}
+      <label style="font-size:.8rem;color:rgba(255,255,255,.5)">Traits:</label>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 10px">
+        ${TRAITS.map(t=>`<label style="display:flex;align-items:center;gap:3px;font-size:.78rem;cursor:pointer"><input type="checkbox" value="${t.id}" class="at"> ${t.n}</label>`).join('')}
       </div>
-      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:6px">Event starten:</div>
-      <select id="aev" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin-bottom:12px">
-        <option value="">Kein Event</option>${EVENTS.map(e=>`<option value="${e.id}">${e.n}</option>`).join('')}
+      <label style="font-size:.8rem;color:rgba(255,255,255,.5)">Event starten:</label>
+      <select id="aev" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 10px">
+        ${EVENTS.map(e=>`<option value="${e.id}">${e.n}</option>`).join('')}
       </select>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="zbtn zbtn-gold" onclick="ZP._adminSpawn()">🦁 Spawnen</button>
-        <button class="zbtn" style="background:rgba(231,76,60,.3);color:#ff6b6b" onclick="ZP._adminEvent()">⚡ Event</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <button class="zb zb-g" onclick="ZP._adSpawn()">🦁 Spawnen</button>
+        <button class="zb" style="background:rgba(231,76,60,.3);color:#ff6b6b" onclick="ZP._adEvent()">⚡ Event</button>
       </div>
-      <div style="margin-top:10px">
-        <button class="zbtn zbtn-dim" onclick="ZP._adminGiveMT()">🌀 +10.000 MT geben</button>
-      </div>`;
+      <button class="zb zb-d" onclick="ZS.zoo.mt+=50000;ZE._updHUD();ZP.toast('👑 +50.000 MT!');ZP.close('admin')" style="margin-bottom:6px">🌀 +50.000 MT</button>`;
   },
-  _adminSpawn(){
-    const z=ZS.zoo;
-    const a=ANIMALS.find(x=>x.id===G('as')?.value)||ANIMALS[0];
-    const shId=G('ash')?.value;const shiny=shId?SHINY.find(s=>s.id===shId):null;
-    const traits=Array.from(document.querySelectorAll('.at:checked')).map(c=>TRAITS.find(t=>t.id===c.value)).filter(Boolean);
-    const slot=z.enclosures.findIndex(e=>!e);
-    if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}
-    z.enclosures[slot]={animal:{...a},shiny,traits,extraMult:1,addedAt:Date.now(),adminSpawned:true};
-    this.toast(`👑 Admin: ${a.e} ${a.n} gespawnt!`,3000);this.close('admin');ZE._updHUD();
-  },
-  _adminEvent(){const evId=G('aev')?.value;if(!evId){this.toast('Kein Event!');return;}const ev=EVENTS.find(e=>e.id===evId);if(ev){ZE.startEvent(ev);this.close('admin');}},
-  _adminGiveMT(){ZS.zoo.mt+=10000;this.toast('👑 Admin: +10.000 MT!');ZE._updHUD();this.close('admin');},
+  _adSpawn(){const a=ANIMALS.find(x=>x.id===G('as')?.value)||ANIMALS[0];const sh=G('ash')?.value;const shiny=sh?SHINY.find(s=>s.id===sh):null;const traits=Array.from(document.querySelectorAll('.at:checked')).map(c=>TRAITS.find(t=>t.id===c.value)).filter(Boolean);const slot=ZS.zoo.enclosures.findIndex(e=>!e);if(slot<0){this.toast('❌ Gehege voll!');return;}ZS.zoo.enclosures[slot]={animal:{...a},shiny,traits,extraMult:1,addedAt:Date.now(),adminSpawned:true};this.toast(`👑 ${a.e} ${a.n} gespawnt!`,3000);this.close('admin');ZE._updHUD();},
+  _adEvent(){const evId=G('aev')?.value;const ev=EVENTS.find(e=>e.id===evId);if(ev){ZE.startEvent(ev,ev.dur);this.close('admin');}},
 };
 
-// ============================================================
-// BOOT
-// ============================================================
+// Boot
 document.addEventListener('DOMContentLoaded',()=>{
   const main=sessionStorage.getItem('mischa_current');
-  if(main){
-    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),u=us[main];
-    ZS.player=main;
-    ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';
-    if(u?.char){ZS.playerChar=u.char;ZA._showMode();}
-    else if(u){ZA._showChar();}
-  }
+  if(main){const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),u=us[main];ZS.player=main;ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';if(u?.char){ZS.playerChar=u.char;ZA._showMode();}else if(u){ZA._showChar();}}
 });
 </script>
 </body>
