@@ -1,0 +1,307 @@
+/* ============================================
+   MISCHA DENKSPIEL - game.css
+   Spielspezifische Styles
+   ============================================ */
+
+/* ============================================
+   MEMORY SPIEL
+   ============================================ */
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+.memory-card {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+.memory-card.flipped { transform: rotateY(180deg); }
+.memory-card.matched { transform: rotateY(180deg); opacity: 0.6; cursor: default; }
+
+.memory-front, .memory-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.memory-front {
+  background: linear-gradient(135deg, var(--sky-deep), #2980B9);
+  font-size: 2.5rem;
+  color: white;
+}
+.memory-back {
+  background: white;
+  border: 3px solid var(--meadow);
+  transform: rotateY(180deg);
+}
+
+/* ============================================
+   REAKTIONSSPIEL
+   ============================================ */
+.reaction-screen {
+  width: 100%;
+  height: 200px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.reaction-screen.red { background: linear-gradient(135deg, #E74C3C, #C0392B); color: white; }
+.reaction-screen.green { background: linear-gradient(135deg, #27AE60, #1E8449); color: white; animation: flashGreen 0.3s; }
+.reaction-screen.wait { background: linear-gradient(135deg, #BDC3C7, #95A5A6); color: white; }
+
+@keyframes flashGreen {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.reaction-results {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  justify-content: center;
+}
+.reaction-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.reaction-dot.correct { background: #27AE60; color: white; }
+.reaction-dot.wrong { background: #E74C3C; color: white; }
+.reaction-dot.pending { background: #E0E6EE; }
+
+/* ============================================
+   ZUGSPIEL
+   ============================================ */
+.train-track {
+  width: 100%;
+  position: relative;
+  min-height: 260px;
+  background: linear-gradient(180deg, #87CEEB 0%, #A8D8A8 80%, #7BC47F 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.track-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.train-question {
+  text-align: center;
+  padding: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.switch-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 16px 0;
+}
+.switch-btn {
+  flex: 1;
+  max-width: 160px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.switch-btn-left { background: linear-gradient(135deg, #3498DB, #2980B9); color: white; }
+.switch-btn-right { background: linear-gradient(135deg, #E67E22, #D35400); color: white; }
+.switch-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.switch-btn:active { transform: scale(0.95); }
+
+/* ============================================
+   SUCHSPIEL (VfB Logo)
+   ============================================ */
+.search-scene {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: crosshair;
+  user-select: none;
+}
+.search-scene img {
+  width: 100%;
+  display: block;
+}
+.vfb-marker {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 3px dashed transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.vfb-marker.found {
+  background: rgba(39,174,96,0.4);
+  border-color: #27AE60;
+  animation: foundPop 0.5s ease;
+}
+.found-counter {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.found-star {
+  font-size: 1.8rem;
+  filter: grayscale(1);
+  transition: filter 0.3s;
+}
+.found-star.lit { filter: none; animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+@keyframes foundPop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+@keyframes starPop { 0% { transform: scale(0); } 60% { transform: scale(1.4); } 100% { transform: scale(1); } }
+
+/* ============================================
+   UNTERSCHIEDE FINDEN
+   ============================================ */
+.diff-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+.diff-img-wrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+.diff-img-wrap img { width: 100%; display: block; }
+.diff-circle {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid #E74C3C;
+  margin-left: -21px;
+  margin-top: -21px;
+  pointer-events: none;
+  animation: circleIn 0.3s ease;
+  box-shadow: 0 0 0 3px rgba(231,76,60,0.3);
+}
+.diff-circle.confirmed { border-color: #27AE60; box-shadow: 0 0 0 3px rgba(39,174,96,0.3); }
+@keyframes circleIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ============================================
+   RECHENSPIEL
+   ============================================ */
+.math-problem {
+  text-align: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #EBF5FB, #D6EAF8);
+  border-radius: 16px;
+  margin: 16px 0;
+}
+.math-equation {
+  font-family: 'Fredoka One', cursive;
+  font-size: 3rem;
+  color: var(--mountain-dark);
+  margin-bottom: 8px;
+}
+.math-progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.math-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #DDD;
+  transition: background 0.3s;
+}
+.math-dot.correct { background: #27AE60; }
+.math-dot.wrong { background: #E74C3C; }
+
+.math-answers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.math-answer-btn {
+  padding: 16px;
+  border-radius: 14px;
+  border: 3px solid #E0E6EE;
+  background: white;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-dark);
+}
+.math-answer-btn:hover { border-color: var(--sky-deep); transform: translateY(-2px); }
+.math-answer-btn.correct { background: #27AE60; border-color: #27AE60; color: white; }
+.math-answer-btn.wrong { background: #E74C3C; border-color: #E74C3C; color: white; animation: shake 0.4s; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+/* ============================================
+   WORLD HEADER BANNER
+   ============================================ */
+.world-banner {
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  color: white;
+}
+.world-banner.w1 { background: linear-gradient(135deg, #27AE60, #145A32); }
+.world-banner.w2 { background: linear-gradient(135deg, #2980B9, #1A5276); }
+.world-banner.w3 { background: linear-gradient(135deg, #E67E22, #784212); }
+.world-banner.w4 { background: linear-gradient(135deg, #8E44AD, #4A235A); }
+.world-banner.w5 { background: linear-gradient(135deg, #E74C3C, #641E16); }
+
+.world-banner .banner-icon { font-size: 3rem; display: block; margin-bottom: 4px; }
+.world-banner .banner-title { font-family: 'Fredoka One', cursive; font-size: 1.5rem; }
+.world-banner .banner-sub { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }

@@ -7,288 +7,309 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#000;color:#fff;touch-action:none;user-select:none}
-canvas{display:block}
-
-/* ── SCREENS ── */
 .scr{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
 .scr.off{display:none!important}
-
-/* Login */
+/* LOGIN */
 #s-login{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
 .logo{font-size:5rem;text-align:center;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(255,215,0,.5))}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-.ztitle{font-family:'Fredoka One',cursive;font-size:2.5rem;color:#FFD700;text-align:center;text-shadow:0 0 30px rgba(255,215,0,.5);margin-bottom:4px}
-.zsub{color:rgba(255,255,255,.45);font-size:.85rem;text-align:center;margin-bottom:20px}
-.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:26px 22px;width:100%;max-width:370px;backdrop-filter:blur(10px)}
-.inp{width:100%;padding:12px 16px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:.95rem;font-family:'Nunito',sans-serif;margin-bottom:10px;transition:border-color .2s}
+.ztitle{font-family:'Fredoka One',cursive;font-size:2.4rem;color:#FFD700;text-align:center;text-shadow:0 0 30px rgba(255,215,0,.4);margin-bottom:4px}
+.zsub{color:rgba(255,255,255,.4);font-size:.85rem;text-align:center;margin-bottom:20px}
+.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:24px 20px;width:100%;max-width:370px}
+.inp{width:100%;padding:11px 15px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:.92rem;font-family:'Nunito',sans-serif;margin-bottom:10px;transition:border-color .2s}
 .inp:focus{outline:none;border-color:#FFD700}.inp::placeholder{color:rgba(255,255,255,.3)}
-.btn{width:100%;padding:13px;border-radius:50px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:1.1rem;transition:transform .15s,box-shadow .15s;margin-top:6px}
+.btn{width:100%;padding:12px;border-radius:50px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:1rem;transition:transform .15s;margin-top:6px}
 .btn:active{transform:scale(.95)}
-.btn-gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;box-shadow:0 6px 20px rgba(255,165,0,.35)}
-.btn-dim{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
-.err{color:#ff6b6b;font-size:.82rem;text-align:center;min-height:18px;margin-bottom:5px}
-
-/* Char select */
-#s-char{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;max-width:360px;width:100%;margin:12px 0}
-.copt{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 5px;text-align:center;cursor:pointer;transition:all .2s}
-.copt.sel{border-color:#FFD700;background:rgba(255,215,0,.12)}
-
-/* Mode */
-#s-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.mcard{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:20px;padding:22px 18px;width:100%;max-width:340px;cursor:pointer;text-align:center;margin-bottom:12px;transition:all .25s}
-.mcard:hover{border-color:#FFD700;transform:translateY(-3px)}
-
-/* 3D Game wrapper */
+.btn-g{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;box-shadow:0 5px 18px rgba(255,165,0,.35)}
+.btn-d{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15)}
+.err{color:#ff6b6b;font-size:.8rem;text-align:center;min-height:18px;margin-bottom:5px}
+/* CHAR */
+#s-char,#s-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
+.cgr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:360px;width:100%;margin:11px 0}
+.co{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:13px;padding:9px 4px;text-align:center;cursor:pointer;transition:all .2s}
+.co.sel{border-color:#FFD700;background:rgba(255,215,0,.12)}
+/* MODE */
+.mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:20px 16px;width:100%;max-width:340px;cursor:pointer;text-align:center;margin-bottom:11px;transition:all .25s}
+.mc:hover{border-color:#FFD700;transform:translateY(-2px)}
+/* ZOO 3D */
 #s-zoo{overflow:hidden;padding:0;background:#87CEEB}
-#threeCanvas{position:absolute;inset:0;width:100%!important;height:100%!important}
-
-/* ── HUD ── */
+#zc{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:100}
-
-/* Money + stats top-left (Steal a Brainrot style) */
-#hud-money{position:absolute;bottom:20px;left:16px;pointer-events:none}
-.money-val{font-family:'Fredoka One',cursive;font-size:2.2rem;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
-.money-sub{font-size:.78rem;color:rgba(255,255,255,.7);text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
-
-/* Left sidebar buttons (Steal a Brainrot style) */
-#hud-left{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;pointer-events:auto}
-.hbtn{width:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:transform .15s}
-.hbtn:active{transform:scale(.92)}
-.hbtn-box{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;border:3px solid rgba(255,255,255,.4);background:rgba(0,0,0,.55);backdrop-filter:blur(8px)}
-.hbtn-lbl{font-family:'Fredoka One',cursive;font-size:.72rem;color:#fff;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
-
-/* Event banner */
-#ev-banner{position:absolute;top:0;left:0;right:0;text-align:center;padding:10px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);opacity:0;transition:opacity .5s;pointer-events:none}
-
-/* Event timer bottom right */
-#ev-timer{position:absolute;bottom:20px;right:14px;background:rgba(0,0,0,.7);border-radius:12px;padding:8px 12px;border:2px solid rgba(255,255,255,.2);font-family:'Fredoka One',cursive;font-size:.82rem;text-align:center;display:none;pointer-events:none}
-
+#hm{position:absolute;bottom:18px;left:14px;pointer-events:none}
+.mv{font-family:'Fredoka One',cursive;font-size:2rem;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
+.ms{font-size:.75rem;color:rgba(255,255,255,.7);text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
+/* Left HUD buttons */
+#hleft{position:absolute;left:11px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;pointer-events:auto}
+.hb{width:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:transform .15s}
+.hb:active{transform:scale(.91)}
+.hbb{width:56px;height:56px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;border:3px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);backdrop-filter:blur(8px)}
+.hbl{font-family:'Fredoka One',cursive;font-size:.68rem;color:#fff;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
+/* Weapon */
+#weapon-hud{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);pointer-events:auto;text-align:center}
+.wname{font-family:'Fredoka One',cursive;font-size:.78rem;color:rgba(255,255,255,.7);margin-top:3px}
+#swing-btn{width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,.4);background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:transform .1s}
+#swing-btn:active{transform:scale(.88)}
 /* Crosshair */
-#crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.7}
-
-/* Interaction prompt */
-#interact{position:absolute;bottom:30%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);border:2px solid #FFD700;border-radius:50px;padding:9px 22px;font-family:'Fredoka One',cursive;font-size:.9rem;color:#FFD700;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;text-align:center}
-
+#xhair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.75}
+/* Interact */
+#iprompt{position:absolute;bottom:28%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.78);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;font-family:'Fredoka One',cursive;font-size:.87rem;color:#FFD700;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;text-align:center}
 /* Minimap */
-#minimap{position:absolute;top:14px;right:14px;width:110px;height:110px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
-#minimap-canvas{width:110px;height:110px}
-
-/* Multiplayer tags */
-.player-tag{position:absolute;background:rgba(0,0,0,.7);border-radius:6px;padding:2px 6px;font-family:'Fredoka One',cursive;font-size:.7rem;transform:translateX(-50%);pointer-events:none;border:1px solid rgba(255,255,255,.3);white-space:nowrap}
-
-/* ── PANELS ── */
-.zpanel{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
-.zpanel.off{display:none!important}
-.zpanel-inner{background:linear-gradient(160deg,#0a1628,#0d1f3c);width:100%;max-width:460px;border-radius:24px 24px 0 0;padding:18px 15px 32px;max-height:90vh;overflow-y:auto;position:relative}
-.pcls{position:sticky;top:0;float:right;background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:.95rem;cursor:pointer;z-index:5;margin-bottom:-30px}
-.ptitle{font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.3rem;text-align:center;margin-bottom:12px;clear:both}
-.acard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
-.acbuy{padding:5px 11px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-family:'Fredoka One',cursive;font-size:.73rem;margin-top:3px}
-.acbuy:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
+#mmap{position:absolute;top:12px;right:12px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
+/* Event */
+#evb{position:absolute;top:0;left:0;right:0;text-align:center;padding:9px;font-family:'Fredoka One',cursive;font-size:1rem;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);opacity:0;transition:opacity .5s;pointer-events:none}
+#evt{position:absolute;bottom:18px;right:12px;background:rgba(0,0,0,.7);border-radius:11px;padding:7px 11px;border:2px solid rgba(255,255,255,.18);font-family:'Fredoka One',cursive;font-size:.8rem;text-align:center;display:none;pointer-events:none}
+/* Mobile joy */
+#jzone{position:absolute;bottom:18px;right:16px;width:115px;height:115px;pointer-events:auto}
+#jbase{width:115px;height:115px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.3);position:relative}
+#jthumb{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.9);top:35px;left:35px;pointer-events:none}
+/* Bat flash */
+#bflash{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0;background:rgba(255,200,0,.22);transition:opacity .08s}
+/* KO overlay */
+.ko-overlay{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:2.5rem;color:#ff6b6b;text-shadow:0 0 20px rgba(255,100,100,.6)}
+/* PANELS */
+.zp{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
+.zp.off{display:none!important}
+.zpi{background:linear-gradient(160deg,#0a1628,#0d1f3c);width:100%;max-width:450px;border-radius:22px 22px 0 0;padding:17px 14px 30px;max-height:88vh;overflow-y:auto;position:relative}
+.pcls{position:sticky;top:0;float:right;background:rgba(255,255,255,.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:.9rem;cursor:pointer;z-index:5;margin-bottom:-28px}
+.pt{font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.2rem;text-align:center;margin-bottom:11px;clear:both}
+.ac{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:9px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.ab{padding:4px 10px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-family:'Fredoka One',cursive;font-size:.7rem;margin-top:3px}
+.ab:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
 /* Rarity */
 .rn{color:#9e9e9e}.rr{color:#4fc3f7}.re{color:#ce93d8}.rl{color:#ffb74d}.ru{color:#ef5350}.rg{color:#FFD700}.rm{color:#ff6ec7}
 .rs{background:linear-gradient(90deg,#ff6b6b,#FFD700,#27AE60,#4A90D9,#cc00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
 /* Trait badges */
-.tb{display:inline-block;padding:1px 5px;border-radius:4px;font-size:.57rem;font-weight:700;margin:1px}
+.tb{display:inline-block;padding:1px 4px;border-radius:4px;font-size:.55rem;font-weight:700;margin:1px}
 .tg{background:#FFD700;color:#333}.td{background:#00CFFF;color:#000}.tr{background:linear-gradient(90deg,#ff6b6b,#27AE60);color:#fff}.tv{background:#9B59B6;color:#fff}
 .tf{background:linear-gradient(135deg,#FF4500,#FFD700);color:#fff}.te{background:#F4D03F;color:#333}.tc{background:linear-gradient(135deg,#9B59B6,#1a1a2e);color:#fff}.tk{background:linear-gradient(135deg,#AED6F1,#fff);color:#333}
 .tgl{background:linear-gradient(90deg,#00ff88,#00ccff,#ff00ff);color:#000;animation:glitch .4s steps(2,end) infinite}
 @keyframes glitch{0%,100%{clip-path:inset(0 0 0 0)}25%{clip-path:inset(40% 0 10% 0);transform:translate(-2px)}75%{clip-path:inset(10% 0 50% 0);transform:translate(2px)}}
 /* Float money */
-.flt{position:fixed;pointer-events:none;z-index:400;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#00FF88;text-shadow:-1px -1px 0 #000,1px 1px 0 #000;animation:fup 1.6s ease forwards}
-@keyframes fup{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(.8)}}
-/* Snow/party effects */
-.zsnow{position:fixed;pointer-events:none;z-index:190;top:-24px;animation:snf linear infinite;opacity:.85}
+.flt{position:fixed;pointer-events:none;z-index:400;font-family:'Fredoka One',cursive;font-size:1rem;color:#00FF88;text-shadow:-1px -1px 0 #000,1px 1px 0 #000;animation:fup 1.6s ease forwards}
+@keyframes fup{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-70px)}}
+.flt-r{color:#ff6b6b}
+.zsnow{position:fixed;pointer-events:none;z-index:188;top:-24px;animation:snf linear infinite;opacity:.8;font-size:.9rem}
 @keyframes snf{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(108vh) rotate(720deg)}}
-.zbeam{position:fixed;bottom:0;z-index:188;border-radius:3px;opacity:.55;transform-origin:bottom;animation:bm 2s ease-in-out infinite}
-@keyframes bm{0%,100%{height:60px;opacity:.5}50%{height:150px;opacity:.85}}
-/* Tab system */
-.tab{padding:7px 10px;border-radius:10px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.75rem;flex:1;transition:background .2s}
-.ta{background:rgba(255,215,0,.25);color:#FFD700}.ti{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
-/* Exchange */
-.excard{background:rgba(0,207,255,.08);border:1px solid rgba(0,207,255,.25);border-radius:12px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-/* Gondola UI */
-.gcars{display:flex;gap:14px;justify-content:center;align-items:flex-end;padding:10px;background:rgba(0,0,0,.4);border-radius:12px;margin-bottom:10px;min-height:90px}
-.gcar{text-align:center;cursor:pointer;transition:transform .2s}
-.gcar:hover{transform:scale(1.05)}
-.gcar-body{border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.35);transition:transform .4s;margin:0 auto}
+.zbeam{position:fixed;bottom:0;z-index:186;border-radius:3px;opacity:.5;transform-origin:bottom;animation:bm 2s ease-in-out infinite;width:5px}
+@keyframes bm{0%,100%{height:55px;opacity:.45}50%{height:145px;opacity:.8}}
 /* Toast */
-#zt{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-family:'Fredoka One',cursive;font-size:.92rem;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:300px;line-height:1.3}
-/* Rarity board */
-.rboard{background:rgba(0,0,0,.5);border:2px solid rgba(255,215,0,.35);border-radius:14px;padding:12px;margin-top:10px}
-.rrow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.68rem}
-/* Rebirth requirement */
-.rreq{display:flex;align-items:center;gap:5px;font-size:.8rem;line-height:1.7}
-/* Baseball bat hit */
-#bat-flash{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0;background:rgba(255,200,0,.25);transition:opacity .1s}
+#zt{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-family:'Fredoka One',cursive;font-size:.9rem;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:290px;line-height:1.3}
+/* Tutorial */
+#tutorial{position:fixed;inset:0;z-index:600;pointer-events:none}
+.tutbox{position:absolute;background:rgba(0,0,0,.85);border:2px solid #FFD700;border-radius:14px;padding:12px 16px;font-family:'Fredoka One',cursive;font-size:.88rem;max-width:200px;text-align:center;animation:popIn .4s ease}
+.tutarrow{position:absolute;font-size:2rem;animation:bounce2 .8s ease-in-out infinite}
+@keyframes bounce2{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+/* Trading panel */
+.trade-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.trade-card:hover{border-color:#FFD700}
+/* Tab system */
+.tab{padding:6px 10px;border-radius:9px;border:none;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.72rem;flex:1;transition:background .2s}
+.ta{background:rgba(255,215,0,.25);color:#FFD700}.ti{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55)}
+/* Rarity board */
+.rboard{background:rgba(0,0,0,.5);border:2px solid rgba(255,215,0,.3);border-radius:12px;padding:10px;margin-top:10px}
+.rrow{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.66rem}
+/* Exchange card */
+.ex{background:rgba(0,207,255,.07);border:1px solid rgba(0,207,255,.22);border-radius:11px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:7px}
 @keyframes rainbow{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div id="s-login" class="scr">
   <div class="logo">🦁</div>
   <div class="ztitle">Mischa Zoo 3D</div>
-  <div class="zsub">First Person • Multiplayer • Mischataler verdienen!</div>
+  <div class="zsub">First Person · Multiplayer · Trading · Mischataler!</div>
   <div class="card">
     <input class="inp" id="zn" type="text" placeholder="Name" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter')ZA.login()"/>
     <input class="inp" id="zpw" type="password" placeholder="Passwort" maxlength="24" onkeydown="if(event.key==='Enter')ZA.login()"/>
     <div class="err" id="zerr"></div>
-    <button class="btn btn-gold" onclick="ZA.login()">Anmelden / Registrieren ➜</button>
-    <button class="btn btn-dim" onclick="location.href='index.html'">← Zum Denkspiel</button>
+    <button class="btn btn-g" onclick="ZA.login()">Anmelden / Registrieren ➜</button>
+    <button class="btn btn-d" onclick="location.href='index.html'">← Zum Denkspiel</button>
   </div>
 </div>
 
-<!-- ══ CHAR ══ -->
+<!-- CHAR -->
 <div id="s-char" class="scr off">
-  <div class="ztitle" style="font-size:1.6rem">Charakter wählen</div>
-  <div class="zsub">Dein 3D-Avatar 🎮</div>
-  <div class="cgrid" id="cgrid"></div>
-  <button class="btn btn-gold" id="chbtn" onclick="ZA.confirmChar()" style="max-width:230px;display:none">Los! 🚀</button>
+  <div class="ztitle" style="font-size:1.5rem">Charakter wählen</div>
+  <div class="zsub">Dein 3D-Avatar im Zoo</div>
+  <div class="cgr" id="cgr"></div>
+  <button class="btn btn-g" id="chbtn" onclick="ZA.confirmChar()" style="max-width:220px;display:none">Los! 🚀</button>
 </div>
 
-<!-- ══ MODE ══ -->
+<!-- MODE -->
 <div id="s-mode" class="scr off">
-  <div id="mhi" style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700;margin-bottom:18px;text-align:center"></div>
-  <div class="mcard" onclick="ZA.startZoo('shared')">
-    <span style="font-size:3rem;display:block;margin-bottom:8px">🦁</span>
-    <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FFD700">Mischa Zoo 3D</div>
-    <div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-top:4px">Mit anderen Spielern — 3 pro Server</div>
+  <div id="mhi" style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700;margin-bottom:16px;text-align:center"></div>
+  <div class="mc" onclick="ZA.startZoo('public')">
+    <span style="font-size:3rem;display:block;margin-bottom:7px">🦁</span>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#FFD700">Öffentlicher Server</div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:3px">3 Spieler · Trading · Diebstahl!</div>
   </div>
-  <div class="mcard" onclick="ZA.checkPrivate()">
-    <span style="font-size:3rem;display:block;margin-bottom:8px">🔐</span>
-    <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FFD700">Privater Server</div>
-    <div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-top:4px">Alleine spielen — 100.000 MT</div>
+  <div class="mc" onclick="ZA.checkPrivate()">
+    <span style="font-size:3rem;display:block;margin-bottom:7px">🔐</span>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#FFD700">Privater Server</div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:3px">Alleine · 1.000.000 MT</div>
   </div>
-  <div class="mcard" onclick="location.href='index.html'" style="max-width:200px">
-    <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:rgba(255,255,255,.5)">← Denkspiel</div>
+  <div class="mc" onclick="location.href='index.html'" style="max-width:200px;padding:12px">
+    <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.45)">← Denkspiel</div>
   </div>
 </div>
 
-<!-- ══ 3D GAME ══ -->
+<!-- ZOO 3D -->
 <div id="s-zoo" class="scr off">
-  <canvas id="threeCanvas"></canvas>
+  <canvas id="zc"></canvas>
 
-  <!-- HUD -->
   <div id="hud">
-    <!-- Money (bottom left) -->
-    <div id="hud-money">
-      <div class="money-val" id="hmoney">🌀0</div>
-      <div class="money-sub" id="hvisitors">👥 0 Besucher</div>
-      <div class="money-sub" id="hmult" style="color:#FFD700"></div>
+    <!-- Money BL -->
+    <div id="hm">
+      <div class="mv" id="hmoney">🌀0</div>
+      <div class="ms" id="hvis">👥 0 Besucher</div>
+      <div class="ms" id="hmult" style="color:#FFD700"></div>
     </div>
 
-    <!-- Left buttons (Steal a Brainrot style) -->
-    <div id="hud-left">
-      <div class="hbtn" onclick="ZP.openGondola()">
-        <div class="hbtn-box" style="background:rgba(39,174,96,.6)">🚡</div>
-        <div class="hbtn-lbl">Gondel</div>
+    <!-- Left sidebar -->
+    <div id="hleft">
+      <div class="hb" onclick="ZP.openGondola()">
+        <div class="hbb" style="background:rgba(39,174,96,.65)">🚡</div>
+        <div class="hbl">Gondel</div>
       </div>
-      <div class="hbtn" onclick="ZP.openRebirth()">
-        <div class="hbtn-box" style="background:rgba(100,100,100,.6)">🔄</div>
-        <div class="hbtn-lbl">Rebirth</div>
+      <div class="hb" onclick="ZP.openIndex()">
+        <div class="hbb" style="background:rgba(52,152,219,.65)">📖</div>
+        <div class="hbl">Index</div>
       </div>
-      <div class="hbtn" onclick="ZP.openShop()">
-        <div class="hbtn-box" style="background:rgba(155,89,182,.6)">🛒</div>
-        <div class="hbtn-lbl">Shop</div>
+      <div class="hb" onclick="ZP.openRebirth()">
+        <div class="hbb" style="background:rgba(100,100,100,.65)">🔄</div>
+        <div class="hbl">Rebirth</div>
       </div>
-      <div id="adminbtn" class="hbtn off" onclick="ZP.openAdmin()">
-        <div class="hbtn-box" style="background:rgba(255,165,0,.6)">👑</div>
-        <div class="hbtn-lbl">Admin</div>
+      <div class="hb" onclick="ZP.openShop()">
+        <div class="hbb" style="background:rgba(155,89,182,.65)">🛒</div>
+        <div class="hbl">Shop</div>
       </div>
+      <div class="hb" onclick="ZP.openTrading()">
+        <div class="hbb" style="background:rgba(255,165,0,.65)">🤝</div>
+        <div class="hbl">Trading</div>
+      </div>
+      <div class="hb off" id="admbtn" onclick="ZP.openAdmin()">
+        <div class="hbb" style="background:rgba(255,215,0,.4)">👑</div>
+        <div class="hbl">Admin</div>
+      </div>
+      <div class="hb" onclick="ZP.openMenu()">
+        <div class="hbb" style="background:rgba(60,60,60,.65)">☰</div>
+        <div class="hbl">Menü</div>
+      </div>
+    </div>
+
+    <!-- Weapon / swing button -->
+    <div id="weapon-hud" style="pointer-events:auto">
+      <div id="swing-btn" onclick="ZG.swing()" title="Schlagen [Q]">🏏</div>
+      <div class="wname" id="wname">Holzschläger</div>
     </div>
 
     <!-- Crosshair -->
-    <div id="crosshair">
-      <svg width="24" height="24" viewBox="0 0 24 24">
-        <line x1="12" y1="2" x2="12" y2="10" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
-        <line x1="12" y1="14" x2="12" y2="22" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
-        <line x1="2" y1="12" x2="10" y2="12" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
-        <line x1="14" y1="12" x2="22" y2="12" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
-        <circle cx="12" cy="12" r="2" fill="rgba(255,80,80,.9)"/>
+    <div id="xhair">
+      <svg width="22" height="22" viewBox="0 0 22 22">
+        <line x1="11" y1="2" x2="11" y2="9" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
+        <line x1="11" y1="13" x2="11" y2="20" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
+        <line x1="2" y1="11" x2="9" y2="11" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
+        <line x1="13" y1="11" x2="20" y2="11" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/>
+        <circle cx="11" cy="11" r="2" fill="rgba(255,80,80,.9)"/>
       </svg>
     </div>
 
-    <!-- Interaction prompt -->
-    <div id="interact">⬆ Drücke [E] oder tippe</div>
+    <!-- Interact prompt -->
+    <div id="iprompt">⬆ [E] Interagieren</div>
 
-    <!-- Event banner -->
-    <div id="ev-banner"></div>
+    <!-- Event banner top -->
+    <div id="evb"></div>
+    <!-- Event timer BR -->
+    <div id="evt"></div>
 
-    <!-- Event timer -->
-    <div id="ev-timer"></div>
-
-    <!-- Minimap -->
-    <div id="minimap"><canvas id="minimap-canvas" width="110" height="110"></canvas></div>
+    <!-- Minimap TR -->
+    <div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
 
     <!-- Mobile joystick -->
-    <div id="joy-zone" style="position:absolute;bottom:20px;right:20px;width:120px;height:120px;pointer-events:auto">
-      <div id="joy-base" style="width:120px;height:120px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.3);position:relative">
-        <div id="joy-thumb" style="position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.9);top:37px;left:37px"></div>
-      </div>
-    </div>
-
-    <!-- Mobile look / swing button -->
-    <div style="position:absolute;bottom:20px;right:155px;pointer-events:auto">
-      <div id="swing-btn" style="width:54px;height:54px;border-radius:50%;background:rgba(231,76,60,.7);border:2px solid rgba(255,100,100,.5);display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer" onclick="ZGame.swing()">🏏</div>
-    </div>
+    <div id="jzone"><div id="jbase"><div id="jthumb"></div></div></div>
 
     <!-- Bat flash -->
-    <div id="bat-flash"></div>
+    <div id="bflash"></div>
   </div>
   <div id="zt"></div>
+
+  <!-- Tutorial overlay -->
+  <div id="tutorial" style="display:none"></div>
 </div>
 
-<!-- ══ PANELS ══ -->
+<!-- ═══════ PANELS ═══════ -->
 
 <!-- Gondola -->
-<div class="zpanel off" id="p-gond">
-<div class="zpanel-inner">
+<div class="zp off" id="p-gond">
+<div class="zpi">
   <button class="pcls" onclick="ZP.close('gond')">✕</button>
-  <div class="ptitle">🚡 Gondel-Station</div>
-  <div style="display:flex;justify-content:space-between;font-size:.73rem;color:rgba(255,255,255,.45);margin-bottom:8px">
-    <span>🟢 Online <span id="gsrv">1/3 Spieler</span></span>
+  <div class="pt">🚡 Gondel-Station</div>
+  <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:7px">
+    <span>🟢 <span id="gsrv">Online</span></span>
     <span>Nächste: <b id="gtimer" style="color:#FFD700">2.5s</b></span>
   </div>
   <!-- 3 gondola cars -->
-  <div class="gcars" id="gcars"></div>
-  <!-- Current animal -->
-  <div id="g-animal" style="min-height:130px;display:flex;align-items:center;justify-content:center;margin-bottom:10px">
+  <div id="gcars" style="display:flex;gap:12px;justify-content:center;padding:10px;background:rgba(0,0,0,.4);border-radius:11px;margin-bottom:9px;min-height:85px;align-items:flex-end"></div>
+  <!-- Active gondola animal -->
+  <div id="ganim" style="min-height:125px;display:flex;align-items:center;justify-content:center;margin-bottom:9px">
     <div style="color:rgba(255,255,255,.3)">Warte auf Gondel...</div>
   </div>
   <!-- Luck -->
-  <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.8rem;margin-bottom:5px">🍀 Mehr Glück:</div>
-  <div id="g-luck"></div>
+  <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.45);font-size:.78rem;margin-bottom:5px">🍀 Mehr Glück:</div>
+  <div id="gluck"></div>
   <!-- Rarity board -->
   <div class="rboard">
-    <div style="font-family:'Fredoka One',cursive;color:#FFD700;font-size:.85rem;margin-bottom:7px;text-align:center">📋 Seltenheiten & Chancen</div>
-    <div class="rrow"><span class="rn">Normal</span><span>Katze 40% · Hund 30% · Hamster 15% · Sieben. 15%</span></div>
-    <div class="rrow"><span class="rr">Selten</span><span>Fisch 10% · Schw. 5% · Brud. 5% · Känguru 3%</span></div>
-    <div class="rrow"><span class="re">Episch</span><span>Frosch 2% · Waschbär 1% · Delphin .5% · Wolf .25%</span></div>
-    <div class="rrow"><span class="rl">Legendär</span><span>Qualle .2% · Fuchs .2% · Tiger .1% · Elefant .08%</span></div>
-    <div class="rrow"><span class="ru">Ultra-Leg.</span><span>Orca .09% · Drache .003% · Phönix .002%</span></div>
-    <div class="rrow"><span class="rg">Gott</span><span>Löwe .001% · Mammut .0009% · Kraken .0005%</span></div>
-    <div class="rrow"><span class="rm">Mythisch</span><span>Cerberus .0001% · Poseidon .00005% · Zeus .00002%</span></div>
-    <div class="rrow"><span class="rs">SECRET</span><span>Dino .00001% · Megalodon .0000009%</span></div>
-    <div style="font-size:.62rem;color:rgba(255,255,255,.3);margin-top:5px;text-align:center">Traits nur während Events! Glück erhöht alle Chancen.</div>
+    <div style="font-family:'Fredoka One',cursive;color:#FFD700;font-size:.82rem;margin-bottom:6px;text-align:center">📋 Seltenheiten</div>
+    <div class="rrow"><span class="rn">Normal</span><span>Katze 40% Hund 30% Hamster 15% Sieben.15%</span></div>
+    <div class="rrow"><span class="rr">Selten</span><span>Fisch 10% Schw.5% Brud.5% Käng.3% Zebra2% …</span></div>
+    <div class="rrow"><span class="re">Episch</span><span>Frosch 2% Waschb.1% Delphin.5% Wolf.25% …</span></div>
+    <div class="rrow"><span class="rl">Legendär</span><span>Qualle.2% Fuchs.2% Tiger.1% Elefant.08% …</span></div>
+    <div class="rrow"><span class="ru">Ultra</span><span>Orca.09% Drache.003% Phönix.002% Nessie.001%</span></div>
+    <div class="rrow"><span class="rg">Gott</span><span>Löwe.001% Mammut.0009% Kraken.0005% Anubis.0002%</span></div>
+    <div class="rrow"><span class="rm">Mythisch</span><span>Cerberus.0001% Poseidon.00005% Zeus.00002%</span></div>
+    <div class="rrow"><span class="rs">SECRET</span><span>Dino .00001% Megalodon .0000009%</span></div>
+    <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-top:5px;text-align:center">🎭 Traits nur während Events! Shiny immer möglich.</div>
   </div>
+</div>
+</div>
+
+<!-- Index -->
+<div class="zp off" id="p-index">
+<div class="zpi">
+  <button class="pcls" onclick="ZP.close('index')">✕</button>
+  <div class="pt">📖 Index — Deine Tiere</div>
+  <div id="pidx"></div>
+</div>
+</div>
+
+<!-- Trading -->
+<div class="zp off" id="p-trade">
+<div class="zpi">
+  <button class="pcls" onclick="ZP.close('trade')">✕</button>
+  <div class="pt">🤝 Trading</div>
+  <div style="display:flex;gap:4px;margin-bottom:10px">
+    <button id="tt-m" class="tab ta" onclick="ZP.tradeTab('m')">Meine Angebote</button>
+    <button id="tt-a" class="tab ti" onclick="ZP.tradeTab('a')">Alle Angebote</button>
+    <button id="tt-n" class="tab ti" onclick="ZP.tradeTab('n')">Neu anbieten</button>
+  </div>
+  <div id="ptrade"></div>
 </div>
 </div>
 
 <!-- Shop -->
-<div class="zpanel off" id="p-shop">
-<div class="zpanel-inner">
+<div class="zp off" id="p-shop">
+<div class="zpi">
   <button class="pcls" onclick="ZP.close('shop')">✕</button>
-  <div class="ptitle">🛒 Zoo-Shop</div>
-  <div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.25);border-radius:10px;padding:7px 12px;margin-bottom:8px;display:flex;justify-content:space-between">
-    <span style="font-size:.82rem;color:rgba(255,255,255,.6)">Deine Mischataler:</span>
-    <span id="s-bal" style="font-family:'Fredoka One',cursive;color:#00CFFF">🌀 0</span>
+  <div class="pt">🛒 Zoo-Shop</div>
+  <div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.22);border-radius:9px;padding:6px 11px;margin-bottom:8px;display:flex;justify-content:space-between">
+    <span style="font-size:.8rem;color:rgba(255,255,255,.55)">MT:</span>
+    <span id="sbal" style="font-family:'Fredoka One',cursive;color:#00CFFF">🌀0</span>
   </div>
-  <div style="display:flex;gap:5px;margin-bottom:10px">
+  <div style="display:flex;gap:4px;margin-bottom:9px">
     <button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button>
     <button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button>
     <button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button>
@@ -298,117 +319,113 @@ canvas{display:block}
 </div>
 
 <!-- Rebirth -->
-<div class="zpanel off" id="p-reb">
-<div class="zpanel-inner">
+<div class="zp off" id="p-reb">
+<div class="zpi">
   <button class="pcls" onclick="ZP.close('reb')">✕</button>
-  <div class="ptitle">🔄 Wiedergeburt</div>
+  <div class="pt">🔄 Wiedergeburt</div>
   <div id="prc"></div>
 </div>
 </div>
 
-<!-- Enclosure -->
-<div class="zpanel off" id="p-enc">
-<div class="zpanel-inner">
+<!-- Enclosure detail + speed shop -->
+<div class="zp off" id="p-enc">
+<div class="zpi">
   <button class="pcls" onclick="ZP.close('enc')">✕</button>
-  <div class="ptitle" id="pent">Gehege</div>
-  <div id="penc"></div>
+  <div class="pt" id="pent">Gehege</div>
+  <div id="pencm"></div>
 </div>
 </div>
 
-<!-- Menu / Stats -->
-<div class="zpanel off" id="p-menu">
-<div class="zpanel-inner" style="text-align:center">
+<!-- Menu -->
+<div class="zp off" id="p-menu">
+<div class="zpi" style="text-align:center">
   <button class="pcls" onclick="ZP.close('menu')">✕</button>
-  <div class="ptitle">☰ Menü</div>
+  <div class="pt">☰ Menü</div>
   <div id="pmenu"></div>
-  <button class="btn btn-dim" style="max-width:260px;margin-bottom:8px" onclick="location.href='index.html'">← Denkspiel</button>
-  <button class="btn" style="max-width:260px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:6px" onclick="ZA.logout()">Abmelden</button>
+  <button class="btn btn-d" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html'">← Denkspiel</button>
+  <button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button>
 </div>
 </div>
 
 <!-- Admin -->
-<div class="zpanel off" id="p-admin">
-<div class="zpanel-inner">
-  <button class="pcls" onclick="ZP.close('admin')">✕</button>
-  <div class="ptitle">👑 Admin-Befehle</div>
+<div class="zp off" id="p-adm">
+<div class="zpi">
+  <button class="pcls" onclick="ZP.close('adm')">✕</button>
+  <div class="pt">👑 Admin-Befehle</div>
   <div id="padm"></div>
 </div>
-</div>
-
-<!-- QR Overlay -->
-<div id="p-qr" style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)" onclick="this.style.display='none'">
-  <div style="background:#fff;border-radius:20px;padding:24px;text-align:center;max-width:270px" onclick="event.stopPropagation()">
-    <div style="font-size:2rem;margin-bottom:6px">🦁</div>
-    <div style="font-family:'Fredoka One',cursive;color:#1a0800;font-size:1.1rem;margin-bottom:10px">Mischa Denkspiel</div>
-    <div id="qrgrid" style="width:140px;height:140px;margin:0 auto 10px;display:grid;grid-template-columns:repeat(10,14px)"></div>
-    <button onclick="location.href='index.html'" style="background:linear-gradient(135deg,#FFD700,#FFA500);border:none;color:#1a0800;padding:9px 20px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.95rem;cursor:pointer">→ Denkspiel</button>
-  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="js/firebase-state.js"></script>
+<script src="firebase-state.js"></script>
 <script>
-// ══════════════════════════════════════════════
-// GAME DATA
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
 const ANIMALS = [
   // Normal
-  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,price:5,earn:.6},
-  {id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,price:6,earn:.75},
-  {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,price:8,earn:1},
-  {id:'dormouse',n:'Siebenschläfer',e:'🐭',r:'normal',w:15,price:10,earn:1.3},
-  {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,price:9,earn:.9},
-  {id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,price:11,earn:1.1},
-  {id:'chicken',n:'Huhn',e:'🐔',r:'normal',w:8,price:12,earn:1.2},
+  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:5,earn:.5,color:0xffaaaa},
+  {id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:6,earn:.7,color:0xffe0b0},
+  {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,p:8,earn:.9,color:0xffcc88},
+  {id:'dormouse',n:'Sieben.',e:'🐭',r:'normal',w:15,p:10,earn:1.1,color:0xdddddd},
+  {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,p:9,earn:.85,color:0xffffff},
+  {id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,p:11,earn:1,color:0xffdd00},
+  {id:'chicken',n:'Huhn',e:'🐔',r:'normal',w:8,p:12,earn:1.1,color:0xffcc44},
+  {id:'turtle',n:'Schildkröte',e:'🐢',r:'normal',w:6,p:15,earn:1.3,color:0x44aa44},
   // Selten
-  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,price:30,earn:4},
-  {id:'sister',n:'Die Schwester',e:'👧',r:'rare',w:5,price:45,earn:6},
-  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,price:45,earn:6},
-  {id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,price:70,earn:10},
-  {id:'deer',n:'Reh',e:'🦌',r:'rare',w:4,price:55,earn:7.5},
-  {id:'penguin',n:'Pinguin',e:'🐧',r:'rare',w:3.5,price:65,earn:9},
-  {id:'koala',n:'Koala',e:'🐨',r:'rare',w:2.5,price:80,earn:11},
-  {id:'zebra',n:'Zebra',e:'🦓',r:'rare',w:2,price:90,earn:13},
-  {id:'parrot',n:'Papagei',e:'🦜',r:'rare',w:1.5,price:100,earn:15},
+  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,p:30,earn:3.5,color:0xff8800},
+  {id:'sister',n:'Schwester',e:'👧',r:'rare',w:5,p:45,earn:5.5,color:0xff99cc},
+  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,p:45,earn:5.5,color:0x88ccff},
+  {id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,p:70,earn:8.5,color:0xcc8844},
+  {id:'deer',n:'Reh',e:'🦌',r:'rare',w:4,p:55,earn:7,color:0xaa7744},
+  {id:'penguin',n:'Pinguin',e:'🐧',r:'rare',w:3.5,p:65,earn:7.8,color:0x333333},
+  {id:'koala',n:'Koala',e:'🐨',r:'rare',w:2.5,p:80,earn:10,color:0x888888},
+  {id:'zebra',n:'Zebra',e:'🦓',r:'rare',w:2,p:90,earn:11.5,color:0x333333},
+  {id:'parrot',n:'Papagei',e:'🦜',r:'rare',w:1.5,p:100,earn:13,color:0xff4400},
+  {id:'otter',n:'Otter',e:'🦦',r:'rare',w:1,p:120,earn:16,color:0x885522},
   // Episch
-  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,price:200,earn:30},
-  {id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,price:350,earn:52},
-  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:.5,price:600,earn:88},
-  {id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:.25,price:900,earn:133},
-  {id:'panda',n:'Panda',e:'🐼',r:'epic',w:.3,price:750,earn:110},
-  {id:'bear',n:'Bär',e:'🐻',r:'epic',w:.2,price:1000,earn:148},
-  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:.15,price:1200,earn:178},
-  {id:'chameleon',n:'Chamäleon',e:'🦎',r:'epic',w:.1,price:1500,earn:222},
-  {id:'axolotl',n:'Axolotl',e:'🫧',r:'epic',w:.08,price:1800,earn:267},
+  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,p:200,earn:28,color:0x22aa22},
+  {id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,p:350,earn:48,color:0x666666},
+  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:.5,p:600,earn:80,color:0x4488ff},
+  {id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:.25,p:900,earn:120,color:0x888899},
+  {id:'panda',n:'Panda',e:'🐼',r:'epic',w:.3,p:750,earn:100,color:0x111111},
+  {id:'bear',n:'Bär',e:'🐻',r:'epic',w:.2,p:1000,earn:135,color:0x775533},
+  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:.15,p:1200,earn:162,color:0xff88cc},
+  {id:'chameleon',n:'Chamäleon',e:'🦎',r:'epic',w:.1,p:1500,earn:205,color:0x44bb44},
+  {id:'axolotl',n:'Axolotl',e:'🫧',r:'epic',w:.08,p:1800,earn:245,color:0xff88ff},
+  {id:'capybara',n:'Capybara',e:'🐾',r:'epic',w:.06,p:2200,earn:300,color:0xaa8855},
   // Legendär
-  {id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:.2,price:2500,earn:370},
-  {id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:.2,price:3500,earn:519},
-  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:.1,price:7000,earn:1037},
-  {id:'elephant',n:'Elefant',e:'🐘',r:'legendary',w:.08,price:9000,earn:1333},
-  {id:'gorilla',n:'Gorilla',e:'🦍',r:'legendary',w:.06,price:12000,earn:1778},
-  {id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:.04,price:18000,earn:2667},
-  {id:'narwhal',n:'Narwal',e:'🐋',r:'legendary',w:.03,price:25000,earn:3704},
-  {id:'tardigrade',n:'Bärchen',e:'🐛',r:'legendary',w:.02,price:35000,earn:5185},
-  // Ultra-Legendär
-  {id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:.09,price:22000,earn:3259},
-  {id:'caveman',n:'Steinzeitmensch',e:'🦴',r:'ultralegendary',w:.005,price:90000,earn:13333},
-  {id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',w:.003,price:150000,earn:22222},
-  {id:'phoenix',n:'Phönix',e:'🔥',r:'ultralegendary',w:.002,price:200000,earn:29630},
-  {id:'nessie',n:'Nessie',e:'🐊',r:'ultralegendary',w:.001,price:350000,earn:51852},
+  {id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:.2,p:2500,earn:340,color:0x8844ff},
+  {id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:.2,p:3500,earn:475,color:0xff6600},
+  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:.1,p:7000,earn:950,color:0xff8800},
+  {id:'elephant',n:'Elefant',e:'🐘',r:'legendary',w:.08,p:9000,earn:1220,color:0x888888},
+  {id:'gorilla',n:'Gorilla',e:'🦍',r:'legendary',w:.06,p:12000,earn:1630,color:0x333333},
+  {id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:.04,p:18000,earn:2450,color:0xff88ff},
+  {id:'narwhal',n:'Narwal',e:'🐋',r:'legendary',w:.03,p:25000,earn:3400,color:0x4488cc},
+  {id:'tardigrade',n:'Bärchen',e:'🐛',r:'legendary',w:.02,p:35000,earn:4750,color:0xaacc44},
+  {id:'platypus',n:'Schnabeltier',e:'🦆',r:'legendary',w:.015,p:50000,earn:6800,color:0x885522},
+  // Ultra
+  {id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:.09,p:22000,earn:3000,color:0x222266},
+  {id:'caveman',n:'Steinzeitm.',e:'🦴',r:'ultralegendary',w:.005,p:90000,earn:12200,color:0xaa8833},
+  {id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',w:.003,p:150000,earn:20400,color:0x228822},
+  {id:'phoenix',n:'Phönix',e:'🔥',r:'ultralegendary',w:.002,p:200000,earn:27200,color:0xff4400},
+  {id:'nessie',n:'Nessie',e:'🐊',r:'ultralegendary',w:.001,p:350000,earn:47600,color:0x225522},
+  {id:'mothman',n:'Mothman',e:'🦋',r:'ultralegendary',w:.0008,p:500000,earn:68000,color:0x334433},
   // Gott
-  {id:'lion',n:'Löwe',e:'🦁',r:'god',w:.001,price:450000,earn:66667},
-  {id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:.0009,price:900000,earn:133333},
-  {id:'kraken',n:'Kraken',e:'🦑',r:'god',w:.0005,price:2000000,earn:296296},
-  {id:'anubis',n:'Anubis',e:'🐺',r:'god',w:.0002,price:5000000,earn:740741},
-  // Mythisch (NEUE STUFE!)
-  {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,price:15000000,earn:2222222},
-  {id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,price:40000000,earn:5925926},
-  {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,price:100000000,earn:14814815},
+  {id:'lion',n:'Löwe',e:'🦁',r:'god',w:.001,p:450000,earn:61200,color:0xffaa00},
+  {id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:.0009,p:900000,earn:122400,color:0xaa7733},
+  {id:'kraken',n:'Kraken',e:'🦑',r:'god',w:.0005,p:2000000,earn:272000,color:0x224488},
+  {id:'anubis',n:'Anubis',e:'🐺',r:'god',w:.0002,p:5000000,earn:680000,color:0xcc9900},
+  // Mythisch
+  {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,p:15000000,earn:2040000,color:0xff2222},
+  {id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,p:40000000,earn:5440000,color:0x2244ff},
+  {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,p:100000000,earn:13600000,color:0xffdd00},
+  {id:'thor',n:'Thor',e:'🔨',r:'mythic',w:.00001,p:300000000,earn:40800000,color:0x4488ff},
   // Secret
-  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,price:500000000,earn:74074074},
-  {id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,price:5000000000,earn:740740741},
+  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:500000000,earn:68000000,color:0x44aa44},
+  {id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:5000000000,earn:680000000,color:0x224488},
 ];
 
 const RARITY = {
@@ -417,14 +434,15 @@ const RARITY = {
   god:{n:'Gott',cls:'rg'},mythic:{n:'Mythisch',cls:'rm'},secret:{n:'SECRET',cls:'rs'},
 };
 
-const SHINY = [
-  {id:'void',n:'VOID',cls:'tv',m:5,c:.5},
-  {id:'rainbow',n:'RAINBOW',cls:'tr',m:3,c:.5},
-  {id:'diamond',n:'DIAMOND',cls:'td',m:2,c:1},
-  {id:'gold',n:'GOLD',cls:'tg',m:1.5,c:2},
-];
+// Shiny multipliers
+const SHINY_DATA = {
+  gold:{n:'GOLD',cls:'tg',m:1.5,c:2,color:0xFFD700},
+  diamond:{n:'DIAMOND',cls:'td',m:2,c:1,color:0x00CFFF},
+  rainbow:{n:'RAINBOW',cls:'tr',m:3,c:.5,color:null},
+  void:{n:'VOID',cls:'tv',m:5,c:.5,color:0x9B59B6},
+};
 
-const TRAITS = [
+const TRAITS_DATA = [
   {id:'crystal',n:'CRYSTAL',cls:'tk',m:1.4,c:5,event:'snow'},
   {id:'electric',n:'ELECTRIC',cls:'te',m:1.3,c:5,event:'rush'},
   {id:'cosmic',n:'COSMIC',cls:'tc',m:1.6,c:4,event:'night'},
@@ -434,14 +452,14 @@ const TRAITS = [
 ];
 
 const EVENTS = [
-  {id:'snow',  n:'❄️ Schneesturm',c:'#AED6F1',d:'CRYSTAL Trait + weiße Gondeln ×3.5!',dur:25000,tid:'crystal'},
-  {id:'party', n:'🎉 Konzert!',    c:'#FF69B4',d:'CONCERT Trait + Strahlen ×4!',       dur:20000,tid:'concert'},
-  {id:'golden',n:'✨ Goldregen',   c:'#FFD700',d:'FIRE Trait + Einnahmen ×2.5!',        dur:18000,tid:'fire'},
-  {id:'night', n:'🌙 Magische Nacht',c:'#9B59B6',d:'COSMIC Trait + seltene Tiere!',    dur:22000,tid:'cosmic'},
+  {id:'snow',  n:'❄️ Schneesturm', c:'#AED6F1',d:'CRYSTAL Trait + weiße Gondeln ×3.5!',dur:25000,tid:'crystal'},
+  {id:'party', n:'🎉 Konzert!',    c:'#FF69B4',d:'CONCERT Trait + Party ×4!',           dur:20000,tid:'concert'},
+  {id:'golden',n:'✨ Goldregen',   c:'#FFD700',d:'FIRE Trait + ×2.5 Einnahmen!',        dur:18000,tid:'fire'},
+  {id:'night', n:'🌙 Mag. Nacht',  c:'#9B59B6',d:'COSMIC Trait + Seltene häufiger!',   dur:22000,tid:'cosmic'},
   {id:'rush',  n:'🏃 Rush Hour',   c:'#E74C3C',d:'ELECTRIC Trait + ×5 Besucher!',      dur:15000,tid:'electric'},
-  {id:'mega',  n:'💎 Mega-Event',  c:'#00CFFF',d:'Alle Traits + alles ×3!',             dur:12000},
-  {id:'glitch',n:'👾 Glitch',      c:'#00ff88',d:'GLITCH Trait ×4! Roboter spawnt!',   dur:18000,tid:'glitch'},
-  {id:'storm', n:'⛈️ Gewittersturm',c:'#3a3a8a',d:'Alle Einnahmen ×4! Selten++',        dur:14000},
+  {id:'mega',  n:'💎 Mega-Event',  c:'#00CFFF',d:'Alle Traits möglich + ×3 alles!',     dur:12000},
+  {id:'glitch',n:'👾 Glitch',      c:'#00ff88',d:'GLITCH Trait ×4 + Roboter spawnt!',  dur:18000,tid:'glitch'},
+  {id:'storm', n:'⛈️ Sturm',       c:'#334488',d:'×4 Einnahmen + Ultra++!',             dur:14000},
 ];
 
 const LUCK_UPS = [
@@ -453,24 +471,36 @@ const LUCK_UPS = [
   {m:10, cost:2000000,l:'×10 Glück 👑 MAX'},
 ];
 
-// REBIRTH REQUIREMENTS (easier for high rebirths - removed secret from early ones)
+// WEAPONS per rebirth level
+const WEAPONS = [
+  {n:'🏏 Holzschläger', emoji:'🏏', koTime:3000, koHits:0,  dmg:20, range:4},
+  {n:'⚾ Baseballschläger',emoji:'⚾',koTime:4000,koHits:0,  dmg:30, range:4.5},
+  {n:'🔨 Hammer',       emoji:'🔨', koTime:5000, koHits:0,  dmg:40, range:5},
+  {n:'🌊 Wasserwerfer', emoji:'🌊', koTime:5000, koHits:0,  dmg:50, range:6},
+  {n:'⚡ E-Schläger',   emoji:'⚡', koTime:5000, koHits:0,  dmg:60, range:6},
+  {n:'🌈 Regenbogen-Slap',emoji:'🌈',koTime:4000,koHits:10, dmg:70, range:7},
+  {n:'💜 Void-Stab',    emoji:'💜', koTime:5000, koHits:10, dmg:85, range:7},
+  {n:'🔫 Gun',          emoji:'🔫', koTime:5000, koHits:5,  dmg:100,range:15,isGun:true},
+];
+
+// REBIRTH REQUIREMENTS (gets harder but secret not needed until very late)
 function rebReq(n) {
   const R = [
-    {epic:1, leg:0, ultra:0, god:0, myth:0, sec:0, money:1000},
-    {epic:2, leg:1, ultra:0, god:0, myth:0, sec:0, money:5000},
-    {epic:3, leg:2, ultra:1, god:0, myth:0, sec:0, money:25000},
-    {epic:4, leg:3, ultra:2, god:1, myth:0, sec:0, money:120000},
-    {epic:5, leg:4, ultra:3, god:2, myth:1, sec:0, money:600000},
-    {epic:5, leg:5, ultra:4, god:3, myth:2, sec:0, money:3000000},
-    // From rebirth 7+ secret needed (very rare but possible)
-    {epic:5, leg:5, ultra:5, god:4, myth:3, sec:1, money:15000000},
+    {epic:1,leg:0,ultra:0,god:0,myth:0,sec:0,money:1000},
+    {epic:2,leg:1,ultra:0,god:0,myth:0,sec:0,money:5000},
+    {epic:3,leg:2,ultra:1,god:0,myth:0,sec:0,money:25000},
+    {epic:4,leg:3,ultra:2,god:1,myth:0,sec:0,money:120000},
+    {epic:5,leg:4,ultra:3,god:2,myth:1,sec:0,money:600000},
+    {epic:5,leg:5,ultra:4,god:3,myth:2,sec:0,money:3000000},
+    {epic:5,leg:5,ultra:5,god:4,myth:3,sec:0,money:15000000},
+    {epic:5,leg:5,ultra:5,god:5,myth:4,sec:1,money:100000000},
   ];
   return R[Math.min(n, R.length-1)];
 }
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════
 // HELPERS
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════
 function $mt(n) {
   if(n>=1e15) return '🌀'+(n/1e15).toFixed(2)+'Qa';
   if(n>=1e12) return '🌀'+(n/1e12).toFixed(2)+'T';
@@ -484,1123 +514,1022 @@ function G(id){return document.getElementById(id)}
 function show(id){G(id)?.classList.remove('off')}
 function hide(id){G(id)?.classList.add('off')}
 
-function rollAnimal(luck=1, nightEvt=false) {
-  const pool = ANIMALS.map(a => {
-    let w = a.w;
-    if(a.r !== 'normal') w *= Math.pow(luck, .55);
-    if(nightEvt && !['normal','rare'].includes(a.r)) w *= 1.4;
-    return {...a, _w: w};
+function rollAnimal(luck=1,nightEvt=false){
+  const pool=ANIMALS.map(a=>{
+    let w=a.w; if(a.r!=='normal')w*=Math.pow(luck,.55);
+    if(nightEvt&&!['normal','rare'].includes(a.r))w*=1.4;
+    return{...a,_w:w};
   });
-  const tot = pool.reduce((s,a)=>s+a._w, 0);
-  let r = Math.random()*tot;
-  for(const a of pool) { r -= a._w; if(r<=0) return a; }
-  return pool[0];
+  const tot=pool.reduce((s,a)=>s+a._w,0); let r=Math.random()*tot;
+  for(const a of pool){r-=a._w;if(r<=0)return a;} return pool[0];
 }
-function rollShiny() { for(const s of SHINY){if(Math.random()*100<s.c)return s;} return null; }
-function rollTraits(evId) {
+function rollShiny(){
+  for(const [id,s] of Object.entries(SHINY_DATA)){if(Math.random()*100<s.c)return{id,...s};}
+  return null;
+}
+function rollTraits(evId){
   if(!evId) return [];
-  if(evId==='mega') return TRAITS.filter(t=>Math.random()*100<t.c*1.5);
-  if(evId==='storm') return TRAITS.filter(t=>Math.random()*100<t.c*0.8);
-  return TRAITS.filter(t=>t.event===evId && Math.random()*100<t.c);
+  if(evId==='mega') return TRAITS_DATA.filter(t=>Math.random()*100<t.c*1.5);
+  return TRAITS_DATA.filter(t=>t.event===evId&&Math.random()*100<t.c);
 }
-function tMult(shiny, traits) {
-  let m = shiny ? shiny.m : 1;
-  (traits||[]).forEach(t=>m*=t.m);
-  return Math.round(m*100)/100;
+function tMult(shiny,traits){
+  let m=shiny?shiny.m:1; (traits||[]).forEach(t=>m*=t.m); return Math.round(m*100)/100;
 }
-function earnPV(enc, z, ev) {
-  if(!enc) return 0;
-  const base = enc.animal.earn;
-  const tm = tMult(enc.shiny, enc.traits) * (enc.extraMult||1);
-  let e = base * tm * (z.rebirthMult||1);
-  if(z.upgrades?.earn) e*=2;
-  if(z.upgrades?.earn2) e*=2;
-  if((z.tempBoosts?.coin||0)>Date.now()) e*=2;
-  if(ev?.id==='golden') e*=2.5;
-  if(ev?.id==='mega')   e*=3;
-  if(ev?.id==='storm')  e*=4;
+function earnPV(enc,z,ev){
+  if(!enc)return 0;
+  const base=enc.animal.earn;
+  const tm=tMult(enc.shiny,enc.traits)*(enc.extraMult||1);
+  const speedMult=Math.pow(1.05,enc.speedLevel||0);
+  let e=base*tm*(z.rebirthMult||1)*speedMult;
+  if(z.upgrades?.earn)e*=2; if(z.upgrades?.earn2)e*=2;
+  if((z.tempBoosts?.coin||0)>Date.now())e*=2;
+  if(ev?.id==='golden')e*=2.5; if(ev?.id==='mega')e*=3; if(ev?.id==='storm')e*=4;
   return e;
 }
-function rB(r){return `<span class="${RARITY[r]?.cls||'rn'}">${RARITY[r]?.n||r}</span>`}
+function rB(r){return`<span class="${RARITY[r]?.cls||'rn'}">${RARITY[r]?.n||r}</span>`}
 function sB(s){return s?`<span class="tb ${s.cls}">${s.n}</span>`:''}
-function tB(ts){return (ts||[]).map(t=>`<span class="tb ${t.cls}">${t.n}</span>`).join('')}
+function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.cls}">${t.n}</span>`).join('')}
 
-// ══════════════════════════════════════════════
-// ZOO STATE
-// ══════════════════════════════════════════════
-const ZS = {
-  player:null, playerChar:null, zoo:null, isAdmin:false, isPrivate:false,
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+const ZS={
+  player:null,playerChar:null,zoo:null,isAdmin:false,isPrivate:false,
 
-  newZoo() {
-    return {
-      mt:100, totalEarned:0, totalVisitors:0,
-      enclosures:Array(5).fill(null),
-      luck:1, luckLevel:0, upgrades:{}, tempBoosts:{},
-      rebirths:0, rebirthMult:1, extraEnc:0, startedAt:Date.now(),
-    };
+  newZoo(){return{
+    mt:8,totalEarned:0,totalVisitors:0,
+    enclosures:Array(5).fill(null),
+    luck:1,luckLevel:0,upgrades:{},tempBoosts:{},
+    rebirths:0,rebirthMult:1,extraEnc:0,startedAt:Date.now(),
+  };},
+
+  maxEnc(){return 5+(this.zoo?.extraEnc||0)+(this.zoo?.rebirths||0)*2;},
+
+  visitMs(){
+    const z=this.zoo;if(!z)return 9000;
+    let ms=9000;
+    if(z.upgrades?.vis)ms/=2;if(z.upgrades?.vis2)ms/=2;
+    if(ZG.currentEvent?.id==='rush')ms/=5;
+    ms/=Math.max(1,1+(z.rebirths||0)*.4);
+    if(z.upgrades?.vis_m)ms/=2;
+    if((z.tempBoosts?.storm||0)>Date.now())ms/=8;
+    return Math.max(500,ms);
   },
 
-  maxEnc() { return 5 + (this.zoo?.extraEnc||0) + (this.zoo?.rebirths||0)*2; },
-
-  visitMs() {
-    const z = this.zoo; if(!z) return 9000;
-    let ms = 9000;
-    if(z.upgrades?.vis)  ms/=2;
-    if(z.upgrades?.vis2) ms/=2;
-    if(ZGame.currentEvent?.id==='rush')  ms/=5;
-    ms /= Math.max(1, 1+(z.rebirths||0)*.4);
-    if(z.upgrades?.vis_m) ms/=2;
-    if((z.tempBoosts?.storm||0)>Date.now()) ms/=8;
-    return Math.max(500, ms);
-  },
-
-  curLuck() {
-    const z = this.zoo;
-    let l = z?.luck||1;
-    if((z?.tempBoosts?.lucky||0)>Date.now()) l*=2;
-    if(ZGame.currentEvent?.id==='night') l*=1.5;
+  curLuck(){
+    const z=this.zoo;
+    let l=z?.luck||1;
+    if((z?.tempBoosts?.lucky||0)>Date.now())l*=2;
+    if(ZG.currentEvent?.id==='night')l*=1.5;
     return l;
   },
 
-  async save() {
-    if(!this.player||!this.zoo) return;
-    const k = 'zoo_'+this.player.toLowerCase();
-    this.zoo.savedAt = Date.now();
-    try { if(State._useCloud()) await _db.collection('zoos').doc(k).set(this.zoo); } catch(e){}
-    localStorage.setItem(k, JSON.stringify(this.zoo));
+  async save(){
+    if(!this.player||!this.zoo)return;
+    const k='zoo_'+this.player.toLowerCase();
+    this.zoo.savedAt=Date.now();
+    try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}
+    localStorage.setItem(k,JSON.stringify(this.zoo));
   },
 
-  async load() {
-    const k = 'zoo_'+this.player.toLowerCase();
-    try {
-      if(State._useCloud()) {
-        const s = await _db.collection('zoos').doc(k).get();
-        if(s.exists) { this.zoo=s.data(); this.fixEnc(); return; }
+  async load(){
+    const k='zoo_'+this.player.toLowerCase();
+    try{
+      if(State._useCloud()){
+        const s=await _db.collection('zoos').doc(k).get();
+        if(s.exists){this.zoo=s.data();this.fixEnc();return;}
       }
-    } catch(e){}
-    const l = localStorage.getItem(k);
-    this.zoo = l ? JSON.parse(l) : this.newZoo();
+    }catch(e){}
+    const l=localStorage.getItem(k);
+    this.zoo=l?JSON.parse(l):this.newZoo();
     this.fixEnc();
   },
 
-  fixEnc() {
-    const n = this.maxEnc();
-    while(this.zoo.enclosures.length < n) this.zoo.enclosures.push(null);
+  fixEnc(){
+    const n=this.maxEnc();
+    while(this.zoo.enclosures.length<n)this.zoo.enclosures.push(null);
   },
 };
 
-// ══════════════════════════════════════════════
+// ════════════════════════════════════════════
 // AUTH
-// ══════════════════════════════════════════════
-const ZA = {
-  _cs: null,
+// ════════════════════════════════════════════
+const ZA={
+  _cs:null,
 
-  login() {
-    const n=G('zn')?.value.trim(), p=G('zpw')?.value.trim(), e=G('zerr');
+  login(){
+    const n=G('zn')?.value.trim(),p=G('zpw')?.value.trim(),e=G('zerr');
     if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
     if(!p){e.textContent='Bitte Passwort!';return;}
-    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'), k=n.toLowerCase();
-    if(!us[k]) {
-      us[k]={n,p,char:null}; localStorage.setItem('zoo_users',JSON.stringify(us));
-      ZS.player=n; ZS.isAdmin=k==='mischa'||k==='admin'; this._showChar();
-    } else {
-      const u=us[k]; if(u.p!==p){e.textContent='Falsches Passwort!';return;}
-      ZS.player=n; ZS.isAdmin=k==='mischa'||k==='admin';
-      if(!u.char) this._showChar(); else { ZS.playerChar=u.char; this._showMode(); }
-    }
+    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();
+    if(!us[k]){us[k]={n,p,char:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';this._showChar();}
+    else{const u=us[k];if(u.p!==p){e.textContent='Falsches Passwort!';return;}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!u.char)this._showChar();else{ZS.playerChar=u.char;this._showMode();}}
   },
 
-  _showChar() {
-    hide('s-login'); show('s-char');
-    const CH = [
-      {id:'spongebob',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},
-      {id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astronaut'},
-      {id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},
-      {id:'detective',e:'🕵️',n:'Detektiv'},{id:'lion',e:'🦁',n:'Löwe'},
-      {id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},
-      {id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},
-    ];
-    G('cgrid').innerHTML = CH.map(c=>`
-      <div class="copt" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')">
-        <span style="font-size:2rem;display:block">${c.e}</span>
-        <span style="font-size:.6rem;color:rgba(255,255,255,.5)">${c.n}</span>
-      </div>`).join('');
+  _showChar(){
+    hide('s-login');show('s-char');
+    const CH=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'det',e:'🕵️',n:'Detektiv'},{id:'lion',e:'🦁',n:'Löwe'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'}];
+    G('cgr').innerHTML=CH.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');
   },
+  _sel(id,e){ZA._cs={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
+  confirmChar(){if(!ZA._cs)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].char=ZA._cs;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.playerChar=ZA._cs;this._showMode();},
+  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS.playerChar?.e||''} Hallo ${ZS.player}!`;},
 
-  _sel(id,e) {
-    ZA._cs={id,e};
-    document.querySelectorAll('.copt').forEach(el=>el.classList.remove('sel'));
-    G('co-'+id)?.classList.add('sel');
-    G('chbtn').style.display='block';
-  },
-
-  confirmChar() {
-    if(!ZA._cs) return;
-    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'), k=ZS.player.toLowerCase();
-    if(us[k]) us[k].char=ZA._cs;
-    localStorage.setItem('zoo_users',JSON.stringify(us));
-    ZS.playerChar=ZA._cs; this._showMode();
-  },
-
-  _showMode() {
-    hide('s-char'); hide('s-login'); show('s-mode');
-    G('mhi').innerHTML = `${ZS.playerChar?.e||''} Hallo ${ZS.player}!`;
-  },
-
-  async checkPrivate() {
-    const z = ZS.zoo || ZS.newZoo();
-    if(z.mt < 100000) {
-      ZP.toast('❌ Privater Server kostet 100.000 MT!\nDu hast: '+$mt(z.mt||0), 3000);
-      return;
-    }
-    if(!confirm('Privaten Server starten? Kostet 100.000 MT')) return;
-    ZS.isPrivate = true;
-    this.startZoo('private');
-  },
-
-  async startZoo(mode) {
-    hide('s-mode'); show('s-zoo');
+  async checkPrivate(){
     await ZS.load();
-    if(mode==='private') ZS.zoo.mt -= 100000;
-    ZGame.start();
-    if(ZS.isAdmin) show('adminbtn');
+    if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Privater Server kostet 1.000.000 MT!\nDu hast: '+$mt(ZS.zoo?.mt||0),3000);return;}
+    if(!confirm('Privaten Server starten?\nKostet 1.000.000 MT'))return;
+    ZS.isPrivate=true;await ZS.load();ZS.zoo.mt-=1000000;this.startZoo('private');
   },
 
-  logout() {
-    ZGame.stop();
-    ZP.closeAll();
-    hide('s-zoo');
+  async startZoo(mode){
+    hide('s-mode');show('s-zoo');
+    await ZS.load();
+    ZG.start();
+    if(ZS.isAdmin)show('admbtn');
+  },
+
+  logout(){
+    ZG.stop();ZP.closeAll();hide('s-zoo');
     ZS.player=ZS.zoo=ZS.playerChar=null;
-    G('zn').value=''; G('zpw').value=''; G('zerr').textContent='';
-    show('s-login');
+    G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');
   },
 };
 </script>
 <script>
-// ══════════════════════════════════════════════
-// 3D GAME ENGINE (Three.js First Person)
-// ══════════════════════════════════════════════
-const ZGame = {
-  renderer:null, scene:null, camera:null,
-  clock:null, raycaster:null,
-  player:{ pos:new THREE.Vector3(0,1.7,15), vel:new THREE.Vector3(), yaw:0, pitch:0 },
-  keys:{}, touch:{},
-  objects:[], enclosureMeshes:[], npcs:[],
-  gondolaStation:null, gondolaTrigger:false,
-  currentEvent:null, eventEnd:0,
-  snowEls:[], beamEls:[],
-  gondCountdown:2500, gondolaQueue:[],
-  visitTimer:0,
-  _raf:null, _loops:[],
-  swingCooldown:0,
+// ════════════════════════════════════════════
+// 3D GAME ENGINE (Three.js r128)
+// ════════════════════════════════════════════
+const ZG={
+  renderer:null,scene:null,camera:null,clock:null,
+  pl:{x:0,y:1.7,z:15,yaw:0,pitch:0},
+  vel:{x:0,z:0},
+  keys:{},joy:{dx:0,dy:0,active:false},
   pointerLocked:false,
+  objects:[],encGroups:[],otherPlayers:{},
+  currentEvent:null,eventEnd:0,
+  snowEls:[],beamEls:[],
+  gondQueue:[],gondCountdown:2500,
+  visitTimer:0,
+  swingCD:0,playerHP:{},// {playerId: {hp, koUntil}}
+  _raf:null,_loops:[],
+  nearStation:false,nearEncIdx:-1,
 
-  // World constants
-  WORLD_SIZE: 80,
-  ENC_POSITIONS:[
-    {x:-25,z:-20},{x:-10,z:-20},{x:5,z:-20},{x:20,z:-20},{x:35,z:-20},
-    {x:-25,z:-5}, {x:-10,z:-5}, {x:5,z:-5}, {x:20,z:-5}, {x:35,z:-5},
-    {x:-25,z:10}, {x:-10,z:10}, {x:5,z:10}, {x:20,z:10}, {x:35,z:10},
+  WS:80, // world size
+  STA:{x:0,z:-28}, // gondola station position
+
+  ENC_POS:[
+    {x:-22,z:-18},{x:-8,z:-18},{x:6,z:-18},{x:20,z:-18},{x:34,z:-18},
+    {x:-22,z:-4}, {x:-8,z:-4}, {x:6,z:-4}, {x:20,z:-4}, {x:34,z:-4},
+    {x:-22,z:10}, {x:-8,z:10}, {x:6,z:10}, {x:20,z:10}, {x:34,z:10},
   ],
 
-  start() {
-    this._initThree();
+  start(){
+    const canvas=G('zc');
+    // THREE RENDERER
+    this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+    this.renderer.setSize(window.innerWidth,window.innerHeight);
+    this.renderer.shadowMap.enabled=true;
+    this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+    this.renderer.setClearColor(0x87CEEB);
+
+    this.scene=new THREE.Scene();
+    this.scene.fog=new THREE.Fog(0x87CEEB,45,120);
+
+    this.camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,200);
+    this.camera.position.set(this.pl.x,this.pl.y,this.pl.z);
+
+    this.clock=new THREE.Clock();
+    window.addEventListener('resize',()=>{
+      this.camera.aspect=window.innerWidth/window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(window.innerWidth,window.innerHeight);
+    });
+
     this._buildWorld();
     this._initControls();
-    this._raf = requestAnimationFrame(t=>this._loop(t));
-    this._loops.push(setInterval(()=>this._gameTick(), 100));
-    this._loops.push(setInterval(()=>ZS.save(), 15000));
-    this._loops.push(setInterval(()=>this._tryEvent(), 40000));
-    this._loops.push(setInterval(()=>this._checkAdminCmd(), 5000));
+    this._raf=requestAnimationFrame(t=>this._loop(t));
+    this._loops.push(setInterval(()=>this._tick(),100));
+    this._loops.push(setInterval(()=>ZS.save(),15000));
+    this._loops.push(setInterval(()=>this._tryEvent(),42000));
+    this._loops.push(setInterval(()=>this._checkAdminCmd(),5000));
+    this._loops.push(setInterval(()=>this._syncMultiplayer(),3000));
     this._gondTick();
-    for(let i=0;i<3;i++) this.gondolaQueue.push(this._makeGondola());
+
+    for(let i=0;i<3;i++) this.gondQueue.push(this._mkGondola());
     this._updHUD();
+    this._updWeapon();
     this._buildQR();
-    ZP.toast('WASD / Joystick zum Laufen\nMaus zum Umschauen\nE = Interagieren\n🏏 = Baseballschläger schwingen', 5000);
+
+    // Tutorial for first-timers
+    if(!localStorage.getItem('zoo_tutorial_done')) this._startTutorial();
   },
 
-  stop() {
+  stop(){
     cancelAnimationFrame(this._raf);
-    this._loops.forEach(clearInterval); this._loops=[];
-    this.snowEls.forEach(e=>e.remove()); this.snowEls=[];
-    this.beamEls.forEach(e=>e.remove()); this.beamEls=[];
-    if(this.renderer) { this.renderer.dispose(); }
+    this._loops.forEach(clearInterval);this._loops=[];
+    this.snowEls.forEach(e=>e.remove());this.snowEls=[];
+    this.beamEls.forEach(e=>e.remove());this.beamEls=[];
+    if(this.renderer){try{this.renderer.dispose();}catch(e){}}
     document.exitPointerLock?.();
   },
 
-  // ─────────────────────────────────────────
-  // THREE.JS INIT
-  // ─────────────────────────────────────────
-  _initThree() {
-    const canvas = G('threeCanvas');
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.2;
-    this.renderer.setClearColor(0x87CEEB);
-
-    this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0x87CEEB, 40, 120);
-
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 200);
-    this.camera.position.copy(this.player.pos);
-
-    this.clock = new THREE.Clock();
-    this.raycaster = new THREE.Raycaster();
-
-    window.addEventListener('resize', ()=>{
-      this.camera.aspect = window.innerWidth/window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  },
-
-  // ─────────────────────────────────────────
+  // ──────────────────────────────────────────
   // BUILD WORLD
-  // ─────────────────────────────────────────
-  _buildWorld() {
-    const scene = this.scene;
+  // ──────────────────────────────────────────
+  _buildWorld(){
+    const sc=this.scene;
 
-    // ── Lighting ──
-    const ambient = new THREE.AmbientLight(0xfff5e0, 0.6);
-    scene.add(ambient);
+    // Lighting
+    sc.add(new THREE.AmbientLight(0xfff5e0,.65));
+    const sun=new THREE.DirectionalLight(0xffe0a0,1.4);
+    sun.position.set(30,50,20);sun.castShadow=true;
+    sun.shadow.mapSize.width=1024;sun.shadow.mapSize.height=1024;
+    sun.shadow.camera.left=-55;sun.shadow.camera.right=55;
+    sun.shadow.camera.top=55;sun.shadow.camera.bottom=-55;
+    sc.add(sun);
+    sc.add(Object.assign(new THREE.DirectionalLight(0x8888ff,.25),{position:new THREE.Vector3(-15,8,-15)}));
 
-    const sun = new THREE.DirectionalLight(0xffe0a0, 1.5);
-    sun.position.set(30, 50, 20);
-    sun.castShadow = true;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
-    sun.shadow.camera.near = 0.5;
-    sun.shadow.camera.far = 200;
-    sun.shadow.camera.left = -60; sun.shadow.camera.right = 60;
-    sun.shadow.camera.top = 60; sun.shadow.camera.bottom = -60;
-    scene.add(sun);
+    // Ground
+    const gnd=new THREE.Mesh(new THREE.PlaneGeometry(this.WS*2,this.WS*2),new THREE.MeshLambertMaterial({color:0x4CAF50}));
+    gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;sc.add(gnd);
 
-    const fillLight = new THREE.DirectionalLight(0x8080ff, 0.3);
-    fillLight.position.set(-20, 10, -20);
-    scene.add(fillLight);
+    // Darker checkerboard squares on ground
+    const dkMat=new THREE.MeshLambertMaterial({color:0x388E3C});
+    for(let x=-35;x<=35;x+=8){for(let z=-35;z<=35;z+=8){if((Math.floor(x/8)+Math.floor(z/8))%2===0){const sq=new THREE.Mesh(new THREE.PlaneGeometry(7.8,7.8),dkMat);sq.rotation.x=-Math.PI/2;sq.position.set(x,.01,z);sc.add(sq);}}}
 
-    // ── Ground (checkerboard pattern like Steal a Brainrot) ──
-    const groundGeo = new THREE.PlaneGeometry(this.WORLD_SIZE*2, this.WORLD_SIZE*2, 40, 40);
-    const groundMat = new THREE.MeshLambertMaterial({ color:0x4CAF50 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI/2;
-    ground.receiveShadow = true;
-    scene.add(ground);
+    // Path (grey cobblestone look)
+    const pathMat=new THREE.MeshLambertMaterial({color:0x888888});
+    const path=new THREE.Mesh(new THREE.PlaneGeometry(6,50),pathMat);
+    path.rotation.x=-Math.PI/2;path.position.set(0,.02,-3);sc.add(path);
+    const darkPat=new THREE.MeshLambertMaterial({color:0x777777});
+    for(let z=-28;z<22;z+=2.5){const t=new THREE.Mesh(new THREE.PlaneGeometry(2,2.3),darkPat);t.rotation.x=-Math.PI/2;t.position.set(0,.03,z);sc.add(t);}
 
-    // Path (grey tiles leading to gondola)
-    const pathGeo = new THREE.PlaneGeometry(6, 40);
-    const pathMat = new THREE.MeshLambertMaterial({ color:0x888888 });
-    const path = new THREE.Mesh(pathGeo, pathMat);
-    path.rotation.x = -Math.PI/2; path.position.set(0, 0.01, -5);
-    path.receiveShadow = true;
-    scene.add(path);
+    // Sky dome
+    const sky=new THREE.Mesh(new THREE.SphereGeometry(150,32,16),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.BackSide}));
+    sc.add(sky);
 
-    // Path tiles (darker squares on path)
-    for(let i=-20; i<20; i+=2) {
-      const tile = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.8,1.8),
-        new THREE.MeshLambertMaterial({color:0x777777})
-      );
-      tile.rotation.x = -Math.PI/2; tile.position.set(0, 0.02, i);
-      scene.add(tile);
-    }
+    // Clouds
+    this._mkClouds();
 
-    // ── Sky dome ──
-    const skyGeo = new THREE.SphereGeometry(150, 32, 16);
-    const skyMat = new THREE.MeshBasicMaterial({
-      color: 0x87CEEB, side: THREE.BackSide
-    });
-    scene.add(new THREE.Mesh(skyGeo, skyMat));
+    // Boundary walls
+    this._mkBoundary();
 
-    // ── Clouds ──
-    this._buildClouds();
+    // Gondola Station (big building)
+    this._mkStation();
 
-    // ── Perimeter wall / fence ──
-    this._buildBoundary();
+    // Enclosures
+    this._mkEnclosures();
 
-    // ── Gondola Station (big building like SaB) ──
-    this._buildGondolaStation();
+    // Trees
+    this._mkTrees();
 
-    // ── Enclosures ──
-    this._buildEnclosures();
+    // Fountain at center
+    this._mkFountain();
 
-    // ── Trees / decoration ──
-    this._buildTrees();
-
-    // ── Fountain in center ──
-    this._buildFountain();
-
-    // ── Signs ──
-    this._buildSigns();
-
-    // ── NPC other players (placeholder sprites) ──
-    this._buildNPCs();
+    // Zoo name sign
+    const sign=this._mkTextSprite('🦁 MISCHA ZOO 3D',1.2,'#FFD700');
+    sign.position.set(0,11,-28);sign.scale.set(14,3,1);sc.add(sign);
   },
 
-  _buildClouds() {
-    const mat = new THREE.MeshLambertMaterial({ color:0xffffff });
-    for(let i=0;i<12;i++) {
-      const group = new THREE.Group();
-      for(let j=0;j<4;j++) {
-        const g = new THREE.SphereGeometry(3+Math.random()*4,8,6);
-        const m = new THREE.Mesh(g,mat);
-        m.position.set(j*4-6+Math.random()*4, Math.random()*2, Math.random()*4);
-        group.add(m);
-      }
-      group.position.set(
-        (Math.random()-0.5)*160, 35+Math.random()*15, (Math.random()-0.5)*160
-      );
-      group.userData.isCloud = true;
-      group.userData.speed = 0.02+Math.random()*0.03;
-      this.scene.add(group);
+  _mkClouds(){
+    const mat=new THREE.MeshLambertMaterial({color:0xffffff});
+    for(let i=0;i<14;i++){
+      const g=new THREE.Group();
+      for(let j=0;j<5;j++){const m=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*3,7,5),mat);m.position.set(j*3.5-7+Math.random()*3,Math.random()*2,Math.random()*3);g.add(m);}
+      g.position.set((Math.random()-.5)*160,35+Math.random()*15,(Math.random()-.5)*160);
+      g.userData.cloud=true;g.userData.spd=.015+Math.random()*.025;
+      this.scene.add(g);
     }
   },
 
-  _buildBoundary() {
-    const mat = new THREE.MeshLambertMaterial({ color:0x888888 });
-    const posts = [[0,-40],[0,40],[-40,0],[40,0]];
-    // Corner pillars
-    [[-38,-38],[38,-38],[-38,38],[38,38]].forEach(([x,z])=>{
-      const g = new THREE.BoxGeometry(3,10,3);
-      const m = new THREE.Mesh(g,mat);
-      m.position.set(x,5,z); m.castShadow=true;
-      this.scene.add(m);
+  _mkBoundary(){
+    const pm=new THREE.MeshLambertMaterial({color:0x777777});
+    const rm=new THREE.MeshLambertMaterial({color:0x444444});
+    [[-37,-37],[37,-37],[-37,37],[37,37]].forEach(([x,z])=>{
+      const p=new THREE.Mesh(new THREE.BoxGeometry(3,10,3),pm);p.position.set(x,5,z);p.castShadow=true;this.scene.add(p);
     });
-    // Fence rails
-    const rMat = new THREE.MeshLambertMaterial({color:0x444444});
-    [[-38,0,0],[ 38,0,0],[0,0,-38],[0,0,38]].forEach(([x,y,z])=>{
-      const isX = x!==0;
-      const g = new THREE.BoxGeometry(isX?.5:80, .5, isX?80:.5);
-      const m = new THREE.Mesh(g,rMat);
-      m.position.set(x,6,z); this.scene.add(m);
-      const m2 = new THREE.Mesh(g.clone(),rMat);
-      m2.position.set(x,3,z); this.scene.add(m2);
+    const rails=[[0,0,-37,'x'],[0,0,37,'x'],[-37,0,0,'z'],[37,0,0,'z']];
+    rails.forEach(([x,y,z,ax])=>{
+      const g=new THREE.BoxGeometry(ax==='x'?.4:78,.4,ax==='z'?78:.4);
+      [6,3].forEach(hy=>{const r=new THREE.Mesh(g,rm);r.position.set(x,hy,z);this.scene.add(r);});
     });
   },
 
-  _buildGondolaStation() {
-    // Big building at the far end
-    const pos = {x:0, y:0, z:-30};
-
-    // Main building body
-    const bodyGeo = new THREE.BoxGeometry(22, 12, 16);
-    const bodyMat = new THREE.MeshLambertMaterial({ color:0x5a3010 });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.position.set(pos.x, 6, pos.z);
-    body.castShadow = true; body.receiveShadow = true;
-    this.scene.add(body);
-
+  _mkStation(){
+    const pos={x:0,y:0,z:-28};
+    // Main body
+    const body=new THREE.Mesh(new THREE.BoxGeometry(24,13,18),new THREE.MeshLambertMaterial({color:0x5a3010}));
+    body.position.set(pos.x,6.5,pos.z);body.castShadow=true;body.receiveShadow=true;this.scene.add(body);
     // Roof
-    const roofGeo = new THREE.ConeGeometry(15, 5, 4);
-    const roofMat = new THREE.MeshLambertMaterial({ color:0xcc2020 });
-    const roof = new THREE.Mesh(roofGeo, roofMat);
-    roof.position.set(pos.x, 14, pos.z); roof.rotation.y = Math.PI/4;
-    roof.castShadow = true; this.scene.add(roof);
-
-    // Sign above entrance
-    const signGeo = new THREE.BoxGeometry(16, 2.5, 0.5);
-    const signMat = new THREE.MeshLambertMaterial({ color:0x3a1a00 });
-    const sign = new THREE.Mesh(signGeo, signMat);
-    sign.position.set(pos.x, 11, pos.z+8.2); this.scene.add(sign);
-
-    // Door frame (red like SaB)
-    const doorFrameGeo = new THREE.BoxGeometry(5, 8, 0.4);
-    const doorFrameMat = new THREE.MeshLambertMaterial({ color:0xff2020 });
-    const doorFrame = new THREE.Mesh(doorFrameGeo, doorFrameMat);
-    doorFrame.position.set(pos.x, 4, pos.z+8.1); this.scene.add(doorFrame);
-
-    // Door opening (black)
-    const doorGeo = new THREE.BoxGeometry(3.5, 6.5, 0.5);
-    const doorMat = new THREE.MeshLambertMaterial({ color:0x111111 });
-    const door = new THREE.Mesh(doorGeo, doorMat);
-    door.position.set(pos.x, 3.5, pos.z+8.3); this.scene.add(door);
-
-    // Gondola cable overhead
-    const cableGeo = new THREE.CylinderGeometry(0.08, 0.08, 50, 8);
-    const cableMat = new THREE.MeshLambertMaterial({ color:0x888888 });
-    const cable = new THREE.Mesh(cableGeo, cableMat);
-    cable.rotation.z = Math.PI/2; cable.position.set(0, 10, pos.z);
-    this.scene.add(cable);
-
-    // Trigger zone
-    this.gondolaStation = { pos:new THREE.Vector3(pos.x, 1.7, pos.z+6) };
-
-    // Gold trim on building
-    const trimGeo = new THREE.BoxGeometry(22.2, .3, 16.2);
-    const trimMat = new THREE.MeshLambertMaterial({ color:0xFFD700 });
-    const trim = new THREE.Mesh(trimGeo, trimMat);
-    trim.position.set(pos.x, 12.2, pos.z); this.scene.add(trim);
-
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(17,6,4),new THREE.MeshLambertMaterial({color:0xcc1010}));
+    roof.position.set(pos.x,15,pos.z);roof.rotation.y=Math.PI/4;roof.castShadow=true;this.scene.add(roof);
+    // Gold trim
+    const trim=new THREE.Mesh(new THREE.BoxGeometry(24.2,.4,18.2),new THREE.MeshLambertMaterial({color:0xFFD700}));
+    trim.position.set(pos.x,13.2,pos.z);this.scene.add(trim);
+    // Door (red frame like Steal a Brainrot)
+    const df=new THREE.Mesh(new THREE.BoxGeometry(5.5,9,.5),new THREE.MeshLambertMaterial({color:0xff1111}));
+    df.position.set(pos.x,4.5,pos.z+9.1);this.scene.add(df);
+    const do_=new THREE.Mesh(new THREE.BoxGeometry(4,7.5,.6),new THREE.MeshLambertMaterial({color:0x111111}));
+    do_.position.set(pos.x,4,pos.z+9.2);this.scene.add(do_);
     // Windows
-    const winMat = new THREE.MeshLambertMaterial({ color:0x88ccff, transparent:true, opacity:.7 });
-    [[-7,0],[7,0]].forEach(([ox,_])=>{
-      const wg = new THREE.BoxGeometry(3,3,0.3);
-      const wm = new THREE.Mesh(wg, winMat);
-      wm.position.set(pos.x+ox, 6, pos.z+8.2); this.scene.add(wm);
-    });
+    const wm=new THREE.MeshLambertMaterial({color:0x88ccff,transparent:true,opacity:.7});
+    [[-7.5,0],[7.5,0]].forEach(([ox])=>{const w=new THREE.Mesh(new THREE.BoxGeometry(3.5,3.5,.3),wm);w.position.set(pos.x+ox,6.5,pos.z+9.1);this.scene.add(w);});
+    // Cable overhead
+    const cable=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,55,7),new THREE.MeshLambertMaterial({color:0x777777}));
+    cable.rotation.z=Math.PI/2;cable.position.set(0,11,pos.z);this.scene.add(cable);
+    // gondola cars on cable (3 meshes)
+    this._stationGondolaCars=[];
+    for(let i=0;i<3;i++){
+      const car=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.4,1.8),new THREE.MeshLambertMaterial({color:i===0?0xc8a050:0x8B5E3C}));
+      car.position.set(-12+i*12,11,pos.z);this.scene.add(car);
+      this._stationGondolaCars.push(car);
+      // rope
+      const rope=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1,5),new THREE.MeshLambertMaterial({color:0x888888}));
+      rope.position.set(-12+i*12,11.7,pos.z);this.scene.add(rope);
+    }
   },
 
-  _buildEnclosures() {
-    this.enclosureMeshes = [];
-    const z = ZS.zoo;
-    const maxE = ZS.maxEnc();
-    this.ENC_POSITIONS.slice(0, Math.min(maxE, this.ENC_POSITIONS.length)).forEach((ep, i) => {
-      const group = new THREE.Group();
-      group.position.set(ep.x, 0, ep.z);
-
-      // Base ground
-      const baseGeo = new THREE.BoxGeometry(8, 0.2, 8);
-      const baseMat = new THREE.MeshLambertMaterial({ color:0x4a8a30 });
-      const base = new THREE.Mesh(baseGeo, baseMat);
-      base.position.y = 0.1; base.receiveShadow = true;
-      group.add(base);
-
-      // Fence posts + rails (4 sides)
-      const postMat = new THREE.MeshLambertMaterial({ color:0x8B4513 });
-      const railMat = new THREE.MeshLambertMaterial({ color:0xa0522d });
+  _mkEnclosures(){
+    this.encGroups.forEach(g=>this.scene.remove(g));
+    this.encGroups=[];
+    const z=ZS.zoo;
+    const maxE=ZS.maxEnc();
+    this.ENC_POS.slice(0,Math.min(maxE,this.ENC_POS.length)).forEach((ep,i)=>{
+      const g=new THREE.Group();
+      g.position.set(ep.x,0,ep.z);
+      // Ground pad
+      const base=new THREE.Mesh(new THREE.BoxGeometry(8.5,.25,8.5),new THREE.MeshLambertMaterial({color:0x4a8a30}));
+      base.position.y=.12;base.receiveShadow=true;g.add(base);
+      // Fence posts 4 corners
+      const pm=new THREE.MeshLambertMaterial({color:0x8B4513});
       [[-4,4],[4,4],[4,-4],[-4,-4]].forEach(([px,pz])=>{
-        const pg = new THREE.BoxGeometry(.4,2.5,.4);
-        const pm = new THREE.Mesh(pg,postMat); pm.position.set(px,1.25,pz);
-        pm.castShadow=true; group.add(pm);
+        const po=new THREE.Mesh(new THREE.BoxGeometry(.4,2.6,.4),pm);po.position.set(px,1.3,pz);po.castShadow=true;g.add(po);
       });
       // Rails
-      [[0,1.8,4,'x'],[0,1.8,-4,'x'],[-4,1.8,0,'z'],[4,1.8,0,'z']].forEach(([px,py,pz,ax])=>{
-        const rg = new THREE.BoxGeometry(ax==='x'?8:.2,.2,ax==='z'?8:.2);
-        const rm = new THREE.Mesh(rg,railMat); rm.position.set(px,py,pz); group.add(rm);
-        const rg2 = rg.clone(); const rm2 = new THREE.Mesh(rg2,railMat);
-        rm2.position.set(px,.8,pz); group.add(rm2);
+      const rlm=new THREE.MeshLambertMaterial({color:0xa05525});
+      [[0,1.8,4.2,'x'],[0,1.8,-4.2,'x'],[-4.2,1.8,0,'z'],[4.2,1.8,0,'z']].forEach(([px,py,pz,ax])=>{
+        [1.8,.6].forEach(hy=>{const rg=new THREE.BoxGeometry(ax==='x'?8.5:.25,.2,ax==='z'?8.5:.25);const r=new THREE.Mesh(rg,rlm);r.position.set(px,hy,pz);g.add(r);});
       });
-
-      // Animal sprite (emoji rendered as text)
-      const enc = z?.enclosures?.[i];
-      if(enc) {
-        const sprite = this._makeEmojiSprite(enc.animal.e, enc.shiny);
-        sprite.position.set(0, 1.5, 0);
-        group.add(sprite);
+      // Animal sprite
+      const enc=z?.enclosures?.[i];
+      if(enc){
+        const sp=this._mkAnimalSprite(enc.animal,enc.shiny);
+        sp.position.set(0,1.8,0);g.add(sp);
       }
-
-      // Number sign
-      const numSprite = this._makeTextSprite('#'+(i+1), 0.6, '#fff');
-      numSprite.position.set(-3.5, 2.8, -3.5);
-      group.add(numSprite);
-
-      group.userData = { type:'enclosure', index:i };
-      group.userData.enclosureIndex = i;
-      this.enclosureMeshes.push(group);
-      this.scene.add(group);
+      // Number label
+      const ns=this._mkTextSprite('#'+(i+1),.55,'#fff');
+      ns.position.set(-3.8,3,0);g.add(ns);
+      // Earn label if occupied
+      if(enc){
+        const earn=earnPV(enc,z,this.currentEvent);
+        const es=this._mkTextSprite($mt(earn)+'/visit',.5,'#00FF88');
+        es.position.set(0,3.2,0);g.add(es);
+      }
+      g.userData={encIdx:i};
+      this.encGroups.push(g);
+      this.scene.add(g);
     });
   },
 
-  _makeEmojiSprite(emoji, shiny=null) {
-    const canvas = document.createElement('canvas');
-    canvas.width=128; canvas.height=128;
-    const ctx = canvas.getContext('2d');
-    if(shiny) {
-      const colors = {gold:'#FFD700',diamond:'#00CFFF',rainbow:'#ff69b4',void:'#9B59B6'};
-      ctx.fillStyle=colors[shiny.id]||'transparent';
-      ctx.fillRect(0,0,128,128);
+  _mkAnimalSprite(animal,shiny){
+    const c=document.createElement('canvas');c.width=128;c.height=128;
+    const ctx=c.getContext('2d');
+    // Shiny background
+    if(shiny){
+      const bg={gold:'#FFD700',diamond:'#00CFFF',rainbow:null,void:'#9B59B6'}[shiny.id];
+      if(bg&&shiny.id!=='rainbow'){ctx.fillStyle=bg+'44';ctx.fillRect(0,0,128,128);}
+      if(shiny.id==='rainbow'){
+        const gr=ctx.createLinearGradient(0,0,128,128);
+        ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff'].forEach((c,i)=>gr.addColorStop(i/5,c+'66'));
+        ctx.fillStyle=gr;ctx.fillRect(0,0,128,128);
+      }
     }
-    ctx.font='72px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(emoji, 64, 68);
-    const tex = new THREE.CanvasTexture(canvas);
-    const mat = new THREE.SpriteMaterial({ map:tex, transparent:true });
-    const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(2.5, 2.5, 1);
-    return sprite;
+    ctx.font='72px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(animal.e,64,68);
+    const tex=new THREE.CanvasTexture(c);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+    sp.scale.set(2.8,2.8,1);
+    return sp;
   },
 
-  _makeTextSprite(text, size=0.5, color='#ffffff') {
-    const canvas = document.createElement('canvas');
-    canvas.width=256; canvas.height=64;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.roundRect?ctx.roundRect(0,0,256,64,12):ctx.fillRect(0,0,256,64); ctx.fill();
-    ctx.font=`bold 32px Fredoka One,sans-serif`; ctx.fillStyle=color;
-    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,128,32);
-    const tex = new THREE.CanvasTexture(canvas);
-    const mat = new THREE.SpriteMaterial({ map:tex, transparent:true });
-    const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(4*size, 1*size, 1);
-    return sprite;
+  _mkTextSprite(text,sz=.5,color='#fff'){
+    const c=document.createElement('canvas');c.width=256;c.height=64;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,256,64);
+    ctx.font=`bold 30px Fredoka One,sans-serif`;ctx.fillStyle=color;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,32);
+    const tex=new THREE.CanvasTexture(c);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+    sp.scale.set(4*sz,sz,1);return sp;
   },
 
-  _buildTrees() {
-    const trunkMat = new THREE.MeshLambertMaterial({ color:0x8B4513 });
-    const leavesMat = new THREE.MeshLambertMaterial({ color:0x228B22 });
-    const positions = [
-      [-35,-15],[-35,0],[-35,15],[-35,-30],[35,-15],[35,0],[35,15],[35,-30],
-      [-20,25],[0,30],[20,25],[-15,-35],[15,-35],
-    ];
-    positions.forEach(([x,z])=>{
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,4,8), trunkMat);
-      trunk.position.set(x,2,z); trunk.castShadow=true; this.scene.add(trunk);
-      const leaves = new THREE.Mesh(new THREE.SphereGeometry(3.5,10,8), leavesMat);
-      leaves.position.set(x,7,z); leaves.castShadow=true; this.scene.add(leaves);
-      // Lighter top highlight
-      const hiMat = new THREE.MeshLambertMaterial({color:0x32CD32});
-      const hi = new THREE.Mesh(new THREE.SphereGeometry(2.5,8,6), hiMat);
-      hi.position.set(x-1,9,z-1); this.scene.add(hi);
+  _mkTrees(){
+    const trM=new THREE.MeshLambertMaterial({color:0x8B4513});
+    const leM=new THREE.MeshLambertMaterial({color:0x228B22});
+    const hiM=new THREE.MeshLambertMaterial({color:0x32CD32});
+    const P=[[-34,-14],[-34,0],[-34,14],[-34,-28],[34,-14],[34,0],[34,14],[34,-28],[-18,28],[0,32],[18,28],[-14,-34],[14,-34],[-28,20],[28,20]];
+    P.forEach(([x,z])=>{
+      const tr=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,4.2,8),trM);tr.position.set(x,2.1,z);tr.castShadow=true;this.scene.add(tr);
+      const le=new THREE.Mesh(new THREE.SphereGeometry(3.8,9,7),leM);le.position.set(x,7.5,z);le.castShadow=true;this.scene.add(le);
+      const hi=new THREE.Mesh(new THREE.SphereGeometry(2.6,8,6),hiM);hi.position.set(x-1,9.5,z-1);this.scene.add(hi);
     });
   },
 
-  _buildFountain() {
-    const baseMat = new THREE.MeshLambertMaterial({ color:0x888888 });
-    const waterMat = new THREE.MeshLambertMaterial({ color:0x4488ff, transparent:true, opacity:.75 });
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(3,3.5,1,16), baseMat);
-    base.position.set(0,0.5,8); base.castShadow=true; this.scene.add(base);
-    const water = new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,.3,16), waterMat);
-    water.position.set(0,1.2,8); this.scene.add(water);
-    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,3,8), baseMat);
-    pillar.position.set(0,2.5,8); this.scene.add(pillar);
+  _mkFountain(){
+    const bm=new THREE.MeshLambertMaterial({color:0x888888});
+    const wm=new THREE.MeshLambertMaterial({color:0x4488ff,transparent:true,opacity:.75});
+    const b=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.8,1.1,16),bm);b.position.set(0,.55,8);b.castShadow=true;this.scene.add(b);
+    const w=new THREE.Mesh(new THREE.CylinderGeometry(2.7,2.7,.35,16),wm);w.position.set(0,1.25,8);this.scene.add(w);
+    const pi=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,3.2,8),bm);pi.position.set(0,2.8,8);this.scene.add(pi);
   },
 
-  _buildSigns() {
-    // YOUR BASE sign (like SaB)
-    const yourBase = this._makeTextSprite('🦁 MISCHA ZOO', 1.2, '#FFD700');
-    yourBase.position.set(0,8,-30);
-    yourBase.scale.set(14, 3, 1);
-    this.scene.add(yourBase);
-
-    // Gondola station label
-    const gLabel = this._makeTextSprite('GONDEL-STATION', .9, '#FFD700');
-    gLabel.position.set(0, 14, -30);
-    gLabel.scale.set(12, 2.5, 1);
-    this.scene.add(gLabel);
-
-    // Welcome mat
-    const matGeo = new THREE.PlaneGeometry(6,2);
-    const matMat = new THREE.MeshLambertMaterial({ color:0x27AE60 });
-    const mat = new THREE.Mesh(matGeo, matMat);
-    mat.rotation.x=-Math.PI/2; mat.position.set(0,.02,-22); this.scene.add(mat);
-  },
-
-  _buildNPCs() {
-    // Placeholder NPCs (other players)
-    const colors = [0xff6b6b, 0x4fc3f7];
-    this.npcs = [];
-    if(!ZS.isPrivate) {
-      colors.forEach((col,i)=>{
-        const body = new THREE.Mesh(
-          new THREE.CapsuleGeometry ? new THREE.CylinderGeometry(.4,.4,1.4,12) : new THREE.BoxGeometry(.8,1.4,.6),
-          new THREE.MeshLambertMaterial({ color:col })
-        );
-        const head = new THREE.Mesh(new THREE.SphereGeometry(.4,12,8), new THREE.MeshLambertMaterial({color:0xffe0b0}));
-        const group = new THREE.Group();
-        group.add(body); head.position.y=1.1; group.add(head);
-        group.position.set(-8+i*16, .7, 5+Math.random()*5);
-        group.userData = { npc:true, dir:Math.random()*Math.PI*2, speed:.03 };
-        this.npcs.push(group);
-        this.scene.add(group);
-      });
-    }
-  },
-
-  // ─────────────────────────────────────────
+  // ──────────────────────────────────────────
   // CONTROLS
-  // ─────────────────────────────────────────
-  _initControls() {
-    // Keyboard
-    document.addEventListener('keydown', e=>{
-      this.keys[e.code] = true;
-      if(e.code==='KeyE') this._interact();
+  // ──────────────────────────────────────────
+  _initControls(){
+    document.addEventListener('keydown',e=>{
+      this.keys[e.code]=true;
+      if(e.code==='KeyE')this._interact();
+      if(e.code==='KeyQ')this.swing();
     });
-    document.addEventListener('keyup', e=>this.keys[e.code]=false);
+    document.addEventListener('keyup',e=>{this.keys[e.code]=false;});
 
-    // Pointer lock for mouse look
-    const canvas = G('threeCanvas');
-    canvas.addEventListener('click', ()=>{
-      if(!this.pointerLocked) canvas.requestPointerLock?.();
-    });
-    document.addEventListener('pointerlockchange', ()=>{
-      this.pointerLocked = document.pointerLockElement === canvas;
-    });
-    document.addEventListener('mousemove', e=>{
-      if(!this.pointerLocked) return;
-      this.player.yaw   -= e.movementX * 0.002;
-      this.player.pitch -= e.movementY * 0.002;
-      this.player.pitch = Math.max(-1.2, Math.min(1.2, this.player.pitch));
+    const canvas=G('zc');
+    canvas.addEventListener('click',()=>{if(!this.pointerLocked)canvas.requestPointerLock?.();});
+    document.addEventListener('pointerlockchange',()=>{this.pointerLocked=document.pointerLockElement===canvas;});
+    document.addEventListener('mousemove',e=>{
+      if(!this.pointerLocked)return;
+      this.pl.yaw-=e.movementX*.002;
+      this.pl.pitch=Math.max(-1.2,Math.min(1.2,this.pl.pitch-e.movementY*.002));
     });
 
-    // Mobile joystick
-    const base=G('joy-base'), thumb=G('joy-thumb'), R=37;
-    const mv=(cx,cy)=>{const r=base.getBoundingClientRect();const ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);const d=Math.sqrt(ox*ox+oy*oy),cl=Math.min(d,R);const nx=d>0?(ox/d)*cl:0,ny=d>0?(oy/d)*cl:0;thumb.style.left=(37+nx)+'px';thumb.style.top=(37+ny)+'px';this.touch.jx=nx/R;this.touch.jy=ny/R;this.touch.active=d>5;};
-    const up=()=>{thumb.style.left='37px';thumb.style.top='37px';this.touch.active=false;this.touch.jx=0;this.touch.jy=0;};
+    // Joystick
+    const base=G('jbase'),thumb=G('jthumb'),R=35;
+    const mv=(cx,cy)=>{const r=base.getBoundingClientRect();const ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);const d=Math.sqrt(ox*ox+oy*oy),cl=Math.min(d,R);const nx=d>0?(ox/d)*cl:0,ny=d>0?(oy/d)*cl:0;thumb.style.left=(35+nx)+'px';thumb.style.top=(35+ny)+'px';this.joy.dx=nx/R;this.joy.dy=ny/R;this.joy.active=d>4;};
+    const up=()=>{thumb.style.left='35px';thumb.style.top='35px';this.joy.active=false;this.joy.dx=this.joy.dy=0;};
     base.addEventListener('touchstart',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    base.addEventListener('touchmove', e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    base.addEventListener('touchend', up);
+    base.addEventListener('touchmove',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+    base.addEventListener('touchend',up);
     base.addEventListener('mousedown',e=>{const mm=ev=>mv(ev.clientX,ev.clientY);const mu=()=>{document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);up();};document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);mv(e.clientX,e.clientY);});
 
-    // Touch look (right side of screen)
+    // Touch look right half
     let lastT=null;
-    G('threeCanvas')?.addEventListener('touchstart',e=>{for(const t of e.touches){if(t.clientX>window.innerWidth/2){lastT={x:t.clientX,y:t.clientY,id:t.identifier};}}},{passive:true});
-    G('threeCanvas')?.addEventListener('touchmove',e=>{for(const t of e.touches){if(lastT&&t.identifier===lastT.id){const dx=t.clientX-lastT.x,dy=t.clientY-lastT.y;this.player.yaw-=dx*.004;this.player.pitch-=dy*.004;this.player.pitch=Math.max(-1.2,Math.min(1.2,this.player.pitch));lastT={x:t.clientX,y:t.clientY,id:t.identifier};}}},{passive:true});
+    G('zc')?.addEventListener('touchstart',e=>{for(const t of e.touches){if(t.clientX>window.innerWidth/2&&t.clientX<window.innerWidth-140){lastT={x:t.clientX,y:t.clientY,id:t.identifier};}}},{passive:true});
+    G('zc')?.addEventListener('touchmove',e=>{for(const t of e.touches){if(lastT&&t.identifier===lastT.id){this.pl.yaw-=(t.clientX-lastT.x)*.003;this.pl.pitch=Math.max(-1.2,Math.min(1.2,this.pl.pitch-(t.clientY-lastT.y)*.003));lastT={x:t.clientX,y:t.clientY,id:t.identifier};}}},{passive:true});
   },
 
-  // ─────────────────────────────────────────
-  // GAME LOOP
-  // ─────────────────────────────────────────
-  _loop(ts) {
-    this._raf = requestAnimationFrame(t=>this._loop(t));
-    const dt = Math.min(this.clock.getDelta(), 0.05);
-    this._updatePlayer(dt);
-    this._updateCamera();
-    this._updateNPCs(dt);
-    this._updateClouds(dt);
+  // ──────────────────────────────────────────
+  // MAIN LOOP
+  // ──────────────────────────────────────────
+  _loop(){
+    this._raf=requestAnimationFrame(()=>this._loop());
+    const dt=Math.min(this.clock.getDelta(),.05);
+    this._movePlayer(dt);
+    this._updateCam();
+    this._animClouds(dt);
+    this._animGondolaCars(dt);
     this._drawMinimap();
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene,this.camera);
   },
 
-  _updatePlayer(dt) {
-    const p = this.player;
-    const speed = 8;
-    const fwd = new THREE.Vector3(-Math.sin(p.yaw), 0, -Math.cos(p.yaw));
-    const right = new THREE.Vector3(Math.cos(p.yaw), 0, -Math.sin(p.yaw));
-    const move = new THREE.Vector3();
-
-    if(this.keys['KeyW']||this.keys['ArrowUp'])   move.add(fwd);
-    if(this.keys['KeyS']||this.keys['ArrowDown'])  move.sub(fwd);
-    if(this.keys['KeyA']||this.keys['ArrowLeft'])  move.sub(right);
-    if(this.keys['KeyD']||this.keys['ArrowRight']) move.add(right);
-    if(this.touch.active) {
-      move.add(fwd.clone().multiplyScalar(-this.touch.jy));
-      move.add(right.clone().multiplyScalar(this.touch.jx));
+  _movePlayer(dt){
+    const p=this.pl;
+    const sp=7.5;
+    const fwd={x:-Math.sin(p.yaw),z:-Math.cos(p.yaw)};
+    const rgt={x:Math.cos(p.yaw),z:-Math.sin(p.yaw)};
+    let mx=0,mz=0;
+    if(this.keys['KeyW']||this.keys['ArrowUp']){mx+=fwd.x;mz+=fwd.z;}
+    if(this.keys['KeyS']||this.keys['ArrowDown']){mx-=fwd.x;mz-=fwd.z;}
+    if(this.keys['KeyA']||this.keys['ArrowLeft']){mx-=rgt.x;mz-=rgt.z;}
+    if(this.keys['KeyD']||this.keys['ArrowRight']){mx+=rgt.x;mz+=rgt.z;}
+    if(this.joy.active){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
+    const l=Math.sqrt(mx*mx+mz*mz);
+    if(l>0){p.x+=mx/l*sp*dt;p.z+=mz/l*sp*dt;}
+    const B=this.WS/2-2;
+    p.x=Math.max(-B,Math.min(B,p.x));p.z=Math.max(-B,Math.min(B,p.z));p.y=1.7;
+    // Check proximity
+    const stDx=p.x-this.STA.x,stDz=p.z-this.STA.z;
+    this.nearStation=Math.sqrt(stDx*stDx+stDz*stDz)<7;
+    this.nearEncIdx=-1;
+    for(let i=0;i<Math.min(this.ENC_POS.length,ZS.maxEnc());i++){
+      const ep=this.ENC_POS[i];const dx=p.x-ep.x,dz=p.z-ep.z;
+      if(Math.sqrt(dx*dx+dz*dz)<5.5){this.nearEncIdx=i;break;}
     }
-    if(move.length()>0) { move.normalize(); p.pos.addScaledVector(move, speed*dt); }
-
-    // Clamp to world bounds
-    const B = this.WORLD_SIZE/2-2;
-    p.pos.x = Math.max(-B, Math.min(B, p.pos.x));
-    p.pos.z = Math.max(-B, Math.min(B, p.pos.z));
-    p.pos.y = 1.7;
-
-    // Check gondola station proximity
-    const stDist = p.pos.distanceTo(this.gondolaStation.pos);
-    const prompt = G('interact');
-    if(stDist < 6) {
-      this.gondolaTrigger = true;
-      prompt.style.opacity='1';
-      prompt.innerHTML='🚡 [E] Gondel-Station betreten';
-    } else if(this._nearEnclosure(p.pos) >= 0) {
-      this.gondolaTrigger = false;
-      const idx = this._nearEnclosure(p.pos);
-      prompt.style.opacity='1';
-      prompt.innerHTML=`🏠 [E] Gehege #${idx+1} ${ZS.zoo?.enclosures?.[idx]?'ansehen':'leer'}`;
-    } else {
-      this.gondolaTrigger = false;
-      prompt.style.opacity='0';
-    }
+    const ip=G('iprompt');
+    if(this.nearStation){ip.style.opacity='1';ip.textContent='🚡 [E] Gondel-Station betreten';}
+    else if(this.nearEncIdx>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEncIdx+1}`;}
+    else{ip.style.opacity='0';}
   },
 
-  _nearEnclosure(pos) {
-    for(let i=0; i<Math.min(this.ENC_POSITIONS.length,ZS.maxEnc()); i++) {
-      const ep = this.ENC_POSITIONS[i];
-      const d = Math.sqrt((pos.x-ep.x)**2+(pos.z-ep.z)**2);
-      if(d<5) return i;
-    }
-    return -1;
-  },
-
-  _interact() {
-    const p = this.player;
-    if(this.gondolaTrigger) { ZP.openGondola(); return; }
-    const encIdx = this._nearEnclosure(p.pos);
-    if(encIdx>=0) { ZP.openEnc(encIdx); return; }
-  },
-
-  _updateCamera() {
-    const p = this.player;
-    this.camera.position.copy(p.pos);
-    const qY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), p.yaw);
-    const qX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0), p.pitch);
+  _updateCam(){
+    const p=this.pl;
+    this.camera.position.set(p.x,p.y,p.z);
+    const qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),p.yaw);
+    const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),p.pitch);
     this.camera.quaternion.copy(qY).multiply(qX);
   },
 
-  _updateNPCs(dt) {
-    this.npcs.forEach(npc=>{
-      npc.userData.dir += (Math.random()-.5)*.05;
-      const dx = Math.sin(npc.userData.dir)*npc.userData.speed;
-      const dz = Math.cos(npc.userData.dir)*npc.userData.speed;
-      npc.position.x += dx; npc.position.z += dz;
-      npc.position.x = Math.max(-35,Math.min(35,npc.position.x));
-      npc.position.z = Math.max(-35,Math.min(35,npc.position.z));
-      npc.rotation.y = npc.userData.dir;
-    });
+  _animClouds(dt){
+    this.scene.traverse(o=>{if(o.userData?.cloud){o.position.x+=o.userData.spd;if(o.position.x>100)o.position.x=-100;}});
   },
 
-  _updateClouds(dt) {
-    this.scene.traverse(obj=>{
-      if(obj.userData?.isCloud) {
-        obj.position.x += obj.userData.speed;
-        if(obj.position.x > 100) obj.position.x = -100;
-      }
-    });
+  _gondolaCarOffset:0,
+  _animGondolaCars(dt){
+    this._gondolaCarOffset=(this._gondolaCarOffset+dt*.8)%24;
+    if(this._stationGondolaCars){
+      this._stationGondolaCars.forEach((car,i)=>{
+        const base=-12+i*12;
+        car.position.x=base+Math.sin(this._gondolaCarOffset+i*2)*.5;
+        car.rotation.z=Math.sin(this._gondolaCarOffset+i*2)*.04;
+      });
+    }
   },
 
-  _drawMinimap() {
-    const canvas = G('minimap-canvas');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W=110, H=110, scale=W/(this.WORLD_SIZE);
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='rgba(34,85,34,.8)'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#888'; ctx.fillRect(W/2-3,0,6,H); // path
+  _drawMinimap(){
+    const c=G('mmc');if(!c)return;
+    const ctx=c.getContext('2d');const W=100,H=100,sc2=W/this.WS;
+    ctx.clearRect(0,0,W,H);ctx.fillStyle='rgba(34,85,34,.8)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#888';ctx.fillRect(W/2-2.5,0,5,H);
     // Enclosures
     ctx.fillStyle='rgba(74,138,48,.8)';
-    this.ENC_POSITIONS.slice(0,ZS.maxEnc()).forEach(ep=>{
-      const mx=(ep.x+this.WORLD_SIZE/2)*scale, mz=(ep.z+this.WORLD_SIZE/2)*scale;
-      ctx.fillRect(mx-4,mz-4,8,8);
-    });
+    this.ENC_POS.slice(0,ZS.maxEnc()).forEach(ep=>{const mx=(ep.x+this.WS/2)*sc2,mz=(ep.z+this.WS/2)*sc2;ctx.fillRect(mx-3.5,mz-3.5,7,7);});
     // Station
-    ctx.fillStyle='#8B4513';
-    ctx.fillRect(W/2-8,(- 30+this.WORLD_SIZE/2)*scale-6,16,12);
+    ctx.fillStyle='#8B4513';ctx.fillRect(W/2-6,(-28+this.WS/2)*sc2-5,12,10);
     // Player
-    ctx.fillStyle='#FFD700';
-    const px=(this.player.pos.x+this.WORLD_SIZE/2)*scale;
-    const pz=(this.player.pos.z+this.WORLD_SIZE/2)*scale;
-    ctx.beginPath(); ctx.arc(px,pz,4,0,Math.PI*2); ctx.fill();
-    // Direction arrow
-    ctx.strokeStyle='#FFD700'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(px,pz);
-    ctx.lineTo(px-Math.sin(this.player.yaw)*8, pz-Math.cos(this.player.yaw)*8);
-    ctx.stroke();
-    // NPCs
-    this.npcs.forEach((npc,i)=>{
-      ctx.fillStyle=i===0?'#ff6b6b':'#4fc3f7';
-      const nx=(npc.position.x+this.WORLD_SIZE/2)*scale;
-      const nz=(npc.position.z+this.WORLD_SIZE/2)*scale;
-      ctx.beginPath(); ctx.arc(nx,nz,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFD700';const px=(this.pl.x+this.WS/2)*sc2,pz=(this.pl.z+this.WS/2)*sc2;
+    ctx.beginPath();ctx.arc(px,pz,4,0,Math.PI*2);ctx.fill();
+    // Other players
+    Object.values(this.otherPlayers).forEach(op=>{
+      ctx.fillStyle='#ff6b6b';const ox=(op.x+this.WS/2)*sc2,oz=(op.z+this.WS/2)*sc2;
+      ctx.beginPath();ctx.arc(ox,oz,3,0,Math.PI*2);ctx.fill();
     });
   },
 
-  // ─────────────────────────────────────────
+  // ──────────────────────────────────────────
   // GAME TICK (every 100ms)
-  // ─────────────────────────────────────────
-  _gameTick() {
-    const z = ZS.zoo; if(!z) return;
+  // ──────────────────────────────────────────
+  _tick(){
+    const z=ZS.zoo;if(!z)return;
     ZS.fixEnc();
-    // Visitor income
-    this.visitTimer += 100;
-    if(this.visitTimer >= ZS.visitMs()) { this.visitTimer=0; this._spawnVisitor(); }
-    // Event timer
-    this._updEvTimer();
-    this._updHUD();
-    // Swing cooldown
-    if(this.swingCooldown > 0) this.swingCooldown -= 100;
+    this.visitTimer+=100;
+    if(this.visitTimer>=ZS.visitMs()){this.visitTimer=0;this._spawnVisitor();}
+    if(this.swingCD>0)this.swingCD-=100;
+    this._updEvTimer();this._updHUD();
   },
 
-  _spawnVisitor() {
-    const z = ZS.zoo;
-    const animals = z.enclosures.filter(e=>e);
-    if(!animals.length) return;
+  _spawnVisitor(){
+    const z=ZS.zoo;const a=z.enclosures.filter(e=>e);if(!a.length)return;
     z.totalVisitors++;
-    const earn = animals.reduce((s,enc)=>s+earnPV(enc,z,this.currentEvent),0);
-    z.mt += earn; z.totalEarned = (z.totalEarned||0)+earn;
-    // Floating money in 3D world
-    const el = document.createElement('div');
-    el.className='flt';
-    el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*30}%`;
-    el.textContent='+'+$mt(earn);
-    document.body.appendChild(el);
-    setTimeout(()=>el.remove(), 1700);
+    const earn=a.reduce((s,enc)=>s+earnPV(enc,z,this.currentEvent),0);
+    z.mt+=earn;z.totalEarned=(z.totalEarned||0)+earn;
+    const el=document.createElement('div');
+    el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;
+    el.textContent='+'+$mt(earn);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);
   },
 
-  _updHUD() {
-    const z = ZS.zoo; if(!z) return;
-    G('hmoney').textContent = '🌀 '+$mt(z.mt).replace('🌀','');
-    G('hvisitors').textContent = '👥 '+z.totalVisitors.toLocaleString()+' Besucher';
-    const m=[];
-    if((z.rebirthMult||1)>1) m.push(`×${z.rebirthMult.toFixed(1)} Rebirth`);
-    if(z.luck>1) m.push(`🍀×${z.luck}`);
-    if(this.currentEvent) m.push(this.currentEvent.n);
-    G('hmult').textContent = m.join(' · ');
+  _updHUD(){
+    const z=ZS.zoo;if(!z)return;
+    G('hmoney').textContent='🌀 '+$mt(z.mt).replace('🌀','');
+    G('hvis').textContent='👥 '+z.totalVisitors.toLocaleString()+' Besucher';
+    const m=[];if((z.rebirthMult||1)>1)m.push(`×${z.rebirthMult.toFixed(1)}`);if(z.luck>1)m.push(`🍀×${z.luck}`);if(this.currentEvent)m.push(this.currentEvent.n);
+    G('hmult').textContent=m.join(' · ');
   },
 
-  _updEvTimer() {
-    const el = G('ev-timer'); if(!el) return;
-    if(this.currentEvent && this.eventEnd>Date.now()) {
-      const rem = Math.ceil((this.eventEnd-Date.now())/1000);
-      el.style.display='block';
-      el.innerHTML=`<div style="font-size:.65rem;color:rgba(255,255,255,.5)">${this.currentEvent.n}</div><div style="color:#FFD700">⏱ ${rem}s</div>`;
-    } else { el.style.display='none'; }
+  _updEvTimer(){
+    const el=G('evt');if(!el)return;
+    if(this.currentEvent&&this.eventEnd>Date.now()){const rem=Math.ceil((this.eventEnd-Date.now())/1000);el.style.display='block';el.innerHTML=`<div style="font-size:.6rem;color:rgba(255,255,255,.4)">${this.currentEvent.n}</div><div style="color:#FFD700">⏱ ${rem}s</div>`;}
+    else{el.style.display='none';}
   },
 
-  // ─────────────────────────────────────────
-  // BASEBALL BAT SWING
-  // ─────────────────────────────────────────
-  swing() {
-    if(this.swingCooldown>0) return;
-    this.swingCooldown = 1500;
-    const flash = G('bat-flash');
-    flash.style.opacity='1'; setTimeout(()=>flash.style.opacity='0',120);
-    ZP.toast('🏏 Swing!', 800);
-    // Check if any NPC is close enough to "hit"
-    this.npcs.forEach(npc=>{
-      const d = this.player.pos.distanceTo(new THREE.Vector3(npc.position.x,1.7,npc.position.z));
-      if(d<4) {
-        npc.userData.dir += Math.PI + (Math.random()-.5)*0.5;
-        ZP.toast('💥 Getroffen!', 1000);
-      }
-    });
+  _updWeapon(){
+    const rb=ZS.zoo?.rebirths||0;
+    const widx=Math.min(rb,WEAPONS.length-1);
+    const w=WEAPONS[widx];
+    const btn=G('swing-btn');const nm=G('wname');
+    if(btn)btn.textContent=w.emoji;
+    if(nm)nm.textContent=w.n;
   },
 
-  // ─────────────────────────────────────────
-  // GONDOLA SYSTEM
-  // ─────────────────────────────────────────
-  _makeGondola() {
-    const luck=ZS.curLuck(), night=this.currentEvent?.id==='night';
-    const a=rollAnimal(luck,night);
-    const shiny=rollShiny(), traits=rollTraits(this.currentEvent?.id);
+  // ──────────────────────────────────────────
+  // INTERACT
+  // ──────────────────────────────────────────
+  _interact(){
+    if(this.nearStation){ZP.openGondola();return;}
+    if(this.nearEncIdx>=0){ZP.openEnc(this.nearEncIdx);return;}
+  },
+
+  // ──────────────────────────────────────────
+  // WEAPON SWING
+  // ──────────────────────────────────────────
+  swing(){
+    if(this.swingCD>0){ZP.toast('⏳ Noch nicht bereit...',600);return;}
+    const rb=ZS.zoo?.rebirths||0;
+    const w=WEAPONS[Math.min(rb,WEAPONS.length-1)];
+    this.swingCD=1200;
+    // Flash screen
+    const fl=G('bflash');fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',100);
+    // Check if gun — shoot direction
+    if(w.isGun){
+      ZP.toast(`🔫 PEW! (Range: ${w.range}m)`,800);
+      // Hit other players in gun range in front
+      this._hitOtherPlayers(w,true);
+    }else{
+      ZP.toast(`${w.emoji} SWING!`,600);
+      this._hitOtherPlayers(w,false);
+    }
+  },
+
+  _hitOtherPlayers(w,isGun){
+    // In full multiplayer this would check real player positions via Firebase
+    // For now hits NPCs in range
+    ZP.toast(`${w.emoji} Trifft im Umkreis von ${w.range}m!`,900);
+  },
+
+  // ──────────────────────────────────────────
+  // GONDOLA
+  // ──────────────────────────────────────────
+  _mkGondola(){
+    const luck=ZS.curLuck(),night=this.currentEvent?.id==='night';
+    const a=rollAnimal(luck,night);const shiny=rollShiny();const traits=rollTraits(this.currentEvent?.id);
     const snowB=(this.currentEvent?.id==='snow'&&Math.random()<.05)?3.5:1;
     const partyB=(this.currentEvent?.id==='party'&&Math.random()<.15)?4:1;
-    return {a,shiny,traits,extraMult:snowB*partyB,isWhite:snowB>1};
+    return{a,shiny,traits,extraMult:snowB*partyB,isWhite:snowB>1};
   },
 
-  _gondTick() {
-    const iv = setInterval(()=>{
-      this.gondCountdown -= 100;
-      if(G('gtimer')) G('gtimer').textContent=(Math.max(0,this.gondCountdown)/1000).toFixed(1)+'s';
-      if(this.gondCountdown<=0) {
+  _gondTick(){
+    const iv=setInterval(()=>{
+      this.gondCountdown-=100;
+      if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gondCountdown)/1000).toFixed(1)+'s';
+      if(this.gondCountdown<=0){
         this.gondCountdown=2500;
-        this.gondolaQueue.shift();
-        this.gondolaQueue.push(this._makeGondola());
-        if(!G('p-gond').classList.contains('off')) {
-          ZP._renderGondola(); ZP._renderGondolaCars();
-        }
+        this.gondQueue.shift();this.gondQueue.push(this._mkGondola());
+        if(!G('p-gond').classList.contains('off')){ZP._rndGond();ZP._rndGCars();}
       }
-    }, 100);
-    this._loops.push(iv);
+    },100);this._loops.push(iv);
   },
 
-  // ─────────────────────────────────────────
+  // ──────────────────────────────────────────
   // EVENTS
-  // ─────────────────────────────────────────
-  _tryEvent() {
-    if(!this.currentEvent && Math.random()<.28) {
-      const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
-      this.startEvent(ev, ev.dur);
-    }
-  },
+  // ──────────────────────────────────────────
+  _tryEvent(){if(!this.currentEvent&&Math.random()<.28){const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEvent(ev,ev.dur);}},
 
-  startEvent(ev, dur) {
-    this.currentEvent=ev; this.eventEnd=Date.now()+dur;
-    // Update sky/fog color
-    this.renderer.setClearColor(parseInt(ev.c.replace('#','0x')));
+  startEvent(ev,dur){
+    this.currentEvent=ev;this.eventEnd=Date.now()+dur;
+    this.renderer.setClearColor(parseInt(ev.c.replace('#',''),16));
     this.scene.fog.color.set(ev.c);
-    const b=G('ev-banner'); b.textContent=ev.n+' — '+ev.d; b.style.opacity='1';
-    setTimeout(()=>b.style.opacity='0', 4500);
-    if(ev.id==='snow') this._startSnow();
-    if(ev.id==='party') this._startParty();
-    if(ev.id==='glitch') ZP.toast('👾 GLITCH EVENT! GLITCH Trait ×4 nur jetzt!', 4000);
-    ZP.toast(ev.n+'! '+ev.d, 4000);
-    setTimeout(()=>{
-      this.currentEvent=null; this.eventEnd=0;
-      this.renderer.setClearColor(0x87CEEB);
-      this.scene.fog.color.set(0x87CEEB);
-      this._stopSnow(); this._stopParty();
-    }, dur);
+    const b=G('evb');b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';setTimeout(()=>b.style.opacity='0',4500);
+    if(ev.id==='snow')this._startSnow();if(ev.id==='party')this._startParty();
+    ZP.toast(ev.n+'! '+ev.d,4000);
+    setTimeout(()=>{this.currentEvent=null;this.eventEnd=0;this.renderer.setClearColor(0x87CEEB);this.scene.fog.color.set(0x87CEEB);this._stopSnow();this._stopParty();},dur);
   },
-
-  _startSnow(){for(let i=0;i<22;i++){const e=document.createElement('div');e.className='zsnow';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowEls.push(e);}},
+  _startSnow(){for(let i=0;i<20;i++){const e=document.createElement('div');e.className='zsnow';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowEls.push(e);}},
   _stopSnow(){this.snowEls.forEach(e=>e.remove());this.snowEls=[];},
-  _startParty(){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbeam';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;width:5px;background:${cols[i%cols.length]};animation-duration:${1.4+Math.random()}s;animation-delay:${Math.random()}s`;G('s-zoo').appendChild(e);this.beamEls.push(e);}},
+  _startParty(){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbeam';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%cols.length]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;G('s-zoo').appendChild(e);this.beamEls.push(e);}},
   _stopParty(){this.beamEls.forEach(e=>e.remove());this.beamEls=[];},
 
-  // ─────────────────────────────────────────
-  // ADMIN COMMAND LISTENER
-  // ─────────────────────────────────────────
-  async _checkAdminCmd() {
-    let cmd=null;
-    try {
-      if(State._useCloud()) {
-        const s=await _db.collection('config').doc('zoo_admin_cmd').get();
-        if(s.exists) cmd=s.data();
+  // ──────────────────────────────────────────
+  // FIREBASE MULTIPLAYER SYNC
+  // ──────────────────────────────────────────
+  async _syncMultiplayer(){
+    if(ZS.isPrivate||!ZS.player)return;
+    try{
+      if(!State._useCloud())return;
+      const myData={name:ZS.player,char:ZS.playerChar?.e||'🧭',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()};
+      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set(myData);
+      const snap=await _db.collection('zoo_players').get();
+      const others={};
+      snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000){others[d.name]={...d};}});
+      this.otherPlayers=others;
+      // Update 3D other player meshes (simple colored boxes)
+      this._updateOtherPlayerMeshes(others);
+    }catch(e){}
+  },
+
+  _otherMeshes:{},
+  _updateOtherPlayerMeshes(others){
+    // Remove old meshes for gone players
+    Object.keys(this._otherMeshes).forEach(name=>{
+      if(!others[name]){this.scene.remove(this._otherMeshes[name]);delete this._otherMeshes[name];}
+    });
+    // Add/update
+    const COLORS=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;
+    Object.values(others).forEach(op=>{
+      if(!this._otherMeshes[op.name]){
+        const g=new THREE.Group();
+        const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshLambertMaterial({color:COLORS[ci%3]}));
+        const head=new THREE.Mesh(new THREE.BoxGeometry(.7,.7,.7),new THREE.MeshLambertMaterial({color:0xffe0b0}));
+        head.position.y=1.05;g.add(body,head);
+        const lbl=this._mkTextSprite(op.char+' '+op.name,.45,'#fff');lbl.position.y=1.8;g.add(lbl);
+        this.scene.add(g);this._otherMeshes[op.name]=g;ci++;
       }
-    } catch(e){}
-    if(!cmd) cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');
-    if(!cmd||cmd.expiresAt<Date.now()) return;
-    // Check if for all or specific player
-    const forAll = cmd.target==='_all';
-    const forMe  = cmd.target===ZS.player?.toLowerCase();
-    if(!forAll && !forMe) return;
-    // Check not already handled
-    const handled=JSON.parse(localStorage.getItem('zoo_cmd_handled')||'[]');
-    if(handled.includes(cmd.id)) return;
-    handled.push(cmd.id);
-    if(handled.length>20) handled.shift();
-    localStorage.setItem('zoo_cmd_handled',JSON.stringify(handled));
-    // Execute
+      this._otherMeshes[op.name].position.set(op.x,0.7,op.z);
+    });
+  },
+
+  // ──────────────────────────────────────────
+  // ADMIN CMD LISTENER
+  // ──────────────────────────────────────────
+  async _checkAdminCmd(){
+    let cmd=null;
+    try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}
+    if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');
+    if(!cmd||cmd.expiresAt<Date.now())return;
+    const forAll=cmd.target==='_all';const forMe=cmd.target===ZS.player?.toLowerCase();
+    if(!forAll&&!forMe)return;
+    const handled=JSON.parse(localStorage.getItem('zoo_cmd_hdl')||'[]');
+    if(handled.includes(cmd.id))return;
+    handled.push(cmd.id);if(handled.length>20)handled.shift();
+    localStorage.setItem('zoo_cmd_hdl',JSON.stringify(handled));
     const z=ZS.zoo;
-    if(cmd.type==='spawn_animal') {
+    if(cmd.type==='spawn_animal'){
       const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];
-      const shiny=cmd.shinyId?SHINY.find(s=>s.id===cmd.shinyId):null;
-      const traits=cmd.traitIds?.map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean)||[];
+      const shiny=cmd.shinyId?{id:cmd.shinyId,...SHINY_DATA[cmd.shinyId]}:null;
+      const traits=cmd.traitIds?.map(tid=>TRAITS_DATA.find(t=>t.id===tid)).filter(Boolean)||[];
       const slot=z.enclosures.findIndex(e=>!e);
-      if(slot>=0) {
-        z.enclosures[slot]={animal:{...a},shiny,traits,extraMult:1,addedAt:Date.now(),adminSpawned:true};
-        this._rebuildEnclosures();
-        ZP.toast(`👑 Admin: ${a.e} ${a.n} gespawnt!`,3000);
-      } else { ZP.toast('❌ Alle Gehege belegt!'); }
-    } else if(cmd.type==='give_mt') {
-      z.mt+=(cmd.amount||50000);
-      ZP.toast(`👑 Admin: +${$mt(cmd.amount)} Mischataler!`,3000);
-    } else if(cmd.type==='start_event') {
-      const ev=EVENTS.find(e=>e.id===cmd.eventId);
-      if(ev) this.startEvent(ev, cmd.dur||ev.dur);
-    }
+      if(slot>=0){z.enclosures[slot]={animal:{...a},shiny,traits,extraMult:1,addedAt:Date.now(),adminSpawned:true};this._mkEnclosures();ZP.toast(`👑 Admin: ${a.e} ${a.n} gespawnt!`,3000);}
+    }else if(cmd.type==='give_mt'){z.mt+=(cmd.amount||50000);ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}
+    else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEvent(ev,cmd.dur||ev.dur);}
     this._updHUD();
   },
 
-  _rebuildEnclosures() {
-    // Remove old enclosure meshes and rebuild
-    this.enclosureMeshes.forEach(m=>this.scene.remove(m));
-    this._buildEnclosures();
-  },
-
-  _buildQR() {
+  _buildQR(){
     const g=G('qrgrid');if(!g)return;
     const pat=[1,1,1,1,1,1,1,0,1,0,1,0,0,0,0,0,0,1,0,1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,1,1];
     g.innerHTML=pat.slice(0,100).map(p=>`<div style="width:14px;height:14px;background:${p?'#1a0800':'#fff'}"></div>`).join('');
   },
+
+  // ──────────────────────────────────────────
+  // TUTORIAL
+  // ──────────────────────────────────────────
+  _startTutorial(){
+    const steps=[
+      {text:'Willkommen im\nMischa Zoo 3D! 🦁',pos:'center',delay:0},
+      {text:'WASD / Joystick\nzum Laufen',pos:'bl',delay:3000},
+      {text:'Laufe zur\nGondel-Station! 🚡',arrow:'up',pos:'center',delay:6000},
+      {text:'[E] oder tippe\nzum Interagieren',pos:'center',delay:10000},
+      {text:'Kaufe dein\nerste Katze 🐱\n(kostet nur 5 MT)',pos:'center',delay:14000},
+      {text:'Viel Spaß! 🎉',pos:'center',delay:18000},
+    ];
+    const tut=G('tutorial');tut.style.display='block';
+    steps.forEach(step=>{
+      setTimeout(()=>{
+        tut.innerHTML='';
+        const box=document.createElement('div');
+        box.className='tutbox';
+        box.style.cssText=step.pos==='center'?'top:35%;left:50%;transform:translateX(-50%)':step.pos==='bl'?'bottom:25%;left:80px':'top:35%;left:50%;transform:translateX(-50%)';
+        box.textContent=step.text;
+        tut.appendChild(box);
+        if(step.arrow){
+          const arr=document.createElement('div');
+          arr.className='tutarrow';
+          arr.style.cssText='top:42%;left:50%;transform:translateX(-50%)';
+          arr.textContent='⬆️';tut.appendChild(arr);
+        }
+      },step.delay);
+    });
+    setTimeout(()=>{tut.style.display='none';localStorage.setItem('zoo_tutorial_done','1');},22000);
+    // Allow skipping
+    tut.addEventListener('click',()=>{tut.style.display='none';localStorage.setItem('zoo_tutorial_done','1');});
+  },
 };
+
+// Canvas interaction click
+G('zc')?.addEventListener('click',()=>{
+  if(ZG.nearStation){ZP.openGondola();return;}
+  if(ZG.nearEncIdx>=0){ZP.openEnc(ZG.nearEncIdx);return;}
+});
 </script>
 <script>
-// ══════════════════════════════════════════════
-// PANELS / UI
-// ══════════════════════════════════════════════
-const ZP = {
-  _tt:null, _tab:'z',
+// ════════════════════════════════════════════
+// PANELS & UI
+// ════════════════════════════════════════════
+const ZP={
+  _tt:null,_stab:'z',_ttab:'m',
 
-  toast(msg,ms=2500) {
-    const t=G('zt'); t.textContent=msg; t.style.opacity='1';
-    clearTimeout(this._tt); this._tt=setTimeout(()=>t.style.opacity='0',ms);
-  },
-  closeAll() { ['gond','shop','reb','enc','menu','admin'].forEach(p=>this.close(p)); },
-  close(p)   { hide('p-'+p); document.exitPointerLock?.(); },
+  toast(msg,ms=2500){const t=G('zt');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
+  closeAll(){['gond','index','trade','shop','reb','enc','menu','adm'].forEach(p=>this.close(p));},
+  close(p){hide('p-'+p);},
 
   // GONDOLA
-  openGondola() {
-    show('p-gond');
-    G('gsrv').textContent=(1+Math.floor(Math.random()*3))+'/3 Spieler';
+  openGondola(){
+    show('p-gond');G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3 Spieler');
     this._renderLuck();
-    if(!ZGame.gondolaQueue.length) ZGame.gondolaQueue.push(ZGame._makeGondola());
-    this._renderGondola(); this._renderGondolaCars();
+    if(!ZG.gondQueue.length)ZG.gondQueue.push(ZG._mkGondola());
+    this._rndGond();this._rndGCars();
   },
 
-  _renderGondolaCars() {
-    const el=G('gcars'); if(!el) return;
-    const q=ZGame.gondolaQueue.slice(0,3);
-    el.innerHTML = q.map((g,i)=>{
-      const isActive=i===0;
-      const col=g.isWhite?'#eee':['#c8a050','#8B5E3C','#5a3010'][i%3];
-      const sz=isActive?56:42;
-      return `<div class="gcar" onclick="${isActive?'ZP._buyG()':'void(0)'}" style="opacity:${isActive?1:.55}">
-        <div style="width:2px;height:${isActive?28:20}px;background:rgba(255,255,255,.35);margin:0 auto"></div>
-        <div class="gcar-body" style="width:${sz}px;height:${sz*.65}px;background:${col};${isActive?'transform:scaleY(.75)':''}">
-          <span style="font-size:${isActive?1.8:.9}rem">${g.a.e}</span>
+  _rndGCars(){
+    const el=G('gcars');if(!el)return;
+    const q=ZG.gondQueue.slice(0,3);
+    el.innerHTML=q.map((g,i)=>{
+      const isA=i===0;const col=g.isWhite?'#eee':['#c8a050','#8B5E3C','#4a2a10'][i%3];
+      const sz=isA?55:40;
+      return `<div onclick="${isA?'ZP._buyGond()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5};transition:opacity .2s">
+        <div style="width:2px;height:${isA?25:18}px;background:rgba(255,255,255,.3);margin:0 auto"></div>
+        <div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.6:.9}rem;margin:0 auto;${isA?'transform:scaleY(.78)':''}">
+          ${g.a.e}
         </div>
-        ${isActive?`<div style="font-family:'Fredoka One',cursive;font-size:.68rem;color:#FFD700;margin-top:2px">${g.a.n}</div>`:`<div style="font-size:.6rem;color:rgba(255,255,255,.3)">🔒</div>`}
+        ${isA?`<div style="font-family:'Fredoka One',cursive;font-size:.65rem;color:#FFD700;margin-top:2px">${g.a.n}</div>`:`<div style="font-size:.58rem;color:rgba(255,255,255,.3)">🔒</div>`}
       </div>`;
     }).join('');
   },
 
-  _renderGondola() {
-    const g=ZGame.gondolaQueue[0], el=G('g-animal');
-    if(!g||!el) return;
+  _rndGond(){
+    const g=ZG.gondQueue[0],el=G('ganim');if(!g||!el)return;
     const {a,shiny,traits,extraMult}=g;
     const tm=tMult(shiny,traits)*extraMult;
-    const z=ZS.zoo; const canA=z.mt>=a.price; const hasSlot=z.enclosures.some(e=>!e);
+    const z=ZS.zoo;const canA=z.mt>=a.p;const hasSlot=z.enclosures.some(e=>!e);
     const rd=RARITY[a.r];
-    const isGlitch=ZGame.currentEvent?.id==='glitch';
-    el.innerHTML=`
-      <div style="text-align:center;animation:popIn .4s ease">
-        ${isGlitch?`<div style="font-size:.72rem;color:#00ff88;margin-bottom:3px">👾 Roboter bringt Tier...</div>`:''}
-        <div style="font-size:3.8rem;${shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}">${a.e}</div>
-        <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.1rem;margin-top:3px">${sB(shiny)} ${a.n}</div>
-        <div class="${rd.cls}" style="font-size:.8rem;margin:2px 0">${rd.n}</div>
-        ${tB(traits)}
-        ${extraMult>1?`<div style="color:#FFD700;font-size:.72rem;margin-top:2px">✨ ×${extraMult.toFixed(1)} Event-Bonus!</div>`:''}
-        ${traits.length>0?`<div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-top:1px">⚠️ Trait nur jetzt während Event!</div>`:''}
-        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin:5px 0">💰 ${$mt(a.earn*tm)}/Besucher · Preis: ${$mt(a.price)}</div>
-        <button class="acbuy" ${(!canA||!hasSlot)?'disabled':''} style="font-size:.9rem;padding:10px 22px" onclick="ZP._buyG()">
-          ${!canA?'❌ Zu wenig MT':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}
-        </button>
-      </div>`;
+    el.innerHTML=`<div style="text-align:center;animation:popIn .4s ease">
+      <div style="font-size:3.8rem;${shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}">${a.e}</div>
+      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.05rem;margin-top:3px">${sB(shiny)} ${a.n}</div>
+      <div class="${rd.cls}" style="font-size:.78rem;margin:2px 0">${rd.n}</div>${tB(traits)}
+      ${extraMult>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${extraMult.toFixed(1)} Event!</div>`:''}
+      <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/Besucher · Preis: ${$mt(a.p)}</div>
+      <button class="ab" ${(!canA||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyGond()">
+        ${!canA?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}
+      </button>
+    </div>`;
   },
 
-  _buyG() {
-    const z=ZS.zoo, g=ZGame.gondolaQueue[0]; if(!g) return;
+  _buyGond(){
+    const z=ZS.zoo,g=ZG.gondQueue[0];if(!g)return;
     const slot=z.enclosures.findIndex(e=>!e);
     if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}
-    if(z.mt<g.a.price){this.toast('❌ Zu wenig Mischataler!');return;}
-    z.mt-=g.a.price;
-    z.enclosures[slot]={animal:{...g.a},shiny:g.shiny,traits:g.traits,extraMult:g.extraMult,addedAt:Date.now()};
-    ZGame.gondolaQueue.shift(); ZGame.gondolaQueue.push(ZGame._makeGondola());
-    ZGame._rebuildEnclosures();
-    this.toast(`✅ ${g.a.e} ${g.a.n} in Gehege ${slot+1}!`, 2500);
-    G('g-animal').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';
-    ZGame._updHUD();
+    if(z.mt<g.a.p){this.toast('❌ Zu wenig Mischataler!');return;}
+    z.mt-=g.a.p;
+    z.enclosures[slot]={animal:{...g.a},shiny:g.shiny,traits:g.traits,extraMult:g.extraMult,addedAt:Date.now(),speedLevel:0};
+    ZG.gondQueue.shift();ZG.gondQueue.push(ZG._mkGondola());
+    ZG._mkEnclosures();
+    this.toast(`✅ ${g.a.e} ${g.a.n} in Gehege ${slot+1}!`,2500);
+    G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';
+    ZG._updHUD();
   },
 
-  _renderLuck() {
-    const z=ZS.zoo, el=G('g-luck'); if(!el) return;
-    el.innerHTML = LUCK_UPS.map((u,i)=>{
-      const bought=z.luckLevel>i, active=z.luckLevel===i, canB=active&&z.mt>=u.cost;
-      if(bought) return `<div class="acard" style="opacity:.5"><div style="min-width:36px;font-size:1.5rem">🍀</div><div><div style="font-family:'Fredoka One',cursive;color:#fff;font-size:.88rem">${u.l}</div><div style="color:#27AE60;font-size:.7rem">✅ Aktiv</div></div></div>`;
-      if(!active) return '';
-      return `<div class="acard"><div style="min-width:36px;font-size:1.5rem">🍀</div><div style="flex:1"><div style="font-family:'Fredoka One',cursive;color:#fff;font-size:.88rem">${u.l}</div><div style="font-size:.72rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="acbuy" ${!canB?'disabled':''} onclick="ZP._buyLuck(${i})">${canB?'Kaufen':'Fehlt'}</button></div>`;
+  _renderLuck(){
+    const z=ZS.zoo,el=G('gluck');if(!el)return;
+    el.innerHTML=LUCK_UPS.map((u,i)=>{
+      const bought=z.luckLevel>i,active=z.luckLevel===i,canB=active&&z.mt>=u.cost;
+      if(bought)return `<div class="ac" style="opacity:.5"><div style="min-width:34px">🍀</div><div><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;
+      if(!active)return'';
+      return `<div class="ac"><div style="min-width:34px">🍀</div><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${!canB?'disabled':''} onclick="ZP._bLuck(${i})">Kaufen</button></div>`;
     }).join('');
   },
-  _buyLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLevel=i+1;this.toast('✅ '+u.l);this._renderLuck();ZGame._updHUD();},
+  _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLevel=i+1;this.toast('✅ '+u.l);this._renderLuck();ZG._updHUD();},
+
+  // INDEX (all owned animals with shiny visual)
+  openIndex(){
+    show('p-index');
+    const z=ZS.zoo;const enc=z.enclosures.filter(e=>e);
+    if(!enc.length){G('pidx').innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Noch keine Tiere 🐾<br>Besorge dir Tiere in der Gondel-Station!</div>';return;}
+    G('pidx').innerHTML=`
+      <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-bottom:10px">Deine ${enc.length} Tier(e):</div>`+
+      enc.map((e,rawIdx)=>{
+        const i=z.enclosures.indexOf(e);
+        const rd=RARITY[e.animal.r];
+        const tm=tMult(e.shiny,e.traits);
+        const earn=earnPV(e,z,ZG.currentEvent);
+        // Shiny color filter
+        const shinyStyle=e.shiny?{gold:'filter:sepia(1) saturate(4) hue-rotate(5deg)',diamond:'filter:saturate(4) hue-rotate(180deg)',rainbow:'animation:rainbow 2s linear infinite',void:'filter:invert(0.5) hue-rotate(270deg)'}[e.shiny.id]||'':'';
+        return `<div class="ac">
+          <div style="font-size:2.2rem;${shinyStyle}">${e.animal.e}</div>
+          <div style="flex:1">
+            <div style="font-family:'Fredoka One',cursive;font-size:.88rem">${sB(e.shiny)} ${e.animal.n}</div>
+            <div class="${rd.cls}" style="font-size:.72rem">${rd.n} ${tB(e.traits)}</div>
+            <div style="font-size:.68rem;color:#00FF88">💰 ${$mt(earn)}/Besucher · ×${tm}</div>
+          </div>
+          <div style="text-align:right;font-size:.68rem;color:rgba(255,255,255,.4)">Gehege #${i+1}<br>SpLv${e.speedLevel||0}</div>
+        </div>`;
+      }).join('');
+  },
+
+  // TRADING
+  openTrading(){show('p-trade');this._rTrade('m');},
+  tradeTab(t){this._ttab=t;['m','a','n'].forEach(x=>{G('tt-'+x)?.classList.toggle('ta',x===t);G('tt-'+x)?.classList.toggle('ti',x!==t);});this._rTrade(t);},
+  _rTrade(t){const el=G('ptrade');if(!el)return;if(t==='m')this._tradeMyOffers(el);else if(t==='a')this._tradeAllOffers(el);else this._tradeNew(el);},
+
+  _tradeMyOffers(el){
+    const offers=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.seller===ZS.player);
+    if(!offers.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:16px">Keine aktiven Angebote.<br>Gehe zu "Neu anbieten"!</div>';return;}
+    el.innerHTML=offers.map((o,i)=>`<div class="trade-card">
+      <div style="font-size:1.8rem">${o.emoji}</div>
+      <div style="flex:1">
+        <div style="font-family:'Fredoka One',cursive;font-size:.88rem">${o.name}</div>
+        <div style="font-size:.7rem;color:#00CFFF">Preis: ${$mt(o.price)}</div>
+      </div>
+      <button class="ab" style="background:rgba(231,76,60,.4);color:#ff6b6b" onclick="ZP._cancelTrade(${i})">Zurückziehen</button>
+    </div>`).join('');
+  },
+
+  _tradeAllOffers(el){
+    const offers=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.seller!==ZS.player);
+    if(!offers.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:16px">Keine Angebote anderer Spieler.</div>';return;}
+    el.innerHTML=offers.map((o,i)=>`<div class="trade-card">
+      <div style="font-size:1.8rem">${o.emoji}</div>
+      <div style="flex:1">
+        <div style="font-family:'Fredoka One',cursive;font-size:.88rem">${o.name}</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.45)">Von: ${o.seller}</div>
+        <div style="font-size:.7rem;color:#00CFFF">Preis: ${$mt(o.price)}</div>
+      </div>
+      <button class="ab" ${(ZS.zoo?.mt||0)<o.price?'disabled':''} onclick="ZP._buyTrade(${i})">Kaufen</button>
+    </div>`).join('');
+  },
+
+  _tradeNew(el){
+    const z=ZS.zoo;const enc=z.enclosures.filter(e=>e);
+    if(!enc.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:16px">Keine Tiere zum Anbieten.</div>';return;}
+    el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:8px">Welches Tier anbieten?</div>`+
+    enc.map((e,ri)=>{const i=z.enclosures.indexOf(e);return`<div class="trade-card" onclick="ZP._offerTrade(${i})">
+      <div style="font-size:1.8rem">${e.animal.e}</div>
+      <div style="flex:1">
+        <div style="font-family:'Fredoka One',cursive;font-size:.85rem">${sB(e.shiny)} ${e.animal.n}</div>
+        <div class="${RARITY[e.animal.r]?.cls||'rn'}" style="font-size:.7rem">${RARITY[e.animal.r]?.n||''}</div>
+      </div>
+      <div style="font-size:.7rem;color:#FFD700">Tippe zum Anbieten</div>
+    </div>`;}).join('');
+  },
+
+  _offerTrade(encIdx){
+    const z=ZS.zoo;const enc=z.enclosures[encIdx];if(!enc)return;
+    const price=prompt(`Preis für ${enc.animal.n} in MT (ohne 🌀):`);
+    if(!price||isNaN(price))return;
+    const trades=JSON.parse(localStorage.getItem('zoo_trades')||'[]');
+    trades.push({seller:ZS.player,encIdx,name:enc.animal.n,emoji:enc.animal.e,price:parseFloat(price),shiny:enc.shiny,traits:enc.traits,animalData:enc});
+    localStorage.setItem('zoo_trades',JSON.stringify(trades));
+    this.toast(`✅ ${enc.animal.e} für ${$mt(parseFloat(price))} angeboten!`,2500);
+    this._rTrade('m');
+  },
+
+  _cancelTrade(offerIdx){
+    const myOffers=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.seller===ZS.player);
+    const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');
+    const toRemove=myOffers[offerIdx];
+    const newAll=all.filter(o=>!(o.seller===toRemove.seller&&o.name===toRemove.name&&o.price===toRemove.price));
+    localStorage.setItem('zoo_trades',JSON.stringify(newAll));
+    this.toast('Angebot zurückgezogen',1500);this._rTrade('m');
+  },
+
+  _buyTrade(offerIdx){
+    const others=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.seller!==ZS.player);
+    const offer=others[offerIdx];if(!offer)return;
+    const z=ZS.zoo;
+    if(z.mt<offer.price){this.toast('❌ Zu wenig MT!');return;}
+    const slot=z.enclosures.findIndex(e=>!e);
+    if(slot<0){this.toast('❌ Gehege voll!');return;}
+    z.mt-=offer.price;
+    z.enclosures[slot]={...offer.animalData,addedAt:Date.now()};
+    const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');
+    const idx=all.findIndex(o=>o.seller===offer.seller&&o.name===offer.name&&o.price===offer.price);
+    if(idx>=0)all.splice(idx,1);
+    localStorage.setItem('zoo_trades',JSON.stringify(all));
+    ZG._mkEnclosures();
+    this.toast(`✅ ${offer.emoji} ${offer.name} von ${offer.seller} gekauft!`,3000);
+    ZG._updHUD();this._rTrade('a');
+  },
 
   // SHOP
-  openShop(){show('p-shop');G('s-bal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._renderShop();},
-  shopTab(tab){this._tab=tab;['z','x','b'].forEach(t=>{G('st-'+t)?.classList.toggle('ta',t===tab);G('st-'+t)?.classList.toggle('ti',t!==tab);});this._renderShop();},
-  _renderShop(){const el=G('scont');if(!el)return;if(this._tab==='z')this._sZ(el);else if(this._tab==='x')this._sX(el);else this._sB(el);},
+  openShop(){show('p-shop');if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();},
+  shopTab(t){this._stab=t;['z','x','b'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  _rShop(){const el=G('scont');if(!el)return;if(this._stab==='z')this._sZ(el);else if(this._stab==='x')this._sX(el);else this._sB(el);},
 
   _sZ(el){
     const z=ZS.zoo;
     const IT=[
-      {id:'vis',  n:'🚀 Besucher ×2 schneller',d:'Kürzere Wartezeit', p:800},
-      {id:'vis2', n:'🚀🚀 Besucher ×4',         d:'Noch schneller!',   p:4000,req:'vis'},
-      {id:'vis_m',n:'👥 ×2 Besucher',           d:'Doppelt viele',     p:1500},
-      {id:'earn', n:'💰 ×2 Einnahmen',          d:'Alle Einnahmen ×2', p:2500},
-      {id:'earn2',n:'💰💰 ×4 Einnahmen',        d:'Nochmal ×2!',       p:12000,req:'earn'},
+      {id:'vis',n:'🚀 Besucher ×2 schneller',d:'Kürzere Wartezeit',p:800},
+      {id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},
+      {id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},
+      {id:'earn',n:'💰 ×2 Einnahmen',d:'Alle Einnahmen ×2',p:2500},
+      {id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'},
+      {id:'speed_global',n:'⚡ Tier-Speed ×2 (alle)',d:'Alle Tiere schwerer zu stehlen!',p:30000},
     ];
-    el.innerHTML = IT.map(item=>{
-      const owned=z.upgrades?.[item.id]; const req=!item.req||z.upgrades?.[item.req];
-      if(owned) return `<div class="acard" style="opacity:.5"><div style="min-width:36px">✅</div><div style="font-family:'Fredoka One',cursive;font-size:.88rem;color:#fff">${item.n}</div></div>`;
-      return `<div class="acard"><div style="min-width:36px;font-size:1.3rem">${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.88rem;color:#fff">${item.n}</div><div style="font-size:.7rem;color:rgba(255,255,255,.45)">${item.d}</div>${!req?`<div style="color:#ff6b6b;font-size:.67rem">Erst vorherigen kaufen!</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:#00CFFF;font-size:.8rem">${$mt(item.p)}</div><button class="acbuy" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
+    el.innerHTML=IT.map(item=>{
+      const owned=z.upgrades?.[item.id];const req=!item.req||z.upgrades?.[item.req];
+      if(owned)return`<div class="ac" style="opacity:.5"><div style="min-width:32px">✅</div><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${item.n}</div></div>`;
+      return`<div class="ac"><div style="min-width:32px;font-size:1.3rem">${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${item.n}</div><div style="font-size:.7rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.65rem">Erst vorherigen kaufen!</div>':''}</div><div style="text-align:right"><div style="font-family:\'Fredoka One\',cursive;color:#00CFFF;font-size:.78rem">${$mt(item.p)}</div><button class="ab" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
     }).join('');
   },
-  _bZ(id,p){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upgrades)z.upgrades={};z.upgrades[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZGame._updHUD();},
+  _bZ(id,p){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upgrades)z.upgrades={};z.upgrades[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
 
   _sX(el){
     const sb=State.currentPlayer?.totalScore||0;
     const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'},{s:10000,m:10000,l:'10K⭐→10K MT BEST'}];
     const V=[{m:1000,s:500,l:'1K MT→500⭐'},{m:5000,s:2800,l:'5K MT→2.8K⭐'},{m:20000,s:12000,l:'20K MT→12K⭐'}];
-    el.innerHTML=`<div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:6px">⭐ Sterne → 🌀 Mischataler</div><div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:8px">Deine ⭐: ${$st(sb)}</div>`+
-    R.map(r=>`<div class="excard"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${r.l}</div><button class="acbuy" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('')+
-    `<div style="font-size:.8rem;color:rgba(255,255,255,.5);margin:10px 0 6px">🌀 MT → ⭐</div>`+
-    V.map(r=>`<div class="excard"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${r.l}</div><button class="acbuy" ${(ZS.zoo?.mt||0)<r.m?'disabled':''} onclick="ZP._echR(${r.m},${r.s})">Tauschen</button></div>`).join('');
+    el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:6px">⭐ Sterne → 🌀 Mischataler</div><div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px">⭐ ${$st(sb)}</div>`+
+    R.map(r=>`<div class="ex"><div style="font-family:'Fredoka One',cursive;font-size:.83rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('')+
+    `<div style="font-size:.78rem;color:rgba(255,255,255,.45);margin:9px 0 6px">🌀 MT → ⭐</div>`+
+    V.map(r=>`<div class="ex"><div style="font-family:'Fredoka One',cursive;font-size:.83rem">${r.l}</div><button class="ab" ${(ZS.zoo?.mt||0)<r.m?'disabled':''} onclick="ZP._exchR(${r.m},${r.s})">Tauschen</button></div>`).join('');
   },
-  _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZGame._updHUD();},
-  _echR(m,s){const p=State.currentPlayer;if(!p){this.toast('❌ Kein Denkspiel-Login!');return;}if(ZS.zoo.mt<m){this.toast('❌ Zu wenig MT!');return;}ZS.zoo.mt-=m;State.addPoints(p.name,s);this.toast(`✅ ${$mt(m)}→${s}⭐!`);this._sX(G('scont'));ZGame._updHUD();},
+  _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
+  _exchR(m,s){const p=State.currentPlayer;if(!p){this.toast('❌ Kein Denkspiel-Login!');return;}if(ZS.zoo.mt<m){this.toast('❌ Zu wenig MT!');return;}ZS.zoo.mt-=m;State.addPoints(p.name,s);this.toast(`✅ ${$mt(m)}→${s}⭐!`);this._sX(G('scont'));ZG._updHUD();},
 
   _sB(el){
     const z=ZS.zoo;
-    const IT=[
-      {id:'coin',n:'💰×2 MT (15 Min)',d:'Doppelte Einnahmen',p:600,dur:15*60*1000},
-      {id:'coin3',n:'💰×3 MT (10 Min)',d:'Dreifache Einnahmen',p:2500,dur:10*60*1000},
-      {id:'lucky',n:'🎰 Glück×2 (10 Min)',d:'Doppeltes Glück',p:1200,dur:10*60*1000},
-      {id:'storm',n:'🌊 Besucher-Sturm (5 Min)',d:'×8 Besucher!',p:2500,dur:5*60*1000},
-      {id:'mega_b',n:'👑 MEGA×5 (3 Min)',d:'×5 Einnahmen!',p:9000,dur:3*60*1000},
-    ];
-    el.innerHTML=IT.map(item=>{const a=(z.tempBoosts?.[item.id]||0)>Date.now();const l=a?Math.ceil(((z.tempBoosts[item.id])-Date.now())/60000):0;return`<div class="acard"><div style="min-width:36px;font-size:1.3rem">${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.88rem;color:#fff">${item.n}</div><div style="font-size:.7rem;color:rgba(255,255,255,.45)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.7rem">✅ Aktiv ${l}min</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:#00CFFF;font-size:.8rem">${$mt(item.p)}</div><button class="acbuy" ${z.mt<item.p?'disabled':''} onclick="ZP._boost('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');
+    const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelte Einnahmen',p:600,dur:15*60*1000},{id:'coin3',n:'💰×3 MT 10Min',d:'Dreifach',p:2500,dur:10*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppeltes Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000},{id:'mega_b',n:'👑 MEGA×5 3Min',d:'×5 Einnahmen!',p:9000,dur:3*60*1000}];
+    el.innerHTML=IT.map(item=>{const a=(z.tempBoosts?.[item.id]||0)>Date.now();const l=a?Math.ceil(((z.tempBoosts[item.id])-Date.now())/60000):0;return`<div class="ac"><div style="min-width:32px;font-size:1.2rem">${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-family:'Fredoka One',cursive;font-size:.85rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.68rem">✅ ${l}min</div>`:''}</div><div style="text-align:right"><div style="font-family:'Fredoka One',cursive;color:#00CFFF;font-size:.78rem">${$mt(item.p)}</div><button class="ab" ${z.mt<item.p?'disabled':''} onclick="ZP._boost('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');
   },
-  _boost(id,p,dur){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.tempBoosts)z.tempBoosts={};z.tempBoosts[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZGame._updHUD();},
+  _boost(id,p,dur){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.tempBoosts)z.tempBoosts={};z.tempBoosts[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();},
 
   // REBIRTH
   openRebirth(){show('p-reb');this._rReb();},
@@ -1623,156 +1552,184 @@ const ZP = {
       {ok:z.mt>=req.money,t:$mt(req.money)+' MT',h:z.mt},
     ];
     const can=checks.every(c=>c.ok);
+    const nextW=WEAPONS[Math.min(rb+1,WEAPONS.length-1)];
     G('prc').innerHTML=`<div style="text-align:center">
-      <div style="font-size:2.8rem;margin-bottom:8px">🔄</div>
-      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1rem;margin-bottom:10px">Wiedergeburt #${rb+1}${rb>0?' (schwieriger)':''}</div>
-      <div style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:11px;padding:11px;margin-bottom:9px;text-align:left">
-        <div style="color:#ff6b6b;font-family:'Fredoka One',cursive;margin-bottom:4px">❌ Verlierst alles:</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6">• Alle Tiere • Alle MT • Glück-Upgrades</div>
+      <div style="font-size:2.5rem;margin-bottom:7px">🔄</div>
+      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:.98rem;margin-bottom:9px">Wiedergeburt #${rb+1}${rb>0?' (schwieriger!)':''}</div>
+      <div style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:10px;padding:10px;margin-bottom:8px;text-align:left">
+        <div style="color:#ff6b6b;font-family:'Fredoka One',cursive;margin-bottom:4px">❌ Verlierst:</div>
+        <div style="font-size:.76rem;color:rgba(255,255,255,.6);line-height:1.6">• Fast alle Tiere (1 zufälliges bleibt!)<br>• Alle Mischataler<br>• Glück-Upgrades</div>
       </div>
-      <div style="background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
+      <div style="background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:10px;margin-bottom:9px;text-align:left">
         <div style="color:#27AE60;font-family:'Fredoka One',cursive;margin-bottom:4px">✅ Bekommst:</div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6">• ×${newM} Permanent-Multiplikator<br>• ×1.5 mehr Besucher<br>• +2 extra Gehege</div>
+        <div style="font-size:.76rem;color:rgba(255,255,255,.6);line-height:1.6">• ×${newM} Permanent-Mult<br>• ×1.5 mehr Besucher<br>• +2 extra Gehege<br>• Neue Waffe: ${nextW.emoji} ${nextW.n}</div>
       </div>
-      <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:12px;text-align:left">
-        ${checks.map(c=>`<div class="rreq"><span style="color:${c.ok?'#27AE60':'#ff6b6b'}">${c.ok?'✅':'❌'}</span> ${c.t} <span style="color:rgba(255,255,255,.35)">(${typeof c.h==='number'&&c.h>1000?$mt(c.h):c.h})</span></div>`).join('')}
+      <div style="background:rgba(255,255,255,.06);border-radius:9px;padding:9px;margin-bottom:11px;text-align:left">
+        ${checks.map(c=>`<div style="display:flex;align-items:center;gap:4px;font-size:.78rem;line-height:1.7"><span style="color:${c.ok?'#27AE60':'#ff6b6b'}">${c.ok?'✅':'❌'}</span> ${c.t} <span style="color:rgba(255,255,255,.3)">(${typeof c.h==='number'&&c.h>1000?$mt(c.h):c.h})</span></div>`).join('')}
       </div>
-      ${can?`<button class="btn btn-gold" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:
-        `<button class="btn btn-dim" disabled>Anforderungen nicht erfüllt</button>`}
+      ${can?`<button class="btn btn-g" onclick="ZP._doReb()">🔄 Wiedergeburt!</button>`:
+        `<button class="btn btn-d" disabled>Anforderungen fehlen</button>`}
     </div>`;
-  },
-  _doReb(){
-    if(!confirm('Wirklich alle Tiere und MT verlieren?')) return;
-    const z=ZS.zoo; z.rebirths=(z.rebirths||0)+1;
-    z.rebirthMult=Math.round((1+z.rebirths*.5)*100)/100;
-    z.enclosures=Array(5+z.rebirths*2).fill(null); z.mt=100;
-    z.extraEnc=0; z.luck=1; z.luckLevel=0;
-    ZS.fixEnc(); ZGame._rebuildEnclosures();
-    this.close('reb'); this.toast(`🔄 Wiedergeburt #${z.rebirths}! ×${z.rebirthMult} Mult!`,4000);
-    ZGame._updHUD();
   },
 
-  // ENCLOSURE
+  _doReb(){
+    if(!confirm('Wirklich fast alle Tiere und MT verlieren?'))return;
+    const z=ZS.zoo;
+    // Keep 1 random animal
+    const animals=z.enclosures.filter(e=>e);
+    const kept=animals.length>0?[animals[Math.floor(Math.random()*animals.length)]]:[];
+    z.rebirths=(z.rebirths||0)+1;
+    z.rebirthMult=Math.round((1+z.rebirths*.5)*100)/100;
+    z.enclosures=Array(5+z.rebirths*2).fill(null);
+    if(kept.length)z.enclosures[0]=kept[0]; // Put kept animal in slot 0
+    z.mt=100;z.extraEnc=0;z.luck=1;z.luckLevel=0;
+    ZS.fixEnc();ZG._mkEnclosures();ZG._updWeapon();
+    this.close('reb');
+    const keptName=kept.length?`🎊 ${kept[0].animal.e} ${kept[0].animal.n} bleibt!`:'';
+    this.toast(`🔄 Wiedergeburt #${z.rebirths}! ×${z.rebirthMult} Mult!\n${keptName}`,5000);
+    ZG._updHUD();
+  },
+
+  // ENCLOSURE (with speed shop)
   openEnc(i){
-    show('p-enc'); G('pent').textContent='Gehege #'+(i+1);
-    const z=ZS.zoo, enc=z.enclosures[i], el=G('penc');
-    if(!enc){el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Leer — besorge ein Tier bei der Gondel-Station!</div>`;return;}
-    const tm=tMult(enc.shiny,enc.traits)*(enc.extraMult||1), earn=earnPV(enc,z,ZGame.currentEvent), rd=RARITY[enc.animal.r];
-    el.innerHTML=`<div style="text-align:center;padding:8px 0">
-      <div style="font-size:4rem;margin-bottom:5px;${enc.shiny?.id==='rainbow'?'animation:rainbow 2s linear infinite':''}">${enc.animal.e}</div>
-      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.15rem;margin-bottom:3px">${sB(enc.shiny)} ${enc.animal.n}</div>
-      <div class="${rd.cls}" style="margin-bottom:5px">${rd.n}</div>${tB(enc.traits)}
-      <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:11px;margin:11px 0;text-align:left;font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8">
-        💰 ${$mt(earn)}/Besucher<br>📊 ×${tm.toFixed(2)} Mult<br>🏷️ Preis war: ${$mt(enc.animal.price)}
+    show('p-enc');G('pent').textContent='Gehege #'+(i+1);
+    const z=ZS.zoo,enc=z.enclosures[i],el=G('pencm');
+    if(!enc){el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Leer</div>`;return;}
+    const tm=tMult(enc.shiny,enc.traits)*(enc.extraMult||1);
+    const earn=earnPV(enc,z,ZG.currentEvent);
+    const rd=RARITY[enc.animal.r];
+    const sl=enc.speedLevel||0;
+    const speedCostBase=enc.animal.p*0.5;
+    const speedCost=Math.round(speedCostBase*Math.pow(1.8,sl));
+    const speedBonus=Math.round(Math.pow(1.05,sl)*100-100);
+    const shinyStyle=enc.shiny?{gold:'filter:sepia(1) saturate(4) hue-rotate(5deg)',diamond:'filter:saturate(4) hue-rotate(180deg)',rainbow:'animation:rainbow 2s linear infinite',void:'filter:invert(0.5) hue-rotate(270deg)'}[enc.shiny.id]||'':'';
+    el.innerHTML=`<div style="text-align:center;padding:7px 0">
+      <div style="font-size:3.8rem;margin-bottom:5px;${shinyStyle}">${enc.animal.e}</div>
+      <div style="font-family:'Fredoka One',cursive;color:#fff;font-size:1.1rem;margin-bottom:3px">${sB(enc.shiny)} ${enc.animal.n}</div>
+      <div class="${rd.cls}" style="margin-bottom:4px">${rd.n}</div>${tB(enc.traits)}
+      <div style="background:rgba(255,255,255,.06);border-radius:9px;padding:10px;margin:10px 0;text-align:left;font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.8">
+        💰 ${$mt(earn)}/Besucher<br>📊 ×${tm.toFixed(2)} Mult<br>
+        🏃 Speed-Level: ${sl} (+${speedBonus}% Einnahmen)
       </div>
-      <button class="btn" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;max-width:220px" onclick="ZP._sell(${i})">
-        🗑️ Verkaufen (${$mt(enc.animal.price*.5)})
-      </button>
+      <!-- Speed Shop -->
+      <div style="background:linear-gradient(135deg,rgba(39,174,96,.12),rgba(0,207,255,.08));border:1px solid rgba(39,174,96,.3);border-radius:11px;padding:11px;margin-bottom:11px">
+        <div style="font-family:'Fredoka One',cursive;color:#27AE60;font-size:.88rem;margin-bottom:5px">⚡ Speed-Upgrade (Gehege-Shop)</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:7px">Tier macht +5% mehr Einnahmen und ist schwerer zu stehlen!</div>
+        <div style="font-size:.78rem;color:#00CFFF;margin-bottom:6px">Nächstes Level: ${$mt(speedCost)}</div>
+        <button class="ab" ${z.mt<speedCost?'disabled':''} onclick="ZP._buySpeed(${i},${speedCost})" style="font-size:.82rem;padding:7px 16px">
+          ⚡ Speed +5% kaufen
+        </button>
+      </div>
+      <!-- Sell + offer -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button class="btn btn-d" style="font-size:.8rem;padding:9px" onclick="ZP._sell(${i})">🗑️ Verkaufen (${$mt(enc.animal.p*.5)})</button>
+        <button class="btn btn-d" style="font-size:.8rem;padding:9px;background:rgba(39,174,96,.2);border-color:rgba(39,174,96,.3);color:#27AE60" onclick="ZP._offerTrade(${i});ZP.close('enc')">🤝 Traden</button>
+      </div>
     </div>`;
   },
-  _sell(i){const z=ZS.zoo,enc=z.enclosures[i];if(!enc)return;z.mt+=enc.animal.price*.5;z.enclosures[i]=null;ZGame._rebuildEnclosures();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZGame._updHUD();},
+
+  _buySpeed(i,cost){
+    const z=ZS.zoo;if(z.mt<cost){this.toast('❌ Zu wenig MT!');return;}
+    z.mt-=cost;if(!z.enclosures[i])return;
+    z.enclosures[i].speedLevel=(z.enclosures[i].speedLevel||0)+1;
+    this.toast(`⚡ Speed-Level ${z.enclosures[i].speedLevel}!`,2000);
+    this.openEnc(i);ZG._updHUD();
+  },
+
+  _sell(i){const z=ZS.zoo,enc=z.enclosures[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enclosures[i]=null;ZG._mkEnclosures();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();},
 
   // MENU
-  openMenu(){show('p-menu');const z=ZS.zoo;G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:12px;padding:13px;margin-bottom:12px;text-align:left;font-size:.82rem;line-height:1.85;color:rgba(255,255,255,.65)">
-    ${ZS.playerChar?.e||''} <b style="color:#fff">${ZS.player}</b><br>
-    🌀 MT: <b style="color:#00CFFF">${$mt(z.mt)}</b><br>
-    📈 Verdient: <b style="color:#27AE60">${$mt(z.totalEarned||0)}</b><br>
-    🐾 Tiere: <b>${z.enclosures.filter(e=>e).length}/${ZS.maxEnc()}</b><br>
-    🔄 Rebirths: <b style="color:#ce93d8">${z.rebirths||0}</b><br>
-    ×Mult: <b style="color:#ef5350">×${(z.rebirthMult||1).toFixed(1)}</b>
-  </div>
-  <button class="btn btn-dim" style="max-width:220px;margin-bottom:6px" onclick="G('p-qr').style.display='flex'">📱 QR-Code zum Denkspiel</button>`;},
+  openMenu(){
+    show('p-menu');const z=ZS.zoo;
+    G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:12px;margin-bottom:11px;text-align:left;font-size:.8rem;line-height:1.85;color:rgba(255,255,255,.6)">
+      ${ZS.playerChar?.e||''} <b style="color:#fff">${ZS.player}</b><br>
+      🌀 MT: <b style="color:#00CFFF">${$mt(z.mt)}</b><br>📈 ${$mt(z.totalEarned||0)} verdient<br>
+      🐾 ${z.enclosures.filter(e=>e).length}/${ZS.maxEnc()} Tiere<br>
+      🔄 ${z.rebirths||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}
+    </div>
+    <button class="btn btn-d" style="max-width:220px;margin-bottom:7px" onclick="G('p-qr')?.style?G('p-qr').style.display='flex':null">📱 QR Denkspiel</button>`;
+  },
 
   // ADMIN
   openAdmin(){
-    if(!ZS.isAdmin) return;
-    show('p-admin');
+    if(!ZS.isAdmin)return;show('p-adm');
     G('padm').innerHTML=`
-      <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:10px">Befehle werden via Firebase sofort an alle/den Spieler gesendet.</div>
-      <label style="font-size:.78rem;color:rgba(255,255,255,.5)">Ziel (Name oder "_all" für alle):</label>
-      <input id="at" type="text" placeholder="Spielername oder _all" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 8px;font-family:'Nunito',sans-serif"/>
-      <label style="font-size:.78rem;color:rgba(255,255,255,.5)">Tier spawnen:</label>
-      <select id="as" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 8px">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:9px">Befehle gehen auch an admin.html → Zoo-Admin Sektion.</div>
+      <label style="font-size:.76rem;color:rgba(255,255,255,.45)">Ziel (Name oder _all):</label>
+      <input id="at" type="text" placeholder="_all oder Spielername" style="width:100%;padding:7px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.18);margin:4px 0 8px;font-family:'Nunito',sans-serif"/>
+      <label style="font-size:.76rem;color:rgba(255,255,255,.45)">Tier spawnen:</label>
+      <select id="as" style="width:100%;padding:7px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.18);margin:4px 0 8px">
         ${ANIMALS.map(a=>`<option value="${a.id}">${a.e} ${a.n} (${RARITY[a.r]?.n})</option>`).join('')}
       </select>
-      <label style="font-size:.78rem;color:rgba(255,255,255,.5)">Shiny:</label>
-      <select id="ash" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 8px">
-        <option value="">Kein</option>${SHINY.map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}
+      <label style="font-size:.76rem;color:rgba(255,255,255,.45)">Shiny:</label>
+      <select id="ash" style="width:100%;padding:7px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.18);margin:4px 0 8px">
+        <option value="">Kein</option>${Object.entries(SHINY_DATA).map(([k,s])=>`<option value="${k}">${s.n}</option>`).join('')}
       </select>
-      <label style="font-size:.78rem;color:rgba(255,255,255,.5)">Traits:</label>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 10px">
-        ${TRAITS.map(t=>`<label style="display:flex;align-items:center;gap:3px;font-size:.78rem;cursor:pointer"><input type="checkbox" value="${t.id}" class="at"> ${t.n}</label>`).join('')}
+      <label style="font-size:.76rem;color:rgba(255,255,255,.45)">Traits (Checkbox):</label>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 9px">
+        ${TRAITS_DATA.map(t=>`<label style="display:flex;align-items:center;gap:2px;font-size:.76rem;cursor:pointer"><input type="checkbox" value="${t.id}" class="atr"> ${t.n}</label>`).join('')}
       </div>
-      <label style="font-size:.78rem;color:rgba(255,255,255,.5)">Event starten:</label>
-      <select id="aev" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 8px">
+      <label style="font-size:.76rem;color:rgba(255,255,255,.45)">Event starten:</label>
+      <select id="aev" style="width:100%;padding:7px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.18);margin:4px 0 8px">
         ${EVENTS.map(e=>`<option value="${e.id}">${e.n}</option>`).join('')}
       </select>
-      <label style="font-size:.78rem;color:rgba(255,255,255,.5)">Event-Dauer (s):</label>
-      <select id="aed" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:5px 0 10px">
-        <option value="15000">15s (Test)</option>
-        <option value="30000" selected>30s</option>
-        <option value="60000">1 Min</option>
-        <option value="300000">5 Min</option>
+      <select id="aed" style="width:100%;padding:7px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.18);margin:4px 0 9px">
+        <option value="15000">15s Test</option><option value="30000" selected>30s</option><option value="60000">1 Min</option><option value="300000">5 Min</option>
       </select>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <button class="btn btn-gold" onclick="ZP._adSpawn()">🦁 Tier spawnen</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">
+        <button class="btn btn-g" onclick="ZP._adSpawn()">🦁 Spawnen</button>
         <button class="btn" style="background:rgba(231,76,60,.3);color:#ff6b6b" onclick="ZP._adEvent()">⚡ Event</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn btn-dim" onclick="ZP._adMT()">🌀 +50K MT</button>
-        <button class="btn btn-dim" onclick="ZP._adAllMT()">🌀 Alle +50K</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button class="btn btn-d" onclick="ZP._adMT()">🌀 +50K MT</button>
+        <button class="btn btn-d" onclick="ZP._adAllMT()">🌀 Alle +50K</button>
       </div>`;
   },
 
   async _adSpawn(){
     const tgt=G('at')?.value?.trim()||ZS.player;
-    const aid=G('as')?.value, shId=G('ash')?.value;
-    const traitIds=Array.from(document.querySelectorAll('.at:checked')).map(c=>c.value);
+    const aid=G('as')?.value,shId=G('ash')?.value;
+    const traitIds=Array.from(document.querySelectorAll('.atr:checked')).map(c=>c.value);
     const cmd={type:'spawn_animal',target:tgt.toLowerCase(),animalId:aid,shinyId:shId,traitIds,id:Date.now().toString(),expiresAt:Date.now()+30000};
-    await this._sendAdminCmd(cmd);
-    this.toast('✅ Spawn-Befehl gesendet!');this.close('admin');
+    await this._sendCmd(cmd);
+    // Also apply locally if target is self or all
+    if(tgt.toLowerCase()===ZS.player?.toLowerCase()||tgt==='_all'){
+      const a=ANIMALS.find(x=>x.id===aid)||ANIMALS[0];
+      const shiny=shId?{id:shId,...SHINY_DATA[shId]}:null;
+      const traits=traitIds.map(tid=>TRAITS_DATA.find(t=>t.id===tid)).filter(Boolean);
+      const slot=ZS.zoo.enclosures.findIndex(e=>!e);
+      if(slot>=0){ZS.zoo.enclosures[slot]={animal:{...a},shiny,traits,extraMult:1,addedAt:Date.now(),adminSpawned:true};ZG._mkEnclosures();}
+    }
+    this.toast('✅ Spawn-Befehl gesendet!');this.close('adm');
   },
   async _adEvent(){
-    const evId=G('aev')?.value, dur=parseInt(G('aed')?.value||30000);
-    const tgt=G('at')?.value?.trim()||'_all';
-    const cmd={type:'start_event',target:tgt.toLowerCase(),eventId:evId,dur,id:Date.now().toString(),expiresAt:Date.now()+60000};
-    await this._sendAdminCmd(cmd);
-    // Also start locally
-    const ev=EVENTS.find(e=>e.id===evId);
-    if(ev) ZGame.startEvent(ev,dur);
-    this.toast('✅ Event gestartet!');this.close('admin');
+    const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);
+    const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),expiresAt:Date.now()+60000};
+    await this._sendCmd(cmd);
+    const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEvent(ev,dur);
+    this.toast('✅ Event gestartet!');this.close('adm');
   },
-  async _adMT(){
-    const tgt=G('at')?.value?.trim()||ZS.player;
-    const cmd={type:'give_mt',target:tgt.toLowerCase(),amount:50000,id:Date.now().toString(),expiresAt:Date.now()+30000};
-    await this._sendAdminCmd(cmd);
-    if(tgt.toLowerCase()===ZS.player?.toLowerCase()){ZS.zoo.mt+=50000;ZGame._updHUD();}
-    this.toast('✅ MT gesendet!');this.close('admin');
-  },
-  async _adAllMT(){
-    const cmd={type:'give_mt',target:'_all',amount:50000,id:Date.now().toString(),expiresAt:Date.now()+30000};
-    await this._sendAdminCmd(cmd);
-    ZS.zoo.mt+=50000;ZGame._updHUD();
-    this.toast('✅ Alle bekommen 50K MT!');this.close('admin');
-  },
+  async _adMT(){const tgt=G('at')?.value?.trim()||ZS.player;const cmd={type:'give_mt',target:tgt.toLowerCase(),amount:50000,id:Date.now().toString(),expiresAt:Date.now()+30000};await this._sendCmd(cmd);if(tgt.toLowerCase()===ZS.player?.toLowerCase()||tgt==='_all'){ZS.zoo.mt+=50000;ZG._updHUD();}this.toast('✅ MT gesendet!');this.close('adm');},
+  async _adAllMT(){const cmd={type:'give_mt',target:'_all',amount:50000,id:Date.now().toString(),expiresAt:Date.now()+30000};await this._sendCmd(cmd);ZS.zoo.mt+=50000;ZG._updHUD();this.toast('✅ Alle +50K!');this.close('adm');},
 
-  async _sendAdminCmd(cmd){
+  async _sendCmd(cmd){
     try{if(State._useCloud())await _db.collection('config').doc('zoo_admin_cmd').set(cmd);}catch(e){}
     localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));
   },
 };
 
-// ══════════════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', ()=>{
+// QR panel
+const qrp=document.getElementById('p-qr')||document.createElement('div');
+qrp.id='p-qr';
+qrp.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)';
+qrp.innerHTML='<div style="background:#fff;border-radius:18px;padding:22px;text-align:center;max-width:260px" onclick="event.stopPropagation()"><div style="font-size:2rem;margin-bottom:5px">🦁</div><div style="font-family:\'Fredoka One\',cursive;color:#1a0800;font-size:1rem;margin-bottom:9px">Mischa Denkspiel</div><div id="qrgrid" style="width:140px;height:140px;margin:0 auto 9px;display:grid;grid-template-columns:repeat(10,14px)"></div><button onclick="location.href=\'index.html\'" style="background:linear-gradient(135deg,#FFD700,#FFA500);border:none;color:#1a0800;padding:8px 18px;border-radius:50px;font-family:\'Fredoka One\',cursive;font-size:.9rem;cursor:pointer">→ Denkspiel</button></div>';
+qrp.onclick=()=>qrp.style.display='none';
+document.body.appendChild(qrp);
+
+// Boot
+document.addEventListener('DOMContentLoaded',()=>{
   const main=sessionStorage.getItem('mischa_current');
-  if(main){
-    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'), u=us[main];
-    ZS.player=main; ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';
-    if(u?.char){ZS.playerChar=u.char; ZA._showMode();}
-    else if(u){ZA._showChar();}
-  }
+  if(main){const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),u=us[main];ZS.player=main;ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';if(u?.char){ZS.playerChar=u.char;ZA._showMode();}else if(u){ZA._showChar();}}
 });
 </script>
 </body>
