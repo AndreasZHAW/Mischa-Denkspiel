@@ -1,0 +1,86 @@
+/**
+ * worlds.js v6 — 10 Welten, alle neuen Spiele, kein pacman
+ */
+const WORLDS = [
+  {id:1,name:'Anreise nach Frankreich',icon:'🚗',description:'Wir fahren los!',bannerClass:'w1',color:'#2980B9',difficulty:'Sehr einfach',
+    tasks:[
+      {type:'math',title:'Reiserechnen',icon:'🔢'},{type:'reaction',title:'Ampel-Reaktion',icon:'🚦'},
+      {type:'memory',title:'Auto-Memory',icon:'🧠'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
+      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
+      {type:'flags',title:'Flaggen raten',icon:'🌍'},{type:'wordsearch',title:'Wörter suchen',icon:'🔤'},
+      {type:'dart',title:'Dart!',icon:'🎯'},{type:'french',title:'Französisch Quiz',icon:'🇫🇷'},
+    ],memoryEmojis:['🚗','🗺️','⛽','🚦','🎒']},
+  {id:2,name:'Im Schloss ankommen',icon:'🏰',description:'Willkommen im Schloss!',bannerClass:'w2',color:'#8E44AD',difficulty:'Einfach',
+    tasks:[
+      {type:'math',title:'Schloss-Mathe',icon:'🔢'},{type:'memory',title:'Ritter-Memory',icon:'🧠'},
+      {type:'reaction',title:'Burgtor-Reaktion',icon:'🏰'},{type:'hangman',title:'Galgenmännchen',icon:'🎯'},
+      {type:'wordsearch',title:'Ritterwörter',icon:'🔤'},{type:'shutthebox',title:'Shut the Box!',icon:'🎲'},
+      {type:'jenga',title:'Turm der Ritter',icon:'🗼'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
+      {type:'dart',title:'Schloss-Dart',icon:'🎯'},{type:'riddle',title:'Rätsel',icon:'🤔'},
+    ],memoryEmojis:['🏰','👑','⚔️','🛡️','🗝️']},
+  {id:3,name:'Baden im Pool',icon:'🏊',description:'Planschen im Pool!',bannerClass:'w3',color:'#27AE60',difficulty:'Einfach',
+    tasks:[
+      {type:'math',title:'Pool-Mathe',icon:'🔢'},{type:'reaction',title:'Wasserspritzen!',icon:'💦'},
+      {type:'memory',title:'Sommer-Memory',icon:'🧠'},{type:'simon',title:'Simon Says',icon:'🎨'},
+      {type:'colormix',title:'Farben mischen',icon:'🎨'},{type:'train',title:'Sommer-Quiz',icon:'🚂'},
+      {type:'jenga',title:'Sand-Turm',icon:'🗼'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
+      {type:'clock',title:'Uhr lesen',icon:'🕐'},{type:'dart',title:'Pool-Dart',icon:'🎯'},
+    ],memoryEmojis:['🏊','🌞','🏖️','🍦','🐠']},
+  {id:4,name:'Tennis spielen',icon:'🎾',description:'Auf dem Tennisplatz!',bannerClass:'w4',color:'#E67E22',difficulty:'Mittel',
+    tasks:[
+      {type:'math',title:'Punkterechnen',icon:'🔢'},{type:'reaction',title:'Ball-Reaktion',icon:'🎾'},
+      {type:'memory',title:'Sport-Memory',icon:'🧠'},{type:'train',title:'Tennis-Quiz',icon:'🚂'},
+      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'tictactoe',title:'Tic-Tac-Toe',icon:'❌'},
+      {type:'balloon',title:'Ballon-Mathe',icon:'🎈'},{type:'anagram',title:'Buchstaben sortieren',icon:'🔤'},
+      {type:'weight',title:'Gewicht schätzen',icon:'⚖️'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
+    ],memoryEmojis:['🎾','🏆','🥎','🏸','⚡']},
+  {id:5,name:'Kniffel spielen',icon:'🎲',description:'Würfeln und gewinnen!',bannerClass:'w5',color:'#E74C3C',difficulty:'Mittel',
+    tasks:[
+      {type:'shutthebox',title:'Shut the Box! Profi',icon:'🎲'},{type:'math',title:'Würfel-Mathe',icon:'🔢'},
+      {type:'reaction',title:'Würfel-Reaktion',icon:'⚡'},{type:'memory',title:'Zahlen-Memory',icon:'🧠'},
+      {type:'train',title:'Kniffel-Quiz',icon:'🚂'},{type:'jenga',title:'Würfel-Turm',icon:'🗼'},
+      {type:'simon',title:'Simon Says',icon:'🎨'},{type:'dart',title:'Dart',icon:'🎯'},
+      {type:'balloon',title:'Ballon-Mathe',icon:'🎈'},{type:'riddle',title:'Rätsel',icon:'🤔'},
+    ],memoryEmojis:['🎲','⚀','⚁','⚂','⚃']},
+  {id:6,name:'Fahrrad fahren',icon:'🚴',description:'Durch die Landschaft radeln!',bannerClass:'w6',color:'#16A085',difficulty:'Mittel',
+    tasks:[
+      {type:'math',title:'Streckenrechnen',icon:'🔢'},{type:'reaction',title:'Kurven-Reaktion',icon:'🚴'},
+      {type:'memory',title:'Natur-Memory',icon:'🧠'},{type:'train',title:'Fahrrad-Quiz',icon:'🚂'},
+      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'basketball',title:'Basketball',icon:'🏀'},
+      {type:'wordsearch',title:'Naturwörter',icon:'🔤'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
+      {type:'colormix',title:'Farben mischen',icon:'🎨'},{type:'geo',title:'Geo Quiz',icon:'🗺️'},
+    ],memoryEmojis:['🚴','🌻','🦋','🌿','🏡']},
+  {id:7,name:'Essen gehen',icon:'🍽️',description:'Leckeres französisches Essen!',bannerClass:'w7',color:'#D35400',difficulty:'Schwer',
+    tasks:[
+      {type:'math',title:'Menü ausrechnen',icon:'🔢'},{type:'memory',title:'Speisen-Memory',icon:'🧠'},
+      {type:'reaction',title:'Kellner-Reaktion',icon:'🍴'},{type:'train',title:'Français-Quiz',icon:'🚂'},
+      {type:'french',title:'Französisch lernen',icon:'🇫🇷'},{type:'shutthebox',title:'Shut the Box!',icon:'🎲'},
+      {type:'hangman',title:'Galgenmännchen',icon:'🎯'},{type:'emojistory',title:'Emoji Geschichte',icon:'📖'},
+      {type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},{type:'dart',title:'Restaurant-Dart',icon:'🎯'},
+    ],memoryEmojis:['🥐','🍷','🧀','🥗','🍰']},
+  {id:8,name:'Fussball schauen',icon:'⚽',description:'VfB Stuttgart schauen!',bannerClass:'w8',color:'#E30613',difficulty:'Schwer',
+    tasks:[
+      {type:'math',title:'Tore rechnen',icon:'🔢'},{type:'reaction',title:'Tor! Reaktion!',icon:'⚽'},
+      {type:'memory',title:'Fussball-Memory',icon:'🧠'},{type:'train',title:'VfB Quiz',icon:'🚂'},
+      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
+      {type:'tictactoe',title:'Tic-Tac-Toe',icon:'❌'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
+      {type:'dart',title:'Dart',icon:'🎯'},{type:'emojistory',title:'Emoji Geschichte',icon:'📖'},
+    ],memoryEmojis:['⚽','🏆','🥅','👟','🎽']},
+  {id:9,name:'Koffer packen',icon:'🧳',description:'Alles einpacken!',bannerClass:'w9',color:'#7F8C8D',difficulty:'Sehr schwer',
+    tasks:[
+      {type:'math',title:'Gewicht rechnen',icon:'🔢'},{type:'memory',title:'Pack-Memory',icon:'🧠'},
+      {type:'reaction',title:'Schnell einpacken!',icon:'🧳'},{type:'train',title:'Reise-Quiz',icon:'🚂'},
+      {type:'shutthebox',title:'Shut the Box! Profi',icon:'🎲'},{type:'anagram',title:'Buchstaben sortieren',icon:'🔤'},
+      {type:'simon',title:'Simon Says',icon:'🎨'},{type:'geo',title:'Geo Quiz',icon:'🗺️'},
+      {type:'clock',title:'Uhr lesen',icon:'🕐'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
+    ],memoryEmojis:['🧳','👒','👓','📷','🪥']},
+  {id:10,name:'Abreise nach Hause',icon:'🏠',description:'Heimreise beginnt!',bannerClass:'w10',color:'#2C3E50',difficulty:'Meister',
+    tasks:[
+      {type:'math',title:'Heimweg-Mathe',icon:'🔢'},{type:'reaction',title:'Autobahn-Reaktion',icon:'🚗'},
+      {type:'memory',title:'Erinnerungs-Memory',icon:'🧠'},{type:'train',title:'Abschluss-Quiz',icon:'🚂'},
+      {type:'shutthebox',title:'Shut the Box! Meister',icon:'🎲'},{type:'dart',title:'Finaler Dart',icon:'🎯'},
+      {type:'jenga',title:'Meister-Turm',icon:'🗼'},{type:'french',title:'Französisch Profi',icon:'🇫🇷'},
+      {type:'riddle',title:'Finale Rätsel',icon:'🤔'},{type:'emojistory',title:'Ferien-Geschichte',icon:'📖'},
+    ],memoryEmojis:['🏠','🌟','❤️','🎉','🏆']},
+];
+window.WORLDS = WORLDS;

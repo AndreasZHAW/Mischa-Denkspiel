@@ -142,7 +142,7 @@ const State = {
     if (!player) return;
     if (!player.worlds[worldIndex]) player.worlds[worldIndex] = { tasks: Array(10).fill(null), jokerUsed: false, completed: false };
 
-    const finalScore = this.calcFinalScore(result);
+    const finalScore = this.calcFinalScore(result, player);
     player.worlds[worldIndex].tasks[taskIndex] = {
       done: true, score: finalScore,
       rawScore: result.rawScore || 0,
@@ -168,21 +168,51 @@ const State = {
     return player;
   },
 
-  calcFinalScore({ rawScore = 100, timeMs = 0, errors = 0, passed = true }) {
+  calcFinalScore({ rawScore = 100, timeMs = 0, errors = 0, passed = true }, player = null) {
     if (!passed) return 0;
     const timePenalty  = Math.min(40, Math.floor(timeMs / 3000));
     const errorPenalty = Math.min(60, errors * 8);
-    return Math.max(5, Math.round(Math.min(100, rawScore) - timePenalty - errorPenalty));
+    let base = Math.max(5, Math.round(Math.min(100, rawScore) - timePenalty - errorPenalty));
+    // Apply star multiplier from shop if active
+    if (player && player.activeStarMultiplier && player.starMultiplierExpires) {
+      if (Date.now() < player.starMultiplierExpires) {
+        base = Math.round(base * player.activeStarMultiplier);
+      } else {
+        player.activeStarMultiplier = null;
+        player.starMultiplierExpires = null;
+      }
+    }
+    // Apply character multiplier (1.1x per owned skin)
+    const charMult = this.getCharacterMultiplier(player);
+    if (charMult > 1) base = Math.round(base * charMult);
+    // Apply reset multiplier
+    if (player?.resetMultiplier && player.resetMultiplier > 1) base = Math.round(base * player.resetMultiplier);
+    return base;
   },
 
   async useJoker(playerName, worldIndex, taskIndex) {
     const player = await this.getPlayer(playerName);
-    if (!player || player.worlds[worldIndex]?.jokerUsed) return false;
-    player.worlds[worldIndex].jokerUsed = true;
-    player.worlds[worldIndex].tasks[taskIndex] = { done: true, score: 0, joker: true, ts: Date.now() };
+    if (!player) return false;
+    const ws = player.worlds[worldIndex];
+    if (!ws) return false;
+    // How many jokers does this player have per world?
+    const maxJokers = player.maxJokersPerWorld || 1;
+    const jokersUsed = ws.jokersUsed || (ws.jokerUsed ? 1 : 0);
+    if (jokersUsed >= maxJokers) return false;
+    ws.jokersUsed = jokersUsed + 1;
+    ws.jokerUsed = true; // backwards compat
+    ws.tasks[taskIndex] = { done: true, score: 0, joker: true, ts: Date.now() };
     await this.savePlayer(player);
     this.currentPlayer = player;
     return true;
+  },
+
+  getJokersRemaining(player, worldIndex) {
+    const ws = player.worlds?.[worldIndex];
+    if (!ws) return 0;
+    const maxJokers = player.maxJokersPerWorld || 1;
+    const jokersUsed = ws.jokersUsed || (ws.jokerUsed ? 1 : 0);
+    return Math.max(0, maxJokers - jokersUsed);
   },
 
   // ---- ADMIN ACTIONS ----
@@ -294,6 +324,95 @@ const State = {
     const player = await this.getCurrentPlayer();
     if (player) this.currentPlayer = await this.getPlayer(player.name);
     return this.currentPlayer;
+  },
+
+  // ---- REAL-TIME BROADCAST ----
+  _broadcastUnsub: null,
+  async setBroadcast(text, durationMs, type='info', extra=null) {
+    const data = { text, id: Date.now().toString(), expiresAt: Date.now()+durationMs, setAt: Date.now(), type, extra };
+    if (this._useCloud()) await _db.collection('config').doc('broadcast').set(data);
+    localStorage.setItem('mischa_broadcast', JSON.stringify(data));
+  },
+  listenBroadcast(callback) {
+    if (this._broadcastUnsub) this._broadcastUnsub();
+    if (this._useCloud()) {
+      this._broadcastUnsub = _db.collection('config').doc('broadcast').onSnapshot(snap => {
+        if (!snap.exists) return;
+        const d = snap.data();
+        if (d && d.expiresAt > Date.now()) callback(d);
+      });
+    } else {
+      const poll = () => { try { const d=JSON.parse(localStorage.getItem('mischa_broadcast')||'null'); if(d&&d.expiresAt>Date.now()) callback(d); } catch(e){} };
+      poll(); setInterval(poll, 5000);
+    }
+  },
+
+  // ---- SURVEY RESULTS ----
+  async voteSurvey(surveyId, choice) {
+    const key = 'mischa_survey_vote';
+    const votes = JSON.parse(localStorage.getItem(key)||'{}');
+    votes[surveyId] = choice;
+    localStorage.setItem(key, JSON.stringify(votes));
+    if (this._useCloud()) {
+      const ref = _db.collection('config').doc('survey_results');
+      const snap = await ref.get();
+      const data = snap.exists ? snap.data() : {};
+      if (!data[surveyId]) data[surveyId] = {a:0, b:0};
+      data[surveyId][choice]++;
+      await ref.set(data);
+    }
+  },
+  hasVoted(surveyId) {
+    try { return JSON.parse(localStorage.getItem('mischa_survey_vote')||'{}')[surveyId] != null; } catch(e){ return false; }
+  },
+
+  // ---- GIFT RESET ----
+  async giftReset(targetName) {
+    const target = await this.getPlayer(targetName);
+    if (!target) return false;
+    target.resets = (target.resets || 0) + 1;
+    const mult = this._resetMultiplier(target.resets);
+    target.resetMultiplier = mult;
+    target.currentWorld = 1;
+    target.worlds = this._emptyWorlds();
+    target.totalScore = 0;
+    await this.savePlayer(target);
+    return true;
+  },
+  _resetMultiplier(resets) {
+    if (resets >= 10) return 2.0;
+    return Math.round((1.0 + resets * 0.3) * 100) / 100;
+  },
+
+  // ---- REAL-TIME DISCOUNTS ----
+  _discountUnsub: null,
+  async setDiscount(itemId, pct, durationMs) {
+    const data = { pct, expiresAt: Date.now()+durationMs, setAt: Date.now() };
+    if (this._useCloud()) {
+      const snap = await _db.collection('config').doc('discounts').get();
+      const all = snap.exists ? snap.data() : {};
+      all[itemId] = data;
+      await _db.collection('config').doc('discounts').set(all);
+    }
+    const local = JSON.parse(localStorage.getItem('mischa_discounts')||'{}');
+    local[itemId] = data; localStorage.setItem('mischa_discounts', JSON.stringify(local));
+  },
+  listenDiscounts(callback) {
+    if (this._discountUnsub) this._discountUnsub();
+    if (this._useCloud()) {
+      this._discountUnsub = _db.collection('config').doc('discounts').onSnapshot(snap => {
+        if (!snap.exists) return;
+        const data = snap.data()||{};
+        localStorage.setItem('mischa_discounts', JSON.stringify(data));
+        callback(data);
+      });
+    }
+  },
+
+  // ---- CHARACTER MULTIPLIER ----
+  getCharacterMultiplier(player) {
+    const owned = (player?.unlockedSkins||[]).length;
+    return Math.min(3.0, Math.round((1 + owned * 0.1) * 100) / 100);
   }
 };
 
