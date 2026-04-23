@@ -113,6 +113,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 /* Exchange card */
 .ex{background:rgba(0,207,255,.07);border:1px solid rgba(0,207,255,.22);border-radius:11px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:7px}
 @keyframes rainbow{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+
+/* ── LUCKY WHEEL ── */
+#lucky-wheel-wrap{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.lw-title{font-family:'Fredoka One',cursive;font-size:1.5rem;color:#FFD700;text-align:center;margin-bottom:12px;text-shadow:0 0 20px rgba(255,215,0,.5)}
+#lw-canvas{border-radius:50%;box-shadow:0 0 40px rgba(255,215,0,.4);display:block;margin:0 auto}
+.lw-spin-btn{font-family:'Fredoka One',cursive;font-size:1.2rem;padding:12px 32px;border-radius:50px;border:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;cursor:pointer;margin-top:14px;transition:transform .15s;display:block;margin-left:auto;margin-right:auto}
+.lw-spin-btn:active{transform:scale(.93)}
+.lw-spin-btn:disabled{background:rgba(255,255,255,.2);color:rgba(255,255,255,.4);cursor:not-allowed}
+/* ── BASE THEMES ── */
+#zoo-base-overlay{position:fixed;inset:0;pointer-events:none;z-index:5;transition:opacity 1s}
+/* ── ANIMAL EFFECTS ── */
+.anim-glow-gold{box-shadow:0 0 30px rgba(255,215,0,.6)}
+.anim-glow-rainbow{animation:rbglow 2s linear infinite}
+@keyframes rbglow{0%{box-shadow:0 0 25px #ff0000}33%{box-shadow:0 0 25px #00ff00}66%{box-shadow:0 0 25px #0000ff}100%{box-shadow:0 0 25px #ff0000}}
 </style>
 </head>
 <body>
@@ -171,39 +185,35 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 
     <!-- Left sidebar -->
     <div id="hleft">
-      <div class="hb" onclick="ZP.openGondola()">
-        <div class="hbb" style="background:rgba(39,174,96,.65)">🚡</div>
-        <div class="hbl">Gondel</div>
-      </div>
       <div class="hb" onclick="ZP.openIndex()">
-        <div class="hbb" style="background:rgba(52,152,219,.65)">📖</div>
+        <div class="hbb" style="background:rgba(52,152,219,.75)">📖</div>
         <div class="hbl">Index</div>
       </div>
       <div class="hb" onclick="ZP.openRebirth()">
-        <div class="hbb" style="background:rgba(100,100,100,.65)">🔄</div>
+        <div class="hbb" style="background:rgba(100,100,100,.75)">🔄</div>
         <div class="hbl">Rebirth</div>
       </div>
       <div class="hb" onclick="ZP.openShop()">
-        <div class="hbb" style="background:rgba(155,89,182,.65)">🛒</div>
+        <div class="hbb" style="background:rgba(155,89,182,.75)">🛒</div>
         <div class="hbl">Shop</div>
       </div>
       <div class="hb" onclick="ZP.openTrading()">
-        <div class="hbb" style="background:rgba(255,165,0,.65)">🤝</div>
+        <div class="hbb" style="background:rgba(255,165,0,.75)">🤝</div>
         <div class="hbl">Trading</div>
       </div>
-      <div class="hb off" id="admbtn" onclick="ZP.openAdmin()">
-        <div class="hbb" style="background:rgba(255,215,0,.4)">👑</div>
-        <div class="hbl">Admin</div>
-      </div>
       <div class="hb" onclick="ZP.openMenu()">
-        <div class="hbb" style="background:rgba(60,60,60,.65)">☰</div>
+        <div class="hbb" style="background:rgba(60,60,60,.75)">☰</div>
         <div class="hbl">Menü</div>
       </div>
     </div>
 
     <!-- Weapon / swing button -->
     <div id="weapon-hud" style="pointer-events:auto">
-      <div id="swing-btn" onclick="ZG.swing()" title="Schlagen [Q]">🏏</div>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+        <div id="swing-btn" onclick="ZG.swing()" title="Schlagen [Q]">🏏</div>
+        <div id="slap-toggle-btn" onclick="ZG.toggleSlap()" title="Lucky Slap ausrüsten [L]"
+          style="width:44px;height:44px;border-radius:50%;background:rgba(39,174,96,.5);border:2px solid rgba(255,255,255,.3);display:none;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer">🍀</div>
+      </div>
       <div class="wname" id="wname">Holzschläger</div>
     </div>
 
@@ -251,6 +261,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
   <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:7px">
     <span>🟢 <span id="gsrv">Online</span></span>
     <span>Nächste: <b id="gtimer" style="color:#FFD700">2.5s</b></span>
+    <span id="lw-badge" style="cursor:pointer;display:none" onclick="LuckyWheel.open()">🍀 Spin!</span>
   </div>
   <!-- 3 gondola cars -->
   <div id="gcars" style="display:flex;gap:12px;justify-content:center;padding:10px;background:rgba(0,0,0,.4);border-radius:11px;margin-bottom:9px;min-height:85px;align-items:flex-end"></div>
@@ -359,7 +370,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js"></script>
+<script src="js/firebase-state.js"></script>
 <script>
 // ════════════════════════════════════════════
 // DATA
@@ -686,8 +697,10 @@ const ZG={
 
   start(){
     const canvas=G('zc');
-    // THREE RENDERER
-    this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+    // Set explicit size before renderer init
+    canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+    // THREE RENDERER - no powerPreference for mobile compat
+    this.renderer=new THREE.WebGLRenderer({canvas,antialias:false});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
     this.renderer.setSize(window.innerWidth,window.innerHeight);
     this.renderer.shadowMap.enabled=true;
@@ -707,7 +720,9 @@ const ZG={
       this.renderer.setSize(window.innerWidth,window.innerHeight);
     });
 
-    this._buildWorld();
+    try {
+      this._buildWorld();
+    } catch(e) { console.error('World build error:', e); }
     this._initControls();
     this._raf=requestAnimationFrame(t=>this._loop(t));
     this._loops.push(setInterval(()=>this._tick(),100));
@@ -721,7 +736,8 @@ const ZG={
     this._updHUD();
     this._updWeapon();
     this._buildQR();
-
+    LuckyWheel.init(); // Start 20min timer for wheel
+    
     // Tutorial for first-timers
     if(!localStorage.getItem('zoo_tutorial_done')) this._startTutorial();
   },
@@ -749,7 +765,7 @@ const ZG={
     sun.shadow.camera.left=-55;sun.shadow.camera.right=55;
     sun.shadow.camera.top=55;sun.shadow.camera.bottom=-55;
     sc.add(sun);
-    sc.add(Object.assign(new THREE.DirectionalLight(0x8888ff,.25),{position:new THREE.Vector3(-15,8,-15)}));
+    const fillLight=new THREE.DirectionalLight(0x8888ff,.25);fillLight.position.set(-15,8,-15);sc.add(fillLight);
 
     // Ground
     const gnd=new THREE.Mesh(new THREE.PlaneGeometry(this.WS*2,this.WS*2),new THREE.MeshLambertMaterial({color:0x4CAF50}));
@@ -953,6 +969,7 @@ const ZG={
       this.keys[e.code]=true;
       if(e.code==='KeyE')this._interact();
       if(e.code==='KeyQ')this.swing();
+      if(e.code==='KeyL')this.toggleSlap();
     });
     document.addEventListener('keyup',e=>{this.keys[e.code]=false;});
 
@@ -985,7 +1002,7 @@ const ZG={
   // ──────────────────────────────────────────
   _loop(){
     this._raf=requestAnimationFrame(()=>this._loop());
-    const dt=Math.min(this.clock.getDelta(),.05);
+    const dt=Math.min(this.clock.getDelta(),.05); // clock.getDelta() auto-tracks time
     this._movePlayer(dt);
     this._updateCam();
     this._animClouds(dt);
@@ -1018,7 +1035,7 @@ const ZG={
       if(Math.sqrt(dx*dx+dz*dz)<5.5){this.nearEncIdx=i;break;}
     }
     const ip=G('iprompt');
-    if(this.nearStation){ip.style.opacity='1';ip.textContent='🚡 [E] Gondel-Station betreten';}
+    if(this.nearStation){ip.style.opacity='1';ip.textContent=LuckyWheel.spinsAvailable>0?'🍀 [E] Glücksrad drehen! / Gondel':'🚡 [E] Gondel-Station betreten';}
     else if(this.nearEncIdx>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEncIdx+1}`;}
     else{ip.style.opacity='0';}
   },
@@ -1093,6 +1110,7 @@ const ZG={
     const z=ZS.zoo;if(!z)return;
     G('hmoney').textContent='🌀 '+$mt(z.mt).replace('🌀','');
     G('hvis').textContent='👥 '+z.totalVisitors.toLocaleString()+' Besucher';
+    const lwbadge=G('lw-badge');if(lwbadge)lwbadge.style.display=LuckyWheel.spinsAvailable>0?'inline':'none';
     const m=[];if((z.rebirthMult||1)>1)m.push(`×${z.rebirthMult.toFixed(1)}`);if(z.luck>1)m.push(`🍀×${z.luck}`);if(this.currentEvent)m.push(this.currentEvent.n);
     G('hmult').textContent=m.join(' · ');
   },
@@ -1105,18 +1123,37 @@ const ZG={
 
   _updWeapon(){
     const rb=ZS.zoo?.rebirths||0;
+    const hasLuckySlap=(ZS.zoo?.luckySlap||0)>0&&ZG._equippedLuckySlap;
     const widx=Math.min(rb,WEAPONS.length-1);
-    const w=WEAPONS[widx];
+    const w=hasLuckySlap?{n:'🍀 Lucky Slap',emoji:'🍀',koTime:5000,koHits:5,dmg:200,range:8}:WEAPONS[widx];
     const btn=G('swing-btn');const nm=G('wname');
-    if(btn)btn.textContent=w.emoji;
+    if(btn){btn.textContent=w.emoji;btn.style.background=hasLuckySlap?'radial-gradient(circle,#27AE60,#FFD700)':'rgba(0,0,0,.5)';}
     if(nm)nm.textContent=w.n;
+    const sv=G('slap-view');
+    if(sv)sv.style.display=this._equippedLuckySlap?'block':'none';
+    const stb=G('slap-toggle-btn');
+    if(stb)stb.style.display=(ZS.zoo?.luckySlap||0)>0?'flex':'none';
+  },
+  _equippedLuckySlap: false,
+
+  toggleSlap(){
+    if((ZS.zoo?.luckySlap||0)<=0){ZP.toast('❌ Keine Lucky Slap!',1200);return;}
+    this._equippedLuckySlap=!this._equippedLuckySlap;
+    this._updWeapon();
+    ZP.toast(this._equippedLuckySlap?'🍀 Lucky Slap ausgerüstet!':'Zurück zur normalen Waffe',1500);
+    const btn=G('slap-toggle-btn');
+    if(btn) btn.style.background=this._equippedLuckySlap?'radial-gradient(circle,#27AE60,#FFD700)':'rgba(39,174,96,.5)';
   },
 
   // ──────────────────────────────────────────
   // INTERACT
   // ──────────────────────────────────────────
   _interact(){
-    if(this.nearStation){ZP.openGondola();return;}
+    if(this.nearStation){
+      // If spin available, show wheel choice; else gondola
+      if(LuckyWheel.spinsAvailable>0){LuckyWheel.open();return;}
+      ZP.openGondola();return;
+    }
     if(this.nearEncIdx>=0){ZP.openEnc(this.nearEncIdx);return;}
   },
 
@@ -1383,26 +1420,68 @@ const ZP={
   openIndex(){
     show('p-index');
     const z=ZS.zoo;const enc=z.enclosures.filter(e=>e);
-    if(!enc.length){G('pidx').innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Noch keine Tiere 🐾<br>Besorge dir Tiere in der Gondel-Station!</div>';return;}
+    const anims=enc;
+    const counts={gold:0,diamond:0,rainbow:0,void:0};
+    anims.forEach(e=>{if(e.shiny)counts[e.shiny.id]=(counts[e.shiny.id]||0)+1;});
+    const total=anims.length||1;
+    const baseType=ZooBase.check();
+
+    // Progress bars for each shiny type
+    const shinyBars = [
+      {id:'gold',  label:'🏆 Gold',    color:'#FFD700',unlockAt:70},
+      {id:'diamond',label:'💎 Diamant', color:'#00CFFF',unlockAt:70},
+      {id:'rainbow',label:'🌈 Regenbogen',color:'linear-gradient(90deg,#ff6b6b,#FFD700,#27AE60)',unlockAt:70},
+      {id:'void',  label:'🌌 Void',    color:'#9B59B6',unlockAt:70},
+    ].map(s=>{
+      const pct=Math.round((counts[s.id]/total)*100);
+      const unlocked=pct>=s.unlockAt;
+      return `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px">
+          <span style="font-family:'Fredoka One',cursive;color:${s.color.startsWith('linear')?'#ff69b4':s.color}">${s.label} ${unlocked?'✅ Basis freigeschaltet!':''}</span>
+          <span style="color:rgba(255,255,255,.5)">${counts[s.id]}/${total} (${pct}%)</span>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:50px;height:7px;overflow:hidden">
+          <div style="height:100%;border-radius:50px;background:${s.color};width:${Math.min(100,pct)}%;transition:width .5s"></div>
+        </div>
+        ${unlocked?`<div style="font-size:.65rem;color:${s.color.startsWith('linear')?'#ff69b4':s.color};margin-top:1px">Zoo-Basis aktiv! ${['gold:✨ Gold-Effekte','diamond:💎 Diamant-Optik','rainbow:🌈 Regenbogen-Optik','void:🌌 Sternen-Regen'].find(x=>x.startsWith(s.id))?.split(':')[1]||''}</div>`:
+          `<div style="font-size:.63rem;color:rgba(255,255,255,.3)">→ ${s.unlockAt}% für ${s.label}-Basis</div>`}
+      </div>`;
+    }).join('');
+
     G('pidx').innerHTML=`
-      <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-bottom:10px">Deine ${enc.length} Tier(e):</div>`+
-      enc.map((e,rawIdx)=>{
+      <div style="background:rgba(255,255,255,.06);border-radius:12px;padding:11px;margin-bottom:11px">
+        <div style="font-family:'Fredoka One',cursive;color:#FFD700;font-size:.88rem;margin-bottom:8px">🌟 Zoo-Basis Fortschritt</div>
+        ${shinyBars}
+        ${baseType?`<div style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:6px 10px;margin-top:6px;font-family:'Fredoka One',cursive;font-size:.82rem;color:#FFD700">
+          ✨ Aktive Basis: ${{gold:'🏆 Goldener Zoo',diamond:'💎 Diamant Zoo',rainbow:'🌈 Regenbogen Zoo',void:'🌌 Void Zoo'}[baseType]}
+        </div>`:''}
+      </div>
+      <div style="font-family:'Fredoka One',cursive;color:rgba(255,255,255,.5);font-size:.78rem;margin-bottom:7px">📋 Deine ${enc.length} Tier(e):</div>`+
+      (enc.length?enc.map((e)=>{
         const i=z.enclosures.indexOf(e);
         const rd=RARITY[e.animal.r];
         const tm=tMult(e.shiny,e.traits);
         const earn=earnPV(e,z,ZG.currentEvent);
-        // Shiny color filter
-        const shinyStyle=e.shiny?{gold:'filter:sepia(1) saturate(4) hue-rotate(5deg)',diamond:'filter:saturate(4) hue-rotate(180deg)',rainbow:'animation:rainbow 2s linear infinite',void:'filter:invert(0.5) hue-rotate(270deg)'}[e.shiny.id]||'':'';
-        return `<div class="ac">
-          <div style="font-size:2.2rem;${shinyStyle}">${e.animal.e}</div>
+        const shinyStyle=e.shiny?{
+          gold:'filter:sepia(1) saturate(4) hue-rotate(5deg)',
+          diamond:'filter:saturate(4) hue-rotate(180deg) brightness(1.3)',
+          rainbow:'animation:rainbow 2s linear infinite',
+          void:'filter:invert(0.4) hue-rotate(270deg) brightness(1.2)'
+        }[e.shiny.id]||'':'';
+        const isRare=['legendary','ultralegendary','god','mythic','secret'].includes(e.animal.r);
+        return \`<div class="ac" style="\${isRare?'border-color:rgba(255,215,0,.3);':''}">\${isRare?'<div style="position:absolute;right:8px;top:8px;font-size:.6rem;animation:rainbow 2s linear infinite">✨</div>':''}
+          <div style="font-size:2.2rem;\${shinyStyle}">\${e.animal.e}</div>
           <div style="flex:1">
-            <div style="font-family:'Fredoka One',cursive;font-size:.88rem">${sB(e.shiny)} ${e.animal.n}</div>
-            <div class="${rd.cls}" style="font-size:.72rem">${rd.n} ${tB(e.traits)}</div>
-            <div style="font-size:.68rem;color:#00FF88">💰 ${$mt(earn)}/Besucher · ×${tm}</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:.88rem">\${sB(e.shiny)} \${e.animal.n}</div>
+            <div class="\${rd.cls}" style="font-size:.72rem">\${rd.n} \${tB(e.traits)}</div>
+            <div style="font-size:.68rem;color:#00FF88">💰 \${$mt(earn)}/Besucher · ×\${tm}</div>
           </div>
-          <div style="text-align:right;font-size:.68rem;color:rgba(255,255,255,.4)">Gehege #${i+1}<br>SpLv${e.speedLevel||0}</div>
-        </div>`;
-      }).join('');
+          <div style="text-align:right;font-size:.68rem;color:rgba(255,255,255,.4)">G#\${i+1}<br>⚡\${e.speedLevel||0}</div>
+        </div>\`;
+      }).join(''):'<div style="color:rgba(255,255,255,.3);text-align:center;padding:16px">Noch keine Tiere 🐾</div>');
+
+    // Apply base effect to world
+    ZooBase.apply(baseType);
   },
 
   // TRADING
@@ -1726,11 +1805,238 @@ qrp.innerHTML='<div style="background:#fff;border-radius:18px;padding:22px;text-
 qrp.onclick=()=>qrp.style.display='none';
 document.body.appendChild(qrp);
 
+
+// ════════════════════════════════════════════
+// LUCKY WHEEL
+// ════════════════════════════════════════════
+const LuckyWheel = {
+  spinning: false,
+  angle: 0,
+  spinsAvailable: 0,
+  playStartTime: 0,
+  _checkInterval: null,
+
+  PRIZES: [
+    {label:'1.000 MT',   mt:1000,    chance:40, color:'#27AE60'},
+    {label:'8.000 MT',   mt:8000,    chance:25, color:'#2980B9'},
+    {label:'10.000 MT',  mt:10000,   chance:20, color:'#8E44AD'},
+    {label:'50.000 MT',  mt:50000,   chance:10, color:'#F39C12'},
+    {label:'100.000 MT', mt:100000,  chance:4.5,color:'#E74C3C'},
+    {label:'🍀 Lucky Slap!',mt:0, chance:.5,color:'#FFD700',isSlap:true},
+  ],
+
+  init() {
+    this.playStartTime = Date.now();
+    this._checkInterval = setInterval(() => {
+      if(!ZS.zoo) return;
+      const playedMin = (Date.now() - this.playStartTime) / 60000;
+      if(playedMin >= 20 && this.spinsAvailable === 0) {
+        this.spinsAvailable = 1;
+        this.playStartTime = Date.now(); // reset 20min timer
+        ZP.toast('🍀 Du hast einen Glücksrad-Spin! Laufe zur Gondel-Station!', 5000);
+        // Show notification
+        const n = document.createElement('div');
+        n.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:700;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;font-family:'Fredoka One',cursive;font-size:1rem;padding:12px 24px;border-radius:50px;box-shadow:0 4px 15px rgba(0,200,80,.4);animation:popIn .4s ease;pointer-events:none';
+        n.textContent='🍀 Glücksrad-Spin verfügbar!';
+        document.body.appendChild(n);
+        setTimeout(()=>n.remove(), 4000);
+      }
+    }, 30000); // check every 30 sec
+  },
+
+  open() {
+    if(this.spinsAvailable <= 0) {
+      const rem = Math.ceil(20 - (Date.now()-this.playStartTime)/60000);
+      ZP.toast(`🍀 Spin in ${Math.max(0,rem)} Minuten verfügbar!`, 2500);
+      return;
+    }
+    const wrap = document.getElementById('lucky-wheel-wrap');
+    wrap.style.display = 'flex';
+    this._drawWheel(this.angle);
+    document.getElementById('lw-btn').disabled = false;
+    document.getElementById('lw-btn').textContent = '🎰 Drehen!';
+  },
+
+  _drawWheel(rot) {
+    const c = document.getElementById('lw-canvas');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    const W = 280, cx = 140, cy = 140, R = 132;
+    ctx.clearRect(0,0,W,W);
+    const total = this.PRIZES.reduce((s,p)=>s+p.chance, 0);
+    let a = rot;
+    // Draw segments
+    this.PRIZES.forEach(p => {
+      const arc = (p.chance/total) * Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,a,a+arc); ctx.closePath();
+      ctx.fillStyle = p.color; ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.lineWidth=2; ctx.stroke();
+      // Label
+      ctx.save();
+      ctx.translate(cx,cy); ctx.rotate(a + arc/2);
+      ctx.textAlign='right'; ctx.fillStyle='white';
+      ctx.font='bold 11px Fredoka One,sans-serif';
+      ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=4;
+      ctx.fillText(p.label, R-8, 4);
+      ctx.restore();
+      a += arc;
+    });
+    // Center circle
+    ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2);
+    const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,22);
+    cg.addColorStop(0,'#FFD700'); cg.addColorStop(1,'#FFA500');
+    ctx.fillStyle=cg; ctx.fill();
+    ctx.strokeStyle='white'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.fillStyle='#1a0800'; ctx.font='bold 18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🍀',cx,cy);
+    // Outer ring
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,215,0,.6)'; ctx.lineWidth=5; ctx.stroke();
+  },
+
+  spin() {
+    if(this.spinning || this.spinsAvailable <= 0) return;
+    this.spinning = true;
+    this.spinsAvailable--;
+    document.getElementById('lw-btn').disabled = true;
+    document.getElementById('lw-btn').textContent = '🌀 Dreht...';
+
+    // Pick prize
+    const total = this.PRIZES.reduce((s,p)=>s+p.chance,0);
+    let r = Math.random()*total, prizeIdx = 0;
+    for(let i=0; i<this.PRIZES.length; i++) { r -= this.PRIZES[i].chance; if(r<=0){prizeIdx=i;break;} }
+    const prize = this.PRIZES[prizeIdx];
+
+    // Calculate target angle (spin 5-8 full rotations + land on prize)
+    const segTotal = this.PRIZES.reduce((s,p)=>s+p.chance,0);
+    let cumAngle = 0;
+    for(let i=0; i<prizeIdx; i++) cumAngle += (this.PRIZES[i].chance/segTotal)*Math.PI*2;
+    const segMid = cumAngle + (prize.chance/segTotal)*Math.PI*2*0.5;
+    // Pointer is at top (PI*1.5), so target = PI*1.5 - segMid
+    const targetRot = this.angle + Math.PI*2*6 + (Math.PI*1.5 - segMid - this.angle%(Math.PI*2) + Math.PI*2*2);
+    const startAngle = this.angle;
+    const duration = 4500 + Math.random()*1500;
+    const start = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - start;
+      const t = Math.min(1, elapsed/duration);
+      // Ease out (fast start, slow end)
+      const eased = 1 - Math.pow(1-t, 4);
+      this.angle = startAngle + (targetRot - startAngle) * eased;
+      this._drawWheel(this.angle);
+      if(t < 1) { requestAnimationFrame(animate); }
+      else {
+        this.spinning = false;
+        setTimeout(() => this._showPrize(prize), 400);
+      }
+    };
+    requestAnimationFrame(animate);
+  },
+
+  _showPrize(prize) {
+    const wrap = document.getElementById('lucky-wheel-wrap');
+    wrap.style.display = 'none';
+    if(prize.isSlap) {
+      // Give lucky slap weapon
+      ZS.zoo.luckySlap = (ZS.zoo.luckySlap||0) + 1;
+      ZP.toast('🍀 LUCKY SLAP erhalten! Wähle sie unter Waffen aus!', 5000);
+      // Show slap view
+      const sv = document.getElementById('slap-view');
+      if(sv) sv.style.display='block';
+      ZG._updWeapon();
+    } else {
+      ZS.zoo.mt += prize.mt;
+      ZG._updHUD();
+      // Big popup
+      const popup = document.createElement('div');
+      popup.style.cssText=`position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:popIn .5s ease;pointer-events:none`;
+      popup.innerHTML=`<div style="font-family:'Fredoka One',cursive;font-size:2.5rem;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,.8)">🎉 ${prize.label}!</div>
+        <div style="font-size:1rem;color:white;margin-top:8px">Glücksrad Gewinn!</div>`;
+      document.body.appendChild(popup);
+      setTimeout(()=>popup.remove(), 3500);
+    }
+  },
+};
+
+// ════════════════════════════════════════════
+// ZOO BASE THEMES
+// ════════════════════════════════════════════
+const ZooBase = {
+  THRESHOLDS: {
+    gold:     {pct:70, label:'Goldener Zoo 🏆', desc:'70% deiner Tiere sind Gold'},
+    diamond:  {pct:70, label:'Diamant Zoo 💎', desc:'70% deiner Tiere sind Diamant'},
+    rainbow:  {pct:70, label:'Regenbogen Zoo 🌈', desc:'70% deiner Tiere sind Regenbogen'},
+    void:     {pct:70, label:'Void Zoo 🌌', desc:'70% deiner Tiere sind Void'},
+  },
+
+  check() {
+    const z = ZS.zoo;
+    const anims = z.enclosures.filter(e=>e);
+    if(!anims.length) return null;
+    const counts = {gold:0,diamond:0,rainbow:0,void:0,total:anims.length};
+    anims.forEach(enc=>{if(enc.shiny)counts[enc.shiny.id]=(counts[enc.shiny.id]||0)+1;});
+    for(const [type,data] of Object.entries(this.THRESHOLDS)) {
+      if((counts[type]/counts.total)*100 >= data.pct) return type;
+    }
+    return null;
+  },
+
+  apply(type) {
+    const canvas = document.getElementById('zc');
+    if(!type) { if(canvas)canvas.style.filter=''; return; }
+    const effects = {
+      gold:    'sepia(0.3) saturate(1.5) hue-rotate(5deg)',
+      diamond: 'saturate(1.4) hue-rotate(180deg) brightness(1.1)',
+      rainbow: 'saturate(1.8)',
+      void:    'hue-rotate(270deg) saturate(1.4) brightness(0.9)',
+    };
+    if(canvas && effects[type]) canvas.style.filter = effects[type];
+    // Add particle overlay for void
+    if(type==='void') this._startVoidParticles();
+    else this._stopVoidParticles();
+  },
+
+  _voidParts:[],
+  _startVoidParticles() {
+    if(this._voidParts.length) return;
+    for(let i=0;i<12;i++){
+      const el=document.createElement('div');
+      el.style.cssText=`position:fixed;pointer-events:none;z-index:180;font-size:${.6+Math.random()*.8}rem;opacity:${.4+Math.random()*.4};animation:zsnow ${4+Math.random()*6}s linear ${Math.random()*4}s infinite;left:${Math.random()*100}vw;top:-20px`;
+      el.textContent=['⭐','✨','🌟','💫'][Math.floor(Math.random()*4)];
+      document.getElementById('s-zoo')?.appendChild(el);
+      this._voidParts.push(el);
+    }
+  },
+  _stopVoidParticles() { this._voidParts.forEach(e=>e.remove()); this._voidParts=[]; },
+};
+
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
+
   const main=sessionStorage.getItem('mischa_current');
   if(main){const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),u=us[main];ZS.player=main;ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';if(u?.char){ZS.playerChar=u.char;ZA._showMode();}else if(u){ZA._showChar();}}
 });
 </script>
+
+<!-- Lucky Wheel -->
+<div id="lucky-wheel-wrap" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px)">
+  <div class="lw-title">🍀 Glücksrad!</div>
+  <div style="font-size:.8rem;color:rgba(255,255,255,.5);text-align:center;margin-bottom:10px">20 Min gespielt ohne Pause — du hast einen Spin!</div>
+  <div style="position:relative;display:inline-block">
+    <canvas id="lw-canvas" width="280" height="280"></canvas>
+    <!-- Pointer arrow -->
+    <div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:2rem;line-height:1">▼</div>
+  </div>
+  <button class="lw-spin-btn" id="lw-btn" onclick="LuckyWheel.spin()">🎰 Drehen!</button>
+  <button onclick="document.getElementById('lucky-wheel-wrap').style.display='none'" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,.4);font-size:.82rem;cursor:pointer">Schliessen</button>
+</div>
+
+<!-- Slap in hand display -->
+<div id="slap-view" style="position:fixed;bottom:80px;right:160px;display:none;pointer-events:none;z-index:150;font-size:3rem;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));animation:slapFloat 2s ease-in-out infinite">🍀</div>
+<style>
+@keyframes slapFloat{0%,100%{transform:rotate(-10deg) scale(1)}50%{transform:rotate(10deg) scale(1.05)}}
+</style>
+
 </body>
 </html>
