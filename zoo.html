@@ -26,10 +26,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 16px;width:100%;max-width:320px;cursor:pointer;text-align:center;margin-bottom:10px;transition:all .22s}
 .mc:hover{border-color:#FFD700;transform:translateY(-2px)}
 /* ZOO */
-#s-zoo{overflow:hidden;padding:0;background:#1a4a1a;position:relative}
-#zc{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+#s-zoo{overflow:hidden;padding:0;background:linear-gradient(180deg,#87CEEB 0%,#4CAF50 65%,#388E3C 100%);position:relative}
+#zc{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;z-index:1}
 /* HUD */
-#hud{position:fixed;inset:0;pointer-events:none;z-index:100}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:110}
 /* Money - above joystick bottom-left */
 #hm{position:absolute;bottom:140px;left:14px;pointer-events:none}
 .mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
@@ -335,7 +335,15 @@ const ZA={
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
   _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS.char?.e||''} Hallo ${ZS.player}!`;},
   async checkPrivate(){await ZS.load();if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
-  async startZoo(m){hide('s-mode');show('s-zoo');await ZS.load();ZG.start();if(ZS.isAdmin)show('admbtn');},
+  async startZoo(m){hide('s-mode');show('s-zoo');
+    await ZS.load();
+    await new Promise(r=>setTimeout(r,80)); // Wait for browser layout
+    try{
+      ZG.start();
+    }catch(startErr){
+      console.error('ZG.start() error:',startErr);
+      ZP.toast('❌ Startfehler: '+startErr.message,8000);
+    }if(ZS.isAdmin)show('admbtn');},
   logout(){ZG.stop();['gond','index','shop','trade','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
@@ -375,18 +383,30 @@ const ZG={
   },
 
   start(){
+    // Check THREE.js loaded
+    if(typeof THREE === 'undefined'){
+      document.getElementById('s-zoo').style.background='#1a4a1a';
+      ZP.toast('❌ Three.js CDN nicht geladen! Bitte Internet-Verbindung prüfen.',5000);
+      // Show basic colored background anyway
+      return;
+    }
     const canvas=G('zc');
-    canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+    // Force layout to ensure canvas has dimensions
+    canvas.style.width='100%'; canvas.style.height='100%';
+    canvas.width=window.innerWidth||screen.width;
+    canvas.height=window.innerHeight||screen.height;
     try{
-      this.renderer=new THREE.WebGLRenderer({canvas,antialias:false});
+      this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false});
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
       this.renderer.setSize(window.innerWidth,window.innerHeight);
       this.renderer.shadowMap.enabled=true;
       this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-      this.renderer.setClearColor(0x87CEEB);
+      this.renderer.setClearColor(0x87CEEB,1); // Sky blue, fully opaque
+      this.renderer.autoClear=true;
     }catch(err){ZP.toast('❌ WebGL Fehler: '+err.message,5000);console.error(err);return;}
     this.scene=new THREE.Scene();
-    this.scene.fog=new THREE.Fog(0x87CEEB,80,200);
+    // Fog disabled for debugging
+    // // fog removed
     this.cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,200);
     this.clock=new THREE.Clock();
     window.addEventListener('resize',()=>{
@@ -394,7 +414,14 @@ const ZG={
       this.cam.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth,window.innerHeight);
     });
-    try{this._world();}catch(e){console.error('World error:',e);}
+    try{this._world();}catch(e){
+      console.error('World error:',e);
+      // Show error on screen
+      const errDiv=document.createElement('div');
+      errDiv.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);background:rgba(231,76,60,.9);color:white;padding:15px 20px;border-radius:12px;font-weight:900;z-index:999;max-width:300px;text-align:center';
+      errDiv.innerHTML='3D Fehler: '+e.message+'<br><small>Bitte Seite neu laden (F5)</small>';
+      document.body.appendChild(errDiv);
+    }
     this._controls();
     this._raf=requestAnimationFrame(()=>this._loop());
     this._ivs.push(setInterval(()=>this._tick(),100));
@@ -408,6 +435,8 @@ const ZG={
     this.pl.x=this.ZONES[0].x; this.pl.z=this.ZONES[0].z+12;
     this.yaw=Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this._updHUD(); this._updWBar();
+    // Position camera immediately
+    this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
     LW.init();
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
@@ -424,8 +453,8 @@ const ZG={
   _world(){
     const sc=this.scene;
     // Lights
-    sc.add(new THREE.AmbientLight(0xfff5e0,.65));
-    const sun=new THREE.DirectionalLight(0xffe0a0,1.4);
+    sc.add(new THREE.AmbientLight(0xffffff,1.2)); // Bright ambient
+    const sun=new THREE.DirectionalLight(0xffffff,2.0);
     sun.position.set(30,50,20); sun.castShadow=true;
     sun.shadow.mapSize.set(1024,1024);
     sun.shadow.camera.left=sun.shadow.camera.bottom=-80;
@@ -436,7 +465,7 @@ const ZG={
     // Sky dome
     sc.add(new THREE.Mesh(new THREE.SphereGeometry(250,32,16),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.BackSide})));
     // CIRCULAR ground
-    const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),new THREE.MeshLambertMaterial({color:0x4CAF50}));
+    const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),new THREE.MeshLambertMaterial({color:0x4CAF50,emissive:0x1a5a1a}));
     gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; sc.add(gnd);
     // Boundary wall (torus)
     const wall=new THREE.Mesh(new THREE.TorusGeometry(this.WR,.8,8,64),new THREE.MeshLambertMaterial({color:0x7a6040}));
@@ -618,7 +647,7 @@ const ZG={
     // Animate clouds
     this.scene.traverse(o=>{if(o.userData?.spd){o.position.x+=o.userData.spd;if(o.position.x>100)o.position.x=-100;}});
     this._minimap();
-    try{this.renderer.render(this.scene,this.cam);}catch(e){}
+    if(this.renderer&&this.scene&&this.cam)try{this.renderer.render(this.scene,this.cam);}catch(e){}
   },
 
   _move(dt){

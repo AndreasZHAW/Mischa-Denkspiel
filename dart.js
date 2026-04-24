@@ -339,15 +339,23 @@ const DartGame = {
     if (dist < 0.045) return { pts:50, label:'🎯 Bull!',  isDouble:false, isBull:true };
     if (dist < 0.115) return { pts:25, label:'Bull 25', isDouble:false, isBull:false };
     if (dist > 1.0)   return { pts:0,  label:'❌ Daneben',isDouble:false, isBull:false };
-    let ang = Math.atan2(dy, dx) + Math.PI/2;
+    // Board: sector 0 (value=20) is centered at top (-PI/2 in canvas = theta=0 clockwise)
+    // The draw uses off = -PI/2 - step/2 as START of sector 0
+    // so sector 0 spans [-step/2, +step/2] around top
+    // Add step/2 offset so sector boundaries match the visual drawing exactly
+    const step = (2 * Math.PI) / 20;
+    let ang = Math.atan2(dy, dx) + Math.PI/2 + step/2;
     if (ang < 0) ang += 2*Math.PI;
+    if (ang >= 2*Math.PI) ang -= 2*Math.PI;
     const si = Math.floor((ang / (2*Math.PI)) * 20) % 20;
     const sv = this.SECTORS[si];
-    if (dist < 0.24)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
-    if (dist < 0.455) return { pts:sv*3, label:`T${sv}`,  isDouble:false, isBull:false };
-    if (dist < 0.86)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
-    if (dist < 0.955) return { pts:sv*2, label:`D${sv}`,  isDouble:true,  isBull:false };
-    return { pts:sv, label:`${sv}`, isDouble:false, isBull:false };
+    // Ring boundaries (as fraction of board radius R=130)
+    // Bull: <0.045R, Bull25: <0.115R, inner triple: 0.24-0.455, outer single: 0.455-0.86, double: 0.86-0.955
+    if (dist < 0.24)  return { pts:sv,   label:\`\${sv}\`,   isDouble:false, isBull:false };
+    if (dist < 0.455) return { pts:sv*3, label:\`T\${sv}\`,  isDouble:false, isBull:false };
+    if (dist < 0.86)  return { pts:sv,   label:\`\${sv}\`,   isDouble:false, isBull:false };
+    if (dist < 0.955) return { pts:sv*2, label:\`D\${sv}\`,  isDouble:true,  isBull:false };
+    return { pts:sv, label:\`\${sv}\`, isDouble:false, isBull:false };
   },
 
   _applyThrow(who, result, fpx, fpy) {
