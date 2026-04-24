@@ -26,8 +26,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 16px;width:100%;max-width:320px;cursor:pointer;text-align:center;margin-bottom:10px;transition:all .22s}
 .mc:hover{border-color:#FFD700;transform:translateY(-2px)}
 /* ZOO */
-#s-zoo{overflow:hidden;padding:0;background:linear-gradient(180deg,#87CEEB 0%,#4CAF50 65%,#388E3C 100%);position:relative}
-#zc{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;z-index:1}
+#s-zoo{overflow:visible;padding:0;background:#1a4a1a;position:fixed;inset:0}
+#zc{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:crosshair;z-index:1}
 /* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:110}
 /* Money - above joystick bottom-left */
@@ -391,23 +391,22 @@ const ZG={
       return;
     }
     const canvas=G('zc');
-    // Force layout to ensure canvas has dimensions
-    canvas.style.width='100%'; canvas.style.height='100%';
-    canvas.width=window.innerWidth||screen.width;
-    canvas.height=window.innerHeight||screen.height;
+    // Get actual viewport dimensions
+    const W = window.innerWidth || document.documentElement.clientWidth || 800;
+    const H = window.innerHeight || document.documentElement.clientHeight || 600;
+    canvas.width = W;
+    canvas.height = H;
     try{
-      this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,preserveDrawingBuffer:false});
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
-      this.renderer.setSize(window.innerWidth,window.innerHeight);
-      this.renderer.shadowMap.enabled=true;
-      this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-      this.renderer.setClearColor(0x87CEEB,1); // Sky blue, fully opaque
+      this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, alpha:false});
+      this.renderer.setPixelRatio(1); // Always 1:1, no retina scaling issues
+      this.renderer.setSize(W, H, false); // false = don't change canvas CSS size
+      this.renderer.shadowMap.enabled=false;
+      this.renderer.setClearColor(0x87CEEB, 1);
       this.renderer.autoClear=true;
     }catch(err){ZP.toast('❌ WebGL Fehler: '+err.message,5000);console.error(err);return;}
     this.scene=new THREE.Scene();
     // Fog disabled for debugging
-    // // fog removed
-    this.cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,200);
+    // this.cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,200);
     this.clock=new THREE.Clock();
     window.addEventListener('resize',()=>{
       this.cam.aspect=window.innerWidth/window.innerHeight;
@@ -459,10 +458,10 @@ const ZG={
     // Lights
     sc.add(new THREE.AmbientLight(0xffffff,1.2)); // Bright ambient
     const sun=new THREE.DirectionalLight(0xffffff,2.0);
-    sun.position.set(30,50,20); sun.castShadow=true;
-    sun.shadow.mapSize.set(1024,1024);
-    sun.shadow.camera.left=sun.shadow.camera.bottom=-80;
-    sun.shadow.camera.right=sun.shadow.camera.top=80;
+    sun.position.set(30,50,20); 
+    
+    
+    
     sc.add(sun);
     const fill=new THREE.DirectionalLight(0x8888ff,.25);
     fill.position.set(-15,8,-15); sc.add(fill);
@@ -470,9 +469,9 @@ const ZG={
     sc.add(new THREE.Mesh(new THREE.SphereGeometry(250,32,16),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.BackSide})));
     // CIRCULAR ground
     const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),new THREE.MeshBasicMaterial({color:0x5DBB63}));
-    gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; sc.add(gnd);
+    gnd.rotation.x=-Math.PI/2;  sc.add(gnd);
     // Boundary wall (torus)
-    const wall=new THREE.Mesh(new THREE.TorusGeometry(this.WR,.8,8,64),new THREE.MeshLambertMaterial({color:0x7a6040}));
+    const wall=new THREE.Mesh(new THREE.TorusGeometry(this.WR,.8,8,64),new THREE.MeshBasicMaterial({color:0x7a6040}));
     wall.rotation.x=Math.PI/2; wall.position.y=1; sc.add(wall);
     // 3 Paths from zones to center
     const pathMat=new THREE.MeshBasicMaterial({color:0xaaaaaa});
@@ -487,10 +486,10 @@ const ZG={
     });
     // Zone platforms
     this.ZONES.forEach((z,i)=>{
-      const plat=new THREE.Mesh(new THREE.CircleGeometry(22,32),new THREE.MeshLambertMaterial({color:z.color,transparent:true,opacity:.12}));
+      const plat=new THREE.Mesh(new THREE.CircleGeometry(22,32),new THREE.MeshBasicMaterial({color:z.color,transparent:true,opacity:.12}));
       plat.rotation.x=-Math.PI/2; plat.position.set(z.x,.03,z.z); sc.add(plat);
       // Zone fence posts
-      const pm=new THREE.MeshLambertMaterial({color:0x8B4513});
+      const pm=new THREE.MeshBasicMaterial({color:0x8B4513});
       for(let j=0;j<12;j++){const a=j/12*Math.PI*2;const post=new THREE.Mesh(new THREE.BoxGeometry(.35,2,.35),pm);post.position.set(z.x+Math.cos(a)*21,1,z.z+Math.sin(a)*21);sc.add(post);}
       // Zone label
       const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
@@ -500,39 +499,47 @@ const ZG={
     this._trees();
     this._limoStands();
     this._clouds();
+    // DEBUG: bright test cube in front of player start position
+    const testCube=new THREE.Mesh(
+      new THREE.BoxGeometry(4,4,4),
+      new THREE.MeshBasicMaterial({color:0xFF0000})
+    );
+    testCube.position.set(0,3,45); // Right in front of Zone A start
+    this.scene.add(testCube);
+    console.log('World built. Scene objects:', this.scene.children.length);
   },
 
   _station(){
     const sc=this.scene;
     // Big octagonal station in CENTER
     const body=new THREE.Mesh(new THREE.CylinderGeometry(13,14,12,8),new THREE.MeshBasicMaterial({color:0x6a4020}));
-    body.position.set(0,6,0); body.castShadow=true; sc.add(body);
+    body.position.set(0,6,0);  sc.add(body);
     const roof=new THREE.Mesh(new THREE.ConeGeometry(17,8,8),new THREE.MeshBasicMaterial({color:0xdd2020}));
-    roof.position.set(0,14.5,0); roof.rotation.y=Math.PI/8; roof.castShadow=true; sc.add(roof);
-    const trim=new THREE.Mesh(new THREE.CylinderGeometry(13.1,.4,13.1,8),new THREE.MeshLambertMaterial({color:0xFFD700}));
+    roof.position.set(0,14.5,0); roof.rotation.y=Math.PI/8;  sc.add(roof);
+    const trim=new THREE.Mesh(new THREE.CylinderGeometry(13.1,.4,13.1,8),new THREE.MeshBasicMaterial({color:0xFFD700}));
     trim.position.set(0,12.2,0); sc.add(trim);
     // 3 entrances facing each zone
     this.ZONES.forEach(zone=>{
       const ang=Math.atan2(zone.x,zone.z);
-      const df=new THREE.Mesh(new THREE.BoxGeometry(4,8,.4),new THREE.MeshLambertMaterial({color:0xff1111}));
+      const df=new THREE.Mesh(new THREE.BoxGeometry(4,8,.4),new THREE.MeshBasicMaterial({color:0xff1111}));
       df.position.set(Math.sin(ang)*13,4,Math.cos(ang)*13);
       df.rotation.y=ang+Math.PI/2; sc.add(df);
-      const dr=new THREE.Mesh(new THREE.BoxGeometry(3,6.5,.5),new THREE.MeshLambertMaterial({color:0x111}));
+      const dr=new THREE.Mesh(new THREE.BoxGeometry(3,6.5,.5),new THREE.MeshBasicMaterial({color:0x111}));
       dr.position.set(Math.sin(ang)*12.7,3.4,Math.cos(ang)*12.7);
       dr.rotation.y=ang+Math.PI/2; sc.add(dr);
     });
     // Cable tower
-    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,22,8),new THREE.MeshLambertMaterial({color:0x888}));
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,22,8),new THREE.MeshBasicMaterial({color:0x888}));
     hub.position.set(0,21,0); sc.add(hub);
     // 3 gondola cars orbiting
     this._carMeshes=[];
     for(let i=0;i<3;i++){
-      const car=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.5,2),new THREE.MeshLambertMaterial({color:[0xc8a050,0x8B5E3C,0x4a2a10][i]}));
+      const car=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.5,2),new THREE.MeshBasicMaterial({color:[0xc8a050,0x8B5E3C,0x4a2a10][i]}));
       car.position.set(Math.cos(i/3*Math.PI*2)*10,11+i*3,Math.sin(i/3*Math.PI*2)*10);
       car.userData={carIdx:i,angle:i/3*Math.PI*2};
       this._carMeshes.push(car); sc.add(car);
       // rope
-      const rope=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,12,6),new THREE.MeshLambertMaterial({color:0x666}));
+      const rope=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,12,6),new THREE.MeshBasicMaterial({color:0x666}));
       rope.position.set(Math.cos(i/3*Math.PI*2)*5,16,Math.sin(i/3*Math.PI*2)*5);
       rope.rotation.z=Math.atan2(10,22-11-i*3); sc.add(rope);
     }
@@ -545,11 +552,11 @@ const ZG={
     const z=ZS.zoo; const eps=this.ENCPOS();
     eps.slice(0,Math.min(ZS.maxE(),eps.length)).forEach((ep,i)=>{
       const g=new THREE.Group(); g.position.set(ep.x,0,ep.z);
-      const base=new THREE.Mesh(new THREE.BoxGeometry(7,.2,7),new THREE.MeshLambertMaterial({color:0x4a8a30}));
+      const base=new THREE.Mesh(new THREE.BoxGeometry(7,.2,7),new THREE.MeshBasicMaterial({color:0x4a8a30}));
       base.position.y=.1; g.add(base);
-      const pm=new THREE.MeshLambertMaterial({color:0x8B4513});
-      [[-3,3],[3,3],[3,-3],[-3,-3]].forEach(([px,pz])=>{const po=new THREE.Mesh(new THREE.BoxGeometry(.3,2.2,.3),pm);po.position.set(px,1.1,pz);po.castShadow=true;g.add(po);});
-      const rlm=new THREE.MeshLambertMaterial({color:0xa05525});
+      const pm=new THREE.MeshBasicMaterial({color:0x8B4513});
+      [[-3,3],[3,3],[3,-3],[-3,-3]].forEach(([px,pz])=>{const po=new THREE.Mesh(new THREE.BoxGeometry(.3,2.2,.3),pm);po.position.set(px,1.1,pz);g.add(po);});
+      const rlm=new THREE.MeshBasicMaterial({color:0xa05525});
       [[0,3.2,'x'],[0,-3.2,'x'],[-3.2,0,'z'],[3.2,0,'z']].forEach(([px,pz,ax])=>{[1.7,.6].forEach(hy=>{const rg=new THREE.BoxGeometry(ax==='x'?7:.2,.15,ax==='z'?7:.2);const r=new THREE.Mesh(rg,rlm);r.position.set(px,hy,pz);g.add(r);});});
       const enc=z?.enc?.[i];
       if(enc){const sp=this._anSp(enc.animal,enc.shiny);sp.position.set(0,1.5,0);g.add(sp);
@@ -562,9 +569,9 @@ const ZG={
   _limoStands(){
     const sc=this.scene;
     this.LIMOPOS().forEach((lp,i)=>{
-      const body=new THREE.Mesh(new THREE.BoxGeometry(5,3,3),new THREE.MeshLambertMaterial({color:0xFF69B4}));
+      const body=new THREE.Mesh(new THREE.BoxGeometry(5,3,3),new THREE.MeshBasicMaterial({color:0xFF69B4}));
       body.position.set(lp.x,1.5,lp.z); sc.add(body);
-      const roof=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),new THREE.MeshLambertMaterial({color:0xff1111}));
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),new THREE.MeshBasicMaterial({color:0xff1111}));
       roof.position.set(lp.x,3.2,lp.z); sc.add(roof);
       const lbl=this._txt('🚗 Speed-Shop',.7,'#FFD700'); lbl.position.set(lp.x,4.5,lp.z); lbl.scale.set(7,1.8,1); sc.add(lbl);
     });
@@ -576,13 +583,13 @@ const ZG={
     for(let i=0;i<24;i++){
       const a=i/24*Math.PI*2;const r=this.WR*.62+Math.random()*10;
       const x=Math.cos(a)*r,z=Math.sin(a)*r;
-      const tr=new THREE.Mesh(new THREE.CylinderGeometry(.45,.65,4,8),tM);tr.position.set(x,2,z);tr.castShadow=true;this.scene.add(tr);
-      const le=new THREE.Mesh(new THREE.SphereGeometry(3.5+Math.random()*1.5,9,7),lM);le.position.set(x,7.5,z);le.castShadow=true;this.scene.add(le);
+      const tr=new THREE.Mesh(new THREE.CylinderGeometry(.45,.65,4,8),tM);tr.position.set(x,2,z);this.scene.add(tr);
+      const le=new THREE.Mesh(new THREE.SphereGeometry(3.5+Math.random()*1.5,9,7),lM);le.position.set(x,7.5,z);this.scene.add(le);
     }
   },
 
   _clouds(){
-    const m=new THREE.MeshLambertMaterial({color:0xffffff});
+    const m=new THREE.MeshBasicMaterial({color:0xffffff});
     for(let i=0;i<14;i++){const g=new THREE.Group();for(let j=0;j<5;j++){const s=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*3,7,5),m);s.position.set(j*3.5-7+Math.random()*3,Math.random()*2,Math.random()*3);g.add(s);}g.position.set((Math.random()-.5)*180,36+Math.random()*14,(Math.random()-.5)*180);g.userData.spd=.013+Math.random()*.02;this.scene.add(g);}
   },
 
@@ -643,6 +650,9 @@ const ZG={
   _carAngle:0,
   _loop(){
     this._raf=requestAnimationFrame(()=>this._loop());
+    if(!this._frameCount)this._frameCount=0;
+    this._frameCount++;
+    if(this._frameCount===1){console.log('First frame!',this.cam.position,this.scene.children.length);}
     const dt=Math.min(this.clock.getDelta(),.05);
     this._move(dt);
     this._camUpdate();
@@ -808,13 +818,13 @@ const ZG={
   _tryEv(){if(!this.ev&&Math.random()<.28){const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEv(e,e.dur);}},
   startEv(ev,dur){
     this.ev=ev;this.evEnd=Date.now()+dur;
-    try{this.renderer.setClearColor(parseInt(ev.col.replace('#',''),16));this.scene.fog.color.set(ev.col);}catch(e){}
+    try{this.renderer.setClearColor(parseInt(ev.col.replace('#',''),16));}catch(e){}
     const b=G('evb');b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';setTimeout(()=>b.style.opacity='0',4500);
     if(ev.id==='snow'){for(let i=0;i<18;i++){const e=document.createElement('div');e.className='zsn';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowE.push(e);}}
     if(ev.id==='party'){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbm';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%6]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;G('s-zoo').appendChild(e);this.beamE.push(e);}}
     if(ev.id==='glitch')ZP.toast('👾 GLITCH! Betrete die Gondel-Station für ein Abenteuer!',5000);
     ZP.toast(ev.n+'! '+ev.d,4000);
-    setTimeout(()=>{this.ev=null;this.evEnd=0;try{this.renderer.setClearColor(0x87CEEB);this.scene.fog.color.set(0x87CEEB);}catch(e){}this.snowE.forEach(e=>e.remove());this.snowE=[];this.beamE.forEach(e=>e.remove());this.beamE=[];},dur);
+    setTimeout(()=>{this.ev=null;this.evEnd=0;try{this.renderer.setClearColor(0x87CEEB);}catch(e){}this.snowE.forEach(e=>e.remove());this.snowE=[];this.beamE.forEach(e=>e.remove());this.beamE=[];},dur);
   },
 
   // ═══ GLITCH INTERIOR ═══
@@ -842,7 +852,7 @@ const ZG={
 
   // ═══ MULTIPLAYER ═══
   async _syncMP(){if(ZS.isPrivate||!ZS.player)return;try{if(!State._useCloud())return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||'🧭',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await _db.collection('zoo_players').get();const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){}},
-  _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshLambertMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshLambertMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
+  _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshBasicMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshBasicMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
 
   // ═══ ADMIN CMD ═══
   async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
