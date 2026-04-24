@@ -396,7 +396,7 @@ const ZG={
     canvas.width=window.innerWidth||screen.width;
     canvas.height=window.innerHeight||screen.height;
     try{
-      this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false});
+      this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,preserveDrawingBuffer:false});
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
       this.renderer.setSize(window.innerWidth,window.innerHeight);
       this.renderer.shadowMap.enabled=true;
@@ -414,12 +414,16 @@ const ZG={
       this.cam.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth,window.innerHeight);
     });
-    try{this._world();}catch(e){
-      console.error('World error:',e);
-      // Show error on screen
+    try{
+      this._world();
+      // Force one render to verify scene works
+      this.renderer.render(this.scene, this.cam);
+      console.log('✅ Scene rendered OK. Objects:', this.scene.children.length);
+    }catch(e){
+      console.error('World/render error:',e);
       const errDiv=document.createElement('div');
       errDiv.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);background:rgba(231,76,60,.9);color:white;padding:15px 20px;border-radius:12px;font-weight:900;z-index:999;max-width:300px;text-align:center';
-      errDiv.innerHTML='3D Fehler: '+e.message+'<br><small>Bitte Seite neu laden (F5)</small>';
+      errDiv.innerHTML='3D Fehler: '+e.message+'<br><small>Seite neu laden (F5)</small>';
       document.body.appendChild(errDiv);
     }
     this._controls();
@@ -465,13 +469,13 @@ const ZG={
     // Sky dome
     sc.add(new THREE.Mesh(new THREE.SphereGeometry(250,32,16),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.BackSide})));
     // CIRCULAR ground
-    const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),new THREE.MeshLambertMaterial({color:0x4CAF50,emissive:0x1a5a1a}));
+    const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),new THREE.MeshBasicMaterial({color:0x5DBB63}));
     gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; sc.add(gnd);
     // Boundary wall (torus)
     const wall=new THREE.Mesh(new THREE.TorusGeometry(this.WR,.8,8,64),new THREE.MeshLambertMaterial({color:0x7a6040}));
     wall.rotation.x=Math.PI/2; wall.position.y=1; sc.add(wall);
     // 3 Paths from zones to center
-    const pathMat=new THREE.MeshLambertMaterial({color:0x999999});
+    const pathMat=new THREE.MeshBasicMaterial({color:0xaaaaaa});
     this.ZONES.forEach(z=>{
       const dx=this.STA.x-z.x, dz=this.STA.z-z.z;
       const len=Math.sqrt(dx*dx+dz*dz);
@@ -501,9 +505,9 @@ const ZG={
   _station(){
     const sc=this.scene;
     // Big octagonal station in CENTER
-    const body=new THREE.Mesh(new THREE.CylinderGeometry(13,14,12,8),new THREE.MeshLambertMaterial({color:0x5a3010}));
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(13,14,12,8),new THREE.MeshBasicMaterial({color:0x6a4020}));
     body.position.set(0,6,0); body.castShadow=true; sc.add(body);
-    const roof=new THREE.Mesh(new THREE.ConeGeometry(17,8,8),new THREE.MeshLambertMaterial({color:0xcc1010}));
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(17,8,8),new THREE.MeshBasicMaterial({color:0xdd2020}));
     roof.position.set(0,14.5,0); roof.rotation.y=Math.PI/8; roof.castShadow=true; sc.add(roof);
     const trim=new THREE.Mesh(new THREE.CylinderGeometry(13.1,.4,13.1,8),new THREE.MeshLambertMaterial({color:0xFFD700}));
     trim.position.set(0,12.2,0); sc.add(trim);
@@ -567,8 +571,8 @@ const ZG={
   },
 
   _trees(){
-    const tM=new THREE.MeshLambertMaterial({color:0x8B4513});
-    const lM=new THREE.MeshLambertMaterial({color:0x228B22});
+    const tM=new THREE.MeshBasicMaterial({color:0x8B4513});
+    const lM=new THREE.MeshBasicMaterial({color:0x2d8f2d});
     for(let i=0;i<24;i++){
       const a=i/24*Math.PI*2;const r=this.WR*.62+Math.random()*10;
       const x=Math.cos(a)*r,z=Math.sin(a)*r;
