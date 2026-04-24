@@ -683,7 +683,7 @@ const ZG={
     this.LIMOPOS().forEach((lp,i)=>{if(Math.sqrt((this.pl.x-lp.x)**2+(this.pl.z-lp.z)**2)<7)this.nearLimo=i;});
     // Prompt
     const ip=G('iprompt');
-    if(this.nearSt){ip.style.opacity='1';ip.textContent=LW.spins>0?'🍀 [E] Glücksrad! / 🚡 Gondel':'🚡 [E] Gondel betreten'+(this.ev?.id==='glitch'?' (GLITCH: Eintreten!)'):'🚡 [E] Gondel-Station';}
+    if(this.nearSt){ip.style.opacity='1';ip.textContent=LW.spins>0?'🍀 [E] Glücksrad! / 🚡 Gondel':(this.ev?.id==='glitch'?'👾 [E] Gondel betreten (GLITCH!)':'🚡 [E] Gondel-Station');}
     else if(this.nearEnc>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;}
     else if(this.nearLimo>=0){ip.style.opacity='1';ip.textContent='🚗 [E] Speed-Shop öffnen';}
     else{ip.style.opacity='0';}
