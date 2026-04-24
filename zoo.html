@@ -553,17 +553,31 @@ const ZG={
     // Cable tower
     const hub=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,22,8),new THREE.MeshBasicMaterial({color:0x888}));
     hub.position.set(0,21,0); sc.add(hub);
-    // 3 gondola cars orbiting
+    // 3 gondola cars orbiting with animals inside
     this._carMeshes=[];
     for(let i=0;i<3;i++){
-      const car=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.5,2),new THREE.MeshBasicMaterial({color:[0xc8a050,0x8B5E3C,0x4a2a10][i]}));
-      car.position.set(Math.cos(i/3*Math.PI*2)*10,11+i*3,Math.sin(i/3*Math.PI*2)*10);
-      car.userData={carIdx:i,angle:i/3*Math.PI*2};
-      this._carMeshes.push(car); sc.add(car);
-      // rope
-      const rope=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,12,6),new THREE.MeshBasicMaterial({color:0x666}));
-      rope.position.set(Math.cos(i/3*Math.PI*2)*5,16,Math.sin(i/3*Math.PI*2)*5);
-      rope.rotation.z=Math.atan2(10,22-11-i*3); sc.add(rope);
+      const g=new THREE.Group();
+      const ang=i/3*Math.PI*2;
+      // Gondola body (dark cabin)
+      const body=new THREE.Mesh(new THREE.BoxGeometry(2.8,2,2.4),new THREE.MeshBasicMaterial({color:0x2a2a2a}));g.add(body);
+      // Windows (blue glass)
+      [[-.8,0,1.22],[.8,0,1.22],[-.8,0,-1.22],[.8,0,-1.22]].forEach(([wx,wy,wz])=>{
+        const win=new THREE.Mesh(new THREE.BoxGeometry(.8,.9,.08),new THREE.MeshBasicMaterial({color:0x88ccff,transparent:true,opacity:.75}));win.position.set(wx,wy,wz);g.add(win);
+      });
+      // Colored bottom bar
+      const bar=new THREE.Mesh(new THREE.BoxGeometry(2.8,.2,2.4),new THREE.MeshBasicMaterial({color:[0xcc3300,0x884400,0x553300][i]}));bar.position.y=-.9;g.add(bar);
+      // Roof hanger
+      const hanger=new THREE.Mesh(new THREE.BoxGeometry(.35,.7,.35),new THREE.MeshBasicMaterial({color:0x888}));hanger.position.y=1.25;g.add(hanger);
+      // Animal sprite (updates dynamically)
+      const asp=this._txt('?',0.75,'#FFD700');asp.position.set(0,0,1.3);asp.scale.set(2.2,2.2,1);asp.userData.animalLabel=true;g.add(asp);
+      // [E] buy prompt (hidden by default)
+      const epr=this._txt('[E] Kaufen',0.55,'#FFD700');epr.position.set(0,2.5,0);epr.scale.set(4.5,1.3,1);epr.visible=false;epr.userData.buyPrompt=true;g.add(epr);
+      g.position.set(Math.cos(ang)*10,11+i*2,Math.sin(ang)*10);
+      g.userData={carIdx:i,angle:ang};
+      this._carMeshes.push(g);sc.add(g);
+      // Cable
+      const rope=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,10,6),new THREE.MeshBasicMaterial({color:0x555}));
+      rope.position.set(Math.cos(ang)*5,17,Math.sin(ang)*5);sc.add(rope);
     }
     const lbl=this._txt('🚡 GONDEL-STATION',1.1,'#FFD700');
     lbl.position.set(0,20,0); lbl.scale.set(14,3,1); sc.add(lbl);
@@ -573,16 +587,46 @@ const ZG={
     wheelBase.position.set(8,0.5,16); sc.add(wheelBase);
     const wheelPost=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,5,8),new THREE.MeshBasicMaterial({color:0x666666}));
     wheelPost.position.set(8,3,16); sc.add(wheelPost);
-    // The wheel itself - colored segments
+    // Lucky Wheel - proper circular wheel with colored pie segments
     this._worldWheel=new THREE.Group(); this._worldWheel.position.set(8,5.5,16);
     const wheelColors=[0x27AE60,0x2980B9,0x8E44AD,0xF39C12,0xE74C3C,0xFFD700];
-    for(let i=0;i<6;i++){
-      const seg=new THREE.Mesh(new THREE.CylinderGeometry(0,2,0.4,6,1,false,i/6*Math.PI*2,(1/6)*Math.PI*2*0.9),new THREE.MeshBasicMaterial({color:wheelColors[i]}));
-      seg.rotation.y=i/6*Math.PI*2; this._worldWheel.add(seg);
+    const numSeg=6;
+    for(let i=0;i<numSeg;i++){
+      // Build each segment as a triangle fan (pie slice shape)
+      const startAng=i/numSeg*Math.PI*2;
+      const endAng=(i+1)/numSeg*Math.PI*2;
+      const mid=(startAng+endAng)/2;
+      const verts=[];const R=2.1;const steps=8;
+      verts.push(0,0,0); // center
+      for(let s=0;s<=steps;s++){
+        const a=startAng+(endAng-startAng)*s/steps;
+        verts.push(Math.cos(a)*R,Math.sin(a)*R,0);
+      }
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+      const idx=[];for(let s=0;s<steps;s++){idx.push(0,s+1,s+2);}
+      geo.setIndex(idx); geo.computeVertexNormals();
+      const seg=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:wheelColors[i],side:THREE.DoubleSide}));
+      this._worldWheel.add(seg);
+      // Divider line
+      const lineGeo=new THREE.BufferGeometry();
+      lineGeo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0.01,Math.cos(startAng)*R,Math.sin(startAng)*R,0.01],3));
+      const line=new THREE.Line(lineGeo,new THREE.LineBasicMaterial({color:0xffffff}));
+      this._worldWheel.add(line);
     }
-    const wheelHub=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    // Rim
+    const rimCurve=[];const rimR=2.15;
+    for(let i=0;i<=40;i++){rimCurve.push(Math.cos(i/40*Math.PI*2)*rimR,Math.sin(i/40*Math.PI*2)*rimR,0);}
+    const rimGeo=new THREE.BufferGeometry();rimGeo.setAttribute('position',new THREE.Float32BufferAttribute(rimCurve,3));
+    const rim=new THREE.Line(rimGeo,new THREE.LineBasicMaterial({color:0xFFD700,linewidth:2}));
+    this._worldWheel.add(rim);
+    // Center hub
+    const wheelHub=new THREE.Mesh(new THREE.CircleGeometry(0.35,12),new THREE.MeshBasicMaterial({color:0xFFD700,side:THREE.DoubleSide}));
     this._worldWheel.add(wheelHub);
-    this._worldWheel.rotation.x=Math.PI/2; // Face player (vertical wheel)
+    // Pointer triangle at top
+    const ptrGeo=new THREE.BufferGeometry();
+    ptrGeo.setAttribute('position',new THREE.Float32BufferAttribute([-.25,2.4,.02,.25,2.4,.02,0,1.8,.02],3));
+    this._worldWheel.add(new THREE.Mesh(ptrGeo,new THREE.MeshBasicMaterial({color:0xFFFFFF,side:THREE.DoubleSide})));
     sc.add(this._worldWheel);
     // Wheel label
     const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(8,8.5,16); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
@@ -705,7 +749,42 @@ const ZG={
     this._camUpdate();
     this._carAngle+=dt*.45;
     if(this._worldWheel)this._worldWheel.rotation.z+=0.01;
-    if(this._carMeshes){this._carMeshes.forEach((car,i)=>{const a=car.userData.angle+this._carAngle;const r=10;car.position.set(Math.cos(a)*r,11+i*3+Math.sin(this._carAngle*2+i)*.3,Math.sin(a)*r);car.rotation.y=a+Math.PI/2;});}
+    if(this._carMeshes){
+      const pl=this.pl;
+      this._carMeshes.forEach((gondola,i)=>{
+        const a=gondola.userData.angle+this._carAngle;
+        const r=10;
+        gondola.position.set(Math.cos(a)*r,11+i*2+Math.sin(this._carAngle*2+i)*.2,Math.sin(a)*r);
+        gondola.rotation.y=a+Math.PI/2;
+        // Update animal label from queue
+        const qAnimal=ZG.gQ[i];
+        gondola.children.forEach(ch=>{
+          if(ch.userData?.animalLabel&&qAnimal){
+            // Update the canvas texture with animal emoji
+            if(!ch._lastAnimal||ch._lastAnimal!==qAnimal.a.id){
+              ch._lastAnimal=qAnimal.a.id;
+              const cv=document.createElement('canvas');cv.width=128;cv.height=64;
+              const ctx2=cv.getContext('2d');
+              ctx2.font='36px serif';ctx2.textAlign='center';ctx2.textBaseline='middle';
+              ctx2.fillText(qAnimal.a.e,40,32);
+              ctx2.font='bold 14px Arial';ctx2.fillStyle='#FFD700';
+              ctx2.fillText(qAnimal.a.n,90,22);
+              ctx2.font='12px Arial';ctx2.fillStyle='rgba(255,255,255,.7)';
+              ctx2.fillText($mt(qAnimal.a.p),90,42);
+              if(ch.material&&ch.material.map){ch.material.map.dispose();}
+              ch.material=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true});
+              ch.scale.set(3,1.5,1);
+            }
+          }
+          // Show/hide E prompt based on proximity
+          if(ch.userData?.buyPrompt){
+            const dx=gondola.position.x-pl.x,dz=gondola.position.z-pl.z;
+            const dist=Math.sqrt(dx*dx+dz*dz);
+            ch.visible=dist<8&&gondola.position.y<15;
+          }
+        });
+      });
+    }
     // Animate clouds
     this.scene.traverse(o=>{if(o.userData?.spd){o.position.x+=o.userData.spd;if(o.position.x>100)o.position.x=-100;}});
     this._minimap();
@@ -739,17 +818,18 @@ const ZG={
     for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){if(Math.sqrt((this.pl.x-eps[i].x)**2+(this.pl.z-eps[i].z)**2)<5.5){this.nearEnc=i;break;}}
     this.nearLimo=-1;
     this.LIMOPOS().forEach((lp,i)=>{if(Math.sqrt((this.pl.x-lp.x)**2+(this.pl.z-lp.z)**2)<7)this.nearLimo=i;});
-    // Lucky wheel proximity (at x=8, z=16)
+    // Lucky wheel proximity - show prompt
     const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
-    if(wdist<4&&LW.spins>0&&document.getElementById('lwrap').style.display==='none'){LW.open();}
+    this._nearWheel=(wdist<5);
     // Prompt
     const ip=G('iprompt');
     if(this.nearSt){
       const stDist2=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
       ip.style.opacity='1';ip.textContent='🚪 Gondel-Station (hineinlaufen)';
-      if(stDist2<7&&G('gint').style.display==='none'){this._enterGlitch();}
+      // Enter with E key only - handled in _interact
     }
     else if(this.nearEnc>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;}
+    else if(this._nearWheel){ip.style.opacity='1';ip.textContent=LW.spins>0?'🍀 [E] Glücksrad ('+LW.spins+' Spin'+( LW.spins>1?'s':'')+' verfügbar!)':'🍀 [E] Glücksrad (kein Spin)';}
     else if(this.nearLimo>=0){ip.style.opacity='1';ip.textContent='🚗 [E] Speed-Shop öffnen';}
     else{ip.style.opacity='0';}
   },
@@ -815,7 +895,22 @@ const ZG={
 
   _interact(){
     if(this.nearSt){
-      this._enterGlitch(); return; // Always enter 3D station
+      // Check if near a gondola car (E to buy)
+      let nearCar=-1,nearDist=8;
+      if(this._carMeshes){this._carMeshes.forEach((g,i)=>{
+        const dx=g.position.x-this.pl.x,dz=g.position.z-this.pl.z;
+        const d=Math.sqrt(dx*dx+dz*dz);
+        if(d<nearDist&&g.position.y<15){nearDist=d;nearCar=i;}
+      });}
+      if(nearCar>=0){
+        // Buy from this gondola position (use queue index)
+        ZP._buyGondolaIdx(nearCar); return;
+      }
+      // Check lucky wheel
+      const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
+      if(wdist<6&&LW.spins>0){LW.open();return;}
+      // Otherwise open gondola panel
+      ZP.open('gond'); return;
     }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
     if(this.nearLimo>=0){ZP.openLimo(this.nearLimo);return;}
@@ -1381,6 +1476,24 @@ const ZP={
       }
     };
     requestAnimationFrame(walk);
+  },
+  _buyGondolaIdx(carIdx){
+    // Buy the animal from the gondola at this car position
+    // Use queue shifted by carIdx
+    const g=ZG.gQ[carIdx%ZG.gQ.length]||ZG.gQ[0];
+    if(!g)return;
+    const z=ZS.zoo;
+    const slot=z.enc.findIndex(e=>!e);
+    if(slot<0){ZP.toast('❌ Alle Gehege belegt!');return;}
+    if(z.mt<g.a.p){ZP.toast('❌ Zu wenig MT! Brauche '+$mt(g.a.p));return;}
+    z.mt-=g.a.p;
+    z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};
+    ZG.gQ.splice(carIdx%ZG.gQ.length,1);
+    ZG.gQ.push(ZG._mkG());
+    ZP._animalWalk(g.a,slot);
+    ZG._encs();
+    ZP.toast('✅ '+g.a.e+' '+g.a.n+' gekauft! Läuft zu Gehege '+(slot+1)+'!',2500);
+    ZG._updHUD();
   },
   _bSpd(i,cost){const z=ZS.zoo;if(z.mt<cost){this.toast('❌ Zu wenig!');return;}z.mt-=cost;z.enc[i].sl=(z.enc[i].sl||0)+1;this.toast(`⚡ Speed-Level ${z.enc[i].sl}!`,2000);this._rEnc(i);ZG._updHUD();},
   _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();},
