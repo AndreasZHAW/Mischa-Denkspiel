@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- ZOO v17.1 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -611,18 +612,26 @@ const ZG={
     document.addEventListener('keydown',e=>{this.keys[e.code]=true;if(e.code==='KeyE')this._interact();if(e.code==='KeyQ')this.slap();});
     document.addEventListener('keyup',e=>{this.keys[e.code]=false;});
     const canvas=G('zc');
+    // Click to interact or slap (NO pointer lock - no mouse capture warning!)
     canvas.addEventListener('click',e=>{
-      // Check not clicking on left HUD or joystick or weapon bar
       const onHL=e.clientX<80;
       const onJoy=e.clientX<150&&e.clientY>window.innerHeight-145;
-      const onWbar=e.clientY>window.innerHeight-90;
+      const onWbar=e.clientY>window.innerHeight-95;
       if(onHL||onJoy||onWbar)return;
-      if(!this.pLock){canvas.requestPointerLock?.();return;}
       if(this.nearSt||this.nearEnc>=0||this.nearLimo>=0)this._interact();
       else this.slap();
     });
-    document.addEventListener('pointerlockchange',()=>{this.pLock=document.pointerLockElement===G('zc');});
-    document.addEventListener('mousemove',e=>{if(!this.pLock)return;this.yaw-=e.movementX*.002;this.pitch=Math.max(-1.2,Math.min(1.2,this.pitch-e.movementY*.002));});
+    // Mouse move for looking (works without pointer lock - relative tracking)
+    let _lastMX=-1,_lastMY=-1;
+    document.addEventListener('mousemove',e=>{
+      if(_lastMX<0){_lastMX=e.clientX;_lastMY=e.clientY;return;}
+      // Only look if mouse button held OR on right half of screen
+      if(e.buttons===1&&e.clientX>80){
+        this.yaw-=(e.clientX-_lastMX)*.003;
+        this.pitch=Math.max(-1.2,Math.min(1.2,this.pitch-(e.clientY-_lastMY)*.003));
+      }
+      _lastMX=e.clientX;_lastMY=e.clientY;
+    });
     // JOYSTICK - bottom left
     const base=G('jbase'),thumb=G('jthumb'),R=35;
     const jmv=(cx,cy)=>{const r=base.getBoundingClientRect();const ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);const d=Math.sqrt(ox*ox+oy*oy),cl=Math.min(d,R);const nx=d>0?(ox/d)*cl:0,ny=d>0?(oy/d)*cl:0;thumb.style.left=(35+nx)+'px';thumb.style.top=(35+ny)+'px';this.joy.dx=nx/R;this.joy.dy=ny/R;this.joy.on=d>4;};
@@ -649,9 +658,6 @@ const ZG={
   _carAngle:0,
   _loop(){
     this._raf=requestAnimationFrame(()=>this._loop());
-    if(!this._frameCount)this._frameCount=0;
-    this._frameCount++;
-    if(this._frameCount===1){console.log('First frame!',this.cam.position,this.scene.children.length);}
     const dt=Math.min(this.clock.getDelta(),.05);
     this._move(dt);
     this._camUpdate();
