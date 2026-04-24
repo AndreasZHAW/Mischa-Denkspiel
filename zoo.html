@@ -405,8 +405,7 @@ const ZG={
       this.renderer.autoClear=true;
     }catch(err){ZP.toast('❌ WebGL Fehler: '+err.message,5000);console.error(err);return;}
     this.scene=new THREE.Scene();
-    // Fog disabled for debugging
-    // this.cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,200);
+    this.cam=new THREE.PerspectiveCamera(75,W/H,0.1,500);
     this.clock=new THREE.Clock();
     window.addEventListener('resize',()=>{
       this.cam.aspect=window.innerWidth/window.innerHeight;
