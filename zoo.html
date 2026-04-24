@@ -199,11 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10">
     <button onclick="ZG.leaveGlitch(false)" style="background:rgba(231,76,60,.3);border:2px solid rgba(231,76,60,.5);color:#ff6b6b;font-weight:900;font-size:.9rem;padding:9px 22px;border-radius:50px;cursor:pointer">🚪 Verlassen</button>
   </div>
-  <div id="gint-gondola" style="position:absolute;right:10px;top:55px;width:min(260px,40vw);background:rgba(0,0,0,.88);border:2px solid rgba(255,215,0,.35);border-radius:14px;padding:10px;z-index:10;max-height:70vh;overflow-y:auto">
-    <div style="font-weight:900;color:#FFD700;font-size:.88rem;margin-bottom:5px;text-align:center">🚡 Tier kaufen</div>
-    <div id="gint-ganim" style="min-height:100px;display:flex;align-items:center;justify-content:center"><div style="color:rgba(255,255,255,.3);font-size:.8rem">Lade...</div></div>
-    <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-top:4px;text-align:center">Nächste: <b id="gint-gtimer" style="color:#FFD700">2.5s</b></div>
-  </div>
+  <!-- No side panel - animals shown in 3D world inside station -->
 </div>
 
 <!-- LUCKY WHEEL -->
@@ -343,7 +339,7 @@ const ZA={
   async checkPrivate(){await ZS.load();if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');
     await ZS.load();
-    await new Promise(r=>setTimeout(r,80)); // Wait for browser layout
+    await new Promise(r=>setTimeout(r,200)); // iPad needs longer layout time
     try{
       ZG.start();
     }catch(startErr){
@@ -398,10 +394,11 @@ const ZG={
     }
     const canvas=G('zc');
     // Get actual viewport dimensions
-    const W = window.innerWidth || document.documentElement.clientWidth || 800;
-    const H = window.innerHeight || document.documentElement.clientHeight || 600;
-    canvas.width = W;
-    canvas.height = H;
+    // iPad fix: use screen dimensions as fallback
+    const W = Math.max(window.innerWidth||0, document.documentElement.clientWidth||0, screen.width||800);
+    const H = Math.max(window.innerHeight||0, document.documentElement.clientHeight||0, screen.height||600);
+    canvas.width = W; canvas.height = H;
+    console.log('Canvas:', W, 'x', H);
     try{
       this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, alpha:false});
       this.renderer.setPixelRatio(1); // Always 1:1, no retina scaling issues
@@ -411,7 +408,7 @@ const ZG={
       this.renderer.autoClear=true;
     }catch(err){ZP.toast('❌ WebGL Fehler: '+err.message,5000);console.error(err);return;}
     this.scene=new THREE.Scene();
-    this.cam=new THREE.PerspectiveCamera(75,W/H,0.1,500);
+    this.cam=new THREE.PerspectiveCamera(75,W/H,0.05,500);
     this.clock=new THREE.Clock();
     window.addEventListener('resize',()=>{
       this.cam.aspect=window.innerWidth/window.innerHeight;
@@ -523,15 +520,35 @@ const ZG={
     roof.position.set(0,14.5,0); roof.rotation.y=Math.PI/8;  sc.add(roof);
     const trim=new THREE.Mesh(new THREE.CylinderGeometry(13.1,.4,13.1,8),new THREE.MeshBasicMaterial({color:0xFFD700}));
     trim.position.set(0,12.2,0); sc.add(trim);
-    // 3 entrances facing each zone
+    // 3 entrances - big glowing arches facing each zone
     this.ZONES.forEach(zone=>{
       const ang=Math.atan2(zone.x,zone.z);
-      const df=new THREE.Mesh(new THREE.BoxGeometry(4,8,.4),new THREE.MeshBasicMaterial({color:0xff1111}));
-      df.position.set(Math.sin(ang)*13,4,Math.cos(ang)*13);
-      df.rotation.y=ang; sc.add(df);
-      const dr=new THREE.Mesh(new THREE.BoxGeometry(3,6.5,.5),new THREE.MeshBasicMaterial({color:0x111}));
-      dr.position.set(Math.sin(ang)*12.7,3.4,Math.cos(ang)*12.7);
-      dr.rotation.y=ang; sc.add(dr);
+      const ex=Math.sin(ang)*13, ez=Math.cos(ang)*13;
+      // Door frame (bright red)
+      const df=new THREE.Mesh(new THREE.BoxGeometry(5,10,.5),new THREE.MeshBasicMaterial({color:0xff1111}));
+      df.position.set(ex,5,ez); df.rotation.y=ang; sc.add(df);
+      // Door opening (black)
+      const dr=new THREE.Mesh(new THREE.BoxGeometry(3.5,8,.6),new THREE.MeshBasicMaterial({color:0x050505}));
+      dr.position.set(ex,4.5,ez); dr.rotation.y=ang; sc.add(dr);
+      // Arch top bar
+      const arch=new THREE.Mesh(new THREE.BoxGeometry(5.5,.6,1),new THREE.MeshBasicMaterial({color:0xcc0000}));
+      arch.position.set(ex,10.3,ez); arch.rotation.y=ang; sc.add(arch);
+      // Glowing red strips on sides of entrance
+      [-1.8,1.8].forEach(ox=>{
+        const strip=new THREE.Mesh(new THREE.BoxGeometry(.25,8,.3),new THREE.MeshBasicMaterial({color:0xff2200}));
+        strip.position.set(ex+Math.cos(ang)*ox,4.5,ez-Math.sin(ang)*ox);
+        strip.rotation.y=ang; sc.add(strip);
+      });
+      // Arrow on ground pointing to entrance
+      const arrMat=new THREE.MeshBasicMaterial({color:0xff2200});
+      const arr=new THREE.Mesh(new THREE.PlaneGeometry(1.5,4),arrMat);
+      arr.rotation.x=-Math.PI/2; arr.position.set(Math.sin(ang)*20,.05,Math.cos(ang)*20);
+      arr.rotation.z=ang; sc.add(arr);
+      // Path lighting strips
+      [18,22,26].forEach(r=>{
+        const dot=new THREE.Mesh(new THREE.CircleGeometry(.3,8),new THREE.MeshBasicMaterial({color:0xff4400}));
+        dot.rotation.x=-Math.PI/2; dot.position.set(Math.sin(ang)*r,.04,Math.cos(ang)*r); sc.add(dot);
+      });
     });
     // Cable tower
     const hub=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,22,8),new THREE.MeshBasicMaterial({color:0x888}));
@@ -550,6 +567,26 @@ const ZG={
     }
     const lbl=this._txt('🚡 GONDEL-STATION',1.1,'#FFD700');
     lbl.position.set(0,20,0); lbl.scale.set(14,3,1); sc.add(lbl);
+
+    // Lucky Wheel 3D object - spinning wheel near station entrance Zone A
+    const wheelBase=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.5,1,16),new THREE.MeshBasicMaterial({color:0x8B4513}));
+    wheelBase.position.set(8,0.5,16); sc.add(wheelBase);
+    const wheelPost=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,5,8),new THREE.MeshBasicMaterial({color:0x666666}));
+    wheelPost.position.set(8,3,16); sc.add(wheelPost);
+    // The wheel itself - colored segments
+    this._worldWheel=new THREE.Group(); this._worldWheel.position.set(8,5.5,16);
+    const wheelColors=[0x27AE60,0x2980B9,0x8E44AD,0xF39C12,0xE74C3C,0xFFD700];
+    for(let i=0;i<6;i++){
+      const seg=new THREE.Mesh(new THREE.CylinderGeometry(0,2,0.4,6,1,false,i/6*Math.PI*2,(1/6)*Math.PI*2*0.9),new THREE.MeshBasicMaterial({color:wheelColors[i]}));
+      seg.rotation.y=i/6*Math.PI*2; this._worldWheel.add(seg);
+    }
+    const wheelHub=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    this._worldWheel.add(wheelHub);
+    this._worldWheel.rotation.x=Math.PI/2; // Face player (vertical wheel)
+    sc.add(this._worldWheel);
+    // Wheel label
+    const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(8,8.5,16); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
+    const wlbl2=this._txt('Näher kommen!',0.55,'#fff'); wlbl2.position.set(8,7.5,16); wlbl2.scale.set(6,1.5,1); sc.add(wlbl2);
   },
 
   _encs(){
@@ -667,6 +704,7 @@ const ZG={
     this._move(dt);
     this._camUpdate();
     this._carAngle+=dt*.45;
+    if(this._worldWheel)this._worldWheel.rotation.z+=0.01;
     if(this._carMeshes){this._carMeshes.forEach((car,i)=>{const a=car.userData.angle+this._carAngle;const r=10;car.position.set(Math.cos(a)*r,11+i*3+Math.sin(this._carAngle*2+i)*.3,Math.sin(a)*r);car.rotation.y=a+Math.PI/2;});}
     // Animate clouds
     this.scene.traverse(o=>{if(o.userData?.spd){o.position.x+=o.userData.spd;if(o.position.x>100)o.position.x=-100;}});
@@ -701,9 +739,16 @@ const ZG={
     for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){if(Math.sqrt((this.pl.x-eps[i].x)**2+(this.pl.z-eps[i].z)**2)<5.5){this.nearEnc=i;break;}}
     this.nearLimo=-1;
     this.LIMOPOS().forEach((lp,i)=>{if(Math.sqrt((this.pl.x-lp.x)**2+(this.pl.z-lp.z)**2)<7)this.nearLimo=i;});
+    // Lucky wheel proximity (at x=8, z=16)
+    const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
+    if(wdist<4&&LW.spins>0&&document.getElementById('lwrap').style.display==='none'){LW.open();}
     // Prompt
     const ip=G('iprompt');
-    if(this.nearSt){ip.style.opacity='1';ip.textContent=LW.spins>0?'🍀 [E] Glücksrad! / 🚡 Gondel':(this.ev?.id==='glitch'?'👾 [E] Gondel betreten (GLITCH!)':'🚡 [E] Gondel-Station');}
+    if(this.nearSt){
+      const stDist2=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
+      ip.style.opacity='1';ip.textContent='🚪 Gondel-Station (hineinlaufen)';
+      if(stDist2<7&&G('gint').style.display==='none'){this._enterGlitch();}
+    }
     else if(this.nearEnc>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;}
     else if(this.nearLimo>=0){ip.style.opacity='1';ip.textContent='🚗 [E] Speed-Shop öffnen';}
     else{ip.style.opacity='0';}
@@ -820,7 +865,7 @@ const ZG={
 
   // ═══ GONDOLA ═══
   _mkG(){const l=ZS.lk(),ni=this.ev?.id==='night';const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(this.ev?.id==='snow'&&Math.random()<.05)?3.5:(this.ev?.id==='party'&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
-  _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(G('gint').style.display!=='none')ZG._syncGintGondola();if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
+  _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
 
   // ═══ EVENTS ═══
   _tryEv(){if(!this.ev&&Math.random()<.28){const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEv(e,e.dur);}},
@@ -848,7 +893,7 @@ const ZG={
     // Start 3D interior
     this._startGintRenderer();
     // Sync gondola panel
-    this._syncGintGondola();
+    // panel removed
     // Timer only during glitch event
     if(this.ev?.id==='glitch'){
       let t=30;
@@ -876,20 +921,57 @@ const ZG={
       }catch(e){console.error('Gint renderer error:',e);return;}
     }
     this._gintScene=new THREE.Scene();
-    this._gintCam=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,0.1,100);
-    this._gintCam.position.set(0,2.5,8);
-    this._gintCam.lookAt(0,2,0);
+    this._gintCam=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,0.05,100);
+    // Player position inside station
+    this._gintPl={x:0,y:2.5,z:7,yaw:Math.PI,pitch:0};
     this._buildGintWorld();
+    // Setup interior controls
+    this._gintSetupControls();
     const loop=()=>{
       this._gintRaf=requestAnimationFrame(loop);
-      this._gintAngle+=0.008;
-      // Rotate gondola cars slowly
+      this._gintAngle+=0.006;
       if(this._gintCars){this._gintCars.forEach((car,i)=>{car.position.x=Math.cos(this._gintAngle+i*2.1)*3.5;car.position.z=Math.sin(this._gintAngle+i*2.1)*3.5;car.rotation.y=this._gintAngle+i*2.1;});}
+      // Move player inside station
+      this._gintMove();
+      // Update camera
+      const p=this._gintPl;
+      this._gintCam.position.set(p.x,p.y,p.z);
+      const qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),p.yaw);
+      const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),p.pitch);
+      this._gintCam.quaternion.copy(qY).multiply(qX);
       this._gintRenderer.render(this._gintScene,this._gintCam);
     };
     loop();
   },
 
+  _gintJoy:{dx:0,dy:0,on:false},_gintLastT:null,
+  _gintSetupControls(){
+    const canvas=G('gint-canvas');if(!canvas)return;
+    // Touch look (right half)
+    canvas.ontouchstart=(e)=>{for(const t of e.touches){if(t.clientX>window.innerWidth*.35){this._gintLastT={x:t.clientX,y:t.clientY,id:t.identifier};}}};
+    canvas.ontouchmove=(e)=>{e.preventDefault();for(const t of e.touches){if(this._gintLastT&&t.identifier===this._gintLastT.id){const p=this._gintPl;p.yaw-=(t.clientX-this._gintLastT.x)*.003;p.pitch=Math.max(-.8,Math.min(.8,p.pitch-(t.clientY-this._gintLastT.y)*.003));this._gintLastT={x:t.clientX,y:t.clientY,id:t.identifier};}}};
+    // Mouse look (hold left button)
+    let lx=-1,ly=-1;
+    canvas.onmousemove=(e)=>{if(e.buttons!==1||lx<0){lx=e.clientX;ly=e.clientY;return;}if(e.clientX>80){const p=this._gintPl;p.yaw-=(e.clientX-lx)*.003;p.pitch=Math.max(-.8,Math.min(.8,p.pitch-(e.clientY-ly)*.003));}lx=e.clientX;ly=e.clientY;};
+    // Interior joystick - reuse main joystick data
+  },
+  _gintMove(){
+    const p=this._gintPl,sp=4,dt=0.016;
+    const fwd={x:-Math.sin(p.yaw),z:-Math.cos(p.yaw)};
+    const rgt={x:Math.cos(p.yaw),z:-Math.sin(p.yaw)};
+    let mx=0,mz=0;
+    if(this.keys['KeyW']||this.keys['ArrowUp']){mx+=fwd.x;mz+=fwd.z;}
+    if(this.keys['KeyS']||this.keys['ArrowDown']){mx-=fwd.x;mz-=fwd.z;}
+    if(this.keys['KeyA']){mx-=rgt.x;mz-=rgt.z;}
+    if(this.keys['KeyD']){mx+=rgt.x;mz+=rgt.z;}
+    if(this.joy.on){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
+    const l=Math.sqrt(mx*mx+mz*mz);
+    if(l>0){p.x+=mx/l*sp*dt;p.z+=mz/l*sp*dt;}
+    // Clamp inside station bounds
+    p.x=Math.max(-7,Math.min(7,p.x));p.z=Math.max(-6,Math.min(8,p.z));p.y=2.5;
+    // Exit trigger: walk toward exit (z > 7)
+    if(p.z>7.2)this.leaveGlitch(false);
+  },
   _buildGintWorld(){
     const sc=this._gintScene;
     // Bright lights
@@ -1134,7 +1216,13 @@ const ZP={
     if(p==='trade')this._rTrade('m');
     if(p==='reb')this._rReb();
     if(p==='menu')this._rMenu();
-    if(p==='adm')this._rAdm();
+    if(p==='adm'){
+      if(!ZS.isAdmin){
+        const pw=prompt('Admin-Passwort:');
+        if(pw==='mischa'||pw==='admin'){ZS.isAdmin=true;}else{this.toast('❌ Falsches Passwort!',2000);return;}
+      }
+      this._rAdm();
+    }
   },
   close(p){hide('p-'+p);},
   openEnc(i){show('p-enc');G('pent').textContent='Gehege #'+(i+1);this._rEnc(i);},
@@ -1256,36 +1344,43 @@ const ZP={
     </div>`;
   },
   _animalWalk(animal, slot){
-    // Animate animal emoji walking from gondola station to enclosure
-    const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;font-size:2.5rem;z-index:450;pointer-events:none;transition:all 2.8s cubic-bezier(.25,.46,.45,.94);filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))';
-    el.textContent = animal.e;
-    // Start at top center (gondola station direction)
-    el.style.left = '50%';
-    el.style.top = '55%';
-    el.style.transform = 'translateX(-50%) scale(1.5)';
+    // Calculate where to walk TO (enclosure position on screen = roughly center/left)
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;font-size:2.8rem;z-index:450;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));will-change:transform';
+    el.textContent=animal.e;
+    // Start position: bottom center (station direction)
+    const startX=window.innerWidth/2;
+    const startY=window.innerHeight*0.55;
+    el.style.left=startX+'px'; el.style.top=startY+'px';
+    el.style.transform='translate(-50%,-50%) scale(1.8)';
     document.body.appendChild(el);
-    // Animate to enclosure position (roughly)
-    const encX = 20 + (slot % 5) * 15;
-    const encY = 40 + Math.floor(slot / 5) * 20;
-    requestAnimationFrame(() => {
-      el.style.left = encX + '%';
-      el.style.top = encY + '%';
-      el.style.transform = 'scale(1)';
-      el.style.opacity = '0.8';
-    });
-    // Bounce while walking
-    let bounce = 0;
-    const biv = setInterval(() => {
-      bounce = !bounce;
-      el.style.marginTop = bounce ? '-8px' : '0px';
-    }, 200);
-    setTimeout(() => {
-      clearInterval(biv);
-      el.style.opacity = '0';
-      el.style.transform = 'scale(2)';
-      setTimeout(() => el.remove(), 500);
-    }, 2800);
+
+    // Target: enclosure area position
+    const col=slot%5; const row=Math.floor(slot/5);
+    const targetX=window.innerWidth*(0.25+col*0.12);
+    const targetY=window.innerHeight*(0.3+row*0.18);
+    const steps=20; let step=0;
+    
+    const walk=()=>{
+      step++;
+      const t=step/steps;
+      const ease=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+      const cx=startX+(targetX-startX)*ease;
+      const cy=startY+(targetY-startY)*ease;
+      const bounce=Math.sin(step*0.8)*6*(1-t);
+      el.style.left=cx+'px';
+      el.style.top=(cy+bounce)+'px';
+      el.style.transform='translate(-50%,-50%) scale('+(1.8-0.8*t)+')';
+      if(step<steps){requestAnimationFrame(walk);}
+      else{
+        // Pop into enclosure
+        el.style.transition='all 0.4s ease';
+        el.style.transform='translate(-50%,-50%) scale(2.5)';
+        el.style.opacity='0';
+        setTimeout(()=>el.remove(),400);
+      }
+    };
+    requestAnimationFrame(walk);
   },
   _bSpd(i,cost){const z=ZS.zoo;if(z.mt<cost){this.toast('❌ Zu wenig!');return;}z.mt-=cost;z.enc[i].sl=(z.enc[i].sl||0)+1;this.toast(`⚡ Speed-Level ${z.enc[i].sl}!`,2000);this._rEnc(i);ZG._updHUD();},
   _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();},
