@@ -165,6 +165,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(255,165,0,.8)">🤝</div><div class="hbl">Trading</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
+<div class="hb" onclick="ZG.keys['Space']=true;setTimeout(()=>ZG.keys['Space']=false,200)"><div class="hbb" style="background:rgba(41,128,185,.8)">⬆️</div><div class="hbl">Springen</div></div>
 <div class="hb off" id="admbtn" onclick="ZP.open('adm')"><div class="hbb" style="background:rgba(255,165,0,.6)">👑</div><div class="hbl">Admin</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
@@ -246,7 +247,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html'">← Denkspiel</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
 <div class="zp off" id="p-adm"><div class="zpi"><button class="pcls" onclick="ZP.close('adm')">✕</button><div class="pt">👑 Admin</div><div id="padm"></div></div></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></scr\'+'ipt>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-state.js"></script>
@@ -294,7 +295,10 @@ const SLAPS=[
   {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:1300, fly:false},
   {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:5000, fly:false},
   {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:5000, fly:false,isGun:true},
-  {id:'lucky', n:'LUCKY SLAP', e:'🍀',  col:'#27AE60',  cd:3000, fly:true, special:true},
+  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:3000, fly:true,  special:true},
+  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true},
+  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:1800, fly:true,  special:true},
+  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:1500, fly:true,  special:true},
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000},{e:3,l:2,u:1,g:0,m:0,s:0,mt:25000},{e:4,l:3,u:2,g:1,m:0,s:0,mt:120000},{e:5,l:4,u:3,g:2,m:1,s:0,mt:600000},{e:5,l:5,u:4,g:3,m:2,s:0,mt:3000000},{e:5,l:5,u:5,g:4,m:3,s:0,mt:15000000},{e:5,l:5,u:5,g:5,m:4,s:1,mt:100000000}];return R[Math.min(n,R.length-1)];}
@@ -382,7 +386,7 @@ const ZG={
       this.renderer.setClearColor(0x87CEEB);
     }catch(err){ZP.toast('❌ WebGL Fehler: '+err.message,5000);console.error(err);return;}
     this.scene=new THREE.Scene();
-    this.scene.fog=new THREE.Fog(0x87CEEB,55,130);
+    this.scene.fog=new THREE.Fog(0x87CEEB,80,200);
     this.cam=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,200);
     this.clock=new THREE.Clock();
     window.addEventListener('resize',()=>{
@@ -430,7 +434,7 @@ const ZG={
     const fill=new THREE.DirectionalLight(0x8888ff,.25);
     fill.position.set(-15,8,-15); sc.add(fill);
     // Sky dome
-    sc.add(new THREE.Mesh(new THREE.SphereGeometry(150,32,16),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.BackSide})));
+    sc.add(new THREE.Mesh(new THREE.SphereGeometry(250,32,16),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.BackSide})));
     // CIRCULAR ground
     const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),new THREE.MeshLambertMaterial({color:0x4CAF50}));
     gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; sc.add(gnd);
@@ -632,7 +636,10 @@ const ZG={
     // Circular boundary
     const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
     if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
-    this.pl.y=1.7;
+    // Jump
+    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=8;setTimeout(()=>{this._jumping=false;this.pl.y=1.7;},600);}
+    if(this._jumping){this.pl.y=Math.max(1.7,this.pl.y+this._jumpV*.016);this._jumpV-=20*.016;if(this.pl.y<=1.7){this.pl.y=1.7;this._jumping=false;}}
+    else{this.pl.y=1.7;}
     // Proximity
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
     this.nearSt=stD<14;
@@ -805,7 +812,8 @@ const ZG={
   _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshLambertMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshLambertMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
 
   // ═══ ADMIN CMD ═══
-  async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_slap'){const sid=cmd.slapId||'lucky';if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;this._updWBar();ZP.toast(`👑 Admin: ${SLAPS.find(s=>s.id===sid)?.e} Slap!`,3000);}this._updHUD();},
+  async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
+    else if(cmd.type==='give_slap'){const sid=cmd.slapId||'lucky';if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;this._updWBar();ZP.toast(`👑 Admin: ${SLAPS.find(s=>s.id===sid)?.e} Slap!`,3000);}this._updHUD();},
 
   // ═══ TUTORIAL ═══
   _tut(){
@@ -833,15 +841,122 @@ const ZG={
 };
 </script>
 <script>
-// ═══ LUCKY WHEEL ═══
+// ═══ LUCKY WHEEL — MULTI-TYPE ═══
 const LW={
   spinning:false,angle:0,spins:0,_st:0,_iv:null,
-  PRIZES:[{l:'1.000 MT',mt:1000,c:40,col:'#27AE60'},{l:'8.000 MT',mt:8000,c:25,col:'#2980B9'},{l:'10.000 MT',mt:10000,c:20,col:'#8E44AD'},{l:'50.000 MT',mt:50000,c:10,col:'#F39C12'},{l:'100.000 MT',mt:100000,c:4.5,col:'#E74C3C'},{l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:true}],
-  init(){this._st=Date.now();this._iv=setInterval(()=>{if(!ZS.zoo)return;if((Date.now()-this._st)/60000>=20&&this.spins===0){this.spins=1;this._st=Date.now();ZP.toast('🍀 Glücksrad-Spin! Gehe zur Gondel-Station!',5000);}},30000);},
-  open(){const w=G('lwrap');w.style.display='flex';this._draw(this.angle);G('lwbtn').disabled=false;G('lwbtn').textContent='🎰 Drehen!';},
-  _draw(rot){const c=G('lwc');if(!c)return;const ctx=c.getContext('2d');const W=280,cx=140,cy=140,R=132;ctx.clearRect(0,0,W,W);const tot=this.PRIZES.reduce((s,p)=>s+p.c,0);let a=rot;this.PRIZES.forEach(p=>{const arc=(p.c/tot)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,a,a+arc);ctx.closePath();ctx.fillStyle=p.col;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=2;ctx.stroke();ctx.save();ctx.translate(cx,cy);ctx.rotate(a+arc/2);ctx.textAlign='right';ctx.fillStyle='white';ctx.font='bold 10px Arial';ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=4;ctx.fillText(p.l,R-7,4);ctx.restore();a+=arc;});ctx.beginPath();ctx.arc(cx,cy,20,0,Math.PI*2);const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,20);cg.addColorStop(0,'#FFD700');cg.addColorStop(1,'#FFA500');ctx.fillStyle=cg;ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#1a0800';ctx.font='bold 14px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🍀',cx,cy);ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.strokeStyle='rgba(255,215,0,.5)';ctx.lineWidth=5;ctx.stroke();},
-  spin(){if(this.spinning||this.spins<=0)return;this.spinning=true;this.spins--;G('lwbtn').disabled=true;G('lwbtn').textContent='🌀 Dreht...';const tot=this.PRIZES.reduce((s,p)=>s+p.c,0);let r=Math.random()*tot,pi=0;for(let i=0;i<this.PRIZES.length;i++){r-=this.PRIZES[i].c;if(r<=0){pi=i;break;}}const p=this.PRIZES[pi];let cum=0;for(let i=0;i<pi;i++)cum+=(this.PRIZES[i].c/tot)*Math.PI*2;const target=this.angle+Math.PI*2*6+(Math.PI*1.5-(cum+(p.c/tot)*Math.PI*2*.5)-this.angle%(Math.PI*2)+Math.PI*4);const start=this.angle,dur=4500+Math.random()*1500,t0=Date.now();const an=()=>{const t=Math.min(1,(Date.now()-t0)/dur);const ease=1-Math.pow(1-t,4);this.angle=start+(target-start)*ease;this._draw(this.angle);if(t<1)requestAnimationFrame(an);else{this.spinning=false;setTimeout(()=>this._prize(p),500);}};requestAnimationFrame(an);},
-  _prize(p){G('lwrap').style.display='none';if(p.slap){const z=ZS.zoo;z.lslaps=(z.lslaps||0)+1;if(!z.ownSlaps.includes('lucky'))z.ownSlaps.push('lucky');ZG._updWBar();ZP.toast('🍀 LUCKY SLAP erhalten!',5000);}else{ZS.zoo.mt+=p.mt;ZG._updHUD();const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';pop.innerHTML=`<div style="font-size:2.5rem;font-weight:900;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,.8)">🎉 ${p.l}!</div>`;document.body.appendChild(pop);setTimeout(()=>pop.remove(),3500);}},
+  activeType:'normal',
+
+  WHEELS:{
+    normal:{name:'Glücksrad',emoji:'🍀',prizes:[
+      {l:'1.000 MT',mt:1000,c:40,col:'#27AE60'},{l:'8.000 MT',mt:8000,c:25,col:'#2980B9'},
+      {l:'10.000 MT',mt:10000,c:20,col:'#8E44AD'},{l:'50.000 MT',mt:50000,c:10,col:'#F39C12'},
+      {l:'100.000 MT',mt:100000,c:4.5,col:'#E74C3C'},{l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
+    ]},
+    france:{name:'Frankreich-Rad',emoji:'🗼',glowCol:'#ED2939',prizes:[
+      {l:'5.000 MT',mt:5000,c:30,col:'#002395'},{l:'15.000 MT',mt:15000,c:20,col:'#ED2939'},
+      {l:'30.000 MT',mt:30000,c:16,col:'#002395'},{l:'80.000 MT',mt:80000,c:12,col:'#ED2939'},
+      {l:'200.000 MT',mt:200000,c:8,col:'#27AE60'},{l:'500.000 MT',mt:500000,c:5,col:'#FFD700'},
+      {l:'1.000.000 MT',mt:1000000,c:3,col:'#fff'},{l:'🗼 France Slap!',mt:0,c:.5,col:'#ED2939',slap:'france'},
+    ]},
+    weekend:{name:'Wochenend-Rad',emoji:'🎉',glowCol:'#cc00ff',prizes:[
+      {l:'3.000 MT',mt:3000,c:28,col:'#8E44AD'},{l:'12.000 MT',mt:12000,c:22,col:'#cc00ff'},
+      {l:'40.000 MT',mt:40000,c:17,col:'#ff69b4'},{l:'100.000 MT',mt:100000,c:12,col:'#FFD700'},
+      {l:'300.000 MT',mt:300000,c:8,col:'#FF4500'},{l:'800.000 MT',mt:800000,c:5,col:'#fff'},
+      {l:'2x Glück 1h',mt:0,c:4,col:'#27AE60',boost:'lucky'},{l:'🎉 Wochenend-Slap!',mt:0,c:.5,col:'#ff69b4',slap:'weekend'},
+    ]},
+    christmas:{name:'Weihnachts-Rad',emoji:'🎄',glowCol:'#C0392B',prizes:[
+      {l:'2.000 MT',mt:2000,c:32,col:'#C0392B'},{l:'8.000 MT',mt:8000,c:24,col:'#27AE60'},
+      {l:'25.000 MT',mt:25000,c:17,col:'#C0392B'},{l:'70.000 MT',mt:70000,c:11,col:'#27AE60'},
+      {l:'150.000 MT',mt:150000,c:7,col:'#FFD700'},{l:'400.000 MT',mt:400000,c:4,col:'#fff'},
+      {l:'🎁 Überraschung!',mt:0,c:2,col:'#ff69b4',gift:true},{l:'🎄 Weihnachts-Slap!',mt:0,c:.5,col:'#C0392B',slap:'christmas'},
+    ]},
+  },
+
+  get W(){return this.WHEELS[this.activeType];},
+
+  init(){
+    this._st=Date.now();
+    this._iv=setInterval(()=>{
+      if(!ZS.zoo)return;
+      if((Date.now()-this._st)/60000>=20&&this.spins===0){
+        this.spins=1;this._st=Date.now();
+        ZP.toast(this.W.emoji+' '+this.W.name+' Spin verfügbar! Zur Gondel-Station!',5000);
+      }
+    },30000);
+  },
+
+  setType(t,spinsToAdd){
+    if(!this.WHEELS[t])return;
+    this.activeType=t;this.angle=0;
+    if(spinsToAdd){this.spins=Math.max(this.spins,spinsToAdd);}
+    const ti=G('lwtit');if(ti)ti.textContent=this.W.emoji+' '+this.W.name;
+    ZP.toast(this.W.emoji+' '+this.W.name+' ist jetzt aktiv!'+(spinsToAdd?' +'+spinsToAdd+' Spin(s)!':''),3000);
+  },
+
+  open(){
+    const w=G('lwrap');w.style.display='flex';
+    const ti=G('lwtit');if(ti)ti.textContent=this.W.emoji+' '+this.W.name;
+    this._draw(this.angle);
+    G('lwbtn').disabled=false;G('lwbtn').textContent='🎰 Drehen!';
+  },
+
+  _draw(rot){
+    const cv=G('lwc');if(!cv)return;const ctx=cv.getContext('2d');
+    const W=280,cx=140,cy=140,R=132;ctx.clearRect(0,0,W,W);
+    const prizes=this.W.prizes;const tot=prizes.reduce((s,p)=>s+p.c,0);let a=rot;
+    prizes.forEach(p=>{
+      const arc=(p.c/tot)*Math.PI*2;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,a,a+arc);ctx.closePath();
+      ctx.fillStyle=p.col;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=2;ctx.stroke();
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(a+arc/2);ctx.textAlign='right';ctx.fillStyle='white';
+      ctx.font='bold 9px Arial';ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;ctx.fillText(p.l,R-6,4);
+      ctx.restore();a+=arc;
+    });
+    ctx.beginPath();ctx.arc(cx,cy,22,0,Math.PI*2);
+    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,22);cg.addColorStop(0,'#FFD700');cg.addColorStop(1,'#FFA500');
+    ctx.fillStyle=cg;ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#1a0800';ctx.font='bold 15px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(this.W.emoji,cx,cy);
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.strokeStyle=this.W.glowCol||'#FFD700';ctx.lineWidth=5;ctx.stroke();
+  },
+
+  spin(){
+    if(this.spinning||this.spins<=0)return;
+    this.spinning=true;this.spins--;
+    G('lwbtn').disabled=true;G('lwbtn').textContent='🌀 Dreht...';
+    const prizes=this.W.prizes;const tot=prizes.reduce((s,p)=>s+p.c,0);
+    let r=Math.random()*tot,pi=0;
+    for(let i=0;i<prizes.length;i++){r-=prizes[i].c;if(r<=0){pi=i;break;}}
+    const p=prizes[pi];let cum=0;for(let i=0;i<pi;i++)cum+=(prizes[i].c/tot)*Math.PI*2;
+    const target=this.angle+Math.PI*2*6+(Math.PI*1.5-(cum+(p.c/tot)*Math.PI*2*.5)-this.angle%(Math.PI*2)+Math.PI*4);
+    const start=this.angle,dur=4500+Math.random()*1500,t0=Date.now();
+    const an=()=>{const t=Math.min(1,(Date.now()-t0)/dur);const ease=1-Math.pow(1-t,4);this.angle=start+(target-start)*ease;this._draw(this.angle);if(t<1)requestAnimationFrame(an);else{this.spinning=false;setTimeout(()=>this._prize(p),500);}};
+    requestAnimationFrame(an);
+  },
+
+  _prize(p){
+    G('lwrap').style.display='none';
+    const z=ZS.zoo;
+    if(p.slap){
+      if(!z.ownSlaps)z.ownSlaps=['basic'];
+      if(!z.ownSlaps.includes(p.slap))z.ownSlaps.push(p.slap);
+      const sd=SLAPS.find(s=>s.id===p.slap);
+      ZG._updWBar();ZP.toast((sd?.e||'✨')+' '+p.l+' erhalten!',5000);
+      const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';
+      pop.innerHTML='<div style="font-size:3rem">'+(sd?.e||'✨')+'</div><div style="font-weight:900;color:#FFD700;font-size:1.3rem">'+p.l+'!</div>';
+      document.body.appendChild(pop);setTimeout(()=>pop.remove(),4500);
+    }else if(p.gift){
+      const bonus=[5000,20000,50000,100000][Math.floor(Math.random()*4)];
+      z.mt+=bonus;ZG._updHUD();ZP.toast('🎁 Weihnachtsgeschenk: '+$mt(bonus)+'!',4000);
+    }else if(p.boost){
+      if(!z.tb)z.tb={};z.tb[p.boost]=Date.now()+2*60*60*1000;
+      ZP.toast('🍀 Glück ×2 für 2 Stunden!',4000);
+    }else{
+      z.mt+=p.mt;ZG._updHUD();
+      const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';
+      pop.innerHTML='<div style="font-weight:900;color:'+this.W.glowCol+'||#FFD700;font-size:2.4rem">🎉 '+p.l+'!</div>';
+      document.body.appendChild(pop);setTimeout(()=>pop.remove(),3500);
+    }
+  },
 };
 
 // ═══ PANELS ═══
@@ -874,7 +989,15 @@ const ZP={
   // GONDOLA
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};ZG.gQ.shift();ZG.gQ.push(ZG._mkG());ZG._encs();this.toast(`✅ ${g.a.e} ${g.a.n} in Gehege ${slot+1}!`,2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
+  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};ZG.gQ.shift();ZG.gQ.push(ZG._mkG());ZG._encs();
+    const rareR=['ultralegendary','god','mythic','secret'];
+    if(rareR.includes(g.a.r)){
+      const pop=document.createElement('div');
+      pop.style.cssText='position:fixed;top:22%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none;background:rgba(255,215,0,.15);border:2px solid #FFD700;border-radius:18px;padding:14px 22px';
+      pop.innerHTML='<div style="font-size:2.8rem">'+g.a.e+'</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">'+g.a.n+' erschienen!</div><div style="color:rgba(255,255,255,.7);font-size:.8rem">Kaufe es schnell bevor es weg ist! 🔥</div>';
+      document.body.appendChild(pop);setTimeout(()=>pop.remove(),4000);
+    }
+    this.toast('✅ '+g.a.e+' '+g.a.n+' in Gehege '+(slot+1)+'!',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${z.mt<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">Kaufen</button></div>`;}).join('');},
   _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;this.toast('✅ '+u.l);this._rLuck();ZG._updHUD();},
 
@@ -1010,6 +1133,15 @@ const ZP={
   async _adSp(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),aid=G('as')?.value,shId=G('ash')?.value;const cmd={type:'spawn_animal',target:tgt,animalId:aid,shinyId:shId,traitIds:[],id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const a=ANIMALS.find(x=>x.id===aid)||ANIMALS[0];const sh=shId?{id:shId,...SHINY[shId]}:null;const slot=ZS.zoo.enc.findIndex(e=>!e);if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs();}}this.toast('✅ Spawn!');this.close('adm');},
   async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');},
   async _adSl(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),sid=G('asl')?.value||'lucky';const cmd={type:'give_slap',target:tgt,slapId:sid,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const z=ZS.zoo;if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;ZG._updWBar();}this.toast(`✅ ${SLAPS.find(s=>s.id===sid)?.e} Slap!`);this.close('adm');},
+  async _adSpins(){
+    const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();
+    const n=parseInt(G('aspins')?.value||1)||1;
+    const cmd={type:'give_spins',target:tgt,amount:n,wheelType:LW.activeType,id:Date.now().toString(),exp:Date.now()+30000};
+    await this._cmd(cmd);
+    if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){LW.spins+=n;ZP.toast('🎡 +'+n+' Spin(s) gegeben!',2000);}
+    else ZP.toast('✅ Spins an '+tgt+' gesendet!',2000);
+    this.close('adm');
+  },
   async _adMT(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();const cmd={type:'give_mt',target:tgt,amount:50000,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){ZS.zoo.mt+=50000;ZG._updHUD();}this.toast('✅ +50K MT!');this.close('adm');},
   async _cmd(cmd){try{if(State._useCloud())await _db.collection('config').doc('zoo_admin_cmd').set(cmd);}catch(e){}localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));},
 };
