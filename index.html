@@ -2,10 +2,12 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#87CEEB">
-  <title>Das Mischa Denkspiel ✈️</title>
+  <title>Das Mischa Denkspiel ✈️ v29</title>
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
@@ -22,11 +24,14 @@
 </head>
 <body>
   <div id="app">
-    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#87CEEB">
+    <div id="loading-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#87CEEB">
       <div style="text-align:center">
         <div style="font-size:3rem;animation:bounce 1s infinite">✈️</div>
         <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#3D4F2E;margin-top:10px">Mischa Denkspiel lädt...</div>
+        <div id="load-status" style="font-size:.8rem;color:#555;margin-top:8px"></div>
       </div>
+      <div id="error-box" style="display:none;margin-top:20px;background:rgba(231,76,60,.9);color:white;padding:16px 20px;border-radius:12px;max-width:350px;font-size:.85rem;text-align:left;word-break:break-word"></div>
+      <button id="reload-btn" onclick="location.reload()" style="display:none;margin-top:16px;background:#2980B9;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer">↻ Neu laden</button>
     </div>
   </div>
   <!-- Firebase -->
@@ -194,18 +199,42 @@
     window.showSurvey = showSurvey;
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Hard timeout: if boot hangs, force show welcome after 4 seconds
-      const failsafe = setTimeout(() => { // 1.5s max before forcing welcome
-        console.warn('Boot timeout - showing welcome anyway');
-        if (typeof App !== 'undefined') App.showWelcome();
-        else document.getElementById('app').innerHTML = '<div style="text-align:center;padding:40px;color:#333"><h2>Verbindungsproblem</h2><p>Bitte Seite neu laden (F5)</p><button onclick="location.reload()" style="padding:10px 20px;margin-top:10px;border-radius:8px;border:none;background:#2980B9;color:white;cursor:pointer">↻ Neu laden</button></div>';
-      }, 1500);
-      
-      boot().then(() => clearTimeout(failsafe)).catch(e => {
-        clearTimeout(failsafe);
-        console.error('Boot error:', e);
-        if (typeof App !== 'undefined') App.showWelcome();
-      });
+      const status = document.getElementById('load-status');
+      const errBox = document.getElementById('error-box');
+      const reloadBtn = document.getElementById('reload-btn');
+
+      function showError(msg) {
+        if (errBox) { errBox.style.display='block'; errBox.textContent='❌ Fehler: '+msg; }
+        if (reloadBtn) reloadBtn.style.display='block';
+        if (status) status.textContent='Fehler aufgetreten';
+      }
+
+      // Catch ALL global errors
+      window.onerror = function(msg, src, line) {
+        showError(msg + ' (' + (src||'').split('/').pop() + ':' + line + ')');
+        return false;
+      };
+      window.onunhandledrejection = function(e) {
+        showError('Promise: ' + (e.reason?.message || e.reason));
+      };
+
+      if (status) status.textContent = 'Skripte laden...';
+
+      // Hard failsafe: 3 seconds max
+      const failsafe = setTimeout(() => {
+        if (document.getElementById('loading-screen')?.style.display !== 'none') {
+          if (typeof App !== 'undefined') {
+            try { App.showWelcome(); } 
+            catch(e) { showError('showWelcome: ' + e.message); }
+          } else {
+            showError('App nicht geladen - bitte neu laden');
+          }
+        }
+      }, 3000);
+
+      boot()
+        .then(() => clearTimeout(failsafe))
+        .catch(e => { clearTimeout(failsafe); showError('Boot: ' + e.message); });
     });
   </script>
   <style>
