@@ -468,8 +468,13 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // Init Firebase when script loads
+// Don't auto-init on DOMContentLoaded - boot() will call initFirebase() 
+// after async Firebase SDK loads
+// But try it anyway as fallback (will fail silently if SDK not loaded yet)
 document.addEventListener('DOMContentLoaded', () => {
-  initFirebase();
+  setTimeout(() => {
+    try { initFirebase(); } catch(e) {}
+  }, 500);
 });
 
 window.State = State;

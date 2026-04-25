@@ -30,8 +30,25 @@
     </div>
   </div>
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase loads async - app works without it (localStorage fallback) -->
+  <script>
+    // Load Firebase async so it doesn't block page render
+    window._firebaseLoadPromise = new Promise((resolve) => {
+      const s1 = document.createElement('script');
+      s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+      s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
+        s2.onload = () => resolve(true);
+        s2.onerror = () => resolve(false);
+        document.head.appendChild(s2);
+      };
+      s1.onerror = () => resolve(false);
+      document.head.appendChild(s1);
+      // Timeout: if Firebase doesn't load in 3s, proceed without it
+      setTimeout(() => resolve(false), 3000);
+    });
+  </script>
   <!-- Core -->
   <script src="worlds.js"></script>
   <script src="firebase-state.js"></script>
@@ -57,7 +74,12 @@
   <script src="app.js"></script>
   <script>
     async function boot() {
-      await new Promise(r => setTimeout(r, 300));
+      // Wait for Firebase to load (or timeout after 3s)
+      try { await window._firebaseLoadPromise; } catch(e) {}
+      // Initialize Firebase now that SDK might be loaded
+      if (typeof initFirebase !== 'undefined') { try { initFirebase(); } catch(e) {} }
+      
+      await new Promise(r => setTimeout(r, 100));
 
       // Try Firebase listeners - fail gracefully if offline
       try {
