@@ -844,7 +844,15 @@ const ZG={
       // Enter with E key only - handled in _interact
     }
     else if(this.nearEnc>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;}
-    else if(this._nearWheel){ip.style.opacity='1';ip.textContent=LW.spins>0?'🍀 [E] Glücksrad ('+LW.spins+' Spin'+( LW.spins>1?'s':'')+' verfügbar!)':'🍀 [E] Glücksrad (kein Spin)';}
+    else if(this._nearWheel){
+      ip.style.opacity='1';
+      if(LW.spins>0){
+        ip.textContent='🍀 [E] '+LW.W.name+' ('+LW.spins+' Spin'+(LW.spins>1?'s':'')+' verfügbar!)';
+      }else{
+        const minsLeft=Math.ceil(20-(Date.now()-LW._st)/60000);
+        ip.textContent='🍀 Glücksrad — nächster Spin in '+(minsLeft>0?minsLeft:0)+' Min';
+      }
+    }
     else if(this.nearLimo>=0){ip.style.opacity='1';ip.textContent='🚗 [E] Speed-Shop öffnen';}
     else{ip.style.opacity='0';}
   },
@@ -971,7 +979,13 @@ const ZG={
     }).join('');
   },
 
-  equipSlap(id){const z=ZS.zoo;if(!z)return;z.eq=id;this._updWBar();const sl=SLAPS.find(s=>s.id===id);ZP.toast(`${sl?.e} ${sl?.n} ausgerüstet!`,1200);},
+  equipSlap(id){
+    const z=ZS.zoo;if(!z)return;
+    // Toggle: click same = unequip, different = equip
+    if(z.eq===id){z.eq=null;this._updWBar();ZP.toast('Keine Waffe ausgerüstet',1000);return;}
+    z.eq=id;this._updWBar();
+    const sl=SLAPS.find(s=>s.id===id);ZP.toast(`${sl?.e} ${sl?.n} ausgerüstet!`,1200);
+  },
 
   // ═══ GONDOLA ═══
   _mkG(){const l=ZS.lk(),ni=this.ev?.id==='night';const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(this.ev?.id==='snow'&&Math.random()<.05)?3.5:(this.ev?.id==='party'&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
@@ -1231,9 +1245,20 @@ const LW={
     this._st=Date.now();
     this._iv=setInterval(()=>{
       if(!ZS.zoo)return;
-      if((Date.now()-this._st)/60000>=20&&this.spins===0){
+      const minsPlayed=(Date.now()-this._st)/60000;
+      if(minsPlayed>=20&&this.spins===0){
         this.spins=1;this._st=Date.now();
-        ZP.toast(this.W.emoji+' '+this.W.name+' Spin verfügbar! Zur Gondel-Station!',5000);
+        ZP.toast(this.W.emoji+' '+this.W.name+' Spin verfügbar! Gehe zum Glücksrad!',5000);
+      }
+      // Update wheel prompt with timer
+      if(this.spins===0){
+        const minsLeft=Math.ceil(20-minsPlayed);
+        if(minsLeft>0){
+          // Update nearby wheel prompt
+          const ip=document.getElementById('iprompt');
+          if(ip&&ip.textContent.includes('Glücksrad'))
+            ip.textContent='🍀 Glücksrad — Spin in '+minsLeft+' Min verfügbar';
+        }
       }
     },30000);
   },
@@ -1249,6 +1274,14 @@ const LW={
   open(){
     const w=G('lwrap');w.style.display='flex';
     const ti=G('lwtit');if(ti)ti.textContent=this.W.emoji+' '+this.W.name;
+    // Theme the background based on wheel type
+    const themes={
+      normal:'rgba(0,0,0,.92)',
+      france:'rgba(0,35,149,.85)',
+      weekend:'rgba(50,0,80,.9)',
+      christmas:'rgba(0,40,0,.9)'
+    };
+    w.style.background=themes[this.activeType]||themes.normal;
     this._draw(this.angle);
     G('lwbtn').disabled=false;G('lwbtn').textContent='🎰 Drehen!';
   },
@@ -1328,7 +1361,7 @@ const ZP={
     if(p==='menu')this._rMenu();
     if(p==='adm'){
       if(!ZS.isAdmin){
-        const pw=prompt('Admin-Passwort (mischa2024):');
+        const pw=prompt('Admin-Passwort:');
         // Check against firebase-state checkAdmin OR fallback
         const valid = pw==='mischa2024'||pw==='mischa'||pw==='admin'||(typeof State!=='undefined'&&State.checkAdmin&&State.checkAdmin(pw));
         if(valid){ZS.isAdmin=true;}else{this.toast('❌ Falsches Passwort!',2000);return;}

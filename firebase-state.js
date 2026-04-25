@@ -143,9 +143,27 @@ const State = {
   },
 
   async login(name, password) {
-    const player = await this.getPlayer(name);
-    if (!player) return { ok: false, error: 'Spieler nicht gefunden' };
+    // First try local storage (instant, no network needed)
+    const localPlayer = this._local.get(name.toLowerCase());
+    if (localPlayer && localPlayer.password === password) {
+      return { ok: true, player: localPlayer };
+    }
+    // Then try cloud with timeout
+    let player = null;
+    try {
+      player = await Promise.race([
+        this.getPlayer(name),
+        new Promise(r => setTimeout(() => r(null), 5000))
+      ]);
+    } catch(e) { player = null; }
+    if (!player) {
+      // If local exists but wrong pw
+      if (localPlayer) return { ok: false, error: 'Falsches Passwort' };
+      return { ok: false, error: 'Spieler nicht gefunden (Verbindungsproblem?)' };
+    }
     if (player.password !== password) return { ok: false, error: 'Falsches Passwort' };
+    // Cache locally
+    this._local.save(player);
     return { ok: true, player };
   },
 

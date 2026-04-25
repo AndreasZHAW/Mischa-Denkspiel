@@ -90,60 +90,47 @@ const App = {
             <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">🆕 Neu starten</button>
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
             <button class="btn btn-full" style="background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Weltrangliste</button>
-            <button class="btn btn-full" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;margin-top:8px" onclick="location.href='zoo.html'">🦁 Gestalte deinen Zoo!</button>
+              <button onclick="App.showQR()" style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.4);color:white;padding:6px 10px;border-radius:10px;font-size:.8rem;cursor:pointer;margin-left:6px" title="QR Code für neue Spieler">📱 QR</button>
+            ${(player.totalScore||0)>=10?`<button class="btn btn-full" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;margin-top:8px" onclick="App.teleportToZoo()">🦁 Zoo-Teleport (10 🌀 MT)</button>`:`<div style="background:rgba(39,174,96,.1);border:1px dashed rgba(39,174,96,.4);border-radius:12px;padding:10px;margin-top:8px;text-align:center;font-size:.82rem;color:#27AE60">🦁 Zoo freischalten: noch <b>${Math.max(0,10-(player.totalScore||0))} 🌀 MT</b> sammeln!</div>`}
           </div>
         </div>
       </div>`);
   },
 
-  // ── TELEPORT TO ZOO (costs 10 MT) ──
+  // ---- CHARACTER SELECT ----
+
+  // ── TELEPORT TO ZOO ──
   async teleportToZoo() {
     const p = State.currentPlayer;
     if (!p) { this._toast('❌ Bitte erst anmelden!', 2000); return; }
-    
     const mt = p.totalScore || 0;
-    const cost = window.ZOO_TELEPORT_COST || 10;
-    
-    if (mt < cost) {
-      this._html(`
-        <div class="mountain-bg" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
-          <div style="background:rgba(255,255,255,.95);border-radius:22px;padding:28px 22px;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.18)">
-            <div style="font-size:3rem;margin-bottom:10px">🦁</div>
-            <h2 style="font-family:'Fredoka One',cursive;color:#27AE60;margin-bottom:8px">Zoo-Teleport</h2>
-            <p style="color:#555;font-size:.9rem;margin-bottom:16px">
-              Der Teleport in den Zoo kostet <b style="color:#FFD700">🌀 ${cost} Mischa Taler</b>.<br><br>
-              Du hast: <b style="color:${mt >= cost ? '#27AE60' : '#E74C3C'}">🌀 ${mt} MT</b><br><br>
-              Spiele Spiele um Mischa Taler zu verdienen!
-            </p>
-            <div style="background:#FFF9E6;border-radius:12px;padding:12px;margin-bottom:16px;font-size:.82rem;color:#666">
-              💡 <b>Tipp:</b> Gewinne Spiele um MT zu verdienen.<br>
-              Je besser du spielst, desto mehr MT bekommst du!<br>
-              (Max: 1.5 MT pro Spiel)
-            </div>
-            <button class="btn btn-primary" onclick="App.showHome()">← Zurück zum Spielen</button>
-          </div>
-        </div>`);
-      return;
-    }
-    
-    // Confirm teleport
-    const confirmed = confirm(`🦁 Für ${cost} MT in den Zoo teleportieren?\n\nDu hast: ${mt} MT\nNach Teleport: ${mt - cost} MT`);
-    if (!confirmed) return;
-    
-    // Deduct MT
+    const cost = 10;
+    if (mt < cost) { this._toast('❌ Zu wenig MT! Du brauchst 10 MT.', 3000); return; }
+    if (!confirm(`🦁 Für ${cost} MT in den Zoo teleportieren?\nDu hast: ${mt} MT\nNach Teleport: ${mt-cost} MT`)) return;
     await State.addPoints(p.name, -cost);
-    
-    // Save zoo_mt for the zoo to read
-    const zooMT = (p.totalScore || 0); 
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());
-    sessionStorage.setItem('zoo_teleport_mt', zooMT);
-    
-    // Go to zoo!
     window.location.href = 'zoo.html';
   },
 
 
-  // ---- CHARACTER SELECT ----
+  showQR() {
+    const url = window.location.origin + window.location.pathname;
+    // Generate QR using free API
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+    modal.onclick = () => modal.remove();
+    modal.innerHTML = `
+      <div style="background:white;border-radius:20px;padding:24px;text-align:center;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
+        <div style="font-family:'Fredoka One',cursive;color:#2980B9;font-size:1.1rem;margin-bottom:10px">📱 Neuer Spieler beitreten</div>
+        <img src="${qrUrl}" style="width:200px;height:200px;border-radius:8px;display:block;margin:0 auto" alt="QR Code"/>
+        <div style="font-size:.75rem;color:#666;margin-top:10px;word-break:break-all">${url}</div>
+        <button onclick="navigator.clipboard?.writeText('${url}').then(()=>this.textContent='✅ Kopiert!').catch(()=>{})" style="margin-top:10px;background:#2980B9;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem">📋 Link kopieren</button>
+        <br><button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:8px;background:none;border:none;color:#888;cursor:pointer;font-size:.82rem">Schliessen</button>
+      </div>`;
+    document.body.appendChild(modal);
+  },
+
   showCharSelect() {
     this.selectedChar = null; this.selectedColor = null;
     this._html(`
@@ -232,16 +219,18 @@ const App = {
     if (!name||name.length<2) return err('Name mindestens 2 Zeichen!');
     if (!pw) return err('Bitte Passwort eingeben!');
     if (!year) return err('Bitte Geburtsjahr wählen!');
-    // Warn if registering as Janoschtest
-    if (name.toLowerCase() === 'janoschtest' && pw !== 'janoschtest') {
-      err('Falsches Passwort für Janoschtest!'); return;
-    }
     this._loading('Registrierung...');
-    const player = await Promise.race([
-      State.createPlayer({ name, password:pw, birthYear:year, character:this.selectedChar, characterColor:this.selectedColor }),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('Verbindungsfehler - bitte versuche es erneut')), 8000))
-    ]).catch(e => { err(e.message); return null; });
-    if (!player && document.getElementById('p-err')?.textContent) return;
+    let player;
+    try {
+      player = await Promise.race([
+        State.createPlayer({ name, password:pw, birthYear:year, character:this.selectedChar, characterColor:this.selectedColor }),
+        new Promise((_,rej) => setTimeout(() => rej(new Error('Verbindungsfehler')), 8000))
+      ]);
+    } catch(e) {
+      const errEl = document.getElementById('p-err');
+      if(errEl){errEl.textContent='❌ '+e.message+' — Seite neu laden';errEl.style.display='block';}
+      this.showProfile(); return;
+    }
     if (!player) { this.showProfile(); setTimeout(()=>{ const e=document.getElementById('p-err'); if(e){e.textContent=`Name "${name}" bereits vergeben!`;e.style.display='block';}},50); return; }
     State.setCurrentPlayer(player);
     this.showWorldMap();
@@ -278,7 +267,13 @@ const App = {
       const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Passwort eingeben!';e.style.display='block';} return;
     }
     this._loading('Anmelden...');
-    const res = await State.login(name, pw);
+    let res;
+    try {
+      res = await Promise.race([
+        State.login(name, pw),
+        new Promise(r => setTimeout(() => r({ok:false, error:'Verbindungsfehler - bitte erneut versuchen'}), 6000))
+      ]);
+    } catch(e) { res = {ok:false, error:'Verbindungsfehler'}; }
     if (!res.ok) {
       this.showLogin();
       setTimeout(()=>{ const e=document.getElementById('l-err'); if(e){e.textContent=res.error;e.style.display='block';}},50);
@@ -293,19 +288,17 @@ const App = {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
     if (!player) { this.showWelcome(); return; }
-    
-    // Special player indicators
-    const isRef = player.name.toLowerCase() === 'janoschtest';
-    const isAdmin = player.name.toLowerCase() === 'bu';
-    if (isRef) {
-      setTimeout(() => {
-        const banner = document.createElement('div');
-        banner.id = 'ref-banner';
-        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;padding:10px 16px;text-align:center;font-family:"Fredoka One",cursive;font-size:.95rem;box-shadow:0 2px 8px rgba(0,0,0,.3)';
-        banner.innerHTML = '🔬 KALIBRIERUNGS-MODUS — Du spielst als Janoschtest (Referenz) · Deine Ergebnisse kalibrieren die MT-Belohnungen · Nicht in Rangliste · <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;margin-left:8px">✕</button>';
-        document.body.prepend(banner);
-      }, 500);
-    }
+    const _isRef = player.name.toLowerCase() === 'janoschtest';
+    const _isAdmin = player.name.toLowerCase() === 'bu';
+    // Show calibration banner for Janoschtest
+    if (_isRef) setTimeout(() => {
+      document.getElementById('ref-banner')?.remove();
+      const b = document.createElement('div');
+      b.id='ref-banner';
+      b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;padding:8px 16px;text-align:center;font-family:"Fredoka One",cursive;font-size:.88rem;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+      b.innerHTML='🔬 KALIBRIERUNGS-MODUS — Spieler: Janoschtest · Deine Ergebnisse kalibrieren die MT-Belohnungen · Nicht in Rangliste <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:white;padding:1px 7px;border-radius:4px;cursor:pointer;margin-left:8px">✕</button>';
+      document.body.prepend(b);
+    }, 600);
     const ch = this._char(player);
 
     this._html(`
@@ -320,7 +313,8 @@ const App = {
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
             <div>
-              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">>${isAdmin ? '<span style="background:#FFD700;color:#000;padding:1px 6px;border-radius:4px;font-weight:900">Bu 🌀</span>' : isRef ? '<span style="color:#ff6b6b">🔬 Janoschtest</span>' : (window.getDisplayName ? window.getDisplayName(player.name) : player.name)}</div>              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">⭐ ${player.totalScore||0}</div>
+              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${player.name}</div>
+              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">⭐ ${player.totalScore||0}</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -389,15 +383,11 @@ const App = {
         <div style="background:rgba(255,255,255,0.92);border-radius:18px;padding:16px;width:100%;max-width:480px;box-shadow:var(--shadow-big);max-height:70vh;overflow-y:auto">
           ${players.length === 0
             ? '<div style="text-align:center;padding:30px;color:var(--text-mid)">Noch keine Spieler 😊</div>'
-            : players.filter(p => window.isInLeaderboard ? window.isInLeaderboard(p.name) : true)
-              .map((p, i) => {
+            : players.map((p, i) => {
                 const ch = CHARACTERS.find(c=>c.id===p.character);
                 const rankIcon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
                 const isMe = player && p.name.toLowerCase()===player.name.toLowerCase();
                 const worldsDone = Object.values(p.worlds||{}).filter(w=>w.completed).length;
-                const displayName = window.getDisplayName ? window.getDisplayName(p.name) : p.name;
-                const nameStyle = window.getNameStyle ? window.getNameStyle(p.name) : '';
-                const mt = p.totalScore || 0;
                 return `
                   <div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;margin-bottom:6px;
                     background:${isMe?'rgba(123,196,127,0.15)':'transparent'};
@@ -405,7 +395,7 @@ const App = {
                     <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;width:28px;text-align:center">${rankIcon}</div>
                     <span style="font-size:1.4rem">${ch?.emoji||'🧭'}</span>
                     <div style="flex:1">
-                      <div style="font-weight:700;font-size:0.95rem">${displayName}${isMe?' (du)':''}</div>
+                      <div style="font-weight:700;font-size:0.95rem">${p.name}${isMe?' (du)':''}</div>
                       <div style="font-size:0.72rem;color:var(--text-mid)">Welt ${p.currentWorld||1}/10 · ${worldsDone} ✓ · ${new Date().getFullYear()-(p.birthYear||2000)}J</div>
                     </div>
                     <div style="font-family:'Fredoka One',cursive;color:#E67E22;font-size:1rem">⭐ ${p.totalScore||0}</div>
@@ -624,7 +614,7 @@ const App = {
           <div class="overlay-emoji">${wasJoker?'🃏':allDone?'🏆':'⭐'}</div>
           <div class="overlay-title">${wasJoker?'Joker!':'Super!'}</div>
           <div class="overlay-msg">
-            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore} Punkte! &nbsp;🌀 +${mtEarned} MT`:'Weiter geht\'s!'}
+            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore} Punkte!`:'Weiter geht\'s!'}
             ${allDone?`<br><br>🎉 <b>Welt "${world.name}"</b> komplett!`:''}
           </div>
           ${allDone && worldId < 10 ? `
