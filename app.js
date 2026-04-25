@@ -91,7 +91,7 @@ const App = {
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
             <button class="btn btn-full" style="background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Weltrangliste</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.4);color:white;padding:6px 10px;border-radius:10px;font-size:.8rem;cursor:pointer;margin-left:6px" title="QR Code für neue Spieler">📱 QR</button>
-            ${(player.totalScore||0)>=10?`<button class="btn btn-full" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;margin-top:8px" onclick="App.teleportToZoo()">🦁 Zoo-Teleport (10 🌀 MT)</button>`:`<div style="background:rgba(39,174,96,.1);border:1px dashed rgba(39,174,96,.4);border-radius:12px;padding:10px;margin-top:8px;text-align:center;font-size:.82rem;color:#27AE60">🦁 Zoo freischalten: noch <b>${Math.max(0,10-(player.totalScore||0))} 🌀 MT</b> sammeln!</div>`}
+            ${((State.currentPlayer?.totalScore||0)>=10)?`<button class="btn btn-full" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;margin-top:8px" onclick="App.teleportToZoo()">🦁 Zoo-Teleport (10 🌀 MT)</button>`:`<div style="background:rgba(39,174,96,.1);border:1px dashed rgba(39,174,96,.4);border-radius:12px;padding:10px;margin-top:8px;text-align:center;font-size:.82rem;color:#27AE60">🦁 Zoo freischalten: noch <b>${Math.max(0,10-(State.currentPlayer?.totalScore||0))} 🌀 MT</b> sammeln!</div>`}
           </div>
         </div>
       </div>`);
@@ -102,10 +102,10 @@ const App = {
   // ── TELEPORT TO ZOO ──
   async teleportToZoo() {
     const p = State.currentPlayer;
-    if (!p) { this._toast('❌ Bitte erst anmelden!', 2000); return; }
+    if (!p) { alert('Bitte erst anmelden!'); return; }
     const mt = p.totalScore || 0;
     const cost = 10;
-    if (mt < cost) { this._toast('❌ Zu wenig MT! Du brauchst 10 MT.', 3000); return; }
+    if (mt < cost) { alert('Zu wenig MT! Du brauchst 10 MT. Du hast: ' + mt + ' MT'); return; }
     if (!confirm(`🦁 Für ${cost} MT in den Zoo teleportieren?\nDu hast: ${mt} MT\nNach Teleport: ${mt-cost} MT`)) return;
     await State.addPoints(p.name, -cost);
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());
