@@ -136,8 +136,8 @@ const State = {
 
   _emptyWorlds() {
     const w = {};
-    for (let i = 1; i <= 10; i++) {
-      w[i] = { tasks: Array(10).fill(null), jokerUsed: false, completed: false };
+    for (let i = 1; i <= 1; i++) {
+      w[i] = { tasks: Array(20).fill(null), jokerUsed: false, completed: false };
     }
     return w;
   },

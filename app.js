@@ -314,7 +314,7 @@ const App = {
             <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
             <div>
               <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${player.name}</div>
-              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">⭐ ${player.totalScore||0}</div>
+              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">🌀 ${player.totalScore||0} MT</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -325,7 +325,7 @@ const App = {
         </div>
 
         <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:white;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,0.3);margin-bottom:12px">
-          ✈️ Wähle deine Welt!
+          🎮 Verdiene Mischa Taler — Baue dein Zoo-Empire!
         </div>
 
         <div class="world-map">
@@ -342,7 +342,7 @@ const App = {
                 <div class="world-info">
                   <div class="world-name">${world.name}</div>
                   <div class="world-desc">${world.difficulty}</div>
-                  <div class="world-progress">${done}/10 ✓</div>
+                  <div class="world-progress">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${player.totalScore||0} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
@@ -369,7 +369,20 @@ const App = {
   // ---- GLOBAL LEADERBOARD ----
   async showGlobalLeaderboard() {
     this._loading('Rangliste laden...');
-    const players = await State.getLeaderboard(30);
+    // Load from cloud with timeout, fallback to local
+    let players = [];
+    try {
+      const result = await Promise.race([
+        State.getLeaderboard(30),
+        new Promise(r => setTimeout(() => r(null), 4000))
+      ]);
+      players = result || [];
+    } catch(e) { players = []; }
+    // If cloud fails, use local storage
+    if (!players.length) {
+      players = Object.values(State._local.getAll())
+        .sort((a,b)=>(b.totalScore||0)-(a.totalScore||0));
+    }
     const player = State.currentPlayer;
 
     this._html(`
@@ -455,13 +468,14 @@ const App = {
               if(tdone) cls=tjok?'joker':'done';
               else if(isActive) cls='active';
               const score = tdone&&ws.tasks[i]?.score ? ws.tasks[i].score : '';
+              const mtEarned = tdone&&ws.tasks[i]?.mt ? ws.tasks[i].mt : '';
               return `
                 <button class="task-btn ${cls}"
                   onclick="${(isActive||tdone)?`App.startTask(${worldId},${i})`:'void(0)'}"
-                  title="${task.title}">
-                  <span style="font-size:1.1rem">${task.icon}</span>
-                  <span style="font-size:0.6rem">${i+1}</span>
-                  ${score?`<span style="font-size:0.55rem;opacity:0.8">⭐${score}</span>`:''}
+                  title="${task.name||task.title||'Spiel '+(i+1)}">
+                  <span style="font-size:1.3rem">${task.icon||'🎮'}</span>
+                  <span style="font-size:0.62rem;font-weight:700">${task.name||('Spiel '+(i+1))}</span>
+                  ${mtEarned?`<span style="font-size:0.6rem;color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:0.55rem;opacity:0.8">⭐${score}</span>`:''}
                 </button>`;
             }).join('')}
           </div>
@@ -614,7 +628,7 @@ const App = {
           <div class="overlay-emoji">${wasJoker?'🃏':allDone?'🏆':'⭐'}</div>
           <div class="overlay-title">${wasJoker?'Joker!':'Super!'}</div>
           <div class="overlay-msg">
-            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore} Punkte!`:'Weiter geht\'s!'}
+            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore}P  🌀 +${mtEarned||1} MT`:'Weiter geht\'s!'}
             ${allDone?`<br><br>🎉 <b>Welt "${world.name}"</b> komplett!`:''}
           </div>
           ${allDone && worldId < 10 ? `

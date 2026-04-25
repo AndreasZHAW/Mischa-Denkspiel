@@ -102,14 +102,38 @@ const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
 // WORLDS (legacy — kept for compatibility)
 // ══════════════════════════════════════════
 const WORLD_DEFS = [
-  {id:1,name:'Welt 1 — Denkspiel',icon:'🎮',color:'#2980B9',description:'Spiele 20 Spiele und verdiene Mischa Taler!'},
-  {id:2,name:'Welt 2 — Zoo',icon:'🦁',color:'#27AE60',description:'Kaufe Tiere und baue deinen Zoo auf!'},
+  {id:1, name:'Mischa Denkspiel', icon:'🎮', color:'#2980B9',
+   description:'Verdiene Mischa Taler — baue dein Zoo-Empire!',
+   difficulty:'20 Spiele · bis 1.5 MT pro Spiel',
+   memoryEmojis:['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🦒','🐘','🦓'],
+   tasks:[
+    {id:'dart',       type:'dart',       name:'Dart',          icon:'🎯', title:'Dart spielen'},
+    {id:'french',     type:'truefalse',  name:'Französisch',   icon:'🇫🇷', title:'Französische Wörter'},
+    {id:'math',       type:'math',       name:'Rechnen',       icon:'🔢', title:'Mathematik'},
+    {id:'train',      type:'train',      name:'Zug',           icon:'🚂', title:'Zugrouten'},
+    {id:'shutthebox', type:'shutthebox', name:'Shut the Box',  icon:'🎲', title:'Shut the Box'},
+    {id:'memory',     type:'memory',     name:'Memory',        icon:'🧠', title:'Memory spielen'},
+    {id:'anagram',    type:'anagram',    name:'Anagramm',      icon:'🔤', title:'Wörter erraten'},
+    {id:'simon',      type:'simon',      name:'Simon',         icon:'🟢', title:'Simon Says'},
+    {id:'wordsearch', type:'wordsearch', name:'Wortsuche',     icon:'🔍', title:'Wörter finden'},
+    {id:'reaction',   type:'reaction',   name:'Reaktion',      icon:'⚡', title:'Reaktionszeit'},
+    {id:'colormix',   type:'colormix',   name:'Farben',        icon:'🎨', title:'Farben mischen'},
+    {id:'slider',     type:'slider',     name:'Schiebepuzzle', icon:'🧩', title:'Puzzle lösen'},
+    {id:'typing',     type:'typing',     name:'Tippen',        icon:'⌨️', title:'Schnell tippen'},
+    {id:'balloon',    type:'balloon',    name:'Ballon',        icon:'🎈', title:'Ballons poppen'},
+    {id:'jenga',      type:'jenga',      name:'Jenga',         icon:'🏗️', title:'Jenga spielen'},
+    {id:'simon2',     type:'simon',      name:'Simon II',      icon:'🔵', title:'Simon Schwer'},
+    {id:'math2',      type:'math',       name:'Rechnen II',    icon:'➕', title:'Mathe Schwer'},
+    {id:'memory2',    type:'memory',     name:'Memory II',     icon:'🃏', title:'Memory Schwer'},
+    {id:'truefalse',  type:'truefalse',  name:'Wahr/Falsch',   icon:'✅', title:'Richtig oder falsch?'},
+    {id:'dart2',      type:'dart',       name:'Dart II',       icon:'🎯', title:'Dart Schwer'},
+  ]},
 ];
 
 window.GAME_LIST = GAME_LIST;
 window.WORLD_DEFS = WORLD_DEFS;
 // Keep legacy WORLDS if app.js defines it
-if(typeof window.WORLDS === "undefined") window.WORLDS = WORLD_DEFS;
+window.WORLDS = WORLD_DEFS; // Always use new game-based worlds
 window.SPECIAL_PLAYERS = SPECIAL_PLAYERS;
 window.calcMT = calcMT;
 window.isInLeaderboard = isInLeaderboard;
