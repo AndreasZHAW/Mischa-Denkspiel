@@ -29,7 +29,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 16px;width:100%;max-width:320px;cursor:pointer;text-align:center;margin-bottom:10px;transition:all .22s}
 .mc:hover{border-color:#FFD700;transform:translateY(-2px)}
 /* ZOO */
-#s-zoo{overflow:visible;padding:0;background:#1a4a1a;position:fixed;inset:0}
+#s-zoo{overflow:hidden;padding:0;background:#000;position:fixed;inset:0}
 #zc{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:crosshair;z-index:1}
 /* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:110}
@@ -410,14 +410,19 @@ const ZG={
     const canvas=G('zc');
     // Get actual viewport dimensions
     // iPad fix: use screen dimensions as fallback
-    const W = Math.max(window.innerWidth||0, document.documentElement.clientWidth||0, screen.width||800);
-    const H = Math.max(window.innerHeight||0, document.documentElement.clientHeight||0, screen.height||600);
-    canvas.width = W; canvas.height = H;
-    console.log('Canvas:', W, 'x', H);
+    // Get real viewport size
+    const W = window.innerWidth || screen.width || 800;
+    const H = window.innerHeight || screen.height || 600;
+    // Set canvas buffer AND display size explicitly
+    canvas.width = W;
+    canvas.height = H;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    console.log('🎮 Canvas init:', W, 'x', H);
     try{
-      this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, alpha:false});
-      this.renderer.setPixelRatio(1); // Always 1:1, no retina scaling issues
-      this.renderer.setSize(W, H, false); // false = don't change canvas CSS size
+      this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, alpha:false, powerPreference:'default'});
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+      this.renderer.setSize(W, H, false);
       this.renderer.shadowMap.enabled=false;
       this.renderer.setClearColor(0x87CEEB, 1);
       this.renderer.autoClear=true;
@@ -455,8 +460,13 @@ const ZG={
     this.pl.x=this.ZONES[0].x; this.pl.z=this.ZONES[0].z+12;
     this.yaw=Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this._updHUD(); this._updWBar();
-    // Position camera immediately
-    this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+    // Position camera - player starts at zone A entrance facing station
+    this.pl.x = this.ZONES[0].x;  // 0
+    this.pl.z = this.ZONES[0].z + 12; // 55+12=67
+    this.pl.y = 1.7;
+    this.yaw = Math.PI; // Face toward station (center)
+    this.pitch = 0;
+    this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     LW.init();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);

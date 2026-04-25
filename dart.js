@@ -351,11 +351,19 @@ const DartGame = {
     const sv = this.SECTORS[si];
     // Ring boundaries (as fraction of board radius R=130)
     // Bull: <0.045R, Bull25: <0.115R, inner triple: 0.24-0.455, outer single: 0.455-0.86, double: 0.86-0.955
+    // Zones match _drawBoard exactly (R_board=130, R_norm=130):
+    // Bull inner: dist<0.045, Bull25: dist<0.115
+    // Inner single (small): 0.115 to 0.24
+    // Inner single (large): 0.24 to 0.45  
+    // TRIPLE ring: 0.45 to 0.52
+    // Outer single: 0.52 to 0.858
+    // DOUBLE ring: 0.858 to 0.955
     if (dist < 0.24)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
-    if (dist < 0.455) return { pts:sv*3, label:`T${sv}`,  isDouble:false, isBull:false };
-    if (dist < 0.86)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
+    if (dist < 0.45)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
+    if (dist < 0.52)  return { pts:sv*3, label:`T${sv}`,  isDouble:false, isBull:false };
+    if (dist < 0.858) return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
     if (dist < 0.955) return { pts:sv*2, label:`D${sv}`,  isDouble:true,  isBull:false };
-    return { pts:sv, label:`${sv}`, isDouble:false, isBull:false };
+    return { pts:0, label:'❌ Daneben', isDouble:false, isBull:false };
   },
 
   _applyThrow(who, result, fpx, fpy) {
@@ -389,6 +397,9 @@ const DartGame = {
 
     if (c.dartsThisRound >= 3) {
       c.dartsThisRound = 0;
+      // Keep last round's darts visible (stored in prevRoundDarts)
+      c.player.prevRoundDarts = [...(c.player.roundDarts||[])];
+      c.cpu.prevRoundDarts = [...(c.cpu.roundDarts||[])];
       c.player.roundDarts = [];
       c.cpu.roundDarts = [];
       c.turn = who === 'player' ? 'cpu' : 'player';
@@ -438,17 +449,48 @@ const DartGame = {
     // Border
     ctx.beginPath(); ctx.arc(cx0,cy0,R,0,Math.PI*2);
     ctx.strokeStyle='#8B6914'; ctx.lineWidth=5; ctx.stroke();
-    // Draw thrown darts
-    const allDarts = [...(c.player.roundDarts||[]), ...(c.cpu.roundDarts||[])];
-    allDarts.forEach(d => {
+    // Draw thrown darts - current round + previous round (faded)
+    const prevDarts = [...(c.player.prevRoundDarts||[]), ...(c.cpu.prevRoundDarts||[])];
+    const currDarts = [...(c.player.roundDarts||[]), ...(c.cpu.roundDarts||[])];
+    
+    // Draw previous round darts (faded)
+    prevDarts.forEach(d => {
+      if (!d.px) return;
+      const col = d.owner==='player' ? 'rgba(255,215,0,0.35)' : 'rgba(255,107,107,0.35)';
+      ctx.beginPath(); ctx.arc(d.px,d.py,4,0,Math.PI*2);
+      ctx.fillStyle=col; ctx.fill();
+    });
+    
+    // Draw current round darts (full color + label)
+    currDarts.forEach(d => {
       if (!d.px) return;
       const col = d.owner==='player' ? '#FFD700' : '#ff6b6b';
+      // Dart shadow
+      ctx.beginPath(); ctx.arc(d.px+1,d.py+1,5,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fill();
+      // Dart body
       ctx.beginPath(); ctx.arc(d.px,d.py,5,0,Math.PI*2);
       ctx.fillStyle=col; ctx.fill();
       ctx.strokeStyle='#333'; ctx.lineWidth=1.5; ctx.stroke();
-      // Dart stick
-      ctx.beginPath(); ctx.moveTo(d.px,d.py); ctx.lineTo(d.px,d.py-14);
-      ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.stroke();
+      // Dart stick (arrow)
+      ctx.beginPath(); ctx.moveTo(d.px,d.py); ctx.lineTo(d.px,d.py-16);
+      ctx.strokeStyle=col; ctx.lineWidth=3; ctx.stroke();
+      // Arrowhead
+      ctx.beginPath();
+      ctx.moveTo(d.px-4, d.py-10);
+      ctx.lineTo(d.px, d.py-16);
+      ctx.lineTo(d.px+4, d.py-10);
+      ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke();
+      // Score label near dart
+      ctx.save();
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
+      ctx.strokeText(d.label||'', d.px, d.py-22);
+      ctx.fillText(d.label||'', d.px, d.py-22);
+      ctx.restore();
     });
   },
 
