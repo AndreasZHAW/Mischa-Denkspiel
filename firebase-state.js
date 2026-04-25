@@ -118,6 +118,10 @@ const State = {
   },
 
   async createPlayer({ name, password, birthYear, character, characterColor }) {
+    // Special players: auto-accept Janoschtest and bu
+    const nameLc = name.toLowerCase();
+    if (nameLc === 'janoschtest' && password !== 'janoschtest') return null;
+    if (nameLc === 'bu' && password !== 'mischa2024') return null;
     const existing = await this.getPlayer(name);
     if (existing) return null; // Player already exists
     const player = {
@@ -171,27 +175,33 @@ const State = {
   async completeTask(playerName, worldIndex, taskIndex, result) {
     const player = await this.getPlayer(playerName);
     if (!player) return;
-    if (!player.worlds[worldIndex]) player.worlds[worldIndex] = { tasks: Array(10).fill(null), jokerUsed: false, completed: false };
+    if (!player.worlds) player.worlds = {};
+    if (!player.worlds[worldIndex]) player.worlds[worldIndex] = { tasks: Array(20).fill(null), jokerUsed: false, completed: false };
+    // Ensure tasks array is long enough
+    while (player.worlds[worldIndex].tasks.length < 20) player.worlds[worldIndex].tasks.push(null);
 
     const finalScore = this.calcFinalScore(result, player);
+    
+    // Calculate MT earned (1-1.5 based on performance)
+    const isRef = playerName.toLowerCase() === 'janoschtest';
+    const taskData = (window.WORLDS||[])[0]?.tasks?.[taskIndex];
+    const mtEarned = result.passed !== false ? 
+      Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10 : 0.2;
+    
     player.worlds[worldIndex].tasks[taskIndex] = {
-      done: true, score: finalScore,
+      done: true, score: finalScore, mt: mtEarned,
       rawScore: result.rawScore || 0,
       timeMs: result.timeMs || 0,
-      errors: result.errors || 0,
-      passed: result.passed !== false,
-      ts: Date.now()
     };
 
-    player.totalScore = Object.values(player.worlds)
-      .flatMap(w => w.tasks)
-      .filter(t => t && t.done)
-      .reduce((s, t) => s + (t.score || 0), 0);
-
-    const tasks = player.worlds[worldIndex].tasks;
-    if (tasks.every(t => t && t.done)) {
+    // Add MT to total score (MT = Mischa Taler)
+    player.totalScore = (player.totalScore || 0) + mtEarned;
+    
+    // Check world completion (all 20 tasks done)
+    const allDone = player.worlds[worldIndex].tasks.filter(t=>t&&t.done).length >= 20;
+    if (allDone) {
       player.worlds[worldIndex].completed = true;
-      if (worldIndex < 10) player.currentWorld = Math.max(player.currentWorld, worldIndex + 1);
+      if (player.currentWorld <= worldIndex) player.currentWorld = worldIndex + 1;
     }
 
     await this.savePlayer(player);

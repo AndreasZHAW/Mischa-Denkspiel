@@ -62,6 +62,8 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
+    const mt = State.currentPlayer?.totalScore || 0;
+    const hasEnough = mt >= 10;
     this._html(`
       <div class="mountain-bg">
         <div class="sky-gradient"></div>
@@ -70,34 +72,44 @@ const App = {
       </div>
       <div class="page">
         <div class="game-logo">
-          <span class="logo-emoji">✈️</span>
-          <h1>Das Mischa<br>Denkspiel</h1>
-          <p class="subtitle">Ferien in Frankreich 🇫🇷</p>
+          <span class="logo-emoji">🎮</span>
+          <h1>Mischa<br>Denkspiel</h1>
+          <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
         </div>
         <div class="card">
           <div class="card-title">Willkommen! 👋</div>
-          <div class="card-subtitle">
-            Begleite Mischa auf seinen Ferien in Frankreich!
-            Löse Aufgaben in allen 10 Welten! 🏆
+
+          <!-- Welt 1 Box -->
+          <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
+            <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 Welt 1 — Denkspiel</div>
+            <div style="font-size:.82rem;color:#333;line-height:1.6">
+              Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.<br>
+              Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).<br>
+              <span style="color:#888;font-size:.76rem">🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...</span>
+            </div>
           </div>
-          <div style="background:#F0F9FF;border:2px solid #85C1E9;border-radius:12px;padding:12px;margin-bottom:18px;font-size:0.85rem;line-height:1.8;max-height:180px;overflow-y:auto">
-            🎯 Dart · 🇫🇷 Französisch · 🔢 Rechnen · 🚂 Zug · 🎲 Shut the Box<br>
-            🧠 Memory · 🔤 Anagramm · 🟢 Simon · 🔍 Wortsuche · ⚡ Reaktion<br>
-            🎨 Farbmischung · 🧩 Schiebepuzzle · 👁️ Unterschiede · 🎈 Ballon<br>
-            ⌨️ Tippen · 🏗️ Jenga · 🔭 Suchen · 🎮 Mini-Spiele · ✅ Wahr/Falsch · 🗼 Quiz
+
+          <!-- Welt 2 Box -->
+          <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
+            <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 Welt 2 — Zoo-Empire</div>
+            <div style="font-size:.82rem;color:#333;line-height:1.6">
+              Teleportiere für <b>10 🌀 MT</b> in den Zoo.<br>
+              Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.<br>
+              <span style="color:#888;font-size:.76rem">🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System</span>
+            </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">🆕 Neu starten</button>
+
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">🆕 Neu registrieren</button>
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
-            <button class="btn btn-full" style="background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Weltrangliste</button>
-              <button onclick="App.showQR()" style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.4);color:white;padding:6px 10px;border-radius:10px;font-size:.8rem;cursor:pointer;margin-left:6px" title="QR Code für neue Spieler">📱 QR</button>
-            ${((State.currentPlayer?.totalScore||0)>=10)?`<button class="btn btn-full" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;margin-top:8px" onclick="App.teleportToZoo()">🦁 Zoo-Teleport (10 🌀 MT)</button>`:`<div style="background:rgba(39,174,96,.1);border:1px dashed rgba(39,174,96,.4);border-radius:12px;padding:10px;margin-top:8px;text-align:center;font-size:.82rem;color:#27AE60">🦁 Zoo freischalten: noch <b>${Math.max(0,10-(State.currentPlayer?.totalScore||0))} 🌀 MT</b> sammeln!</div>`}
+            <div style="display:flex;gap:6px;margin-top:2px">
+              <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
+              <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
+            </div>
           </div>
         </div>
       </div>`);
   },
-
-  // ---- CHARACTER SELECT ----
 
   // ── TELEPORT TO ZOO ──
   async teleportToZoo() {
@@ -266,6 +278,11 @@ const App = {
     if (!pw) {
       const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Passwort eingeben!';e.style.display='block';} return;
     }
+    // Special player shortcuts
+    const nameLc = name.toLowerCase();
+    if (nameLc === 'janoschtest' && pw !== 'janoschtest') {
+      const e=document.getElementById('l-err'); if(e){e.textContent='❌ Falsches Passwort für Janoschtest!';e.style.display='block';} return;
+    }
     this._loading('Anmelden...');
     let res;
     try {
@@ -290,6 +307,8 @@ const App = {
     if (!player) { this.showWelcome(); return; }
     const _isRef = player.name.toLowerCase() === 'janoschtest';
     const _isAdmin = player.name.toLowerCase() === 'bu';
+    // Bu gets displayed with special black/gold style
+    const displayName = _isAdmin ? '<span style="background:#FFD700;color:#000;font-weight:900;padding:2px 8px;border-radius:6px">Bu 🌀</span>' : _isRef ? '<span style="color:#ff6b6b">🔬 '+player.name+'</span>' : player.name;
     // Show calibration banner for Janoschtest
     if (_isRef) setTimeout(() => {
       document.getElementById('ref-banner')?.remove();
@@ -313,8 +332,8 @@ const App = {
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
             <div>
-              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${player.name}</div>
-              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">🌀 ${player.totalScore||0} MT</div>
+              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${displayName}</div>
+              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:.82rem;padding:3px 10px;border-radius:20px">🌀 ${player.totalScore||0} MT</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -324,9 +343,30 @@ const App = {
           </div>
         </div>
 
-        <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:white;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,0.3);margin-bottom:12px">
-          🎮 Verdiene Mischa Taler — Baue dein Zoo-Empire!
+        <!-- MT Counter prominent -->
+        <div style="text-align:center;margin-bottom:10px">
+          <div style="background:rgba(255,215,0,.2);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;display:inline-block">
+            <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${player.totalScore||0} MT</span>
+            <span style="font-size:.75rem;color:rgba(255,255,255,.7);margin-left:8px">Mischa Taler</span>
+          </div>
         </div>
+
+        <!-- Teleport Button -->
+        ${(player.totalScore||0)>=10 ? `
+        <div style="margin-bottom:12px">
+          <button onclick="App.teleportToZoo()" style="width:100%;max-width:480px;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
+            🚀 In den Zoo teleportieren! (10 🌀 MT)
+          </button>
+        </div>` : `
+        <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:480px;width:100%">
+          <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">🦁 Zoo freischalten</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${10-(player.totalScore||0)} 🌀 MT bis zur Teleportation</div>
+          <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
+            <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,(player.totalScore||0)/10*100)}%"></div>
+          </div>
+        </div>`}
+
+        <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:white;text-align:center;margin-bottom:10px">🎮 Deine 20 Spiele</div>
 
         <div class="world-map">
           ${WORLDS.map(world => {
@@ -628,7 +668,7 @@ const App = {
           <div class="overlay-emoji">${wasJoker?'🃏':allDone?'🏆':'⭐'}</div>
           <div class="overlay-title">${wasJoker?'Joker!':'Super!'}</div>
           <div class="overlay-msg">
-            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore}P  🌀 +${mtEarned||1} MT`:'Weiter geht\'s!'}
+            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`✅ Geschafft! +${mtEarned||1} 🌀 MT verdient!`:'Weiter geht\'s! +0.2 🌀 MT'}
             ${allDone?`<br><br>🎉 <b>Welt "${world.name}"</b> komplett!`:''}
           </div>
           ${allDone && worldId < 10 ? `
