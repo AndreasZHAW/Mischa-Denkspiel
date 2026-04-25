@@ -74,41 +74,49 @@
   <script src="app.js"></script>
   <script>
     async function boot() {
-      // Wait for Firebase to load (or timeout after 3s)
-      try { await window._firebaseLoadPromise; } catch(e) {}
-      // Initialize Firebase now that SDK might be loaded
-      if (typeof initFirebase !== 'undefined') { try { initFirebase(); } catch(e) {} }
+      // STEP 1: Show welcome immediately (never block on network)
+      const ret = sessionStorage.getItem('mischa_current');
       
-      await new Promise(r => setTimeout(r, 100));
-
-      // Try Firebase listeners - fail gracefully if offline
-      try {
-        State.listenBroadcast(data => {
+      // Check local storage first (instant, no network)
+      if (ret && typeof State !== 'undefined') {
+        try {
+          const localPlayer = State._local && State._local.get(ret);
+          if (localPlayer) {
+            State.setCurrentPlayer(localPlayer);
+            App.showWorldMap();
+            // Then try to refresh from cloud in background
+            window._firebaseLoadPromise.then(() => {
+              try { initFirebase(); State.getPlayer(ret).then(p => { if(p) State.setCurrentPlayer(p); }).catch(()=>{}); } catch(e) {}
+            }).catch(()=>{});
+            return;
+          }
+        } catch(e) {}
+      }
+      
+      // No local player - show welcome screen IMMEDIATELY
+      App.showWelcome();
+      
+      // Connect Firebase in background (doesn't block UI)
+      window._firebaseLoadPromise.then(() => {
+        try { initFirebase(); } catch(e) {}
+        // Setup listeners after Firebase loads
+        try { State.listenBroadcast(data => {
           const seen = sessionStorage.getItem('mischa_bc_seen');
           if (seen === data.id) return;
           sessionStorage.setItem('mischa_bc_seen', data.id);
           if (data.type === 'survey') showSurvey(data);
           else showBroadcastBanner(data.text);
-        });
-      } catch(e) { console.warn('Broadcast listener failed:', e); }
-
-      try {
-        State.listenDiscounts(() => {});
-      } catch(e) { console.warn('Discounts listener failed:', e); }
-
-      // Check for returning player
-      try {
-        const ret = sessionStorage.getItem('mischa_current');
+        }); } catch(e) {}
+        try { State.listenDiscounts(() => {}); } catch(e) {}
+        // If user had a session, check cloud
         if (ret) {
-          const p = await Promise.race([
-            State.getPlayer(ret),
-            new Promise(r => setTimeout(() => r(null), 3000)) // 3s timeout
-          ]);
-          if (p) { State.setCurrentPlayer(p); App.showWorldMap(); return; }
+          State.getPlayer(ret).then(p => {
+            if (p && document.getElementById('app')?.innerHTML?.includes('Willkommen')) {
+              State.setCurrentPlayer(p); App.showWorldMap();
+            }
+          }).catch(() => {});
         }
-      } catch(e) { console.warn('Player load failed:', e); }
-
-      App.showWelcome();
+      }).catch(() => {});
     }
 
     function showBroadcastBanner(text) {
@@ -187,11 +195,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       // Hard timeout: if boot hangs, force show welcome after 4 seconds
-      const failsafe = setTimeout(() => {
+      const failsafe = setTimeout(() => { // 1.5s max before forcing welcome
         console.warn('Boot timeout - showing welcome anyway');
         if (typeof App !== 'undefined') App.showWelcome();
         else document.getElementById('app').innerHTML = '<div style="text-align:center;padding:40px;color:#333"><h2>Verbindungsproblem</h2><p>Bitte Seite neu laden (F5)</p><button onclick="location.reload()" style="padding:10px 20px;margin-top:10px;border-radius:8px;border:none;background:#2980B9;color:white;cursor:pointer">↻ Neu laden</button></div>';
-      }, 4000);
+      }, 1500);
       
       boot().then(() => clearTimeout(failsafe)).catch(e => {
         clearTimeout(failsafe);
