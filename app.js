@@ -94,7 +94,54 @@ const App = {
           </div>
         </div>
       </div>`);
+  }
+  // ── TELEPORT TO ZOO (costs 10 MT) ──
+  async teleportToZoo() {
+    const p = State.currentPlayer;
+    if (!p) { this._toast('❌ Bitte erst anmelden!', 2000); return; }
+    
+    const mt = p.totalScore || 0;
+    const cost = window.ZOO_TELEPORT_COST || 10;
+    
+    if (mt < cost) {
+      this._html(`
+        <div class="mountain-bg" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+          <div style="background:rgba(255,255,255,.95);border-radius:22px;padding:28px 22px;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+            <div style="font-size:3rem;margin-bottom:10px">🦁</div>
+            <h2 style="font-family:'Fredoka One',cursive;color:#27AE60;margin-bottom:8px">Zoo-Teleport</h2>
+            <p style="color:#555;font-size:.9rem;margin-bottom:16px">
+              Der Teleport in den Zoo kostet <b style="color:#FFD700">🌀 ${cost} Mischa Taler</b>.<br><br>
+              Du hast: <b style="color:${mt >= cost ? '#27AE60' : '#E74C3C'}">🌀 ${mt} MT</b><br><br>
+              Spiele Spiele um Mischa Taler zu verdienen!
+            </p>
+            <div style="background:#FFF9E6;border-radius:12px;padding:12px;margin-bottom:16px;font-size:.82rem;color:#666">
+              💡 <b>Tipp:</b> Gewinne Spiele um MT zu verdienen.<br>
+              Je besser du spielst, desto mehr MT bekommst du!<br>
+              (Max: 1.5 MT pro Spiel)
+            </div>
+            <button class="btn btn-primary" onclick="App.showHome()">← Zurück zum Spielen</button>
+          </div>
+        </div>`);
+      return;
+    }
+    
+    // Confirm teleport
+    const confirmed = confirm(`🦁 Für ${cost} MT in den Zoo teleportieren?\n\nDu hast: ${mt} MT\nNach Teleport: ${mt - cost} MT`);
+    if (!confirmed) return;
+    
+    // Deduct MT
+    await State.addPoints(p.name, -cost);
+    
+    // Save zoo_mt for the zoo to read
+    const zooMT = (p.totalScore || 0); 
+    sessionStorage.setItem('mischa_current', p.name.toLowerCase());
+    sessionStorage.setItem('zoo_teleport_mt', zooMT);
+    
+    // Go to zoo!
+    window.location.href = 'zoo.html';
   },
+
+,
 
   // ---- CHARACTER SELECT ----
   showCharSelect() {
@@ -322,11 +369,15 @@ const App = {
         <div style="background:rgba(255,255,255,0.92);border-radius:18px;padding:16px;width:100%;max-width:480px;box-shadow:var(--shadow-big);max-height:70vh;overflow-y:auto">
           ${players.length === 0
             ? '<div style="text-align:center;padding:30px;color:var(--text-mid)">Noch keine Spieler 😊</div>'
-            : players.map((p, i) => {
+            : players.filter(p => window.isInLeaderboard ? window.isInLeaderboard(p.name) : true)
+              .map((p, i) => {
                 const ch = CHARACTERS.find(c=>c.id===p.character);
                 const rankIcon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
                 const isMe = player && p.name.toLowerCase()===player.name.toLowerCase();
                 const worldsDone = Object.values(p.worlds||{}).filter(w=>w.completed).length;
+                const displayName = window.getDisplayName ? window.getDisplayName(p.name) : p.name;
+                const nameStyle = window.getNameStyle ? window.getNameStyle(p.name) : '';
+                const mt = p.totalScore || 0;
                 return `
                   <div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;margin-bottom:6px;
                     background:${isMe?'rgba(123,196,127,0.15)':'transparent'};
@@ -334,7 +385,7 @@ const App = {
                     <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;width:28px;text-align:center">${rankIcon}</div>
                     <span style="font-size:1.4rem">${ch?.emoji||'🧭'}</span>
                     <div style="flex:1">
-                      <div style="font-weight:700;font-size:0.95rem">${p.name}${isMe?' (du)':''}</div>
+                      <div style="font-weight:700;font-size:0.95rem">${displayName}${isMe?' (du)':''}</div>
                       <div style="font-size:0.72rem;color:var(--text-mid)">Welt ${p.currentWorld||1}/10 · ${worldsDone} ✓ · ${new Date().getFullYear()-(p.birthYear||2000)}J</div>
                     </div>
                     <div style="font-family:'Fredoka One',cursive;color:#E67E22;font-size:1rem">⭐ ${p.totalScore||0}</div>
@@ -553,7 +604,7 @@ const App = {
           <div class="overlay-emoji">${wasJoker?'🃏':allDone?'🏆':'⭐'}</div>
           <div class="overlay-title">${wasJoker?'Joker!':'Super!'}</div>
           <div class="overlay-msg">
-            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore} Punkte!`:'Weiter geht\'s!'}
+            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`⭐ ${finalScore} Punkte! &nbsp;🌀 +${mtEarned} MT`:'Weiter geht\'s!'}
             ${allDone?`<br><br>🎉 <b>Welt "${world.name}"</b> komplett!`:''}
           </div>
           ${allDone && worldId < 10 ? `

@@ -3,7 +3,9 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Mischa Zoo 3D</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -324,7 +326,20 @@ const ZS={
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;return Math.max(500,ms);},
   lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
   async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
-  async load(){const k='zoo_'+this.player.toLowerCase();try{if(State._useCloud()){const s=await _db.collection('zoos').doc(k).get();if(s.exists){this.zoo=s.data();this._fix();return;}}}catch(e){}const l=localStorage.getItem(k);this.zoo=l?JSON.parse(l):this.nz();this._fix();},
+  async load(){
+    const k='zoo_'+this.player.toLowerCase();
+    try{if(State._useCloud()){const s=await _db.collection('zoos').doc(k).get();if(s.exists){this.zoo=s.data();this._fix();return;}}}catch(e){}
+    const l=localStorage.getItem(k);
+    this.zoo=l?JSON.parse(l):this.nz();
+    // Check if coming from teleport - add any extra MT from game world
+    const teleportMT=parseInt(sessionStorage.getItem('zoo_teleport_mt')||'0');
+    if(teleportMT>0&&!l){
+      // First visit - start with some MT based on game world progress
+      this.zoo.mt=Math.max(this.zoo.mt,8); 
+      sessionStorage.removeItem('zoo_teleport_mt');
+    }
+    this._fix();
+  },
   _fix(){const n=this.maxE();while(this.zoo.enc.length<n)this.zoo.enc.push(null);if(!this.zoo.ownSlaps)this.zoo.ownSlaps=['basic'];if(!this.zoo.eq)this.zoo.eq='basic';}
 };
 
@@ -442,7 +457,7 @@ const ZG={
     this._updHUD(); this._updWBar();
     // Position camera immediately
     this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
-    LW.init();
+    LW.init();ZSound.startMelody();
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
 
@@ -878,7 +893,7 @@ const ZG={
 
   _visitor(){
     const z=ZS.zoo;const a=z.enc.filter(e=>e);if(!a.length)return;
-    z.tv++;const tot=a.reduce((s,enc)=>s+earn(enc,z,this.ev),0);z.mt+=tot;z.te=(z.te||0)+tot;
+    z.tv++;const tot=a.reduce((s,enc)=>s+earn(enc,z,this.ev),0);z.mt+=tot;z.te=(z.te||0)+tot;if(Math.random()<0.3)ZSound.coin();
     const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);
   },
 
@@ -922,7 +937,7 @@ const ZG={
     if(this.slapCD>0){ZP.toast('⏳ '+(Math.ceil(this.slapCD/100)/10)+'s',600);return;}
     const sl=SLAPS.find(s=>s.id===(z.eq||'basic'))||SLAPS[0];
     this.slapCD=sl.cd;
-    const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
+    ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
     ZP.toast(sl.e+' '+sl.n+'!',700);
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
     this._updWBar();
@@ -960,7 +975,7 @@ const ZG={
 
   // ═══ GONDOLA ═══
   _mkG(){const l=ZS.lk(),ni=this.ev?.id==='night';const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(this.ev?.id==='snow'&&Math.random()<.05)?3.5:(this.ev?.id==='party'&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
-  _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
+  _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
 
   // ═══ EVENTS ═══
   _tryEv(){if(!this.ev&&Math.random()<.28){const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEv(e,e.dur);}},
@@ -1313,8 +1328,10 @@ const ZP={
     if(p==='menu')this._rMenu();
     if(p==='adm'){
       if(!ZS.isAdmin){
-        const pw=prompt('Admin-Passwort:');
-        if(pw==='mischa'||pw==='admin'){ZS.isAdmin=true;}else{this.toast('❌ Falsches Passwort!',2000);return;}
+        const pw=prompt('Admin-Passwort (mischa2024):');
+        // Check against firebase-state checkAdmin OR fallback
+        const valid = pw==='mischa2024'||pw==='mischa'||pw==='admin'||(typeof State!=='undefined'&&State.checkAdmin&&State.checkAdmin(pw));
+        if(valid){ZS.isAdmin=true;}else{this.toast('❌ Falsches Passwort!',2000);return;}
       }
       this._rAdm();
     }
@@ -1343,7 +1360,7 @@ const ZP={
       pop.innerHTML='<div style="font-size:2.8rem">'+g.a.e+'</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">'+g.a.n+' erschienen!</div><div style="color:rgba(255,255,255,.7);font-size:.8rem">Kaufe es schnell bevor es weg ist! 🔥</div>';
       document.body.appendChild(pop);setTimeout(()=>pop.remove(),4000);
     }
-    this.toast('✅ '+g.a.e+' '+g.a.n+' läuft ins Gehege '+(slot+1)+'! 🏃',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
+    ZSound.buy();const rareSound=['ultralegendary','god','mythic','secret'].includes(g.a.r);if(rareSound)setTimeout(()=>ZSound.rare(),300);this.toast('✅ '+g.a.e+' '+g.a.n+' läuft ins Gehege '+(slot+1)+'! 🏃',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${z.mt<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">Kaufen</button></div>`;}).join('');},
   _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;this.toast('✅ '+u.l);this._rLuck();ZG._updHUD();},
 
@@ -1556,6 +1573,84 @@ const ZP={
   },
   async _adMT(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();const cmd={type:'give_mt',target:tgt,amount:50000,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){ZS.zoo.mt+=50000;ZG._updHUD();}this.toast('✅ +50K MT!');this.close('adm');},
   async _cmd(cmd){try{if(State._useCloud())await _db.collection('config').doc('zoo_admin_cmd').set(cmd);}catch(e){}localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));},
+};
+
+
+// ═══ SOUND SYSTEM ═══
+const ZSound = {
+  ctx: null,
+  _init() {
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+    if (this.ctx?.state === 'suspended') this.ctx.resume();
+  },
+  
+  // Play a simple tone
+  _tone(freq, dur, type='sine', vol=0.3, delay=0) {
+    this._init();
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
+    gain.gain.setValueAtTime(vol, this.ctx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + dur);
+    osc.start(this.ctx.currentTime + delay);
+    osc.stop(this.ctx.currentTime + delay + dur);
+  },
+
+  // Gondola arrives (ding!)
+  gondolaArrive() {
+    this._tone(880, 0.15, 'sine', 0.25);
+    this._tone(1100, 0.2, 'sine', 0.2, 0.15);
+  },
+
+  // Buy animal (happy chime)
+  buy() {
+    [523,659,784,1047].forEach((f,i) => this._tone(f, 0.18, 'sine', 0.2, i*0.1));
+  },
+
+  // Slap (thwack)
+  slap() {
+    this._tone(200, 0.08, 'sawtooth', 0.4);
+    this._tone(100, 0.12, 'square', 0.3, 0.05);
+  },
+
+  // Coin/MT earned
+  coin() {
+    this._tone(1047, 0.1, 'sine', 0.2);
+    this._tone(1319, 0.15, 'sine', 0.2, 0.1);
+  },
+
+  // Rare animal fanfare
+  rare() {
+    [523,659,784,880,1047].forEach((f,i) => this._tone(f, 0.2, 'sine', 0.3, i*0.08));
+  },
+
+  // Lucky wheel spin
+  wheelSpin() {
+    for (let i=0; i<8; i++) {
+      const freq = 400 + i * 80;
+      this._tone(freq, 0.1, 'sine', 0.15, i * 0.15);
+    }
+  },
+
+  // Background melody (gentle zoo theme)
+  _melodyIv: null,
+  startMelody() {
+    if (this._melodyIv) return;
+    // Simple pentatonic melody loop
+    const notes = [523,659,784,659,523,392,440,523];
+    let ni = 0;
+    this._melodyIv = setInterval(() => {
+      if (document.hidden) return;
+      this._tone(notes[ni % notes.length], 0.4, 'sine', 0.04);
+      ni++;
+    }, 2000);
+  },
+  stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; }
 };
 
 // Boot

@@ -1,86 +1,117 @@
 /**
- * worlds.js v6 — 10 Welten, alle neuen Spiele, kein pacman
+ * worlds.js v7 — 2-Welten-System
+ * Welt 1: Denkspiel (20 Spiele, MT verdienen)
+ * Welt 2: Zoo (Teleport für 10 MT)
  */
-const WORLDS = [
-  {id:1,name:'Anreise nach Frankreich',icon:'🚗',description:'Wir fahren los!',bannerClass:'w1',color:'#2980B9',difficulty:'Sehr einfach',
-    tasks:[
-      {type:'math',title:'Reiserechnen',icon:'🔢'},{type:'reaction',title:'Ampel-Reaktion',icon:'🚦'},
-      {type:'memory',title:'Auto-Memory',icon:'🧠'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
-      {type:'flags',title:'Flaggen raten',icon:'🌍'},{type:'wordsearch',title:'Wörter suchen',icon:'🔤'},
-      {type:'dart',title:'Dart!',icon:'🎯'},{type:'french',title:'Französisch Quiz',icon:'🇫🇷'},
-    ],memoryEmojis:['🚗','🗺️','⛽','🚦','🎒']},
-  {id:2,name:'Im Schloss ankommen',icon:'🏰',description:'Willkommen im Schloss!',bannerClass:'w2',color:'#8E44AD',difficulty:'Einfach',
-    tasks:[
-      {type:'math',title:'Schloss-Mathe',icon:'🔢'},{type:'memory',title:'Ritter-Memory',icon:'🧠'},
-      {type:'reaction',title:'Burgtor-Reaktion',icon:'🏰'},{type:'hangman',title:'Galgenmännchen',icon:'🎯'},
-      {type:'wordsearch',title:'Ritterwörter',icon:'🔤'},{type:'shutthebox',title:'Shut the Box!',icon:'🎲'},
-      {type:'jenga',title:'Turm der Ritter',icon:'🗼'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'dart',title:'Schloss-Dart',icon:'🎯'},{type:'riddle',title:'Rätsel',icon:'🤔'},
-    ],memoryEmojis:['🏰','👑','⚔️','🛡️','🗝️']},
-  {id:3,name:'Baden im Pool',icon:'🏊',description:'Planschen im Pool!',bannerClass:'w3',color:'#27AE60',difficulty:'Einfach',
-    tasks:[
-      {type:'math',title:'Pool-Mathe',icon:'🔢'},{type:'reaction',title:'Wasserspritzen!',icon:'💦'},
-      {type:'memory',title:'Sommer-Memory',icon:'🧠'},{type:'simon',title:'Simon Says',icon:'🎨'},
-      {type:'colormix',title:'Farben mischen',icon:'🎨'},{type:'train',title:'Sommer-Quiz',icon:'🚂'},
-      {type:'jenga',title:'Sand-Turm',icon:'🗼'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'clock',title:'Uhr lesen',icon:'🕐'},{type:'dart',title:'Pool-Dart',icon:'🎯'},
-    ],memoryEmojis:['🏊','🌞','🏖️','🍦','🐠']},
-  {id:4,name:'Tennis spielen',icon:'🎾',description:'Auf dem Tennisplatz!',bannerClass:'w4',color:'#E67E22',difficulty:'Mittel',
-    tasks:[
-      {type:'math',title:'Punkterechnen',icon:'🔢'},{type:'reaction',title:'Ball-Reaktion',icon:'🎾'},
-      {type:'memory',title:'Sport-Memory',icon:'🧠'},{type:'train',title:'Tennis-Quiz',icon:'🚂'},
-      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'tictactoe',title:'Tic-Tac-Toe',icon:'❌'},
-      {type:'balloon',title:'Ballon-Mathe',icon:'🎈'},{type:'anagram',title:'Buchstaben sortieren',icon:'🔤'},
-      {type:'weight',title:'Gewicht schätzen',icon:'⚖️'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-    ],memoryEmojis:['🎾','🏆','🥎','🏸','⚡']},
-  {id:5,name:'Kniffel spielen',icon:'🎲',description:'Würfeln und gewinnen!',bannerClass:'w5',color:'#E74C3C',difficulty:'Mittel',
-    tasks:[
-      {type:'shutthebox',title:'Shut the Box! Profi',icon:'🎲'},{type:'math',title:'Würfel-Mathe',icon:'🔢'},
-      {type:'reaction',title:'Würfel-Reaktion',icon:'⚡'},{type:'memory',title:'Zahlen-Memory',icon:'🧠'},
-      {type:'train',title:'Kniffel-Quiz',icon:'🚂'},{type:'jenga',title:'Würfel-Turm',icon:'🗼'},
-      {type:'simon',title:'Simon Says',icon:'🎨'},{type:'dart',title:'Dart',icon:'🎯'},
-      {type:'balloon',title:'Ballon-Mathe',icon:'🎈'},{type:'riddle',title:'Rätsel',icon:'🤔'},
-    ],memoryEmojis:['🎲','⚀','⚁','⚂','⚃']},
-  {id:6,name:'Fahrrad fahren',icon:'🚴',description:'Durch die Landschaft radeln!',bannerClass:'w6',color:'#16A085',difficulty:'Mittel',
-    tasks:[
-      {type:'math',title:'Streckenrechnen',icon:'🔢'},{type:'reaction',title:'Kurven-Reaktion',icon:'🚴'},
-      {type:'memory',title:'Natur-Memory',icon:'🧠'},{type:'train',title:'Fahrrad-Quiz',icon:'🚂'},
-      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'basketball',title:'Basketball',icon:'🏀'},
-      {type:'wordsearch',title:'Naturwörter',icon:'🔤'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'colormix',title:'Farben mischen',icon:'🎨'},{type:'geo',title:'Geo Quiz',icon:'🗺️'},
-    ],memoryEmojis:['🚴','🌻','🦋','🌿','🏡']},
-  {id:7,name:'Essen gehen',icon:'🍽️',description:'Leckeres französisches Essen!',bannerClass:'w7',color:'#D35400',difficulty:'Schwer',
-    tasks:[
-      {type:'math',title:'Menü ausrechnen',icon:'🔢'},{type:'memory',title:'Speisen-Memory',icon:'🧠'},
-      {type:'reaction',title:'Kellner-Reaktion',icon:'🍴'},{type:'train',title:'Français-Quiz',icon:'🚂'},
-      {type:'french',title:'Französisch lernen',icon:'🇫🇷'},{type:'shutthebox',title:'Shut the Box!',icon:'🎲'},
-      {type:'hangman',title:'Galgenmännchen',icon:'🎯'},{type:'emojistory',title:'Emoji Geschichte',icon:'📖'},
-      {type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},{type:'dart',title:'Restaurant-Dart',icon:'🎯'},
-    ],memoryEmojis:['🥐','🍷','🧀','🥗','🍰']},
-  {id:8,name:'Fussball schauen',icon:'⚽',description:'VfB Stuttgart schauen!',bannerClass:'w8',color:'#E30613',difficulty:'Schwer',
-    tasks:[
-      {type:'math',title:'Tore rechnen',icon:'🔢'},{type:'reaction',title:'Tor! Reaktion!',icon:'⚽'},
-      {type:'memory',title:'Fussball-Memory',icon:'🧠'},{type:'train',title:'VfB Quiz',icon:'🚂'},
-      {type:'shutthebox',title:'Shut the Box!',icon:'🎲'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
-      {type:'tictactoe',title:'Tic-Tac-Toe',icon:'❌'},{type:'truefalse',title:'Wahr oder Falsch?',icon:'❓'},
-      {type:'dart',title:'Dart',icon:'🎯'},{type:'emojistory',title:'Emoji Geschichte',icon:'📖'},
-    ],memoryEmojis:['⚽','🏆','🥅','👟','🎽']},
-  {id:9,name:'Koffer packen',icon:'🧳',description:'Alles einpacken!',bannerClass:'w9',color:'#7F8C8D',difficulty:'Sehr schwer',
-    tasks:[
-      {type:'math',title:'Gewicht rechnen',icon:'🔢'},{type:'memory',title:'Pack-Memory',icon:'🧠'},
-      {type:'reaction',title:'Schnell einpacken!',icon:'🧳'},{type:'train',title:'Reise-Quiz',icon:'🚂'},
-      {type:'shutthebox',title:'Shut the Box! Profi',icon:'🎲'},{type:'anagram',title:'Buchstaben sortieren',icon:'🔤'},
-      {type:'simon',title:'Simon Says',icon:'🎨'},{type:'geo',title:'Geo Quiz',icon:'🗺️'},
-      {type:'clock',title:'Uhr lesen',icon:'🕐'},{type:'balloon',title:'Ballon-Mathe',icon:'🎈'},
-    ],memoryEmojis:['🧳','👒','👓','📷','🪥']},
-  {id:10,name:'Abreise nach Hause',icon:'🏠',description:'Heimreise beginnt!',bannerClass:'w10',color:'#2C3E50',difficulty:'Meister',
-    tasks:[
-      {type:'math',title:'Heimweg-Mathe',icon:'🔢'},{type:'reaction',title:'Autobahn-Reaktion',icon:'🚗'},
-      {type:'memory',title:'Erinnerungs-Memory',icon:'🧠'},{type:'train',title:'Abschluss-Quiz',icon:'🚂'},
-      {type:'shutthebox',title:'Shut the Box! Meister',icon:'🎲'},{type:'dart',title:'Finaler Dart',icon:'🎯'},
-      {type:'jenga',title:'Meister-Turm',icon:'🗼'},{type:'french',title:'Französisch Profi',icon:'🇫🇷'},
-      {type:'riddle',title:'Finale Rätsel',icon:'🤔'},{type:'emojistory',title:'Ferien-Geschichte',icon:'📖'},
-    ],memoryEmojis:['🏠','🌟','❤️','🎉','🏆']},
+
+// ══════════════════════════════════════════
+// REFERENZ-SPIELER für MT-Kalibrierung
+// Janoschtest: 1 MT = Referenz-Leistung
+// Bu (Admin): schwarzer Name, nicht in Rangliste
+// ══════════════════════════════════════════
+const SPECIAL_PLAYERS = {
+  'janoschtest': { isRef: true,  inLeaderboard: false, displayName: 'Janoschtest', style: 'color:#888' },
+  'bu':          { isAdmin: true, inLeaderboard: false, displayName: '🌀 Bu 🌀',    style: 'color:#000;background:#FFD700;padding:0 4px;border-radius:4px;font-weight:900' },
+};
+
+// ══════════════════════════════════════════
+// 20 SPIELE (keine Duplikate)
+// ══════════════════════════════════════════
+const GAME_LIST = [
+  // ─ Pflicht-Spiele ─
+  { id:'dart',       name:'Dart',           icon:'🎯', type:'dart',       baseReward:1.0, desc:'Wirf auf die Dartscheibe — Wind & Atmung!' },
+  { id:'french',     name:'Französisch',    icon:'🇫🇷', type:'truefalse',  baseReward:1.0, desc:'Französische Vokabeln — richtig oder falsch?' },
+  { id:'math',       name:'Rechnen',        icon:'🔢', type:'math',       baseReward:1.0, desc:'Schnell und richtig rechnen!' },
+  { id:'train',      name:'Zug',            icon:'🚂', type:'train',      baseReward:1.0, desc:'Ordne die Schweizer Zugrouten!' },
+  { id:'shutthebox', name:'Shut the Box',   icon:'🎲', type:'shutthebox', baseReward:1.0, desc:'Klassisches Würfelspiel — alle Felder schliessen!' },
+  // ─ Weitere Spiele ─
+  { id:'memory',     name:'Memory',         icon:'🧠', type:'memory',     baseReward:1.0, desc:'Finde die Paare — teste dein Gedächtnis!' },
+  { id:'anagram',    name:'Anagramm',       icon:'🔤', type:'anagram',    baseReward:1.0, desc:'Ordne die Buchstaben zum richtigen Wort!' },
+  { id:'simon',      name:'Simon',          icon:'🟢', type:'simon',      baseReward:1.0, desc:'Merke dir die Farb-Sequenz!' },
+  { id:'wordsearch', name:'Wortsuche',      icon:'🔍', type:'wordsearch', baseReward:1.0, desc:'Finde alle versteckten Wörter!' },
+  { id:'reaction',   name:'Reaktion',       icon:'⚡', type:'reaction',   baseReward:1.0, desc:'So schnell wie möglich auf das Signal reagieren!' },
+  { id:'colormix',   name:'Farbmischung',   icon:'🎨', type:'colormix',   baseReward:1.0, desc:'Mische die richtige Farbe!' },
+  { id:'slider',     name:'Schiebepuzzle',  icon:'🧩', type:'slider',     baseReward:1.0, desc:'Schiebe die Teile ins richtige Muster!' },
+  { id:'differences',name:'Unterschiede',   icon:'👁️', type:'differences', baseReward:1.0, desc:'Finde alle Unterschiede zwischen den Bildern!' },
+  { id:'balloon',    name:'Ballon',         icon:'🎈', type:'balloon',    baseReward:1.0, desc:'Pop die richtigen Ballons!' },
+  { id:'typing',     name:'Tippen',         icon:'⌨️', type:'typing',     baseReward:1.0, desc:'Tippe den Text so schnell wie möglich!' },
+  { id:'jenga',      name:'Jenga',          icon:'🏗️', type:'jenga',      baseReward:1.0, desc:'Ziehe Blöcke ohne den Turm umzuwerfen!' },
+  { id:'search',     name:'Suchen',         icon:'🔭', type:'search',     baseReward:1.0, desc:'Finde das gesuchte Objekt!' },
+  { id:'minigames',  name:'Mini-Spiele',    icon:'🎮', type:'minigames',  baseReward:1.0, desc:'Verschiedene Mini-Herausforderungen!' },
+  { id:'truefalse',  name:'Wahr oder Falsch',icon:'✅', type:'truefalse', baseReward:1.0, desc:'Ist die Aussage wahr oder falsch?' },
+  { id:'quiz',       name:'Frankreich-Quiz',icon:'🗼', type:'truefalse',  baseReward:1.0, desc:'Fragen über Frankreich — wie viel weisst du?' },
 ];
+
+// ══════════════════════════════════════════
+// MT-BERECHNUNG
+// ══════════════════════════════════════════
+function calcMT(gameId, result, playerName) {
+  const game = GAME_LIST.find(g => g.id === gameId);
+  if (!game) return 0;
+  
+  const base = game.baseReward; // 1.0 MT
+  let multiplier = 1.0;
+  
+  // Performance bonus (max 1.5x)
+  if (result.passed) {
+    // Time bonus: faster = more MT
+    const timeBonus = result.timeMs ? Math.max(0, 1 - result.timeMs / 120000) * 0.3 : 0;
+    // Error bonus: fewer errors = more MT
+    const errBonus = result.errors !== undefined ? Math.max(0, 1 - result.errors * 0.1) * 0.2 : 0;
+    multiplier = Math.min(1.5, 1.0 + timeBonus + errBonus);
+  } else {
+    // Partial reward for trying
+    multiplier = 0.2;
+  }
+  
+  return Math.round(base * multiplier * 10) / 10;
+}
+
+// ══════════════════════════════════════════
+// LEADERBOARD HELPERS
+// ══════════════════════════════════════════
+function isInLeaderboard(playerName) {
+  const lc = playerName?.toLowerCase();
+  if (!lc) return false;
+  const special = SPECIAL_PLAYERS[lc];
+  if (special) return special.inLeaderboard;
+  return true; // Normal players are in leaderboard
+}
+
+function getDisplayName(playerName) {
+  const lc = playerName?.toLowerCase();
+  const special = SPECIAL_PLAYERS[lc];
+  if (special) return special.displayName;
+  return playerName;
+}
+
+function getNameStyle(playerName) {
+  const lc = playerName?.toLowerCase();
+  const special = SPECIAL_PLAYERS[lc];
+  if (special) return special.style || '';
+  return '';
+}
+
+// ══════════════════════════════════════════
+// TELEPORT COST
+// ══════════════════════════════════════════
+const ZOO_TELEPORT_COST = 10; // MT to enter zoo
+const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
+
+// ══════════════════════════════════════════
+// WORLDS (legacy — kept for compatibility)
+// ══════════════════════════════════════════
+const WORLDS = [
+  {id:1,name:'Welt 1 — Denkspiel',icon:'🎮',color:'#2980B9',description:'Spiele 20 Spiele und verdiene Mischa Taler!'},
+  {id:2,name:'Welt 2 — Zoo',icon:'🦁',color:'#27AE60',description:'Kaufe Tiere und baue deinen Zoo auf!'},
+];
+
+window.GAME_LIST = GAME_LIST;
 window.WORLDS = WORLDS;
+window.SPECIAL_PLAYERS = SPECIAL_PLAYERS;
+window.calcMT = calcMT;
+window.isInLeaderboard = isInLeaderboard;
+window.getDisplayName = getDisplayName;
+window.getNameStyle = getNameStyle;
+window.ZOO_TELEPORT_COST = ZOO_TELEPORT_COST;
+window.ZOO_FIRST_ANIMAL_COST = ZOO_FIRST_ANIMAL_COST;
