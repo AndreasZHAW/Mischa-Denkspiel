@@ -94,7 +94,8 @@ const App = {
           </div>
         </div>
       </div>`);
-  }
+  },
+
   // ── TELEPORT TO ZOO (costs 10 MT) ──
   async teleportToZoo() {
     const p = State.currentPlayer;
@@ -141,7 +142,6 @@ const App = {
     window.location.href = 'zoo.html';
   },
 
-,
 
   // ---- CHARACTER SELECT ----
   showCharSelect() {

@@ -101,13 +101,15 @@ const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
 // ══════════════════════════════════════════
 // WORLDS (legacy — kept for compatibility)
 // ══════════════════════════════════════════
-const WORLDS = [
+const WORLD_DEFS = [
   {id:1,name:'Welt 1 — Denkspiel',icon:'🎮',color:'#2980B9',description:'Spiele 20 Spiele und verdiene Mischa Taler!'},
   {id:2,name:'Welt 2 — Zoo',icon:'🦁',color:'#27AE60',description:'Kaufe Tiere und baue deinen Zoo auf!'},
 ];
 
 window.GAME_LIST = GAME_LIST;
-window.WORLDS = WORLDS;
+window.WORLD_DEFS = WORLD_DEFS;
+// Keep legacy WORLDS if app.js defines it
+if(typeof window.WORLDS === "undefined") window.WORLDS = WORLD_DEFS;
 window.SPECIAL_PLAYERS = SPECIAL_PLAYERS;
 window.calcMT = calcMT;
 window.isInLeaderboard = isInLeaderboard;
