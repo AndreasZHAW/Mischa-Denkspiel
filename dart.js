@@ -351,11 +351,11 @@ const DartGame = {
     const sv = this.SECTORS[si];
     // Ring boundaries (as fraction of board radius R=130)
     // Bull: <0.045R, Bull25: <0.115R, inner triple: 0.24-0.455, outer single: 0.455-0.86, double: 0.86-0.955
-    if (dist < 0.24)  return { pts:sv,   label:\`\${sv}\`,   isDouble:false, isBull:false };
-    if (dist < 0.455) return { pts:sv*3, label:\`T\${sv}\`,  isDouble:false, isBull:false };
-    if (dist < 0.86)  return { pts:sv,   label:\`\${sv}\`,   isDouble:false, isBull:false };
-    if (dist < 0.955) return { pts:sv*2, label:\`D\${sv}\`,  isDouble:true,  isBull:false };
-    return { pts:sv, label:\`\${sv}\`, isDouble:false, isBull:false };
+    if (dist < 0.24)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
+    if (dist < 0.455) return { pts:sv*3, label:`T${sv}`,  isDouble:false, isBull:false };
+    if (dist < 0.86)  return { pts:sv,   label:`${sv}`,   isDouble:false, isBull:false };
+    if (dist < 0.955) return { pts:sv*2, label:`D${sv}`,  isDouble:true,  isBull:false };
+    return { pts:sv, label:`${sv}`, isDouble:false, isBull:false };
   },
 
   _applyThrow(who, result, fpx, fpy) {
