@@ -57,25 +57,35 @@
   <script src="app.js"></script>
   <script>
     async function boot() {
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 300));
 
-      // Start listening for real-time broadcast
-      State.listenBroadcast(data => {
-        const seen = sessionStorage.getItem('mischa_bc_seen');
-        if (seen === data.id) return;
-        sessionStorage.setItem('mischa_bc_seen', data.id);
-        if (data.type === 'survey') showSurvey(data);
-        else showBroadcastBanner(data.text);
-      });
+      // Try Firebase listeners - fail gracefully if offline
+      try {
+        State.listenBroadcast(data => {
+          const seen = sessionStorage.getItem('mischa_bc_seen');
+          if (seen === data.id) return;
+          sessionStorage.setItem('mischa_bc_seen', data.id);
+          if (data.type === 'survey') showSurvey(data);
+          else showBroadcastBanner(data.text);
+        });
+      } catch(e) { console.warn('Broadcast listener failed:', e); }
 
-      // Start listening for real-time discounts
-      State.listenDiscounts(() => {}); // syncs to localStorage automatically
+      try {
+        State.listenDiscounts(() => {});
+      } catch(e) { console.warn('Discounts listener failed:', e); }
 
-      const ret = sessionStorage.getItem('mischa_current');
-      if (ret) {
-        const p = await State.getPlayer(ret);
-        if (p) { State.setCurrentPlayer(p); App.showWorldMap(); return; }
-      }
+      // Check for returning player
+      try {
+        const ret = sessionStorage.getItem('mischa_current');
+        if (ret) {
+          const p = await Promise.race([
+            State.getPlayer(ret),
+            new Promise(r => setTimeout(() => r(null), 3000)) // 3s timeout
+          ]);
+          if (p) { State.setCurrentPlayer(p); App.showWorldMap(); return; }
+        }
+      } catch(e) { console.warn('Player load failed:', e); }
+
       App.showWelcome();
     }
 
@@ -153,7 +163,20 @@
     window.showBroadcastBanner = showBroadcastBanner;
     window.showSurvey = showSurvey;
 
-    document.addEventListener('DOMContentLoaded', () => setTimeout(boot, 500));
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hard timeout: if boot hangs, force show welcome after 4 seconds
+      const failsafe = setTimeout(() => {
+        console.warn('Boot timeout - showing welcome anyway');
+        if (typeof App !== 'undefined') App.showWelcome();
+        else document.getElementById('app').innerHTML = '<div style="text-align:center;padding:40px;color:#333"><h2>Verbindungsproblem</h2><p>Bitte Seite neu laden (F5)</p><button onclick="location.reload()" style="padding:10px 20px;margin-top:10px;border-radius:8px;border:none;background:#2980B9;color:white;cursor:pointer">↻ Neu laden</button></div>';
+      }, 4000);
+      
+      boot().then(() => clearTimeout(failsafe)).catch(e => {
+        clearTimeout(failsafe);
+        console.error('Boot error:', e);
+        if (typeof App !== 'undefined') App.showWelcome();
+      });
+    });
   </script>
   <style>
     @keyframes slideDown { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
