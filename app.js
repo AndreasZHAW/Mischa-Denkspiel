@@ -232,8 +232,16 @@ const App = {
     if (!name||name.length<2) return err('Name mindestens 2 Zeichen!');
     if (!pw) return err('Bitte Passwort eingeben!');
     if (!year) return err('Bitte Geburtsjahr wählen!');
+    // Warn if registering as Janoschtest
+    if (name.toLowerCase() === 'janoschtest' && pw !== 'janoschtest') {
+      err('Falsches Passwort für Janoschtest!'); return;
+    }
     this._loading('Registrierung...');
-    const player = await State.createPlayer({ name, password:pw, birthYear:year, character:this.selectedChar, characterColor:this.selectedColor });
+    const player = await Promise.race([
+      State.createPlayer({ name, password:pw, birthYear:year, character:this.selectedChar, characterColor:this.selectedColor }),
+      new Promise((_,rej) => setTimeout(() => rej(new Error('Verbindungsfehler - bitte versuche es erneut')), 8000))
+    ]).catch(e => { err(e.message); return null; });
+    if (!player && document.getElementById('p-err')?.textContent) return;
     if (!player) { this.showProfile(); setTimeout(()=>{ const e=document.getElementById('p-err'); if(e){e.textContent=`Name "${name}" bereits vergeben!`;e.style.display='block';}},50); return; }
     State.setCurrentPlayer(player);
     this.showWorldMap();
@@ -285,6 +293,19 @@ const App = {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
     if (!player) { this.showWelcome(); return; }
+    
+    // Special player indicators
+    const isRef = player.name.toLowerCase() === 'janoschtest';
+    const isAdmin = player.name.toLowerCase() === 'bu';
+    if (isRef) {
+      setTimeout(() => {
+        const banner = document.createElement('div');
+        banner.id = 'ref-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;padding:10px 16px;text-align:center;font-family:"Fredoka One",cursive;font-size:.95rem;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+        banner.innerHTML = '🔬 KALIBRIERUNGS-MODUS — Du spielst als Janoschtest (Referenz) · Deine Ergebnisse kalibrieren die MT-Belohnungen · Nicht in Rangliste · <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;margin-left:8px">✕</button>';
+        document.body.prepend(banner);
+      }, 500);
+    }
     const ch = this._char(player);
 
     this._html(`
@@ -299,8 +320,7 @@ const App = {
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
             <div>
-              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${player.name}</div>
-              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">⭐ ${player.totalScore||0}</div>
+              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">>${isAdmin ? '<span style="background:#FFD700;color:#000;padding:1px 6px;border-radius:4px;font-weight:900">Bu 🌀</span>' : isRef ? '<span style="color:#ff6b6b">🔬 Janoschtest</span>' : (window.getDisplayName ? window.getDisplayName(player.name) : player.name)}</div>              <div class="score-badge" style="font-size:0.8rem;padding:3px 10px">⭐ ${player.totalScore||0}</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">

@@ -89,8 +89,16 @@ const State = {
   async getPlayer(name) {
     const key = name.toLowerCase();
     if (this._useCloud()) {
-      const doc = await this._col().doc(key).get();
-      return doc.exists ? doc.data() : null;
+      try {
+        const doc = await Promise.race([
+          this._col().doc(key).get(),
+          new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+        ]);
+        return doc.exists ? doc.data() : null;
+      } catch(e) {
+        console.warn('getPlayer cloud timeout, using local fallback');
+        return this._local.get(key);
+      }
     }
     return this._local.get(key);
   },
@@ -98,15 +106,20 @@ const State = {
   async savePlayer(player) {
     const key = player.name.toLowerCase();
     const data = { ...player, updatedAt: Date.now() };
+    this._local.save(data); // Always save locally FIRST (instant)
     if (this._useCloud()) {
-      await this._col().doc(key).set(data);
+      try {
+        await Promise.race([
+          this._col().doc(key).set(data),
+          new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
+        ]);
+      } catch(e) { console.warn('savePlayer cloud failed, local OK:', e.message); }
     }
-    this._local.save(data); // immer auch lokal speichern
   },
 
   async createPlayer({ name, password, birthYear, character, characterColor }) {
     const existing = await this.getPlayer(name);
-    if (existing) return null;
+    if (existing) return null; // Player already exists
     const player = {
       name, password,
       birthYear: parseInt(birthYear),
