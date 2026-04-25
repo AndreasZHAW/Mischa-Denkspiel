@@ -353,7 +353,18 @@ const State = {
 
   async refreshCurrentPlayer() {
     const player = await this.getCurrentPlayer();
-    if (player) this.currentPlayer = await this.getPlayer(player.name);
+    if (!player) return null;
+    // Try local first (instant)
+    const local = this._local.get(player.name);
+    if (local) { this.currentPlayer = local; }
+    // Then try cloud with timeout (non-blocking if local worked)
+    try {
+      const cloud = await Promise.race([
+        this.getPlayer(player.name),
+        new Promise(r => setTimeout(() => r(null), 3000))
+      ]);
+      if (cloud) this.currentPlayer = cloud;
+    } catch(e) {}
     return this.currentPlayer;
   },
 

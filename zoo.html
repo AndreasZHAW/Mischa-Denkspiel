@@ -457,7 +457,7 @@ const ZG={
     this._updHUD(); this._updWBar();
     // Position camera immediately
     this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
-    LW.init();ZSound.startMelody();
+    LW.init();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
 
@@ -917,6 +917,11 @@ const ZG={
   _updEvTimer(){const el=G('evt');if(!el)return;if(this.ev&&this.evEnd>Date.now()){const r=Math.ceil((this.evEnd-Date.now())/1000);el.style.display='block';el.innerHTML=`<div style="font-size:.58rem;color:rgba(255,255,255,.4)">${this.ev.n}</div><div style="color:#FFD700">⏱ ${r}s</div>`;}else el.style.display='none';},
 
   _interact(){
+    if(this._nearWheel){
+      if(LW.spins>0){LW.open();}
+      else{ZP.toast('🍀 Kein Spin verfügbar — komm in 20 Min wieder!',3000);}
+      return;
+    }
     if(this.nearSt){
       // Check if near a gondola car (E to buy)
       let nearCar=-1,nearDist=8;
@@ -1175,7 +1180,7 @@ const ZG={
   },
 
   // ═══ MULTIPLAYER ═══
-  async _syncMP(){if(ZS.isPrivate||!ZS.player)return;try{if(!State._useCloud())return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||'🧭',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await _db.collection('zoo_players').get();const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){}},
+  async _syncMP(){if(ZS.isPrivate||!ZS.player)return;try{if(!State._useCloud())return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||'🧭',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await Promise.race([_db.collection('zoo_players').get(),new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))]);const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){}},
   _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshBasicMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshBasicMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
 
   // ═══ ADMIN CMD ═══
@@ -1594,7 +1599,17 @@ const ZP={
   async _adSp(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),aid=G('as')?.value,shId=G('ash')?.value;const cmd={type:'spawn_animal',target:tgt,animalId:aid,shinyId:shId,traitIds:[],id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const a=ANIMALS.find(x=>x.id===aid)||ANIMALS[0];const sh=shId?{id:shId,...SHINY[shId]}:null;const slot=ZS.zoo.enc.findIndex(e=>!e);if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs();}}this.toast('✅ Spawn!');this.close('adm');},
   async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');},
   async _adSl(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),sid=G('asl')?.value||'lucky';const cmd={type:'give_slap',target:tgt,slapId:sid,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const z=ZS.zoo;if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;ZG._updWBar();}this.toast(`✅ ${SLAPS.find(s=>s.id===sid)?.e} Slap!`);this.close('adm');},
-  _setWheel(btn){const w=btn.dataset.w;LW.setType(w,0);ZP.toast(LW.W.emoji+' '+LW.W.name+' aktiv!',1500);},
+  _setWheel(btn){
+    const w=btn.dataset.w;
+    LW.setType(w,0);
+    ZP.toast(LW.W.emoji+' '+LW.W.name+' aktiviert für alle!',2000);
+    // Broadcast wheel change to all players via Firebase
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        _db.collection('zoo_broadcast').doc('wheel').set({type:w,at:Date.now()});
+      }
+    }catch(e){}
+  },
   async _adSpins(){
     const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();
     const n=parseInt(G('aspins')?.value||1)||1;

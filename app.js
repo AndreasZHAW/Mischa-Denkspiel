@@ -81,10 +81,10 @@ const App = {
             Löse Aufgaben in allen 10 Welten! 🏆
           </div>
           <div style="background:#F0F9FF;border:2px solid #85C1E9;border-radius:12px;padding:12px;margin-bottom:18px;font-size:0.85rem;line-height:1.8;max-height:180px;overflow-y:auto">
-            🚗 Welt 1: Anreise · 🏰 Welt 2: Schloss · 🏊 Welt 3: Pool<br>
-            🎾 Welt 4: Tennis · 🎲 Welt 5: Kniffel · 🚴 Welt 6: Fahrrad<br>
-            🍽️ Welt 7: Essen · ⚽ Welt 8: Fussball · 🧳 Welt 9: Packen<br>
-            🏠 Welt 10: Abreise
+            🎯 Dart · 🇫🇷 Französisch · 🔢 Rechnen · 🚂 Zug · 🎲 Shut the Box<br>
+            🧠 Memory · 🔤 Anagramm · 🟢 Simon · 🔍 Wortsuche · ⚡ Reaktion<br>
+            🎨 Farbmischung · 🧩 Schiebepuzzle · 👁️ Unterschiede · 🎈 Ballon<br>
+            ⌨️ Tippen · 🏗️ Jenga · 🔭 Suchen · 🎮 Mini-Spiele · ✅ Wahr/Falsch · 🗼 Quiz
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">🆕 Neu starten</button>
