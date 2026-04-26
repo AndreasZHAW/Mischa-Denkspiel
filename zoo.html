@@ -279,6 +279,33 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-state.js"></script>
 <script>
+// ═══ CONSOLE CAPTURE ═══
+(function(){
+  var _errs=[];
+  var _orig={error:console.error,warn:console.warn,log:console.log};
+  function _show(type,args){
+    var msg=Array.from(args).join(' ');
+    _errs.push('['+type+'] '+msg);
+    _orig[type].apply(console,args);
+    // Show on screen if error
+    if(type==='error'){
+      var d=document.getElementById('_zoo_err_panel');
+      if(!d){d=document.createElement('div');d.id='_zoo_err_panel';d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#900;color:#fff;font:12px monospace;padding:8px;max-height:40vh;overflow-y:auto;word-break:break-all';document.body.appendChild(d);}
+      var line=document.createElement('div');line.textContent='❌ '+msg.slice(0,200);d.appendChild(line);
+    }
+  }
+  console.error=function(){_show('error',arguments);};
+  console.warn=function(){_show('warn',arguments);};
+  window._getZooLogs=function(){return _errs.join('\n');};
+  window.onerror=function(msg,src,line,col,err){
+    console.error('UNCAUGHT: '+msg+' at '+src+':'+line);
+    return false;
+  };
+  window.onunhandledrejection=function(e){
+    console.error('PROMISE: '+(e.reason?.message||e.reason));
+  };
+})();
+
 // ═══ DATA ═══
 const ANIMALS=[
   {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:5,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:6,earn:.7},
@@ -387,7 +414,12 @@ const ZA={
     try{
       ZG.start();
     }catch(startErr){
-      console.error('ZG.start() error:',startErr);
+      console.error('ZG.start() error:',startErr.message, startErr.stack||'');
+      // Show full error on screen
+      var errBox=document.createElement('div');
+      errBox.style.cssText='position:fixed;inset:0;z-index:99998;background:#000;color:#f44;font:13px monospace;padding:20px;overflow-y:auto;white-space:pre-wrap';
+      errBox.textContent='❌ ZOO START FEHLER:\n\n'+startErr.message+'\n\n'+startErr.stack+'\n\nAlle Logs:\n'+(window._getZooLogs?window._getZooLogs():'keine');
+      document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
   logout(){ZG.stop();['gond','index','shop','trade','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
@@ -433,10 +465,10 @@ const ZG={
     // ── DEBUG PANEL ──
     const _dbg = document.createElement('div');
     _dbg.id='_dbg';
-    _dbg.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#0f0;font:11px monospace;padding:6px 12px;border-radius:8px;z-index:9999;max-width:90vw;text-align:center;border:1px solid #0f0';
-    _dbg.textContent='⚙️ Starting 3D...';
+    _dbg.style.cssText='position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font:13px monospace;padding:8px 12px;z-index:9999;border-bottom:2px solid #0f0';
+    _dbg.textContent='⚙️ Starte 3D Zoo... (bitte warten)';
     document.body.appendChild(_dbg);
-    const _log = function(msg,col){_dbg.innerHTML=msg;_dbg.style.color=col||'#0f0';console.log('[ZOO]',msg);};
+    const _log = function(msg,col){_dbg.textContent=msg;_dbg.style.color=col||'#0f0';console.log('[ZOO]',msg);};
     
     if(typeof THREE === 'undefined'){
       _log('❌ THREE.js nicht geladen! Kein Internet?','#f00');
