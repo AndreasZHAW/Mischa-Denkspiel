@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v36-FINAL-163532 -->
 <!-- ZOO v17.1 -->
 <html lang="de">
 <head>
@@ -423,12 +424,21 @@ const ZG={
 
   start(){
     // Check THREE.js loaded
+    // ── DEBUG PANEL ──
+    const _dbg = document.createElement('div');
+    _dbg.id='_dbg';
+    _dbg.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#0f0;font:11px monospace;padding:6px 12px;border-radius:8px;z-index:9999;max-width:90vw;text-align:center;border:1px solid #0f0';
+    _dbg.textContent='⚙️ Starting 3D...';
+    document.body.appendChild(_dbg);
+    const _log = function(msg,col){_dbg.innerHTML=msg;_dbg.style.color=col||'#0f0';console.log('[ZOO]',msg);};
+    
     if(typeof THREE === 'undefined'){
+      _log('❌ THREE.js nicht geladen! Kein Internet?','#f00');
       document.getElementById('s-zoo').style.background='#1a4a1a';
       ZP.toast('❌ Three.js CDN nicht geladen! Bitte Internet-Verbindung prüfen.',5000);
-      // Show basic colored background anyway
       return;
     }
+    _log('✅ THREE.js r'+THREE.REVISION+' geladen');
     const canvas=G('zc');
     // Get actual viewport dimensions
     // iPad fix: use screen dimensions as fallback
@@ -462,11 +472,13 @@ const ZG={
       // Force one render to verify scene works
       this.renderer.render(this.scene, this.cam);
       console.log('✅ Scene rendered OK. Objects:', this.scene.children.length);
+      if(window._log) { window._log('✅ Render OK! '+this.scene.children.length+' Obj. Du solltest jetzt etwas sehen!','#FFD700'); setTimeout(()=>{const d=document.getElementById('_dbg');if(d)d.remove();},4000); }
     }catch(e){
       console.error('World/render error:',e);
       const errDiv=document.createElement('div');
       errDiv.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);background:rgba(231,76,60,.9);color:white;padding:15px 20px;border-radius:12px;font-weight:900;z-index:999;max-width:300px;text-align:center';
       errDiv.innerHTML='3D Fehler: '+e.message+'<br><small>Seite neu laden (F5)</small>';
+      if(window._log) window._log('❌ Fehler: '+e.message,'#f00');
       document.body.appendChild(errDiv);
     }
     this._controls();
@@ -560,6 +572,7 @@ const ZG={
     testCube.position.set(0,3,45); // Right in front of Zone A start
     this.scene.add(testCube);
     console.log('World built. Scene objects:', this.scene.children.length);
+    if(window._log) window._log('✅ Welt: '+this.scene.children.length+' Objekte');
   },
 
   _station(){
