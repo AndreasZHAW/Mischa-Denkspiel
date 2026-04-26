@@ -196,6 +196,24 @@ function step4() {
 
 // ── Step 5: Check zoo.html exists ──
 function step5() {
+  // Test Firebase read (zoo_players collection)
+  fetch('https://firestore.googleapis.com/v1/projects/mischa-denkspiel/databases/(default)/documents/zoo_players', {method:'GET'})
+    .then(r => {
+      if(r.status===200){
+        setStatus('zoo-status', '✅ Firebase zoo_players: lesbar (Multiplayer OK!)', 'ok');
+        log('Firebase zoo_players: READABLE - multiplayer works');
+      } else if(r.status===403){
+        setStatus('zoo-status', '❌ Firebase zoo_players: PERMISSION DENIED\nFirestore Rules müssen angepasst werden!\nGehe zu: console.firebase.google.com → Firestore → Rules', 'err');
+        log('Firebase zoo_players: PERMISSION DENIED - needs Firestore rule fix', 'err');
+      } else {
+        setStatus('zoo-status', '⚠️ Firebase zoo_players: HTTP '+r.status, 'warn');
+        log('Firebase zoo_players: HTTP '+r.status);
+      }
+    })
+    .catch(e=>{
+      setStatus('zoo-status', '❌ Firebase Netzwerkfehler: '+e.message, 'err');
+      log('Firebase: NETWORK ERROR - '+e.message, 'err');
+    });
   fetch('zoo.html', {method:'HEAD'})
     .then(r => {
       const size = r.headers.get('content-length');
