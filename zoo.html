@@ -377,7 +377,13 @@ const ZA={
   async checkPrivate(){await ZS.load();if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');
     await ZS.load();
-    await new Promise(r=>setTimeout(r,200)); // iPad needs longer layout time
+    // Wait for browser to render and give canvas real dimensions
+    await new Promise(r=>setTimeout(r,100));
+    // Force layout
+    const _canvas=document.getElementById('zc');
+    if(_canvas){_canvas.style.width='100vw';_canvas.style.height='100vh';}
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    await new Promise(r=>setTimeout(r,150));
     try{
       ZG.start();
     }catch(startErr){
@@ -442,10 +448,24 @@ const ZG={
     const canvas=G('zc');
     // Get actual viewport dimensions
     // iPad fix: use screen dimensions as fallback
-    // Get real viewport size
-    const W = window.innerWidth || screen.width || 800;
-    const H = window.innerHeight || screen.height || 600;
+    // Get real canvas/viewport size - try multiple sources
+    const W = (canvas.offsetWidth > 10 ? canvas.offsetWidth : null)
+           || (window.innerWidth > 10 ? window.innerWidth : null)
+           || screen.width || 1280;
+    const H = (canvas.offsetHeight > 10 ? canvas.offsetHeight : null)
+           || (window.innerHeight > 10 ? window.innerHeight : null)
+           || screen.height || 720;
+    console.log('Canvas real size:', canvas.offsetWidth, 'x', canvas.offsetHeight, '| window:', window.innerWidth, 'x', window.innerHeight, '| using:', W, 'x', H);
     // Set canvas buffer AND display size explicitly
+    if(W < 10 || H < 10){
+      document.body.style.background='#800';
+      const e=document.createElement('div');
+      e.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:1.2rem;text-align:center;background:#600;padding:20px;border-radius:12px;z-index:9999';
+      e.textContent='❌ Canvas-Grösse 0! Bitte Seite neu laden (F5).';
+      document.body.appendChild(e);
+      console.error('Canvas size is 0! offsetWidth='+canvas.offsetWidth+' window.innerWidth='+window.innerWidth);
+      return;
+    }
     canvas.width = W;
     canvas.height = H;
     canvas.style.width = W + 'px';
