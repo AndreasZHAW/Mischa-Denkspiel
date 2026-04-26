@@ -371,7 +371,7 @@ function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).j
 // ═══ STATE ═══
 const ZS={
   player:null,char:null,zoo:null,isAdmin:false,isPrivate:false,
-  nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic',totalEarned:0,totalVisitors:0};},
+  nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
   maxE(){if(!this.zoo)return 5;return 5+(this.zoo?.xenc||0)+(this.zoo?.reb||0)*2;},
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;return Math.max(500,ms);},
   lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
@@ -392,25 +392,36 @@ const ZS={
   },
   _fix(){
     const z=this.zoo;
-    // Migrate old field names (enclosures -> enc)
-    if(!z.enc && z.enclosures) z.enc=z.enclosures;
-    if(!z.enc) z.enc=Array(5).fill(null);
-    // Migrate old field names
-    if(z.upgrades && !z.upg) z.upg=z.upgrades;
-    if(!z.upg) z.upg={};
-    if(z.tempBoosts && !z.tb) z.tb=z.tempBoosts;
-    if(!z.tb) z.tb={};
-    if(z.rebirths!==undefined && z.reb===undefined) z.reb=z.rebirths;
-    if(z.reb===undefined) z.reb=0;
-    if(z.rebirthMult===undefined) z.rebirthMult=1;
-    if(z.luckLevel!==undefined && z.luckLv===undefined) z.luckLv=z.luckLevel;
-    if(z.luckLv===undefined) z.luckLv=0;
-    if(z.luck===undefined) z.luck=1;
-    if(z.mt===undefined) z.mt=8;
-    if(!z.ownSlaps) z.ownSlaps=['basic'];
-    if(!z.eq) z.eq='basic';
-    if(z.xenc===undefined) z.xenc=z.extraEnc||0;
-    // Ensure enc is long enough
+    // ── Migrate ALL old field names to new short names ──
+    // enc (was: enclosures)
+    if(!z.enc) z.enc = z.enclosures || Array(5).fill(null);
+    // upg (was: upgrades)
+    if(!z.upg) z.upg = z.upgrades || {};
+    // tb (was: tempBoosts)
+    if(!z.tb) z.tb = z.tempBoosts || {};
+    // reb (was: rebirths)
+    if(z.reb===undefined) z.reb = z.rebirths || 0;
+    // rebirthMult
+    if(!z.rebirthMult) z.rebirthMult = 1+(z.reb||0)*0.5;
+    // luckLv (was: luckLevel)
+    if(z.luckLv===undefined) z.luckLv = z.luckLevel || 0;
+    // luck
+    if(!z.luck) z.luck = 1;
+    // mt
+    if(z.mt===undefined) z.mt = 8;
+    // tv (was: totalVisitors)
+    if(z.tv===undefined) z.tv = z.totalVisitors || 0;
+    // te (was: totalEarned)
+    if(z.te===undefined) z.te = z.totalEarned || 0;
+    // xenc (was: extraEnc)
+    if(z.xenc===undefined) z.xenc = z.extraEnc || 0;
+    // st (was: startedAt)
+    if(!z.st) z.st = z.startedAt || Date.now();
+    // slaps
+    if(!z.ownSlaps) z.ownSlaps = ['basic'];
+    if(!z.eq) z.eq = 'basic';
+    if(z.lslaps===undefined) z.lslaps = 0;
+    // Ensure enc array is long enough
     const n=this.maxE();
     while(z.enc.length<n) z.enc.push(null);
   }
