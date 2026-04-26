@@ -438,6 +438,7 @@ const ZA={
   async checkPrivate(){await ZS.load();if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');
     await ZS.load();
+    if(ZS.zoo) ZS._fix(); // ensure all fields migrated before 3D starts
     // Wait for browser to render and give canvas real dimensions
     await new Promise(r=>setTimeout(r,100));
     // Force layout
@@ -1033,7 +1034,9 @@ const ZG={
   },
 
   _tick(){
-    const z=ZS.zoo;if(!z||!z.enc)return;
+    const z=ZS.zoo;if(!z)return;
+    if(!z.enc||z.tv===undefined)ZS._fix(); // migrate on the fly
+    if(!z.enc)return;
     ZS._fix();
     this.visitT+=100;
     if(this.visitT>=ZS.visitMs()){this.visitT=0;this._visitor();}
@@ -1049,9 +1052,12 @@ const ZG={
 
   _updHUD(){
     const z=ZS.zoo;if(!z)return;
-    G('hmoney').textContent='🌀 '+$mt(z.mt).replace('🌀','');
-    G('hvis').textContent='👥 '+z.tv.toLocaleString();
-    const m=[];if((z.rebirthMult||1)>1)m.push(`×${z.rebirthMult.toFixed(1)}`);if(z.luck>1)m.push(`🍀×${z.luck}`);if(this.ev)m.push(this.ev.n);
+    if(!z.tv&&z.tv!==0)z.tv=z.totalVisitors||0; // migrate on the fly
+    if(!z.te&&z.te!==0)z.te=z.totalEarned||0;
+    if(!z.enc)ZS._fix(); // ensure fixed
+    G('hmoney').textContent='🌀 '+$mt(z.mt||0).replace('🌀','');
+    G('hvis').textContent='👥 '+(z.tv||0).toLocaleString();
+    const m=[];if((z.rebirthMult||1)>1)m.push(`×${(z.rebirthMult||1).toFixed(1)}`);if((z.luck||1)>1)m.push(`🍀×${z.luck}`);if(this.ev)m.push(this.ev.n);
     G('hmult').textContent=m.join(' · ');
     const b=G('lwbadge');if(b)b.style.display=LW.spins>0?'inline':'none';
   },
