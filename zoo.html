@@ -205,17 +205,39 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 </div>
 
 <!-- LUCKY WHEEL -->
-<div id="lwrap" ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()">
-<div class="lwtit" id="lwtit">🍀 Glücksrad!</div>
-<div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-bottom:9px;text-align:center">20 Min gespielt — dein Spin wartet!</div>
-<div style="position:relative;display:inline-block">
-<div style="position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:2rem;color:#FFD700;z-index:2">▼</div>
-<canvas id="lwc" width="280" height="280"></canvas>
+<div id="lwrap" ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()" style="position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;transition:background .5s;background:rgba(0,0,0,.92)">
+  <!-- Title bar: GLÜCKSRAD + X -->
+  <div style="position:relative;margin-bottom:14px">
+    <div id="lwtit" style="background:#111;color:#fff;font-family:'Fredoka One',cursive;font-size:1.6rem;font-weight:900;padding:10px 28px;border-radius:12px;letter-spacing:2px;border:3px solid #444;box-shadow:0 4px 12px rgba(0,0,0,.5)">🎡 GLÜCKSRAD</div>
+    <button onclick="document.getElementById('lwrap').style.display='none'" style="position:absolute;right:-14px;top:-10px;background:#E74C3C;color:white;border:none;border-radius:8px;width:32px;height:32px;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4)">✕</button>
+  </div>
+  <!-- Spin count info -->
+  <div style="font-size:.8rem;color:rgba(255,255,255,.55);margin-bottom:10px" id="lw-spininfo">20 Min gespielt — dein Spin wartet!</div>
+  <!-- Wheel container with base/stand -->
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center">
+    <!-- Pointer triangle -->
+    <div style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid #E74C3C;z-index:10;margin-bottom:-4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))"></div>
+    <!-- Outer ring -->
+    <div style="background:#111;border-radius:50%;padding:8px;box-shadow:0 0 0 4px #333,0 0 0 8px #222,0 8px 24px rgba(0,0,0,.7)">
+      <!-- Dot markers on rim -->
+      <div style="position:relative;width:min(70vw,340px);height:min(70vw,340px)">
+        <canvas id="lwcanvas" width="340" height="340" style="width:100%;height:100%;display:block;border-radius:50%"></canvas>
+        <!-- Center button -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#2a2a2a,#111);border:3px solid #444;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.6);z-index:5">
+          <span style="font-size:1.8rem">🎡</span>
+        </div>
+      </div>
+    </div>
+    <!-- Stand/base -->
+    <div style="width:80px;height:14px;background:linear-gradient(#333,#222);border-radius:0 0 6px 6px;box-shadow:0 4px 8px rgba(0,0,0,.5)"></div>
+    <div style="width:120px;height:10px;background:linear-gradient(#222,#111);border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,.5)"></div>
+  </div>
+  <!-- Spin button + count -->
+  <div style="margin-top:14px;background:#111;border:2px solid #333;border-radius:12px;padding:8px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 12px rgba(0,0,0,.4)">
+    <span style="color:white;font-size:.85rem;font-weight:700">Deine Spins: <b id="lwspins" style="color:#FFD700">0</b></span>
+    <button id="lwbtn" onclick="LW.spin()" style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;border:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 4px 10px rgba(255,165,0,.4)">🎰 Drehen!</button>
+  </div>
 </div>
-<button class="lwbtn" id="lwbtn" onclick="LW.spin()">🎰 Drehen!</button>
-<button onclick="document.getElementById('lwrap').style.display='none'" style="margin-top:7px;background:none;border:none;color:rgba(255,255,255,.35);font-size:.76rem;cursor:pointer">Schliessen</button>
-</div>
-
 <!-- PANELS -->
 <div class="zp off" id="p-gond"><div class="zpi">
 <button class="pcls" onclick="ZP.close('gond')">✕</button>
@@ -468,6 +490,7 @@ const ZG={
     this.pitch = 0;
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     LW.init();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
+    setTimeout(()=>ZG._listenAnimalEvents(),3000);
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     setInterval(()=>{if(LuckyBlocks.blocks.length<3)LuckyBlocks.spawn();},180000);
@@ -585,15 +608,15 @@ const ZG={
     this._carMeshes=[];
     for(let i=0;i<3;i++){
       const g=new THREE.Group();
-      const ang=i/3*Math.PI*2;
+      const carAng=i/3*Math.PI*2;
       // Gondola body (dark cabin)
-      const body=new THREE.Mesh(new THREE.BoxGeometry(2.8,2,2.4),new THREE.MeshBasicMaterial({color:0x2a2a2a}));g.add(body);
+      const carBody=new THREE.Mesh(new THREE.BoxGeometry(2.8,2,2.4),new THREE.MeshBasicMaterial({color:0x2a2a2a}));g.add(carBody);
       // Windows (blue glass)
       [[-.8,0,1.22],[.8,0,1.22],[-.8,0,-1.22],[.8,0,-1.22]].forEach(([wx,wy,wz])=>{
         const win=new THREE.Mesh(new THREE.BoxGeometry(.8,.9,.08),new THREE.MeshBasicMaterial({color:0x88ccff,transparent:true,opacity:.75}));win.position.set(wx,wy,wz);g.add(win);
       });
       // Colored bottom bar
-      const bar=new THREE.Mesh(new THREE.BoxGeometry(2.8,.2,2.4),new THREE.MeshBasicMaterial({color:[0xcc3300,0x884400,0x553300][i]}));bar.position.y=-.9;g.add(bar);
+      const carBar=new THREE.Mesh(new THREE.BoxGeometry(2.8,.2,2.4),new THREE.MeshBasicMaterial({color:[0xcc3300,0x884400,0x553300][i]}));carBar.position.y=-.9;g.add(carBar);
       // Roof hanger
       const hanger=new THREE.Mesh(new THREE.BoxGeometry(.35,.7,.35),new THREE.MeshBasicMaterial({color:0x888}));hanger.position.y=1.25;g.add(hanger);
       // Animal sprite (updates dynamically)
@@ -1314,36 +1337,85 @@ const LW={
 
   open(){
     const w=G('lwrap');w.style.display='flex';
-    const ti=G('lwtit');if(ti)ti.textContent=this.W.emoji+' '+this.W.name;
-    // Theme the background based on wheel type
+    // Update title
+    const ti=G('lwtit');if(ti)ti.textContent='🎡 '+this.W.name.toUpperCase();
+    // Update spin count display
+    const sc=G('lwspins');if(sc)sc.textContent=this.spins;
+    const info=G('lw-spininfo');
+    if(info)info.textContent=this.spins>0?`${this.spins} Spin${this.spins>1?'s':''} verfügbar!`:'20 Min spielen für nächsten Spin';
+    // Theme background
     const themes={
-      normal:'rgba(0,0,0,.92)',
-      france:'rgba(0,35,149,.85)',
-      weekend:'rgba(50,0,80,.9)',
-      christmas:'rgba(0,40,0,.9)'
+      normal:'rgba(10,10,20,.95)',
+      france:'rgba(0,35,149,.92)',
+      weekend:'rgba(50,0,80,.95)',
+      christmas:'rgba(0,40,0,.95)'
     };
     w.style.background=themes[this.activeType]||themes.normal;
     this._draw(this.angle);
-    G('lwbtn').disabled=false;G('lwbtn').textContent='🎰 Drehen!';
+    const btn=G('lwbtn');
+    if(btn){btn.disabled=this.spins<=0;btn.textContent=this.spins>0?'🎰 Drehen!':'⏳ Kein Spin';}
   },
 
   _draw(rot){
-    const cv=G('lwc');if(!cv)return;const ctx=cv.getContext('2d');
-    const W=280,cx=140,cy=140,R=132;ctx.clearRect(0,0,W,W);
-    const prizes=this.W.prizes;const tot=prizes.reduce((s,p)=>s+p.c,0);let a=rot;
+    const cv=G('lwcanvas');if(!cv)return;
+    const ctx=cv.getContext('2d');
+    const W=340,cx=170,cy=170,R=158;
+    ctx.clearRect(0,0,W,W);
+    const prizes=this.W.prizes;
+    const tot=prizes.reduce((s,p)=>s+p.c,0);
+    let a=rot;
+    
     prizes.forEach(p=>{
-      const arc=(p.c/tot)*Math.PI*2;
-      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,a,a+arc);ctx.closePath();
-      ctx.fillStyle=p.col;ctx.fill();ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=2;ctx.stroke();
-      ctx.save();ctx.translate(cx,cy);ctx.rotate(a+arc/2);ctx.textAlign='right';ctx.fillStyle='white';
-      ctx.font='bold 9px Arial';ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;ctx.fillText(p.l,R-6,4);
-      ctx.restore();a+=arc;
+      const slice=(p.c/tot)*Math.PI*2;
+      // Segment fill
+      ctx.beginPath();ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R,a,a+slice);ctx.closePath();
+      ctx.fillStyle=p.col;ctx.fill();
+      // Darker border between segments
+      ctx.beginPath();ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R,a,a+slice);ctx.closePath();
+      ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;ctx.stroke();
+      // Label text
+      ctx.save();
+      ctx.translate(cx+Math.cos(a+slice/2)*(R*.68),cy+Math.sin(a+slice/2)*(R*.68));
+      ctx.rotate(a+slice/2+Math.PI/2);
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      // Text shadow
+      ctx.fillStyle='rgba(0,0,0,.5)';
+      ctx.font='bold 12px Arial';
+      ctx.fillText(p.l,1,1);
+      // Main text
+      ctx.fillStyle='#fff';
+      ctx.fillText(p.l,0,0);
+      // Chance percentage
+      ctx.font='10px Arial';
+      ctx.fillStyle='rgba(255,255,255,.75)';
+      ctx.fillText(Math.round(p.c/tot*100)+'%',0,13);
+      ctx.restore();
+      a+=slice;
     });
-    ctx.beginPath();ctx.arc(cx,cy,22,0,Math.PI*2);
-    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,22);cg.addColorStop(0,'#FFD700');cg.addColorStop(1,'#FFA500');
-    ctx.fillStyle=cg;ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
-    ctx.fillStyle='#1a0800';ctx.font='bold 15px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(this.W.emoji,cx,cy);
-    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.strokeStyle=this.W.glowCol||'#FFD700';ctx.lineWidth=5;ctx.stroke();
+    
+    // Outer dark ring
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.strokeStyle='#222';ctx.lineWidth=6;ctx.stroke();
+    
+    // White dots on rim (like reference image)
+    const numDots=prizes.length;
+    for(let i=0;i<numDots;i++){
+      const da=(i/numDots)*Math.PI*2+rot;
+      const dx=cx+Math.cos(da)*(R+2);
+      const dy=cy+Math.sin(da)*(R+2);
+      ctx.beginPath();ctx.arc(dx,dy,5,0,Math.PI*2);
+      ctx.fillStyle='#fff';ctx.fill();
+      ctx.strokeStyle='#333';ctx.lineWidth=1;ctx.stroke();
+    }
+    
+    // Inner glow circle
+    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,40);
+    grad.addColorStop(0,'rgba(255,255,255,.15)');
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(cx,cy,40,0,Math.PI*2);
+    ctx.fillStyle=grad;ctx.fill();
   },
 
   spin(){
@@ -1424,7 +1496,9 @@ const ZP={
   // GONDOLA
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};ZG.gQ.shift();ZG.gQ.push(ZG._mkG());    // Animal walk animation: float from gondola station area to enclosure
+  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};ZG.gQ.shift();ZG.gQ.push(ZG._mkG());    // Broadcast animal purchase to all players (multiplayer)
+    this._broadcastAnimalWalk(g.a, slot);
+    // Local walk animation
     this._animalWalk(g.a, slot);
     ZG._encs();
     const rareR=['ultralegendary','god','mythic','secret'];
@@ -1533,10 +1607,10 @@ const ZP={
       </div>
     </div>`;
   },
-  _animalWalk(animal, slot){
+  _animalWalk(animal, slot, tint=null){
     // 10-second walk from gondola station to enclosure
     const el=document.createElement('div');
-    el.style.cssText='position:fixed;font-size:3rem;z-index:450;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.7));transition:none';
+    el.style.cssText='position:fixed;font-size:3rem;z-index:450;pointer-events:none;transition:none;'+(tint?'filter:drop-shadow(0 4px 8px '+tint+')':'filter:drop-shadow(0 4px 8px rgba(0,0,0,.7))');
     el.textContent=animal.e;
     // Start: gondola station area (center of screen, middle height)
     const startX=window.innerWidth/2;
