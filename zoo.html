@@ -605,6 +605,84 @@ const ZG={
     document.exitPointerLock?.();
   },
 
+  // ── Broadcast listeners ──
+  _listenWheelBroadcast(){
+    try{
+      if(typeof _db==='undefined'||!_db)return;
+      _db.collection('zoo_broadcast').doc('wheel').onSnapshot(snap=>{
+        if(!snap.exists)return;
+        const d=snap.data();
+        if(Date.now()-d.at>10000)return; // ignore old events
+        if(LW.activeType!==d.type){
+          LW.setType(d.type,0);
+          const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄'};
+          // Admin announcement banner
+          const a1=document.createElement('div');
+          a1.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px;text-align:center;font-weight:900;font-size:1rem;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000';
+          a1.textContent='👑 Admin hat das '+(names[d.type]||d.type)+' gespawnt!';
+          const a2=document.createElement('div');
+          a2.style.cssText='position:fixed;top:46px;left:0;right:0;z-index:9999;padding:6px;text-align:center;font-weight:700;font-size:.85rem;background:#000;color:#FFD700';
+          a2.textContent='🎡 '+LW.W.emoji+' '+LW.W.name+' ist jetzt aktiv!';
+          document.body.appendChild(a1);document.body.appendChild(a2);
+          setTimeout(()=>{a1.remove();a2.remove();},5000);
+        }
+      });
+    }catch(e){}
+  },
+
+  _listenAnimalEvents(){
+    try{
+      if(typeof _db==='undefined'||!_db)return;
+      const cutoff=Date.now()-5000;
+      _db.collection('zoo_events')
+        .where('at','>',cutoff)
+        .onSnapshot(snap=>{
+          snap.docChanges().forEach(ch=>{
+            if(ch.type!=='added')return;
+            const d=ch.doc.data();
+            if(d.type==='animal_walk'&&d.buyer!==ZS.player){
+              ZP.toast(`${d.animal.e} ${d.animal.n} läuft zu ${d.buyer}'s Zoo! ⚔️`,3000);
+              this._animalWalk(d.animal,d.slot,'#ff6b6b');
+            }
+          });
+        });
+    }catch(e){}
+  },
+
+  // ── MULTIPLAYER: show other players as coloured avatars ──
+  _updOthers(others){
+    const colors=[0xff6b6b,0x4fc3f7,0xffe082,0xa5d6a7,0xce93d8];
+    // Remove players who left
+    Object.keys(this.otherM).forEach(n=>{
+      if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}
+    });
+    // Add/update other players
+    let ci=0;
+    Object.values(others).forEach(op=>{
+      if(!this.otherM[op.name]){
+        const g=new THREE.Group();
+        const body=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,1.4,10),new THREE.MeshBasicMaterial({color:colors[ci%colors.length]}));
+        body.position.y=.7;
+        const head=new THREE.Mesh(new THREE.SphereGeometry(.45,10,8),new THREE.MeshBasicMaterial({color:0xffe0b0}));
+        head.position.y=1.8;
+        g.add(body);g.add(head);
+        // Name label
+        const lbl=this._txt((op.char||'🧭')+' '+op.name,.55,'#fff');
+        lbl.position.set(0,2.8,0);lbl.scale.set(5,1.2,1);g.add(lbl);
+        this.scene.add(g);
+        this.otherM[op.name]=g;
+        ci++;
+      }
+      // Update position smoothly
+      const m=this.otherM[op.name];
+      if(m){
+        m.position.x=op.x||0;
+        m.position.y=0;
+        m.position.z=op.z||0;
+      }
+    });
+  },
+
   _world(){
     const sc=this.scene;
     // Lights
