@@ -623,12 +623,12 @@ const ZG={
       const asp=this._txt('?',0.75,'#FFD700');asp.position.set(0,0,1.3);asp.scale.set(2.2,2.2,1);asp.userData.animalLabel=true;g.add(asp);
       // [E] buy prompt (hidden by default)
       const epr=this._txt('[E] Kaufen',0.55,'#FFD700');epr.position.set(0,2.5,0);epr.scale.set(4.5,1.3,1);epr.visible=false;epr.userData.buyPrompt=true;g.add(epr);
-      g.position.set(Math.cos(ang)*10,11+i*2,Math.sin(ang)*10);
-      g.userData={carIdx:i,angle:ang};
+      g.position.set(Math.cos(carAng)*10,11+i*2,Math.sin(carAng)*10);
+      g.userData={carIdx:i,angle:carAng};
       this._carMeshes.push(g);sc.add(g);
       // Cable
       const rope=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,10,6),new THREE.MeshBasicMaterial({color:0x555}));
-      rope.position.set(Math.cos(ang)*5,17,Math.sin(ang)*5);sc.add(rope);
+      rope.position.set(Math.cos(carAng)*5,17,Math.sin(carAng)*5);sc.add(rope);
     }
     const lbl=this._txt('🚡 GONDEL-STATION',1.1,'#FFD700');
     lbl.position.set(0,20,0); lbl.scale.set(14,3,1); sc.add(lbl);
