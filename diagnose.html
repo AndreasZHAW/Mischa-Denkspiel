@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🔍 Zoo Diagnose</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#111; color:#0f0; font-family:monospace; font-size:14px; padding:10px; }
+.ok  { color:#0f0; }
+.err { color:#f44; font-weight:bold; }
+.warn{ color:#fa0; }
+.info{ color:#4af; }
+h1   { color:#FFD700; font-size:1.4rem; margin-bottom:10px; }
+.box { background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:10px; margin-bottom:10px; }
+pre  { white-space:pre-wrap; word-break:break-all; font-size:12px; }
+button { background:#FFD700; color:#000; border:none; padding:8px 16px; border-radius:6px;
+         font-weight:bold; font-size:1rem; cursor:pointer; margin:4px; }
+#canvas-test { border:2px solid #444; display:block; margin:6px 0; }
+</style>
+</head>
+<body>
+<h1>🔍 Zoo 3D — Diagnose Tool</h1>
+
+<div class="box">
+  <b class="info">Schritt 1: Browser-Info</b>
+  <pre id="browser-info">Lädt...</pre>
+</div>
+
+<div class="box">
+  <b class="info">Schritt 2: Three.js CDN Test</b>
+  <pre id="three-status">⏳ Warte auf Three.js...</pre>
+</div>
+
+<div class="box">
+  <b class="info">Schritt 3: WebGL Test</b>
+  <canvas id="canvas-test" width="300" height="60"></canvas>
+  <pre id="webgl-status">⏳ Teste WebGL...</pre>
+</div>
+
+<div class="box">
+  <b class="info">Schritt 4: Canvas Grösse Test</b>
+  <div id="canvas-size-box" style="width:100%;height:80px;background:#000;border:2px solid #444;position:relative">
+    <canvas id="canvas-size-test" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+  </div>
+  <pre id="size-status">⏳ Messe Canvas...</pre>
+</div>
+
+<div class="box">
+  <b class="info">Schritt 5: Zoo HTML Prüfung</b>
+  <pre id="zoo-status">⏳ Lade zoo.html...</pre>
+</div>
+
+<div class="box">
+  <b class="warn">📋 KOMPLETTER LOG (kopiere alles und schicke es uns!)</b>
+  <button onclick="copyLog()">📋 Log kopieren</button>
+  <button onclick="downloadLog()">💾 Log herunterladen</button>
+  <pre id="full-log" style="margin-top:8px;max-height:300px;overflow-y:auto;border:1px solid #333;padding:6px"></pre>
+</div>
+
+<script>
+const logs = [];
+const logEl = document.getElementById('full-log');
+
+function log(msg, type='info') {
+  const ts = new Date().toISOString().slice(11,23);
+  const line = '[' + ts + '] ' + msg;
+  logs.push(line);
+  const el = document.createElement('div');
+  el.className = type;
+  el.textContent = line;
+  logEl.appendChild(el);
+  logEl.scrollTop = logEl.scrollHeight;
+  console.log(line);
+}
+
+function setStatus(id, html, type) {
+  const el = document.getElementById(id);
+  if(el) { el.innerHTML = html; el.className = type||''; }
+}
+
+// ── Step 1: Browser Info ──
+function step1() {
+  const ua = navigator.userAgent;
+  const w = window.innerWidth, h = window.innerHeight;
+  const dpr = window.devicePixelRatio||1;
+  const info = [
+    'UserAgent: ' + ua,
+    'Window: ' + w + 'x' + h + ' (DPR=' + dpr + ')',
+    'Screen: ' + screen.width + 'x' + screen.height,
+    'URL: ' + location.href,
+    'Protocol: ' + location.protocol,
+    'Date: ' + new Date().toLocaleString('de-CH'),
+  ].join('\n');
+  setStatus('browser-info', info);
+  log('Browser: ' + ua.slice(0,80));
+  log('Window: ' + w + 'x' + h);
+  log('Protocol: ' + location.protocol);
+}
+
+// ── Step 2: Three.js ──
+function step2() {
+  if(typeof THREE === 'undefined') {
+    setStatus('three-status', '❌ THREE.js NICHT GELADEN! CDN blockiert oder kein Internet!', 'err');
+    log('THREE.js: NOT LOADED', 'err');
+  } else {
+    setStatus('three-status', '✅ THREE.js r' + THREE.REVISION + ' geladen', 'ok');
+    log('THREE.js: r' + THREE.REVISION);
+  }
+}
+
+// ── Step 3: WebGL ──
+function step3() {
+  const canvas = document.getElementById('canvas-test');
+  const ctx2 = canvas.getContext('2d');
+  
+  // Test 2D context
+  ctx2.fillStyle = '#222';
+  ctx2.fillRect(0,0,300,60);
+  ctx2.fillStyle = '#0f0';
+  ctx2.font = '14px monospace';
+  
+  let webglOk = false;
+  let webglErr = '';
+  try {
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if(gl) {
+      const vendor = gl.getParameter(gl.VENDOR);
+      const renderer = gl.getParameter(gl.RENDERER);
+      webglOk = true;
+      ctx2.fillText('✅ WebGL OK: ' + renderer.slice(0,35), 5, 20);
+      setStatus('webgl-status', '✅ WebGL OK\nVendor: ' + vendor + '\nRenderer: ' + renderer, 'ok');
+      log('WebGL: OK - ' + renderer);
+    } else {
+      webglErr = 'getContext returned null';
+    }
+  } catch(e) {
+    webglErr = e.message;
+  }
+  
+  if(!webglOk) {
+    ctx2.fillStyle = '#f44';
+    ctx2.fillText('❌ WebGL FEHLER: ' + webglErr, 5, 20);
+    setStatus('webgl-status', '❌ WebGL FEHLER: ' + webglErr, 'err');
+    log('WebGL: FAIL - ' + webglErr, 'err');
+  }
+  
+  // Test THREE WebGLRenderer if available
+  if(typeof THREE !== 'undefined') {
+    try {
+      const testCanvas = document.createElement('canvas');
+      testCanvas.width = 10; testCanvas.height = 10;
+      const r = new THREE.WebGLRenderer({canvas:testCanvas, antialias:false});
+      r.setSize(10,10);
+      r.setClearColor(0xff0000);
+      r.render(new THREE.Scene(), new THREE.PerspectiveCamera());
+      r.dispose();
+      log('THREE.WebGLRenderer: OK');
+    } catch(e) {
+      log('THREE.WebGLRenderer: FAIL - ' + e.message, 'err');
+    }
+  }
+}
+
+// ── Step 4: Canvas size timing ──
+function step4() {
+  const box = document.getElementById('canvas-size-box');
+  const canvas = document.getElementById('canvas-size-test');
+  
+  function measure(label) {
+    const ow = canvas.offsetWidth, oh = canvas.offsetHeight;
+    const iw = window.innerWidth, ih = window.innerHeight;
+    const msg = label + ': canvas.offset=' + ow + 'x' + oh + ' | window.inner=' + iw + 'x' + ih;
+    log(msg);
+    return msg;
+  }
+  
+  const m1 = measure('Sofort');
+  
+  requestAnimationFrame(() => {
+    const m2 = measure('Nach 1 rAF');
+    requestAnimationFrame(() => {
+      const m3 = measure('Nach 2 rAF');
+      setTimeout(() => {
+        const m4 = measure('Nach 300ms');
+        setStatus('size-status', [m1,m2,m3,m4].join('\n'), canvas.offsetWidth > 10 ? 'ok' : 'err');
+        
+        if(canvas.offsetWidth < 10) {
+          log('⚠️ Canvas hat Breite 0 - das ist der schwarze Bildschirm Bug!', 'err');
+          document.getElementById('size-status').innerHTML += '\n\n❌ DIES IST DER BUG: Canvas hat Breite 0!\nDie 3D-Szene rendert in 0x0 Pixel.';
+        }
+      }, 300);
+    });
+  });
+}
+
+// ── Step 5: Check zoo.html exists ──
+function step5() {
+  fetch('zoo.html', {method:'HEAD'})
+    .then(r => {
+      const size = r.headers.get('content-length');
+      setStatus('zoo-status', '✅ zoo.html gefunden (HTTP ' + r.status + ', ' + (size||'?') + ' bytes)', 'ok');
+      log('zoo.html: HTTP ' + r.status + ' size=' + size);
+    })
+    .catch(e => {
+      setStatus('zoo-status', '❌ zoo.html Fehler: ' + e.message, 'err');
+      log('zoo.html: FAIL - ' + e.message, 'err');
+    });
+}
+
+function copyLog() {
+  navigator.clipboard.writeText(logs.join('\n'))
+    .then(() => alert('✅ Log kopiert! Bitte in Chat einfügen.'))
+    .catch(() => { document.getElementById('full-log').select(); document.execCommand('copy'); });
+}
+
+function downloadLog() {
+  const blob = new Blob([logs.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zoo-diagnose-' + Date.now() + '.txt';
+  a.click();
+}
+
+// Run all steps
+log('=== Zoo Diagnose gestartet ===');
+step1();
+setTimeout(step2, 100);
+setTimeout(step3, 300);
+setTimeout(step4, 500);
+setTimeout(step5, 700);
+setTimeout(() => log('=== Diagnose abgeschlossen ==='), 1500);
+</script>
+
+<!-- Load Three.js to test CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" 
+        onerror="document.getElementById('three-status').textContent='❌ THREE.js CDN FEHLER - Netzwerk blockiert?'; document.getElementById('three-status').className='err';">
+</script>
+
+</body>
+</html>
