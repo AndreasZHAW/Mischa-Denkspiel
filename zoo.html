@@ -1266,32 +1266,66 @@ const ZG={
   _slapNearby(sl){
     const myX=this.pl.x, myZ=this.pl.z;
     let hit=false;
-    // Check other players in range
+    // Check other players in range (8 units)
     Object.values(this.otherPl).forEach(op=>{
       const d=Math.sqrt((op.x-myX)**2+(op.z-myZ)**2);
       if(d<8){
         hit=true;
-        ZP.toast(sl.e+' Trefffer! '+op.name+' liegt am Boden! ('+sl.dur/1000+'s)',2500);
-        // Broadcast slap to Firebase
+        const dur=(sl.dur||2000);
+        ZP.toast(sl.e+' '+op.name+' liegt am Boden! ('+Math.round(dur/1000)+'s)',2500);
+        // Knockdown animation on the mesh
+        const mesh=this.otherM[op.name];
+        if(mesh){
+          mesh.userData.slapT=Date.now();
+          mesh.userData.slapDur=dur;
+          // Tilt the mesh (fall over)
+          mesh.rotation.z=Math.PI/2;
+          // Spinning stars above
+          this._showSlapStars(mesh.position.x, mesh.position.z);
+          // Stand up after duration
+          setTimeout(()=>{
+            if(mesh&&mesh.rotation)mesh.rotation.z=0;
+          },dur);
+        }
+        // Broadcast slap
         try{
           if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-            _db.collection('zoo_events').add({
-              type:'slap',
-              from:ZS.player,
-              target:op.name,
-              slapId:sl.id,
-              slapEmoji:sl.e,
-              dur:sl.dur||2000,
-              at:Date.now()
-            }).catch(()=>{});
+            _db.collection('zoo_events').add({type:'slap',from:ZS.player,target:op.name,slapId:sl.id,slapEmoji:sl.e,dur,at:Date.now()}).catch(()=>{});
           }
         }catch(e){}
-        // Show knockback on local mesh
-        if(this.otherM[op.name])this.otherM[op.name].userData.slapT=Date.now();
       }
     });
-    if(!hit&&Object.keys(this.otherPl).length>0){
-      ZP.toast('Niemand in Reichweite! Näher ran!',1200);
+    if(!hit){
+      if(Object.keys(this.otherPl).length>0){
+        ZP.toast('❗ Näher rangehen zum Slapen! (<8 Einheiten)',1500);
+      } else {
+        ZP.toast('🥊 Kein Spieler in der Nähe!',1200);
+      }
+    }
+  },
+
+  // Show spinning stars at position
+  _showSlapStars(x, z){
+    for(let i=0;i<5;i++){
+      const star=new THREE.Mesh(
+        new THREE.SphereGeometry(.18,6,4),
+        new THREE.MeshBasicMaterial({color:0xFFFF00})
+      );
+      const angle=i/5*Math.PI*2;
+      star.position.set(x+Math.cos(angle)*1.2, 2.8+Math.sin(i*1.3)*.3, z+Math.sin(angle)*1.2);
+      this.scene.add(star);
+      // Animate spinning
+      let t=0;
+      const anim=()=>{
+        t+=0.08;
+        if(t>6){this.scene.remove(star);return;}
+        const a=angle+t*2;
+        star.position.x=x+Math.cos(a)*1.2;
+        star.position.z=z+Math.sin(a)*1.2;
+        star.position.y=2.8+Math.abs(Math.sin(t*3))*.4;
+        requestAnimationFrame(anim);
+      };
+      setTimeout(()=>requestAnimationFrame(anim), i*80);
     }
   },
 
@@ -1526,7 +1560,7 @@ const ZG={
     if(ZS.isPrivate||!ZS.player)return;
     try{
       if(!State._useCloud())return;
-      if(!_db)return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||'🧭',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await Promise.race([_db.collection('zoo_players').get(),new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))]);const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}},
+      if(!_db)return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||ZS.char?.emoji||'🧭',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await Promise.race([_db.collection('zoo_players').get(),new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))]);const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}},
   _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshBasicMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshBasicMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
 
   // ═══ ADMIN CMD ═══
@@ -2345,7 +2379,7 @@ const ZChat = {
   send(){
     const inp = document.getElementById('chat-in');
     if(!inp||!inp.value.trim()) return;
-    const msg = inp.value.trim().slice(0,80);
+    const msg = inp.value.trim().slice(0,200);
     inp.value = '';
     const data = { from: ZS.player||'?', msg, at: Date.now() };
     this._addMsg(data.from, data.msg, true);
@@ -2564,7 +2598,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 
 <!-- ══ VOICE + TEXT CHAT ══ -->
-<div id="chat-panel" style="position:fixed;bottom:80px;left:4px;z-index:500;width:220px;display:none">
+<div id="chat-panel" style="position:fixed;bottom:0;left:0;z-index:600;width:min(260px,90vw);display:none;max-height:60vh">
   <!-- Header -->
   <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
     <span id="chat-title" style="color:#FFD700;font-size:.78rem;font-weight:700;flex:1">💬 Chat</span>
@@ -2576,17 +2610,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     🔴 <span id="voice-txt">Verbinde...</span>
   </div>
   <!-- Messages -->
-  <div id="chat-msgs" style="background:rgba(10,20,30,.92);height:140px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:.72rem"></div>
+  <div id="chat-msgs" style="background:rgba(10,20,30,.92);height:min(140px,30vh);overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:.72rem"></div>
   <!-- Input -->
   <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:5px;display:flex;gap:4px">
-    <input id="chat-in" type="text" maxlength="80" placeholder="Nachricht..." 
+    <input id="chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off" 
       style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:4px 8px;border-radius:6px;font-size:.72rem;outline:none"
       onkeydown="if(event.key==='Enter')ZChat.send()">
     <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:4px 8px;border-radius:6px;font-size:.72rem;cursor:pointer">→</button>
   </div>
 </div>
 <!-- Chat toggle button -->
-<button onclick="ZChat.toggle()" id="chat-toggle-btn" style="position:fixed;bottom:80px;left:4px;z-index:501;background:#1a2a3a;border:1px solid rgba(255,255,255,.2);color:#FFD700;padding:5px 9px;border-radius:8px;font-size:.78rem;cursor:pointer;display:none">💬 Chat</button>
+<button onclick="ZChat.toggle()" id="chat-toggle-btn" style="position:fixed;bottom:4px;left:120px;z-index:601;background:#1a2a3a;border:1px solid rgba(255,255,255,.2);color:#FFD700;padding:5px 9px;border-radius:50px;font-size:.78rem;cursor:pointer;display:none;box-shadow:0 2px 8px rgba(0,0,0,.5)">💬 Chat</button>
 
 <div id="voice-peers" style="position:fixed;top:50%;right:4px;transform:translateY(-50%);z-index:499;display:flex;flex-direction:column;gap:4px;pointer-events:none"></div>
 
