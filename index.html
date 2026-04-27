@@ -31,7 +31,7 @@
         <div id="load-status" style="font-size:.8rem;color:#555;margin-top:8px"></div>
       </div>
       <div id="error-box" style="display:none;margin-top:20px;background:rgba(231,76,60,.9);color:white;padding:16px 20px;border-radius:12px;max-width:350px;font-size:.85rem;text-align:left;word-break:break-word"></div>
-      <button id="reload-btn" onclick="location.reload()" style="display:none;margin-top:16px;background:#2980B9;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer">↻ Neu laden</button>
+      <button id="reload-btn" onclick="location.href=location.href.split('?')[0]+'?r='+Date.now()" style="display:none;margin-top:16px;background:#2980B9;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer">↻ Neu laden</button>
     </div>
   </div>
   <!-- Firebase -->
