@@ -69,7 +69,7 @@ const DartGame = {
     const c = this.current;
     const isP = c.turn === 'player';
     document.getElementById('game-area').innerHTML = `
-<div style="max-width:320px;margin:0 auto;padding:0 4px">
+<div style="max-width:440px;margin:0 auto;padding:0 4px">
   <!-- Score board -->
   <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:8px">
     <div style="background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
@@ -249,6 +249,57 @@ const DartGame = {
     wrap.addEventListener('touchmove', e => { e.preventDefault(); onMove(e); }, { passive: false });
     wrap.addEventListener('click', onThrow);
     wrap.addEventListener('touchend', onThrow, { passive: false });
+    
+    // Mobile joystick for aim (right side of board, only on touch devices)
+    const joyEl = document.getElementById('dart-joy');
+    if (joyEl && 'ontouchstart' in window) {
+      joyEl.style.display = 'flex';
+      let joyOrigin = null, joyActive = false;
+      const JR = 45; // joystick range in px
+      
+      joyEl.addEventListener('touchstart', e => {
+        e.preventDefault(); e.stopPropagation();
+        joyActive = true;
+        const t = e.touches[0];
+        joyOrigin = { x: t.clientX, y: t.clientY };
+        // Set initial aim to board center
+        if (c && !c.aimCx) { c.aimCx = 135; c.aimCy = 135; }
+      }, { passive: false });
+      
+      joyEl.addEventListener('touchmove', e => {
+        e.preventDefault(); e.stopPropagation();
+        if (!joyActive || !joyOrigin || !c) return;
+        const t = e.touches[0];
+        const dx = t.clientX - joyOrigin.x;
+        const dy = t.clientY - joyOrigin.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        const clamped = Math.min(dist, JR);
+        const nx = dist > 0 ? dx/dist*clamped : 0;
+        const ny = dist > 0 ? dy/dist*clamped : 0;
+        // Move the joystick knob
+        const knob = joyEl.querySelector('.joy-knob');
+        if (knob) { knob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`; }
+        // Map joystick position to board aim (board center = 135,135)
+        c.aimCx = 135 + (nx/JR)*100;
+        c.aimCy = 135 + (ny/JR)*100;
+        c.playerAiming = true;
+        this._updateCrosshair();
+      }, { passive: false });
+      
+      const joyEnd = e => {
+        e.preventDefault(); e.stopPropagation();
+        joyActive = false; joyOrigin = null;
+        const knob = joyEl.querySelector('.joy-knob');
+        if (knob) knob.style.transform = 'translate(-50%, -50%)';
+        // Throw on release
+        if (c && !c.gameOver && c.turn === 'player') {
+          const bx = c.breath.ox; const by = c.breath.oy;
+          this._throwAt((c.aimCx||135)+bx, (c.aimCy||135)+by);
+        }
+      };
+      joyEl.addEventListener('touchend', joyEnd, { passive: false });
+      joyEl.addEventListener('touchcancel', joyEnd, { passive: false });
+    }
   },
 
   _updateCrosshair() {

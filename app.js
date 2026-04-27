@@ -421,7 +421,7 @@ const App = {
     // If cloud fails, use local storage
     if (!players.length) {
       players = Object.values(State._local.getAll())
-        .sort((a,b)=>(b.totalScore||0)-(a.totalScore||0));
+        .filter(p=>p&&p.name&&(window.isInLeaderboard?window.isInLeaderboard(p.name):true)).sort((a,b)=>(b.totalScore||0)-(a.totalScore||0));
     }
     const player = State.currentPlayer;
 
@@ -465,7 +465,9 @@ const App = {
     const player = await State.refreshCurrentPlayer();
     if (!player) { this.showWelcome(); return; }
     const world = WORLDS.find(w=>w.id===worldId);
-    const ws = player.worlds?.[worldId] || { tasks:Array(10).fill(null), jokerUsed:false, completed:false };
+    const ws = player.worlds?.[worldId] || { tasks:Array(20).fill(null), jokerUsed:false, completed:false };
+    // Ensure tasks array is 20 items
+    while((ws.tasks||[]).length < 20) ws.tasks = [...(ws.tasks||[]), ...Array(20).fill(null)].slice(0,20);
     const done = ws.tasks.filter(t=>t&&t.done).length;
     const ch = this._char(player);
 
@@ -660,6 +662,9 @@ const App = {
     const world  = WORLDS.find(w=>w.id===worldId);
     const allDone = player.worlds?.[worldId]?.tasks.every(t=>t&&t.done);
     const finalScore = wasJoker ? 0 : State.calcFinalScore(result);
+    // Calculate MT earned for display
+    const mtEarned = wasJoker ? 0 : (result.passed !== false ? 
+      Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10 : 0.2);
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>

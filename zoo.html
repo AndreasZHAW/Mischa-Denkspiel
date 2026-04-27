@@ -426,6 +426,8 @@ const ZS={
     if(!z.ownSlaps) z.ownSlaps = ['basic'];
     if(!z.eq) z.eq = 'basic';
     if(z.lslaps===undefined) z.lslaps = 0;
+    // Clean up enc entries with no animal
+    z.enc = z.enc.map(e => (e && e.animal) ? e : null);
     // Ensure enc array is long enough
     const n=this.maxE();
     while(z.enc.length<n) z.enc.push(null);
@@ -594,6 +596,7 @@ const ZG={
     this.pitch = 0;
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     LW.init();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
+    ZChat.show(); ZChat._startListen();
     setTimeout(()=>ZG._listenAnimalEvents(),3000);
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
@@ -1953,14 +1956,15 @@ const ZP={
     const g=ZG.gQ[carIdx%ZG.gQ.length]||ZG.gQ[0];
     if(!g)return;
     const z=ZS.zoo;
-    const slot=z.enc.findIndex(e=>!e);
+    const slot=z.enc.findIndex(e=>!e||!e.animal);
     if(slot<0){ZP.toast('❌ Alle Gehege belegt!');return;}
     if(z.mt<g.a.p){ZP.toast('❌ Zu wenig MT! Brauche '+$mt(g.a.p));return;}
     z.mt-=g.a.p;
     z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};
     ZG.gQ.splice(carIdx%ZG.gQ.length,1);
     ZG.gQ.push(ZG._mkG());
-    ZP._animalWalk(g.a,slot);
+    ZG._broadcastAnimalWalk(g.a,slot);
+    ZG._animalWalk(g.a,slot);
     ZG._encs();
     ZP.toast('✅ '+g.a.e+' '+g.a.n+' gekauft! Läuft zu Gehege '+(slot+1)+'!',2500);
     ZG._updHUD();
@@ -2248,7 +2252,7 @@ const LuckyBlocks = {
     this._openAnim(animal, b.rarity, ()=>{
       // Give animal to player
       const z=ZS.zoo;if(!z)return;
-      const slot=z.enc.findIndex(e=>!e);
+      const slot=z.enc.findIndex(e=>!e||!e.animal);
       if(slot<0){ZP.toast('❌ Alle Gehege belegt!',2500);return;}
       z.enc[slot]={animal:{...animal},shiny,traits,xm:1,addedAt:Date.now(),sl:0};
       ZG._encs();
@@ -2306,11 +2310,285 @@ const LuckyBlocks = {
 };
 window.LuckyBlocks=LuckyBlocks;
 
+
+// ══════════════════════════════════════════
+// ZCHAT — Voice + Text Chat System
+// ══════════════════════════════════════════
+const ZChat = {
+  open: false,
+  voiceActive: false,
+  localStream: null,
+  peers: {},         // peerId -> RTCPeerConnection
+  peerStreams: {},   // peerId -> MediaStream
+  _msgUnsub: null,
+  _sigUnsub: null,
+  
+  // Toggle chat panel
+  toggle(){
+    this.open = !this.open;
+    const p = document.getElementById('chat-panel');
+    const b = document.getElementById('chat-toggle-btn');
+    if(p) p.style.display = this.open ? 'flex' : 'none';
+    if(p) p.style.flexDirection = 'column';
+    if(this.open) this._startListen();
+    else this._stopListen();
+  },
+  
+  close(){ this.open = false; const p=document.getElementById('chat-panel'); if(p)p.style.display='none'; },
+  
+  show(){
+    const b=document.getElementById('chat-toggle-btn');
+    if(b) b.style.display='block';
+  },
+  
+  // Send text message
+  send(){
+    const inp = document.getElementById('chat-in');
+    if(!inp||!inp.value.trim()) return;
+    const msg = inp.value.trim().slice(0,80);
+    inp.value = '';
+    const data = { from: ZS.player||'?', msg, at: Date.now() };
+    this._addMsg(data.from, data.msg, true);
+    // Save to Firebase
+    try{
+      if(typeof _db!=='undefined'&&_db&&State._useCloud()){
+        _db.collection('zoo_chat').add(data).catch(()=>{});
+      }
+    }catch(e){}
+  },
+  
+  // Add message to UI
+  _addMsg(from, msg, isMine){
+    const el = document.getElementById('chat-msgs');
+    if(!el) return;
+    const d = document.createElement('div');
+    d.style.cssText = 'padding:2px 5px;border-radius:5px;max-width:95%;word-break:break-word;';
+    if(isMine){
+      d.style.background='rgba(41,128,185,.4)';d.style.alignSelf='flex-end';
+      d.innerHTML = '<span style="color:#4af;font-size:.65rem">Du</span><br>' + $esc(msg);
+    } else {
+      d.style.background='rgba(255,255,255,.07)';d.style.alignSelf='flex-start';
+      d.innerHTML = '<span style="color:#FFD700;font-size:.65rem">' + $esc(from) + '</span><br>' + $esc(msg);
+    }
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+    // Keep max 50 messages
+    while(el.children.length > 50) el.removeChild(el.firstChild);
+  },
+  
+  // Listen for incoming chat messages
+  _startListen(){
+    if(this._msgUnsub) return;
+    try{
+      if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+      const cutoff = Date.now() - 30000;
+      this._msgUnsub = _db.collection('zoo_chat')
+        .where('at', '>', cutoff)
+        .onSnapshot(snap => {
+          snap.docChanges().forEach(ch => {
+            if(ch.type!=='added') return;
+            const d = ch.doc.data();
+            if(d.from !== ZS.player) {
+              this._addMsg(d.from, d.msg, false);
+              ZSound.coin && ZSound.coin();
+            }
+          });
+        });
+    }catch(e){}
+  },
+  
+  _stopListen(){
+    if(this._msgUnsub){ this._msgUnsub(); this._msgUnsub=null; }
+  },
+  
+  // ── VOICE CHAT ──
+  async toggleVoice(){
+    if(this.voiceActive){ this.stopVoice(); return; }
+    // Request mic
+    const btn = document.getElementById('voice-btn');
+    const stat = document.getElementById('voice-status');
+    const stxt = document.getElementById('voice-txt');
+    if(stat) stat.style.display='block';
+    if(stxt) stxt.textContent='Mikrofon anfordern...';
+    
+    try{
+      this.localStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+      this.voiceActive = true;
+      if(btn){ btn.style.background='rgba(231,76,60,.5)'; btn.style.color='#fff'; btn.textContent='🔴'; }
+      if(stxt) stxt.textContent='Mikrofon aktiv — mit anderen verbinden...';
+      this._setupVoiceSignaling();
+    }catch(e){
+      if(stxt) stxt.textContent='❌ Mikrofon nicht erlaubt: '+e.message;
+      setTimeout(()=>{ if(stat)stat.style.display='none'; },3000);
+    }
+  },
+  
+  stopVoice(){
+    this.voiceActive = false;
+    if(this.localStream){ this.localStream.getTracks().forEach(t=>t.stop()); this.localStream=null; }
+    Object.values(this.peers).forEach(pc=>pc.close());
+    this.peers={}; this.peerStreams={};
+    const btn=document.getElementById('voice-btn');
+    if(btn){ btn.style.background=''; btn.style.color='#aaa'; btn.textContent='🎤'; }
+    const stat=document.getElementById('voice-status');
+    if(stat) stat.style.display='none';
+    this._updateVoicePeers();
+    if(this._sigUnsub){ this._sigUnsub(); this._sigUnsub=null; }
+  },
+  
+  // WebRTC signaling via Firebase
+  _setupVoiceSignaling(){
+    if(!State._useCloud()||typeof _db==='undefined'||!_db) return;
+    const me = ZS.player?.toLowerCase();
+    if(!me) return;
+    
+    // Listen for offers/answers/ICE to me
+    this._sigUnsub = _db.collection('zoo_voice_signal')
+      .where('to', '==', me)
+      .where('at', '>', Date.now()-10000)
+      .onSnapshot(async snap => {
+        for(const ch of snap.docChanges()){
+          if(ch.type!=='added') return;
+          const d = ch.doc.data();
+          const from = d.from;
+          try{
+            if(d.type==='offer'){
+              const pc = this._getPeer(from);
+              await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
+              _db.collection('zoo_voice_signal').add({type:'answer',from:me,to:from,sdp:pc.localDescription,at:Date.now()}).catch(()=>{});
+            } else if(d.type==='answer'){
+              const pc = this.peers[from];
+              if(pc&&pc.signalingState!=='stable') await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));
+            } else if(d.type==='ice'){
+              const pc = this.peers[from]||this._getPeer(from);
+              if(d.candidate) await pc.addIceCandidate(new RTCIceCandidate(d.candidate)).catch(()=>{});
+            }
+          }catch(e){}
+        }
+      });
+    
+    // Offer to all other online players
+    this._offerToAll();
+  },
+  
+  async _offerToAll(){
+    try{
+      const snap = await _db.collection('zoo_players').get();
+      const me = ZS.player?.toLowerCase();
+      snap.forEach(doc => {
+        const d = doc.data();
+        const other = d.name?.toLowerCase();
+        if(!other||other===me) return;
+        if(Date.now()-d.t>15000) return; // only recent players
+        this._connectTo(other);
+      });
+    }catch(e){}
+  },
+  
+  async _connectTo(peerId){
+    if(this.peers[peerId]) return;
+    const pc = this._getPeer(peerId);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    const me = ZS.player?.toLowerCase();
+    try{
+      _db.collection('zoo_voice_signal').add({type:'offer',from:me,to:peerId,sdp:pc.localDescription,at:Date.now()}).catch(()=>{});
+    }catch(e){}
+  },
+  
+  _getPeer(peerId){
+    if(this.peers[peerId]) return this.peers[peerId];
+    const pc = new RTCPeerConnection({iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'}
+    ]});
+    this.peers[peerId] = pc;
+    
+    // Add local stream
+    if(this.localStream) this.localStream.getTracks().forEach(t=>pc.addTrack(t,this.localStream));
+    
+    // ICE candidates
+    const me = ZS.player?.toLowerCase();
+    pc.onicecandidate = e => {
+      if(e.candidate && typeof _db!=='undefined'&&_db){
+        _db.collection('zoo_voice_signal').add({type:'ice',from:me,to:peerId,candidate:e.candidate.toJSON(),at:Date.now()}).catch(()=>{});
+      }
+    };
+    
+    // Remote stream
+    pc.ontrack = e => {
+      this.peerStreams[peerId] = e.streams[0];
+      const audio = document.createElement('audio');
+      audio.srcObject = e.streams[0];
+      audio.autoplay = true;
+      audio.id = 'voice-'+peerId;
+      document.body.appendChild(audio);
+      this._updateVoicePeers();
+      ZP.toast('🎤 '+peerId+' spricht jetzt!',2000);
+    };
+    
+    pc.onconnectionstatechange = () => {
+      if(pc.connectionState==='disconnected'||pc.connectionState==='failed'){
+        pc.close(); delete this.peers[peerId]; delete this.peerStreams[peerId];
+        const a=document.getElementById('voice-'+peerId); if(a)a.remove();
+        this._updateVoicePeers();
+      }
+    };
+    return pc;
+  },
+  
+  _updateVoicePeers(){
+    const el=document.getElementById('voice-peers');
+    if(!el) return;
+    el.innerHTML='';
+    Object.keys(this.peerStreams).forEach(pid=>{
+      const d=document.createElement('div');
+      d.style.cssText='background:rgba(0,0,0,.7);border:1px solid #27AE60;border-radius:6px;padding:3px 7px;font-size:.7rem;color:#5f5';
+      d.textContent='🎤 '+pid;
+      el.appendChild(d);
+    });
+    const stat=document.getElementById('voice-txt');
+    const n=Object.keys(this.peerStreams).length;
+    if(stat&&this.voiceActive) stat.textContent=n>0?n+' Spieler verbunden':'Warte auf andere...';
+  },
+};
+window.ZChat=ZChat;
+
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
   const main=sessionStorage.getItem('mischa_current');
   if(main){const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),u=us[main];if(u){ZS.player=main;ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';if(u.ch){ZS.char=u.ch;ZA._showMode();}else{ZA._showChar();}}}
 });
 </script>
+
+<!-- ══ VOICE + TEXT CHAT ══ -->
+<div id="chat-panel" style="position:fixed;bottom:80px;left:4px;z-index:500;width:220px;display:none">
+  <!-- Header -->
+  <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
+    <span id="chat-title" style="color:#FFD700;font-size:.78rem;font-weight:700;flex:1">💬 Chat</span>
+    <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:2px 6px;font-size:.7rem;cursor:pointer">🎤</button>
+    <button onclick="ZChat.close()" style="background:none;border:none;color:#aaa;font-size:.9rem;cursor:pointer;padding:2px 6px">✕</button>
+  </div>
+  <!-- Voice status -->
+  <div id="voice-status" style="display:none;background:#0d1f0d;padding:4px 8px;font-size:.7rem;color:#5f5;text-align:center;border-bottom:1px solid rgba(255,255,255,.05)">
+    🔴 <span id="voice-txt">Verbinde...</span>
+  </div>
+  <!-- Messages -->
+  <div id="chat-msgs" style="background:rgba(10,20,30,.92);height:140px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:.72rem"></div>
+  <!-- Input -->
+  <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:5px;display:flex;gap:4px">
+    <input id="chat-in" type="text" maxlength="80" placeholder="Nachricht..." 
+      style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:4px 8px;border-radius:6px;font-size:.72rem;outline:none"
+      onkeydown="if(event.key==='Enter')ZChat.send()">
+    <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:4px 8px;border-radius:6px;font-size:.72rem;cursor:pointer">→</button>
+  </div>
+</div>
+<!-- Chat toggle button -->
+<button onclick="ZChat.toggle()" id="chat-toggle-btn" style="position:fixed;bottom:80px;left:4px;z-index:501;background:#1a2a3a;border:1px solid rgba(255,255,255,.2);color:#FFD700;padding:5px 9px;border-radius:8px;font-size:.78rem;cursor:pointer;display:none">💬 Chat</button>
+
+<div id="voice-peers" style="position:fixed;top:50%;right:4px;transform:translateY(-50%);z-index:499;display:flex;flex-direction:column;gap:4px;pointer-events:none"></div>
+
 </body>
 </html>
