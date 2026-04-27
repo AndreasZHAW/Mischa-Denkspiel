@@ -306,6 +306,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   };
 })();
 
+// ═══ SECURITY HELPERS ═══
+function $esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').slice(0,30);
+}
+
 // ═══ DATA ═══
 const ANIMALS=[
   {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:5,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:6,earn:.7},
@@ -430,7 +435,7 @@ const ZS={
 // ═══ AUTH ═══
 const ZA={
   _c:null,
-  login(){const n=G('zn')?.value.trim(),p=G('zpw')?.value.trim(),e=G('zerr');if(!n||n.length<2){e.textContent='Name zu kurz!';return;}if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';this._showChar();}else{if(us[k].p!==p){e.textContent='Falsches Passwort!';return;}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
+  login(){const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,''),p=G('zpw')?.value.trim(),e=G('zerr');if(!n||n.length<2){e.textContent='Name zu kurz!';return;}if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';this._showChar();}else{if(us[k].p!==p){e.textContent='Falsches Passwort!';return;}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
@@ -659,43 +664,91 @@ const ZG={
               ZP.toast(`${d.animal.e} ${d.animal.n} läuft zu ${d.buyer}'s Zoo! ⚔️`,3000);
               this._animalWalk(d.animal,d.slot,'#ff6b6b');
             }
+            // Receive slap from another player
+            if(d.type==='slap'&&d.target===ZS.player&&d.at>cutoff){
+              // I got slapped! Show effect and notify
+              ZP.toast(`${d.slapEmoji||'🤚'} ${d.from} hat dich geslapped! ${d.dur/1000}s am Boden!`,3000);
+              ZSound.slap();
+              const fl=G('bflash');
+              if(fl){fl.style.background='rgba(255,0,0,.5)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',400);}
+              // Show slapped indicator on their mesh
+              this._receiveSlap(d.from);
+              // Simulate being stunned (block movement briefly)
+              this._slapStunEnd=Date.now()+(d.dur||2000);
+            }
           });
         });
     }catch(e){}
   },
 
-  // ── MULTIPLAYER: show other players as coloured avatars ──
+  // ── MULTIPLAYER: show other players as emoji avatars ──
   _updOthers(others){
     const colors=[0xff6b6b,0x4fc3f7,0xffe082,0xa5d6a7,0xce93d8];
-    // Remove players who left
     Object.keys(this.otherM).forEach(n=>{
       if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}
     });
-    // Add/update other players
     let ci=0;
     Object.values(others).forEach(op=>{
       if(!this.otherM[op.name]){
         const g=new THREE.Group();
-        const body=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,1.4,10),new THREE.MeshBasicMaterial({color:colors[ci%colors.length]}));
-        body.position.y=.7;
-        const head=new THREE.Mesh(new THREE.SphereGeometry(.45,10,8),new THREE.MeshBasicMaterial({color:0xffe0b0}));
-        head.position.y=1.8;
-        g.add(body);g.add(head);
-        // Name label
-        const lbl=this._txt((op.char||'🧭')+' '+op.name,.55,'#fff');
-        lbl.position.set(0,2.8,0);lbl.scale.set(5,1.2,1);g.add(lbl);
+        // Body - colored cylinder
+        const body=new THREE.Mesh(
+          new THREE.CylinderGeometry(.4,.4,1.4,10),
+          new THREE.MeshBasicMaterial({color:colors[ci%colors.length]})
+        );
+        body.position.y=.7; g.add(body);
+        // Head - emoji sprite (their chosen character)
+        const headSprite=this._makeEmojiSprite(op.char||'🧭');
+        headSprite.position.set(0,2.0,0);
+        headSprite.scale.set(2,2,1);
+        g.add(headSprite);
+        // Name label above head
+        const lbl=this._txt(op.name,.5,'#FFD700');
+        lbl.position.set(0,3.2,0);lbl.scale.set(6,1.2,1);g.add(lbl);
+        // Slap indicator (hidden by default)
+        g.userData={slapT:0,baseY:0};
         this.scene.add(g);
         this.otherM[op.name]=g;
         ci++;
       }
-      // Update position smoothly
       const m=this.otherM[op.name];
       if(m){
+        // Knockback if slapped (bounce on ground)
+        const now=Date.now();
+        if(m.userData.slapT&&now-m.userData.slapT<2000){
+          const t=(now-m.userData.slapT)/2000;
+          m.position.y=Math.max(0,-4*t*(t-1))*2; // bounce arc
+          m.rotation.z=Math.sin(now*0.01)*(1-t)*0.5; // wobble
+        } else {
+          m.position.y=0; m.rotation.z=0;
+        }
         m.position.x=op.x||0;
-        m.position.y=0;
         m.position.z=op.z||0;
       }
     });
+  },
+
+  // Called when we receive a slap event from another player
+  _receiveSlap(from){
+    if(this.otherM[from]){
+      this.otherM[from].userData.slapT=Date.now();
+    }
+    // Show being slapped
+    const sl=SLAPS.find(s=>s.id===(ZS.zoo?.eq||'basic'))||SLAPS[0];
+    ZP.toast(sl.e+' '+from+' wurde geslapped! ',1500);
+    ZSound.slap();
+    const fl=G('bflash');
+    if(fl){fl.style.background='rgba(255,0,0,.3)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',300);}
+  },
+
+  // Make emoji sprite for player head
+  _makeEmojiSprite(emoji){
+    const cv=document.createElement('canvas');cv.width=128;cv.height=128;
+    const ctx=cv.getContext('2d');
+    ctx.font='90px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(emoji,64,68);
+    const tex=new THREE.CanvasTexture(cv);
+    return new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
   },
 
   _world(){
@@ -983,6 +1036,8 @@ const ZG={
         if(!onJ&&!onHL&&!onWB)this.slap();
       }
     },{passive:true});
+    // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
+    G('zc')?.addEventListener('click',()=>{if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -1201,6 +1256,40 @@ const ZG={
     ZP.toast(sl.e+' '+sl.n+'!',700);
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
     this._updWBar();
+    // Find and hit nearby players (within 8 units)
+    this._slapNearby(sl);
+  },
+
+  _slapNearby(sl){
+    const myX=this.pl.x, myZ=this.pl.z;
+    let hit=false;
+    // Check other players in range
+    Object.values(this.otherPl).forEach(op=>{
+      const d=Math.sqrt((op.x-myX)**2+(op.z-myZ)**2);
+      if(d<8){
+        hit=true;
+        ZP.toast(sl.e+' Trefffer! '+op.name+' liegt am Boden! ('+sl.dur/1000+'s)',2500);
+        // Broadcast slap to Firebase
+        try{
+          if(typeof _db!=='undefined'&&_db&&State._useCloud()){
+            _db.collection('zoo_events').add({
+              type:'slap',
+              from:ZS.player,
+              target:op.name,
+              slapId:sl.id,
+              slapEmoji:sl.e,
+              dur:sl.dur||2000,
+              at:Date.now()
+            }).catch(()=>{});
+          }
+        }catch(e){}
+        // Show knockback on local mesh
+        if(this.otherM[op.name])this.otherM[op.name].userData.slapT=Date.now();
+      }
+    });
+    if(!hit&&Object.keys(this.otherPl).length>0){
+      ZP.toast('Niemand in Reichweite! Näher ran!',1200);
+    }
   },
 
   _updWBar(){
