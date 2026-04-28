@@ -171,7 +171,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(255,165,0,.8)">🤝</div><div class="hbl">Trading</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
-<div class="hb" onclick="ZG.keys['Space']=true;setTimeout(()=>ZG.keys['Space']=false,200)"><div class="hbb" style="background:rgba(41,128,185,.8)">⬆️</div><div class="hbl">Springen</div></div>
+
 <div class="hb off" id="admbtn" onclick="ZP.open('adm')"><div class="hbb" style="background:rgba(255,165,0,.6)">👑</div><div class="hbl">Admin</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
@@ -341,7 +341,13 @@ const ANIMALS=[
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:2},diamond:{n:'DIAMOND',c:'td',m:2,p:1},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:.5},void:{n:'VOID',c:'tv',m:5,p:.5}};
 const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'}];
-const EVENTS=[{id:'snow',n:'❄️ Schneesturm',col:'#AED6F1',d:'CRYSTAL Trait + weiße Gondeln!',dur:25000},{id:'party',n:'🎉 Konzert',col:'#FF69B4',d:'CONCERT Trait + Party ×4!',dur:20000},{id:'golden',n:'✨ Goldregen',col:'#FFD700',d:'FIRE Trait + ×2.5 Einnahmen!',dur:18000},{id:'night',n:'🌙 Mag.Nacht',col:'#9B59B6',d:'COSMIC + Seltene häufiger!',dur:22000},{id:'rush',n:'🏃 Rush Hour',col:'#E74C3C',d:'ELECTRIC + ×5 Besucher!',dur:15000},{id:'mega',n:'💎 Mega-Event',col:'#00CFFF',d:'Alle Traits + ×3!',dur:12000},{id:'glitch',n:'👾 Glitch',col:'#00ff88',d:'GLITCH + Gondel begehbar!',dur:18000},{id:'storm',n:'⛈️ Sturm',col:'#334488',d:'×4 Einnahmen!',dur:14000}];
+const EVENTS=[
+  {id:'snow',  n:'❄️ Schneesturm', col:'#AED6F1', d:'CRYSTAL Trait + weiße Gondeln!',  dur:120000},
+  {id:'party', n:'🎉 Konzert',      col:'#FF69B4', d:'CONCERT Trait + Party ×4!',       dur:180000},
+  {id:'golden',n:'✨ Goldregen',     col:'#FFD700', d:'FIRE Trait + ×2.5 Einnahmen!',   dur:150000},
+  {id:'night', n:'🌙 Mag.Nacht',    col:'#9B59B6', d:'COSMIC + Seltene häufiger!',      dur:180000},
+  {id:'rush',  n:'🏃 Rush Hour',    col:'#E74C3C', d:'ELECTRIC + ×5 Besucher!',         dur:120000},
+  {id:'mega',  n:'💎 Mega-Event',   col:'#00CFFF', d:'Alle Traits + ×3!',dur:12000},{id:'glitch',n:'👾 Glitch',col:'#00ff88',d:'GLITCH + Gondel begehbar!',dur:18000},{id:'storm',n:'⛈️ Sturm',col:'#334488',d:'×4 Einnahmen!',dur:14000}];
 const LUCK_UPS=[{m:1.5,cost:1500,l:'×1.5 🍀'},{m:2,cost:4000,l:'×2 🍀🍀'},{m:3,cost:40000,l:'×3 🍀🍀🍀'},{m:5,cost:85000,l:'×5 ⭐'},{m:7,cost:500000,l:'×7 🌟'},{m:10,cost:2000000,l:'×10 👑 MAX'}];
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
@@ -597,9 +603,15 @@ const ZG={
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     LW.init();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     ZChat.show(); ZChat._startListen(); _announceSecrets();
+    // Show jump button on touch devices, bottom-right
+    if('ontouchstart' in window){
+      const jb=document.getElementById('jump-fixed-btn');
+      if(jb)jb.style.display='flex';
+    }
     setTimeout(()=>ZG._listenAnimalEvents(),3000);
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
+    this._scheduleEvent();
     setInterval(()=>{if(LuckyBlocks.blocks.length<3)LuckyBlocks.spawn();},180000);
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
@@ -632,6 +644,17 @@ const ZG={
   _listenWheelBroadcast(){
     try{
       if(typeof _db==='undefined'||!_db||!State._useCloud())return;
+      // Also listen for synchronized events
+      _db.collection('zoo_broadcast').doc('event').onSnapshot(snap=>{
+        if(!snap.exists)return;
+        const d=snap.data();
+        if(Date.now()-d.at>5000)return; // ignore old
+        const ev=EVENTS.find(e=>e.id===d.eventId);
+        if(ev&&(!this.ev||this.ev.id!==d.eventId)){
+          this.startEv(ev,d.dur);
+          ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
+        }
+      });
       _db.collection('zoo_broadcast').doc('wheel').onSnapshot(snap=>{
         if(!snap.exists)return;
         const d=snap.data();
@@ -669,15 +692,62 @@ const ZG={
             }
             // Receive slap from another player
             if(d.type==='slap'&&d.target===ZS.player&&d.at>cutoff){
-              // I got slapped! Show effect and notify
-              ZP.toast(`${d.slapEmoji||'🤚'} ${d.from} hat dich geslapped! ${d.dur/1000}s am Boden!`,3000);
-              ZSound.slap();
-              const fl=G('bflash');
-              if(fl){fl.style.background='rgba(255,0,0,.5)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',400);}
-              // Show slapped indicator on their mesh
-              this._receiveSlap(d.from);
-              // Simulate being stunned (block movement briefly)
-              this._slapStunEnd=Date.now()+(d.dur||2000);
+              // I got slapped! Full cinematic experience
+              const slapDur=d.dur||2000;
+              ZG._slapStunEnd=Date.now()+slapDur;
+              ZG._stunType='slap';
+              ZSound.slap&&ZSound.slap();
+              
+              // Screen effect based on slap type
+              const slapId=d.slapId||'basic';
+              if(slapId==='lucky'||slapId==='weekend'){
+                // Launch myself into sky (visual only)
+                ZG._slapLaunchSelf(slapDur);
+                ZP.toast(`🍀 ${d.from} hat dich in den Himmel geschleudert! ${Math.round(slapDur/1000)}s`,3000);
+              } else if(slapId==='france'){
+                // French flag flash + BOOM
+                const ov=document.createElement('div');
+                ov.style.cssText='position:fixed;inset:0;z-index:8500;pointer-events:none;display:flex;animation:none';
+                ov.innerHTML='<div style="flex:1;background:#002395;opacity:.8"></div><div style="flex:1;background:#fff;opacity:.8"></div><div style="flex:1;background:#ED2939;opacity:.8"></div>';
+                const boom=document.createElement('div');
+                boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8501;font-size:4rem;font-weight:900;color:#FFD700;pointer-events:none';
+                boom.textContent='💥 BOOM!';
+                document.body.appendChild(ov);document.body.appendChild(boom);
+                setTimeout(()=>{ov.remove();boom.remove();},800);
+                ZP.toast(`🗼 ${d.from} hat dich mit dem FRANCE SLAP getroffen! 10s!`,4000);
+              } else if(slapId==='void'){
+                // Black flash
+                const fl2=document.createElement('div');
+                fl2.style.cssText='position:fixed;inset:0;background:#000;z-index:8000;pointer-events:none;opacity:0;transition:opacity .3s';
+                document.body.appendChild(fl2);
+                setTimeout(()=>fl2.style.opacity='0.9',10);
+                setTimeout(()=>fl2.style.opacity='0',500);
+                setTimeout(()=>fl2.remove(),800);
+                ZP.toast(`🌌 ${d.from}: VOID SLAP! Du verschwindest! ${Math.round(slapDur/1000)}s`,4000);
+              } else if(slapId==='ice'){
+                const ice=document.createElement('div');
+                ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.2),rgba(0,100,200,.4));border:4px solid rgba(0,200,255,.7)';
+                ice.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;opacity:.5">🧊</div>';
+                document.body.appendChild(ice);
+                setTimeout(()=>ice.remove(),slapDur);
+                ZP.toast(`❄️ ${d.from}: ICE SLAP! Eingefroren! ${Math.round(slapDur/1000)}s`,3000);
+              } else {
+                // Default red flash
+                const fl=G('bflash');
+                if(fl){fl.style.background='rgba(255,0,0,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
+                ZP.toast(`${d.slapEmoji||'🤚'} ${d.from}: ${d.slapId?.toUpperCase()||'BASIC'} SLAP! ${Math.round(slapDur/1000)}s!`,3000);
+              }
+              
+              // Void + France: send to own zoo after stun
+              if(slapId==='void'||slapId==='france'){
+                setTimeout(()=>{
+                  if(ZS.zoo){
+                    // Teleport to enclosure area
+                    ZG.pl.x=ZG.ZONES[0].x; ZG.pl.z=ZG.ZONES[0].z+14;
+                    ZP.toast('🏠 Du wurdest in deinen Zoo teleportiert!',2000);
+                  }
+                },slapDur-500);
+              }
             }
           });
         });
@@ -798,6 +868,7 @@ const ZG={
     this._station();
     this._encs();
     this._trees();
+    this._hiddenTrapdoor();
     this._limoStands();
     this._clouds();
     // DEBUG: bright test cube in front of player start position
@@ -952,6 +1023,25 @@ const ZG={
     });
   },
 
+  _hiddenTrapdoor(){
+    // SECRET: hidden trapdoor at coordinates (22, 0, -18) - tap on mobile, E on desktop
+    const sc=this.scene;
+    const door=new THREE.Group();
+    door.position.set(22,0.02,-18);
+    // Trapdoor surface (barely visible, blends with ground)
+    const surface=new THREE.Mesh(
+      new THREE.BoxGeometry(2.5,0.08,2.5),
+      new THREE.MeshBasicMaterial({color:0x5a3a1a,transparent:true,opacity:0.3})
+    );
+    door.add(surface);
+    // Animal icon on top (very small)
+    const lbl=this._txt('🐉',0.4,'rgba(255,255,255,0.15)');
+    lbl.position.set(0,0.2,0);lbl.scale.set(2,2,1);door.add(lbl);
+    sc.add(door);
+    this._trapdoor=door;
+    this._trapdoorPos={x:22,z:-18};
+  },
+
   _limoStands(){
     const sc=this.scene;
     this.LIMOPOS().forEach((lp,i)=>{
@@ -995,7 +1085,7 @@ const ZG={
   },
 
   _controls(){
-    document.addEventListener('keydown',e=>{ SECRETS.onKey(e.code);this.keys[e.code]=true;if(e.code==='KeyE')this._interact(); if(e.code==='KeyA'&&(ZAdmin._hasAccess||ZS.isAdmin))ZAdmin.open();if(e.code==='KeyQ')this.slap();});
+    document.addEventListener('keydown',e=>{ SECRETS.onKey(e.code); if(e.code==='ShiftLeft')ZG._sprintActive=true;this.keys[e.code]=true;if(e.code==='KeyE')this._interact(); if(e.code==='KeyA'&&(ZAdmin._hasAccess||ZS.isAdmin))ZAdmin.open();if(e.code==='KeyQ')this.slap();});
     document.addEventListener('keyup',e=>{this.keys[e.code]=false;});
     const canvas=G('zc');
     // Click to interact or slap (NO pointer lock - no mouse capture warning!)
@@ -1095,7 +1185,18 @@ const ZG={
   },
 
   _move(dt){
-    const sp=7;
+    // Check stun - truly block all movement
+    if(this._slapStunEnd && Date.now()<this._slapStunEnd){
+      // Show stun indicator
+      const remaining=Math.ceil((this._slapStunEnd-Date.now())/1000);
+      const si=G('stun-indicator');
+      if(si){si.style.display='block';si.textContent=this._stunType==='freeze'?'❄️ '+remaining+'s':'💫 '+remaining+'s';}
+      return; // NO movement at all
+    } else {
+      const si=G('stun-indicator');if(si)si.style.display='none';
+      this._stunType=null;
+    }
+    const sp=this._sprintActive?12:7; // sprint with Shift
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -1130,6 +1231,15 @@ const ZG={
       const stDist2=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
       ip.style.opacity='1';ip.textContent='🚪 Gondel-Station (hineinlaufen)';
       // Enter with E key only - handled in _interact
+    }
+    // Trapdoor hint (subtle)
+    if(this._trapdoorPos&&!SECRETS.unlocked['trapdoor']){
+      const tdx=this.pl.x-this._trapdoorPos.x, tdz=this.pl.z-this._trapdoorPos.z;
+      if(Math.sqrt(tdx*tdx+tdz*tdz)<3){
+        ip.style.opacity='1';
+        ip.textContent='... [E]';
+        ip.style.color='rgba(255,255,255,.3)'; // Very subtle
+      }
     }
     else if(LuckyBlocks.getNearBlock()){
       const nb=LuckyBlocks.getNearBlock();
@@ -1240,6 +1350,23 @@ const ZG={
       this._enterGlitch(); return;
     }
     // Lucky block interaction
+    // Trapdoor check
+    if(this._trapdoorPos){
+      const tdx=this.pl.x-this._trapdoorPos.x, tdz=this.pl.z-this._trapdoorPos.z;
+      if(Math.sqrt(tdx*tdx+tdz*tdz)<3&&!SECRETS.unlocked['trapdoor']){
+        SECRETS.unlocked['trapdoor']=true;
+        SECRETS._reveal('🐉 GEHEIMTÜR!','Du hast die versteckte Falltür gefunden! Ein seltener Drache wartet hier... +1 Drachen-Ei!','#8B0000');
+        // Give dragon egg (secret tier)
+        if(ZS.zoo){
+          const slot=ZS.zoo.enc.findIndex(e=>!e||!e.animal);
+          if(slot>=0){
+            ZS.zoo.enc[slot]={animal:{id:'dragon',n:'Drache',e:'🐉',r:'secret',p:0,earn:50},shiny:{id:'rainbow',mult:3},traits:[],xm:3,addedAt:Date.now(),sl:0};
+            this._encs();ZP.toast('🐉 Drachen-Ei erhalten! Schau in Gehege '+( slot+1)+'!',5000);
+          }
+        }
+        return;
+      }
+    }
     const nearBlock=LuckyBlocks.getNearBlock();
     if(nearBlock){
       const idx=LuckyBlocks.blocks.indexOf(nearBlock);
@@ -1548,7 +1675,27 @@ const ZG={
   _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
 
   // ═══ EVENTS ═══
-  _tryEv(){if(!this.ev&&Math.random()<.28){const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];this.startEv(e,e.dur);}},
+
+  // Events synchronized via Firebase - only admin/first player triggers, all sync
+  _scheduleEvent(){
+    // Events every 8-12 minutes (rarer), synced globally
+    const delay=(8+Math.random()*4)*60000;
+    setTimeout(()=>{
+      if(!ZS.player)return;
+      const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+      // Broadcast event to all players
+      try{
+        if(typeof _db!=='undefined'&&_db&&State._useCloud()){
+          _db.collection('zoo_broadcast').doc('event').set({
+            eventId:ev.id,at:Date.now(),dur:ev.dur,from:ZS.player
+          }).catch(()=>{});
+        }
+      }catch(e){}
+      this.startEv(ev,ev.dur);
+      this._scheduleEvent(); // schedule next
+    },delay);
+  },
+
   startEv(ev,dur){
     this.ev=ev;this.evEnd=Date.now()+dur;
     try{this.renderer.setClearColor(parseInt(ev.col.replace('#',''),16));}catch(e){}
@@ -2816,6 +2963,10 @@ const ZAdmin = {
       d.dataset.name=p.name;
       d.innerHTML=`<span style="font-size:1.1rem">${p.char||'🧭'}</span><span>${p.name}</span>`;
       d.onclick=()=>this.selectPlayer(p.name, p.char);
+      // Long press to visit zoo
+      let lt=0;
+      d.ontouchstart=()=>lt=Date.now();
+      d.ontouchend=()=>{if(Date.now()-lt>500)visitZoo(p.name);};
       list.appendChild(d);
     });
   },
@@ -2834,10 +2985,12 @@ const ZAdmin = {
   },
   
   _checkCD(action){
-    const last=this.cooldowns[action]||0;
+    // Cooldown per ACTION type (not per person - can hit same person with different actions)
+    const key=action; // global cooldown per action type
+    const last=this.cooldowns[key]||0;
     const remain=Math.ceil((this.CD-(Date.now()-last))/1000);
-    if(remain>0){ZP.toast('⏳ '+action+' Cooldown: '+remain+'s',1500);return false;}
-    this.cooldowns[action]=Date.now();
+    if(remain>0){ZP.toast('⏳ '+action+'-Cooldown: '+remain+'s',1500);return false;}
+    this.cooldowns[key]=Date.now();
     return true;
   },
   
@@ -2900,8 +3053,15 @@ function _handleAdminEvent(d){
   
   if(d.type==='admin_freeze'){
     ZG._slapStunEnd=Date.now()+dur;
+    ZG._stunType='freeze';
     ZP.toast('❄️ Du bist eingefroren! (10s)',3000);
-    const fl=G('bflash');if(fl){fl.style.background='rgba(0,200,255,.4)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
+    // Ice cube overlay
+    const ice=document.createElement('div');
+    ice.id='ice-cube-overlay';
+    ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.25),rgba(0,100,200,.5));border:6px solid rgba(0,200,255,.8);animation:none';
+    ice.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:5rem;opacity:.4">🧊</div>';
+    document.body.appendChild(ice);
+    setTimeout(()=>{const i=document.getElementById('ice-cube-overlay');if(i)i.remove();},dur);
   }
   else if(d.type==='admin_launch'){
     ZG._slapLaunchSelf(dur);
@@ -2912,7 +3072,8 @@ function _handleAdminEvent(d){
     ZP.toast('🏛️ Du bist eingesperrt! (10s)',3000);
     const jail=document.createElement('div');
     jail.id='jail-overlay';
-    jail.style.cssText='position:fixed;inset:0;z-index:7500;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(100,100,100,.15) 0,rgba(100,100,100,.15) 4px,transparent 4px,transparent 40px)';
+    jail.style.cssText='position:fixed;inset:0;z-index:7500;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0,rgba(0,0,0,0) 35px,rgba(80,50,20,.8) 35px,rgba(80,50,20,.8) 42px),repeating-linear-gradient(90deg,rgba(80,50,20,.8) 0,rgba(80,50,20,.8) 6px,transparent 6px,transparent 50px)';
+    jail.innerHTML='<div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);color:#888;font-size:.85rem;font-weight:700">🏛️ EINGESPERRT '+Math.round(dur/1000)+'s</div>';
     document.body.appendChild(jail);
     setTimeout(()=>{const j=document.getElementById('jail-overlay');if(j)j.remove();},dur);
   }
@@ -3047,6 +3208,50 @@ const SECRETS = {
 };
 window.SECRETS=SECRETS;
 
+// Visit another player's zoo (view-only mode)
+async function visitZoo(playerName){
+  ZP.toast('🔍 Lade '+playerName+'s Zoo...',2000);
+  try{
+    let data=null;
+    if(typeof _db!=='undefined'&&_db&&State._useCloud()){
+      const snap=await _db.collection('zoos').doc('zoo_'+playerName.toLowerCase()).get();
+      if(snap.exists)data=snap.data();
+    }
+    if(!data){
+      const ls=localStorage.getItem('zoo_'+playerName.toLowerCase());
+      if(ls)data=JSON.parse(ls);
+    }
+    if(!data){ZP.toast('❌ Zoo von '+playerName+' nicht gefunden',2000);return;}
+    
+    // Show zoo info panel
+    const d=document.createElement('div');
+    d.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.92);overflow-y:auto;padding:20px';
+    const encHTML=data.enc.map((e,i)=>e&&e.animal?
+      `<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:2rem">${e.animal.e}</div>
+        <div style="font-size:.75rem;color:#fff">${e.animal.n}</div>
+        <div style="font-size:.65rem;color:#888">${e.animal.r}</div>
+      </div>`
+      :'<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px;text-align:center;color:#444">leer</div>'
+    ).join('');
+    d.innerHTML=`
+      <div style="max-width:500px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <button onclick="this.closest('div[style]').remove()" style="background:#E74C3C;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer">✕ Zurück</button>
+          <h2 style="color:#FFD700;font-size:1.2rem">🦁 ${playerName}s Zoo</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px">
+          ${encHTML}
+        </div>
+        <div style="margin-top:16px;color:rgba(255,255,255,.5);font-size:.8rem">
+          💰 ${(data.mt||0).toFixed(0)} MT · 👥 ${data.tv||0} Besucher · 🔄 Rebirth ${data.reb||0}
+        </div>
+      </div>`;
+    document.body.appendChild(d);
+  }catch(e){ZP.toast('❌ Fehler: '+e.message,2000);}
+}
+window.visitZoo=visitZoo;
+
 // Announce secrets exist on first zoo visit
 function _announceSecrets(){
   if(localStorage.getItem('zoo_secrets_announced')) return;
@@ -3138,6 +3343,16 @@ document.addEventListener('DOMContentLoaded',()=>{
 .padmin-player{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.8);transition:background .15s}
 .padmin-player:hover,.padmin-player.sel{background:rgba(255,215,0,.15);color:#FFD700}
 </style>
+
+
+<button id="jump-fixed-btn" 
+  ontouchstart="ZG.keys['Space']=true" 
+  ontouchend="ZG.keys['Space']=false"
+  onclick="ZG.keys['Space']=true;setTimeout(()=>ZG.keys['Space']=false,200)"
+  style="position:fixed;bottom:14px;right:14px;z-index:450;width:72px;height:72px;border-radius:50%;
+    background:rgba(41,128,185,.85);border:2px solid rgba(255,255,255,.3);color:white;
+    font-size:1.8rem;cursor:pointer;display:none;align-items:center;justify-content:center;
+    box-shadow:0 4px 12px rgba(0,0,0,.4);touch-action:none;user-select:none">⬆️</button>
 
 </body>
 </html>
