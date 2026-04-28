@@ -63,6 +63,11 @@ const State = {
       try { return JSON.parse(localStorage.getItem('mischa_players')) || {}; } catch { return {}; }
     },
     get(name) { return this.getAll()[name.toLowerCase()] || null; },
+    set(name, player) {
+      const all = this.getAll();
+      all[name.toLowerCase()] = player;
+      localStorage.setItem('mischa_players', JSON.stringify(all));
+    },
     save(player) {
       const all = this.getAll();
       all[player.name.toLowerCase()] = { ...player, updatedAt: Date.now() };

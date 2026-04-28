@@ -292,6 +292,17 @@ const App = {
     if (nameLc === 'janoschtest' && pw !== 'janoschtest') {
       const e=document.getElementById('l-err'); if(e){e.textContent='❌ Falsches Passwort für Janoschtest!';e.style.display='block';} return;
     }
+    // Auto-create Janoschtest if doesn't exist yet
+    if (nameLc === 'janoschtest' && pw === 'janoschtest') {
+      let exists = State._local.get('janoschtest');
+      if (!exists) {
+        // Create automatically
+        const autoPlayer = { name:'Janoschtest', password:'janoschtest', totalScore:0,
+          character:'explorer', birthYear:2000, worlds:{}, currentWorld:1,
+          createdAt:Date.now() };
+        State._local.set('janoschtest', autoPlayer);
+      }
+    }
     this._loading('Anmelden...');
     let res;
     try {
