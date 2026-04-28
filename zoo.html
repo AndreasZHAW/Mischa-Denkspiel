@@ -596,7 +596,7 @@ const ZG={
     this.pitch = 0;
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     LW.init();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
-    ZChat.show(); ZChat._startListen();
+    ZChat.show(); ZChat._startListen(); _announceSecrets();
     setTimeout(()=>ZG._listenAnimalEvents(),3000);
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
@@ -995,7 +995,7 @@ const ZG={
   },
 
   _controls(){
-    document.addEventListener('keydown',e=>{this.keys[e.code]=true;if(e.code==='KeyE')this._interact();if(e.code==='KeyQ')this.slap();});
+    document.addEventListener('keydown',e=>{ SECRETS.onKey(e.code);this.keys[e.code]=true;if(e.code==='KeyE')this._interact(); if(e.code==='KeyA'&&(ZAdmin._hasAccess||ZS.isAdmin))ZAdmin.open();if(e.code==='KeyQ')this.slap();});
     document.addEventListener('keyup',e=>{this.keys[e.code]=false;});
     const canvas=G('zc');
     // Click to interact or slap (NO pointer lock - no mouse capture warning!)
@@ -1047,7 +1047,7 @@ const ZG={
   _loop(){
     this._raf=requestAnimationFrame(()=>this._loop());
     const dt=Math.min(this.clock.getDelta(),.05);
-    this._move(dt);
+    this._move(dt); SECRETS.trackMovement();
     this._camUpdate();
     LuckyBlocks.tick(dt);
     this._carAngle+=dt*.45;
@@ -1266,66 +1266,244 @@ const ZG={
   _slapNearby(sl){
     const myX=this.pl.x, myZ=this.pl.z;
     let hit=false;
-    // Check other players in range (8 units)
     Object.values(this.otherPl).forEach(op=>{
       const d=Math.sqrt((op.x-myX)**2+(op.z-myZ)**2);
       if(d<8){
         hit=true;
-        const dur=(sl.dur||2000);
-        ZP.toast(sl.e+' '+op.name+' liegt am Boden! ('+Math.round(dur/1000)+'s)',2500);
-        // Knockdown animation on the mesh
+        // Duration by slap rarity
+        const durMap={basic:2000,ice:3000,golden:2500,shadow:4000,fire:3000,
+          rainbow:2000,void:8000,gun:3000,lucky:5000,christmas:4000,weekend:5000,france:10000};
+        const dur=durMap[sl.id]||2000;
         const mesh=this.otherM[op.name];
         if(mesh){
           mesh.userData.slapT=Date.now();
           mesh.userData.slapDur=dur;
-          // Tilt the mesh (fall over)
-          mesh.rotation.z=Math.PI/2;
-          // Spinning stars above
-          this._showSlapStars(mesh.position.x, mesh.position.z);
-          // Stand up after duration
-          setTimeout(()=>{
-            if(mesh&&mesh.rotation)mesh.rotation.z=0;
-          },dur);
+          mesh.userData.slapType=sl.id;
+          mesh.userData.slapCount=(mesh.userData.slapCount||0)+1;
         }
-        // Broadcast slap
-        try{
-          if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-            _db.collection('zoo_events').add({type:'slap',from:ZS.player,target:op.name,slapId:sl.id,slapEmoji:sl.e,dur,at:Date.now()}).catch(()=>{});
-          }
-        }catch(e){}
+        // Broadcast to Firebase
+        try{if(typeof _db!=='undefined'&&_db&&State._useCloud()){
+          _db.collection('zoo_events').add({type:'slap',from:ZS.player,target:op.name,
+            slapId:sl.id,slapEmoji:sl.e,dur,at:Date.now()}).catch(()=>{});
+        }}catch(e){}
+        // Local effects
+        this._slapEffect(sl, op.name, dur, mesh);
+        ZP.toast(sl.e+' '+op.name+' getroffen! ('+Math.round(dur/1000)+'s)',2000);
+        ZSound.slap();
       }
     });
-    if(!hit){
-      if(Object.keys(this.otherPl).length>0){
-        ZP.toast('❗ Näher rangehen zum Slapen! (<8 Einheiten)',1500);
-      } else {
-        ZP.toast('🥊 Kein Spieler in der Nähe!',1200);
-      }
+    if(!hit) ZP.toast(Object.keys(this.otherPl).length>0?'❗ Näher ran! (<8)':'🥊 Niemand in der Nähe!',1200);
+  },
+
+  _slapEffect(sl, targetName, dur, mesh){
+    if(!mesh) return;
+    const x=mesh.position.x, z=mesh.position.z;
+    
+    if(sl.id==='lucky'){
+      // LUCKY: FLY TO SKY then fall back
+      this._slapLaunch(mesh, dur);
+      this._showStars(x,z,0xFFD700,8);
+      ZP.toast('🍀 '+targetName+' fliegt in den Himmel!',2500);
+      
+    } else if(sl.id==='france'||sl.id==='question'){
+      // FRANCE: Blue/Red/White flash → slam → 10s
+      this._slapFrance(mesh, x, z, dur);
+      
+    } else if(sl.id==='void'){
+      // VOID: Screen goes black, target sinks into ground slowly, reappears
+      this._slapVoid(mesh, x, z, dur);
+      ZP.toast('🌌 '+targetName+' versinkt im Nichts...',3000);
+      
+    } else if(sl.id==='ice'){
+      // ICE: Freeze solid (white glow, can't move)
+      this._showStars(x,z,0x00CFFF,5);
+      mesh.userData.frozen=true;
+      setTimeout(()=>{if(mesh&&mesh.userData)mesh.userData.frozen=false;},dur);
+      ZP.toast('❄️ '+targetName+' eingefroren!',1500);
+      
+    } else if(sl.id==='fire'){
+      // FIRE: Orange particles rain down
+      this._slapFire(mesh, x, z, dur);
+      
+    } else if(sl.id==='rainbow'){
+      // RAINBOW: All colors cycle on target
+      this._slapRainbow(mesh, dur);
+      
+    } else if(sl.id==='shadow'){
+      // SHADOW: Target vanishes briefly then reappears
+      const sprite=mesh.userData.charSprite;
+      if(sprite){sprite.visible=false;setTimeout(()=>{if(sprite)sprite.visible=true;},dur);}
+      ZP.toast('💜 '+targetName+' verschwindet...',1500);
+      
+    } else if(sl.id==='weekend'){
+      // WEEKEND: Party launch + confetti  
+      this._slapLaunch(mesh, dur);
+      this._showConfetti(x,z,dur);
+      
+    } else {
+      // DEFAULT: Fall + stars
+      this._showStars(x,z,sl.col?parseInt(sl.col.replace('#',''),16):0xFFFF00,5);
     }
   },
 
-  // Show spinning stars at position
-  _showSlapStars(x, z){
-    for(let i=0;i<5;i++){
-      const star=new THREE.Mesh(
-        new THREE.SphereGeometry(.18,6,4),
-        new THREE.MeshBasicMaterial({color:0xFFFF00})
-      );
-      const angle=i/5*Math.PI*2;
-      star.position.set(x+Math.cos(angle)*1.2, 2.8+Math.sin(i*1.3)*.3, z+Math.sin(angle)*1.2);
+  // LUCKY SLAP: Launch high into sky, fall back
+  _slapLaunch(mesh, dur){
+    if(!mesh) return;
+    const startY=mesh.position.y;
+    const startZ=mesh.rotation.z;
+    const peakY=35;
+    const start=Date.now();
+    const half=dur*0.45;
+    const anim=()=>{
+      if(!mesh.parent){return;}
+      const t=Date.now()-start;
+      if(t<half){
+        // Rise phase
+        const p=t/half;
+        const ease=1-Math.pow(1-p,3);
+        mesh.position.y=startY+ease*peakY;
+        mesh.rotation.z=p*Math.PI*3; // spin
+        mesh.rotation.x=p*Math.PI;
+      } else if(t<dur){
+        // Fall phase
+        const p=(t-half)/(dur-half);
+        const ease=p*p*p;
+        mesh.position.y=(startY+peakY)-(ease*peakY);
+        mesh.rotation.z=startZ+p*Math.PI*4;
+      } else {
+        // Impact
+        mesh.position.y=startY;
+        mesh.rotation.z=Math.PI/2; // knocked down
+        this._showStars(mesh.position.x,mesh.position.z,0xFFD700,8);
+        ZSound.slap();
+        setTimeout(()=>{if(mesh&&mesh.rotation){mesh.rotation.z=0;mesh.position.y=startY;}},2000);
+        return;
+      }
+      requestAnimationFrame(anim);
+    };
+    requestAnimationFrame(anim);
+  },
+
+  // FRANCE SLAP: Blue/Red/White screen wipe + slam
+  _slapFrance(mesh, x, z, dur){
+    // Overlay: French flag flash
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:8000;pointer-events:none;display:flex;animation:none';
+    ov.innerHTML='<div style="flex:1;background:#002395;opacity:.7"></div><div style="flex:1;background:#fff;opacity:.7"></div><div style="flex:1;background:#ED2939;opacity:.7"></div>';
+    document.body.appendChild(ov);
+    // BOOM text
+    const boom=document.createElement('div');
+    boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8001;font-size:5rem;font-weight:900;color:#FFD700;text-shadow:0 0 20px #ED2939;pointer-events:none;animation:pop .3s ease';
+    boom.textContent='💥 BOOM!';
+    document.body.appendChild(boom);
+    setTimeout(()=>{ov.remove();boom.remove();},600);
+    // Hard slam
+    if(mesh){mesh.rotation.z=Math.PI/2;mesh.position.y=-0.5;}
+    this._showStars(x,z,0xED2939,10);
+    setTimeout(()=>{if(mesh){mesh.rotation.z=0;mesh.position.y=0;}},dur);
+  },
+
+  // VOID SLAP: Sink into ground
+  _slapVoid(mesh, x, z, dur){
+    if(!mesh) return;
+    const startY=mesh.position.y;
+    const start=Date.now();
+    // Flash black
+    const fl=document.createElement('div');
+    fl.style.cssText='position:fixed;inset:0;background:#000;z-index:7000;pointer-events:none;opacity:0;transition:opacity .3s';
+    document.body.appendChild(fl);
+    setTimeout(()=>fl.style.opacity='0.8',10);
+    setTimeout(()=>fl.style.opacity='0',400);
+    setTimeout(()=>fl.remove(),700);
+    // Sink
+    const anim=()=>{
+      const t=Date.now()-start;
+      if(t<dur*.3){mesh.position.y=startY-(t/dur*.3)*4;}
+      else if(t<dur*.8){mesh.visible=false;}
+      else if(t<dur){mesh.visible=true;mesh.position.y=startY-(1-(t-dur*.8)/(dur*.2))*4;}
+      else{mesh.position.y=startY;return;}
+      requestAnimationFrame(anim);
+    };
+    requestAnimationFrame(anim);
+  },
+
+  // FIRE SLAP: Orange particles
+  _slapFire(mesh, x, z, dur){
+    this._showStars(x,z,0xff4500,6);
+    for(let i=0;i<8;i++){
+      const p=new THREE.Mesh(new THREE.SphereGeometry(.15,5,4),new THREE.MeshBasicMaterial({color:0xff6600}));
+      p.position.set(x+(Math.random()-.5)*2,0.5+Math.random()*2,z+(Math.random()-.5)*2);
+      this.scene.add(p);
+      const vy=3+Math.random()*3,vx=(Math.random()-.5)*2,vz=(Math.random()-.5)*2;
+      const start=Date.now();
+      const fa=()=>{
+        const t=(Date.now()-start)/1000;
+        p.position.y+=vy*.016;p.position.x+=vx*.016;p.position.z+=vz*.016;
+        p.position.y-=9.8*.016*t;
+        p.scale.setScalar(Math.max(0,1-t/2));
+        if(t>2){this.scene.remove(p);return;}
+        requestAnimationFrame(fa);
+      };
+      setTimeout(()=>requestAnimationFrame(fa),i*60);
+    }
+  },
+
+  // RAINBOW SLAP: Color cycle
+  _slapRainbow(mesh, dur){
+    const colors=[0xff0000,0xff7700,0xffff00,0x00ff00,0x0000ff,0x9400d3];
+    let ci=0;
+    const iv=setInterval(()=>{
+      if(mesh&&mesh.userData.charSprite){
+        // Can't easily recolor sprite, but flash the slapFlash instead
+        const sf=mesh.userData.slapFlash;
+        if(sf)sf.material.color.setHex(colors[ci%colors.length]);
+        ci++;
+      }
+    },150);
+    setTimeout(()=>clearInterval(iv),dur);
+  },
+
+  // CONFETTI for weekend
+  _showConfetti(x,z,dur){
+    const cols=[0xff0000,0x00ff00,0x0000ff,0xffff00,0xff00ff,0x00ffff];
+    for(let i=0;i<15;i++){
+      const c=new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.05),new THREE.MeshBasicMaterial({color:cols[Math.floor(Math.random()*cols.length)]}));
+      c.position.set(x+(Math.random()-.5)*4,8+Math.random()*5,z+(Math.random()-.5)*4);
+      this.scene.add(c);
+      const vx=(Math.random()-.5)*3,vz=(Math.random()-.5)*3;
+      let vy=-1-Math.random()*2;
+      const start=Date.now();
+      const ca=()=>{
+        const dt=0.016;
+        c.position.y+=vy*dt;vy-=6*dt;
+        c.position.x+=vx*dt;c.position.z+=vz*dt;
+        c.rotation.x+=0.1;c.rotation.z+=0.08;
+        if(c.position.y<-1||(Date.now()-start)>3000){this.scene.remove(c);return;}
+        requestAnimationFrame(ca);
+      };
+      setTimeout(()=>requestAnimationFrame(ca),i*50);
+    }
+  },
+
+  // Stars spinning above head
+  _showStars(x,z,color,count){
+    for(let i=0;i<count;i++){
+      const star=new THREE.Mesh(new THREE.SphereGeometry(.18,6,4),new THREE.MeshBasicMaterial({color:color||0xFFFF00}));
+      const baseAngle=i/count*Math.PI*2;
+      star.position.set(x+Math.cos(baseAngle)*1.2,3.2+Math.sin(i*1.3)*.3,z+Math.sin(baseAngle)*1.2);
       this.scene.add(star);
-      // Animate spinning
       let t=0;
       const anim=()=>{
         t+=0.08;
         if(t>6){this.scene.remove(star);return;}
-        const a=angle+t*2;
+        const a=baseAngle+t*2.5;
         star.position.x=x+Math.cos(a)*1.2;
         star.position.z=z+Math.sin(a)*1.2;
-        star.position.y=2.8+Math.abs(Math.sin(t*3))*.4;
+        star.position.y=3.2+Math.abs(Math.sin(t*3))*.5;
+        star.scale.setScalar(Math.max(0.1,1-t/7));
         requestAnimationFrame(anim);
       };
-      setTimeout(()=>requestAnimationFrame(anim), i*80);
+      setTimeout(()=>requestAnimationFrame(anim),i*80);
     }
   },
 
@@ -1997,7 +2175,7 @@ const ZP={
     z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};
     ZG.gQ.splice(carIdx%ZG.gQ.length,1);
     ZG.gQ.push(ZG._mkG());
-    ZG._broadcastAnimalWalk(g.a,slot);
+    ZG._broadcastAnimalWalk(g.a,slot); SECRETS.trackBuy();
     ZG._animalWalk(g.a,slot);
     ZG._encs();
     ZP.toast('✅ '+g.a.e+' '+g.a.n+' gekauft! Läuft zu Gehege '+(slot+1)+'!',2500);
@@ -2590,6 +2768,294 @@ const ZChat = {
 };
 window.ZChat=ZChat;
 
+
+// ══════════════════════════════
+// ZADMIN - Player Admin Controls (France Slap secret)
+// ══════════════════════════════
+const ZAdmin = {
+  target: null,
+  cooldowns: {}, // action -> timestamp
+  CD: 120000, // 120s cooldown
+  
+  open(){
+    const el=document.getElementById('padmin-wrap');
+    if(el){el.style.display='flex';this.loadPlayers();}
+  },
+  close(){
+    const el=document.getElementById('padmin-wrap');
+    if(el)el.style.display='none';
+  },
+  
+  async loadPlayers(){
+    const list=document.getElementById('padmin-playerlist');
+    if(!list)return;
+    list.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.7rem">Lade...</div>';
+    try{
+      if(typeof _db==='undefined'||!_db)throw new Error('no db');
+      const snap=await _db.collection('zoo_players').get();
+      const players=[];
+      snap.forEach(doc=>{
+        const d=doc.data();
+        if(d.name&&d.name.toLowerCase()!==ZS.player?.toLowerCase()&&Date.now()-d.t<20000)
+          players.push(d);
+      });
+      this._renderPlayers(players);
+    }catch(e){
+      list.innerHTML='<div style="color:#f44;font-size:.7rem">Firebase fehler</div>';
+    }
+  },
+  
+  _renderPlayers(players){
+    const list=document.getElementById('padmin-playerlist');
+    if(!list)return;
+    list.innerHTML='';
+    if(!players.length){list.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.7rem">Keine Spieler online</div>';return;}
+    players.forEach(p=>{
+      const d=document.createElement('div');
+      d.className='padmin-player';
+      d.dataset.name=p.name;
+      d.innerHTML=`<span style="font-size:1.1rem">${p.char||'🧭'}</span><span>${p.name}</span>`;
+      d.onclick=()=>this.selectPlayer(p.name, p.char);
+      list.appendChild(d);
+    });
+  },
+  
+  filterPlayers(q){
+    document.querySelectorAll('.padmin-player').forEach(el=>{
+      el.style.display=el.dataset.name.toLowerCase().includes(q.toLowerCase())?'':'none';
+    });
+  },
+  
+  selectPlayer(name, char){
+    this.target={name,char};
+    const el=document.getElementById('padmin-target');
+    if(el)el.textContent='🎯 Ziel: '+(char||'🧭')+' '+name;
+    document.querySelectorAll('.padmin-player').forEach(el=>el.classList.toggle('sel',el.dataset.name===name));
+  },
+  
+  _checkCD(action){
+    const last=this.cooldowns[action]||0;
+    const remain=Math.ceil((this.CD-(Date.now()-last))/1000);
+    if(remain>0){ZP.toast('⏳ '+action+' Cooldown: '+remain+'s',1500);return false;}
+    this.cooldowns[action]=Date.now();
+    return true;
+  },
+  
+  _send(type, extra={}){
+    if(!this.target){ZP.toast('❗ Zuerst Spieler auswählen!',1500);return false;}
+    if(!this._checkCD(type))return false;
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        _db.collection('zoo_events').add({
+          type:'admin_'+type, target:this.target.name.toLowerCase(),
+          from:ZS.player, dur:10000, at:Date.now(), ...extra
+        }).catch(()=>{});
+      }
+    }catch(e){}
+    ZP.toast('👑 '+type+' → '+this.target.name,1500);
+    return true;
+  },
+  
+  freeze(){ if(!this._send('freeze'))return; ZP.toast('❄️ '+this.target.name+' eingefroren für 10s!',2000); },
+  launch(){ if(!this._send('launch'))return; ZP.toast('🚀 '+this.target.name+' hochgeschleudert!',2000); },
+  jail(){ if(!this._send('jail'))return; ZP.toast('🏛️ '+this.target.name+' für 10s eingesperrt!',2000); },
+  ragdoll(){ if(!this._send('ragdoll'))return; ZP.toast('🕺 '+this.target.name+' Ragdoll-Modus!',2000); },
+  unjail(){ if(!this._send('unjail'))return; ZP.toast('🔓 '+this.target.name+' befreit!',2000); },
+  shrink(){ if(!this._send('shrink'))return; ZP.toast('🤏 '+this.target.name+' verkleinert!',2000); },
+  scare(){ if(!this._send('scare'))return; ZP.toast('👻 Boo!',2000); },
+  transform(){ if(!this._send('transform'))return; ZP.toast('🎭 Verwandelt!',2000); },
+  bring(){
+    if(!this.target){ZP.toast('❗ Zuerst Spieler auswählen!',1500);return;}
+    if(!this._checkCD('bring'))return;
+    ZP.toast('⭕ '+this.target.name+' wird hergebracht!',2000);
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_events').add({type:'admin_bring',target:this.target.name.toLowerCase(),
+        from:ZS.player,toX:Math.round(ZG.pl.x),toZ:Math.round(ZG.pl.z),dur:0,at:Date.now()}).catch(()=>{});
+    }}catch(e){}
+  },
+  possess(){
+    if(!this.target){ZP.toast('❗ Zuerst Spieler auswählen!',1500);return;}
+    if(!this._checkCD('possess'))return;
+    ZP.toast('🧑 Übernehme '+this.target.name+' für 10s...',2000);
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_events').add({type:'admin_possess',target:this.target.name.toLowerCase(),
+        from:ZS.player,dur:10000,at:Date.now()}).catch(()=>{});
+    }}catch(e){}
+    // Local camera takes over - follow their position
+    const savedPl={...ZG.pl};
+    const targetName=this.target.name.toLowerCase();
+    const possessIv=setInterval(()=>{
+      const op=ZG.otherPl[targetName];
+      if(op){ZG.pl.x=op.x;ZG.pl.z=op.z;ZG.pl.y=1.7;}
+    },100);
+    setTimeout(()=>{clearInterval(possessIv);ZG.pl.x=savedPl.x;ZG.pl.z=savedPl.z;ZP.toast('🧑 Übertragung beendet!',1500);},10000);
+  },
+};
+window.ZAdmin=ZAdmin;
+
+// Handle incoming admin events (for target player)
+function _handleAdminEvent(d){
+  if(d.target!==ZS.player?.toLowerCase())return;
+  const dur=d.dur||10000;
+  
+  if(d.type==='admin_freeze'){
+    ZG._slapStunEnd=Date.now()+dur;
+    ZP.toast('❄️ Du bist eingefroren! (10s)',3000);
+    const fl=G('bflash');if(fl){fl.style.background='rgba(0,200,255,.4)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
+  }
+  else if(d.type==='admin_launch'){
+    ZG._slapLaunchSelf(dur);
+    ZP.toast('🚀 Du wirst hochgeschleudert!',2000);
+  }
+  else if(d.type==='admin_jail'){
+    ZG._slapStunEnd=Date.now()+dur;
+    ZP.toast('🏛️ Du bist eingesperrt! (10s)',3000);
+    const jail=document.createElement('div');
+    jail.id='jail-overlay';
+    jail.style.cssText='position:fixed;inset:0;z-index:7500;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(100,100,100,.15) 0,rgba(100,100,100,.15) 4px,transparent 4px,transparent 40px)';
+    document.body.appendChild(jail);
+    setTimeout(()=>{const j=document.getElementById('jail-overlay');if(j)j.remove();},dur);
+  }
+  else if(d.type==='admin_scare'){
+    const boo=document.createElement('div');
+    boo.style.cssText='position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;animation:pop .1s ease';
+    boo.innerHTML='<div style="text-align:center"><div style="font-size:8rem">👻</div><div style="color:#fff;font-size:2rem;font-weight:900">BOO!</div></div>';
+    document.body.appendChild(boo);
+    ZSound.slap&&ZSound.slap();
+    setTimeout(()=>boo.remove(),1500);
+  }
+  else if(d.type==='admin_shrink'){
+    // Minimap + UI shrink visual
+    ZP.toast('😊 Du bist winzig! (10s)',2000);
+    const fl=G('bflash');if(fl){fl.style.background='rgba(255,165,0,.4)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',300);}
+    // Scale FOV up so world looks bigger (player seems smaller)
+    if(ZG.cam){ZG.cam.fov=110;ZG.cam.updateProjectionMatrix();}
+    setTimeout(()=>{if(ZG.cam){ZG.cam.fov=75;ZG.cam.updateProjectionMatrix();}},dur);
+  }
+  else if(d.type==='admin_bring'&&d.toX!==undefined){
+    ZG.pl.x=d.toX;ZG.pl.z=d.toZ;
+    ZP.toast('⭕ Du wurdest hergebracht!',2000);
+  }
+  else if(d.type==='admin_unjail'){
+    ZG._slapStunEnd=0;
+    ZP.toast('🔓 Du bist frei!',1500);
+    const j=document.getElementById('jail-overlay');if(j)j.remove();
+  }
+  else if(d.type==='admin_ragdoll'){
+    ZP.toast('🕺 Ragdoll-Modus! (10s)',2000);
+    // Crazy camera shake
+    const startYaw=ZG.yaw,startPitch=ZG.pitch;
+    const iv=setInterval(()=>{ZG.yaw+=(.5-Math.random())*.3;ZG.pitch=Math.max(-.8,Math.min(.8,ZG.pitch+(.5-Math.random())*.2));},80);
+    setTimeout(()=>{clearInterval(iv);ZG.yaw=startYaw;ZG.pitch=startPitch;},dur);
+  }
+}
+
+
+// ══════════════════════════════════════════
+// SECRETS SYSTEM — shh... don't tell!
+// ══════════════════════════════════════════
+const SECRETS = {
+  unlocked: {},
+  
+  // Check and trigger secrets
+  check(type, data){
+    if(this.unlocked[type]) return;
+    
+    // SECRET 1: France Slap admin (0.1% chance)
+    if(type==='france_slap_win'){
+      if(Math.random()<0.001){
+        this.unlocked['admin']=true;
+        localStorage.setItem('zoo_secret_admin',ZS.player);
+        this._reveal('🗼 SECRET ENTDECKT!',
+          'Du hast Admin-Befehle freigeschaltet! Öffne das Admin-Panel mit [A] oder im Menü.',
+          '#ED2939');
+        ZAdmin._hasAccess=true;
+        ZP.toast('🗼 SECRET! Admin-Panel via [A] Taste!',5000);
+      }
+    }
+    
+    // SECRET 2: Moon walk - walk backwards very fast 
+    if(type==='moonwalk'){
+      this._reveal('🌙 MOONWALK!','Du hast den Moonwalk entdeckt! Halte [S] + [Shift] für Lichtgeschwindigkeit!','#FFD700');
+      this.unlocked['moonwalk']=true;
+    }
+    
+    // SECRET 3: Konami code in zoo
+    if(type==='konami'){
+      this.unlocked['konami']=true;
+      ZS.zoo.mt+=999;
+      this._reveal('🎮 KONAMI!','↑↑↓↓←→←→BA — +999 MT!','#27AE60');
+      ZP.toast('🎮 CHEAT CODE! +999 MT!',3000);
+    }
+    
+    // SECRET 4: Stay still 60 seconds - a ghost appears
+    if(type==='ghost'){
+      this.unlocked['ghost']=true;
+      this._reveal('👻 GEISTERSTUNDE!','Du hast 60 Sekunden stillgehalten. Ein Geist erscheint...','#888');
+    }
+    
+    // SECRET 5: Buy all 5 animals in under 5 minutes  
+    if(type==='speedbuy'){
+      this.unlocked['speedbuy']=true;
+      this._reveal('⚡ SPEED BUYER!','5 Tiere in unter 5 Min! ×3 Einnahmen für 10 Min!','#F39C12');
+      if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*3;setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=3;},600000);}
+    }
+  },
+  
+  _reveal(title, msg, color){
+    const d=document.createElement('div');
+    d.style.cssText=`position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      z-index:9990;background:#0a0a1a;border:3px solid ${color};border-radius:20px;
+      padding:28px 36px;text-align:center;color:#fff;max-width:340px;
+      box-shadow:0 0 40px ${color}88;animation:pop .4s ease`;
+    d.innerHTML=`<div style="font-size:2.5rem;margin-bottom:8px">🔓</div>
+      <div style="font-size:1.2rem;font-weight:900;color:${color};margin-bottom:8px">${title}</div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.8);white-space:pre-line">${msg}</div>
+      <button onclick="this.parentElement.remove()" style="margin-top:14px;background:${color};color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:700">✓ OK</button>`;
+    document.body.appendChild(d);
+  },
+
+  // Konami code detector
+  _konamiSeq: [],
+  _konamiCode: ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'],
+  onKey(code){
+    this._konamiSeq.push(code);
+    if(this._konamiSeq.length>10) this._konamiSeq.shift();
+    if(this._konamiSeq.join(',')===this._konamiCode.join(',')) this.check('konami');
+  },
+  
+  // Still-timer
+  _stillTimer: null, _lastMove: 0,
+  trackMovement(){
+    this._lastMove=Date.now();
+    clearTimeout(this._stillTimer);
+    if(!this.unlocked['ghost']){
+      this._stillTimer=setTimeout(()=>this.check('ghost'),60000);
+    }
+  },
+  
+  // Speed-buy tracker
+  _buyTimes:[],
+  trackBuy(){
+    this._buyTimes.push(Date.now());
+    // Keep only last 5
+    if(this._buyTimes.length>5) this._buyTimes.shift();
+    if(this._buyTimes.length===5&&(Date.now()-this._buyTimes[0])<300000){
+      this.check('speedbuy');
+    }
+  },
+};
+window.SECRETS=SECRETS;
+
+// Announce secrets exist on first zoo visit
+function _announceSecrets(){
+  if(localStorage.getItem('zoo_secrets_announced')) return;
+  localStorage.setItem('zoo_secrets_announced','1');
+  setTimeout(()=>{
+    ZP.toast('🔐 Psst... Es gibt Geheimnisse im Zoo. Finde sie!',5000);
+  },8000);
+}
+
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
   const main=sessionStorage.getItem('mischa_current');
@@ -2623,6 +3089,55 @@ document.addEventListener('DOMContentLoaded',()=>{
 <button onclick="ZChat.toggle()" id="chat-toggle-btn" style="position:fixed;bottom:4px;left:120px;z-index:601;background:#1a2a3a;border:1px solid rgba(255,255,255,.2);color:#FFD700;padding:5px 9px;border-radius:50px;font-size:.78rem;cursor:pointer;display:none;box-shadow:0 2px 8px rgba(0,0,0,.5)">💬 Chat</button>
 
 <div id="voice-peers" style="position:fixed;top:50%;right:4px;transform:translateY(-50%);z-index:499;display:flex;flex-direction:column;gap:4px;pointer-events:none"></div>
+
+
+<!-- ══ PLAYER ADMIN PANEL ══ -->
+<div id="padmin-wrap" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9500;align-items:center;justify-content:center">
+  <div style="background:#1a1a2e;border:2px solid #FFD700;border-radius:16px;width:min(520px,95vw);max-height:90vh;overflow-y:auto">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#2c3e50,#1a1a2e);padding:14px 18px;border-radius:14px 14px 0 0;display:flex;align-items:center;gap:10px;border-bottom:2px solid #FFD700">
+      <span style="font-size:1.5rem">👑</span>
+      <span style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700;letter-spacing:1px">ADMIN PANEL</span>
+      <button onclick="document.getElementById('padmin-wrap').style.display='none'" style="margin-left:auto;background:#E74C3C;color:white;border:none;border-radius:8px;padding:6px 12px;font-weight:900;font-size:1rem;cursor:pointer">✕</button>
+    </div>
+    <div style="display:flex;gap:0">
+      <!-- Player list -->
+      <div style="width:160px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.1);padding:10px">
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px;font-weight:700">SPIELER</div>
+        <input id="padmin-search" placeholder="🔍 Spieler suchen" oninput="ZAdmin.filterPlayers(this.value)"
+          style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:5px 8px;border-radius:6px;font-size:.72rem;margin-bottom:8px;outline:none;box-sizing:border-box">
+        <div id="padmin-playerlist" style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto"></div>
+      </div>
+      <!-- Actions -->
+      <div style="flex:1;padding:12px">
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:10px;font-weight:700">AKTIONEN</div>
+        <div id="padmin-target" style="font-size:.85rem;color:#FFD700;margin-bottom:10px;min-height:20px">Spieler auswählen →</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="padmin-actions">
+          <button class="padmin-btn" onclick="ZAdmin.freeze()" style="background:#2980B9">❄️ Einfrieren</button>
+          <button class="padmin-btn" onclick="ZAdmin.launch()" style="background:#E74C3C">🚀 Hochschleudern</button>
+          <button class="padmin-btn" onclick="ZAdmin.jail()" style="background:#555">🏛️ Einsperren</button>
+          <button class="padmin-btn" onclick="ZAdmin.ragdoll()" style="background:#8E44AD">🕺 Ragdoll</button>
+          <button class="padmin-btn" onclick="ZAdmin.unjail()" style="background:#27AE60">🔓 Entsperren</button>
+          <button class="padmin-btn" onclick="ZAdmin.shrink()" style="background:#F39C12">😊 Verkleinern</button>
+          <button class="padmin-btn" onclick="ZAdmin.possess()" style="background:#16A085">🧑 Übernehmen (10s)</button>
+          <button class="padmin-btn" onclick="ZAdmin.transform()" style="background:#E67E22">🎭 Verwandeln</button>
+          <button class="padmin-btn" onclick="ZAdmin.scare()" style="background:#2C3E50">👻 Erschrecken</button>
+          <button class="padmin-btn" onclick="ZAdmin.bring()" style="background:#1ABC9C">⭕ Herbringen</button>
+        </div>
+        <div style="margin-top:10px;font-size:.68rem;color:rgba(255,255,255,.3);text-align:center">
+          Alle Aktionen: 120s Cooldown · 10s Effektdauer
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.padmin-btn{color:white;border:none;padding:10px;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;transition:opacity .15s}
+.padmin-btn:hover{opacity:.85}
+.padmin-btn:disabled{opacity:.4;cursor:not-allowed}
+.padmin-player{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.8);transition:background .15s}
+.padmin-player:hover,.padmin-player.sel{background:rgba(255,215,0,.15);color:#FFD700}
+</style>
 
 </body>
 </html>
