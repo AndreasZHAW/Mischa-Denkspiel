@@ -187,20 +187,43 @@ const State = {
 
     const finalScore = this.calcFinalScore(result, player);
     
-    // Calculate MT earned (1-1.5 based on performance)
+    // ── KALIBRIERUNG ──
     const isRef = playerName.toLowerCase() === 'janoschtest';
-    const taskData = (window.WORLDS||[])[0]?.tasks?.[taskIndex];
-    const mtEarned = result.passed !== false ? 
-      Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10 : 0.2;
+    
+    // Get calibration reference for this game (gameId = taskIndex)
+    const calRef = this._getCalibration(taskIndex);
+    
+    // Calculate MT earned
+    let mtEarned;
+    if (result.passed === false) {
+      mtEarned = 0.2; // Always 0.2 for not-passing
+    } else if (calRef !== null) {
+      // CALIBRATED: compare against Janoschtest reference
+      // calRef = Janoschtest's rawScore for this game (= 1.0 MT)
+      const ratio = (result.rawScore || 50) / calRef;
+      // ratio 1.0 = same as Janoschtest = 1.0 MT
+      // ratio 1.5+ = 50% better = 1.5 MT (max)
+      // ratio 0.5 = half as good = 0.8 MT (min when passing)
+      mtEarned = Math.round(Math.min(1.5, Math.max(0.5, ratio)) * 10) / 10;
+    } else {
+      // FALLBACK: old formula (no calibration data yet)
+      mtEarned = Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10;
+    }
     
     player.worlds[worldIndex].tasks[taskIndex] = {
       done: true, score: finalScore, mt: mtEarned,
       rawScore: result.rawScore || 0,
       timeMs: result.timeMs || 0,
+      calibrated: calRef !== null, // track if this used calibration
     };
 
-    // Add MT to total score (MT = Mischa Taler)
+    // Add MT to total score
     player.totalScore = (player.totalScore || 0) + mtEarned;
+    
+    // If Janoschtest: save their raw scores as calibration data
+    if (isRef) {
+      this._saveRefScore(taskIndex, result.rawScore || 50, player);
+    }
     
     // Check world completion (all 20 tasks done)
     const allDone = player.worlds[worldIndex].tasks.filter(t=>t&&t.done).length >= 20;
@@ -212,6 +235,92 @@ const State = {
     await this.savePlayer(player);
     this.currentPlayer = player;
     return player;
+  },
+
+  // ── KALIBRIERUNGS-SYSTEM ──
+  
+  // Get Janoschtest reference score for a game (taskIndex)
+  // Returns: the rawScore to use as 1.0 MT reference, or null if no data
+  _getCalibration(taskIndex) {
+    try {
+      const raw = localStorage.getItem('janosch_cal');
+      if (!raw) return null;
+      const cal = JSON.parse(raw); // { taskIndex: [run1score, run2score, run3score] }
+      const scores = cal[taskIndex];
+      if (!scores || scores.length === 0) return null;
+      // Use LAST run (most recent Janoschtest play)
+      return scores[scores.length - 1];
+    } catch(e) { return null; }
+  },
+  
+  // Get ALL calibration data (for admin table)
+  _getAllCalibration() {
+    try {
+      const raw = localStorage.getItem('janosch_cal');
+      return raw ? JSON.parse(raw) : {};
+    } catch(e) { return {}; }
+  },
+  
+  // Get calibration runs metadata
+  _getCalibrationRuns() {
+    try {
+      const raw = localStorage.getItem('janosch_runs');
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  },
+  
+  // Save Janoschtest's reference score for a game
+  _saveRefScore(taskIndex, rawScore, player) {
+    try {
+      const raw = localStorage.getItem('janosch_cal');
+      const cal = raw ? JSON.parse(raw) : {};
+      if (!cal[taskIndex]) cal[taskIndex] = [];
+      
+      // Check if this is a new run (all 20 games of previous run complete)
+      // A "run" = Janoschtest completed taskIndex 0 fresh
+      // We track runs via a runs array
+      const runs = this._getCalibrationRuns();
+      const currentRun = runs.length > 0 ? runs[runs.length - 1] : null;
+      
+      if (taskIndex === 0 || !currentRun || currentRun.complete) {
+        // Start new run
+        const newRun = { id: Date.now(), games: {}, complete: false, startedAt: Date.now() };
+        newRun.games[taskIndex] = rawScore;
+        runs.push(newRun);
+        // Keep only last 3 runs
+        while (runs.length > 3) runs.shift();
+        localStorage.setItem('janosch_runs', JSON.stringify(runs));
+      } else {
+        // Add to current run
+        currentRun.games[taskIndex] = rawScore;
+        // Check if run complete (all 20 games)
+        if (Object.keys(currentRun.games).length >= 20) {
+          currentRun.complete = true;
+          currentRun.completedAt = Date.now();
+        }
+        localStorage.setItem('janosch_runs', JSON.stringify(runs));
+      }
+      
+      // Update per-game calibration: store last 3 scores per game
+      // Use all available runs (1-3)
+      const gameCal = {};
+      runs.forEach(run => {
+        Object.keys(run.games).forEach(idx => {
+          if (!gameCal[idx]) gameCal[idx] = [];
+          gameCal[idx].push(run.games[idx]);
+          // Keep last 3
+          if (gameCal[idx].length > 3) gameCal[idx] = gameCal[idx].slice(-3);
+        });
+      });
+      localStorage.setItem('janosch_cal', JSON.stringify(gameCal));
+      
+      // Also save to Firebase for cross-device access
+      if (typeof _db !== 'undefined' && _db) {
+        _db.collection('calibration').doc('janoschtest').set({
+          cal: gameCal, runs: runs.length, lastUpdate: Date.now()
+        }).catch(() => {});
+      }
+    } catch(e) {}
   },
 
   calcFinalScore({ rawScore = 100, timeMs = 0, errors = 0, passed = true }, player = null) {

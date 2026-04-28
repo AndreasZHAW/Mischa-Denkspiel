@@ -616,5 +616,223 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 </script>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- JANOSCHTEST KALIBRIERUNGS-TABELLE -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="aw" style="margin-top:30px">
+    <div class="sl">🔬 Janoschtest — MT-Kalibrierung</div>
+    <div style="background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:.82rem;color:rgba(255,200,200,.8)">
+      <b>So funktioniert die Kalibrierung:</b> Janoschtest spielt alle Spiele mit Durchschnitts-Leistung.
+      Sein Ergebnis = <b>1.0 MT</b> (Referenzpunkt). Andere Spieler werden relativ dazu bewertet (max ×1.5).
+    </div>
+    
+    <!-- Current calibration status -->
+    <div class="sr" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+      <div class="sc">
+        <div class="sv" id="cal-ref-score">–</div>
+        <div class="sk">Janoschtest Ø rawScore</div>
+      </div>
+      <div class="sc">
+        <div class="sv" id="cal-ref-mt">1.0 MT</div>
+        <div class="sk">Referenz-MT (fest)</div>
+      </div>
+      <div class="sc">
+        <div class="sv" id="cal-games-played">–</div>
+        <div class="sk">Spiele gespielt</div>
+      </div>
+      <div class="sc">
+        <div class="sv" id="cal-factor">–</div>
+        <div class="sk">Ø Kalibrierungsfaktor</div>
+      </div>
+    </div>
+
+    <!-- Per-game calibration table -->
+    <div class="lb">
+      <div class="sl" style="font-size:.95rem">📊 Umrechnungsfaktoren pro Spiel</div>
+      <div style="overflow-x:auto">
+        <table id="cal-table" style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5);text-align:left">
+              <th style="padding:8px 12px">Spiel</th>
+              <th style="padding:8px 12px;text-align:center">Letzte 3 Runs</th>
+              <th style="padding:8px 12px;text-align:center;color:#FFD700">Aktive Ref. (letzter Run)</th>
+              <th style="padding:8px 12px;text-align:center;color:#E74C3C">0.5 MT (50%)</th>
+              <th style="padding:8px 12px;text-align:center;color:#4af">1.0 MT (100%)</th>
+              <th style="padding:8px 12px;text-align:center;color:#27AE60">1.5 MT (150%)</th>
+              <th style="padding:8px 12px;text-align:center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="cal-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Lade Janoschtest-Daten...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Explanation of current MT formula -->
+    <div class="lb" style="margin-top:12px">
+      <div class="sl" style="font-size:.95rem">⚙️ Aktuelles MT-System vs. Kalibriertes System</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5)">
+              <th style="padding:8px 12px;text-align:left">Faktor</th>
+              <th style="padding:8px 12px;text-align:center">Aktuelles System</th>
+              <th style="padding:8px 12px;text-align:center">Kalibriertes System</th>
+              <th style="padding:8px 12px;text-align:center">Unterschied</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+              <td style="padding:8px 12px;color:rgba(255,255,255,.8)">Basis-MT (Spiel gespielt)</td>
+              <td style="padding:8px 12px;text-align:center;color:#FFD700">0.8 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#27AE60">1.0 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#E74C3C">−0.2 MT</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+              <td style="padding:8px 12px;color:rgba(255,255,255,.8)">Maximum-MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#FFD700">1.5 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#27AE60">1.5 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#888">=</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+              <td style="padding:8px 12px;color:rgba(255,255,255,.8)">Zeit-Bonus</td>
+              <td style="padding:8px 12px;text-align:center;color:#FFD700">bis +0.3 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#27AE60">Rel. zu Janoschtest</td>
+              <td style="padding:8px 12px;text-align:center;color:#888">dynamisch</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+              <td style="padding:8px 12px;color:rgba(255,255,255,.8)">Fehler-Abzug</td>
+              <td style="padding:8px 12px;text-align:center;color:#FFD700">bis −0.2 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#27AE60">Rel. zu Janoschtest</td>
+              <td style="padding:8px 12px;text-align:center;color:#888">dynamisch</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;color:rgba(255,255,255,.8)">Nicht-Bestehen</td>
+              <td style="padding:8px 12px;text-align:center;color:#FFD700">0.2 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#27AE60">0.2 MT</td>
+              <td style="padding:8px 12px;text-align:center;color:#888">=</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;font-size:.75rem;color:rgba(255,255,255,.35)">
+        Das kalibrierte System wird aktiv, sobald Janoschtest mindestens 5 Spiele gespielt hat.
+        Bis dahin gilt das aktuelle Formel-System.
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Load Janoschtest calibration data
+  async function loadCalibration() {
+    const tbody = document.getElementById('cal-tbody');
+    const GAMES = window.GAME_LIST || [];
+    
+    // Load calibration from State helpers (localStorage)
+    let cal = {};
+    let runs = [];
+    try {
+      const calRaw = localStorage.getItem('janosch_cal');
+      cal = calRaw ? JSON.parse(calRaw) : {};
+      const runsRaw = localStorage.getItem('janosch_runs');
+      runs = runsRaw ? JSON.parse(runsRaw) : [];
+    } catch(e) {}
+    
+    // Also try Firebase
+    try {
+      if (typeof _db !== 'undefined' && _db) {
+        const snap = await _db.collection('calibration').doc('janoschtest').get();
+        if (snap.exists) {
+          const d = snap.data();
+          if (d.cal) cal = d.cal;
+        }
+      }
+    } catch(e) {}
+    
+    // Count calibrated games
+    const calCount = Object.keys(cal).length;
+    const runCount = runs.length;
+    const lastRun = runs.length > 0 ? runs[runs.length-1] : null;
+    const lastRunGames = lastRun ? Object.keys(lastRun.games||{}).length : 0;
+    
+    document.getElementById('cal-games-played').textContent = calCount + '/20';
+    document.getElementById('cal-factor').textContent = runCount + ' Durchgänge';
+    
+    // Average ref score across all calibrated games
+    const allScores = Object.values(cal).map(arr => arr[arr.length-1]); // last run score
+    const avgRaw = allScores.length > 0
+      ? Math.round(allScores.reduce((s,v) => s+v, 0) / allScores.length)
+      : 0;
+    document.getElementById('cal-ref-score').textContent = avgRaw > 0 ? avgRaw + ' Pkt' : '–';
+    
+    if (calCount === 0) {
+      tbody.innerHTML = 
+        '<tr><td colspan="7" style="text-align:center;padding:20px;color:rgba(255,150,100,.8)">' +
+        '⚠️ Noch keine Kalibrierungsdaten. Bitte mit <b>Janoschtest</b> (PW: janoschtest) ' +
+        'alle 20 Spiele spielen. Mindestens 1 vollständiger Durchgang nötig.' +
+        '</td></tr>';
+      return;
+    }
+    
+    // Status header
+    const statusHtml = runCount === 0
+      ? '<span style="color:#E74C3C">Kein vollständiger Durchgang</span>'
+      : runCount === 1
+      ? '<span style="color:#F39C12">1 Durchgang ('+lastRunGames+'/20 Spiele)</span>'
+      : '<span style="color:#27AE60">'+runCount+' Durchgänge · Letzer: '+lastRunGames+'/20</span>';
+    document.getElementById('cal-ref-mt').innerHTML = '1.0 MT<br><small style="font-size:.6rem;color:rgba(255,255,255,.4)">'+statusHtml+'</small>';
+    
+    // Per-game table
+    const rows = GAMES.map((game, i) => {
+      const gameScores = cal[i] || []; // last 3 scores for this game
+      const lastScore = gameScores.length > 0 ? gameScores[gameScores.length - 1] : null;
+      const avgScore = gameScores.length > 0
+        ? Math.round(gameScores.reduce((s,v) => s+v, 0) / gameScores.length)
+        : null;
+      
+      // Which scores we have
+      const scoreStr = gameScores.length > 0
+        ? gameScores.map((s,j) => '<span style="color:'+(j===gameScores.length-1?'#FFD700':'#888')+'">'+s+'</span>').join(' / ')
+        : '–';
+      
+      // Reference: last run's score
+      const refScore = lastScore !== null ? lastScore : null;
+      const forOneMT = refScore !== null ? refScore : '?';
+      const forMaxMT = refScore !== null ? Math.round(refScore * 1.5) : '?';
+      const forMinMT = refScore !== null ? Math.round(refScore * 0.5) : '?';
+      
+      // Which formula applies
+      const formula = refScore !== null
+        ? 'max(0.5, min(1.5, score÷'+refScore+'))'
+        : 'fallback (0.8+raw/100×0.7)';
+      
+      const status = refScore === null
+        ? '<span style="color:#E74C3C">⏳ ausstehend</span>'
+        : gameScores.length >= 3
+        ? '<span style="color:#27AE60">✅ voll kalibriert (3×)</span>'
+        : '<span style="color:#F39C12">🔄 teilkalibriert ('+gameScores.length+'×)</span>';
+      
+      return '<tr style="border-bottom:1px solid rgba(255,255,255,.04)">' +
+        '<td style="padding:7px 12px;color:#fff">'+game.icon+' '+game.name+'</td>' +
+        '<td style="padding:7px 12px;text-align:center;font-size:.75rem">'+scoreStr+'</td>' +
+        '<td style="padding:7px 12px;text-align:center;color:#FFD700;font-weight:700">'+(refScore||'–')+'</td>'+
+        '<td style="padding:7px 12px;text-align:center;color:#E74C3C">'+(forMinMT||'?')+'</td>'+
+        '<td style="padding:7px 12px;text-align:center;color:#4af">'+forOneMT+'</td>'+
+        '<td style="padding:7px 12px;text-align:center;color:#27AE60">'+forMaxMT+'</td>'+
+        '<td style="padding:7px 12px;text-align:center">'+status+'</td>'+
+        '</tr>';
+    });
+    
+    tbody.innerHTML = rows.join('');
+  }
+  
+  // Auto-load on page ready
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadCalibration, 1500); // Wait for Firebase init
+  });
+  </script>
+
 </body>
 </html>
