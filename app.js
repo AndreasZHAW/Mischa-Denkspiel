@@ -393,7 +393,9 @@ const App = {
           ${WORLDS.map(world => {
             const ws = player.worlds?.[world.id] || { tasks:Array(20).fill(null), jokerUsed:false, completed:false };
             const done = ws.tasks.filter(t=>t&&t.done).length;
-            const unlocked = world.id <= (player.currentWorld||1);
+            // Janoschtest: all tasks always unlocked
+            const isRef = player.name.toLowerCase() === 'janoschtest';
+            const unlocked = isRef || world.id <= (player.currentWorld||1);
             const completed = ws.completed;
             let cls = unlocked ? 'unlocked' : 'locked';
             if (completed) cls = 'completed';

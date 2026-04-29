@@ -172,7 +172,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(255,165,0,.8)">🤝</div><div class="hbl">Trading</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
 
-<div class="hb off" id="admbtn" onclick="ZP.open('adm')"><div class="hbb" style="background:rgba(255,165,0,.6)">👑</div><div class="hbl">Admin</div></div>
+<div class="hbl">Admin</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
@@ -267,7 +267,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 </div></div>
 
 <div class="zp off" id="p-index"><div class="zpi"><button class="pcls" onclick="ZP.close('index')">✕</button><div class="pt">📖 Index</div><div id="pidx"></div></div></div>
-<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button></div><div id="scont"></div></div></div>
+<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button></div><div id="scont"></div>
+  <!-- Secret admin access field -->
+  <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
+    <input id="shop-admin-pw" type="password" placeholder="🔐 Admin-Code..." maxlength="30"
+      style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4);padding:6px 10px;border-radius:8px;font-size:.72rem;outline:none;box-sizing:border-box"
+      onkeydown="if(event.key==='Enter'){ZAdmin._checkShopPW(this.value);this.value='';}"
+      oninput="this.style.borderColor=this.value?'rgba(255,215,0,.3)':'rgba(255,255,255,.08)'">
+  </div>
+</div></div>
 <div class="zp off" id="p-trade"><div class="zpi"><button class="pcls" onclick="ZP.close('trade')">✕</button><div class="pt">🤝 Trading</div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="tt-m" class="tab ta" onclick="ZP.tradeTab('m')">Meine</button><button id="tt-a" class="tab ti" onclick="ZP.tradeTab('a')">Alle</button><button id="tt-n" class="tab ti" onclick="ZP.tradeTab('n')">+ Neu</button></div><div id="ptrade"></div></div></div>
 <div class="zp off" id="p-reb"><div class="zpi"><button class="pcls" onclick="ZP.close('reb')">✕</button><div class="pt">🔄 Wiedergeburt</div><div id="prc"></div></div></div>
 <div class="zp off" id="p-enc"><div class="zpi"><button class="pcls" onclick="ZP.close('enc')">✕</button><div class="pt" id="pent">Gehege</div><div id="pencm"></div></div></div>
@@ -689,6 +697,44 @@ const ZG={
         if(ev&&(!this.ev||this.ev.id!==d.eventId)){
           this.startEv(ev,d.dur);
           ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
+        }
+      });
+      // Listen for admin announcements
+      _db.collection('zoo_broadcast').doc('announcement').onSnapshot(snap=>{
+        if(!snap.exists)return;
+        const d=snap.data();
+        if(Date.now()-d.at>10000)return; // ignore old
+        if(d.type==='announce'){
+          // Big announcement banner
+          const ann=document.createElement('div');
+          ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:280px;max-width:90vw;background:linear-gradient(135deg,#1a0a2e,#2c1a4e);border:2px solid #FFD700;border-radius:16px;padding:20px 24px;text-align:center;color:#fff;box-shadow:0 0 30px rgba(255,215,0,.3)';
+          ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px">📢</div>'+
+            '<div style="font-size:.75rem;color:#FFD700;font-weight:700;margin-bottom:8px">Ankündigung von '+$esc(d.from)+'</div>'+
+            '<div style="font-size:.95rem;line-height:1.5">'+$esc(d.msg)+'</div>'+
+            '<button onclick="this.parentElement.remove()" style="margin-top:12px;background:#FFD700;color:#000;border:none;padding:6px 18px;border-radius:8px;cursor:pointer;font-weight:700">OK</button>';
+          document.body.appendChild(ann);
+          setTimeout(()=>{if(ann.parentElement)ann.remove();},12000);
+        }
+        else if(d.type==='poll'){
+          // Poll banner with Yes/No buttons
+          const pollDiv=document.createElement('div');
+          pollDiv.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:280px;max-width:90vw;background:linear-gradient(135deg,#0a1a2e,#1a2a4e);border:2px solid #8E44AD;border-radius:16px;padding:20px 24px;text-align:center;color:#fff;box-shadow:0 0 30px rgba(138,43,226,.3)';
+          // Build poll with DOM (no quote issues)
+          const pTitle=document.createElement('div');pTitle.style.cssText='font-size:.75rem;color:#8E44AD;font-weight:700;margin-bottom:8px';pTitle.textContent='📊 Umfrage von '+(d.from||'Admin');
+          const pMsg=document.createElement('div');pMsg.style.cssText='font-size:.95rem;margin-bottom:14px';pMsg.textContent=d.msg||'';
+          const pYes=document.createElement('button');pYes.textContent='✅ Ja';pYes.style.cssText='background:#27AE60;color:#fff;border:none;padding:8px 22px;border-radius:8px;cursor:pointer;font-weight:700;margin:4px';
+          const pNo=document.createElement('button');pNo.textContent='❌ Nein';pNo.style.cssText='background:#E74C3C;color:#fff;border:none;padding:8px 22px;border-radius:8px;cursor:pointer;font-weight:700;margin:4px';
+          const pid2=d.pollId;
+          pYes.onclick=function(){ZChat._vote(pid2,'yes',pollDiv);};
+          pNo.onclick=function(){ZChat._vote(pid2,'no',pollDiv);};
+          pollDiv.appendChild(pTitle);pollDiv.appendChild(pMsg);pollDiv.appendChild(pYes);pollDiv.appendChild(pNo);
+          document.body.appendChild(pollDiv);
+          setTimeout(()=>{if(pollDiv.parentElement)pollDiv.remove();},30000);
+        }
+        else if(d.type==='discount'){
+          ZP.toast('🏷️ Admin-Rabatt: '+d.pct+'% auf alle Einkäufe für 5 Min!',6000);
+          // Store discount globally
+          window._adminDiscount={pct:d.pct,until:Date.now()+(d.dur||300000)};
         }
       });
       _db.collection('zoo_broadcast').doc('wheel').onSnapshot(snap=>{
@@ -1961,25 +2007,33 @@ const LW={
 
   WHEELS:{
     normal:{name:'Glücksrad',emoji:'🍀',prizes:[
-      {l:'1.000 MT',mt:1000,c:40,col:'#27AE60'},{l:'8.000 MT',mt:8000,c:25,col:'#2980B9'},
-      {l:'10.000 MT',mt:10000,c:20,col:'#8E44AD'},{l:'50.000 MT',mt:50000,c:10,col:'#F39C12'},
-      {l:'100.000 MT',mt:100000,c:4.5,col:'#E74C3C'},{l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
+      {l:'1.000 MT',mt:1000,c:35,col:'#27AE60'},{l:'8.000 MT',mt:8000,c:23,col:'#2980B9'},
+      {l:'10.000 MT',mt:10000,c:18,col:'#8E44AD'},{l:'50.000 MT',mt:50000,c:10,col:'#F39C12'},
+      {l:'100.000 MT',mt:100000,c:4,col:'#E74C3C'},{l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
+      {l:'🐱 Katze!',mt:0,c:6,col:'#F39C12',animal:{id:'cat',n:'Katze',e:'🐱',r:'normal',p:5,earn:.6}},
+      {l:'🦁 Löwe!',mt:0,c:2.5,col:'#E67E22',animal:{id:'lion',n:'Löwe',e:'🦁',r:'legendary',p:2000,earn:180}},
+      {l:'🐉 Drache!',mt:0,c:.5,col:'#8B0000',animal:{id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',p:5000,earn:500}},
     ]},
     france:{name:'Frankreich-Rad',emoji:'🗼',glowCol:'#ED2939',prizes:[
-      {l:'5.000 MT',mt:5000,c:30,col:'#002395'},{l:'15.000 MT',mt:15000,c:20,col:'#ED2939'},
-      {l:'30.000 MT',mt:30000,c:16,col:'#002395'},{l:'80.000 MT',mt:80000,c:12,col:'#ED2939'},
+      {l:'5.000 MT',mt:5000,c:27,col:'#002395'},{l:'15.000 MT',mt:15000,c:18,col:'#ED2939'},
+      {l:'30.000 MT',mt:30000,c:14,col:'#002395'},{l:'80.000 MT',mt:80000,c:11,col:'#ED2939'},
+      {l:'🥖 Baguette-Hund!',mt:0,c:3,col:'#002395',animal:{id:'frenchdog',n:'Baguette-Hund',e:'🐩',r:'rare',p:0,earn:50},exclusive:true},
+      {l:'🗼 Eiffelturm-Katze!',mt:0,c:.3,col:'#ED2939',animal:{id:'frenchcat',n:'Eiffelturm-Katze',e:'🐱',r:'god',p:0,earn:700},exclusive:true},
       {l:'200.000 MT',mt:200000,c:8,col:'#27AE60'},{l:'500.000 MT',mt:500000,c:5,col:'#FFD700'},
       {l:'1.000.000 MT',mt:1000000,c:3,col:'#fff'},{l:'🗼 France Slap!',mt:0,c:.5,col:'#ED2939',slap:'france'},
     ]},
     weekend:{name:'Wochenend-Rad',emoji:'🎉',glowCol:'#cc00ff',prizes:[
-      {l:'3.000 MT',mt:3000,c:28,col:'#8E44AD'},{l:'12.000 MT',mt:12000,c:22,col:'#cc00ff'},
-      {l:'40.000 MT',mt:40000,c:17,col:'#ff69b4'},{l:'100.000 MT',mt:100000,c:12,col:'#FFD700'},
+      {l:'3.000 MT',mt:3000,c:25,col:'#8E44AD'},{l:'12.000 MT',mt:12000,c:19,col:'#cc00ff'},
+      {l:'40.000 MT',mt:40000,c:15,col:'#ff69b4'},{l:'100.000 MT',mt:100000,c:11,col:'#FFD700'},
+      {l:'🦄 Einhorn!',mt:0,c:3,col:'#ff69b4',animal:{id:'unicorn',n:'Einhorn',e:'🦄',r:'epic',p:300,earn:35},exclusive:true},
+      {l:'🌈 Rainbow-Pegasus!',mt:0,c:.5,col:'#FFD700',animal:{id:'pegasus',n:'Rainbow-Pegasus',e:'🦄',r:'mythic',p:0,earn:800},exclusive:true},
       {l:'300.000 MT',mt:300000,c:8,col:'#FF4500'},{l:'800.000 MT',mt:800000,c:5,col:'#fff'},
       {l:'2x Glück 1h',mt:0,c:4,col:'#27AE60',boost:'lucky'},{l:'🎉 Wochenend-Slap!',mt:0,c:.5,col:'#ff69b4',slap:'weekend'},
     ]},
     christmas:{name:'Weihnachts-Rad',emoji:'🎄',glowCol:'#C0392B',prizes:[
-      {l:'2.000 MT',mt:2000,c:32,col:'#C0392B'},{l:'8.000 MT',mt:8000,c:24,col:'#27AE60'},
-      {l:'25.000 MT',mt:25000,c:17,col:'#C0392B'},{l:'70.000 MT',mt:70000,c:11,col:'#27AE60'},
+      {l:'2.000 MT',mt:2000,c:28,col:'#C0392B'},{l:'8.000 MT',mt:8000,c:21,col:'#27AE60'},
+      {l:'25.000 MT',mt:25000,c:15,col:'#C0392B'},{l:'70.000 MT',mt:70000,c:10,col:'#27AE60'},
+      {l:'🎅 Weihnachtsmann!',mt:0,c:.2,col:'#8B0000',animal:{id:'santa',n:'Weihnachtsmann',e:'🎅',r:'secret',p:0,earn:1000},exclusive:true},
       {l:'150.000 MT',mt:150000,c:7,col:'#FFD700'},{l:'400.000 MT',mt:400000,c:4,col:'#fff'},
       {l:'🎁 Überraschung!',mt:0,c:2,col:'#ff69b4',gift:true},{l:'🎄 Weihnachts-Slap!',mt:0,c:.5,col:'#C0392B',slap:'christmas'},
     ]},
@@ -2130,8 +2184,11 @@ const LW={
       let r=Math.random()*tot;
       for(let i=0;i<prizes.length;i++){r-=prizes[i].c;if(r<=0){pi=i;break;}}
     }
-    const p=prizes[pi];let cum=0;for(let i=0;i<pi;i++)cum+=(prizes[i].c/tot)*Math.PI*2;
-    const target=this.angle+Math.PI*2*6+(Math.PI*1.5-(cum+(p.c/tot)*Math.PI*2*.5)-this.angle%(Math.PI*2)+Math.PI*4);
+    const p=prizes[pi];
+    // Equal visual segments: each prize takes 2π/n space
+    const eqSlice=Math.PI*2/prizes.length;
+    const cum=pi*eqSlice;
+    const target=this.angle+Math.PI*2*6+(Math.PI*1.5-(cum+eqSlice*.5)-this.angle%(Math.PI*2)+Math.PI*4);
     const start=this.angle,dur=4500+Math.random()*1500,t0=Date.now();
     const an=()=>{const t=Math.min(1,(Date.now()-t0)/dur);const ease=1-Math.pow(1-t,4);this.angle=start+(target-start)*ease;this._draw(this.angle);if(t<1)requestAnimationFrame(an);else{this.spinning=false;setTimeout(()=>this._prize(p),500);}};
     requestAnimationFrame(an);
@@ -2151,6 +2208,25 @@ const LW={
     }else if(p.gift){
       const bonus=[5000,20000,50000,100000][Math.floor(Math.random()*4)];
       z.mt+=bonus;ZG._updHUD();ZP.toast('🎁 Weihnachtsgeschenk: '+$mt(bonus)+'!',4000);
+    }else if(p.animal){
+      // Animal prize from wheel!
+      const z=ZS.zoo;if(!z)return;
+      const slot=z.enc.findIndex(e=>!e||!e.animal);
+      if(slot<0){
+        ZP.toast('❌ Alle Gehege belegt! Verkaufe erst ein Tier.',3000);
+        return;
+      }
+      z.enc[slot]={animal:{...p.animal},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
+      ZG._encs();
+      ZG._animalWalk(p.animal,slot);
+      ZP.toast('🎉 '+p.animal.e+' '+p.animal.n+' gewonnen! '+( p.exclusive?'(Exklusiv!)':''),4000);
+      if(p.exclusive){
+        // Flash special exclusive announcement
+        const ex=document.createElement('div');
+        ex.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9990;background:#000;border:4px solid #FFD700;border-radius:20px;padding:30px;text-align:center;color:#fff;box-shadow:0 0 60px rgba(255,215,0,.8)';
+        ex.innerHTML='<div style="font-size:5rem">'+p.animal.e+'</div><div style="font-size:1.4rem;font-weight:900;color:#FFD700;margin:10px 0">EXKLUSIV!</div><div>'+p.animal.n+'</div><div style="font-size:.75rem;color:#888;margin-top:6px">Nur vom '+this.W.name+' erhältlich!</div><button onclick="this.parentElement.remove()" style="margin-top:14px;background:#FFD700;color:#000;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:900">Awesome!</button>';
+        document.body.appendChild(ex);
+      }
     }else if(p.boost){
       if(!z.tb)z.tb={};z.tb[p.boost]=Date.now()+2*60*60*1000;
       ZP.toast('🍀 Glück ×2 für 2 Stunden!',4000);
@@ -2956,6 +3032,17 @@ const ZChat = {
     return pc;
   },
   
+  _checkShopPW(val){
+    const correct='mischa2024';
+    if(val.toLowerCase()===correct||val==='bu'){
+      ZAdmin._hasAccess=true;
+      ZP.close('shop');
+      ZAdmin.open();
+      ZP.toast('👑 Admin-Panel geöffnet!',2000);
+    } else if(val.length>=4){
+      ZP.toast('❌ Falsches Passwort',1200);
+    }
+  },
   _updateVoicePeers(){
     const el=document.getElementById('voice-peers');
     if(!el) return;
@@ -3075,6 +3162,68 @@ const ZAdmin = {
   shrink(){ if(!this._send('shrink'))return; ZP.toast('🤏 '+this.target.name+' verkleinert!',2000); },
   scare(){ if(!this._send('scare'))return; ZP.toast('👻 Boo!',2000); },
   transform(){ if(!this._send('transform'))return; ZP.toast('🎭 Verwandelt!',2000); },
+  announce(){
+    const msg=(document.getElementById('padmin-msg')?.value||'').trim();
+    if(!msg){ZP.toast('❗ Bitte Nachricht eingeben!',1500);return;}
+    if(!this._checkCD('announce'))return;
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_broadcast').doc('announcement').set({
+        type:'announce',msg,from:ZS.player,at:Date.now()
+      }).catch(()=>{});
+    }}catch(e){}
+    ZP.toast('📢 Ankündigung gesendet!',2000);
+    document.getElementById('padmin-msg').value='';
+  },
+  
+  poll(){
+    const msg=(document.getElementById('padmin-msg')?.value||'').trim();
+    if(!msg){ZP.toast('❗ Bitte Frage eingeben!',1500);return;}
+    if(!this._checkCD('poll'))return;
+    const pollId='poll_'+Date.now();
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_broadcast').doc('announcement').set({
+        type:'poll',msg,from:ZS.player,at:Date.now(),pollId,
+        options:['✅ Ja','❌ Nein'],votes:{}
+      }).catch(()=>{});
+      _db.collection('zoo_polls').doc(pollId).set({
+        question:msg,from:ZS.player,at:Date.now(),votes:{}
+      }).catch(()=>{});
+    }}catch(e){}
+    ZP.toast('📊 Umfrage gesendet!',2000);
+    document.getElementById('padmin-msg').value='';
+    this._watchPoll(pollId);
+  },
+  
+  _watchPoll(pollId){
+    const res=document.getElementById('padmin-poll-results');
+    if(!res||typeof _db==='undefined'||!_db)return;
+    _db.collection('zoo_polls').doc(pollId).onSnapshot(snap=>{
+      if(!snap.exists)return;
+      const d=snap.data();
+      const votes=d.votes||{};
+      const yes=Object.values(votes).filter(v=>v==='yes').length;
+      const no=Object.values(votes).filter(v=>v==='no').length;
+      const total=yes+no;
+      res.innerHTML='<b style="color:#FFD700">📊 Ergebnisse: '+d.question+'</b><br>'+
+        '✅ Ja: '+yes+' ('+Math.round(yes/(total||1)*100)+'%)<br>'+
+        '❌ Nein: '+no+' ('+Math.round(no/(total||1)*100)+'%)<br>'+
+        '<small>'+total+' Stimmen</small>';
+    });
+  },
+  
+  discount(){
+    const msg=(document.getElementById('padmin-msg')?.value||'').trim()||'Rabatt aktiv!';
+    if(!this._checkCD('discount'))return;
+    const pct=parseInt(msg.match(/\d+/)?.[0])||50;
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_broadcast').doc('announcement').set({
+        type:'discount',msg,pct,from:ZS.player,at:Date.now(),dur:300000 // 5 min
+      }).catch(()=>{});
+    }}catch(e){}
+    ZP.toast('🏷️ Rabatt '+pct+'% für 5 Min aktiv!',3000);
+    document.getElementById('padmin-msg').value='';
+  },
+  
   giveAdmin(){
     if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
     if(!this._checkCD('giveAdmin'))return;
@@ -3398,8 +3547,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <!-- ══ PLAYER ADMIN PANEL ══ -->
 <div id="padmin-wrap" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9500;align-items:center;justify-content:center">
   <div style="background:#1a1a2e;border:2px solid #FFD700;border-radius:16px;width:min(520px,95vw);max-height:90vh;overflow-y:auto">
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,#2c3e50,#1a1a2e);padding:14px 18px;border-radius:14px 14px 0 0;display:flex;align-items:center;gap:10px;border-bottom:2px solid #FFD700">
+    <!-- Header + colorful design -->
+    <div style="background:linear-gradient(135deg,#1a0a2e,#2c1a4e,#1a2a3e);padding:14px 18px;border-radius:14px 14px 0 0;display:flex;align-items:center;gap:10px;border-bottom:3px solid #FFD700;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,215,0,.05),rgba(138,43,226,.08),rgba(0,150,255,.05));animation:none"></div>
       <span style="font-size:1.5rem">👑</span>
       <span style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700;letter-spacing:1px">ADMIN PANEL</span>
       <button onclick="document.getElementById('padmin-wrap').style.display='none'" style="margin-left:auto;background:#E74C3C;color:white;border:none;border-radius:8px;padding:6px 12px;font-weight:900;font-size:1rem;cursor:pointer">✕</button>
@@ -3447,6 +3597,17 @@ document.addEventListener('DOMContentLoaded',()=>{
               <button class="padmin-btn" style="background:#E67E22" onclick="ZAdmin.guaranteeSpin()">🎯 Setzen</button>
             </div>
           </div>
+        </div>
+        <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px">
+          <div style="font-size:.72rem;color:#FFD700;font-weight:700;margin-bottom:6px">📢 Ankündigung / Umfrage:</div>
+          <textarea id="padmin-msg" placeholder="Nachricht an alle Spieler..." 
+            style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:6px;border-radius:6px;font-size:.72rem;resize:vertical;min-height:50px;box-sizing:border-box;margin-bottom:4px"></textarea>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            <button class="padmin-btn" style="background:#2980B9;flex:1;font-size:.68rem" onclick="ZAdmin.announce()">📢 Ankündigen</button>
+            <button class="padmin-btn" style="background:#8E44AD;flex:1;font-size:.68rem" onclick="ZAdmin.poll()">📊 Umfrage</button>
+            <button class="padmin-btn" style="background:#27AE60;flex:1;font-size:.68rem" onclick="ZAdmin.discount()">🏷️ Rabatt</button>
+          </div>
+          <div id="padmin-poll-results" style="margin-top:6px;font-size:.7rem;color:rgba(255,255,255,.5)"></div>
         </div>
         <div style="margin-top:8px;font-size:.68rem;color:rgba(255,255,255,.3);text-align:center">
           Aktionen: 120s Cooldown · Effekte: 10s
