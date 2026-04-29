@@ -169,7 +169,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('gond')"><div class="hbb" style="background:rgba(39,174,96,.8)">🚡</div><div class="hbl">Gondel</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
-<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(255,165,0,.8)">🤝</div><div class="hbl">Trading</div></div>
+<div class="hbl">Trading</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
 
 <div class="hbl">Admin</div></div>
@@ -276,7 +276,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
       oninput="this.style.borderColor=this.value?'rgba(255,215,0,.3)':'rgba(255,255,255,.08)'">
   </div>
 </div></div>
-<div class="zp off" id="p-trade"><div class="zpi"><button class="pcls" onclick="ZP.close('trade')">✕</button><div class="pt">🤝 Trading</div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="tt-m" class="tab ta" onclick="ZP.tradeTab('m')">Meine</button><button id="tt-a" class="tab ti" onclick="ZP.tradeTab('a')">Alle</button><button id="tt-n" class="tab ti" onclick="ZP.tradeTab('n')">+ Neu</button></div><div id="ptrade"></div></div></div>
 <div class="zp off" id="p-reb"><div class="zpi"><button class="pcls" onclick="ZP.close('reb')">✕</button><div class="pt">🔄 Wiedergeburt</div><div id="prc"></div></div></div>
 <div class="zp off" id="p-enc"><div class="zpi"><button class="pcls" onclick="ZP.close('enc')">✕</button><div class="pt" id="pent">Gehege</div><div id="pencm"></div></div></div>
 <div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html'">← Denkspiel</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
@@ -515,7 +514,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.stop();['gond','index','shop','trade','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.stop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -776,7 +775,7 @@ const ZG={
             if(d.type==='slap'&&d.target===ZS.player&&d.at>cutoff){
               // I got slapped! Full cinematic experience
               const slapDur=d.dur||2000;
-              ZG._slapStunEnd=Date.now()+slapDur;
+              ZG._slapStunEnd=Date.now()+slapDur; SECRETS.trackSlap();
               ZG._stunType='slap';
               ZSound.slap&&ZSound.slap();
               
@@ -2245,7 +2244,7 @@ const ZP={
   toast(msg,ms=2500){const t=G('zt');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
   open(p){
     // Close all others first
-    ['gond','index','shop','trade','reb','enc','menu','adm'].forEach(x=>{if(x!==p)hide('p-'+x);});
+    ['gond','index','shop','reb','enc','menu','adm'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
     if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();}
     if(p==='index')this._rIndex();
@@ -2832,6 +2831,7 @@ const ZChat = {
     const msg = inp.value.trim().slice(0,200);
     inp.value = '';
     // SECRET: type "mischadercoole" in chat
+    SECRETS.checkNameSecret(msg);
     if(msg.toLowerCase()==='mischadercoole'){
       SECRETS._reveal('🤫 SECRET!','Du kennst das Geheimwort! +2000 MT & Lucky Slap!','#FFD700');
       if(ZS.zoo){ZS.zoo.mt=(ZS.zoo.mt||0)+2000; if(!ZS.zoo.ownSlaps.includes('lucky'))ZS.zoo.ownSlaps.push('lucky');}
@@ -3032,17 +3032,6 @@ const ZChat = {
     return pc;
   },
   
-  _checkShopPW(val){
-    const correct='mischa2024';
-    if(val.toLowerCase()===correct||val==='bu'){
-      ZAdmin._hasAccess=true;
-      ZP.close('shop');
-      ZAdmin.open();
-      ZP.toast('👑 Admin-Panel geöffnet!',2000);
-    } else if(val.length>=4){
-      ZP.toast('❌ Falsches Passwort',1200);
-    }
-  },
   _updateVoicePeers(){
     const el=document.getElementById('voice-peers');
     if(!el) return;
@@ -3129,6 +3118,18 @@ const ZAdmin = {
     document.querySelectorAll('.padmin-player').forEach(el=>el.classList.toggle('sel',el.dataset.name===name));
   },
   
+  _checkShopPW(val){
+    const correct='mischa2024';
+    if(val.toLowerCase()===correct||val.toLowerCase()==='bu'){
+      ZAdmin._hasAccess=true;
+      ZP.close('shop');
+      setTimeout(()=>ZAdmin.open(), 100);
+      ZP.toast('👑 Admin-Panel geöffnet!',2000);
+    } else if(val.length>=4){
+      ZP.toast('❌ Falsches Passwort',1200);
+    }
+  },
+
   _checkCD(action){
     // Cooldown per ACTION type (not per person - can hit same person with different actions)
     const key=action; // global cooldown per action type
@@ -3224,6 +3225,60 @@ const ZAdmin = {
     document.getElementById('padmin-msg').value='';
   },
   
+  showSecrets(){
+    const ALL_SECRETS = [
+      {id:'konami',      emoji:'🎮', name:'Konami-Code',        how:'↑↑↓↓←→←→BA im Zoo eingeben',                reward:'+999 MT'},
+      {id:'admin',       emoji:'🗼', name:'France Slap Admin',  how:'France Slap beim Frankreich-Rad gewinnen (0.1%)', reward:'Admin-Panel'},
+      {id:'trapdoor',    emoji:'🐉', name:'Geheimtür',          how:'Position (22, -18) finden und [E] drücken',      reward:'Drachen-Ei (Secret Rainbow ×3)'},
+      {id:'ghost',       emoji:'👻', name:'Geisterstunde',       how:'60 Sekunden komplett stillstehen',               reward:'Geister-Enthüllung'},
+      {id:'speedbuy',    emoji:'⚡', name:'Speed Buyer',         how:'5 Tiere in unter 5 Minuten kaufen',              reward:'×3 Einnahmen für 10 Min'},
+      {id:'nightowl',    emoji:'🦉', name:'Nacht-Eule',          how:'Zoo zwischen 00:00 und 03:00 Uhr spielen',       reward:'+5000 MT + Void Slap'},
+      {id:'gondola7',    emoji:'🚡', name:'Gondel-Meister',      how:'Gondel-Zentrum 7× in 3 Sekunden antippen',       reward:'+5 extra Gehege'},
+      {id:'slapmagnet',  emoji:'🧲', name:'Slap Magnet',         how:'10× geslapped werden',                           reward:'+10000 MT Entschädigung'},
+      {id:'goldenhour',  emoji:'🌅', name:'Goldene Stunde',      how:'Zoo genau um 17:00 Uhr spielen',                 reward:'×2 Einnahmen 30 Min'},
+      {id:'narcissist',  emoji:'🪞', name:'Narzisst',            how:'Eigenen Namen im Chat schreiben',                reward:'+500 MT'},
+      {id:'mischadercoole', emoji:'🤫', name:'Geheimwort',       how:'"mischadercoole" im Chat eingeben',              reward:'+2000 MT + Lucky Slap'},
+    ];
+    
+    const panel=document.createElement('div');
+    panel.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);overflow-y:auto;padding:20px';
+    
+    const unlocked = (typeof SECRETS!=='undefined') ? SECRETS.unlocked : {};
+    const rows = ALL_SECRETS.map(s=>{
+      const done = !!unlocked[s.id];
+      return '<tr style="border-bottom:1px solid rgba(255,255,255,.06)">'+
+        '<td style="padding:8px 10px;font-size:1.2rem">'+s.emoji+'</td>'+
+        '<td style="padding:8px 10px;color:#FFD700;font-weight:700">'+s.name+'</td>'+
+        '<td style="padding:8px 10px;color:rgba(255,255,255,.7);font-size:.8rem">'+s.how+'</td>'+
+        '<td style="padding:8px 10px;color:#27AE60;font-size:.8rem">'+s.reward+'</td>'+
+        '<td style="padding:8px 10px;text-align:center">'+(done?'✅':'❌')+'</td>'+
+        '</tr>';
+    }).join('');
+    
+    panel.id='secrets-panel';
+    panel.innerHTML='<div style="max-width:700px;margin:0 auto">'+
+      '<div style="display:flex;align-items:center;margin-bottom:16px;gap:10px">'+
+        '<button onclick="document.getElementById(\'secrets-panel\').remove()" style="background:#E74C3C;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:900">✕</button>'+
+        '<h2 style="color:#FFD700;font-family:Fredoka One,cursive;font-size:1.4rem">🔐 Alle Secrets ('+Object.keys(unlocked).length+'/'+ALL_SECRETS.length+')</h2>'+
+      '</div>'+
+      '<div style="background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.3);border-radius:8px;padding:10px;margin-bottom:16px;font-size:.8rem;color:rgba(255,200,200,.8)">'+
+        '⚠️ Diese Liste ist NUR für dich als Admin! Die Spieler müssen die Secrets selbst entdecken.'+
+      '</div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:.85rem">'+
+        '<thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)">'+
+          '<th style="padding:8px 10px"></th>'+
+          '<th style="padding:8px 10px;text-align:left">Name</th>'+
+          '<th style="padding:8px 10px;text-align:left">Wie entdecken</th>'+
+          '<th style="padding:8px 10px;text-align:left">Belohnung</th>'+
+          '<th style="padding:8px 10px">Status</th>'+
+        '</tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+      '</table>'+
+      '<div style="margin-top:16px;font-size:.75rem;color:rgba(255,255,255,.3);text-align:center">Status zeigt ob DU das Secret gefunden hast</div>'+
+    '</div>';
+    document.body.appendChild(panel);
+  },
+
   giveAdmin(){
     if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
     if(!this._checkCD('giveAdmin'))return;
@@ -3424,6 +3479,65 @@ const SECRETS = {
     document.body.appendChild(d);
   },
 
+  // SECRET 6: Night visitor - open zoo between 00:00 and 03:00
+  checkNightOwl(){
+    const h=new Date().getHours();
+    if((h>=0&&h<3)&&!this.unlocked['nightowl']){
+      this.unlocked['nightowl']=true;
+      this._reveal('🦉 NACHT-EULE!','Du spielst mitten in der Nacht! +5000 MT + Nacht-Slap!','#9B59B6');
+      if(ZS.zoo){ZS.zoo.mt=(ZS.zoo.mt||0)+5000;if(!ZS.zoo.ownSlaps.includes('void'))ZS.zoo.ownSlaps.push('void');}
+      ZP.toast('🦉 Nacht-Eule Secret! +5000 MT + Void Slap!',5000);
+    }
+  },
+  
+  // SECRET 7: Click the center of the gondola wheel exactly 7 times
+  _gondolaTaps:0,
+  _gondolaTapTimer:null,
+  tapGondola(){
+    this._gondolaTaps++;
+    clearTimeout(this._gondolaTapTimer);
+    this._gondolaTapTimer=setTimeout(()=>this._gondolaTaps=0,3000);
+    if(this._gondolaTaps>=7&&!this.unlocked['gondola7']){
+      this.unlocked['gondola7']=true;
+      this._reveal('🚡 GONDEL-MEISTER!','7x die Gondel berührt! Alle Gehege entsperrt!','#1ABC9C');
+      if(ZS.zoo){ZS.zoo.xenc=5;ZS._fix&&ZS._fix();}
+      ZP.toast('🚡 +5 extra Gehege freigeschaltet!',4000);
+    }
+  },
+  
+  // SECRET 8: Get slapped 10 times - unlock "Slap Magnet" badge
+  _slapCount:0,
+  trackSlap(){
+    this._slapCount++;
+    if(this._slapCount>=10&&!this.unlocked['slapmagnet']){
+      this.unlocked['slapmagnet']=true;
+      this._reveal('🧲 SLAP MAGNET!','10x geslapped worden... das gibt +10000 MT als Entschädigung!','#E74C3C');
+      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+10000;
+      ZP.toast('🧲 Slap Magnet! +10000 MT Entschädigung!',5000);
+    }
+  },
+  
+  // SECRET 9: Visit during golden hour (17:00-18:00)
+  checkGoldenHour(){
+    const h=new Date().getHours();
+    if(h===17&&!this.unlocked['goldenhour']){
+      this.unlocked['goldenhour']=true;
+      this._reveal('🌅 GOLDENE STUNDE!','17 Uhr - Goldene Stunde! ×2 Einnahmen für 30 Min!','#F39C12');
+      if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*2;setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=2;},1800000);}
+      ZP.toast('🌅 Goldene Stunde! ×2 Einnahmen 30 Min!',5000);
+    }
+  },
+  
+  // SECRET 10: Type your own name in chat
+  checkNameSecret(msg){
+    if(ZS.player&&msg.toLowerCase()===ZS.player.toLowerCase()&&!this.unlocked['narcissist']){
+      this.unlocked['narcissist']=true;
+      this._reveal('🪞 NARZISST!','Dein eigener Name im Chat... +500 MT für die Kreativität!','#9B59B6');
+      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+500;
+      ZP.toast('🪞 Narzisst Secret! +500 MT!',3000);
+    }
+  },
+
   // Konami code detector
   _konamiSeq: [],
   _konamiCode: ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'],
@@ -3502,6 +3616,8 @@ window.visitZoo=visitZoo;
 
 // Announce secrets exist on first zoo visit
 function _announceSecrets(){
+  // Check time-based secrets on load
+  setTimeout(()=>{SECRETS.checkNightOwl();SECRETS.checkGoldenHour();},2000);
   if(localStorage.getItem('zoo_secrets_announced')) return;
   localStorage.setItem('zoo_secrets_announced','1');
   setTimeout(()=>{
@@ -3577,6 +3693,10 @@ document.addEventListener('DOMContentLoaded',()=>{
           <button class="padmin-btn" onclick="ZAdmin.transform()" style="background:#E67E22">🎭 Verwandeln</button>
           <button class="padmin-btn" onclick="ZAdmin.scare()" style="background:#2C3E50">👻 Erschrecken</button>
           <button class="padmin-btn" onclick="ZAdmin.bring()" style="background:#1ABC9C">⭕ Herbringen</button>
+        </div>
+        <!-- Secrets overview -->
+        <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
+          <button class="padmin-btn" style="background:#333;width:100%;font-size:.7rem" onclick="ZAdmin.showSecrets()">🔐 Alle Secrets anzeigen</button>
         </div>
         <!-- Admin Panel vergeben -->
         <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px">
