@@ -1725,22 +1725,52 @@ const ZG={
     if((z.lslaps||0)>0&&!owned.includes('lucky'))owned.push('lucky');
     z.ownSlaps=owned;
     const eq=z.eq||'basic';
-    el.innerHTML=SLAPS.map(sl=>{
-      const isOwned=owned.includes(sl.id);
-      const isEq=sl.id===eq;
-      const onCD=isEq&&this.slapCD>0;
-      const cdS=Math.ceil(this.slapCD/1000);
-      const bg=sl.col?sl.col+'33':'#1a1a1a';
-      const rbd=sl.isRainbow?'linear-gradient(135deg,#ff6b6b,#FFD700,#27AE60,#4A90D9)':'';
-      return`<div class="ss" onclick="${isOwned?`ZG.equipSlap('${sl.id}')`:''}" title="${sl.n}">
-        <div class="si ${isEq?'eq':''} ${!isOwned?'lk':''}" style="background:${rbd||bg}">
+    // Only show OWNED slaps (+ basic always)
+    const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id));
+    el.innerHTML = visibleSlaps.map(sl => {
+      const isEq = sl.id === eq;
+      const onCD = isEq && this.slapCD > 0;
+      const cdS = Math.ceil(this.slapCD/1000);
+      const bg = sl.col ? sl.col+'33' : '#1a1a1a';
+      const rbd = sl.isRainbow ? 'linear-gradient(135deg,#ff6b6b,#FFD700,#27AE60,#4A90D9)' : '';
+      // Border glow when equipped
+      const border = isEq ? '2px solid '+( sl.col||'#FFD700') : '2px solid transparent';
+      return `<div class="ss"
+        onclick="ZG.equipSlap('${sl.id}')"
+        oncontextmenu="ZG.unequipSlap();return false;"
+        ontouchstart="ZG._slapTouchStart('${sl.id}',event)"
+        ontouchend="ZG._slapTouchEnd(event)"
+        title="${sl.n} — Gedrückt halten zum Abwählen">
+        <div class="si ${isEq?'eq':''}" style="background:${rbd||bg};border:${border};position:relative">
           <span style="font-size:1.65rem">${sl.e}</span>
-          ${onCD?`<div class="scd">${cdS}s</div>`:''}
-          ${!isOwned?'<div class="scd" style="font-size:.65rem">🔒</div>':''}
+          ${onCD ? `<div class="scd">${cdS}s</div>` : ''}
+          ${isEq ? '<div style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#27AE60;border-radius:50%"></div>' : ''}
         </div>
-        <div class="sn" style="color:${sl.col||'#ddd'}">${sl.n.replace(' SLAP','')}</div>
+        <div class="sn" style="color:${sl.col||'#ddd'};font-size:.58rem">${sl.n.replace(' SLAP','')}</div>
       </div>`;
     }).join('');
+  },
+
+  unequipSlap(){
+    const z=ZS.zoo;if(!z)return;
+    if((z.eq||'basic')==='basic'){ZP.toast('Basic ist bereits ausgerüstet',800);return;}
+    z.eq='basic';
+    this._updWBar();
+    ZP.toast('🤚 Basic Slap ausgerüstet',800);
+    ZS.save&&ZS.save();
+  },
+
+  // Long-press detection for mobile slap unequip
+  _slapHoldTimer:null,
+  _slapTouchStart(id, e){
+    e.stopPropagation();
+    this._slapHoldTimer=setTimeout(()=>{
+      this.unequipSlap();
+      navigator.vibrate&&navigator.vibrate(50);
+    }, 600);
+  },
+  _slapTouchEnd(e){
+    clearTimeout(this._slapHoldTimer);
   },
 
   equipSlap(id){
@@ -1753,6 +1783,39 @@ const ZG={
 
   // ═══ GONDOLA ═══
   _mkG(){const l=ZS.lk(),ni=this.ev?.id==='night';const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(this.ev?.id==='snow'&&Math.random()<.05)?3.5:(this.ev?.id==='party'&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
+  _slapLaunchSelf(dur){
+    const start=Date.now(); const half=dur*.45;
+    const startY=this.pl.y;
+    // Sky border effect
+    const fl=document.createElement('div');
+    fl.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:700;border:20px solid rgba(135,206,235,.25);border-radius:50%';
+    document.body.appendChild(fl);
+    // Altitude indicator
+    const alt=document.createElement('div');
+    alt.style.cssText='position:fixed;top:50%;right:20px;transform:translateY(-50%);z-index:701;color:#87CEEB;font-weight:900;font-size:1.4rem;pointer-events:none;text-shadow:0 0 10px #87CEEB';
+    document.body.appendChild(alt);
+    const anim=()=>{
+      const t=Date.now()-start;
+      if(t<half){
+        const p=t/half;
+        this.pl.y=startY+(1-(1-p)**3)*30;
+        alt.textContent='⬆️ '+Math.round(this.pl.y)+'m';
+      } else if(t<dur){
+        const p=(t-half)/(dur-half);
+        this.pl.y=(startY+30)-(p**3)*30;
+        alt.textContent='⬇️ '+Math.round(this.pl.y)+'m';
+      } else {
+        this.pl.y=startY;
+        fl.remove(); alt.remove();
+        ZP.toast('💥 Aufgeschlagen!',1000);
+        ZSound.slap&&ZSound.slap();
+        return;
+      }
+      requestAnimationFrame(anim);
+    };
+    requestAnimationFrame(anim);
+  },
+
   _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
 
   // ═══ EVENTS ═══
@@ -2009,7 +2072,9 @@ const LW={
       {l:'1.000 MT',mt:1000,c:35,col:'#27AE60'},{l:'8.000 MT',mt:8000,c:23,col:'#2980B9'},
       {l:'10.000 MT',mt:10000,c:18,col:'#8E44AD'},{l:'50.000 MT',mt:50000,c:10,col:'#F39C12'},
       {l:'100.000 MT',mt:100000,c:4,col:'#E74C3C'},{l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
-      {l:'🐱 Katze!',mt:0,c:6,col:'#F39C12',animal:{id:'cat',n:'Katze',e:'🐱',r:'normal',p:5,earn:.6}},
+      {l:'500.000 MT',mt:500000,c:1,col:'#F39C12'},
+      {l:'200.000 MT',mt:200000,c:2.5,col:'#E67E22'},
+      {l:'75.000 MT',mt:75000,c:5,col:'#D4AC0D'},
       {l:'🦁 Löwe!',mt:0,c:2.5,col:'#E67E22',animal:{id:'lion',n:'Löwe',e:'🦁',r:'legendary',p:2000,earn:180}},
       {l:'🐉 Drache!',mt:0,c:.5,col:'#8B0000',animal:{id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',p:5000,earn:500}},
     ]},
@@ -3082,7 +3147,13 @@ const ZAdmin = {
       });
       this._renderPlayers(players);
     }catch(e){
-      list.innerHTML='<div style="color:#f44;font-size:.7rem">Firebase fehler</div>';
+      // Fallback: use locally visible players from ZG.otherPl
+      const fallback=Object.values(ZG.otherPl||{});
+      if(fallback.length>0){
+        this._renderPlayers(fallback.map(p=>({name:p.name,char:p.char||'🧭',x:p.x,z:p.z,t:Date.now()})));
+      } else {
+        list.innerHTML='<div style="color:rgba(255,165,0,.8);font-size:.7rem">⚠️ Firebase nicht verfügbar. Spieler müssen sichtbar sein (Multiplayer aktiv).</div>';
+      }
     }
   },
   
@@ -3292,6 +3363,19 @@ const ZAdmin = {
     ZP.toast('👑 '+this.target.name+' bekommt Admin-Zugriff!',2500);
   },
   
+  giveSpins(){
+    if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
+    if(!this._checkCD('giveSpins'))return;
+    const amount=parseInt(document.getElementById('padmin-spins-amount')?.value||1);
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_events').add({
+        type:'admin_give_spins',target:this.target.name.toLowerCase(),
+        amount,from:ZS.player,at:Date.now()
+      }).catch(()=>{});
+    }}catch(e){}
+    ZP.toast('🎰 '+this.target.name+' bekommt '+amount+' Spin(s)!',2000);
+  },
+
   guaranteeSpin(){
     if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
     const prizeId=document.getElementById('padmin-spin-prize')?.value||'lucky';
@@ -3302,7 +3386,17 @@ const ZAdmin = {
         prizeId,from:ZS.player,at:Date.now()
       }).catch(()=>{});
     }}catch(e){}
-    ZP.toast('🎡 '+this.target.name+' bekommt beim nächsten Spin: '+prizeId+'!',2500);
+    ZP.toast('🎯 '+this.target.name+': nächster Spin = '+prizeId+'!',2500);
+  },
+
+  setGlobalWheel(){
+    const wType=document.getElementById('padmin-wheel-type')?.value||'normal';
+    LW.setType(wType,0);
+    // Broadcast to all
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_broadcast').doc('wheel').set({type:wType,at:Date.now(),from:ZS.player}).catch(()=>{});
+    }}catch(e){}
+    ZP.toast('🎠 Glücksrad für alle auf: '+wType+'!',2500);
   },
   
   bring(){
@@ -3342,14 +3436,23 @@ function _handleAdminEvent(d){
   if(d.type==='admin_freeze'){
     ZG._slapStunEnd=Date.now()+dur;
     ZG._stunType='freeze';
-    ZP.toast('❄️ Du bist eingefroren! (10s)',3000);
-    // Ice cube overlay
+    ZP.toast('❄️ '+d.from+' hat dich eingefroren! ('+Math.round(dur/1000)+'s)',3000);
+    ZSound.slap&&ZSound.slap();
+    // Ice cube overlay - full screen effect
     const ice=document.createElement('div');
     ice.id='ice-cube-overlay';
-    ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.25),rgba(0,100,200,.5));border:6px solid rgba(0,200,255,.8);animation:none';
-    ice.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:5rem;opacity:.4">🧊</div>';
+    ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.2),rgba(0,50,150,.6));border:8px solid rgba(0,200,255,.9);animation:none';
+    ice.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center"><div style="font-size:6rem;opacity:.5">🧊</div><div style="color:rgba(0,200,255,.8);font-size:1.2rem;font-weight:900;margin-top:8px">EINGEFROREN!</div><div style="color:rgba(255,255,255,.5);font-size:.85rem">'+Math.round(dur/1000)+'s warten...</div></div>';
     document.body.appendChild(ice);
-    setTimeout(()=>{const i=document.getElementById('ice-cube-overlay');if(i)i.remove();},dur);
+    // Countdown
+    let remaining=Math.round(dur/1000);
+    const countdown=setInterval(()=>{
+      remaining--;
+      const cd=ice.querySelector('div>div:last-child');
+      if(cd)cd.textContent=remaining+'s warten...';
+      if(remaining<=0){clearInterval(countdown);const i=document.getElementById('ice-cube-overlay');if(i)i.remove();}
+    },1000);
+    setTimeout(()=>{const i=document.getElementById('ice-cube-overlay');if(i)i.remove();clearInterval(countdown);},dur);
   }
   else if(d.type==='admin_launch'){
     ZG._slapLaunchSelf(dur);
@@ -3389,6 +3492,17 @@ function _handleAdminEvent(d){
     ZG._slapStunEnd=0;
     ZP.toast('🔓 Du bist frei!',1500);
     const j=document.getElementById('jail-overlay');if(j)j.remove();
+  }
+  else if(d.type==='admin_give_spins'){
+    LW.spins=(LW.spins||0)+(d.amount||1);
+    const sp=G('lwspins');if(sp)sp.textContent=LW.spins;
+    ZP.toast('🎰 '+d.from+' hat dir '+(d.amount||1)+' Spin(s) geschenkt!',4000);
+    // Show notification
+    const notif=document.createElement('div');
+    notif.style.cssText='position:fixed;top:20%;left:50%;transform:translate(-50%,-50%);z-index:9990;background:#1a0a2e;border:3px solid #FFD700;border-radius:16px;padding:20px 28px;text-align:center;color:#fff;animation:pop .3s ease';
+    notif.innerHTML='<div style="font-size:3rem">🎰</div><div style="color:#FFD700;font-size:1.1rem;font-weight:900">'+( d.amount||1)+' Spin(s) erhalten!</div><div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:6px">Von: '+$esc(d.from)+'</div><button onclick="this.parentElement.remove();LW.open();" style="margin-top:10px;background:#FFD700;color:#000;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:900">🎡 Jetzt drehen!</button>';
+    document.body.appendChild(notif);
+    setTimeout(()=>{if(notif.parentElement)notif.remove();},8000);
   }
   else if(d.type==='admin_grant'){
     SECRETS.unlocked['admin']=true; ZAdmin._hasAccess=true;
@@ -3704,17 +3818,41 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div style="display:flex;gap:6px">
             <button class="padmin-btn" style="background:#8E44AD;flex:1" onclick="ZAdmin.giveAdmin()">👑 Ausgewählt → Admin</button>
           </div>
+          <!-- Give spins -->
           <div style="margin-top:8px">
-            <div style="font-size:.72rem;color:#FFD700;font-weight:700;margin-bottom:4px">🎡 Nächsten Spin garantieren:</div>
+            <div style="font-size:.72rem;color:#FFD700;font-weight:700;margin-bottom:4px">🎡 Spins schenken:</div>
+            <div style="display:flex;gap:4px">
+              <input id="padmin-spins-amount" type="number" value="1" min="1" max="10"
+                style="width:50px;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.72rem;text-align:center">
+              <button class="padmin-btn" style="background:#27AE60;flex:1;font-size:.7rem" onclick="ZAdmin.giveSpins()">🎰 Spins geben</button>
+            </div>
+          </div>
+          <!-- Guarantee next spin -->
+          <div style="margin-top:6px">
+            <div style="font-size:.72rem;color:#FFD700;font-weight:700;margin-bottom:4px">🎯 Nächsten Spin garantieren:</div>
             <div style="display:flex;gap:4px;flex-wrap:wrap">
               <select id="padmin-spin-prize" style="flex:1;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.72rem">
                 <option value="lucky">🍀 Lucky Slap</option>
                 <option value="france">🗼 France Slap</option>
                 <option value="christmas">🎄 Weihnachts-Slap</option>
                 <option value="weekend">🎉 Wochenend-Slap</option>
+                <option value="animal_dragon">🐉 Drache</option>
                 <option value="bigmt">💰 Max MT</option>
               </select>
-              <button class="padmin-btn" style="background:#E67E22" onclick="ZAdmin.guaranteeSpin()">🎯 Setzen</button>
+              <button class="padmin-btn" style="background:#E67E22;font-size:.7rem" onclick="ZAdmin.guaranteeSpin()">🎯 Setzen</button>
+            </div>
+          </div>
+          <!-- Equip wheel for player -->
+          <div style="margin-top:6px">
+            <div style="font-size:.72rem;color:#FFD700;font-weight:700;margin-bottom:4px">🎠 Glücksrad schalten:</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <select id="padmin-wheel-type" style="flex:1;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.72rem">
+                <option value="normal">🎡 Normal</option>
+                <option value="france">🗼 Frankreich</option>
+                <option value="weekend">🎉 Wochenend</option>
+                <option value="christmas">🎄 Weihnachten</option>
+              </select>
+              <button class="padmin-btn" style="background:#9B59B6;font-size:.7rem" onclick="ZAdmin.setGlobalWheel()">🎠 Für alle</button>
             </div>
           </div>
         </div>
