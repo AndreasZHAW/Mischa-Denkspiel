@@ -322,6 +322,111 @@ const App = {
 
   // ---- WORLD MAP ----
   showWorld(id){ return this.showWorldMap(); },
+  showZooCollection() {
+    // Show animal collection page - what you have vs. what exists
+    const player = State.currentPlayer;
+    if(!player){ this.showLogin(); return; }
+    
+    // Load player's zoo data (from localStorage)
+    const zooKey = 'zoo_'+player.name.toLowerCase();
+    let zoo = null;
+    try{ zoo = JSON.parse(localStorage.getItem(zooKey)||'null'); }catch(e){}
+    
+    // Get all animals the player has ever collected
+    const owned = new Set();
+    if(zoo && zoo.enc){
+      zoo.enc.forEach(e => { if(e && e.animal) owned.add(e.animal.id||e.animal.n); });
+    }
+    // Also check history if available
+    if(zoo && zoo.history){
+      zoo.history.forEach(h => { if(h && h.id) owned.add(h.id); });
+    }
+    
+    const RARITY_ORDER = ['normal','rare','epic','legendary','god','mythic','ultra','ultralegendary','secret'];
+    const RARITY_COLORS = {
+      normal:'#95A5A6', rare:'#3498DB', epic:'#8E44AD', legendary:'#F39C12',
+      god:'#E74C3C', mythic:'#FF1493', ultra:'#00CFFF', ultralegendary:'#FFD700', secret:'#111'
+    };
+    const RARITY_LABELS = {
+      normal:'Normal', rare:'Selten', epic:'Episch', legendary:'Legendär',
+      god:'Gott', mythic:'Mythisch', ultra:'Ultra', ultralegendary:'Ultra-Legendär', secret:'SECRET'
+    };
+    
+    const ch = this._char(player);
+    
+    // Group by rarity
+    const byRarity = {};
+    RARITY_ORDER.forEach(r => byRarity[r] = []);
+    
+    // Get ALL animals from zoo.html ANIMALS array (via global if available)
+    const allAnimals = window.ANIMALS || [];
+    allAnimals.forEach(a => {
+      if(!byRarity[a.r]) byRarity[a.r] = [];
+      byRarity[a.r].push(a);
+    });
+    
+    const totalAnimals = allAnimals.length;
+    const ownedCount = owned.size;
+    const pct = totalAnimals > 0 ? Math.round(ownedCount/totalAnimals*100) : 0;
+    
+    // Build grid sections per rarity
+    let gridHTML = '';
+    RARITY_ORDER.forEach(r => {
+      const animals = byRarity[r] || [];
+      if(!animals.length) return;
+      const col = RARITY_COLORS[r] || '#888';
+      gridHTML += `<div style="margin-bottom:20px">
+        <div style="font-size:.75rem;font-weight:700;color:${col};margin-bottom:8px;padding:4px 10px;background:${col}22;border-radius:6px;display:inline-block">
+          ${RARITY_LABELS[r]||r} (${animals.filter(a=>owned.has(a.id||a.n)).length}/${animals.length})
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px">`;
+      animals.forEach(a => {
+        const has = owned.has(a.id||a.n);
+        gridHTML += `<div style="background:${has?col+'22':'rgba(255,255,255,.04)'};border:2px solid ${has?col:'rgba(255,255,255,.08)'};border-radius:12px;padding:8px 4px;text-align:center;transition:all .2s" title="${a.n}${has?'':' (noch nicht gefunden)'}">
+          <div style="font-size:1.8rem;${has?'':'filter:grayscale(1) opacity(.25)'}">${has?a.e:'❓'}</div>
+          <div style="font-size:.58rem;color:${has?'rgba(255,255,255,.7)':'rgba(255,255,255,.2)'};margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${has?a.n:'???'}</div>
+          ${has?`<div style="font-size:.5rem;color:${col};font-weight:700">${RARITY_LABELS[r]||r}</div>`:''}
+        </div>`;
+      });
+      gridHTML += '</div></div>';
+    });
+    
+    this._html(`
+      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
+      <div class="page">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;margin-bottom:10px">
+          <button class="btn-back" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.9rem">◀ Zurück</button>
+          <div>
+            <div style="font-size:1.1rem;font-weight:900;color:#FFD700">🦁 Tiersammlung</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.5)">${ch} ${player.name}</div>
+          </div>
+        </div>
+        
+        <!-- Progress bar -->
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:.85rem;font-weight:700;color:#fff">Gesammelt: ${ownedCount}/${totalAnimals}</div>
+            <div style="font-size:1.1rem;font-weight:900;color:#FFD700">${pct}%</div>
+          </div>
+          <div style="background:rgba(255,255,255,.1);border-radius:50px;height:12px;overflow:hidden">
+            <div style="height:100%;background:linear-gradient(90deg,#27AE60,#FFD700);width:${pct}%;transition:width 1s ease;border-radius:50px"></div>
+          </div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:6px;text-align:center">
+            ${totalAnimals-ownedCount} Tiere noch nicht gefunden
+          </div>
+        </div>
+        
+        <!-- Animal grid -->
+        <div class="card">
+          ${allAnimals.length === 0 
+            ? '<div style="text-align:center;color:rgba(255,255,255,.4);padding:30px">Zoo-Daten werden geladen...<br>Bitte erst Zoo besuchen.</div>'
+            : gridHTML
+          }
+        </div>
+      </div>
+    `);
+  },
+
   async showWorldMap() {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
@@ -497,7 +602,10 @@ const App = {
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
       <div class="page" style="padding-top:14px">
-        <div class="world-banner ${world.bannerClass}" style="margin-bottom:10px">
+        <button onclick="App.showZooCollection()" style="display:block;width:100%;background:linear-gradient(135deg,#1a3a1a,#0a2a0a);border:1px solid rgba(39,174,96,.4);color:#27AE60;padding:10px 16px;border-radius:12px;font-weight:700;font-size:.85rem;cursor:pointer;margin-bottom:12px;text-align:left">
+              🦁 Meine Tiersammlung ansehen →
+            </button>
+            <div class="world-banner ${world.bannerClass}" style="margin-bottom:10px">
           <span class="banner-icon">${world.icon}</span>
           <div class="banner-title">${world.name}</div>
           <div class="banner-sub">${world.difficulty} · ${done}/10 geschafft</div>
