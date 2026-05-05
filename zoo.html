@@ -294,6 +294,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
       oninput="this.style.borderColor=this.value?'rgba(255,215,0,.3)':'rgba(255,255,255,.08)'">
   </div>
 </div></div>
+<div class="zp off" id="p-trade"><div class="zpi"><button class="pcls" onclick="ZP.close('trade')">✕</button><div class="pt">🤝 Trading</div><div id="ptrade"></div></div></div>
 <div class="zp off" id="p-reb"><div class="zpi"><button class="pcls" onclick="ZP.close('reb')">✕</button><div class="pt">🔄 Wiedergeburt</div><div id="prc"></div></div></div>
 <div class="zp off" id="p-enc"><div class="zpi"><button class="pcls" onclick="ZP.close('enc')">✕</button><div class="pt" id="pent">Gehege</div><div id="pencm"></div></div></div>
 <div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html'">← Denkspiel</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
@@ -374,7 +375,7 @@ function $esc(s){
 }
 
 // ═══ DATA ═══
-const ANIMALS=window.ANIMALS=[
+const ANIMALS=[
   {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:5,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:6,earn:.7},
   {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,p:8,earn:.9},{id:'dormouse',n:'Sieben.',e:'🐭',r:'normal',w:15,p:10,earn:1.1},
   {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,p:9,earn:.85},{id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,p:11,earn:1},
@@ -754,11 +755,9 @@ const ZG={
           setTimeout(()=>{if(pollDiv.parentElement)pollDiv.remove();},30000);
         }
         else if(d.type==='discount'){
-          const dtNames={shop:'Shop',luck:'×2 Glück',earn:'×2 Einnahmen',visitors:'×3 Besucher',free_spin:'Gratis Spin'};
-          const dtLabel=dtNames[d.discountType]||d.discountType||'Shop';
-          ZP.toast('🏷️ '+dtLabel+' '+d.pct+'% Rabatt für '+(d.dur/60)+' Min!',5000);
-          window._adminDiscount={type:d.discountType,pct:d.pct,until:Date.now()+d.dur*1000};
-          ZAdmin._applyDiscount&&ZAdmin._applyDiscount(d.discountType,d.pct,d.dur);
+          ZP.toast('🏷️ Admin-Rabatt: '+d.pct+'% auf alle Einkäufe für 5 Min!',6000);
+          // Store discount globally
+          window._adminDiscount={pct:d.pct,until:Date.now()+(d.dur||300000)};
         }
       });
       _db.collection('zoo_broadcast').doc('wheel').onSnapshot(snap=>{
@@ -1843,7 +1842,7 @@ const ZG={
   // Events synchronized via Firebase - only admin/first player triggers, all sync
   _scheduleEvent(){
     // Events every 8-12 minutes (rarer), synced globally
-    const delay=(8+Math.random()*4)*60000;
+    const delay=(18+Math.random()*4)*60000;
     setTimeout(()=>{
       if(!ZS.player)return;
       const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
@@ -2159,39 +2158,6 @@ const LW={
     },30000);
   },
 
-  buySpin(amount){
-    const cost=100000*amount;
-    if(!ZS.zoo){ZP.toast('❌ Nicht eingeloggt',1500);return;}
-    if(ZS.zoo.mt<cost){ZP.toast('❌ Zu wenig MT! Brauchst '+$mt(cost),2000);return;}
-    ZS.zoo.mt-=cost;
-    this.spins=(this.spins||0)+amount;
-    const lws=G('lwspins');
-    if(lws)lws.textContent=this.spins+' Spin'+(this.spins!==1?'s':'');
-    ZS.save&&ZS.save();
-    ZG._updHUD&&ZG._updHUD();
-    ZP.toast('🎰 +'+amount+' Spin gekauft! (-'+$mt(cost)+')',2500);
-    // Refresh wheel display
-    const btn=G('lwbtn');
-    if(btn){btn.disabled=this.spins<=0;btn.textContent=this.spins>0?'🌀 Drehen!':'Kein Spin';}
-  },
-
-  buyMaxSpins(){
-    if(!ZS.zoo){ZP.toast('❌ Nicht eingeloggt',1500);return;}
-    const maxBuy=Math.floor(ZS.zoo.mt/100000);
-    if(maxBuy<=0){ZP.toast('❌ Nicht genug MT! 1 Spin = 100.000 MT',2000);return;}
-    const confirm_msg='Wirklich '+maxBuy+' Spins für '+$mt(maxBuy*100000)+' kaufen? Du hast '+$mt(ZS.zoo.mt)+' MT.';
-    if(!confirm(confirm_msg))return;
-    ZS.zoo.mt-=maxBuy*100000;
-    this.spins=(this.spins||0)+maxBuy;
-    const lws=G('lwspins');
-    if(lws)lws.textContent=this.spins+' Spins';
-    ZS.save&&ZS.save();
-    ZG._updHUD&&ZG._updHUD();
-    ZP.toast('🎰 +'+maxBuy+' Spins! Du hast noch '+$mt(ZS.zoo.mt),3000);
-    const btn=G('lwbtn');
-    if(btn){btn.disabled=false;btn.textContent='🌀 Drehen!';}
-  },
-
   setType(t,spinsToAdd){
     if(!this.WHEELS[t])return;
     this.activeType=t;this.angle=0;
@@ -2286,58 +2252,6 @@ const LW={
     grad.addColorStop(1,'rgba(0,0,0,0)');
     ctx.beginPath();ctx.arc(cx,cy,40,0,Math.PI*2);
     ctx.fillStyle=grad;ctx.fill();
-  },
-
-  buySpin(){
-    const z=ZS.zoo; if(!z)return;
-    const PRICE=100000;
-    if((z.mt||0)<PRICE){
-      ZP.toast('❌ Zu wenig MT! Brauchst '+$mt(PRICE),2000);
-      return;
-    }
-    z.mt-=PRICE;
-    this.spins=(this.spins||0)+1;
-    const el=G('lwspins');
-    if(el)el.textContent=this.spins+' Spin'+(this.spins!==1?'s':'');
-    ZG._updHUD();
-    ZP.toast('✅ 1 Spin gekauft! Noch: '+$mt(z.mt),2000);
-    ZS.save&&ZS.save();
-  },
-
-  buyMaxSpins(){
-    const z=ZS.zoo; if(!z)return;
-    const PRICE=100000;
-    const maxSpins=Math.floor((z.mt||0)/PRICE);
-    if(maxSpins<1){
-      ZP.toast('❌ Nicht genug MT für 1 Spin (100.000 MT)',2000);
-      return;
-    }
-    const totalCost=maxSpins*PRICE;
-    // Show confirmation
-    const conf=document.createElement('div');
-    conf.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9990;background:#1a1a2e;border:2px solid #FFD700;border-radius:16px;padding:24px;text-align:center;color:#fff;min-width:280px;box-shadow:0 0 30px rgba(255,215,0,.3)';
-    conf.innerHTML='<div style="font-size:1.5rem;margin-bottom:8px">🌀</div>'+
-      '';
-    conf.id='lw-buy-conf';
-    const t1=document.createElement('div');t1.style.cssText='font-size:1rem;font-weight:900;color:#FFD700;margin-bottom:6px';t1.textContent='Max Spins kaufen?';
-    const t2=document.createElement('div');t2.style.cssText='font-size:.85rem;color:rgba(255,255,255,.7);margin-bottom:16px;text-align:center';t2.innerHTML=maxSpins+' Spins × 100.000 MT<br>= <b style="color:#FFD700">'+$mt(totalCost)+'</b>';
-    const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:10px;justify-content:center';
-    const btnCancel=document.createElement('button');btnCancel.textContent='Abbrechen';btnCancel.style.cssText='background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:700';
-    btnCancel.onclick=function(){const c=document.getElementById('lw-buy-conf');if(c)c.remove();};
-    const btnOk=document.createElement('button');btnOk.id='lw-confirm-buy';btnOk.textContent='✅ Ja, kaufen!';btnOk.style.cssText='background:linear-gradient(135deg,#FFD700,#F39C12);color:#000;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:900';
-    btnRow.appendChild(btnCancel);btnRow.appendChild(btnOk);
-    conf.appendChild(t1);conf.appendChild(t2);conf.appendChild(btnRow);
-    document.body.appendChild(conf);
-    btnOk.onclick=()=>{
-      z.mt-=totalCost;
-      this.spins=(this.spins||0)+maxSpins;
-      const el=G('lwspins');
-      if(el)el.textContent=this.spins+' Spin'+(this.spins!==1?'s':'');
-      ZG._updHUD();
-      conf.remove();
-      ZP.toast('🌀 '+maxSpins+' Spins gekauft! Viel Glück!',3000);
-      ZS.save&&ZS.save();
-    };
   },
 
   spin(){
@@ -2502,61 +2416,12 @@ const ZP={
 
   // INDEX
   _rIndex(){
-    const z=ZS.zoo; if(!z)return;
-    const owned=z.enc.filter(e=>e&&e.animal).map(e=>e.animal.id);
-    const all=ANIMALS||[];
-    // Sort by rarity order
-    const rarityOrder=['normal','rare','epic','legendary','god','mythic','ultralegendary','secret'];
-    const sorted=[...all].sort((a,b)=>{
-      const ra=rarityOrder.indexOf(a.r), rb=rarityOrder.indexOf(b.r);
-      if(ra!==rb)return ra-rb;
-      return a.n.localeCompare(b.n);
-    });
-    const total=sorted.length, ownedCount=owned.length;
-    const pct=Math.round(ownedCount/total*100);
-    const rarityColors={normal:'#95a5a6',rare:'#3498DB',epic:'#9B59B6',legendary:'#F39C12',god:'#E74C3C',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
-    const rarityNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',god:'Gott',mythic:'Mythisch',ultralegendary:'Ultra-Legendär',secret:'SECRET'};
-    
-    // Progress bar
-    const progressHTML=`<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-weight:900;color:#FFD700;font-size:.88rem">📖 Tier-Index</span>
-        <span style="font-size:.8rem;color:#FFD700;font-weight:900">${ownedCount}/${total} (${pct}%)</span>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:50px;height:8px">
-        <div style="background:linear-gradient(90deg,#FFD700,#F39C12);height:8px;border-radius:50px;width:${pct}%;transition:width .5s"></div>
-      </div>
-    </div>`;
-    
-    // Group by rarity
-    let gridHTML='';
-    rarityOrder.forEach(r=>{
-      const group=sorted.filter(a=>a.r===r);
-      if(!group.length)return;
-      const ownedInGroup=group.filter(a=>owned.includes(a.id)).length;
-      const col=rarityColors[r]||'#888';
-      gridHTML+=`<div style="margin-bottom:12px">
-        <div style="font-size:.7rem;font-weight:900;color:${col};margin-bottom:6px;display:flex;justify-content:space-between">
-          <span>${rarityNames[r]||r}</span>
-          <span style="opacity:.7">${ownedInGroup}/${group.length}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px">
-          ${group.map(a=>{
-            const isOwned=owned.includes(a.id);
-            const enc=z.enc.find(e=>e&&e.animal&&e.animal.id===a.id);
-            const shiny=enc?.shiny;
-            return`<div style="background:${isOwned?'rgba(255,255,255,.08)':'rgba(0,0,0,.3)'};border:1px solid ${isOwned?col:'rgba(255,255,255,.05)'};border-radius:10px;padding:6px;text-align:center;position:relative;${isOwned?'':'filter:grayscale(1)opacity(.4)'}">
-              ${shiny?`<div style="position:absolute;top:2px;right:2px;font-size:.55rem;color:#FFD700">${shiny.id==='rainbow'?'🌈':shiny.id==='gold'?'🏆':shiny.id==='diamond'?'💎':'✨'}</div>`:''}
-              <div style="font-size:1.5rem">${isOwned?a.e:'❓'}</div>
-              <div style="font-size:.55rem;color:${isOwned?'rgba(255,255,255,.8)':'rgba(255,255,255,.3)'};margin-top:2px;line-height:1.2">${isOwned?a.n:'???'}</div>
-              ${isOwned?`<div style="font-size:.5rem;color:#00FF88;margin-top:1px">💰 ${a.earn}/v</div>`:''}
-            </div>`;
-          }).join('')}
-        </div>
-      </div>`;
-    });
-    
-    G('pidx').innerHTML=progressHTML+gridHTML;
+    const z=ZS.zoo;const enc=z.enc.filter(e=>e);
+    const cnt={gold:0,diamond:0,rainbow:0,void:0};enc.forEach(e=>{if(e.shiny?.id)cnt[e.shiny.id]=(cnt[e.shiny.id]||0)+1;});
+    const tot=enc.length||1;
+    const bars=[{id:'gold',l:'🏆 Goldener Zoo',col:'#FFD700'},{id:'diamond',l:'💎 Diamant Zoo',col:'#00CFFF'},{id:'rainbow',l:'🌈 Regenbogen Zoo',col:'#ff69b4'},{id:'void',l:'🌌 Void Zoo',col:'#9B59B6'}].map(s=>{const pct=Math.round((cnt[s.id]/tot)*100);const ul=pct>=70;return`<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:2px"><span style="font-weight:900;color:${s.col}">${s.l}${ul?' ✅':''}</span><span style="color:rgba(255,255,255,.4)">${cnt[s.id]}/${tot} (${pct}%)</span></div><div style="background:rgba(255,255,255,.1);border-radius:50px;height:6px;overflow:hidden"><div style="height:100%;border-radius:50px;background:${s.col};width:${Math.min(100,pct)}%"></div></div>${ul?`<div style="font-size:.62rem;color:${s.col}">Basis aktiv! 🌟</div>`:`<div style="font-size:.6rem;color:rgba(255,255,255,.3)">→ 70% für Basis</div>`}</div>`;}).join('');
+    G('pidx').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:10px;margin-bottom:10px"><div style="font-weight:900;color:#FFD700;font-size:.86rem;margin-bottom:7px">🌟 Zoo-Basis</div>${bars}</div><div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.76rem;margin-bottom:6px">📋 Deine ${enc.length} Tier(e):</div>`+
+    (enc.length?enc.map(e=>{const i=z.enc.indexOf(e);const rd=RAR[e.animal.r];const tm=tMul(e.shiny,e.traits);const ev=earn(e,z,ZG.ev);const ss=e.shiny?{gold:'filter:sepia(1) saturate(4) hue-rotate(5deg)',diamond:'filter:saturate(4) hue-rotate(180deg)',rainbow:'animation:rb 2s linear infinite',void:'filter:invert(0.4) hue-rotate(270deg)'}[e.shiny.id]||'':'';return`<div class="ac"><div style="font-size:1.9rem;${ss}">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.86rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${rd.c}" style="font-size:.7rem">${rd.n} ${tB(e.traits)}</div><div style="font-size:.66rem;color:#00FF88">💰 ${$mt(ev)}/v · ×${tm}</div></div><div style="text-align:right;font-size:.65rem;color:rgba(255,255,255,.35)">G#${i+1}<br>⚡${e.sl||0}</div></div>`;}).join(''):'<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Noch keine Tiere 🐾</div>');
   },
 
   // SHOP
@@ -2871,7 +2736,22 @@ const ZSound = {
       ni++;
     }, 2000);
   },
-  stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; }
+  stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; },
+  _playEventMusic(id){
+    const c=this._ctx();if(!c)return;
+    const m={snow:[261,293,329,261],party:[392,523,659,784],golden:[523,784,1047,784],
+      night:[220,196,165,196],rush:[440,523,659,784],mega:[523,659,784,1047,1319],
+      halloween:[220,185,165,185],spring:[523,659,784,880]};
+    const ns=m[id]||m.party;
+    let t=c.currentTime;
+    ns.forEach(f=>{
+      const o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.type='sine';o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+.3);
+      o.start(t);o.stop(t+.3);t+=.25;
+    });
+  }
 };
 
 
@@ -3479,50 +3359,26 @@ const ZAdmin = {
     });
   },
   
-  discount(){}, // legacy - replaced by sendDiscount
-
-  sendDiscount(){
+  discount(){
+    const inp3=document.getElementById('padmin-msg');
+    const msg=(inp3?.value||'').trim()||'50% Rabatt aktiv!';
     if(!this._checkCD('discount'))return;
-    const dtype=document.getElementById('padmin-discount-type')?.value||'shop';
-    const pct=parseInt(document.getElementById('padmin-discount-pct')?.value||50);
-    const dur=parseInt(document.getElementById('padmin-discount-dur')?.value||300);
-    const typeNames={shop:'Shop',luck:'×2 Glück',earn:'×2 Einnahmen',visitors:'×3 Besucher',free_spin:'Gratis Spin'};
-    const label=typeNames[dtype]||dtype;
-    
-    // Apply locally immediately
-    window._adminDiscount={type:dtype,pct,until:Date.now()+dur*1000};
-    this._applyDiscount(dtype,pct,dur);
-    
-    // Broadcast
+    const pct=parseInt(msg.match(/\d+/)?.[0])||50;
     try{if(typeof _db!=='undefined'&&_db){
       _db.collection('zoo_broadcast').doc('announcement').set({
-        type:'discount',discountType:dtype,pct,dur,from:ZS.player,at:Date.now()
+        type:'discount',msg,pct,from:ZS.player,at:Date.now(),dur:300000 // 5 min
       }).catch(()=>{});
     }}catch(e){}
-    ZP.toast('🏷️ '+label+' '+pct+'% für '+(dur/60)+' Min aktiviert!',3000);
-    // Visual banner
-    const d=document.createElement('div');
-    d.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:9800;background:#27AE60;color:#fff;padding:10px 20px;border-radius:50px;font-weight:900;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.4)';
-    d.textContent='🏷️ '+label+' '+pct+'% für '+(dur<120?dur+'s':Math.round(dur/60)+'min') + ' (alle Spieler)';
-    document.body.appendChild(d);setTimeout(()=>d.remove(),5000);
+    ZP.toast('🏷️ Rabatt '+pct+'% für 5 Min aktiv für alle!',3000);
+    if(inp3)inp3.value='';
+    // Show locally
+    const discDiv=document.createElement('div');
+    discDiv.style.cssText='position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:9800;background:#27AE60;color:#fff;padding:10px 20px;border-radius:50px;font-weight:900;font-size:1rem;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+    discDiv.textContent='🏷️ '+pct+'% Rabatt für alle (5 Min)!';
+    document.body.appendChild(discDiv);
+    setTimeout(()=>discDiv.remove(),5000);
   },
   
-  _applyDiscount(type,pct,dur){
-    if(!ZS.zoo)return;
-    const factor=pct/100;
-    if(type==='luck'){
-      ZS.zoo.luck=(ZS.zoo.luck||1)*(1+factor);
-      setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=(1+factor);},dur*1000);
-    } else if(type==='earn'){
-      ZS.zoo.rebirthMult=(ZS.zoo.rebirthMult||1)*(1+factor);
-      setTimeout(()=>{if(ZS.zoo)ZS.zoo.rebirthMult/=(1+factor);},dur*1000);
-    } else if(type==='free_spin'){
-      LW.spins=(LW.spins||0)+1;
-      ZP.toast('🎡 Gratis Spin erhalten!',2000);
-    }
-    ZG._updHUD&&ZG._updHUD();
-  },
-
   showSecrets(){
     const ALL_SECRETS = [
       {id:'konami',      emoji:'🎮', name:'Konami-Code',        how:'↑↑↓↓←→←→BA im Zoo eingeben',                reward:'+999 MT'},
@@ -3592,35 +3448,15 @@ const ZAdmin = {
   
   giveSpins(){
     if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
-    if(!this._checkCD('giveSpins'))return;
+    // No CD for giving spins
     const amount=parseInt(document.getElementById('padmin-spins-amount')?.value||1);
-    if(isNaN(amount)||amount<1){ZP.toast('❗ Ungültige Anzahl',1500);return;}
-    // Broadcast via Firebase
-    try{
-      if(typeof _db!=='undefined'&&_db){
-        // Always try Firebase directly
-        _db.collection('zoo_events').add({
-          type:'admin_give_spins',target:this.target.name.toLowerCase(),
-          amount,from:ZS.player||'Admin',at:Date.now()
-        }).then(()=>{
-          ZP.toast('🎰 '+this.target.name+' bekommt '+amount+' Spin(s)!',2500);
-        }).catch(e=>{ZP.toast('❌ Firebase: '+e.message,2000);});
-        // If giving to self: also apply immediately
-        if(this.target.name.toLowerCase()===ZS.player?.toLowerCase()){
-          LW.spins=(LW.spins||0)+amount;
-          const lws=G('lwspins');if(lws)lws.textContent=LW.spins+' Spin'+(LW.spins!==1?'s':'');
-          ZP.toast('🎰 +'+amount+' Spin(s) erhalten!',2000);
-        }
-      } else {
-        // No DB at all - give to self only
-        if(this.target.name.toLowerCase()===ZS.player?.toLowerCase()){
-          LW.spins=(LW.spins||0)+amount;
-          ZP.toast('🎰 +'+amount+' Spin(s)!',2000);
-        } else {
-          ZP.toast('❌ Firebase nicht verbunden. Spieler muss online sein.',2500);
-        }
-      }
-    }catch(e){ZP.toast('❌ Fehler: '+e.message,2000);}
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_events').add({
+        type:'admin_give_spins',target:this.target.name.toLowerCase(),
+        amount,from:ZS.player,at:Date.now()
+      }).catch(()=>{});
+    }}catch(e){}
+    ZP.toast('🎰 '+this.target.name+' bekommt '+amount+' Spin(s)!',2000);
   },
 
   guaranteeSpin(){
@@ -3636,6 +3472,13 @@ const ZAdmin = {
     ZP.toast('🎯 '+this.target.name+': nächster Spin = '+prizeId+'!',2500);
   },
 
+  triggerEvent(){
+    const evId=document.getElementById('padmin-event-type')?.value||'party';
+    const ev=EVENTS.find(e=>e.id===evId);if(!ev)return;
+    ZG.startEv&&ZG.startEv(ev,ev.dur);
+    try{if(typeof _db!=='undefined'&&_db){_db.collection('zoo_broadcast').doc('event').set({eventId:evId,at:Date.now(),dur:ev.dur,from:ZS.player}).catch(()=>{});}}catch(e){}
+    ZP.toast('⚡ '+ev.n+' gestartet!',2500);this.close();
+  },
   setGlobalWheel(){
     const wType=document.getElementById('padmin-wheel-type')?.value||'normal';
     LW.setType(wType,0);
@@ -3925,6 +3768,16 @@ const SECRETS = {
   
   // SECRET 14: Stay in gondola view for 2 minutes
   _gondolaTimer:null,
+  _vote(pollId, choice, el){
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        const u={};u['votes.'+ZS.player?.toLowerCase()]=choice;
+        _db.collection('zoo_polls').doc(pollId).update(u).catch(()=>{});
+      }
+    }catch(e){}
+    ZP.toast('✅ Stimme: '+(choice==='yes'?'Ja':'Nein'),1500);
+    if(el&&el.parentElement)el.remove();
+  },
   startGondolaTimer(){
     if(this._gondolaTimer)return;
     this._gondolaTimer=setTimeout(()=>{
@@ -4159,8 +4012,24 @@ document.addEventListener('DOMContentLoaded',()=>{
                 <option value="france">🗼 Frankreich</option>
                 <option value="weekend">🎉 Wochenend</option>
                 <option value="christmas">🎄 Weihnachten</option>
+                <option value="halloween">🎃 Halloween</option>
+                <option value="spring">🌸 Frühling</option>
               </select>
               <button class="padmin-btn" style="background:#9B59B6;font-size:.7rem" onclick="ZAdmin.setGlobalWheel()">🎠 Für alle</button>
+            </div>
+          </div>
+          <div style="margin-top:6px">
+            <div style="font-size:.72rem;color:#FFD700;font-weight:700;margin-bottom:4px">⚡ Event auslösen:</div>
+            <div style="display:flex;gap:4px">
+              <select id="padmin-event-type" style="flex:1;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.7rem">
+                <option value="snow">❄️ Schneesturm</option>
+                <option value="party">🎉 Konzert</option>
+                <option value="golden">✨ Goldregen</option>
+                <option value="night">🌙 Mag.Nacht</option>
+                <option value="rush">🏃 Rush Hour</option>
+                <option value="mega">💎 Mega-Event</option>
+              </select>
+              <button class="padmin-btn" style="background:#E74C3C;font-size:.7rem" onclick="ZAdmin.triggerEvent()">⚡ Start</button>
             </div>
           </div>
         </div>
