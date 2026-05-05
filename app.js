@@ -75,12 +75,12 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:.62rem;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.04.27</p>
+          <p style="font-size:.62rem;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.05.05-1141</p>
         </div>
-        <div class="card">
-          <div class="card-title">Willkommen! 👋</div>
+        <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
+          <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
 
-          <!-- Welt 1 Box -->
+          <!-- Welt 1 Box - dark dramatic style -->
           <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 Welt 1 — Denkspiel</div>
             <div style="font-size:.82rem;color:#333;line-height:1.6">

@@ -23,8 +23,17 @@
   </style>
 </head>
 <body>
+<script>
+// Show intro on first visit (once per session)
+(function(){
+  if(!sessionStorage.getItem('intro_seen')&&!sessionStorage.getItem('mischa_current')){
+    sessionStorage.setItem('intro_seen','1');
+    window.location.href='intro.html';
+  }
+})();
+</script>
   <div id="app">
-    <div id="loading-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#87CEEB">
+    <div id="loading-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(180deg,#0a0a1a,#0d1a2e)">
       <div style="text-align:center">
         <div style="font-size:3rem;animation:bounce 1s infinite">✈️</div>
         <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#3D4F2E;margin-top:10px">Mischa Denkspiel lädt...</div>
