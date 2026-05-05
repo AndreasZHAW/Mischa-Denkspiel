@@ -799,7 +799,7 @@ const ZG={
             if(d.type==='slap'&&d.target===ZS.player&&d.at>cutoff){
               // I got slapped! Full cinematic experience
               const slapDur=d.dur||2000;
-              ZG._slapStunEnd=Date.now()+slapDur; SECRETS.trackSlap();
+              ZG._slapStunEnd=Date.now()+slapDur; SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
               ZG._stunType='slap';
               ZSound.slap&&ZSound.slap();
               
@@ -1294,7 +1294,8 @@ const ZG={
       const si=G('stun-indicator');if(si)si.style.display='none';
       this._stunType=null;
     }
-    const sp=this._sprintActive?12:7; // sprint with Shift
+    const steal_mod=window.ZSteal?ZSteal.speedMod():1;
+    const sp=(this._sprintActive?12:7)*steal_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -1394,6 +1395,7 @@ const ZG={
 
   _tick(){
     const z=ZS.zoo;if(!z)return;
+    ZSteal.checkDelivery&&ZSteal.checkDelivery();
     if(!z.enc||z.tv===undefined)ZS._fix(); // migrate on the fly
     if(!z.enc)return;
     ZS._fix();
@@ -2050,7 +2052,7 @@ const ZG={
     if(ZS.isPrivate||!ZS.player)return;
     try{
       if(!State._useCloud())return;
-      if(!_db)return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||ZS.char?.emoji||'🧭',charId:ZS.char?.id||'explorer',x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await Promise.race([_db.collection('zoo_players').get(),new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))]);const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}},
+      if(!_db)return;await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:ZS.char?.e||ZS.char?.emoji||'🧭',charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,zoneIdx:ZS.zoneIdx||0,enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await Promise.race([_db.collection('zoo_players').get(),new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))]);const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}},
   _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshBasicMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshBasicMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
 
   // ═══ ADMIN CMD ═══
@@ -2121,6 +2123,24 @@ const LW={
       {l:'🎅 Weihnachtsmann!',mt:0,c:.2,col:'#8B0000',animal:{id:'santa',n:'Weihnachtsmann',e:'🎅',r:'secret',p:0,earn:1000},exclusive:true},
       {l:'150.000 MT',mt:150000,c:7,col:'#FFD700'},{l:'400.000 MT',mt:400000,c:4,col:'#fff'},
       {l:'🎁 Überraschung!',mt:0,c:2,col:'#ff69b4',gift:true},{l:'🎄 Weihnachts-Slap!',mt:0,c:.5,col:'#C0392B',slap:'christmas'},
+    ]},
+    halloween:{name:'Halloween-Rad',emoji:'🎃',glowCol:'#FF6600',prizes:[
+      {l:'3.000 MT',mt:3000,c:27,col:'#FF6600'},{l:'10.000 MT',mt:10000,c:19,col:'#8B0000'},
+      {l:'30.000 MT',mt:30000,c:13,col:'#FF6600'},{l:'80.000 MT',mt:80000,c:8,col:'#8B0000'},
+      {l:'200.000 MT',mt:200000,c:3,col:'#FF6600'},
+      {l:'🎃 Kürbis-Katze!',mt:0,c:3,col:'#FF6600',animal:{id:'pumpkincat',n:'Kürbis-Katze',e:'🐱',r:'epic',p:0,earn:40},exclusive:true},
+      {l:'👻 Geist-Hund!',mt:0,c:1.5,col:'#8B0000',animal:{id:'ghostdog',n:'Geist-Hund',e:'🐶',r:'legendary',p:0,earn:200},exclusive:true},
+      {l:'🕷️ Shadow Slap!',mt:0,c:1,col:'#8B0000',slap:'shadow'},
+      {l:'🦇 Void Slap!',mt:0,c:.5,col:'#8B0000',slap:'void'},
+    ]},
+    spring:{name:'Frühlings-Rad',emoji:'🌸',glowCol:'#FF69B4',prizes:[
+      {l:'2.000 MT',mt:2000,c:28,col:'#27AE60'},{l:'8.000 MT',mt:8000,c:20,col:'#FF69B4'},
+      {l:'25.000 MT',mt:25000,c:14,col:'#27AE60'},{l:'70.000 MT',mt:70000,c:9,col:'#FF69B4'},
+      {l:'150.000 MT',mt:150000,c:3,col:'#FFD700'},
+      {l:'🐰 Oster-Hase!',mt:0,c:4,col:'#FF69B4',animal:{id:'easterbunny',n:'Oster-Hase',e:'🐰',r:'rare',p:0,earn:30},exclusive:true},
+      {l:'🌸 Kirschblüten-Fuchs!',mt:0,c:.8,col:'#FF69B4',animal:{id:'cherryfox',n:'Kirschblüten-Fuchs',e:'🦊',r:'mythic',p:0,earn:600},exclusive:true},
+      {l:'🌈 Rainbow Slap!',mt:0,c:1,col:'#FF69B4',slap:'rainbow'},
+      {l:'🌷 Lucky Slap!',mt:0,c:.7,col:'#27AE60',slap:'lucky'},
     ]},
   },
 
@@ -3594,6 +3614,18 @@ function _handleAdminEvent(d){
     document.body.appendChild(notif);
     setTimeout(()=>{if(notif.parentElement)notif.remove();},8000);
   }
+  else if(d.type==='steal_start'&&d.target===ZS.player?.toLowerCase()){
+    // Someone stole from me!
+    ZP.toast('🚨 '+d.thief+' stiehlt dein '+d.animal?.e+' '+d.animal?.n+'! SLAP ihn!',5000);
+    ZSound.slap&&ZSound.slap();
+    const fl=G('bflash');
+    if(fl){fl.style.background='rgba(231,76,60,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',600);}
+    // Remove animal from enc immediately
+    if(ZS.zoo&&ZS.zoo.enc&&d.encSlot>=0){
+      ZS.zoo.enc[d.encSlot]=null;
+      ZG._encs&&ZG._encs();
+    }
+  }
   else if(d.type==='admin_grant'){
     SECRETS.unlocked['admin']=true; ZAdmin._hasAccess=true;
     localStorage.setItem('zoo_secret_admin',ZS.player||'?');
@@ -3899,6 +3931,225 @@ const CHAR_BODY_COLORS = {
   explorer:   {body:0x8B4513, head:0xFFD0A0, accent:0x27AE60},   // Brown
 };
 window.CHAR_BODY_COLORS=CHAR_BODY_COLORS;
+
+
+// ══════════════════════════════════════════════════
+// ZOO LOCK — Lock your zoo for 120 seconds
+// ══════════════════════════════════════════════════
+const ZooLock = {
+  locked: false,    // is MY zoo locked?
+  lockedUntil: 0,
+  _timer: null,
+  _laserMeshes: [],
+  
+  toggle() {
+    if (this.locked) { ZP.toast('⏳ Zoo gesperrt bis: '+Math.ceil((this.lockedUntil-Date.now())/1000)+'s', 1500); return; }
+    this.lock();
+  },
+  
+  lock() {
+    if (this.locked) return;
+    this.locked = true;
+    this.lockedUntil = Date.now() + 120000;
+    ZP.toast('🔒 Dein Zoo ist für 120s gesperrt!', 3000);
+    // Update HUD button
+    const btn = document.getElementById('hb-lock-btn');
+    if (btn) { btn.querySelector('.hbb').textContent = '🔓'; btn.querySelector('.hbl').textContent = 'Offen'; btn.querySelector('.hbb').style.background='rgba(39,174,96,.7)'; }
+    // Broadcast lock
+    try { if(typeof _db!=='undefined'&&_db) _db.collection('zoo_players').doc(ZS.player?.toLowerCase()).update({locked:true,lockedUntil:Date.now()+120000}).catch(()=>{}); } catch(e) {}
+    // Show laser fence
+    this._showLasers(true);
+    // Auto-unlock after 120s
+    this._timer = setTimeout(() => this.unlock(), 120000);
+    // Update countdown
+    this._cd = setInterval(() => {
+      const rem = Math.ceil((this.lockedUntil-Date.now())/1000);
+      if (rem <= 0) { clearInterval(this._cd); return; }
+      ZP.toast('🔒 Zoo gesperrt: '+rem+'s', 400);
+    }, 5000);
+  },
+  
+  unlock() {
+    this.locked = false;
+    clearTimeout(this._timer);
+    clearInterval(this._cd);
+    const btn = document.getElementById('hb-lock-btn');
+    if (btn) { btn.querySelector('.hbb').textContent='🔒'; btn.querySelector('.hbl').textContent='Sperren'; btn.querySelector('.hbb').style.background='rgba(231,76,60,.7)'; }
+    this._showLasers(false);
+    try { if(typeof _db!=='undefined'&&_db) _db.collection('zoo_players').doc(ZS.player?.toLowerCase()).update({locked:false,lockedUntil:0}).catch(()=>{}); } catch(e) {}
+    ZP.toast('🔓 Dein Zoo ist wieder offen!', 2000);
+  },
+  
+  // Check if a player's zoo is locked (from Firebase data)
+  isLocked(playerName) {
+    const op = ZG.otherPl[playerName?.toLowerCase()];
+    return op && op.locked && op.lockedUntil > Date.now();
+  },
+  
+  // Show/hide laser fence around player's zone
+  _showLasers(show) {
+    // Remove old
+    this._laserMeshes.forEach(m => ZG.scene?.remove(m));
+    this._laserMeshes = [];
+    if (!show) return;
+    // Find player's zone
+    const zones = ZG.ZONES || [];
+    if (!zones.length) return;
+    const zoneIdx = ZS.zoneIdx || 0;
+    const zone = zones[zoneIdx] || zones[0];
+    const x = zone.x, z = zone.z;
+    const R = 22; // fence radius
+    // Create 8 laser pillars
+    for (let i=0; i<8; i++) {
+      const angle = i/8 * Math.PI*2;
+      const px = x + Math.cos(angle)*R;
+      const pz = z + Math.sin(angle)*R;
+      const pillar = new THREE.Mesh(
+        new THREE.CylinderGeometry(.15,.15,5,6),
+        new THREE.MeshBasicMaterial({color:0xE74C3C})
+      );
+      pillar.position.set(px, 2.5, pz);
+      ZG.scene.add(pillar);
+      this._laserMeshes.push(pillar);
+      // Laser beam to next pillar
+      if (i > 0) {
+        const prev = this._laserMeshes[i*2-1] || this._laserMeshes[this._laserMeshes.length-2];
+        const prevAngle = (i-1)/8*Math.PI*2;
+        const beam = this._makeLaserBeam(
+          x+Math.cos(prevAngle)*R, z+Math.sin(prevAngle)*R,
+          px, pz, 2.5
+        );
+        if (beam) { ZG.scene.add(beam); this._laserMeshes.push(beam); }
+      }
+    }
+    // Close the fence
+    const lastAngle = 7/8*Math.PI*2;
+    const beam0 = this._makeLaserBeam(
+      x+Math.cos(lastAngle)*R, z+Math.sin(lastAngle)*R,
+      x+R, z, 2.5
+    );
+    if (beam0) { ZG.scene.add(beam0); this._laserMeshes.push(beam0); }
+  },
+  
+  _makeLaserBeam(x1,z1,x2,z2,y) {
+    const dx=x2-x1, dz=z2-z1;
+    const len=Math.sqrt(dx*dx+dz*dz);
+    if (len<0.1) return null;
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(.05,.05,len,4),
+      new THREE.MeshBasicMaterial({color:0xFF3333,transparent:true,opacity:0.8})
+    );
+    beam.position.set((x1+x2)/2, y, (z1+z2)/2);
+    beam.rotation.y = -Math.atan2(dz,dx);
+    beam.rotation.z = Math.PI/2;
+    return beam;
+  },
+  
+  // Called from _move: block entering locked zoo
+  checkEntry(targetX, targetZ) {
+    // Check if moving toward a locked zone
+    for (const [playerName, op] of Object.entries(ZG.otherPl)) {
+      if (!op.locked || op.lockedUntil < Date.now()) continue;
+      // Bu/admin bypass
+      if (ZS.player?.toLowerCase()==='bu' || ZS.isAdmin) continue;
+      // Find zone
+      const zones = ZG.ZONES || [];
+      const zone = zones[op.zoneIdx || 0] || zones[0];
+      if (!zone) continue;
+      const dx = targetX - zone.x, dz = targetZ - zone.z;
+      if (Math.sqrt(dx*dx+dz*dz) < 18) {
+        ZP.toast('🔒 '+playerName+'s Zoo ist gesperrt! ('+Math.ceil((op.lockedUntil-Date.now())/1000)+'s)', 1000);
+        return true; // Block movement
+      }
+    }
+    return false;
+  },
+};
+window.ZooLock = ZooLock;
+
+// ══════════════════════════════════════════════════
+// ZSTEAL — Steal animals from other zoos
+// ══════════════════════════════════════════════════
+const ZSteal = {
+  carrying: null,     // {animal, fromPlayer, fromSlot}
+  _slowUntil: 0,
+  
+  // Called when near another player's enc
+  trySteal(targetPlayer, encSlot, animal) {
+    if (this.carrying) { ZP.toast('❌ Du trägst schon ein Tier!', 1500); return; }
+    if (!animal) { ZP.toast('❌ Kein Tier in diesem Gehege!', 1500); return; }
+    // Check if their zoo is locked
+    if (ZooLock.isLocked(targetPlayer)) {
+      ZP.toast('🔒 '+targetPlayer+'s Zoo ist gesperrt!', 2000); return;
+    }
+    // Start stealing
+    this.carrying = { animal: {...animal}, fromPlayer: targetPlayer, fromSlot: encSlot };
+    // Broadcast theft to target
+    try { if(typeof _db!=='undefined'&&_db) {
+      _db.collection('zoo_events').add({
+        type:'steal_start', thief:ZS.player, target:targetPlayer.toLowerCase(),
+        encSlot, animal:{e:animal.e,n:animal.n}, at:Date.now()
+      }).catch(()=>{});
+    }} catch(e) {}
+    // Remove from target's enc in Firebase (they see it live)
+    ZP.toast('🏃 '+animal.e+' '+animal.n+' gestohlen! Bring es in deinen Zoo!', 4000);
+    // Show carrying indicator
+    const ind = document.createElement('div');
+    ind.id = 'steal-indicator';
+    ind.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(231,76,60,.9);color:#fff;padding:8px 16px;border-radius:50px;font-weight:900;font-size:.9rem;pointer-events:none';
+    ind.innerHTML = '🏃 Trägst: '+animal.e+' '+animal.n+' <span style="font-size:.7rem;opacity:.7">— Schnell in deinen Zoo!</span>';
+    document.body.appendChild(ind);
+    this._slowUntil = Date.now() + 999999; // slow until delivered
+  },
+  
+  // Called every tick: check if carrier reached own zone
+  checkDelivery() {
+    if (!this.carrying) return;
+    const zones = ZG.ZONES || [];
+    const myZone = zones[ZS.zoneIdx || 0] || zones[0];
+    if (!myZone) return;
+    const dx = ZG.pl.x - myZone.x, dz = ZG.pl.z - myZone.z;
+    if (Math.sqrt(dx*dx+dz*dz) < 15) {
+      this.deliver();
+    }
+  },
+  
+  deliver() {
+    if (!this.carrying) return;
+    const animal = this.carrying.animal;
+    const z = ZS.zoo;
+    if (!z) { this.dropAnimal(); return; }
+    const slot = z.enc.findIndex(e => !e || !e.animal);
+    if (slot < 0) { ZP.toast('❌ Kein Gehege frei! Tier verloren!', 2000); this.dropAnimal(); return; }
+    z.enc[slot] = {animal:{...animal},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0,stolen:true};
+    ZG._encs();
+    ZP.toast('✅ '+animal.e+' '+animal.n+' ist jetzt in deinem Zoo!', 3000);
+    ZG._showStars(ZG.pl.x, ZG.pl.z, 0x27AE60, 6);
+    this.dropAnimal();
+    ZS.save && ZS.save();
+  },
+  
+  dropAnimal() {
+    this.carrying = null;
+    this._slowUntil = 0;
+    const ind = document.getElementById('steal-indicator');
+    if (ind) ind.remove();
+  },
+  
+  // Called when player is slapped while carrying
+  loseOnSlap() {
+    if (!this.carrying) return;
+    const a = this.carrying.animal;
+    ZP.toast('💨 '+a.e+' '+a.n+' ist entkommen!', 3000);
+    this.dropAnimal();
+  },
+  
+  // Speed modifier: 50% slower while carrying
+  speedMod() {
+    return (this.carrying && this._slowUntil > Date.now()) ? 0.5 : 1.0;
+  },
+};
+window.ZSteal = ZSteal;
 
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
