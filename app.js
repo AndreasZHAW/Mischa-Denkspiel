@@ -130,7 +130,106 @@ const App = {
     else zooUsers[zKey].ch = {e:charData?.emoji||'🧭',id:p.character};
     localStorage.setItem('zoo_users', JSON.stringify(zooUsers));
     sessionStorage.setItem('mischa_birthyear', p.birthYear||2000);
-    window.location.href = 'zoo.html';
+    // ── CINEMATIC TELEPORT SCREEN ──
+    this._showTeleportCinema(p.name, charData?.emoji||'🧭', mt-cost);
+  },
+
+  _showTeleportCinema(playerName, charEmoji, mtLeft){
+    // Full-screen cinematic overlay
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:24px';
+    
+    const phases=[
+      {icon:'🌟',title:'Gut gemacht, '+playerName+'!',text:'Du hast dein Startkapital erkämpft. Jetzt beginnt das eigentliche Abenteuer!',delay:0},
+      {icon:charEmoji,title:'Dein Zoo wartet',text:'In Welt 2 erwartet dich ein lebendiger 3D-Zoo. Mischa und Janosch sind stolz auf dich!',delay:3000},
+      {icon:'\uD83E\uDD81',title:'Willkommen im Zoo!',text:'Die Tiere warten auf ihren neuen Besitzer. Bereit?',delay:5500},
+    ];
+    
+    // Stars background
+    const stars=document.createElement('canvas');
+    stars.style.cssText='position:absolute;inset:0;z-index:0';
+    stars.width=window.innerWidth;stars.height=window.innerHeight;
+    const sctx=stars.getContext('2d');
+    for(let i=0;i<150;i++){
+      sctx.beginPath();sctx.arc(Math.random()*stars.width,Math.random()*stars.height,Math.random()*1.5+.3,0,Math.PI*2);
+      sctx.fillStyle='rgba(255,255,255,'+(Math.random()*.6+.1)+')';sctx.fill();
+    }
+    ov.appendChild(stars);
+    
+    const content=document.createElement('div');
+    content.style.cssText='position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:16px;';
+    ov.appendChild(content);
+    document.body.appendChild(ov);
+    
+    // Play intro theme
+    this._playTeleportMusic();
+    
+    let phase=0;
+    function showPhase(){
+      if(phase>=phases.length){
+        // Fade out and go to zoo
+        ov.style.transition='opacity .8s';ov.style.opacity='0';
+        setTimeout(()=>{ window.location.href='zoo.html'; },800);
+        return;
+      }
+      const ph=phases[phase];
+      content.style.opacity='0';content.style.transition='opacity .5s';
+      setTimeout(()=>{
+        content.innerHTML=
+          '<div style="font-size:5rem;filter:drop-shadow(0 0 20px rgba(255,215,0,.7));animation:teleFloat 2s ease-in-out infinite">'+ph.icon+'</div>'+
+          '<div style="font-size:clamp(1.3rem,4vw,2rem);font-weight:900;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">'+ph.title+'</div>'+
+          '<div style="font-size:.95rem;color:rgba(255,255,255,.75);line-height:1.8;line-height:1.8">'+ph.text+'</div>'+
+          (phase===phases.length-1?'<div style="font-size:.75rem;color:rgba(255,215,0,.5);letter-spacing:2px;margin-top:8px">🌀 '+Math.round(mtLeft)+' MT · Starte jetzt</div>':'');
+        content.style.opacity='1';
+        phase++;
+        const nextDelay=phase<phases.length?(phases[phase]?.delay-ph.delay||2500):2500;
+        setTimeout(showPhase, nextDelay);
+      },300);
+    }
+    showPhase();
+    
+    // Add CSS animation
+    const styleEl=document.createElement('style');
+    styleEl.textContent='@keyframes teleFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}';
+    document.head.appendChild(styleEl);
+  },
+  
+  _teleportMusicCtx: null,
+  _teleportMusicNodes: [],
+  _playTeleportMusic(){
+    try{
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==='suspended')ctx.resume();
+      this._teleportMusicCtx=ctx;
+      // Same cinematic melody as intro
+      const melody=[
+        [196,.6],[220,.6],[247,.4],[262,.8],
+        [294,.6],[330,.6],[349,.4],[392,.8],
+        [440,.6],[392,.4],[349,.4],[330,.8],
+        [294,.6],[262,.4],[247,.4],[220,1.2],
+      ];
+      // Low drone
+      const drone=ctx.createOscillator();const dg=ctx.createGain();
+      drone.type='sawtooth';drone.frequency.setValueAtTime(55,ctx.currentTime);
+      dg.gain.setValueAtTime(0,ctx.currentTime);dg.gain.linearRampToValueAtTime(0.04,ctx.currentTime+2);
+      drone.connect(dg);dg.connect(ctx.destination);drone.start();
+      // Melody
+      let t=ctx.currentTime+.5;
+      melody.forEach(([f,d])=>{
+        const o=ctx.createOscillator();const g=ctx.createGain();
+        o.type='triangle';o.frequency.setValueAtTime(f,t);
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.04);
+        g.gain.exponentialRampToValueAtTime(0.001,t+d*.9);
+        o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+d);
+        // Bass octave
+        const o2=ctx.createOscillator();const g2=ctx.createGain();
+        o2.type='sine';o2.frequency.setValueAtTime(f/2,t);
+        g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.07,t+.04);
+        g2.gain.exponentialRampToValueAtTime(0.001,t+d*.9);
+        o2.connect(g2);g2.connect(ctx.destination);o2.start(t);o2.stop(t+d);
+        t+=d;
+      });
+    }catch(e){}
   },
 
 

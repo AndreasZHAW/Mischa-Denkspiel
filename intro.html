@@ -120,6 +120,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 
 <!-- Skip button -->
 <button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
+<div id="music-hint" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;color:rgba(255,255,255,.35);font-size:.7rem;letter-spacing:1px;pointer-events:none;animation:pulse 2s infinite">🔊 Tippe für Musik</div>
+<script>document.addEventListener('click',function(){const h=document.getElementById('music-hint');if(h)h.remove();},{once:true});</script>
 
 <!-- Progress dots -->
 <div id="progress"></div>
@@ -416,16 +418,25 @@ function stopMusic(){
   _nodes=[];
 }
 
-// Auto-start music on first interaction
+// Music starts on first user interaction (required by browser policy)
 let musicStarted=false;
 function startMusicOnce(){
-  if(musicStarted)return;musicStarted=true;
-  playIntroMusic();
+  if(musicStarted)return;
+  musicStarted=true;
+  // Create fresh AudioContext during user gesture
+  try{
+    _ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(_ctx.state==='suspended')_ctx.resume().then(()=>playIntroMusic());
+    else playIntroMusic();
+  }catch(e){}
 }
+// Attach to next button directly for reliable mobile gesture
+document.querySelectorAll('#next-btn, button').forEach(b=>{
+  b.addEventListener('click',startMusicOnce,{once:true});
+  b.addEventListener('touchend',startMusicOnce,{once:true});
+});
 document.addEventListener('click',startMusicOnce,{once:true});
-document.addEventListener('touchstart',startMusicOnce,{once:true});
-// Also try autoplay
-setTimeout(()=>{if(!musicStarted){musicStarted=true;playIntroMusic();}},500);
+document.addEventListener('touchend',startMusicOnce,{once:true});
 
 // Set deploy version
 document.getElementById('ver-badge').textContent='v2026.05.05-1140';

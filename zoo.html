@@ -127,6 +127,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes rb{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
 
+/* Smart HUD compact mode */
+#hleft.compact .hb { min-width:36px !important; padding:3px !important; }
+#hleft.compact .hbb { width:32px !important; height:32px !important; font-size:.9rem !important; }
+#hleft.compact .hbl { display:none !important; }
+#hleft.compact { gap:3px !important; }
+#hleft { transition:all .3s ease; }
+.hb { transition:all .2s ease; }
+
 @media(max-width:500px){
   .hb{min-width:52px !important;padding:4px 6px !important}
   .hbb{width:38px !important;height:38px !important;font-size:1.1rem !important}
@@ -183,6 +191,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
 <div id="hleft">
+<!-- HUD toggle button -->
+<button id="hud-toggle" onclick="ZG._toggleHUD()" 
+  style="width:36px;height:36px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.6);font-size:.9rem;cursor:pointer;margin-bottom:4px;display:flex;align-items:center;justify-content:center;transition:all .2s"
+  title="HUD minimieren/maximieren">⊟</button>
 <div class="hb" onclick="ZP.open('index')"><div class="hbb" style="background:rgba(52,152,219,.8)">📖</div><div class="hbl">Index</div></div>
 
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
@@ -1409,6 +1421,36 @@ const ZG={
     const z=ZS.zoo;const a=z.enc.filter(e=>e);if(!a.length)return;
     z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>s+earn(enc,z,this.ev),0);z.mt+=tot;z.te=(z.te||0)+tot;if(Math.random()<0.3)ZSound.coin();
     const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);
+  },
+
+  _hudCompact: false,
+  _hudAutoCompact: false,
+  _lastMoveTime: 0,
+  
+  _toggleHUD(){
+    this._hudCompact = !this._hudCompact;
+    const hl=document.getElementById('hleft');
+    const btn=document.getElementById('hud-toggle');
+    if(hl){hl.classList.toggle('compact', this._hudCompact);}
+    if(btn){btn.textContent=this._hudCompact?'⊞':'⊟';btn.title=this._hudCompact?'HUD maximieren':'HUD minimieren';}
+  },
+  
+  // Auto-compact while moving (called from _move)
+  _smartHUD(isMoving){
+    const now=Date.now();
+    if(isMoving) this._lastMoveTime=now;
+    const recentlyMoved=(now-this._lastMoveTime)<2000;
+    const shouldCompact=recentlyMoved&&!this._hudCompact;
+    const shouldExpand=!recentlyMoved&&this._hudCompact&&this._hudAutoCompact;
+    if(shouldCompact){
+      this._hudAutoCompact=true;
+      const hl=document.getElementById('hleft');
+      if(hl)hl.classList.add('compact');
+    } else if(shouldExpand){
+      this._hudAutoCompact=false;
+      const hl=document.getElementById('hleft');
+      if(hl)hl.classList.remove('compact');
+    }
   },
 
   _updHUD(){
