@@ -343,61 +343,90 @@ function _audio(){
 // Cinematic theme - builds up over time
 function playIntroMusic(){
   const ctx=_audio();if(!ctx)return;
-  // Low drone
-  const drone=ctx.createOscillator();
-  const droneG=ctx.createGain();
-  drone.type='sawtooth';drone.frequency.setValueAtTime(55,ctx.currentTime);
-  droneG.gain.setValueAtTime(0,ctx.currentTime);
-  droneG.gain.linearRampToValueAtTime(0.04,ctx.currentTime+3);
-  drone.connect(droneG);droneG.connect(ctx.destination);
-  drone.start();_nodes.push(drone,droneG);
-
-  // Main melody (epic cinematic)
-  const melody=[
-    [196,.6],[220,.6],[247,.4],[262,.8],
-    [294,.6],[330,.6],[349,.4],[392,.8],
-    [440,.6],[392,.4],[349,.4],[330,.8],
-    [294,.6],[262,.4],[247,.4],[220,1.2],
-    [196,.8],[247,.4],[220,.8],[196,1.6],
+  
+  // ── Hans Zimmer × Radiohead ──
+  // Slow pad chords + driving 8th-note bass + melodic arp
+  const BPM=76, BEAT=60/BPM, B=BEAT;
+  let t=ctx.currentTime+0.2;
+  
+  function note(freq,start,dur,vol,type){
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(0,start);
+    g.gain.linearRampToValueAtTime(vol,start+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,start+dur*0.92);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(start); o.stop(start+dur);
+    _nodes.push(o,g);
+  }
+  
+  // ── Deep pad: Cm - Ab - Eb - Bb (4 bars each, slow) ──
+  const chords=[
+    [65.4,77.8,98.0],   // Cm: C3 Eb3 G3
+    [51.9,65.4,82.4],   // Ab: Ab2 C3 Eb3
+    [61.7,77.8,97.9],   // Eb: Eb3 G3 B3
+    [58.3,73.4,98.0],   // Bb: Bb2 D3 G3
   ];
-  let t=ctx.currentTime+1.5;
-  function playNote(freq,dur,vol){
-    const o=ctx.createOscillator();const g=ctx.createGain();
-    const rev=ctx.createGain(); // reverb sim
-    o.type='triangle';o.frequency.setValueAtTime(freq,t);
-    g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(vol||0.18,t+.05);
-    g.gain.exponentialRampToValueAtTime(0.001,t+dur*.9);
-    o.connect(g);g.connect(ctx.destination);
-    o.start(t);o.stop(t+dur);
-    // Octave below for depth
-    const o2=ctx.createOscillator();const g2=ctx.createGain();
-    o2.type='sine';o2.frequency.setValueAtTime(freq/2,t);
-    g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime((vol||0.18)*.3,t+.05);
-    g2.gain.exponentialRampToValueAtTime(0.001,t+dur*.9);
-    o2.connect(g2);g2.connect(ctx.destination);
-    o2.start(t);o2.stop(t+dur);
-    _nodes.push(o,g,o2,g2);
-    t+=dur;
-  }
-  // Bass rhythm
-  let tb=ctx.currentTime+1.5;
-  function playBass(freq,dur){
-    const o=ctx.createOscillator();const g=ctx.createGain();
-    o.type='sawtooth';o.frequency.setValueAtTime(freq,tb);
-    g.gain.setValueAtTime(0,tb);g.gain.linearRampToValueAtTime(.06,tb+.02);
-    g.gain.exponentialRampToValueAtTime(0.001,tb+dur*.7);
-    o.connect(g);g.connect(ctx.destination);o.start(tb);o.stop(tb+dur);
-    _nodes.push(o,g);tb+=dur;
-  }
-  // Play melody twice
+  let ct=t;
   for(let rep=0;rep<3;rep++){
-    melody.forEach(([f,d])=>{playNote(f,d,rep===2?.22:.15);});
+    chords.forEach(chord=>{
+      chord.forEach(f=>note(f,ct,B*8,0.055,'triangle'));
+      ct+=B*8;
+    });
   }
-  // Bass line
-  const bassLine=[[55,1.2],[55,1.2],[65,1.2],[55,1.2],[49,1.2],[55,1.2],[58,1.2],[55,1.2]];
-  for(let rep=0;rep<6;rep++) bassLine.forEach(([f,d])=>playBass(f,d));
+  
+  // ── Driving 8th bass (Radiohead feel) ──
+  const bassLine=[65.4,65.4,65.4,65.4, 51.9,51.9,51.9,51.9,
+                  61.7,61.7,61.7,61.7, 58.3,58.3,58.3,58.3];
+  let bt=t+0.5;
+  for(let rep=0;rep<6;rep++){
+    bassLine.forEach((f,i)=>{
+      const accent=i%4===0;
+      note(f/2, bt, B*0.85, accent?0.1:0.07, 'sawtooth');
+      bt+=B;
+    });
+  }
+  
+  // ── Melodic arp (Zimmer-like, builds up) ──
+  const arp1=[130.8,155.6,196.0,246.9, 103.8,130.8,164.8,196.0];
+  const arp2=[155.6,196.0,246.9,311.1, 123.5,155.6,196.0,246.9];
+  let at=t+4;
+  for(let rep=0;rep<4;rep++){
+    const arp=rep<2?arp1:arp2;
+    arp.forEach((f,i)=>{
+      const v=rep<2?0.1:0.14;
+      note(f, at, B*0.7, v, 'triangle');
+      at+=B*0.5;
+    });
+  }
+  
+  // ── High shimmer (strings feel) ──
+  const shimmer=[523,587,659,784,880,784,659,587];
+  let st=t+8;
+  for(let rep=0;rep<3;rep++){
+    shimmer.forEach(f=>{
+      note(f, st, B*1.5, 0.04, 'sine');
+      st+=B*0.75;
+    });
+  }
+  
+  // ── Subtle drum-like pulse (Radiohead) ──
+  function kick(time,vol){
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(80,time);
+    o.frequency.exponentialRampToValueAtTime(40,time+0.08);
+    g.gain.setValueAtTime(vol,time);
+    g.gain.exponentialRampToValueAtTime(0.001,time+0.15);
+    o.connect(g);g.connect(ctx.destination);o.start(time);o.stop(time+0.2);
+    _nodes.push(o,g);
+  }
+  let kt=t+2;
+  for(let rep=0;rep<24;rep++){
+    kick(kt,rep%4===0?0.12:0.07);
+    kt+=B*(rep%4===0?2:1);
+  }
 }
+
 
 function playFanfare(){
   const ctx=_audio();if(!ctx)return;
