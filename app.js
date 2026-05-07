@@ -718,19 +718,14 @@ const App = {
       const runsCount = runs.length;
       const lastRun = runs[runs.length-1];
       const lastRunGames = lastRun ? Object.keys(lastRun.games||{}).length : 0;
-      calStatus = `<div style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.82rem">
-        <div style="font-weight:900;font-size:.95rem;margin-bottom:4px">🔬 KALIBRIERUNGS-MODUS</div>
-        <div>Deine Spiele kalibrieren die MT-Belohnungen für alle anderen Spieler.</div>
-        <div style="margin-top:6px;display:flex;gap:12px;flex-wrap:wrap">
-          <span>📊 Kalibriert: <b>${calCount}/20</b> Spiele</span>
-          <span>🔄 Durchgänge: <b>${runsCount}</b></span>
-          ${lastRun ? '<span>📅 Letzter Run: <b>'+lastRunGames+'/20</b></span>' : ''}
-        </div>
-        <div style="margin-top:4px;font-size:.72rem;opacity:.7">
-          ${runsCount===0?'Noch kein vollständiger Durchgang — alle Spiele einmal spielen!':
-            runsCount<3?'Noch '+(3-runsCount)+' weitere Durchgang/Durchgänge für maximale Genauigkeit':'Kalibrierung vollständig (3 Durchgänge)'}
-        </div>
-      </div>`;
+      const statusMsg = runsCount===0 ? 'Noch kein vollständiger Durchgang — alle Spiele einmal spielen!' :
+            runsCount<3 ? 'Noch '+(3-runsCount)+' weitere Durchgänge für maximale Genauigkeit' : 'Kalibrierung vollständig (3 Durchgänge)';
+      calStatus = '<div style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.82rem">'
+        +'<div style="font-weight:900;font-size:.95rem;margin-bottom:4px">&#128302; KALIBRIERUNGS-MODUS</div>'
+        +'<div>Deine Spiele kalibrieren die MT-Belohnungen für alle anderen Spieler.</div>'
+        +'<div style="margin-top:6px">&#128202; Kalibriert: <b>'+calCount+'/20</b> &nbsp; &#128260; Durchgänge: <b>'+runsCount+'</b>'+(lastRun?'&nbsp; &#128197; Letzter Run: <b>'+lastRunGames+'/20</b>':'')+'</div>'
+        +'<div style="margin-top:4px;font-size:.72rem;opacity:.7">'+statusMsg+'</div>'
+        +'</div>';
     }
 
     this._html(`
@@ -765,7 +760,7 @@ const App = {
 
           <div style="font-size:0.8rem;color:var(--text-mid);margin-bottom:8px">Tippe auf die nächste Aufgabe:</div>
 
-          ${_isRefW ? `<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:.82rem;color:#fff"><b style="color:#E74C3C">🔬 Kalibrierung:</b> ${calCount}/20 Spiele · ${runsCount} Durchgang/Durchgänge${runsCount>=3?" · ✅ Vollständig":runsCount>0?" · "+Math.round(calCount/20*100)+"%":""}</div>` : ""}
+          ${_isRefW ? '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:.82rem;color:#fff"><b style="color:#E74C3C">&#128302; Kalibrierung:</b> '+calCount+'/20 Spiele &middot; '+runsCount+' Durchgang'+(runsCount>=3?' &middot; ✅ Vollständig':runsCount>0?' &middot; '+Math.round(calCount/20*100)+'%':'')+'</div>' : ''}
       <div class="task-grid">
             ${world.tasks.map((task,i) => {
               const tdone = ws.tasks[i]&&ws.tasks[i].done;

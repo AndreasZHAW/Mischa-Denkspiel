@@ -24,11 +24,14 @@
 </head>
 <body>
 <script>
-// Show intro on first visit (once per session)
+// Show intro on every fresh open UNLESS returning from within the game
 (function(){
-  // Always show intro on fresh page load (first visit per session)
-  if(!sessionStorage.getItem('intro_seen')){
-    sessionStorage.setItem('intro_seen','1');
+  const fromGame = sessionStorage.getItem('from_game');
+  if(fromGame){
+    sessionStorage.removeItem('from_game');
+    sessionStorage.setItem('intro_seen','1'); // mark as seen
+  } else {
+    // Fresh open → always go to intro
     window.location.href='intro.html';
   }
 })();

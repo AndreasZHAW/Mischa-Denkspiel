@@ -107,6 +107,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 </style>
 </head>
 <body>
+<audio id="bg-music" src="mischa_intro.mp3" loop style="display:none"></audio>
 
 <!-- Stars -->
 <canvas id="stars"></canvas>
@@ -471,6 +472,10 @@ function playFanfare(){
 }
 
 function stopMusic(){
+  // Stop HTML audio
+  const audio = document.getElementById('bg-music');
+  if(audio){audio.pause();audio.currentTime=0;}
+  // Stop Web Audio nodes
   _nodes.forEach(n=>{try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}});
   _nodes=[];
 }
@@ -480,7 +485,21 @@ let musicStarted=false;
 function startMusicOnce(){
   if(musicStarted)return;
   musicStarted=true;
-  // Create fresh AudioContext during user gesture
+  // PRIMARY: HTML Audio (MP3)
+  const audio = document.getElementById('bg-music');
+  if(audio){
+    audio.volume = 0.7;
+    audio.play().catch(()=>{
+      // Fallback: Web Audio API synthesis
+      try{
+        _ctx=new(window.AudioContext||window.webkitAudioContext)();
+        if(_ctx.state==='suspended')_ctx.resume().then(()=>playIntroMusic());
+        else playIntroMusic();
+      }catch(e){}
+    });
+    return;
+  }
+  // Fallback if no audio element
   try{
     _ctx=new(window.AudioContext||window.webkitAudioContext)();
     if(_ctx.state==='suspended')_ctx.resume().then(()=>playIntroMusic());
