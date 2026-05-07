@@ -73,7 +73,12 @@ async function runDiag(){
     if(p){
       L('✅ Player geladen in '+elapsed+'ms: '+p.name,'ok');
       L('  totalScore: '+p.totalScore);
-      L('  worlds: '+JSON.stringify(Object.keys(p.worlds||{})));
+      L('  worlds type: '+(Array.isArray(p.worlds)?'ARRAY (BUG!)':'object ✅'));
+      if(Array.isArray(p.worlds)){
+        L('  ⚠️ worlds ist ein Array ['+p.worlds.slice(0,5)+'...] — wird beim nächsten Laden korrigiert','warn');
+      } else {
+        L('  worlds keys: '+JSON.stringify(Object.keys(p.worlds||{})));
+      }
       L('  character: '+p.character);
     } else {
       L('❌ Player ist null nach '+elapsed+'ms — Firebase zu langsam!','err');
