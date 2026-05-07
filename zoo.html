@@ -197,6 +197,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   title="HUD minimieren/maximieren">⊟</button>
 <div class="hb" onclick="ZP.open('index')"><div class="hbb" style="background:rgba(52,152,219,.8)">📖</div><div class="hbl">Index</div></div>
 
+<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
 <div class="hbl">Trading</div></div>
@@ -599,7 +600,7 @@ const ZG={
       ZP.toast('❌ Three.js CDN nicht geladen! Bitte Internet-Verbindung prüfen.',5000);
       return;
     }
-    _log('✅ THREE.js r'+THREE.REVISION+' geladen');
+
     const canvas=G('zc');
     // Get actual viewport dimensions
     // iPad fix: use screen dimensions as fallback
@@ -811,7 +812,7 @@ const ZG={
             if(d.type==='slap'&&d.target===ZS.player&&d.at>cutoff){
               // I got slapped! Full cinematic experience
               const slapDur=d.dur||2000;
-              ZG._slapStunEnd=Date.now()+slapDur; SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
+              ZG._slapStunEnd=Date.now()+slapDur; if(window.ZSteal)ZSteal.loseOnSlap(); SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
               ZG._stunType='slap';
               ZSound.slap&&ZSound.slap();
               
@@ -983,6 +984,7 @@ const ZG={
       const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
     });
     this._station();
+    this._buildCraftMachine();
     this._encs();
     this._trees();
     this._hiddenTrapdoor();
@@ -1179,12 +1181,116 @@ const ZG={
     for(let i=0;i<14;i++){const g=new THREE.Group();for(let j=0;j<5;j++){const s=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*3,7,5),m);s.position.set(j*3.5-7+Math.random()*3,Math.random()*2,Math.random()*3);g.add(s);}g.position.set((Math.random()-.5)*180,36+Math.random()*14,(Math.random()-.5)*180);g.userData.spd=.013+Math.random()*.02;this.scene.add(g);}
   },
 
+  _buildCraftMachine(){
+    // Remove old if exists
+    if(this._craftMesh){this.scene.remove(this._craftMesh);this._craftMesh=null;}
+    const g=new THREE.Group();
+    // Position: near zone A (x:0, z:55), offset to side
+    const cx=16, cz=55;
+    CraftMachine._pos={x:cx,z:cz};
+    g.position.set(cx,0,cz);
+    
+    // Base platform
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(3,3.2,.4,8),new THREE.MeshBasicMaterial({color:0x2c3e50}));
+    base.position.y=.2;g.add(base);
+    // Main body (hexagonal column)
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2,3.5,6),new THREE.MeshBasicMaterial({color:0x8e44ad}));
+    body.position.y=2.1;g.add(body);
+    // Glowing core (inner sphere)
+    const core=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:.8}));
+    core.position.y=2.2;g.add(core);core.userData.coreAnim=true;
+    // Top pyramid
+    const top=new THREE.Mesh(new THREE.ConeGeometry(1.5,1.5,6),new THREE.MeshBasicMaterial({color:0x9b59b6}));
+    top.position.y=4.6;g.add(top);
+    // Floating rings
+    for(let i=0;i<3;i++){
+      const ring=new THREE.Mesh(new THREE.TorusGeometry(1.4+i*.3,.08,6,16),new THREE.MeshBasicMaterial({color:[0xFFD700,0x9b59b6,0x00CFFF][i],transparent:true,opacity:.7}));
+      ring.position.y=1.8+i*.5;ring.userData.ringAnim=i;g.add(ring);
+    }
+    // Emoji label
+    const lbl=this._txt('⚗️ Craft',1,'#FFD700');lbl.position.set(0,5.8,0);lbl.scale.set(6,1.5,1);g.add(lbl);
+    // Collect zone ring on ground
+    const zone=new THREE.Mesh(new THREE.TorusGeometry(4.5,.15,5,24),new THREE.MeshBasicMaterial({color:0x9b59b6,transparent:true,opacity:.5}));
+    zone.rotation.x=Math.PI/2;zone.position.y=.05;g.add(zone);
+    
+    this._craftMesh=g;this.scene.add(g);
+    
+    // Animate craft machine in loop
+    const origLoop=this._loop.bind(this);
+    this._craftAnimPhase=0;
+  },
+
   _anSp(animal,shiny){
+    const g=new THREE.Group();
+    // Rarity-based body colors
+    const rarityColors={normal:0x95a5a6,rare:0x3498DB,epic:0x9B59B6,legendary:0xF39C12,god:0xE74C3C,mythic:0x00FF88,ultralegendary:0xFFD700,secret:0xFF1493};
+    const bodyCol=rarityColors[animal.r]||0x95a5a6;
+    // Shiny glow color
+    const shinyCol=shiny?({gold:0xFFD700,diamond:0x00CFFF,rainbow:0xFF69B4,void:0x9B59B6}[shiny.id]||bodyCol):bodyCol;
+    const col=shiny?shinyCol:bodyCol;
+    
+    // 3D body shape based on animal size (rarity = bigger)
+    const sizeMap={normal:.55,rare:.7,epic:.85,legendary:1.0,god:1.15,mythic:1.3,ultralegendary:1.5,secret:1.4};
+    const s=sizeMap[animal.r]||.6;
+    
+    // Main body (sphere for most animals)
+    const body=new THREE.Mesh(
+      new THREE.SphereGeometry(s*.5,10,8),
+      new THREE.MeshBasicMaterial({color:col})
+    );
+    body.position.y=s*.5;g.add(body);
+    
+    // Head (smaller sphere)
+    const head=new THREE.Mesh(
+      new THREE.SphereGeometry(s*.35,8,6),
+      new THREE.MeshBasicMaterial({color:col})
+    );
+    head.position.set(s*.25,s*.95,s*.3);g.add(head);
+    
+    // Legs (4 cylinders)
+    [[-s*.25,-s*.25],[s*.25,-s*.25],[-s*.25,s*.25],[s*.25,s*.25]].forEach(([lx,lz])=>{
+      const leg=new THREE.Mesh(
+        new THREE.CylinderGeometry(.08*s,.08*s,s*.4,5),
+        new THREE.MeshBasicMaterial({color:col})
+      );
+      leg.position.set(lx,s*.2,lz);g.add(leg);
+    });
+    
+    // Emoji face sprite (big, clear)
     const c=document.createElement('canvas');c.width=128;c.height=128;
     const ctx=c.getContext('2d');
-    if(shiny){const bg={gold:'#FFD70040',diamond:'#00CFFF40',rainbow:null,void:'#9B59B640'}[shiny.id];if(bg){ctx.fillStyle=bg;ctx.fillRect(0,0,128,128);}if(shiny.id==='rainbow'){const gr=ctx.createLinearGradient(0,0,128,128);['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff'].forEach((c,i)=>gr.addColorStop(i/5,c+'60'));ctx.fillStyle=gr;ctx.fillRect(0,0,128,128);}}
-    ctx.font='72px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(animal.e,64,68);
-    const t=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));sp.scale.set(2.5,2.5,1);return sp;
+    // Shiny background
+    if(shiny){
+      if(shiny.id==='rainbow'){
+        const gr=ctx.createLinearGradient(0,0,128,128);
+        ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff'].forEach((cl,i)=>gr.addColorStop(i/5,cl+'90'));
+        ctx.fillStyle=gr;ctx.fillRect(0,0,128,128);
+      } else {
+        ctx.fillStyle={gold:'#FFD70060',diamond:'#00CFFF60',void:'#9B59B660'}[shiny.id]||'transparent';
+        ctx.fillRect(0,0,128,128);
+      }
+    }
+    ctx.font='64px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(animal.e,64,64);
+    const t=new THREE.CanvasTexture(c);
+    const face=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));
+    face.position.set(0,s*1.5,0);
+    face.scale.set(1.8*s,1.8*s,1);g.add(face);
+    
+    // Shiny aura ring for special animals
+    if(shiny||['legendary','god','mythic','ultralegendary','secret'].includes(animal.r)){
+      const ring=new THREE.Mesh(
+        new THREE.TorusGeometry(s*.7,.08,6,16),
+        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.6})
+      );
+      ring.rotation.x=Math.PI/2;ring.position.y=.1;g.add(ring);
+    }
+    
+    // Bobbing animation data
+    g.userData.bobPhase=Math.random()*Math.PI*2;
+    g.userData.bobSpeed=0.8+Math.random()*.4;
+    
+    return g;
   },
 
   _txt(text,sz,col){
@@ -1307,7 +1413,7 @@ const ZG={
       this._stunType=null;
     }
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
-    const sp=(this._sprintActive?12:7)*steal_mod;
+    const sp=((this._sprintActive?12:7)*steal_mod)*steal_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -1415,6 +1521,34 @@ const ZG={
     if(this.visitT>=ZS.visitMs()){this.visitT=0;this._visitor();}
     if(this.slapCD>0)this.slapCD-=100;
     this._updEvTimer(); this._updHUD();
+    
+    // Detect stealable enclosures nearby
+    if(window.ZSteal){
+      let foundSteal=null;
+      Object.values(this.otherPl||{}).forEach(op=>{
+        if(!op||!op.enc)return;
+        if(window.ZooLock&&ZooLock.isLocked&&ZooLock.isLocked(op.name))return;
+        const eps=this.ENCPOS?this.ENCPOS():[]; 
+        const zIdx=op.zoneIdx||0;
+        op.enc.forEach((enc,si)=>{
+          if(!enc||!enc.animal)return;
+          const ep=eps[zIdx*10+si]||eps[si];
+          if(!ep)return;
+          const dx=this.pl.x-ep.x,dz=this.pl.z-ep.z;
+          if(dx*dx+dz*dz<9)foundSteal={player:op.name,slot:si,animal:enc.animal};
+        });
+      });
+      ZSteal._nearStealTarget=foundSteal;
+    }
+    
+    // Detect craft machine proximity → auto-open
+    if(window.CraftMachine&&CraftMachine._pos){
+      const cm=CraftMachine._pos;
+      const dx=this.pl.x-cm.x,dz=this.pl.z-cm.z;
+      if(dx*dx+dz*dz<25&&!document.getElementById('craft-panel')){
+        CraftMachine.open();
+      }
+    }
   },
 
   _visitor(){
@@ -1906,6 +2040,7 @@ const ZG={
   startEv(ev,dur){
     this.ev=ev;this.evEnd=Date.now()+dur;
     try{this.renderer.setClearColor(parseInt(ev.col.replace('#',''),16));}catch(e){}
+    try{if(typeof ZSound!=='undefined'&&ZSound._playEventMusic)ZSound._playEventMusic(ev.id);}catch(e){}
     const b=G('evb');b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';setTimeout(()=>b.style.opacity='0',4500);
     if(ev.id==='snow'){for(let i=0;i<18;i++){const e=document.createElement('div');e.className='zsn';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowE.push(e);}}
     if(ev.id==='party'){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbm';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%6]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;G('s-zoo').appendChild(e);this.beamE.push(e);}}
@@ -2478,17 +2613,141 @@ const ZP={
 
   // INDEX
   _rIndex(){
-    const z=ZS.zoo;const enc=z.enc.filter(e=>e);
-    const cnt={gold:0,diamond:0,rainbow:0,void:0};enc.forEach(e=>{if(e.shiny?.id)cnt[e.shiny.id]=(cnt[e.shiny.id]||0)+1;});
+    const z=ZS.zoo;if(!z)return;
+    const enc=z.enc.filter(e=>e&&e.animal);
+    const cnt={gold:0,diamond:0,rainbow:0,void:0};
+    enc.forEach(e=>{if(e.shiny?.id)cnt[e.shiny.id]=(cnt[e.shiny.id]||0)+1;});
     const tot=enc.length||1;
-    const bars=[{id:'gold',l:'🏆 Goldener Zoo',col:'#FFD700'},{id:'diamond',l:'💎 Diamant Zoo',col:'#00CFFF'},{id:'rainbow',l:'🌈 Regenbogen Zoo',col:'#ff69b4'},{id:'void',l:'🌌 Void Zoo',col:'#9B59B6'}].map(s=>{const pct=Math.round((cnt[s.id]/tot)*100);const ul=pct>=70;return`<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:2px"><span style="font-weight:900;color:${s.col}">${s.l}${ul?' ✅':''}</span><span style="color:rgba(255,255,255,.4)">${cnt[s.id]}/${tot} (${pct}%)</span></div><div style="background:rgba(255,255,255,.1);border-radius:50px;height:6px;overflow:hidden"><div style="height:100%;border-radius:50px;background:${s.col};width:${Math.min(100,pct)}%"></div></div>${ul?`<div style="font-size:.62rem;color:${s.col}">Basis aktiv! 🌟</div>`:`<div style="font-size:.6rem;color:rgba(255,255,255,.3)">→ 70% für Basis</div>`}</div>`;}).join('');
-    G('pidx').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:10px;margin-bottom:10px"><div style="font-weight:900;color:#FFD700;font-size:.86rem;margin-bottom:7px">🌟 Zoo-Basis</div>${bars}</div><div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.76rem;margin-bottom:6px">📋 Deine ${enc.length} Tier(e):</div>`+
-    (enc.length?enc.map(e=>{const i=z.enc.indexOf(e);const rd=RAR[e.animal.r];const tm=tMul(e.shiny,e.traits);const ev=earn(e,z,ZG.ev);const ss=e.shiny?{gold:'filter:sepia(1) saturate(4) hue-rotate(5deg)',diamond:'filter:saturate(4) hue-rotate(180deg)',rainbow:'animation:rb 2s linear infinite',void:'filter:invert(0.4) hue-rotate(270deg)'}[e.shiny.id]||'':'';return`<div class="ac"><div style="font-size:1.9rem;${ss}">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.86rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${rd.c}" style="font-size:.7rem">${rd.n} ${tB(e.traits)}</div><div style="font-size:.66rem;color:#00FF88">💰 ${$mt(ev)}/v · ×${tm}</div></div><div style="text-align:right;font-size:.65rem;color:rgba(255,255,255,.35)">G#${i+1}<br>⚡${e.sl||0}</div></div>`;}).join(''):'<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Noch keine Tiere 🐾</div>');
+    const rarityCol={normal:'#95a5a6',rare:'#3498DB',epic:'#9B59B6',legendary:'#F39C12',god:'#E74C3C',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
+    
+    // Progress bar (how many of all ANIMALS owned)
+    const allA=ANIMALS||[];
+    const ownedIds=enc.map(e=>e.animal.id);
+    const ownedCount=new Set(ownedIds).size;
+    const pct=Math.round(ownedCount/allA.length*100);
+    
+    const bars=[
+      {id:'gold',l:'🏆 Goldener Zoo',col:'#FFD700'},
+      {id:'diamond',l:'💎 Diamant Zoo',col:'#00CFFF'},
+      {id:'rainbow',l:'🌈 Regenbogen Zoo',col:'#FF69B4'},
+      {id:'void',l:'🌑 Void Zoo',col:'#888'}
+    ].map(s=>{
+      const n=cnt[s.id]||0, pct=Math.round(n/tot*100);
+      const ul=pct>=70;
+      return`<div style="background:rgba(255,255,255,.05);border-radius:9px;padding:8px 10px;margin-bottom:7px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:.78rem;color:${s.col};font-weight:700">${s.l}</span>
+          <span style="font-size:.72rem;color:rgba(255,255,255,.5)">${n}/${tot} · ${pct}%</span>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:50px;height:7px">
+          <div style="background:${s.col};height:7px;border-radius:50px;width:${pct}%;transition:width .5s"></div>
+        </div>
+        ${ul?`<div style="font-size:.62rem;color:${s.col};margin-top:3px">Basis aktiv! 🌟</div>`:`<div style="font-size:.6rem;color:rgba(255,255,255,.3)">→ 70% für Basis</div>`}
+      </div>`;
+    }).join('');
+    
+    // Animal grid - all animals, greyed out if not owned
+    const grid=allA.map(a=>{
+      const owned=ownedIds.includes(a.id);
+      const col=rarityCol[a.r]||'#888';
+      return`<div style="background:rgba(255,255,255,${owned?.08:.02});border:1px solid ${owned?col:'rgba(255,255,255,.05)'};border-radius:10px;padding:6px;text-align:center;${owned?'':'filter:grayscale(1)opacity(.4)'}">
+        <div style="font-size:1.6rem">${owned?a.e:'❓'}</div>
+        <div style="font-size:.52rem;color:${owned?'rgba(255,255,255,.8)':'rgba(255,255,255,.3)'};margin-top:2px">${owned?a.n:'???'}</div>
+        ${owned?`<div style="font-size:.48rem;color:#00FF88">💰${a.earn}/v</div>`:''}
+      </div>`;
+    }).join('');
+    
+    G('pidx').innerHTML=`
+      <div style="background:rgba(255,215,0,.07);border-radius:10px;padding:8px 10px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-weight:900;color:#FFD700;font-size:.86rem">📖 Tier-Index</span>
+          <span style="font-size:.78rem;color:#FFD700">${ownedCount}/${allA.length} (${pct}%)</span>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:50px;height:6px">
+          <div style="background:linear-gradient(90deg,#FFD700,#F39C12);height:6px;border-radius:50px;width:${pct}%"></div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border-radius:11px;padding:10px;margin-bottom:10px">
+        <div style="font-weight:900;color:#FFD700;font-size:.86rem;margin-bottom:7px">🌟 Zoo-Basis</div>
+        ${bars}
+      </div>
+      <div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.76rem;margin-bottom:6px">📋 Tiere (${enc.length}/${z.enc.length} Gehege):</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:5px;margin-bottom:10px">${grid}</div>
+    `;
   },
 
   // SHOP
   shopTab(t){this._st=t;['z','x','b'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
-  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else this._sB(el);},
+  _sP(el){
+    const z=ZS.zoo;if(!z)return;
+    const pt=z.pt||0; // Premium Taler
+    // Premium items
+    const PREMIUM=[
+      {id:'spin1',icon:'🎡',n:'Glücksrad Spin',d:'1× sofort drehen',pt:1,action:'spin'},
+      {id:'spin5',icon:'🎰',n:'5× Spins',d:'5 Spins auf einmal',pt:4,action:'spin5'},
+      {id:'enc_extra',icon:'🏠',n:'+1 Extra Gehege',d:'Permanent!',pt:8,action:'enc'},
+      {id:'shiny_gold',icon:'🏆',n:'Gold-Shiny für Tier',d:'Nächstes Tier wird gold',pt:5,action:'shiny_gold'},
+      {id:'shiny_rainbow',icon:'🌈',n:'Rainbow-Shiny für Tier',d:'Nächstes Tier regenbogen',pt:12,action:'shiny_rainbow'},
+      {id:'admin_1day',icon:'👑',n:'Admin-Panel (1 Tag)',d:'24h Admin-Zugriff',pt:100,action:'admin'},
+      {id:'mt_mega',icon:'💰',n:'1.000.000 MT',d:'Direkt auf Konto',pt:20,action:'megamt'},
+      {id:'legendary',icon:'🦁',n:'Zufälliger Legendärer',d:'Direkt ins Gehege',pt:15,action:'legendary'},
+      {id:'mythic',icon:'✨',n:'Zufälliger Mythischer',d:'Extrem selten!',pt:50,action:'mythic'},
+    ];
+    const buyPt=(cost,action)=>{
+      if(pt<cost){ZP.toast('❌ Zu wenig Premium Taler!',1500);return;}
+      z.pt=(z.pt||0)-cost;
+      if(action==='spin'){LW.spins=(LW.spins||0)+1;ZP.toast('🎡 1 Spin erhalten!',2000);}
+      else if(action==='spin5'){LW.spins=(LW.spins||0)+5;ZP.toast('🎰 5 Spins!',2000);}
+      else if(action==='enc'){z.xenc=(z.xenc||0)+1;ZP.toast('🏠 +1 Gehege freigeschaltet!',2000);}
+      else if(action==='shiny_gold'){z._nextShiny='gold';ZP.toast('🏆 Nächstes Tier wird Gold-Shiny!',2000);}
+      else if(action==='shiny_rainbow'){z._nextShiny='rainbow';ZP.toast('🌈 Nächstes Tier wird Rainbow!',2000);}
+      else if(action==='admin'){ZAdmin._hasAccess=true;localStorage.setItem('zoo_secret_admin',ZS.player);const b=document.getElementById('hb-admin-btn');if(b)b.style.display='';ZP.toast('👑 Admin-Zugriff für 24h!',3000);}
+      else if(action==='megamt'){z.mt=(z.mt||0)+1000000;ZP.toast('💰 +1.000.000 MT!',3000);}
+      else if(action==='legendary'||action==='mythic'){
+        const tier=action==='mythic'?'mythic':'legendary';
+        const pool=(ANIMALS||[]).filter(a=>a.r===tier);
+        const gift=pool[Math.floor(Math.random()*pool.length)];
+        if(gift){const sl=z.enc.findIndex(e=>!e||!e.animal);if(sl>=0){z.enc[sl]={animal:{...gift},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs&&ZG._encs();ZP.toast(gift.e+' '+gift.n+' erhalten!',3000);}}
+      }
+      ZS.save&&ZS.save();ZG._updHUD&&ZG._updHUD();this._sP(el);
+    };
+    
+    // Buy Premium Taler section
+    const ptBuyRates=[[1,500000],[5,2000000],[15,5000000],[50,12000000]];
+    const buyRateHtml=ptBuyRates.map(([pts,mt])=>`
+      <button onclick="ZP._buyPT(${pts},${mt})" style="flex:1;min-width:60px;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);color:#FFD700;padding:6px 4px;border-radius:8px;cursor:pointer;font-size:.72rem;text-align:center">
+        💎${pts}<br><span style="font-size:.62rem;opacity:.6">${Math.round(mt/1000)}K MT</span>
+      </button>`).join('');
+    
+    el.innerHTML=`
+      <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:10px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-weight:900;color:#FFD700;font-size:.9rem">💎 Deine Premium Taler: <b id="pt-count">${pt}</b></span>
+        </div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:6px">Kaufe Premium Taler mit MT:</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${buyRateHtml}</div>
+      </div>
+      <div style="font-weight:900;color:rgba(255,255,255,.6);font-size:.76rem;margin-bottom:8px">💎 Premium-Shop:</div>
+      ${PREMIUM.map(item=>{
+        const canBuy=pt>=item.pt;
+        return`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;margin-bottom:7px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.6rem">${item.icon}</span>
+          <div style="flex:1"><div style="font-weight:700;color:#FFD700">${item.n}</div><div style="font-size:.7rem;color:rgba(255,255,255,.5)">${item.d}</div></div>
+          <button onclick="(${buyPt.toString()})(${item.pt},'${item.action}')" ${canBuy?'':'disabled'} style="background:${canBuy?'linear-gradient(135deg,#FFD700,#F39C12)':'rgba(255,255,255,.1)'};color:${canBuy?'#000':'rgba(255,255,255,.3)'};border:none;padding:6px 12px;border-radius:8px;cursor:${canBuy?'pointer':'default'};font-size:.75rem;font-weight:700">💎${item.pt}</button>
+        </div>`;
+      }).join('')}`;
+  },
+  
+  _buyPT(pts, mtCost){
+    const z=ZS.zoo;if(!z)return;
+    if(z.mt<mtCost){ZP.toast('❌ Zu wenig MT! Brauchst '+mtCost.toLocaleString()+' MT',2000);return;}
+    z.mt-=mtCost;z.pt=(z.pt||0)+pts;
+    ZP.toast('💎 +'+pts+' Premium Taler!',2000);
+    ZS.save&&ZS.save();ZG._updHUD&&ZG._updHUD();
+    this._sP(document.getElementById('scont'));
+  },
+
+  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
@@ -2800,7 +3059,8 @@ const ZSound = {
   },
   stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; },
   _playEventMusic(id){
-    const c=this._ctx();if(!c)return;
+    this._init();
+    const c=this.ctx;if(!c)return;
     const m={snow:[261,293,329,261],party:[392,523,659,784],golden:[523,784,1047,784],
       night:[220,196,165,196],rush:[440,523,659,784],mega:[523,659,784,1047,1319],
       halloween:[220,185,165,185],spring:[523,659,784,880]};
