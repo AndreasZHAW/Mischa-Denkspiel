@@ -716,7 +716,7 @@ const App = {
         ws = { tasks: Array(20).fill(null), jokerUsed: false, completed: false };
         player.worlds = {}; // convert to object format
       } else {
-        ws = (player.worlds?.[worldId] ?? player.worlds?.[String(worldId)] ?? {}) || player.worlds[String(worldId)];
+        ws = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {}) || player.worlds[String(worldId)];
       }
     }
     if (!ws) ws = { tasks: Array(20).fill(null), jokerUsed: false, completed: false };
@@ -812,7 +812,7 @@ const App = {
 
   async showJokerMenu(worldId) {
     const player = await State.refreshCurrentPlayer();
-    const ws = (player.worlds?.[worldId] ?? player.worlds?.[String(worldId)] ?? {});
+    const ws = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {});
     if (!ws) return;
     const activeTask = ws.tasks.findIndex(t=>!t||!t.done);
     if (activeTask<0) return;
@@ -853,7 +853,7 @@ const App = {
     const world  = WORLDS.find(w=>w.id===worldId);
     const task   = world.tasks[taskIndex];
     const ageGroup = State.getAgeGroup(player);
-    const ws = (player.worlds?.[worldId] ?? player.worlds?.[String(worldId)] ?? {}) || {};
+    const ws = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {}) || {};
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
@@ -938,7 +938,7 @@ const App = {
   async _showTaskComplete(worldId, taskIndex, result, wasJoker=false) {
     const player = await State.refreshCurrentPlayer();
     const world  = WORLDS.find(w=>w.id===worldId);
-    const allDone = (player.worlds?.[worldId] ?? player.worlds?.[String(worldId)] ?? {})?.tasks.every(t=>t&&t.done);
+    const allDone = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {})?.tasks.every(t=>t&&t.done);
     const finalScore = wasJoker ? 0 : State.calcFinalScore(result);
     // Calculate MT earned for display
     const mtEarned = wasJoker ? 0 : (result.passed !== false ? 

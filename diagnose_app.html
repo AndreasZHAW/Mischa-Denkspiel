@@ -172,6 +172,15 @@ async function runDiag(){
 
   // 6. Load current player
   L('🎮 Player laden:','info');
+  // Try to restore from backup if not logged in
+  if(!curUser){
+    const backup = localStorage.getItem('mischa_current_backup');
+    if(backup){
+      sessionStorage.setItem('mischa_current', backup);
+      L('🔄 Session aus Backup wiederhergestellt: "'+backup+'"','ok');
+      curUser = backup;
+    }
+  }
   if(!curUser){ L('⚠️ Nicht eingeloggt — Player-Check übersprungen','warn'); }
   else {
     try{

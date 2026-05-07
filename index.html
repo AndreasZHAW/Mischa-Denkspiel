@@ -25,6 +25,11 @@
 <body>
 <script>
 (function(){
+  // FIRST: Restore session from localStorage backup if sessionStorage lost it
+  if (!sessionStorage.getItem('mischa_current')) {
+    const backup = localStorage.getItem('mischa_current_backup');
+    if (backup) sessionStorage.setItem('mischa_current', backup);
+  }
   // Check both localStorage AND sessionStorage AND URL param
   const key = 'mischa_intro_ts';
   const urlParam = new URLSearchParams(window.location.search).get('from_intro');
