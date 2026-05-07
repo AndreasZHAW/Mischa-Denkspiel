@@ -105,6 +105,7 @@ const App = {
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
+              <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">👜 Geldbeutel</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>
@@ -734,12 +735,10 @@ const App = {
             ${world.tasks.map((task,i) => {
               const tdone = ws.tasks[i]&&ws.tasks[i].done;
               const tjok  = ws.tasks[i]&&ws.tasks[i].joker;
-              const firstUndone = ws.tasks.findIndex(t=>!t||!t.done);
-              const isActive = i===firstUndone;
-              let cls='locked';
-              if(tdone) cls=tjok?'joker':'done';
-              else if(isActive) cls='active';
-              const score = tdone&&ws.tasks[i]?.score ? ws.tasks[i].score : '';
+              // ALL tasks always playable (can replay, last score counts)
+              let cls = tdone ? (tjok?'joker':'done') : 'active';
+              const score = ws.tasks[i]?.score || '';
+              const playCount = ws.tasks[i]?.plays || (tdone?1:0);
               const mtEarned = tdone&&ws.tasks[i]?.mt ? ws.tasks[i].mt : '';
               return `
                 <button class="task-btn ${cls}"

@@ -343,87 +343,115 @@ function _audio(){
 // Cinematic theme - builds up over time
 function playIntroMusic(){
   const ctx=_audio();if(!ctx)return;
+  const T=ctx.currentTime;
   
-  // ── Hans Zimmer × Radiohead ──
-  // Slow pad chords + driving 8th-note bass + melodic arp
-  const BPM=76, BEAT=60/BPM, B=BEAT;
-  let t=ctx.currentTime+0.2;
+  // ── REVERB (impulse response) ──
+  function mkRev(sec){
+    const c=ctx.createConvolver();
+    const len=Math.floor(ctx.sampleRate*sec);
+    const b=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/len*4);}
+    c.buffer=b;return c;
+  }
+  const rev=mkRev(3.5);
+  const revG=ctx.createGain();revG.gain.setValueAtTime(.4,T);
+  rev.connect(revG);revG.connect(ctx.destination);
+  _nodes.push(rev,revG);
   
-  function note(freq,start,dur,vol,type){
-    const o=ctx.createOscillator(), g=ctx.createGain();
-    o.type=type||'sine'; o.frequency.setValueAtTime(freq,start);
-    g.gain.setValueAtTime(0,start);
-    g.gain.linearRampToValueAtTime(vol,start+0.04);
-    g.gain.exponentialRampToValueAtTime(0.001,start+dur*0.92);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(start); o.stop(start+dur);
+  // ── MASTER COMPRESSOR ──
+  const comp=ctx.createDynamicsCompressor();
+  comp.threshold.value=-16;comp.ratio.value=5;comp.attack.value=.003;comp.release.value=.25;
+  comp.connect(ctx.destination);_nodes.push(comp);
+  
+  // Helper: play one note
+  function N(f,t,d,v,type){
+    if(!f)return;
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(v,t+Math.min(.15,d*.25));
+    g.gain.setValueAtTime(v*.85,t+d*.6);
+    g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(comp);g.connect(rev);
+    o.start(t);o.stop(t+d+.05);
     _nodes.push(o,g);
   }
   
-  // ── Deep pad: Cm - Ab - Eb - Bb (4 bars each, slow) ──
-  const chords=[
-    [65.4,77.8,98.0],   // Cm: C3 Eb3 G3
-    [51.9,65.4,82.4],   // Ab: Ab2 C3 Eb3
-    [61.7,77.8,97.9],   // Eb: Eb3 G3 B3
-    [58.3,73.4,98.0],   // Bb: Bb2 D3 G3
+  // ── RADIOHEAD-STYLE ELECTRONIC BASS ──  
+  // Repeating 2-bar pattern in D minor
+  const BPM=80,B=60/BPM;
+  const bassLine=[
+    [73.4,1],[73.4,.5],[77.8,.5],[73.4,1],[65.4,.5],[69.3,.5],
+    [73.4,1],[73.4,.5],[77.8,.5],[87.3,1],[82.4,1],
   ];
-  let ct=t;
-  for(let rep=0;rep<3;rep++){
-    chords.forEach(chord=>{
-      chord.forEach(f=>note(f,ct,B*8,0.055,'triangle'));
-      ct+=B*8;
-    });
-  }
-  
-  // ── Driving 8th bass (Radiohead feel) ──
-  const bassLine=[65.4,65.4,65.4,65.4, 51.9,51.9,51.9,51.9,
-                  61.7,61.7,61.7,61.7, 58.3,58.3,58.3,58.3];
-  let bt=t+0.5;
   for(let rep=0;rep<6;rep++){
-    bassLine.forEach((f,i)=>{
-      const accent=i%4===0;
-      note(f/2, bt, B*0.85, accent?0.1:0.07, 'sawtooth');
-      bt+=B;
+    let t=T+.5+rep*bassLine.reduce((s,n)=>s+n[1],0)*B;
+    bassLine.forEach(([f,d])=>{
+      N(f,t,d*B*.8,.09,'sawtooth');
+      N(f/2,t,d*B*.6,.06,'sine');
+      t+=d*B;
     });
   }
   
-  // ── Melodic arp (Zimmer-like, builds up) ──
-  const arp1=[130.8,155.6,196.0,246.9, 103.8,130.8,164.8,196.0];
-  const arp2=[155.6,196.0,246.9,311.1, 123.5,155.6,196.0,246.9];
-  let at=t+4;
-  for(let rep=0;rep<4;rep++){
-    const arp=rep<2?arp1:arp2;
+  // ── PAD LAYER (Hans Zimmer sustained chords) ──
+  const chordSeq=[
+    [146.8,220,293.7,392], // Dm
+    [130.8,196,261.6,349], // C
+    [123.5,185,246.9,329], // B♭
+    [138.6,207.7,277.2,369.9], // C#dim
+  ];
+  chordSeq.forEach((chord,ci)=>{
+    const ct=T+.3+ci*8*B;
+    chord.forEach(f=>{
+      N(f,ct,7*B,.055,'sine');
+      N(f,ct+B*.5,6.5*B,.03,'triangle');
+    });
+  });
+  
+  // ── MAIN MELODY (orchestral, 2 passes) ──
+  // D minor pentatonic: D E F A C
+  const mel=[
+    [293.7,.75],[329.6,.5],[349.2,.5],[392,.75],[440,.5],
+    [392,1],[349.2,.75],[329.6,.5],[293.7,1.5],
+    [261.6,.5],[293.7,.75],[329.6,.5],[349.2,.75],[392,1.5],
+    [440,.5],[523.3,.75],[493.9,.5],[440,1],[392,2],
+  ];
+  for(let rep=0;rep<2;rep++){
+    let mt=T+1.5+rep*mel.reduce((s,n)=>s+n[1],0)*B;
+    const vol=rep===0?.16:.20;
+    mel.forEach(([f,d])=>{
+      N(f,mt,d*B*.9,vol,'triangle');
+      if(rep===1)N(f*1.498,mt+B*.05,d*B*.7,vol*.35,'sine'); // fifth harmony
+      mt+=d*B;
+    });
+  }
+  
+  // ── ELECTRONIC ARP (Radiohead texture) ──
+  const arp=[293.7,392,493.9,392,329.6,440,523.3,440];
+  for(let rep=0;rep<8;rep++){
     arp.forEach((f,i)=>{
-      const v=rep<2?0.1:0.14;
-      note(f, at, B*0.7, v, 'triangle');
-      at+=B*0.5;
+      const at=T+3+rep*arp.length*(B*.25)+i*(B*.25);
+      N(f,at,B*.2,.038,'square');
     });
   }
   
-  // ── High shimmer (strings feel) ──
-  const shimmer=[523,587,659,784,880,784,659,587];
-  let st=t+8;
-  for(let rep=0;rep<3;rep++){
-    shimmer.forEach(f=>{
-      note(f, st, B*1.5, 0.04, 'sine');
-      st+=B*0.75;
-    });
-  }
-  
-  // ── Subtle drum-like pulse (Radiohead) ──
-  function kick(time,vol){
-    const o=ctx.createOscillator(),g=ctx.createGain();
-    o.type='sine'; o.frequency.setValueAtTime(80,time);
-    o.frequency.exponentialRampToValueAtTime(40,time+0.08);
-    g.gain.setValueAtTime(vol,time);
-    g.gain.exponentialRampToValueAtTime(0.001,time+0.15);
-    o.connect(g);g.connect(ctx.destination);o.start(time);o.stop(time+0.2);
-    _nodes.push(o,g);
-  }
-  let kt=t+2;
-  for(let rep=0;rep<24;rep++){
-    kick(kt,rep%4===0?0.12:0.07);
-    kt+=B*(rep%4===0?2:1);
+  // ── ELECTRONIC KICK + SNARE ──
+  for(let i=0;i<48;i++){
+    const pt=T+1+i*(B*.5);
+    // Kick on beats 1 & 3
+    if(i%4===0||i%4===2){
+      N(65.4,pt,B*.18,.12,'sine');N(40,pt+.02,B*.12,.07,'sine');
+    }
+    // Hi-hat every 8th note
+    try{
+      const buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.04),ctx.sampleRate);
+      const bd=buf.getChannelData(0);for(let j=0;j<bd.length;j++)bd[j]=(Math.random()*2-1);
+      const src=ctx.createBufferSource();src.buffer=buf;
+      const hf=ctx.createBiquadFilter();hf.type='highpass';hf.frequency.value=9000;
+      const hg=ctx.createGain();hg.gain.setValueAtTime(i%4===0?.06:.025,pt);
+      src.connect(hf);hf.connect(hg);hg.connect(comp);src.start(pt);_nodes.push(src,hg,hf);
+    }catch(e){}
   }
 }
 

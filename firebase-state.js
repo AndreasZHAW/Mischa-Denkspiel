@@ -210,15 +210,27 @@ const State = {
       mtEarned = Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10;
     }
     
+    const prevPlays = player.worlds[worldIndex].tasks[taskIndex]?.plays || 0;
     player.worlds[worldIndex].tasks[taskIndex] = {
       done: true, score: finalScore, mt: mtEarned,
       rawScore: result.rawScore || 0,
       timeMs: result.timeMs || 0,
-      calibrated: calRef !== null, // track if this used calibration
+      calibrated: calRef !== null,
+      plays: prevPlays + 1,
+      lastPlayed: Date.now(),
     };
 
-    // Add MT to total score
-    player.totalScore = (player.totalScore || 0) + mtEarned;
+    // Update total score: subtract old MT for this task, add new
+    const oldMt = (player.worlds[worldIndex].tasks[taskIndex]?.mt) || 0;
+    // Note: we already set the new mt above, so we need to use mtEarned
+    // For re-plays: adjust totalScore by difference
+    if (prevPlays > 0) {
+      // Replace old score with new one
+      player.totalScore = Math.max(0, (player.totalScore || 0) - oldMt + mtEarned);
+    } else {
+      // First play: just add
+      player.totalScore = (player.totalScore || 0) + mtEarned;
+    }
     
     // If Janoschtest: save their raw scores as calibration data
     if (isRef) {
