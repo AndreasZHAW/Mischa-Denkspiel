@@ -462,6 +462,8 @@ const State = {
   setCurrentPlayer(player) {
     this.currentPlayer = player;
     sessionStorage.setItem('mischa_current', player.name.toLowerCase());
+    // Also save to localStorage as backup (survives page refresh)
+    localStorage.setItem('mischa_current_backup', player.name.toLowerCase());
     this._resetActivityTimer();
   },
 
@@ -476,12 +478,21 @@ const State = {
   logout() {
     this.currentPlayer = null;
     sessionStorage.removeItem('mischa_current');
+    localStorage.removeItem('mischa_current_backup');
     clearTimeout(this._activityTimer);
   },
 
   async getCurrentPlayer() {
     if (this.currentPlayer) return this.currentPlayer;
-    const name = sessionStorage.getItem('mischa_current');
+    // Check sessionStorage first, then localStorage backup
+    let name = sessionStorage.getItem('mischa_current');
+    if (!name) {
+      name = localStorage.getItem('mischa_current_backup');
+      if (name) {
+        // Restore session from backup
+        sessionStorage.setItem('mischa_current', name);
+      }
+    }
     if (!name) return null;
     // Timeout: use local cache if Firebase is slow
     try {

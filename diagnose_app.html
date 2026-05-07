@@ -108,7 +108,18 @@ async function runDiag(){
   // 2. sessionStorage
   L('🔐 sessionStorage:','info');
   const curUser = sessionStorage.getItem('mischa_current');
-  L(curUser ? '✅ Eingeloggt als: "'+curUser+'"' : '❌ NICHT EINGELOGGT (mischa_current fehlt)!', curUser?'ok':'err');
+  const backupUser = localStorage.getItem('mischa_current_backup');
+  const effectiveUser = curUser || backupUser;
+  if(curUser){ L('✅ sessionStorage: Eingeloggt als: "'+curUser+'"','ok'); }
+  else if(backupUser){ 
+    L('⚠️ sessionStorage leer, aber localStorage backup: "'+backupUser+'" → wird wiederhergestellt','warn');
+    // Auto-restore
+    sessionStorage.setItem('mischa_current', backupUser);
+    L('  → Session wurde wiederhergestellt!','ok');
+  } else {
+    L('❌ NICHT EINGELOGGT — weder sessionStorage noch localStorage backup!','err');
+    L('  → Geh zu index.html und logge dich ein','warn');
+  }
   for(let i=0;i<sessionStorage.length;i++){
     const k=sessionStorage.key(i);
     let v=sessionStorage.getItem(k);
