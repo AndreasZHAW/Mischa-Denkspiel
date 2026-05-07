@@ -690,7 +690,16 @@ const App = {
   // ---- WORLD VIEW ----
   async showWorld(worldId) {
     this._loading('Welt laden...');
-    const player = await State.refreshCurrentPlayer();
+    // 3s timeout - use cached player if Firebase is slow
+    let player = null;
+    try {
+      player = await Promise.race([
+        State.refreshCurrentPlayer(),
+        new Promise(r => setTimeout(() => r(State.currentPlayer || null), 3000))
+      ]);
+    } catch(e) {
+      player = State.currentPlayer || null;
+    }
     if (!player) { this.showWelcome(); return; }
     const world = WORLDS.find(w=>w.id===worldId);
     const ws = player.worlds?.[worldId] || { tasks:Array(20).fill(null), jokerUsed:false, completed:false };
