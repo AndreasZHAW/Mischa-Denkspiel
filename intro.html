@@ -328,6 +328,8 @@ function skipIntro(){
 // ── ENTER GAME ──
 function enterGame(){
   stopMusic();
+  // Set flag so index.html knows we came from intro (not a fresh open)
+  sessionStorage.setItem('from_game','1');
   document.body.style.opacity='0';
   document.body.style.transition='opacity .6s';
   setTimeout(()=>{ window.location.href='index.html'; },600);
