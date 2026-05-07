@@ -483,7 +483,25 @@ const State = {
     if (this.currentPlayer) return this.currentPlayer;
     const name = sessionStorage.getItem('mischa_current');
     if (!name) return null;
-    this.currentPlayer = await this.getPlayer(name);
+    // Timeout: use local cache if Firebase is slow
+    try {
+      const p = await Promise.race([
+        this.getPlayer(name),
+        new Promise(r => setTimeout(() => r(this._local.get(name)), 3000))
+      ]);
+      this.currentPlayer = p;
+    } catch(e) {
+      this.currentPlayer = this._local.get(name);
+    }
+    // If still null (no local cache, Firebase timed out): create minimal player
+    if (!this.currentPlayer && name) {
+      this.currentPlayer = {
+        name, password: name.toLowerCase(),
+        worlds: {}, totalScore: 0, character: 'stickman',
+        birthYear: 2000, createdAt: Date.now()
+      };
+      this._local.set(name, this.currentPlayer);
+    }
     return this.currentPlayer;
   },
 
