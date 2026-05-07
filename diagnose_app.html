@@ -5,117 +5,275 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Diagnose — Mischa Denkspiel</title>
 <style>
-body{background:#111;color:#0f0;font-family:monospace;padding:16px;font-size:.85rem}
-.ok{color:#0f0}.err{color:#f44}.warn{color:#fa0}.info{color:#4af}
-#log{white-space:pre-wrap;line-height:1.6}
-button{background:#333;color:#fff;border:1px solid #555;padding:6px 14px;cursor:pointer;border-radius:4px;margin:4px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#0f0;font-family:'Courier New',monospace;padding:12px;font-size:.82rem}
+h2{color:#FFD700;margin-bottom:10px;font-size:1.1rem}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+button{background:#222;color:#fff;border:1px solid #555;padding:7px 12px;cursor:pointer;border-radius:4px;font-size:.78rem}
+button:hover{background:#333}
+button.danger{border-color:#f44;color:#f44}
+button.ok{border-color:#0f0;color:#0f0}
+#log{white-space:pre-wrap;line-height:1.7;font-size:.8rem}
+.ok{color:#0f0}.err{color:#f44}.warn{color:#fa0}.info{color:#4af}.dim{color:#666}
+.sep{color:#555;display:block;margin:4px 0}
 </style>
 </head>
 <body>
-<h2 style="color:#FFD700">🔬 Mischa Denkspiel — Diagnose</h2>
-<div style="margin-bottom:10px">
-  <button onclick="runDiag()">🔄 Neu starten</button>
-  <button onclick="clearIntro()">🗑️ Intro-Timer löschen (Intro wieder zeigen)</button>
-  <button onclick="clearSession()">🗑️ Session löschen (ausloggen)</button>
-  <button onclick="testWorld()">▶ Welt 1 testen</button>
+<h2>🔬 Mischa Denkspiel — Erweiterte Diagnose</h2>
+<div class="btn-row">
+  <button onclick="runDiag()">🔄 Komplett-Check</button>
+  <button onclick="testWorld()">▶ Welt 1 simulieren</button>
+  <button onclick="testLogin()">👤 Login testen</button>
+  <button class="danger" onclick="clearAll()">🗑️ ALLES löschen (Reset)</button>
+  <button class="danger" onclick="clearIntro()">🗑️ Intro-Timer</button>
+  <button onclick="showStorage()">💾 Storage anzeigen</button>
+  <button onclick="forceLogin()">🔑 Einloggen erzwingen</button>
 </div>
 <div id="log"></div>
+
 <script src="worlds.js"></script>
 <script src="firebase-state.js"></script>
 <script>
 const log = document.getElementById('log');
-function L(msg, cls=''){log.innerHTML += '<span class="'+cls+'">['+new Date().toLocaleTimeString()+'] '+msg+'</span>\n';}
+let _L = (msg,cls='')=>{ log.innerHTML+='<span class="'+(cls||'')+'">['
+  +new Date().toLocaleTimeString()+'] '+msg+'</span>\n'; log.scrollTop=log.scrollHeight;};
+const L=(m,c)=>_L(m,c);
+const SEP=()=>L('────────────────────────────────','dim');
 
-function clearIntro(){localStorage.removeItem('mischa_intro_ts');L('✅ Intro-Timer gelöscht — Intro erscheint beim nächsten Öffnen','ok');}
-function clearSession(){sessionStorage.clear();L('✅ Session gelöscht','ok');}
+function clearAll(){
+  localStorage.clear(); sessionStorage.clear();
+  L('✅ localStorage + sessionStorage komplett gelöscht','ok');
+  L('→ Lade Seite neu...','info');
+  setTimeout(()=>location.reload(),1000);
+}
+function clearIntro(){
+  localStorage.removeItem('mischa_intro_ts');
+  sessionStorage.removeItem('mischa_intro_ts');
+  L('✅ Intro-Timer gelöscht — Intro erscheint beim nächsten Öffnen','ok');
+}
+function showStorage(){
+  SEP(); L('💾 KOMPLETTES STORAGE:','info');
+  L('--- localStorage ('+localStorage.length+' Einträge):','info');
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    let v=localStorage.getItem(k);
+    if(v&&v.length>200) v=v.substring(0,200)+'...';
+    L('  '+k+' = '+v,'dim');
+  }
+  L('--- sessionStorage ('+sessionStorage.length+' Einträge):','info');
+  for(let i=0;i<sessionStorage.length;i++){
+    const k=sessionStorage.key(i);
+    let v=sessionStorage.getItem(k);
+    if(v&&v.length>200) v=v.substring(0,200)+'...';
+    L('  '+k+' = '+v,'dim');
+  }
+}
+
+async function forceLogin(){
+  const name = prompt('Spielername eingeben:');
+  if(!name) return;
+  sessionStorage.setItem('mischa_current', name.toLowerCase());
+  L('✅ Session gesetzt: mischa_current = '+name.toLowerCase(),'ok');
+  L('→ Gehe zu index.html...','info');
+  setTimeout(()=>location.href='index.html',800);
+}
 
 async function runDiag(){
   log.innerHTML='';
   L('=== DIAGNOSE GESTARTET ===','info');
-  L('Browser: '+navigator.userAgent,'info');
-  
-  // 1. Check localStorage
-  L('\n--- localStorage ---');
+  L('Browser: '+navigator.userAgent,'dim');
+  L('URL: '+location.href,'dim');
+  SEP();
+
+  // 1. localStorage
+  L('📦 localStorage:','info');
   const introTs = localStorage.getItem('mischa_intro_ts');
-  const tsAge = introTs ? Math.round((Date.now()-parseInt(introTs))/1000/60) : null;
-  L(introTs ? '✅ intro_ts: '+tsAge+' Min alt '+(tsAge<10?'(Intro wird übersprungen)':'(Intro würde erscheinen)') : '⚠️ kein intro_ts (Intro würde erscheinen)','info');
-  
-  // 2. Check sessionStorage
-  L('\n--- sessionStorage ---');
+  if(introTs){
+    const age = Math.round((Date.now()-parseInt(introTs))/1000/60);
+    L((age<10?'✅':'⚠️')+' intro_ts: '+age+' Min alt → Intro '+(age<10?'ÜBERSPRUNGEN':'würde erscheinen'), age<10?'ok':'warn');
+  } else {
+    L('⚠️ kein intro_ts → Intro erscheint beim nächsten Öffnen von index.html','warn');
+  }
+  // Show all localStorage keys
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k!=='mischa_intro_ts'){
+      let v=localStorage.getItem(k);
+      if(v&&v.length>100)v=v.substring(0,100)+'...';
+      L('  '+k+': '+v,'dim');
+    }
+  }
+  SEP();
+
+  // 2. sessionStorage
+  L('🔐 sessionStorage:','info');
   const curUser = sessionStorage.getItem('mischa_current');
-  L(curUser ? '✅ Eingeloggt als: '+curUser : '⚠️ Nicht eingeloggt','info');
-  
-  // 3. Check Firebase
-  L('\n--- Firebase ---');
+  L(curUser ? '✅ Eingeloggt als: "'+curUser+'"' : '❌ NICHT EINGELOGGT (mischa_current fehlt)!', curUser?'ok':'err');
+  for(let i=0;i<sessionStorage.length;i++){
+    const k=sessionStorage.key(i);
+    let v=sessionStorage.getItem(k);
+    if(v&&v.length>100)v=v.substring(0,100)+'...';
+    L('  '+k+': '+v,'dim');
+  }
+  SEP();
+
+  // 3. Firebase
+  L('🔥 Firebase:','info');
   try {
     const ok = initFirebase();
-    L(ok ? '✅ Firebase initialisiert' : '❌ Firebase NICHT initialisiert — kein Internet?', ok?'ok':'err');
-  } catch(e) { L('❌ Firebase Error: '+e.message,'err'); }
-  
-  // 4. Check State
-  L('\n--- State ---');
-  L('getJokersRemaining: '+(typeof State.getJokersRemaining),'info');
-  L('getCurrentPlayer: '+(typeof State.getCurrentPlayer),'info');
-  L('refreshCurrentPlayer: '+(typeof State.refreshCurrentPlayer),'info');
-  L('_getAllCalibration: '+(typeof State._getAllCalibration),'info');
-  
-  // 5. Check currentPlayer
-  L('\n--- Player laden ---');
-  if(!curUser){L('⚠️ Nicht eingeloggt — bitte erst anmelden','warn');return;}
-  try {
-    L('Versuche Player zu laden (max 4s)...');
-    const start = Date.now();
-    const p = await Promise.race([
-      State.getCurrentPlayer(),
-      new Promise(r=>setTimeout(()=>r(null),4000))
-    ]);
-    const elapsed = Date.now()-start;
-    if(p){
-      L('✅ Player geladen in '+elapsed+'ms: '+p.name,'ok');
-      L('  totalScore: '+p.totalScore);
-      L('  worlds type: '+(Array.isArray(p.worlds)?'ARRAY (BUG!)':'object ✅'));
-      if(Array.isArray(p.worlds)){
-        L('  ⚠️ worlds ist ein Array ['+p.worlds.slice(0,5)+'...] — wird beim nächsten Laden korrigiert','warn');
-      } else {
-        L('  worlds keys: '+JSON.stringify(Object.keys(p.worlds||{})));
-      }
-      L('  character: '+p.character);
-    } else {
-      L('❌ Player ist null nach '+elapsed+'ms — Firebase zu langsam!','err');
+    if(ok){ L('✅ Firebase OK','ok'); }
+    else {
+      L('❌ Firebase NICHT initialisiert!','err');
+      L('  → Mögliche Ursachen: Kein Internet / GitHub Pages / Firewall','warn');
+      L('  → Aber: localStorage-Fallback sollte trotzdem funktionieren','info');
     }
-  } catch(e) { L('❌ getCurrentPlayer error: '+e.message,'err'); }
-  
-  // 6. Check WORLDS
-  L('\n--- WORLDS ---');
-  L('WORLDS count: '+(window.WORLDS?.length||0),'info');
-  L('WORLDS[0].tasks: '+(window.WORLDS?.[0]?.tasks?.length||0),'info');
-  
-  // 7. Check GAME_LIST
-  L('GAME_LIST count: '+(window.GAME_LIST?.length||0),'info');
-  
-  L('\n=== FERTIG ===','info');
+  } catch(e){ L('❌ Firebase Exception: '+e.message,'err'); }
+  SEP();
+
+  // 4. State methods
+  L('⚙️ State-Methoden:','info');
+  const methods=['getJokersRemaining','getCurrentPlayer','refreshCurrentPlayer','_getAllCalibration','_getCalibrationRuns','_local','getPlayer','savePlayer'];
+  methods.forEach(m=>{
+    const t = typeof State[m];
+    L((t!=='undefined'?'✅':'❌')+' State.'+m+': '+t, t!=='undefined'?'ok':'err');
+  });
+  SEP();
+
+  // 5. localStorage player data
+  L('👤 Player im localStorage:','info');
+  const localData = localStorage.getItem('mischa_players');
+  if(localData){
+    try{
+      const players = JSON.parse(localData);
+      const names = Object.keys(players);
+      L('✅ '+names.length+' Spieler gespeichert: '+names.join(', '),'ok');
+      names.forEach(n=>{
+        const p=players[n];
+        const worldsType = Array.isArray(p.worlds)?'ARRAY⚠️':typeof p.worlds;
+        L('  '+n+': score='+p.totalScore+', worlds='+worldsType+
+          (Array.isArray(p.worlds)?'['+p.worlds+']':'{'+Object.keys(p.worlds||{}).join(',')+'}'),'dim');
+      });
+    }catch(e){ L('❌ JSON Parse Error: '+e.message,'err'); }
+  } else {
+    L('⚠️ Keine Spieler im localStorage','warn');
+  }
+  SEP();
+
+  // 6. Load current player
+  L('🎮 Player laden:','info');
+  if(!curUser){ L('⚠️ Nicht eingeloggt — Player-Check übersprungen','warn'); }
+  else {
+    try{
+      const start=Date.now();
+      L('  State.getCurrentPlayer() aufrufen...');
+      const p = await Promise.race([
+        State.getCurrentPlayer(),
+        new Promise(r=>setTimeout(()=>r(null),4000))
+      ]);
+      const ms=Date.now()-start;
+      if(p){
+        L('✅ Player geladen in '+ms+'ms','ok');
+        L('  name: '+p.name);
+        L('  totalScore: '+p.totalScore);
+        L('  worlds type: '+(Array.isArray(p.worlds)?'❌ ARRAY (BUG!)':'✅ object')+(Array.isArray(p.worlds)?'ok':'err'));
+        if(Array.isArray(p.worlds)){
+          L('  worlds array: ['+JSON.stringify(p.worlds)+']','err');
+          L('  → Das ist der BUG! showWorld() kann nicht laden.','err');
+          L('  → Klicke "ALLES löschen (Reset)" und logge dich neu ein.','warn');
+        } else {
+          L('  worlds keys: ['+Object.keys(p.worlds||{}).join(',')+']');
+          L('  character: '+p.character);
+          L('  birthYear: '+p.birthYear);
+        }
+      } else {
+        L('❌ Player NULL nach '+ms+'ms — Firebase zu langsam UND kein lokaler Cache!','err');
+        L('  → Klicke "ALLES löschen" und logge dich neu ein','warn');
+      }
+    }catch(e){ L('❌ Exception: '+e.message,'err'); }
+  }
+  SEP();
+
+  // 7. WORLDS check
+  L('🌍 WORLDS + GAME_LIST:','info');
+  L((window.WORLDS?'✅':'❌')+' WORLDS: '+(window.WORLDS?.length||0)+' Welten', window.WORLDS?'ok':'err');
+  if(window.WORLDS?.[0]){
+    L('  Welt 1 tasks: '+window.WORLDS[0].tasks?.length,'dim');
+    L('  Erste Task: '+JSON.stringify(window.WORLDS[0].tasks?.[0]),'dim');
+  }
+  L((window.GAME_LIST?'✅':'❌')+' GAME_LIST: '+(window.GAME_LIST?.length||0)+' Spiele', window.GAME_LIST?'ok':'err');
+  SEP();
+
+  L('=== DIAGNOSE FERTIG ===','info');
 }
 
 async function testWorld(){
-  L('\n--- Welt 1 laden testen ---','info');
+  SEP(); L('🧪 WELT 1 SIMULATION:','info');
   const curUser = sessionStorage.getItem('mischa_current');
-  if(!curUser){L('❌ Nicht eingeloggt','err');return;}
+  if(!curUser){ L('❌ Nicht eingeloggt — zuerst einloggen!','err'); return; }
   try{
-    L('State.refreshCurrentPlayer()...');
+    L('1. refreshCurrentPlayer()...','info');
     const start=Date.now();
-    const p = await Promise.race([State.refreshCurrentPlayer(), new Promise(r=>setTimeout(()=>r(null),4000))]);
-    L(p ? '✅ Player OK in '+(Date.now()-start)+'ms' : '❌ Player null nach 4s','p?ok:err');
-    if(!p)return;
+    const p = await Promise.race([State.refreshCurrentPlayer(), new Promise(r=>setTimeout(()=>r(null),5000))]);
+    L((p?'✅':'❌')+' Player: '+(p?.name||'null')+' in '+(Date.now()-start)+'ms', p?'ok':'err');
+    if(!p){L('→ STOPP: Kein Player','err');return;}
+
+    L('2. worlds Format prüfen...','info');
+    if(Array.isArray(p.worlds)){
+      L('❌ worlds ist ARRAY — FIX wird angewendet...','err');
+      p.worlds={};
+    }
+    if(!p.worlds) p.worlds={};
+    L('✅ worlds OK: '+JSON.stringify(Object.keys(p.worlds)),'ok');
+
+    L('3. WORLDS.find(id=1)...','info');
     const world = window.WORLDS?.find(w=>w.id===1);
-    L(world ? '✅ Welt 1 gefunden: '+world.tasks.length+' Aufgaben' : '❌ Welt 1 nicht in WORLDS!','world?ok:err');
-    const rem = State.getJokersRemaining(p,1);
-    L('✅ getJokersRemaining: '+rem,'ok');
-    L('\n✅ Alle Checks OK — Welt 1 sollte laden!','ok');
-  }catch(e){L('❌ ERROR: '+e.message+' @ '+e.stack?.split('\n')[1],'err');}
+    L((world?'✅':'❌')+' Welt 1: '+(world?.name||'NICHT GEFUNDEN'), world?'ok':'err');
+    if(!world){L('→ STOPP: WORLDS nicht geladen','err');return;}
+
+    L('4. ws (Spieler-Fortschritt)...','info');
+    let ws = p.worlds[1] ?? p.worlds['1'];
+    if(!ws) ws={tasks:Array(20).fill(null),jokerUsed:false,completed:false};
+    L('✅ ws.tasks: '+ws.tasks?.length+' Einträge','ok');
+
+    L('5. world.tasks.map() testen...','info');
+    const done = ws.tasks.filter(t=>t&&t.done).length;
+    L('✅ done: '+done+'/'+world.tasks.length,'ok');
+
+    L('6. getJokersRemaining...','info');
+    const rem = State.getJokersRemaining(p, 1);
+    L('✅ Joker: '+rem,'ok');
+
+    L('','');
+    L('✅✅✅ ALLE CHECKS BESTANDEN — Welt 1 sollte laden!','ok');
+    L('→ Falls es trotzdem hängt: Browser-Konsole (F12) öffnen und Fehler zeigen','warn');
+  }catch(e){
+    L('❌ FEHLER: '+e.message,'err');
+    L('  Stack: '+e.stack?.split('\n').slice(0,3).join(' | '),'err');
+  }
 }
 
-// Auto-run
-runDiag();
+async function testLogin(){
+  SEP(); L('🔑 LOGIN-TEST:','info');
+  const name = prompt('Nutzername:','qqq');
+  const pw = prompt('Passwort:');
+  if(!name||!pw) return;
+  try{
+    L('State.login("'+name+'", "***")...','info');
+    const start=Date.now();
+    const res = await Promise.race([
+      State.login(name, pw),
+      new Promise(r=>setTimeout(()=>r({ok:false,error:'Timeout nach 5s'}),5000))
+    ]);
+    L((res?.ok?'✅':'❌')+' Result in '+(Date.now()-start)+'ms: '+JSON.stringify(res), res?.ok?'ok':'err');
+    if(res?.ok){
+      L('  Player geladen: '+res.player?.name,'ok');
+      L('  worlds type: '+(Array.isArray(res.player?.worlds)?'❌ ARRAY':'✅ object'),Array.isArray(res.player?.worlds)?'err':'ok');
+    }
+  }catch(e){L('❌ '+e.message,'err');}
+}
+
+// Auto-run on load
+window.onload = runDiag;
 </script>
 </body>
 </html>
