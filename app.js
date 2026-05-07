@@ -711,13 +711,15 @@ const App = {
     // Janoschtest: get calibration status
     const _isRefW = player.name.toLowerCase() === 'janoschtest';
     let calStatus = '';
+    // Declare outside if-block so template can access them
+    let calCount = 0, runsCount = 0, lastRun = null, lastRunGames = 0;
     if (_isRefW) {
       const cal = State._getAllCalibration ? State._getAllCalibration() : {};
       const runs = State._getCalibrationRuns ? State._getCalibrationRuns() : [];
-      const calCount = Object.keys(cal).length;
-      const runsCount = runs.length;
-      const lastRun = runs[runs.length-1];
-      const lastRunGames = lastRun ? Object.keys(lastRun.games||{}).length : 0;
+      calCount = Object.keys(cal).length;
+      runsCount = runs.length;
+      lastRun = runs[runs.length-1];
+      lastRunGames = lastRun ? Object.keys(lastRun.games||{}).length : 0;
       const statusMsg = runsCount===0 ? 'Noch kein vollständiger Durchgang — alle Spiele einmal spielen!' :
             runsCount<3 ? 'Noch '+(3-runsCount)+' weitere Durchgänge für maximale Genauigkeit' : 'Kalibrierung vollständig (3 Durchgänge)';
       calStatus = '<div style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.82rem">'
