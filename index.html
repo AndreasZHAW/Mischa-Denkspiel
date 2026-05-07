@@ -26,8 +26,8 @@
 <script>
 // Show intro on first visit (once per session)
 (function(){
-  // Show intro once per session, but NOT if already playing (logged in)
-  if(!sessionStorage.getItem('intro_seen') && !sessionStorage.getItem('mischa_current')){
+  // Always show intro on fresh page load (first visit per session)
+  if(!sessionStorage.getItem('intro_seen')){
     sessionStorage.setItem('intro_seen','1');
     window.location.href='intro.html';
   }

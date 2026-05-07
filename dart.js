@@ -124,6 +124,8 @@ const DartGame = {
     </div>
   </div>
 
+  <!-- Dartboard + joystick flex container -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap">
   <!-- Dartboard + crosshair overlay -->
   <div style="position:relative;display:inline-block;width:270px;height:270px;margin-bottom:6px;cursor:crosshair" id="dart-wrap">
     <canvas id="dart-canvas" width="270" height="270"
@@ -150,7 +152,17 @@ const DartGame = {
         </marker>
       </defs>
     </svg>
-  </div>
+  </div><!-- end dart-wrap -->
+
+  <!-- Mobile joystick (shown only on touch devices) -->
+  <div id="dart-joy" style="display:none;flex-direction:column;align-items:center;gap:6px;margin-left:12px;touch-action:none;user-select:none">
+    <div style="font-size:.62rem;color:rgba(255,255,255,.5);text-align:center;line-height:1.4">🎯 Ziel<br>steuern</div>
+    <div id="dart-joy-pad" style="position:relative;width:88px;height:88px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);border-radius:50%">
+      <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:30px;height:30px;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.7);border-radius:50%;transform:translate(-50%,-50%);transition:none"></div>
+    </div>
+    <div style="font-size:.58rem;color:rgba(255,255,255,.35);text-align:center">Loslassen<br>= Werfen</div>
+  </div><!-- end dart-joy -->
+  </div><!-- end flex container -->
 
   <!-- Last throws row -->
   <div style="display:flex;gap:3px;justify-content:center;min-height:24px;margin-bottom:6px;flex-wrap:wrap">
@@ -252,12 +264,14 @@ const DartGame = {
     
     // Mobile joystick for aim (right side of board, only on touch devices)
     const joyEl = document.getElementById('dart-joy');
+    const joyPad = document.getElementById('dart-joy-pad');
+    const joyTarget = joyPad || joyEl;
     if (joyEl && 'ontouchstart' in window) {
       joyEl.style.display = 'flex';
       let joyOrigin = null, joyActive = false;
       const JR = 45; // joystick range in px
       
-      joyEl.addEventListener('touchstart', e => {
+      joyTarget.addEventListener('touchstart', e => {
         e.preventDefault(); e.stopPropagation();
         joyActive = true;
         const t = e.touches[0];
@@ -266,7 +280,7 @@ const DartGame = {
         if (c && !c.aimCx) { c.aimCx = 135; c.aimCy = 135; }
       }, { passive: false });
       
-      joyEl.addEventListener('touchmove', e => {
+      joyTarget.addEventListener('touchmove', e => {
         e.preventDefault(); e.stopPropagation();
         if (!joyActive || !joyOrigin || !c) return;
         const t = e.touches[0];
@@ -277,7 +291,7 @@ const DartGame = {
         const nx = dist > 0 ? dx/dist*clamped : 0;
         const ny = dist > 0 ? dy/dist*clamped : 0;
         // Move the joystick knob
-        const knob = joyEl.querySelector('.joy-knob');
+        const knob = document.getElementById('dart-joy-knob');
         if (knob) { knob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`; }
         // Map joystick position to board aim (board center = 135,135)
         c.aimCx = 135 + (nx/JR)*100;
@@ -289,7 +303,9 @@ const DartGame = {
       const joyEnd = e => {
         e.preventDefault(); e.stopPropagation();
         joyActive = false; joyOrigin = null;
-        const knob = joyEl.querySelector('.joy-knob');
+        const knobR = document.getElementById('dart-joy-knob');
+        if (knobR) knobR.style.transform = 'translate(-50%,-50%)';
+        const knob = document.getElementById('dart-joy-knob');
         if (knob) knob.style.transform = 'translate(-50%, -50%)';
         // Throw on release
         if (c && !c.gameOver && c.turn === 'player') {
@@ -297,8 +313,8 @@ const DartGame = {
           this._throwAt((c.aimCx||135)+bx, (c.aimCy||135)+by);
         }
       };
-      joyEl.addEventListener('touchend', joyEnd, { passive: false });
-      joyEl.addEventListener('touchcancel', joyEnd, { passive: false });
+      joyTarget.addEventListener('touchend', joyEnd, { passive: false });
+      joyTarget.addEventListener('touchcancel', joyEnd, { passive: false });
     }
   },
 
