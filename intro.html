@@ -322,17 +322,19 @@ function showEnd(){
 
 // ── SKIP ──
 function skipIntro(){
-  stopMusic();showEnd();
+  stopMusic();
+  localStorage.setItem('mischa_intro_ts', Date.now().toString());
+  showEnd();
 }
 
 // ── ENTER GAME ──
 function enterGame(){
   stopMusic();
-  // Set flag so index.html knows we came from intro (not a fresh open)
-  sessionStorage.setItem('from_game','1');
+  // Mark intro as seen with timestamp → prevents loop for 10 minutes
+  localStorage.setItem('mischa_intro_ts', Date.now().toString());
   document.body.style.opacity='0';
   document.body.style.transition='opacity .6s';
-  setTimeout(()=>{ window.location.href='index.html'; },600);
+  setTimeout(()=>{ window.location.replace('index.html'); },600);
 }
 
 // ── MUSIC ENGINE ──

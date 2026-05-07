@@ -24,16 +24,18 @@
 </head>
 <body>
 <script>
-// Show intro on every fresh open UNLESS returning from within the game
 (function(){
-  const fromGame = sessionStorage.getItem('from_game');
-  if(fromGame){
-    sessionStorage.removeItem('from_game');
-    sessionStorage.setItem('intro_seen','1'); // mark as seen
-  } else {
-    // Fresh open → always go to intro
-    window.location.href='intro.html';
+  // Use localStorage with 10-min expiry so intro doesn't loop
+  const key = 'mischa_intro_ts';
+  const ts = parseInt(localStorage.getItem(key) || '0');
+  const now = Date.now();
+  const TEN_MIN = 10 * 60 * 1000;
+  if(now - ts < TEN_MIN){
+    // Within 10 minutes of seeing intro → skip
+    return;
   }
+  // Older than 10 min or never seen → show intro
+  window.location.replace('intro.html');
 })();
 </script>
   <div id="app">
