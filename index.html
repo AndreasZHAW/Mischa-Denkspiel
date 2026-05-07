@@ -26,7 +26,8 @@
 <script>
 // Show intro on first visit (once per session)
 (function(){
-  if(!sessionStorage.getItem('intro_seen')&&!sessionStorage.getItem('mischa_current')){
+  // Show intro once per browser session (on any fresh load)
+  if(!sessionStorage.getItem('intro_seen')){
     sessionStorage.setItem('intro_seen','1');
     window.location.href='intro.html';
   }
