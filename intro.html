@@ -330,11 +330,13 @@ function skipIntro(){
 // ── ENTER GAME ──
 function enterGame(){
   stopMusic();
-  // Mark intro as seen with timestamp → prevents loop for 10 minutes
-  localStorage.setItem('mischa_intro_ts', Date.now().toString());
+  // Mark intro as seen — prevents loop
+  const nowTs = Date.now().toString();
+  localStorage.setItem('mischa_intro_ts', nowTs);
+  try { sessionStorage.setItem('mischa_intro_ts', nowTs); } catch(e){}
   document.body.style.opacity='0';
   document.body.style.transition='opacity .6s';
-  setTimeout(()=>{ window.location.replace('index.html'); },600);
+  setTimeout(()=>{ window.location.replace('index.html?from_intro=1'); },600);
 }
 
 // ── MUSIC ENGINE ──

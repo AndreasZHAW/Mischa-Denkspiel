@@ -266,6 +266,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </div>
   <!-- Spin button + count -->
   <div style="margin-top:14px;background:#111;border:2px solid #333;border-radius:12px;padding:8px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 12px rgba(0,0,0,.4)">
+    <!-- Spin kaufen -->
+    <div style="display:flex;gap:6px;margin-bottom:6px">
+      <button onclick="LW.buySpin(1)" style="flex:1;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.35);color:#FFD700;padding:6px;border-radius:8px;font-size:.72rem;cursor:pointer;font-weight:700">+1 Spin<br><small style="opacity:.6">100K MT</small></button>
+      <button onclick="LW.buyMaxSpins()" style="flex:1;background:rgba(255,215,0,.2);border:1px solid rgba(255,215,0,.4);color:#FFD700;padding:6px;border-radius:8px;font-size:.72rem;cursor:pointer;font-weight:900">MAX Spins<br><small style="opacity:.6">je 100K MT</small></button>
+    </div>
     <span style="color:white;font-size:.85rem;font-weight:700">Deine Spins: <b id="lwspins" style="color:#FFD700">0</b></span>
     <button id="lwbtn" onclick="LW.spin()" style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;border:none;padding:10px 24px;border-radius:8px;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 4px 10px rgba(255,165,0,.4)">🎰 Drehen!</button>
   </div>

@@ -25,16 +25,25 @@
 <body>
 <script>
 (function(){
-  // Use localStorage with 10-min expiry so intro doesn't loop
+  // Check both localStorage AND sessionStorage AND URL param
   const key = 'mischa_intro_ts';
-  const ts = parseInt(localStorage.getItem(key) || '0');
+  const urlParam = new URLSearchParams(window.location.search).get('from_intro');
+  if(urlParam === '1'){
+    // Came directly from intro → skip, set timestamp
+    localStorage.setItem(key, Date.now().toString());
+    sessionStorage.setItem(key, Date.now().toString());
+    // Clean URL
+    window.history.replaceState({}, '', 'index.html');
+    return;
+  }
+  const tsL = parseInt(localStorage.getItem(key) || '0');
+  const tsS = parseInt(sessionStorage.getItem(key) || '0');
+  const ts = Math.max(tsL, tsS);
   const now = Date.now();
   const TEN_MIN = 10 * 60 * 1000;
   if(now - ts < TEN_MIN){
-    // Within 10 minutes of seeing intro → skip
-    return;
+    return; // Recently saw intro → skip
   }
-  // Older than 10 min or never seen → show intro
   window.location.replace('intro.html');
 })();
 </script>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnose — Mischa Denkspiel</title>
+<style>
+body{background:#111;color:#0f0;font-family:monospace;padding:16px;font-size:.85rem}
+.ok{color:#0f0}.err{color:#f44}.warn{color:#fa0}.info{color:#4af}
+#log{white-space:pre-wrap;line-height:1.6}
+button{background:#333;color:#fff;border:1px solid #555;padding:6px 14px;cursor:pointer;border-radius:4px;margin:4px}
+</style>
+</head>
+<body>
+<h2 style="color:#FFD700">🔬 Mischa Denkspiel — Diagnose</h2>
+<div style="margin-bottom:10px">
+  <button onclick="runDiag()">🔄 Neu starten</button>
+  <button onclick="clearIntro()">🗑️ Intro-Timer löschen (Intro wieder zeigen)</button>
+  <button onclick="clearSession()">🗑️ Session löschen (ausloggen)</button>
+  <button onclick="testWorld()">▶ Welt 1 testen</button>
+</div>
+<div id="log"></div>
+<script src="worlds.js"></script>
+<script src="firebase-state.js"></script>
+<script>
+const log = document.getElementById('log');
+function L(msg, cls=''){log.innerHTML += '<span class="'+cls+'">['+new Date().toLocaleTimeString()+'] '+msg+'</span>\n';}
+
+function clearIntro(){localStorage.removeItem('mischa_intro_ts');L('✅ Intro-Timer gelöscht — Intro erscheint beim nächsten Öffnen','ok');}
+function clearSession(){sessionStorage.clear();L('✅ Session gelöscht','ok');}
+
+async function runDiag(){
+  log.innerHTML='';
+  L('=== DIAGNOSE GESTARTET ===','info');
+  L('Browser: '+navigator.userAgent,'info');
+  
+  // 1. Check localStorage
+  L('\n--- localStorage ---');
+  const introTs = localStorage.getItem('mischa_intro_ts');
+  const tsAge = introTs ? Math.round((Date.now()-parseInt(introTs))/1000/60) : null;
+  L(introTs ? '✅ intro_ts: '+tsAge+' Min alt '+(tsAge<10?'(Intro wird übersprungen)':'(Intro würde erscheinen)') : '⚠️ kein intro_ts (Intro würde erscheinen)','info');
+  
+  // 2. Check sessionStorage
+  L('\n--- sessionStorage ---');
+  const curUser = sessionStorage.getItem('mischa_current');
+  L(curUser ? '✅ Eingeloggt als: '+curUser : '⚠️ Nicht eingeloggt','info');
+  
+  // 3. Check Firebase
+  L('\n--- Firebase ---');
+  try {
+    const ok = initFirebase();
+    L(ok ? '✅ Firebase initialisiert' : '❌ Firebase NICHT initialisiert — kein Internet?', ok?'ok':'err');
+  } catch(e) { L('❌ Firebase Error: '+e.message,'err'); }
+  
+  // 4. Check State
+  L('\n--- State ---');
+  L('getJokersRemaining: '+(typeof State.getJokersRemaining),'info');
+  L('getCurrentPlayer: '+(typeof State.getCurrentPlayer),'info');
+  L('refreshCurrentPlayer: '+(typeof State.refreshCurrentPlayer),'info');
+  L('_getAllCalibration: '+(typeof State._getAllCalibration),'info');
+  
+  // 5. Check currentPlayer
+  L('\n--- Player laden ---');
+  if(!curUser){L('⚠️ Nicht eingeloggt — bitte erst anmelden','warn');return;}
+  try {
+    L('Versuche Player zu laden (max 4s)...');
+    const start = Date.now();
+    const p = await Promise.race([
+      State.getCurrentPlayer(),
+      new Promise(r=>setTimeout(()=>r(null),4000))
+    ]);
+    const elapsed = Date.now()-start;
+    if(p){
+      L('✅ Player geladen in '+elapsed+'ms: '+p.name,'ok');
+      L('  totalScore: '+p.totalScore);
+      L('  worlds: '+JSON.stringify(Object.keys(p.worlds||{})));
+      L('  character: '+p.character);
+    } else {
+      L('❌ Player ist null nach '+elapsed+'ms — Firebase zu langsam!','err');
+    }
+  } catch(e) { L('❌ getCurrentPlayer error: '+e.message,'err'); }
+  
+  // 6. Check WORLDS
+  L('\n--- WORLDS ---');
+  L('WORLDS count: '+(window.WORLDS?.length||0),'info');
+  L('WORLDS[0].tasks: '+(window.WORLDS?.[0]?.tasks?.length||0),'info');
+  
+  // 7. Check GAME_LIST
+  L('GAME_LIST count: '+(window.GAME_LIST?.length||0),'info');
+  
+  L('\n=== FERTIG ===','info');
+}
+
+async function testWorld(){
+  L('\n--- Welt 1 laden testen ---','info');
+  const curUser = sessionStorage.getItem('mischa_current');
+  if(!curUser){L('❌ Nicht eingeloggt','err');return;}
+  try{
+    L('State.refreshCurrentPlayer()...');
+    const start=Date.now();
+    const p = await Promise.race([State.refreshCurrentPlayer(), new Promise(r=>setTimeout(()=>r(null),4000))]);
+    L(p ? '✅ Player OK in '+(Date.now()-start)+'ms' : '❌ Player null nach 4s','p?ok:err');
+    if(!p)return;
+    const world = window.WORLDS?.find(w=>w.id===1);
+    L(world ? '✅ Welt 1 gefunden: '+world.tasks.length+' Aufgaben' : '❌ Welt 1 nicht in WORLDS!','world?ok:err');
+    const rem = State.getJokersRemaining(p,1);
+    L('✅ getJokersRemaining: '+rem,'ok');
+    L('\n✅ Alle Checks OK — Welt 1 sollte laden!','ok');
+  }catch(e){L('❌ ERROR: '+e.message+' @ '+e.stack?.split('\n')[1],'err');}
+}
+
+// Auto-run
+runDiag();
+</script>
+</body>
+</html>
