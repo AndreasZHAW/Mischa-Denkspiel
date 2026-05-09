@@ -108,6 +108,9 @@
   <script src="app.js"></script>
   <script>
     async function boot() {
+      // Show version for debugging
+      const vEl = document.getElementById('load-status');
+      if(vEl) vEl.textContent = 'v88 wird geladen...';
       // STEP 1: Show welcome immediately (never block on network)
       const ret = sessionStorage.getItem('mischa_current');
       

@@ -1,3 +1,4 @@
+const APP_VERSION = 'v88-isActive-fix';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
