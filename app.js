@@ -804,7 +804,7 @@ const App = {
               const mtEarned = tdone&&ws.tasks[i]?.mt ? ws.tasks[i].mt : '';
               return `
                 <button class="task-btn ${cls}"
-                  onclick="${(isActive||tdone)?`App.startTask(${worldId},${i})`:'void(0)'}"
+                  onclick="App.startTask(${worldId},${i})"
                   title="${task.name||task.title||'Spiel '+(i+1)}">
                   <span style="font-size:1.3rem">${task.icon||'🎮'}</span>
                   <span style="font-size:0.62rem;font-weight:700">${task.name||('Spiel '+(i+1))}</span>

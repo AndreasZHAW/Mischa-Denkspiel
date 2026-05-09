@@ -202,11 +202,11 @@ async function runDiag(){
     }
   }
   // Always try to load player - use effectiveUser (restored from backup)
-  const effectiveUser = sessionStorage.getItem('mischa_current');
-  if(!effectiveUser){ 
+  const effectiveUser2 = sessionStorage.getItem('mischa_current');
+  if(!effectiveUser2){ 
     L('❌ Kein Benutzer — bitte einloggen','err');
   } else {
-    L('🎮 Lade Player: "'+effectiveUser+'"...','info');
+    L('🎮 Lade Player: "'+effectiveUser2+'"...','info');
     try{
       const start=Date.now();
       // Force State to use the current session
@@ -248,7 +248,7 @@ async function runDiag(){
       } else {
         L('❌ Player NULL nach '+ms+'ms','err');
         L('  mischa_players hat "'+effectiveUser+'"? '+
-          (JSON.parse(localStorage.getItem('mischa_players')||'{}')[effectiveUser]?'JA':'NEIN'),'err');
+          (JSON.parse(localStorage.getItem('mischa_players')||'{}')[effectiveUser2]?'JA':'NEIN'),'err');
         L('  → Mögliche Ursache: State._local nicht mit localStorage synchronisiert','warn');
         
         // Try direct localStorage access
