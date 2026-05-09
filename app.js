@@ -530,7 +530,20 @@ const App = {
   async showWorldMap() {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
-    if (!player) { this.showWelcome(); return; }
+    if (!player) {
+      // Clear bad backup if it points to non-existent player
+      const backup = localStorage.getItem('mischa_current_backup');
+      if (backup) {
+        localStorage.removeItem('mischa_current_backup');
+        sessionStorage.removeItem('mischa_current');
+      }
+      this.showWelcome();
+      setTimeout(() => {
+        const err = document.getElementById('l-err');
+        if (err) { err.textContent = '⚠️ Spieler nicht gefunden — bitte neu einloggen!'; err.style.display = 'block'; }
+      }, 500);
+      return;
+    }
     // Normalize worlds: convert array format ["1","2"...] to object format
     if (player && Array.isArray(player.worlds)) {
       player.worlds = {}; // reset to object format

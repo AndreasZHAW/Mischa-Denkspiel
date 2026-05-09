@@ -62,7 +62,7 @@ const State = {
     getAll() {
       try { return JSON.parse(localStorage.getItem('mischa_players')) || {}; } catch { return {}; }
     },
-    get(name) { return this.getAll()[name.toLowerCase()] || null; },
+    get(name) { if(!name)return null; const lc=name.toLowerCase(); const all=this.getAll(); return all[lc]||all[name]||null; },
     set(name, player) {
       const all = this.getAll();
       all[name.toLowerCase()] = player;
@@ -504,14 +504,11 @@ const State = {
     } catch(e) {
       this.currentPlayer = this._local.get(name);
     }
-    // If still null (no local cache, Firebase timed out): create minimal player
-    if (!this.currentPlayer && name) {
-      this.currentPlayer = {
-        name, password: name.toLowerCase(),
-        worlds: {}, totalScore: 0, character: 'stickman',
-        birthYear: 2000, createdAt: Date.now()
-      };
-      this._local.set(name, this.currentPlayer);
+    // If still null: player not found locally and Firebase unavailable
+    // Don't create fake player - clear backup and return null so login shows
+    if (!this.currentPlayer) {
+      // Don't clear backup here - Firebase might just be slow
+      // Return null → app will show welcome/login screen
     }
     return this.currentPlayer;
   },
@@ -652,6 +649,25 @@ document.addEventListener('DOMContentLoaded', () => {
     try { initFirebase(); } catch(e) {}
   }, 500);
 });
+
+// Pre-populate State from localStorage backup on load
+(function(){
+  try {
+    const backup = localStorage.getItem('mischa_current_backup') ||
+                   sessionStorage.getItem('mischa_current');
+    if (backup && !State.currentPlayer) {
+      const p = State._local.get(backup);
+      if (p) {
+        State.currentPlayer = p;
+        // Ensure sessionStorage is set
+        if (!sessionStorage.getItem('mischa_current')) {
+          sessionStorage.setItem('mischa_current', backup.toLowerCase());
+        }
+        console.log('✅ State pre-populated from localStorage:', p.name);
+      }
+    }
+  } catch(e) {}
+})();
 
 window.State = State;
 window.initFirebase = initFirebase;

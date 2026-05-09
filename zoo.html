@@ -1523,7 +1523,7 @@ const ZG={
     if(!z.enc)return;
     ZS._fix();
     this.visitT+=100;
-    if(this.visitT>=ZS.visitMs()){this.visitT=0;this._visitor();}
+    if(this.visitT>=Math.min(ZS.visitMs(),5000)){this.visitT=0;this._visitor();}
     if(this.slapCD>0)this.slapCD-=100;
     this._updEvTimer(); this._updHUD();
     
@@ -2753,7 +2753,23 @@ const ZP={
   },
 
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else this._sB(el);},
-  _sZ(el){const z=ZS.zoo;const IT=[{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  _sZ(el){const z=ZS.zoo;const IT=[
+  {id:'carpet',n:'🪄 Fliegender Teppich',d:'Fliege wohin du willst!',p:500000,
+   action:()=>{
+     ZP.toast('🪄 Teppich aktiviert! Benutze WASD + Hoch/Runter',2000);
+     ZG._carpetMode=true;
+     // Add carpet control buttons
+     let carpetEl=document.getElementById('carpet-ctrl');
+     if(!carpetEl){
+       carpetEl=document.createElement('div');carpetEl.id='carpet-ctrl';
+       carpetEl.style.cssText='position:fixed;bottom:120px;right:16px;z-index:800;display:flex;flex-direction:column;align-items:center;gap:4px';
+       carpetEl.innerHTML='<button onclick="ZG.pl.y+=3;ZG.pl.isFlying=true" style="background:rgba(255,215,0,.7);border:none;color:#000;padding:8px 16px;border-radius:8px;font-weight:900;cursor:pointer">▲ Hoch</button>'+
+         '<button onclick="ZG.pl.y=Math.max(1.7,ZG.pl.y-3);ZG.pl.isFlying=ZG.pl.y>2" style="background:rgba(255,215,0,.7);border:none;color:#000;padding:8px 16px;border-radius:8px;font-weight:900;cursor:pointer">▼ Runter</button>'+
+         '<button onclick="ZG._carpetMode=false;ZG.pl.y=1.7;ZG.pl.isFlying=false;this.parentElement.remove()" style="background:rgba(231,76,60,.7);border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">✕ Landen</button>';
+       document.body.appendChild(carpetEl);
+     }
+   }},
+  {id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
   _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
@@ -3520,7 +3536,7 @@ const ZAdmin = {
   
   open(){
     const el=document.getElementById('padmin-wrap');
-    if(el){el.style.display='flex';this.loadPlayers();SECRETS.trackAdminOpen&&SECRETS.trackAdminOpen();}
+    if(el){el.style.display='flex';this.loadPlayers();this._populateCraftSelect();SECRETS.trackAdminOpen&&SECRETS.trackAdminOpen();}
   },
   close(){
     const el=document.getElementById('padmin-wrap');
@@ -3775,15 +3791,28 @@ const ZAdmin = {
   
   giveSpins(){
     if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
-    // No CD for giving spins
-    const amount=parseInt(document.getElementById('padmin-spins-amount')?.value||1);
+    const amount=parseInt(document.getElementById('padmin-spins-amount')?.value||'1')||1;
+    const targetName=this.target.name.toLowerCase();
+    // Method 1: Firebase (if available)
     try{if(typeof _db!=='undefined'&&_db){
       _db.collection('zoo_events').add({
-        type:'admin_give_spins',target:this.target.name.toLowerCase(),
+        type:'admin_give_spins',target:targetName,
         amount,from:ZS.player,at:Date.now()
       }).catch(()=>{});
     }}catch(e){}
-    ZP.toast('🎰 '+this.target.name+' bekommt '+amount+' Spin(s)!',2000);
+    // Method 2: localStorage direct (for offline / same device)
+    try{
+      const cmd={type:'give_spins',target:targetName,amount,id:Date.now().toString(),exp:Date.now()+300000};
+      localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));
+    }catch(e){}
+    // Method 3: If target is current player on this device, give directly
+    if(targetName===ZS.player?.toLowerCase()){
+      LW.spins=(LW.spins||0)+amount;
+      const sp=G('lwspins');if(sp)sp.textContent=LW.spins;
+      ZP.toast('🎰 Du bekommst '+amount+' Spin(s)!',2000);
+    } else {
+      ZP.toast('🎰 '+this.target.name+' bekommt '+amount+' Spin(s)!',2000);
+    }
   },
 
   guaranteeSpin(){
@@ -3909,6 +3938,15 @@ function _handleAdminEvent(d){
     ZG._slapStunEnd=0;
     ZP.toast('🔓 Du bist frei!',1500);
     const j=document.getElementById('jail-overlay');if(j)j.remove();
+  }
+  else if(d.type==='admin_craft_add'&&d.recipe){
+    if(!window._adminCraftRecipes) window._adminCraftRecipes=[];
+    const r=d.recipe;
+    if(!window._adminCraftRecipes.find(x=>x.id===r.id)){
+      window._adminCraftRecipes.push(r);
+      CraftMachine._shown=[];CraftMachine._lastRotate=0;
+      ZP.toast('⚗️ Admin hat '+r.result.e+' '+r.result.n+' in die Craft-Maschine hinzugefügt!',4000);
+    }
   }
   else if(d.type==='admin_give_spins'&&d.target===ZS.player?.toLowerCase()){  // Only process if I'm the target
     LW.spins=(LW.spins||0)+(d.amount||1);
@@ -4463,174 +4501,244 @@ window.ZSteal = ZSteal;
 // CRAFT MACHINE — Combine animals to get rarer ones
 // ══════════════════════════════════════════════════════════
 const CRAFT_RECIPES = [
-  // ── BASIC RECIPES ──
-  {id:'cr1',  inputs:[{r:'normal',count:3}],                result:{id:'craftfish',n:'Schimmer-Fisch',e:'🐠',r:'rare',earn:8,p:0},    chance:1.0, label:'3× Normal → Schimmer-Fisch (Selten)'},
-  {id:'cr2',  inputs:[{r:'normal',count:4}],                result:{id:'craftfrog',n:'Kristall-Frosch',e:'🐸',r:'rare',earn:10,p:0},  chance:1.0, label:'4× Normal → Kristall-Frosch (Selten)'},
-  {id:'cr3',  inputs:[{r:'rare',count:3}],                  result:{id:'craftbear',n:'Smaragd-Bär',e:'🐻',r:'epic',earn:40,p:0},      chance:1.0, label:'3× Selten → Smaragd-Bär (Episch)'},
-  {id:'cr4',  inputs:[{r:'rare',count:4}],                  result:{id:'craftowl',n:'Saphir-Eule',e:'🦉',r:'epic',earn:50,p:0},       chance:1.0, label:'4× Selten → Saphir-Eule (Episch)'},
-  {id:'cr5',  inputs:[{r:'epic',count:3}],                  result:{id:'craftlion',n:'Goldener Löwe',e:'🦁',r:'legendary',earn:180,p:0}, chance:1.0, label:'3× Episch → Goldener Löwe (Legendär)'},
-  {id:'cr6',  inputs:[{r:'epic',count:4}],                  result:{id:'craftphoenix',n:'Phönix',e:'🔥',r:'legendary',earn:220,p:0},  chance:1.0, label:'4× Episch → Phönix (Legendär)'},
-  {id:'cr7',  inputs:[{r:'legendary',count:2}],             result:{id:'craftorca',n:'Neon-Orca',e:'🐋',r:'god',earn:450,p:0},        chance:1.0, label:'2× Legendär → Neon-Orca (Gott)'},
-  {id:'cr8',  inputs:[{r:'legendary',count:3}],             result:{id:'craftdragon',n:'Kristall-Drache',e:'🐲',r:'god',earn:600,p:0}, chance:1.0, label:'3× Legendär → Kristall-Drache (Gott)'},
-  
-  // ── SPECIAL COMBOS ──
-  {id:'cr9',  inputs:[{id:'lion',count:1},{id:'tiger',count:1}], result:{id:'liger',n:'Liger',e:'🐯',r:'epic',earn:55,p:0},            chance:1.0, label:'Löwe + Tiger → Liger (Episch)'},
-  {id:'cr10', inputs:[{id:'dolphin',count:1},{id:'shark',count:1}], result:{id:'megalodon',n:'Megalodon',e:'🦈',r:'god',earn:500,p:0}, chance:1.0, label:'Delphin + Hai → Megalodon (Gott)'},
-  {id:'cr11', inputs:[{id:'phoenix',count:1},{id:'dragon',count:1}], result:{id:'dragonfire',n:'Feuer-Phönix',e:'🦅',r:'mythic',earn:900,p:0}, chance:1.0, label:'Phönix + Drache → Feuer-Phönix (Mythisch)'},
-  {id:'cr12', inputs:[{r:'god',count:2}],                   result:{id:'celestial',n:'Himmels-Wesen',e:'✨',r:'mythic',earn:1200,p:0}, chance:1.0, label:'2× Gott → Himmels-Wesen (Mythisch)'},
-  
-  // ── ULTRA RARE (low chance, secret animals) ──
-  {id:'cr13', inputs:[{r:'mythic',count:2}],                result:{id:'timedragon',n:'Zeit-Drache',e:'⏳',r:'ultralegendary',earn:3000,p:0,craftOnly:true}, chance:0.3, label:'2× Mythisch → Zeit-Drache (30% — Craft-Only!)'},
-  {id:'cr14', inputs:[{r:'epic',count:4},{extra:'shiny'}],  result:{id:'rainbowunicorn',n:'Regenbogen-Einhorn',e:'🦄',r:'god',earn:700,p:0,craftOnly:true}, chance:0.5, label:'4× Episch (alle Shiny) → Regenbogen-Einhorn (50%)'},
-  {id:'cr15', inputs:[{id:'craftdragon',count:1},{id:'craftlion',count:1}], result:{id:'prideguard',n:'Wächter des Lebens',e:'🌿',r:'ultralegendary',earn:2500,p:0,craftOnly:true}, chance:0.4, label:'Kristall-Drache + Goldener Löwe → Wächter des Lebens (40%)'},
-  {id:'cr16', inputs:[{r:'normal',count:1},{r:'legendary',count:1},{r:'epic',count:1}], result:{id:'chimera',n:'Chimera',e:'🐉',r:'mythic',earn:1500,p:0,craftOnly:true}, chance:0.15, label:'Normal + Episch + Legendär → Chimera (15% — sehr selten!)'},
-  {id:'cr17', inputs:[{r:'legendary',count:4}],             result:{id:'cosmicbeing',n:'Kosmisches Wesen',e:'🌌',r:'ultralegendary',earn:5000,p:0,craftOnly:true}, chance:0.2, label:'4× Legendär → Kosmisches Wesen (20% — Craft-Only!)'},
+  // BASIC
+  {id:'cr1', inputs:[{r:'normal',count:3}], result:{id:'craftfish',n:'Schimmer-Fisch',e:'🐠',r:'rare',earn:8}, chance:1.0},
+  {id:'cr2', inputs:[{r:'normal',count:4}], result:{id:'craftfrog',n:'Kristall-Frosch',e:'🐸',r:'rare',earn:10}, chance:1.0},
+  {id:'cr3', inputs:[{r:'rare',count:3}],   result:{id:'craftbear',n:'Smaragd-Bär',e:'🐻',r:'epic',earn:40}, chance:1.0},
+  {id:'cr4', inputs:[{r:'rare',count:4}],   result:{id:'craftowl',n:'Saphir-Eule',e:'🦉',r:'epic',earn:50}, chance:1.0},
+  {id:'cr5', inputs:[{r:'epic',count:3}],   result:{id:'craftlion',n:'Goldener Löwe',e:'🦁',r:'legendary',earn:180}, chance:1.0},
+  {id:'cr6', inputs:[{r:'epic',count:4}],   result:{id:'craftphoenix',n:'Phönix',e:'🔥',r:'legendary',earn:220}, chance:1.0},
+  {id:'cr7', inputs:[{r:'legendary',count:2}], result:{id:'craftorca',n:'Neon-Orca',e:'🐋',r:'god',earn:450}, chance:1.0},
+  {id:'cr8', inputs:[{r:'legendary',count:3}], result:{id:'craftdragon',n:'Kristall-Drache',e:'🐲',r:'god',earn:600}, chance:1.0},
+  // SPECIAL COMBOS
+  {id:'cr9',  inputs:[{r:'god',count:2}],  result:{id:'celestial',n:'Himmels-Wesen',e:'✨',r:'mythic',earn:1200}, chance:1.0},
+  {id:'cr10', inputs:[{r:'mythic',count:2}], result:{id:'timedragon',n:'Zeit-Drache',e:'⏳',r:'ultralegendary',earn:3000,craftOnly:true}, chance:0.3},
+  {id:'cr11', inputs:[{r:'epic',count:2},{r:'legendary',count:1}], result:{id:'chimera',n:'Chimera',e:'🐉',r:'mythic',earn:1500,craftOnly:true}, chance:0.15},
+  {id:'cr12', inputs:[{r:'legendary',count:4}], result:{id:'cosmicbeing',n:'Kosmisches Wesen',e:'🌌',r:'ultralegendary',earn:5000,craftOnly:true}, chance:0.2},
+  // TIER-DOWNS (ultra-rare → rare)
+  {id:'cr13', inputs:[{r:'ultralegendary',count:4}], result:{id:'mysticchick',n:'Mystisches Küken',e:'🐣',r:'rare',earn:5,craftOnly:true}, chance:0.05},
+  // MORE
+  {id:'cr14', inputs:[{r:'normal',count:2},{r:'rare',count:1}], result:{id:'crystalcat',n:'Kristall-Katze',e:'🐈',r:'epic',earn:45}, chance:1.0},
+  {id:'cr15', inputs:[{r:'rare',count:2},{r:'epic',count:1}], result:{id:'starfox',n:'Stern-Fuchs',e:'🦊',r:'legendary',earn:200}, chance:0.8},
+  {id:'cr16', inputs:[{r:'epic',count:1},{r:'legendary',count:1}], result:{id:'dragontiger',n:'Drachen-Tiger',e:'🐯',r:'god',earn:500}, chance:0.9},
+  {id:'cr17', inputs:[{r:'god',count:1},{r:'mythic',count:1}], result:{id:'voidbeast',n:'Leeres Wesen',e:'🌑',r:'ultralegendary',earn:4000,craftOnly:true}, chance:0.25},
 ];
 window.CRAFT_RECIPES=CRAFT_RECIPES;
 
+const RARITY_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#e67e22',god:'#e74c3c',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
+const RARITY_NAME={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',god:'Gott',mythic:'Mythisch',ultralegendary:'Ultra Legendär',secret:'Geheim'};
+
 const CraftMachine = {
-  slots: [null,null,null,null], // up to 4 input animals (enc indices)
-  
+  _shown: [], // current 4 recipes
+  _lastRotate: 0,
+  _ROTATE_MS: 20*60*1000, // 20 min
+  _cooldown: false, // prevent immediate reopen after close
+  _pos: null,
+
   open(){
+    if(this._cooldown) return;
     const z=ZS.zoo;if(!z)return;
-    // Find 4 matching recipes to show
-    const available = this._getMatchingRecipes(z);
-    const shown = this._get4Recipes(z);
-    this._render(shown, z);
+    // Rotate recipes every 20 min
+    const now=Date.now();
+    if(!this._shown.length || now-this._lastRotate > this._ROTATE_MS){
+      this._shown = this._pick4();
+      this._lastRotate = now;
+    }
+    this._render(this._shown, z);
   },
-  
-  _get4Recipes(z){
-    // Show: 4 random recipes each time (can change)
-    // Always include at least 1 the player can currently do
-    const doable=CRAFT_RECIPES.filter(r=>this._canDo(r,z));
-    const rest=CRAFT_RECIPES.filter(r=>!this._canDo(r,z));
-    const result=[];
-    if(doable.length) result.push(doable[Math.floor(Math.random()*doable.length)]);
-    // Fill to 4
-    const shuffled=[...rest].sort(()=>Math.random()-.5);
-    while(result.length<4&&shuffled.length) result.push(shuffled.pop());
+
+  _pick4(){
+    // Always show: 2 doable (if any) + 2 random others
+    const z=ZS.zoo||{enc:[]};
+    const all = [...CRAFT_RECIPES];
+    // Also add any admin-added recipes
+    const adminR = (window._adminCraftRecipes||[]);
+    adminR.forEach(r=>{ if(!all.find(x=>x.id===r.id)) all.push(r); });
+    const doable = all.filter(r=>this._canDo(r,z));
+    const rest = all.filter(r=>!this._canDo(r,z)).sort(()=>Math.random()-.5);
+    const result = [];
+    // Add up to 2 doable
+    doable.sort(()=>Math.random()-.5).slice(0,2).forEach(r=>result.push(r));
+    // Fill to 4 from rest
+    while(result.length<4 && rest.length) result.push(rest.shift());
+    // If still less than 4, add more doable
+    while(result.length<4 && doable.length>result.length) result.push(doable[result.length]);
     return result.slice(0,4);
   },
-  
-  _getMatchingRecipes(z){
-    return CRAFT_RECIPES.filter(r=>this._canDo(r,z));
+
+  forceRotate(){
+    this._shown = this._pick4();
+    this._lastRotate = Date.now();
+    ZP.toast('🔄 Neue Rezepte!',1500);
+    const panel=document.getElementById('craft-panel');
+    if(panel){ panel.remove(); this._cooldown=false; this.open(); }
   },
-  
+
   _canDo(recipe, z){
-    const enc=z.enc.filter(e=>e&&e.animal);
+    const enc=(z.enc||[]).filter(e=>e&&e.animal);
+    // Count available animals by rarity
+    const byr={};
+    enc.forEach(e=>{ const r=e.animal.r; byr[r]=(byr[r]||0)+1; });
     for(const req of recipe.inputs){
       if(req.id){
-        const count=enc.filter(e=>e.animal.id===req.id).length;
-        if(count<(req.count||1))return false;
+        if(enc.filter(e=>e.animal.id===req.id).length < (req.count||1)) return false;
       } else if(req.r){
-        let needed=req.count||1;
-        if(req.extra==='shiny') {
-          const count=enc.filter(e=>e.animal.r===req.r&&e.shiny).length;
-          if(count<needed)return false;
-        } else {
-          const count=enc.filter(e=>e.animal.r===req.r).length;
-          if(count<needed)return false;
-        }
+        if((byr[req.r]||0) < (req.count||1)) return false;
       }
     }
     return true;
   },
-  
+
   _render(recipes, z){
-    const existing=document.getElementById('craft-panel');
-    if(existing)existing.remove();
-    
+    const old=document.getElementById('craft-panel');if(old)old.remove();
+    const canDoCount=recipes.filter(r=>this._canDo(r,z)).length;
+    const nextMs=Math.max(0,this._ROTATE_MS-(Date.now()-this._lastRotate));
+    const nextMin=Math.ceil(nextMs/60000);
+
     const panel=document.createElement('div');
     panel.id='craft-panel';
-    panel.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px';
-    
-    const canDoCount=recipes.filter(r=>this._canDo(r,z)).length;
-    
+    panel.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;touch-action:none';
+
     const inner=document.createElement('div');
-    inner.style.cssText='background:linear-gradient(135deg,#0a0a1a,#1a1a2e);border:2px solid rgba(255,215,0,.3);border-radius:20px;width:min(520px,95vw);max-height:85vh;overflow-y:auto;padding:20px';
-    
+    inner.style.cssText='background:linear-gradient(135deg,#0d0d20,#1a1a35);border:2px solid rgba(180,100,255,.4);border-radius:18px;width:min(480px,96vw);max-height:90vh;overflow-y:auto;padding:16px';
+
     // Header
     const hdr=document.createElement('div');
-    hdr.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:16px;border-bottom:1px solid rgba(255,215,0,.2);padding-bottom:12px';
-    hdr.innerHTML='<span style="font-size:1.8rem">&#9879;</span>';
+    hdr.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:10px';
+    hdr.innerHTML='<span style="font-size:2rem">⚗️</span>';
     const hdrInfo=document.createElement('div');hdrInfo.style.flex='1';
-    const hdrT=document.createElement('div');hdrT.style.cssText='font-family:Fredoka One,cursive;font-size:1.3rem;color:#FFD700';hdrT.textContent='Craft-Maschine';
-    const hdrS=document.createElement('div');hdrS.style.cssText='font-size:.72rem;color:rgba(255,255,255,.4)';hdrS.textContent=canDoCount+' Rezepte verfuegbar -- '+recipes.length+' angezeigt';
+    const hdrT=document.createElement('div');hdrT.style.cssText='font-size:1.1rem;font-weight:900;color:#d4aaff';hdrT.textContent='Craft-Maschine';
+    const hdrS=document.createElement('div');hdrS.style.cssText='font-size:.7rem;color:rgba(255,255,255,.4)';
+    hdrS.textContent=canDoCount+' machbar · Neue Rezepte in '+nextMin+' Min';
     hdrInfo.appendChild(hdrT);hdrInfo.appendChild(hdrS);hdr.appendChild(hdrInfo);
-    const hdrClose=document.createElement('button');hdrClose.textContent='X';hdrClose.style.cssText='background:rgba(231,76,60,.7);color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:900';
-    hdrClose.onclick=function(){document.getElementById('craft-panel')?.remove();};hdr.appendChild(hdrClose);
-    inner.appendChild(hdr);
-    
+    const closeBtn=document.createElement('button');
+    closeBtn.textContent='✕';
+    closeBtn.style.cssText='background:rgba(231,76,60,.6);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer;font-size:1rem';
+    closeBtn.onclick=()=>{ panel.remove(); CraftMachine._cooldown=true; setTimeout(()=>CraftMachine._cooldown=false,3000); };
+    hdr.appendChild(closeBtn);inner.appendChild(hdr);
+
+    if(!recipes.length){
+      const empty=document.createElement('div');
+      empty.style.cssText='text-align:center;padding:30px;color:rgba(255,255,255,.4)';
+      empty.textContent='Keine Rezepte verfügbar';
+      inner.appendChild(empty);
+    }
+
     recipes.forEach(recipe=>{
       const canDo=this._canDo(recipe,z);
+      const col=RARITY_COL[recipe.result.r]||'#ccc';
       const card=document.createElement('div');
-      card.style.cssText='background:rgba(255,255,255,'+(canDo?'.07':'.03')+');border:1px solid rgba(255,255,255,'+(canDo?'.15':'.05')+');border-radius:12px;padding:12px;margin-bottom:10px;'+(canDo?'cursor:pointer;':'opacity:.5;');
-      
-      // Recipe display
-      const inputs=recipe.inputs.map(req=>{
-        const icon=req.id?('['+(ANIMALS||[]).find(a=>a.id===req.id)?.e||'?')+']':'['+req.count+'× '+(req.r||'')+']';
-        return icon+(req.extra?' ✨':'');
-      }).join(' + ');
-      
-      const chancePct=Math.round(recipe.chance*100);
+      card.style.cssText='background:rgba(255,255,255,'+(canDo?'.07':'.03')+');border:1px solid '+(canDo?col:'rgba(255,255,255,.07)')+';border-radius:12px;padding:12px;margin-bottom:10px';
 
+      // Inputs row
+      const inputsDiv=document.createElement('div');
+      inputsDiv.style.cssText='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px';
+      recipe.inputs.forEach((req,i)=>{
+        if(i>0){const plus=document.createElement('span');plus.style.color='rgba(255,255,255,.5)';plus.textContent='+';inputsDiv.appendChild(plus);}
+        const chip=document.createElement('div');
+        const rc=RARITY_COL[req.r]||'#888';
+        chip.style.cssText='background:rgba(255,255,255,.08);border:1px solid '+rc+';border-radius:8px;padding:4px 10px;font-size:.75rem;color:'+rc+';font-weight:700';
+        chip.textContent=(req.count||1)+'× '+(req.id ? (ANIMALS||[]).find(a=>a.id===req.id)?.n||req.id : (RARITY_NAME[req.r]||req.r));
+        inputsDiv.appendChild(chip);
+      });
+      const arrow=document.createElement('span');arrow.style.cssText='color:rgba(255,255,255,.4);font-size:1.2rem;margin:0 4px';arrow.textContent='→';
+      inputsDiv.appendChild(arrow);
+      // Result chip
+      const resChip=document.createElement('div');
+      resChip.style.cssText='background:rgba(255,255,255,.1);border:1px solid '+col+';border-radius:8px;padding:4px 10px;font-size:.75rem;color:'+col+';font-weight:700';
+      resChip.textContent=recipe.result.e+' '+recipe.result.n;
+      inputsDiv.appendChild(resChip);
+      card.appendChild(inputsDiv);
+
+      // Bottom row: rarity + chance + craft button
+      const bottom=document.createElement('div');
+      bottom.style.cssText='display:flex;align-items:center;gap:8px';
+      const rar=document.createElement('div');
+      rar.style.cssText='font-size:.7rem;padding:2px 8px;border-radius:6px;background:'+col+'22;color:'+col+';border:1px solid '+col+'55';
+      rar.textContent=RARITY_NAME[recipe.result.r]||recipe.result.r;
+      const chance=document.createElement('div');
+      const cp=Math.round(recipe.chance*100);
+      chance.style.cssText='font-size:.7rem;color:'+(cp>=80?'#27AE60':cp>=50?'#F39C12':'#E74C3C');
+      chance.textContent=cp+'% Chance';
+      if(recipe.result.craftOnly){
+        const co=document.createElement('span');co.style.cssText='font-size:.65rem;color:#ff69b4;font-weight:700';
+        co.textContent='✨ Exklusiv';bottom.appendChild(co);
+      }
+      bottom.appendChild(rar);bottom.appendChild(chance);
+      bottom.style.flex='1';
+
+      if(canDo){
+        const btn=document.createElement('button');
+        btn.style.cssText='margin-left:auto;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:.8rem;cursor:pointer;font-weight:700;white-space:nowrap';
+        btn.textContent='⚗️ Craften!';
+        const rid=recipe.id;
+        btn.onclick=()=>CraftMachine.craft(rid);
+        bottom.appendChild(btn);
+      } else {
+        const need=document.createElement('div');
+        need.style.cssText='margin-left:auto;font-size:.68rem;color:rgba(255,255,255,.3)';
+        need.textContent='Tiere fehlen';
+        bottom.appendChild(need);
+      }
+      card.appendChild(bottom);
       inner.appendChild(card);
     });
-    
-    // Show all recipes button
-    const showAll=document.createElement('button');
-    showAll.style.cssText='width:100%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);padding:8px;border-radius:8px;cursor:pointer;font-size:.75rem;margin-top:4px';
-    showAll.textContent='🔄 4 neue Rezepte anzeigen';
-    showAll.onclick=()=>{ panel.remove(); this.open(); };
-    inner.appendChild(showAll);
-    
+
+    // Rotate button
+    const rotBtn=document.createElement('button');
+    rotBtn.style.cssText='width:100%;margin-top:6px;background:rgba(180,100,255,.1);border:1px solid rgba(180,100,255,.3);color:rgba(180,100,255,.8);padding:8px;border-radius:8px;cursor:pointer;font-size:.75rem';
+    rotBtn.textContent='🔄 Neue Rezepte sofort anzeigen (manuell)';
+    rotBtn.onclick=()=>CraftMachine.forceRotate();
+    inner.appendChild(rotBtn);
+
     panel.appendChild(inner);
     document.body.appendChild(panel);
   },
-  
+
   craft(recipeId){
-    const recipe=CRAFT_RECIPES.find(r=>r.id===recipeId);
+    const all=[...CRAFT_RECIPES,...(window._adminCraftRecipes||[])];
+    const recipe=all.find(r=>r.id===recipeId);
     const z=ZS.zoo;
     if(!recipe||!z)return;
-    if(!this._canDo(recipe,z)){ZP.toast('❌ Tiere nicht vorhanden!',1500);return;}
-    
-    // Remove input animals from enc
+    if(!this._canDo(recipe,z)){ZP.toast('❌ Tiere fehlen!',1500);return;}
+    // Remove input animals
     for(const req of recipe.inputs){
       let needed=req.count||1;
       for(let i=0;i<z.enc.length&&needed>0;i++){
-        const e=z.enc[i];
-        if(!e||!e.animal)continue;
-        const matches=req.id?e.animal.id===req.id:
-          (e.animal.r===req.r&&(req.extra!=='shiny'||e.shiny));
-        if(matches){z.enc[i]=null;needed--;}
+        const e=z.enc[i];if(!e||!e.animal)continue;
+        const ok=req.id?e.animal.id===req.id:e.animal.r===req.r;
+        if(ok){z.enc[i]=null;needed--;}
       }
     }
-    
+    // Check admin limit
+    if(recipe._adminLimit!==undefined){
+      recipe._adminLimit--;
+      if(recipe._adminLimit<0){ZP.toast('❌ Limit erreicht!',1500);return;}
+      // Sync to Firebase
+      try{ ZS._fbSet&&ZS._fbSet('craft_recipes/'+recipeId,{limit:recipe._adminLimit}); }catch(e){}
+    }
     // Roll chance
     if(Math.random()>recipe.chance){
-      ZP.toast('💨 Craft fehlgeschlagen! ('+Math.round(recipe.chance*100)+'% Chance)',3000);
-      ZG._encs&&ZG._encs();
-      document.getElementById('craft-panel')?.remove();
-      ZS.save&&ZS.save();
+      ZP.toast('💨 Fehlgeschlagen! ('+Math.round(recipe.chance*100)+'%)',2500);
+      ZG._encs&&ZG._encs();document.getElementById('craft-panel')?.remove();ZS.save&&ZS.save();
       return;
     }
-    
-    // Add result
+    // Add result animal
     const slot=z.enc.findIndex(e=>!e||!e.animal);
     if(slot>=0){
-      z.enc[slot]={animal:{...recipe.result},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0,crafted:true};
-      ZP.toast('⚗️ '+recipe.result.e+' '+recipe.result.n+' gecraftet! 🎉',4000);
-      ZG._showStars&&ZG._showStars(ZG.pl.x,ZG.pl.z,0xFFD700,8);
+      z.enc[slot]={animal:{...recipe.result,p:recipe.result.earn||0},shiny:null,traits:[],xm:1,addedAt:Date.now(),crafted:true};
+      ZP.toast('⚗️ '+recipe.result.e+' '+recipe.result.n+' gecraftet! 🎉',3500);
+      ZG._showStars&&ZG._showStars(ZG.pl.x,ZG.pl.z,0xD4AAFF,10);
     } else {
       ZP.toast('❌ Kein Gehege frei!',2000);
     }
-    ZG._encs&&ZG._encs();
-    ZS.save&&ZS.save();
+    ZG._encs&&ZG._encs();ZS.save&&ZS.save();
     document.getElementById('craft-panel')?.remove();
-    this.open(); // refresh
+    this._cooldown=true;setTimeout(()=>this._cooldown=false,3000);
   },
 };
 window.CraftMachine=CraftMachine;
+window._adminCraftRecipes=[];;
 
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
@@ -4719,6 +4827,31 @@ document.addEventListener('DOMContentLoaded',()=>{
                 style="width:50px;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.72rem;text-align:center">
               <button class="padmin-btn" style="background:#27AE60;flex:1;font-size:.7rem" onclick="ZAdmin.giveSpins()">🎰 Spins geben</button>
             </div>
+          </div>
+          <!-- Admin Craft Machine -->
+          <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px">
+            <div style="font-size:.72rem;color:#d4aaff;font-weight:700;margin-bottom:6px">⚗️ Craft-Maschine Admin:</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:6px">Tier in Maschine hinzufügen (alle können es craften)</div>
+            <div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
+              <select id="padmin-craft-animal" style="flex:2;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.7rem">
+                <option value="">-- Tier wählen --</option>
+              </select>
+              <input id="padmin-craft-limit" type="number" value="1" min="1" max="99"
+                style="width:50px;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.7rem;text-align:center"
+                placeholder="Limit">
+            </div>
+            <div style="display:flex;gap:4px">
+              <select id="padmin-craft-cost-r" style="flex:1;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.7rem">
+                <option value="normal">Normal</option><option value="rare">Selten</option>
+                <option value="epic">Episch</option><option value="legendary">Legendär</option>
+                <option value="god">Gott</option>
+              </select>
+              <input id="padmin-craft-cost-n" type="number" value="3" min="1" max="8"
+                style="width:45px;background:#2c3e50;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.7rem;text-align:center"
+                title="Anzahl benötigter Tiere">
+              <button class="padmin-btn" style="background:rgba(180,100,255,.7);flex:1;font-size:.68rem" onclick="ZAdmin.addCraftAnimal()">⚗️ Hinzufügen</button>
+            </div>
+            <div id="padmin-craft-list" style="margin-top:6px;font-size:.68rem;color:rgba(255,255,255,.4)">Keine Admin-Rezepte aktiv</div>
           </div>
           <!-- Guarantee next spin -->
           <div style="margin-top:6px">
