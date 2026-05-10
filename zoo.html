@@ -456,7 +456,7 @@ function rA(luck,night){const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){if(!ev)return[];if(ev==='mega')return TRAITS.filter(t=>Math.random()*100<t.p*1.5);return TRAITS.filter(t=>t.ev===ev&&Math.random()*100<t.p);}
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc)return 0;let e=enc.animal.earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return e;}
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
 function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).join('');}
 
@@ -947,6 +947,16 @@ const ZG={
     return new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
   },
 
+  _toggleCarpet(){
+    this._carpetMode=!this._carpetMode;
+    if(this._carpetMode){
+      ZP.toast('🪄 Teppich aktiviert! Joystick = Fliegen, Hoch/Runter: Sprint-Taste',2000);
+    } else {
+      this.pl.y=1.7;this.pl.isFlying=false;
+      ZP.toast('🪄 Gelandet!',1000);
+    }
+    this._updWBar();
+  },
   _world(){
     const sc=this.scene;
     // Lights
@@ -1951,6 +1961,13 @@ const ZG={
         <div class="sn" style="color:${sl.col||'#ddd'};font-size:.58rem">${sl.n.replace(' SLAP','')}</div>
       </div>`;
     }).join('');
+    // Add flying carpet if purchased
+    if(z.hasCarpet){
+      el.innerHTML += `<div class="wb-item" style="cursor:pointer;text-align:center" onclick="ZG._toggleCarpet()">
+        <div class="wbicon" style="background:rgba(255,165,0,.2);border:2px solid ${ZG._carpetMode?'#FFA500':'rgba(255,165,0,.4)'};font-size:1.3rem;width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center">🪄</div>
+        <div class="sn" style="color:#FFA500;font-size:.58rem">${ZG._carpetMode?'Landen':'Teppich'}</div>
+      </div>`;
+    }
   },
 
   unequipSlap(){
@@ -2756,8 +2773,12 @@ const ZP={
   _sZ(el){const z=ZS.zoo;const IT=[
   {id:'carpet',n:'🪄 Fliegender Teppich',d:'Fliege wohin du willst!',p:500000,
    action:()=>{
-     ZP.toast('🪄 Teppich aktiviert! Benutze WASD + Hoch/Runter',2000);
+     if(!ZS.zoo)return;
+     ZS.zoo.hasCarpet=true;
+     ZS.save&&ZS.save();
      ZG._carpetMode=true;
+     ZG._updWBar&&ZG._updWBar();
+     ZP.toast('🪄 Teppich gekauft! Jetzt in der Waffenleiste.',2000);
      // Add carpet control buttons
      let carpetEl=document.getElementById('carpet-ctrl');
      if(!carpetEl){
@@ -3789,10 +3810,17 @@ const ZAdmin = {
     ZP.toast('👑 '+this.target.name+' bekommt Admin-Zugriff!',2500);
   },
   
-  giveSpins(){
-    if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
-    const amount=parseInt(document.getElementById('padmin-spins-amount')?.value||'1')||1;
-    const targetName=this.target.name.toLowerCase();
+  quickSpins(n){ 
+    const inp=document.getElementById('padmin-spins-amount');
+    if(inp) inp.value=n; 
+    this.giveSpins(n); 
+  },
+  giveSpins(overrideAmount){
+    // Get target from text input OR from selected player
+    const targetInput=document.getElementById('padmin-spins-target');
+    const targetName=(targetInput?.value?.trim()||this.target?.name||'').toLowerCase();
+    if(!targetName){ZP.toast('❗ Spielername eingeben!',1500);return;}
+    const amount=overrideAmount||parseInt(document.getElementById('padmin-spins-amount')?.value||'1')||1;
     // Method 1: Firebase (if available)
     try{if(typeof _db!=='undefined'&&_db){
       _db.collection('zoo_events').add({
@@ -4522,6 +4550,22 @@ const CRAFT_RECIPES = [
   {id:'cr15', inputs:[{r:'rare',count:2},{r:'epic',count:1}], result:{id:'starfox',n:'Stern-Fuchs',e:'🦊',r:'legendary',earn:200}, chance:0.8},
   {id:'cr16', inputs:[{r:'epic',count:1},{r:'legendary',count:1}], result:{id:'dragontiger',n:'Drachen-Tiger',e:'🐯',r:'god',earn:500}, chance:0.9},
   {id:'cr17', inputs:[{r:'god',count:1},{r:'mythic',count:1}], result:{id:'voidbeast',n:'Leeres Wesen',e:'🌑',r:'ultralegendary',earn:4000,craftOnly:true}, chance:0.25},
+  // ELEMENT RECIPES
+  {id:'cr18', inputs:[{r:'normal',count:2},{r:'rare',count:2}], result:{id:'waterdrake',n:'Wasser-Drache',e:'💧',r:'legendary',earn:190}, chance:0.9},
+  {id:'cr19', inputs:[{r:'rare',count:2},{r:'epic',count:2}], result:{id:'firelion',n:'Feuer-Löwe',e:'🔆',r:'god',earn:520}, chance:0.8},
+  {id:'cr20', inputs:[{r:'epic',count:2},{r:'god',count:1}], result:{id:'thunderbird',n:'Donner-Vogel',e:'⚡',r:'mythic',earn:1100}, chance:0.6},
+  // TRADE-DOWNS (rare downgrade recipes for fun)
+  {id:'cr21', inputs:[{r:'ultralegendary',count:1}], result:{id:'goldennugget',n:'Gold-Nugget',e:'🌟',r:'legendary',earn:150,craftOnly:true}, chance:0.5},
+  // SEASON RECIPES  
+  {id:'cr22', inputs:[{r:'rare',count:3},{r:'normal',count:2}], result:{id:'snowleopard',n:'Schnee-Leopard',e:'🐆',r:'epic',earn:55}, chance:1.0},
+  {id:'cr23', inputs:[{r:'epic',count:2},{r:'rare',count:3}], result:{id:'arcticfox',n:'Arktis-Fuchs',e:'🦊',r:'legendary',earn:210}, chance:0.85},
+  // FUSION RECIPES
+  {id:'cr24', inputs:[{r:'legendary',count:1},{r:'epic',count:2}], result:{id:'griffon',n:'Greif',e:'🦅',r:'god',earn:480}, chance:0.8},
+  {id:'cr25', inputs:[{r:'god',count:2},{r:'legendary',count:1}], result:{id:'seraph',n:'Seraph',e:'😇',r:'mythic',earn:1300}, chance:0.5},
+  // ULTRA CRAFT
+  {id:'cr26', inputs:[{r:'mythic',count:1},{r:'ultralegendary',count:1}], result:{id:'omegabeast',n:'Omega-Wesen',e:'🌀',r:'ultralegendary',earn:6000,craftOnly:true}, chance:0.1},
+  {id:'cr27', inputs:[{r:'normal',count:5}], result:{id:'prismatic',n:'Prisma-Tier',e:'🌈',r:'epic',earn:48}, chance:1.0},
+  {id:'cr28', inputs:[{r:'rare',count:5}], result:{id:'starbeast',n:'Stern-Tier',e:'⭐',r:'god',earn:550}, chance:0.9},
 ];
 window.CRAFT_RECIPES=CRAFT_RECIPES;
 
@@ -4576,15 +4620,17 @@ const CraftMachine = {
 
   _canDo(recipe, z){
     const enc=(z.enc||[]).filter(e=>e&&e.animal);
-    // Count available animals by rarity
-    const byr={};
-    enc.forEach(e=>{ const r=e.animal.r; byr[r]=(byr[r]||0)+1; });
+    // Must check ALL inputs together (animals can't be used twice)
+    const available=[...enc]; // copy to track what's been "used"
     for(const req of recipe.inputs){
-      if(req.id){
-        if(enc.filter(e=>e.animal.id===req.id).length < (req.count||1)) return false;
-      } else if(req.r){
-        if((byr[req.r]||0) < (req.count||1)) return false;
+      let needed=req.count||1;
+      for(let i=0;i<available.length&&needed>0;i++){
+        if(!available[i])continue;
+        const a=available[i].animal;
+        const matches=req.id ? a.id===req.id : a.r===req.r;
+        if(matches){ available[i]=null; needed--; } // mark as used
       }
+      if(needed>0) return false; // not enough
     }
     return true;
   },
@@ -4742,8 +4788,34 @@ window._adminCraftRecipes=[];;
 
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
-  const main=sessionStorage.getItem('mischa_current');
-  if(main){const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),u=us[main];if(u){ZS.player=main;ZS.isAdmin=main.toLowerCase()==='mischa'||main.toLowerCase()==='admin';if(u.ch){ZS.char=u.ch;ZA._showMode();}else{ZA._showChar();}}}
+  const main=sessionStorage.getItem('mischa_current') || localStorage.getItem('mischa_current_backup');
+  if(main){
+    // Restore session if needed
+    if(!sessionStorage.getItem('mischa_current')) sessionStorage.setItem('mischa_current',main);
+    let us=JSON.parse(localStorage.getItem('zoo_users')||'{}');
+    let u=us[main.toLowerCase()]||us[main];
+    // Auto-create zoo user if doesn't exist (so no reload needed)
+    if(!u){
+      u={name:main,ch:{e:'🐾',id:'default'},createdAt:Date.now()};
+      us[main.toLowerCase()]=u;
+      localStorage.setItem('zoo_users',JSON.stringify(us));
+    }
+    ZS.player=main.toLowerCase();
+    ZS.isAdmin=ZS.player==='mischa'||ZS.player==='admin'||ZS.player==='bu';
+    if(u.ch&&u.ch.id&&u.ch.id!=='default'){ZS.char=u.ch;ZA._showMode();}
+    else{ZA._showChar();}
+  } else {
+    // No session - show login
+    show('s-login');
+  }
+  // Back button handler
+  window.addEventListener('popstate',()=>{
+    if(confirm('Zoo verlassen?')){
+      sessionStorage.setItem('from_game','1');
+      window.location.href='index.html';
+    } else { history.pushState(null,'',''); }
+  });
+  history.pushState(null,'','');
 });
 </script>
 
