@@ -2256,6 +2256,23 @@ const ZG={
 
   // ═══ ADMIN CMD ═══
   async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
+    else if(cmd.type==='poll'){
+      // Show poll popup for same-device players
+      const pollDiv=document.createElement('div');
+      pollDiv.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:9800;min-width:260px;max-width:90vw;background:linear-gradient(135deg,#0a1a2e,#1a2a4e);border:2px solid #8E44AD;border-radius:14px;padding:18px;text-align:center;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.6)';
+      const pid=cmd.pollId||cmd.id;
+      pollDiv.innerHTML='<div style="font-size:.72rem;color:#8E44AD;font-weight:700;margin-bottom:6px">📊 Umfrage von '+(cmd.from||'Admin')+'</div>'+
+        '<div style="font-size:.9rem;margin-bottom:12px">'+(cmd.msg||'')+'</div>';
+      const yBtn=document.createElement('button');yBtn.textContent='✅ Ja';
+      yBtn.style.cssText='background:#27AE60;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:700;margin:4px;font-size:.9rem';
+      yBtn.onclick=()=>{ZChat._vote(pid,'yes',pollDiv);};
+      const nBtn=document.createElement('button');nBtn.textContent='❌ Nein';
+      nBtn.style.cssText='background:#E74C3C;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:700;margin:4px;font-size:.9rem';
+      nBtn.onclick=()=>{ZChat._vote(pid,'no',pollDiv);};
+      pollDiv.appendChild(yBtn);pollDiv.appendChild(nBtn);
+      document.body.appendChild(pollDiv);
+      setTimeout(()=>{if(pollDiv.parentElement)pollDiv.remove();},30000);
+    }
     else if(cmd.type==='give_slap'){const sid=cmd.slapId||'lucky';if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;this._updWBar();ZP.toast(`👑 Admin: ${SLAPS.find(s=>s.id===sid)?.e} Slap!`,3000);}this._updHUD();},
 
   // ═══ TUTORIAL ═══
@@ -2791,7 +2808,14 @@ const ZP={
      }
    }},
   {id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
-  _bZ(id,p){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
+  _bZ(id,p){
+    const z=ZS.zoo;
+    // Apply active discount
+    const disc=window._adminDiscount;
+    const finalP=(disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='spin'||disc.item==='enc'||disc.item==='boost'))
+      ? Math.max(0, Math.round(p*(1-disc.pct/100))) : p;
+    if(z.mt<finalP){this.toast('❌ Zu wenig MT! Brauchst '+$mt(finalP));return;}
+    z.mt-=finalP;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
   _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
   _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:600,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${z.mt<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
@@ -3587,7 +3611,8 @@ const ZAdmin = {
     document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
   },
   _spawnSelected(){
-    const id=this._selectedAnimal;if(!id){ZP.toast('❗ Tier auswählen!',1500);return;}
+    const id=this._selectedAnimal;
+    if(!id){ZP.toast('❗ Tier im Grid anklicken!',2000);return;}
     const a=(window.ANIMALS||[]).find(x=>x.id===id);if(!a)return;
     const cmd={type:'spawn_animal',animalId:id,target:this.target?.name?.toLowerCase()||'_all',id:Date.now().toString(),exp:Date.now()+10000};
     try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
@@ -4272,13 +4297,21 @@ const SECRETS = {
   // SECRET 14: Stay in gondola view for 2 minutes
   _gondolaTimer:null,
   _vote(pollId, choice, el){
+    // Save vote via Firebase
     try{
       if(typeof _db!=='undefined'&&_db){
         const u={};u['votes.'+ZS.player?.toLowerCase()]=choice;
         _db.collection('zoo_polls').doc(pollId).update(u).catch(()=>{});
       }
     }catch(e){}
-    ZP.toast('✅ Stimme: '+(choice==='yes'?'Ja':'Nein'),1500);
+    // Also save to localStorage for offline
+    try{
+      const votes=JSON.parse(localStorage.getItem('zoo_poll_votes')||'{}');
+      if(!votes[pollId])votes[pollId]={};
+      votes[pollId][ZS.player?.toLowerCase()||'?']=choice;
+      localStorage.setItem('zoo_poll_votes',JSON.stringify(votes));
+    }catch(e){}
+    ZP.toast('✅ Abstimmung: '+(choice==='yes'?'✅ Ja':'❌ Nein'),2000);
     if(el&&el.parentElement)el.remove();
   },
   startGondolaTimer(){
@@ -4963,8 +4996,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div style="width:120px;flex-shrink:0;background:#111;border-right:1px solid rgba(255,255,255,.1);overflow-y:auto;padding:8px 0">
         <!-- Player list -->
         <div style="font-size:.62rem;color:rgba(255,255,255,.4);padding:4px 8px;font-weight:700;text-transform:uppercase">Spieler</div>
-        <input id="padmin-search" placeholder="🔍 Suchen" oninput="ZAdmin.filterPlayers(this.value)"
-          style="width:calc(100%-16px);margin:0 8px 6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:4px 6px;border-radius:6px;font-size:.68rem;outline:none;box-sizing:border-box;display:block">
+        <input id="padmin-search" placeholder="🔍 Spieler suchen" oninput="ZAdmin.filterPlayers(this.value)"
+          style="width:90%;margin:0 5% 6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 8px;border-radius:6px;font-size:.75rem;outline:none;box-sizing:border-box;display:block">
         <div id="padmin-playerlist" style="display:flex;flex-direction:column;gap:2px;padding:0 6px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
         <!-- Nav tabs -->
         <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
