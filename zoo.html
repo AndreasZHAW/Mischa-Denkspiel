@@ -2790,7 +2790,7 @@ const ZP={
        document.body.appendChild(carpetEl);
      }
    }},
-  {id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${(!req||z.mt<item.p)?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  {id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){const z=ZS.zoo;if(z.mt<p){this.toast('❌ Zu wenig!');return;}z.mt-=p;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
   _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
@@ -3723,6 +3723,29 @@ const ZAdmin = {
     });
   },
   
+  sendDiscount(){
+    const item=document.getElementById('padmin-disc-item')?.value||'all';
+    const pct=parseInt(document.getElementById('padmin-disc-pct')?.value||'20');
+    const mins=parseInt(document.getElementById('padmin-disc-min')?.value||'5');
+    const dur=mins*60000;
+    const discObj={pct,item,until:Date.now()+dur,by:ZS.player||'admin'};
+    window._adminDiscount=discObj;
+    // Apply locally
+    try{localStorage.setItem('zoo_admin_discount',JSON.stringify(discObj));}catch(e){}
+    // Firebase broadcast
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_broadcast').doc('announcement').set({
+        type:'discount',pct,item,dur,from:ZS.player,at:Date.now()
+      }).catch(()=>{});
+    }}catch(e){}
+    // Show banner
+    const sign=pct>=0?'-'+pct:'+'+(Math.abs(pct));
+    ZP.toast('🏷️ '+sign+'% auf '+(item==='all'?'alles':item)+' für '+mins+' Min!',4000);
+    const div=document.createElement('div');
+    div.style.cssText='position:fixed;top:40px;left:50%;transform:translateX(-50%);z-index:9800;background:'+(pct>=0?'#27AE60':'#E74C3C')+';color:#fff;padding:8px 20px;border-radius:50px;font-weight:900;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+    div.textContent='🏷️ '+sign+'% auf '+(item==='all'?'alles':item)+' ('+mins+' Min)';
+    document.body.appendChild(div);setTimeout(()=>div.remove(),5000);
+  },
   discount(){
     const inp3=document.getElementById('padmin-msg');
     const msg=(inp3?.value||'').trim()||'50% Rabatt aktiv!';
@@ -4985,7 +5008,30 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div style="display:flex;gap:4px;flex-wrap:wrap">
             <button class="padmin-btn" style="background:#2980B9;flex:1;font-size:.68rem" onclick="ZAdmin.announce()">📢 Ankündigen</button>
             <button class="padmin-btn" style="background:#8E44AD;flex:1;font-size:.68rem" onclick="ZAdmin.poll()">📊 Umfrage</button>
-            <button class="padmin-btn" style="background:#27AE60;flex:1;font-size:.68rem" onclick="ZAdmin.discount()">🏷️ Rabatt</button>
+            <button class="padmin-btn" style="background:#27AE60;flex:1;font-size:.68rem" onclick="ZAdmin.discount()">🏷️ Rabatt</button></div>
+          <!-- Proper discount panel -->
+          <div style="margin-top:8px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:8px">
+            <div style="font-size:.7rem;color:#27AE60;font-weight:700;margin-bottom:5px">🏷️ Rabatt/Aufschlag einrichten:</div>
+            <select id="padmin-disc-item" style="width:100%;background:#1a2a1a;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px 6px;border-radius:6px;font-size:.72rem;margin-bottom:4px">
+              <option value="all">🌍 Alle Shop-Items</option>
+              <option value="spin">🎡 Spins</option>
+              <option value="enc">🏠 Gehege</option>
+              <option value="boost">⚡ Boosts</option>
+              <option value="slap">👋 Slaps</option>
+              <option value="premium">💎 Premium</option>
+            </select>
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <input id="padmin-disc-pct" type="number" value="20" min="-100" max="500"
+                style="width:60px;background:#1a2a1a;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.75rem;text-align:center">
+              <span style="color:rgba(255,255,255,.5);align-self:center;font-size:.8rem">% (negativ=teurer)</span>
+            </div>
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <input id="padmin-disc-min" type="number" value="5" min="1" max="60"
+                style="width:50px;background:#1a2a1a;color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px;border-radius:6px;font-size:.72rem;text-align:center">
+              <span style="color:rgba(255,255,255,.5);align-self:center;font-size:.75rem">Minuten Dauer</span>
+            </div>
+            <button class="padmin-btn" style="background:#27AE60;width:100%;font-size:.75rem" onclick="ZAdmin.sendDiscount()">🏷️ Rabatt aktivieren für alle</button>
+          </div
           </div>
           <div id="padmin-poll-results" style="margin-top:6px;font-size:.7rem;color:rgba(255,255,255,.5)"></div>
         </div>
