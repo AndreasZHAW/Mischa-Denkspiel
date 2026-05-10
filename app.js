@@ -107,6 +107,7 @@ const App = {
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
               <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">👜 Geldbeutel</button>
+              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()">📊 Abrechnung</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>
@@ -555,12 +556,20 @@ const App = {
     // Bu gets displayed with special black/gold style
     const displayName = _isAdmin ? '<span style="background:#FFD700;color:#000;font-weight:900;padding:2px 8px;border-radius:6px">Bu 🌀</span>' : _isRef ? '<span style="color:#ff6b6b">🔬 '+player.name+'</span>' : player.name;
     // Show calibration banner for Janoschtest
+    // Detect device type for calibration
+    const _ua=navigator.userAgent;
+    const _isIPad=/iPad/.test(_ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const _isIPhone=/iPhone/.test(_ua);
+    const _isAndroid=/Android/.test(_ua)&&/Mobile/.test(_ua);
+    const _deviceType=_isIPad?'iPad':_isIPhone?'iPhone':_isAndroid?'Android Handy':'Desktop';
+    const _deviceIcon=_isIPad?'📱':_isIPhone?'📱':_isAndroid?'🤖':'🖥️';
+
     if (_isRef) setTimeout(() => {
       document.getElementById('ref-banner')?.remove();
       const b = document.createElement('div');
       b.id='ref-banner';
       b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;padding:8px 16px;text-align:center;font-family:"Fredoka One",cursive;font-size:.88rem;box-shadow:0 2px 8px rgba(0,0,0,.3)';
-      b.innerHTML='🔬 KALIBRIERUNGS-MODUS — Spieler: Janoschtest · Deine Ergebnisse kalibrieren die MT-Belohnungen · Nicht in Rangliste <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:white;padding:1px 7px;border-radius:4px;cursor:pointer;margin-left:8px">✕</button>';
+      b.innerHTML='🔬 KALIBRIERUNGS-MODUS — Spieler: Janoschtest · '+_deviceIcon+' '+_deviceType+' · Nicht in Rangliste <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:white;padding:1px 7px;border-radius:4px;cursor:pointer;margin-left:8px">✕</button>';
       document.body.prepend(b);
     }, 600);
     const ch = this._char(player);
@@ -912,6 +921,11 @@ const App = {
         case 'simon':       SimonGame.start({ worldId, onComplete }); break;
         case 'truefalse':   TrueFalseGame.start({ worldId, onComplete }); break;
         case 'dart':        DartGame.start({ onComplete }); break;
+        case 'pacman':      PacmanGame.start({ onComplete }); break;
+        case 'starwars':    StarWarsGame.start({ onComplete }); break;
+        case 'pong':        PongGame.start({ onComplete }); break;
+        case 'tetris':      TetrisGame.start({ onComplete }); break;
+        case 'stunt':       StuntGame.start({ onComplete }); break;
         case 'anagram':     AnagramGame.start({ worldId, onComplete }); break;
         case 'colormix':    ColorMixGame.start({ onComplete }); break;
         case 'clock':       ClockGame.start({ ageGroup, onComplete }); break;
@@ -950,9 +964,17 @@ const App = {
   },
 
   async _showTaskComplete(worldId, taskIndex, result, wasJoker=false) {
-    const player = await State.refreshCurrentPlayer();
+    let player;
+    try {
+      player = await Promise.race([
+        State.refreshCurrentPlayer(),
+        new Promise(r => setTimeout(() => r(State.currentPlayer), 2000))
+      ]);
+    } catch(e) { player = State.currentPlayer; }
+    if (!player) { this.showWorldMap(); return; }
     const world  = WORLDS.find(w=>w.id===worldId);
-    const allDone = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {})?.tasks.every(t=>t&&t.done);
+    const ws = player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {};
+    const allDone = (ws.tasks||[]).filter(t=>t&&t.done).length >= (world?.tasks?.length||20);
     const finalScore = wasJoker ? 0 : State.calcFinalScore(result);
     // Calculate MT earned for display
     const mtEarned = wasJoker ? 0 : (result.passed !== false ? 
