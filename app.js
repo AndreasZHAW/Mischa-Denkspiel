@@ -1173,7 +1173,7 @@ function worldPathSVG(worldId, doneCount, charEmoji, worldIcon) {
 function getTaskInstruction(type, worldId) {
   const ICONS = {
     math:'🔢', reaction:'⚡', memory:'🧠', train:'🚂', shutthebox:'🎲',
-    jenga:'🗼', slider:'🧩', wordsearch:'🔤', typing:'⌨️', balloon:'🎈',
+    jenga:'🏎️', stunt:'🏎️', slider:'🧩', wordsearch:'🔤', typing:'⌨️', balloon:'🎈',
     simon:'🎨', truefalse:'❓', dart:'🎯', anagram:'🔤', colormix:'🎨',
     clock:'🕐', flags:'🌍', hangman:'🎯', tictactoe:'❌', weight:'⚖️',
     basketball:'🏀', emojistory:'📖', geo:'🗺️', french:'🇫🇷', riddle:'🤔',
@@ -1184,7 +1184,8 @@ function getTaskInstruction(type, worldId) {
     memory:      '🧠 <b>Memory!</b><br>Finde alle 5 Kartenpaare. Tippe zwei Karten auf — passen sie? Weniger Versuche = mehr Punkte!',
     train:       '🚂 <b>Zugweichen!</b><br>Lenke den Zug bei jeder Weiche nach <b>Links ◀</b> oder <b>Rechts ▶</b>. Nur eine Seite führt zum Ziel!',
     shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und schliesse Zahlen die zusammen die Würfelsumme ergeben. Ziel: alle 9 Felder schliessen! Falsche Auswahl kostet Punkte.',
-    jenga:       '🗼 <b>Jenga-Turm!</b><br>Beantworte 10 Fragen. Jede falsche Antwort = ein Stein fällt. Verhindere den Einsturz des Turms!',
+    jenga:       '🏎️ <b>Race!</b><br>Fahre 1 km so schnell wie möglich!<br><br>📱 <b>Mobile:</b> Vorwärts / Rückwärts Buttons<br>🖥️ <b>Desktop Tasten:</b><br>→ Rechts = Gas geben<br>← Links = Bremsen / Rückwärts<br>↑ Oben = Drehen im Uhrzeigersinn<br>↓ Unten = Drehen gegen Uhrzeigersinn<br><br>🌄 Springe über Hügel — aber lande sicher! Überschlag = Ende.',
+    stunt:       '🏎️ <b>Race!</b><br>Fahre 1 km so schnell wie möglich!<br><br>📱 <b>Mobile:</b> Vorwärts / Rückwärts Buttons<br>🖥️ <b>Desktop Tasten:</b><br>→ Rechts = Gas geben<br>← Links = Bremsen / Rückwärts<br>↑ Oben = Drehen im Uhrzeigersinn<br>↓ Unten = Drehen gegen Uhrzeigersinn<br><br>🌄 Springe über Hügel — lande sicher! Überschlag = Ende.',
     slider:      '🧩 <b>Schiebepuzzle!</b><br>Tippe auf ein Feld neben dem leeren Feld um es zu verschieben. Bringe alle Felder in die richtige Reihenfolge! Grüne Felder = schon richtig ✅',
     wordsearch:  '🔤 <b>Wörter suchen!</b><br>Finde alle 5 Wörter im Buchstaben-Raster. <b>Wische</b> von Buchstabe zu Buchstabe um ein Wort zu markieren.',
     typing:      '⌨️ <b>Tipp-Spiel!</b><br>Tippe die angezeigten Wörter so schnell und genau wie möglich. 10 Wörter — Geschwindigkeit und Genauigkeit zählen!',

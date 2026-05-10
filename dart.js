@@ -57,6 +57,57 @@ const DartGame = {
     }, 33);
   },
 
+  _show180() {
+    // 🎉 ONE HUNDRED AND EIGHTY! 🎉
+    // Play sound using Web Audio
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      // Fanfare: ascending triumphant notes
+      const notes = [
+        [440,0,0.1],[550,0.1,0.1],[660,0.2,0.1],[880,0.3,0.15],
+        [660,0.5,0.05],[880,0.56,0.05],[1100,0.62,0.3]
+      ];
+      notes.forEach(([freq,start,dur])=>{
+        const o=ctx.createOscillator();const g=ctx.createGain();
+        o.type='square';o.frequency.setValueAtTime(freq,ctx.currentTime+start);
+        g.gain.setValueAtTime(0,ctx.currentTime+start);
+        g.gain.linearRampToValueAtTime(0.15,ctx.currentTime+start+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);
+        o.connect(g);g.connect(ctx.destination);
+        o.start(ctx.currentTime+start);o.stop(ctx.currentTime+start+dur+0.05);
+      });
+    } catch(e){}
+
+    // Speech synthesis "ONE HUNDRED AND EIGHTY!"
+    try {
+      const u = new SpeechSynthesisUtterance('ONE HUNDRED AND EIGHTY!');
+      u.rate = 1.1; u.pitch = 0.8; u.volume = 1;
+      // Try to find a male UK voice
+      const voices = speechSynthesis.getVoices();
+      const uk = voices.find(v=>v.lang.includes('en-GB'))||voices.find(v=>v.lang.includes('en'));
+      if(uk) u.voice = uk;
+      speechSynthesis.speak(u);
+    } catch(e){}
+
+    // Visual animation overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,0,0,.3)';
+    overlay.innerHTML = `
+      <div style="text-align:center;animation:pop180 0.4s ease">
+        <div style="font-size:5rem;animation:spin180 1s linear infinite">🎯</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:3rem;color:#FFD700;text-shadow:0 0 30px #FFD700,0 0 60px #FF6600;letter-spacing:2px">180!</div>
+        <div style="font-size:1.1rem;color:#fff;font-weight:900;letter-spacing:4px;margin-top:6px">ONE HUNDRED AND EIGHTY!</div>
+      </div>`;
+    // Add keyframe animations
+    if(!document.getElementById('dart180css')){
+      const st=document.createElement('style');st.id='dart180css';
+      st.textContent='@keyframes pop180{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.15) rotate(3deg)}100%{transform:scale(1)}}@keyframes spin180{to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+    document.body.appendChild(overlay);
+    setTimeout(()=>overlay.remove(), 2800);
+  },
+
   _newWind() {
     const angle = Math.random() * 360;
     const strength = Math.random() * 3.5;
@@ -463,6 +514,13 @@ const DartGame = {
     }
 
     if (c.dartsThisRound >= 3) {
+      // Check for 180! (3 treble-20s = 60+60+60 = 180 pts off score)
+      if (who === 'player') {
+        const roundPts = c.player.roundDarts.slice(-3).reduce((s,d)=>s+(d.pts||0),0);
+        if (roundPts === 180) {
+          this._show180();
+        }
+      }
       c.dartsThisRound = 0;
       // Keep last round's darts visible (stored in prevRoundDarts)
       c.player.prevRoundDarts = [...(c.player.roundDarts||[])];

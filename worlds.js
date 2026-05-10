@@ -121,7 +121,7 @@ const WORLD_DEFS = [
     {id:'slider',     type:'slider',     name:'Schiebepuzzle', icon:'🧩', title:'Puzzle lösen'},
     {id:'typing',     type:'tetris',     name:'Tippen',        icon:'🟩', title:'Schnell tippen'},
     {id:'balloon',    type:'balloon',    name:'Ballon',        icon:'🎈', title:'Ballons poppen'},
-    {id:'jenga',      type:'stunt',      name:'Jenga',         icon:'🚗', title:'Jenga spielen'},
+    {id:'jenga',      type:'stunt',      name:'Race',          icon:'🏎️', title:'Race — 1km Rennen'},
     {id:'simon2',     type:'pacman',      name:'Pac-Man',      icon:'🟡', title:'Pac-Man'},
     {id:'math2',      type:'math',       name:'Rechnen II',    icon:'➕', title:'Mathe Schwer'},
     {id:'memory2',    type:'starwars',     name:'Star Wars',     icon:'🚀', title:'Sterne abschießen'},

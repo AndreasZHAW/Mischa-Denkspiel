@@ -7,15 +7,21 @@ const StuntGame = {
 
     el.innerHTML = `
     <div style="text-align:center">
-      <div style="background:linear-gradient(135deg,#1a1a2e,#0d0d1a);border-radius:12px;padding:12px;margin-bottom:8px;text-align:left;font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.6">
-        🏁 <b style="color:#FFD700">Ziel:</b> Fahre 1 km so schnell wie möglich!<br>
-        🚗 <b>Vorwärts/Rückwärts</b> = Taste halten zum Beschleunigen<br>
-        🌄 Springe über Hügel — aber lande sicher! Überschlag = Ende
-      </div>
+
       <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;max-width:100%;display:block;margin:0 auto"></canvas>
-      <div style="display:flex;justify-content:center;gap:12px;margin-top:8px">
-        <button id="st-back" style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">◀ Rückwärts</button>
-        <button id="st-fwd" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">Vorwärts ▶</button>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:8px;max-width:340px;margin-left:auto;margin-right:auto">
+        <!-- Left: rotate buttons -->
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button id="st-rotup" style="background:linear-gradient(135deg,#9B59B6,#8E44AD);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">↻ Drehen</button>
+          <button id="st-rotdn" style="background:linear-gradient(135deg,#8E44AD,#6C3483);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">↺ Drehen</button>
+        </div>
+        <!-- Center label -->
+        <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-align:center;line-height:1.4">↻↺<br>drehen</div>
+        <!-- Right: gas/brake -->
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button id="st-fwd" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">▶ Gas</button>
+          <button id="st-back" style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">◀ Bremse</button>
+        </div>
       </div>
     </div>`;
 
@@ -60,9 +66,24 @@ const StuntGame = {
     const setBack=(v)=>{backHeld=v;};
     document.getElementById('st-fwd').addEventListener('pointerdown',e=>{e.preventDefault();setFwd(true);});
     document.getElementById('st-back').addEventListener('pointerdown',e=>{e.preventDefault();setBack(true);});
+    const stRotUp=document.getElementById('st-rotup');
+    const stRotDn=document.getElementById('st-rotdn');
+    if(stRotUp){stRotUp.addEventListener('pointerdown',e=>{e.preventDefault();rotUpHeld=true;});stRotUp.addEventListener('pointerup',()=>rotUpHeld=false);}
+    if(stRotDn){stRotDn.addEventListener('pointerdown',e=>{e.preventDefault();rotDnHeld=true;});stRotDn.addEventListener('pointerup',()=>rotDnHeld=false);}
     document.addEventListener('pointerup',()=>{setFwd(false);setBack(false);});
-    const onKey=e=>{if(e.key==='ArrowRight')setFwd(true);else if(e.key==='ArrowLeft')setBack(true);};
-    const onKeyUp=e=>{if(e.key==='ArrowRight')setFwd(false);else if(e.key==='ArrowLeft')setBack(false);};
+    let rotUpHeld=false, rotDnHeld=false;
+    const onKey=e=>{
+      if(e.key==='ArrowRight') setFwd(true);   // Gas
+      else if(e.key==='ArrowLeft') setBack(true); // Bremsen
+      else if(e.key==='ArrowUp') rotUpHeld=true;  // Drehen Uhrzeigersinn
+      else if(e.key==='ArrowDown') rotDnHeld=true; // Drehen gegen Uhrzeigersinn
+    };
+    const onKeyUp=e=>{
+      if(e.key==='ArrowRight') setFwd(false);
+      else if(e.key==='ArrowLeft') setBack(false);
+      else if(e.key==='ArrowUp') rotUpHeld=false;
+      else if(e.key==='ArrowDown') rotDnHeld=false;
+    };
     window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKeyUp);
 
     const end=(won)=>{
@@ -103,6 +124,8 @@ const StuntGame = {
         // Air rotation from buttons
         if(fwdHeld) car.av -= 0.04;
         if(backHeld) car.av += 0.04;
+        if(rotUpHeld) car.av += 0.06;
+        if(rotDnHeld) car.av -= 0.06;
         car.av *= 0.95;
       }
       car.angle += car.av;
