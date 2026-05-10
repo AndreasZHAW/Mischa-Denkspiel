@@ -721,24 +721,112 @@ const App = {
     try { player = await Promise.race([State.refreshCurrentPlayer(), new Promise(r=>setTimeout(()=>r(State.currentPlayer),2000))]); }
     catch(e) { player = State.currentPlayer; }
     if (!player) { this.showWorldMap(); return; }
-    const ws = player.worlds?.[1] || player.worlds?.['1'] || {tasks:[]};
+
+    const ws = player.worlds?.[1] || player.worlds?.['1'] || {};
+    const tasks = ws.tasks || [];
     const gl = window.GAME_LIST || [];
     const ua = navigator.userAgent;
     const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    const deviceLabel = isIPad?'iPad':/iPhone/.test(ua)?'iPhone':/Android/.test(ua)&&/Mobile/.test(ua)?'Android':'Desktop';
+    const deviceLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+    const deviceName = {ipad:'iPad',iphone:'iPhone',android:'Android',desktop:'Desktop'}[deviceLabel];
     const isRef = player.name.toLowerCase()==='janoschtest';
-    let allP = {}; try { allP = JSON.parse(localStorage.getItem('mischa_players')||'{}'); } catch(e){}
+
+    // Get calibration data per device
+    let calData = {};
+    try { calData = JSON.parse(localStorage.getItem('janosch_cal_v2')||'{}'); } catch(e){}
+
+    // All players for comparison
+    let allP = {};
+    try { allP = JSON.parse(localStorage.getItem('mischa_players')||'{}'); } catch(e){}
+
     const rows = gl.map((game,i) => {
-      const task = ws.tasks?.[i];
-      const myScore = task?.score||0;
-      const plays = task?.plays||(task?.done?1:0);
-      const others = Object.values(allP).filter(p=>p.name?.toLowerCase()!==player.name?.toLowerCase()&&!['janoschtest','bu'].includes(p.name?.toLowerCase())).map(p=>{const t=(p.worlds?.[1]||p.worlds?.['1']||{}).tasks?.[i];return t?.score||0;}).filter(s=>s>0).sort((a,b)=>b-a);
-      const avg = others.length?Math.round(others.reduce((s,x)=>s+x,0)/others.length):null;
+      const task = tasks[i];
+      const myScore = task?.score || 0;
+      const myMt = task?.mt || 0;
+      const plays = task?.plays || (task?.done ? 1 : 0);
+
+      // Other players' scores
+      const others = Object.values(allP)
+        .filter(p => p.name?.toLowerCase()!==player.name?.toLowerCase() && !['janoschtest','bu'].includes(p.name?.toLowerCase()))
+        .map(p => { const t=(p.worlds?.[1]||p.worlds?.['1']||{}).tasks?.[i]; return t?.score||0; })
+        .filter(s=>s>0).sort((a,b)=>b-a);
+      const avg = others.length ? Math.round(others.reduce((s,x)=>s+x,0)/others.length) : null;
       const rank = others.filter(s=>s>myScore).length+1;
-      const better = avg!==null&&myScore>0&&myScore>avg;
-      return `<tr style="border-bottom:1px solid rgba(255,255,255,.06)"><td style="padding:5px 6px;font-size:.78rem">${game.icon} ${game.name}</td><td style="padding:5px 6px;text-align:center;color:${myScore>0?'#FFD700':'#555'};font-weight:700">${myScore||'—'}</td><td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.76rem">${avg!==null?avg:'—'}</td><td style="padding:5px 6px;text-align:center;font-size:.76rem">${myScore>0&&others.length?`<span style="color:${better?'#27AE60':'#E74C3C'}">#${rank}${better?' ✅':' ⚠️'}</span>`:'—'}</td><td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.72rem">${plays||'—'}</td></tr>`;
+      const better = avg!==null && myScore>0 && myScore>avg;
+
+      // Device calibration columns (only for Janoschtest)
+      const devScores = isRef ? {
+        desktop: calData.desktop?.[i] || null,
+        ipad: calData.ipad?.[i] || null,
+        iphone: calData.iphone?.[i] || null,
+        android: calData.android?.[i] || null,
+      } : null;
+
+      if(isRef) {
+        // Save current score to device calibration
+        if(myScore > 0 && !calData[deviceLabel]) calData[deviceLabel] = {};
+        if(myScore > 0) {
+          if(!calData[deviceLabel]) calData[deviceLabel] = {};
+          calData[deviceLabel][i] = myScore;
+        }
+      }
+
+      return {game, myScore, myMt, plays, avg, rank, better, others, devScores};
+    });
+
+    // Save updated calibration
+    if(isRef) {
+      try { localStorage.setItem('janosch_cal_v2', JSON.stringify(calData)); } catch(e){}
+    }
+
+    const refCols = isRef ? `
+      <th style="padding:4px 6px;text-align:center;font-size:.65rem">🖥️</th>
+      <th style="padding:4px 6px;text-align:center;font-size:.65rem">📱iPad</th>
+      <th style="padding:4px 6px;text-align:center;font-size:.65rem">📱iPhone</th>
+      <th style="padding:4px 6px;text-align:center;font-size:.65rem">🤖Droid</th>` : '';
+
+    const tableRows = rows.map((r,i) => {
+      const ds = r.devScores;
+      const devCells = isRef ? `
+        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.desktop?'#FFD700':'#444'}">${ds?.desktop||'—'}</td>
+        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.ipad?'#29B6F6':'#444'}">${ds?.ipad||'—'}</td>
+        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.iphone?'#27AE60':'#444'}">${ds?.iphone||'—'}</td>
+        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.android?'#E67E22':'#444'}">${ds?.android||'—'}</td>` : '';
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+        <td style="padding:5px 6px;font-size:.78rem">${r.game.icon} ${r.game.name}</td>
+        <td style="padding:5px 6px;text-align:center;color:${r.myScore>0?'#FFD700':'#555'};font-weight:700">${r.myScore||'—'}</td>
+        <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.74rem">${r.avg!==null?r.avg:'—'}</td>
+        <td style="padding:5px 6px;text-align:center;font-size:.74rem">${r.myScore>0&&r.others.length?`<span style="color:${r.better?'#27AE60':'#E74C3C'}">#${r.rank}${r.better?' ✅':' ⚠️'}</span>`:'—'}</td>
+        ${devCells}
+      </tr>`;
     }).join('');
-    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page" style="padding-top:10px"><div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px;font-size:.85rem">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1.1rem;margin:0">📊 Kontoauszug</h2><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${deviceLabel}${isRef?' · 🔬':''}</div></div>${isRef?'<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:6px 10px;margin-bottom:10px;font-size:.72rem;color:#E74C3C">🔬 Kalibrierungs-Modus · Gerät: <b>'+deviceLabel+'</b></div>':''}<div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px">Deine Scores vs. andere Spieler</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;min-width:300px"><thead><tr style="border-bottom:2px solid rgba(41,182,246,.25);color:rgba(255,255,255,.4)"><th style="padding:5px 6px;text-align:left">Spiel</th><th style="padding:5px 6px;text-align:center">Mein</th><th style="padding:5px 6px;text-align:center">Ø Andere</th><th style="padding:5px 6px;text-align:center">Rang</th><th style="padding:5px 6px;text-align:center">Mal</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`);
+
+    this._html(`
+      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
+      <div class="page" style="padding-top:10px">
+        <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:.82rem">← Zurück</button>
+            <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1rem;margin:0">📊 Kontoauszug</h2>
+            <div style="font-size:.66rem;color:rgba(255,255,255,.4)">${deviceName}${isRef?' · 🔬':''}</div>
+          </div>
+          ${isRef?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:.7rem;color:#E74C3C">🔬 Kalibrierung · Gerät: <b>${deviceName}</b> · Scores werden gespeichert</div>`:''}
+          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+            <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+              <thead>
+                <tr style="border-bottom:2px solid rgba(41,182,246,.2);color:rgba(255,255,255,.4)">
+                  <th style="padding:4px 6px;text-align:left">Spiel</th>
+                  <th style="padding:4px 6px;text-align:center">Score</th>
+                  <th style="padding:4px 6px;text-align:center">Ø</th>
+                  <th style="padding:4px 6px;text-align:center">Rang</th>
+                  ${refCols}
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>`);
   },
 
   // ---- GELDBEUTEL ----

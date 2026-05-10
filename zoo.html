@@ -3816,31 +3816,39 @@ const ZAdmin = {
     this.giveSpins(n); 
   },
   giveSpins(overrideAmount){
-    // Get target from text input OR from selected player
+    // Get target: first check text input, then selected player
     const targetInput=document.getElementById('padmin-spins-target');
-    const targetName=(targetInput?.value?.trim()||this.target?.name||'').toLowerCase();
-    if(!targetName){ZP.toast('❗ Spielername eingeben!',1500);return;}
-    const amount=overrideAmount||parseInt(document.getElementById('padmin-spins-amount')?.value||'1')||1;
-    // Method 1: Firebase (if available)
+    const typedName=(targetInput?.value||'').trim();
+    const targetName=(typedName||this.target?.name||'').toLowerCase();
+    if(!targetName){ZP.toast('❗ Spielernamen ins Textfeld eingeben!',2500);return;}
+    const amount=parseInt(overrideAmount)||parseInt(document.getElementById('padmin-spins-amount')?.value||'1')||1;
+    
+    // Send via all available methods
+    let sent=false;
+    
+    // Firebase
     try{if(typeof _db!=='undefined'&&_db){
-      _db.collection('zoo_events').add({
-        type:'admin_give_spins',target:targetName,
-        amount,from:ZS.player,at:Date.now()
-      }).catch(()=>{});
+      _db.collection('zoo_events').add({type:'admin_give_spins',target:targetName,amount,from:ZS.player||'admin',at:Date.now()}).catch(()=>{});
+      sent=true;
     }}catch(e){}
-    // Method 2: localStorage direct (for offline / same device)
+    
+    // localStorage command (works on same device)
     try{
-      const cmd={type:'give_spins',target:targetName,amount,id:Date.now().toString(),exp:Date.now()+300000};
+      const cmd={type:'give_spins',target:targetName,amount,id:Date.now().toString(),exp:Date.now()+600000};
       localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));
+      sent=true;
     }catch(e){}
-    // Method 3: If target is current player on this device, give directly
+    
+    // Direct if same player
     if(targetName===ZS.player?.toLowerCase()){
       LW.spins=(LW.spins||0)+amount;
       const sp=G('lwspins');if(sp)sp.textContent=LW.spins;
-      ZP.toast('🎰 Du bekommst '+amount+' Spin(s)!',2000);
+      ZP.toast('🎰 Dir wurden '+amount+' Spin(s) gegeben!',2500);
     } else {
-      ZP.toast('🎰 '+this.target.name+' bekommt '+amount+' Spin(s)!',2000);
+      ZP.toast('🎰 '+(typedName||this.target?.name||targetName)+' bekommt '+amount+' Spin(s)! Gesendet: '+(sent?'✅':'❌'),2500);
     }
+    // Clear input
+    if(targetInput) targetInput.value='';
   },
 
   guaranteeSpin(){

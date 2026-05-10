@@ -20,8 +20,10 @@ const StarWarsGame = {
     for(let i=0;i<80;i++) stars_bg.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*2+0.5});
     // Spawn wave
     const spawnWave=()=>{
-      for(let r=0;r<3;r++) for(let c=0;c<8;c++)
-        enemies.push({x:40+c*42,y:30+r*36,w:24,h:20,hp:1+(r===2?1:0),dx:1.2*wave,dy:0.3,type:r});
+      const rows=Math.min(4,2+Math.floor(wave/2)); // more rows later
+      const cols=Math.min(10,7+wave);
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
+        enemies.push({x:30+c*36,y:25+r*34,w:24,h:20,hp:1+(r>=2?1:0)+(wave>3?1:0),dx:1.5*wave,dy:0.35,type:r%3});
     };
     spawnWave();
     // Controls
@@ -54,7 +56,7 @@ const StarWarsGame = {
       bullets=bullets.filter(b=>{b.y+=b.dy;return b.y>0&&b.y<H;});
       // Enemy fire
       efTick++;
-      if(efTick>60&&enemies.length){efTick=0;const e=enemies[Math.floor(Math.random()*enemies.length)];bullets.push({x:e.x,y:e.y+10,dy:4,enemy:true});}
+      if(efTick>Math.max(20,60-wave*8)&&enemies.length){efTick=0;const e=enemies[Math.floor(Math.random()*enemies.length)];bullets.push({x:e.x,y:e.y+10,dy:4,enemy:true});}
       // Move enemies
       let edgeHit=false;
       enemies.forEach(e=>{e.x+=e.dx;e.y+=e.dy*0.3;if(e.x<20||e.x>W-20)edgeHit=true;});
