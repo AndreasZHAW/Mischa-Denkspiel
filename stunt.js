@@ -122,8 +122,7 @@ const StuntGame = {
         car.onGround = false;
         car.airTime++;
         // Air rotation from buttons
-        if(fwdHeld) car.av -= 0.04;
-        if(backHeld) car.av += 0.04;
+        // In air: only rotation buttons work
         if(rotUpHeld) car.av += 0.06;
         if(rotDnHeld) car.av -= 0.06;
         car.av *= 0.95;

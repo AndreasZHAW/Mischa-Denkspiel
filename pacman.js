@@ -149,16 +149,27 @@ const PacmanGame = {
       frameN++;
 
       // Move pacman
-      subX+=(curDx||0)*SPEED; subY+=(curDy||0)*SPEED;
-      if(Math.abs(subX)>=1||Math.abs(subY)>=1){
-        const nx=px+Math.sign(subX||curDx), ny=py+Math.sign(subY||curDy);
-        if(can(nx,ny)){px=nx;py=ny;subX=0;subY=0;}
-        else{subX=0;subY=0;}
-        const c=maze[py][px];
-        if(c===0){maze[py][px]=3;score+=10;eaten++;}
-        else if(c===2){maze[py][px]=3;score+=50;eaten++;powered=80;ghosts.forEach(g=>g.scared=true);}
+      // Try to switch to wanted direction first
+      if(can(px+wantDx,py+wantDy)){curDx=wantDx;curDy=wantDy;}
+      // Only move if path is clear
+      if(curDx!==0||curDy!==0){
+        if(!can(px+curDx,py+curDy)){
+          // Wall ahead: STOP immediately, don't slide
+          curDx=0;curDy=0;subX=0;subY=0;
+        } else {
+          subX+=curDx*SPEED; subY+=curDy*SPEED;
+          if(Math.abs(subX)>=1||Math.abs(subY)>=1){
+            px+=curDx; py+=curDy;
+            // Clamp to maze bounds
+            px=Math.max(0,Math.min(COLS-1,px));
+            py=Math.max(0,Math.min(ROWS-1,py));
+            subX=0;subY=0;
+            const c=maze[py][px];
+            if(c===0){maze[py][px]=3;score+=10;eaten++;}
+            else if(c===2){maze[py][px]=3;score+=50;eaten++;powered=80;ghosts.forEach(g=>g.scared=true);}
+          }
+        }
       }
-      if(Math.abs(subX)<0.05&&Math.abs(subY)<0.05&&can(px+wantDx,py+wantDy)){curDx=wantDx;curDy=wantDy;}
 
       if(frameN%15===0) ghosts.forEach(g=>moveGhost(g));
       if(powered>0){powered--;if(powered===0)ghosts.forEach(g=>g.scared=false);}
@@ -198,7 +209,9 @@ const PacmanGame = {
           ctx.beginPath();ctx.arc(g.x*CELL+CELL/2+4,g.y*CELL+CELL/2-2,3,0,Math.PI*2);ctx.fill();
         }
       });
-      const dx=(px+subX)*CELL+CELL/2, dy=(py+subY)*CELL+CELL/2;
+      const rawDX=(px+subX)*CELL+CELL/2, rawDY=(py+subY)*CELL+CELL/2;
+      const dx=Math.max(CELL/2,Math.min(W-CELL/2,rawDX));
+      const dy=Math.max(CELL/2,Math.min(H-CELL/2,rawDY));
       const ma=Math.abs(Math.sin(frameN*0.2))*0.4, fa=Math.atan2(curDy,curDx);
       ctx.fillStyle='#FFD700';ctx.beginPath();
       ctx.moveTo(dx,dy);ctx.arc(dx,dy,CELL/2-2,fa+ma,fa+Math.PI*2-ma);ctx.closePath();ctx.fill();

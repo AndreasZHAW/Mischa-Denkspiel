@@ -715,6 +715,50 @@ const App = {
       </div>`);
   },
 
+  // ---- KONTOAUSZUG ----
+  async showKontoauszug() {
+    let player;
+    try { player = await Promise.race([State.refreshCurrentPlayer(), new Promise(r=>setTimeout(()=>r(State.currentPlayer),2000))]); }
+    catch(e) { player = State.currentPlayer; }
+    if (!player) { this.showWorldMap(); return; }
+    const ws = player.worlds?.[1] || player.worlds?.['1'] || {tasks:[]};
+    const gl = window.GAME_LIST || [];
+    const ua = navigator.userAgent;
+    const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const deviceLabel = isIPad?'iPad':/iPhone/.test(ua)?'iPhone':/Android/.test(ua)&&/Mobile/.test(ua)?'Android':'Desktop';
+    const isRef = player.name.toLowerCase()==='janoschtest';
+    let allP = {}; try { allP = JSON.parse(localStorage.getItem('mischa_players')||'{}'); } catch(e){}
+    const rows = gl.map((game,i) => {
+      const task = ws.tasks?.[i];
+      const myScore = task?.score||0;
+      const plays = task?.plays||(task?.done?1:0);
+      const others = Object.values(allP).filter(p=>p.name?.toLowerCase()!==player.name?.toLowerCase()&&!['janoschtest','bu'].includes(p.name?.toLowerCase())).map(p=>{const t=(p.worlds?.[1]||p.worlds?.['1']||{}).tasks?.[i];return t?.score||0;}).filter(s=>s>0).sort((a,b)=>b-a);
+      const avg = others.length?Math.round(others.reduce((s,x)=>s+x,0)/others.length):null;
+      const rank = others.filter(s=>s>myScore).length+1;
+      const better = avg!==null&&myScore>0&&myScore>avg;
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,.06)"><td style="padding:5px 6px;font-size:.78rem">${game.icon} ${game.name}</td><td style="padding:5px 6px;text-align:center;color:${myScore>0?'#FFD700':'#555'};font-weight:700">${myScore||'—'}</td><td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.76rem">${avg!==null?avg:'—'}</td><td style="padding:5px 6px;text-align:center;font-size:.76rem">${myScore>0&&others.length?`<span style="color:${better?'#27AE60':'#E74C3C'}">#${rank}${better?' ✅':' ⚠️'}</span>`:'—'}</td><td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.72rem">${plays||'—'}</td></tr>`;
+    }).join('');
+    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page" style="padding-top:10px"><div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px;font-size:.85rem">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1.1rem;margin:0">📊 Kontoauszug</h2><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${deviceLabel}${isRef?' · 🔬':''}</div></div>${isRef?'<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:6px 10px;margin-bottom:10px;font-size:.72rem;color:#E74C3C">🔬 Kalibrierungs-Modus · Gerät: <b>'+deviceLabel+'</b></div>':''}<div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px">Deine Scores vs. andere Spieler</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;min-width:300px"><thead><tr style="border-bottom:2px solid rgba(41,182,246,.25);color:rgba(255,255,255,.4)"><th style="padding:5px 6px;text-align:left">Spiel</th><th style="padding:5px 6px;text-align:center">Mein</th><th style="padding:5px 6px;text-align:center">Ø Andere</th><th style="padding:5px 6px;text-align:center">Rang</th><th style="padding:5px 6px;text-align:center">Mal</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`);
+  },
+
+  // ---- GELDBEUTEL ----
+  showGeldbeutel() {
+    const player = State.currentPlayer;
+    if (!player) return;
+    const ws = player.worlds?.[1] || player.worlds?.['1'] || {tasks: Array(20).fill(null)};
+    const gl = window.GAME_LIST || [];
+    const rows = gl.map((game, i) => {
+      const task = ws.tasks?.[i];
+      const mt = task?.mt || 0;
+      const score = task?.score || '—';
+      const plays = task?.plays || (task?.done ? 1 : 0);
+      return {game, mt, score, plays, done: task?.done||false};
+    }).sort((a,b) => b.mt - a.mt);
+    const totalMT = rows.reduce((s,r)=>s+r.mt,0);
+    const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:.82rem">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:.8rem">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:.75rem">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
+    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:.75rem;color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
+  },
+
   // ---- WORLD VIEW ----
   async showWorld(worldId) {
     this._loading('Welt laden...');
@@ -1176,38 +1220,42 @@ function getTaskInstruction(type, worldId) {
     jenga:'🏎️', stunt:'🏎️', slider:'🧩', wordsearch:'🔤', typing:'⌨️', balloon:'🎈',
     simon:'🎨', truefalse:'❓', dart:'🎯', anagram:'🔤', colormix:'🎨',
     clock:'🕐', flags:'🌍', hangman:'🎯', tictactoe:'❌', weight:'⚖️',
-    basketball:'🏀', emojistory:'📖', geo:'🗺️', french:'🇫🇷', riddle:'🤔',
-  };
-  const map = {
-    math:        '🔢 <b>Rechenaufgabe!</b><br>Löse 10 Aufgaben. Schnelle & fehlerfreie Antworten geben mehr Punkte!',
-    reaction:    '⚡ <b>Reaktionsspiel!</b><br>🟢 <b>Grün = TIPPEN</b> &nbsp;|&nbsp; 🔴 <b>Rot = NICHTS TUN</b>. Sei blitzschnell!',
-    memory:      '🧠 <b>Memory!</b><br>Finde alle 5 Kartenpaare. Tippe zwei Karten auf — passen sie? Weniger Versuche = mehr Punkte!',
-    train:       '🚂 <b>Zugweichen!</b><br>Lenke den Zug bei jeder Weiche nach <b>Links ◀</b> oder <b>Rechts ▶</b>. Nur eine Seite führt zum Ziel!',
-    shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und schliesse Zahlen die zusammen die Würfelsumme ergeben. Ziel: alle 9 Felder schliessen! Falsche Auswahl kostet Punkte.',
-    jenga:       '🏎️ <b>Race!</b><br>Fahre 1 km so schnell wie möglich!<br><br>📱 <b>Mobile:</b> Vorwärts / Rückwärts Buttons<br>🖥️ <b>Desktop Tasten:</b><br>→ Rechts = Gas geben<br>← Links = Bremsen / Rückwärts<br>↑ Oben = Drehen im Uhrzeigersinn<br>↓ Unten = Drehen gegen Uhrzeigersinn<br><br>🌄 Springe über Hügel — aber lande sicher! Überschlag = Ende.',
-    stunt:       '🏎️ <b>Race!</b><br>Fahre 1 km so schnell wie möglich!<br><br>📱 <b>Mobile:</b> Vorwärts / Rückwärts Buttons<br>🖥️ <b>Desktop Tasten:</b><br>→ Rechts = Gas geben<br>← Links = Bremsen / Rückwärts<br>↑ Oben = Drehen im Uhrzeigersinn<br>↓ Unten = Drehen gegen Uhrzeigersinn<br><br>🌄 Springe über Hügel — lande sicher! Überschlag = Ende.',
-    slider:      '🧩 <b>Schiebepuzzle!</b><br>Tippe auf ein Feld neben dem leeren Feld um es zu verschieben. Bringe alle Felder in die richtige Reihenfolge! Grüne Felder = schon richtig ✅',
-    wordsearch:  '🔤 <b>Wörter suchen!</b><br>Finde alle 5 Wörter im Buchstaben-Raster. <b>Wische</b> von Buchstabe zu Buchstabe um ein Wort zu markieren.',
-    typing:      '⌨️ <b>Tipp-Spiel!</b><br>Tippe die angezeigten Wörter so schnell und genau wie möglich. 10 Wörter — Geschwindigkeit und Genauigkeit zählen!',
-    balloon:     '🎈 <b>Ballon-Mathe!</b><br>Eine Rechenaufgabe erscheint — tippe auf den Ballon mit der richtigen Antwort! Falscher Ballon platzt rot.',
-    simon:       '🎨 <b>Simon Says!</b><br>Schau dir die Farb-Sequenz an und tippe die Farben in <b>der gleichen Reihenfolge</b> nach. Jede Runde wird die Sequenz länger!',
-    truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Lies die Aussage und entscheide schnell: <b>✅ Wahr</b> oder <b>❌ Falsch</b>? 10 Fragen zur aktuellen Welt!',
-    dart:        '🎯 <b>Dart mit Wind!</b><br>Tippe auf die Dartscheibe um zu werfen. Achte auf den Wind — er lenkt deinen Pfeil ab! Ziel: <b>400+ Punkte</b> in 10 Würfen.',
-    anagram:     '🔤 <b>Buchstaben sortieren!</b><br>Tippe die Buchstaben in der <b>richtigen Reihenfolge</b> an um das Wort zu bilden. Falscher Buchstabe = alles zurücksetzen!',
-    colormix:    '🎨 <b>Farben mischen!</b><br>Welche <b>zwei Farben</b> ergeben zusammen die gesuchte Farbe? Tippe auf beide richtigen Farbtöne!',
-    clock:       '🕐 <b>Uhr lesen!</b><br>Schau dir die analoge Uhr an und wähle die richtige Zeit. Achte auf <b>Stunden- und Minutenzeiger</b>!',
-    flags:       '🌍 <b>Flaggen raten!</b><br>Welches Land gehört zu dieser Flagge? 10 Flaggen aus der ganzen Welt!',
-    hangman:     '🎯 <b>Galgenmännchen!</b><br>Rate das versteckte Wort Buchstabe für Buchstabe. Du hast <b>6 Fehler</b> bevor das Männchen komplett ist!',
-    tictactoe:   '❌ <b>Tic-Tac-Toe!</b><br>Spiele 5 Runden gegen die KI. Du bist <b>❌</b>, die KI ist <b>⭕</b>. Drei in einer Reihe gewinnt!',
-    weight:      '⚖️ <b>Gewicht schätzen!</b><br>Was ist schwerer? Tippe auf die richtigere Antwort. Manchmal sind beide <b>gleich schwer</b>!',
-    basketball:  '🏀 <b>Basketball!</b><br>Tippe auf den Knopf wenn die Kraft-Anzeige im <b>grünen Bereich</b> ist. Zu viel oder zu wenig Kraft = kein Korb!',
-    emojistory:  '📖 <b>Emoji-Geschichte!</b><br>Was erzählen diese Emojis? Lies die Geschichte und wähle die richtige Antwort!',
-    geo:         '🗺️ <b>Geo-Quiz!</b><br>Wo liegt das? Beweise dein Wissen über Frankreich, die Schweiz und Europa!',
-    french:      '🇫🇷 <b>Französisch lernen!</b><br>Was bedeutet dieses französische Wort auf Deutsch? Lerne die wichtigsten Wörter für den Frankreich-Urlaub!',
-    riddle:      '🤔 <b>Rätsel!</b><br>Denke nach! Was bin ich? Lies das Rätsel sorgfältig und wähle die klügste Antwort.',
+    basketball:'🏀', emojistory:'📖', geo:'🗺️', french:'🇫🇷', riddle:'🧩',
+    pacman:'🟡', starwars:'🚀', pong:'🏓', tetris:'🟩',
   };
   const icon = ICONS[type] || '🎮';
-  const instr = map[type] || 'Los geht\'s! Viel Spaß!';
+  const INSTRUCTIONS = {
+    dart:        '🎯 <b>Dart!</b><br>Wirf 3 Pfeile auf die Scheibe. Klicke oder tippe auf die Scheibe — je näher zur Mitte, desto mehr Punkte!<br>📱 Handy/Tablet: Das Steuerkreuz rechts neben der Scheibe zum Zielen nutzen, loslassen = Wurf.',
+    math:        '🔢 <b>Rechnen!</b><br>Löse Mathe-Aufgaben so schnell wie möglich. Tippe die richtige Antwort ein und bestätige mit Enter.',
+    reaction:    '⚡ <b>Reaktion!</b><br>Drücke den Knopf so schnell wie möglich, sobald das Signal erscheint. Warte auf grün!',
+    memory:      '🧠 <b>Memory!</b><br>Finde alle Paare! Drehe zwei Karten um — stimmen sie überein, bleiben sie offen.',
+    train:       '🚂 <b>Zug!</b><br>Lenke den Zug ans Ziel. Tippe auf die Weichen, um die Richtung zu ändern.',
+    shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und lege Zahlen um, deren Summe der Würfelzahl entspricht. Lege alle Zahlen um!',
+    jenga:       '🏎️ <b>Race — 1km Rennen!</b><br>Fahre 1 km so schnell wie möglich.<br>📱 Mobile: Gas / Bremse / Drehen-Buttons<br>🖥️ Desktop: → Gas · ← Bremse · ↑ Drehen CW · ↓ Drehen CCW<br>Springe über Hügel — Überschlag = Ende!',
+    stunt:       '🏎️ <b>Race — 1km Rennen!</b><br>Fahre 1 km so schnell wie möglich.<br>📱 Mobile: Gas / Bremse / Drehen-Buttons<br>🖥️ Desktop: → Gas · ← Bremse · ↑ Drehen CW · ↓ Drehen CCW<br>Springe über Hügel — Überschlag = Ende!',
+    slider:      '🧩 <b>Schiebepuzzle!</b><br>Schiebe die Teile, bis das Bild vollständig ist. Tippe auf ein Teil neben dem Leerfeld, um es zu verschieben.',
+    wordsearch:  '🔤 <b>Wortsuche!</b><br>Finde alle versteckten Wörter im Buchstabengitter. Wische über die Buchstaben.',
+    typing:      '🟩 <b>Tetris!</b><br>Bewege und drehe fallende Blöcke, um vollständige Reihen zu bilden.<br>📱 Mobile: Buttons zum Steuern<br>🖥️ Desktop: ← → bewegen · ↑ oder Leertaste drehen · ↓ schneller fallen lassen.',
+    balloon:     '🎈 <b>Ballon!</b><br>Halte den Ballon in der Luft — tippe/klicke rhythmisch, damit er nicht fällt.',
+    simon:       '🎨 <b>Simon!</b><br>Merke dir die Farbfolge und wiederhole sie. Wird nach jeder Runde länger.',
+    truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Beantworte Fragen mit Wahr oder Falsch. Tippe auf den richtigen Knopf.',
+    anagram:     '🔤 <b>Anagramm!</b><br>Ordne die durcheinander gewürfelten Buchstaben zum richtigen Wort.',
+    colormix:    '🎨 <b>Farben mischen!</b><br>Mische die richtigen Farben, um den gewünschten Farbton zu erreichen.',
+    clock:       '🕐 <b>Uhr!</b><br>Stelle die Uhrzeiger auf die angezeigte Zeit.',
+    flags:       '🌍 <b>Flaggen!</b><br>Erkenne die Flagge und wähle das richtige Land.',
+    hangman:     '🎯 <b>Hangman!</b><br>Errate das versteckte Wort Buchstabe für Buchstabe.',
+    tictactoe:   '❌ <b>Tic-Tac-Toe!</b><br>Setze 3 in einer Reihe gegen den Computer.',
+    weight:      '⚖️ <b>Gewichte!</b><br>Schätze welche Seite der Waage schwerer ist.',
+    basketball:  '🏀 <b>Basketball!</b><br>Wirf den Ball ins Korb — tippe auf den Knopf im richtigen Moment.',
+    emojistory:  '📖 <b>Emoji Story!</b><br>Errate die Geschichte oder den Film hinter den Emojis.',
+    geo:         '🗺️ <b>Geografie!</b><br>Zeige auf die richtige Position auf der Karte.',
+    french:      '🇫🇷 <b>Französisch!</b><br>Übersetze die Wörter von Deutsch nach Französisch.',
+    riddle:      '🧩 <b>Rätsel!</b><br>Löse das Rätsel und tippe deine Antwort ein.',
+    pacman:      '🟡 <b>Pac-Man!</b><br>Friss alle Punkte im Labyrinth! Vermeide die Geister — oder friss sie nach einem Power-Pellet (grosser Punkt).<br>📱 Mobile: 4 Richtungstasten oder Gerät neigen (Button oben)<br>🖥️ Desktop: Pfeiltasten',
+    starwars:    '🚀 <b>Star Wars — Weltraum-Shooter!</b><br>Schiesse die feindlichen Raumschiffe ab, bevor sie landen! Du hast 3 Leben.<br>📱 Mobile: ◀ ▶ zum Bewegen, Schiessen-Button<br>🖥️ Desktop: ← → bewegen, Leertaste schiessen',
+    pong:        '🏓 <b>Pong — Tennis-Klassiker!</b><br>Der Ball wird mit der Zeit SCHNELLER — reagiere rechtzeitig! Erste 7 Punkte gewinnt oder wer nach 60s mehr hat.<br>📱 Mobile: ▲ ▼ Buttons<br>🖥️ Desktop: ↑ ↓ Pfeiltasten',
+  };
+  const instr = INSTRUCTIONS[type] || `🎮 <b>Los geht's!</b><br>Spiele das Spiel so gut du kannst!`;
   return `<span style="font-size:1.5rem">${icon}</span><br>${instr}`;
 }
 

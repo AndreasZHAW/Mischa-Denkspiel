@@ -206,12 +206,12 @@ const DartGame = {
   </div><!-- end dart-wrap -->
 
   <!-- Mobile joystick (shown only on touch devices) -->
-  <div id="dart-joy" style="display:none;flex-direction:column;align-items:center;gap:6px;margin-left:12px;touch-action:none;user-select:none">
-    <div style="font-size:.62rem;color:rgba(255,255,255,.5);text-align:center;line-height:1.4">🎯 Ziel<br>steuern</div>
-    <div id="dart-joy-pad" style="position:relative;width:88px;height:88px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.25);border-radius:50%">
-      <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:30px;height:30px;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.7);border-radius:50%;transform:translate(-50%,-50%);transition:none"></div>
+  <div id="dart-joy" style="display:none;flex-direction:column;align-items:center;gap:6px;margin-left:8px;touch-action:none;user-select:none">
+    <div style="font-size:.7rem;color:#FFD700;text-align:center;font-weight:700;line-height:1.3">🎯 Zielen<br><span style="color:rgba(255,255,255,.5);font-size:.62rem;font-weight:400">Schieben → Ziel<br>Loslassen = Wurf</span></div>
+    <div id="dart-joy-pad" style="position:relative;width:100px;height:100px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 12px rgba(255,215,0,.2)">
+      <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:36px;height:36px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);transition:none;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
     </div>
-    <div style="font-size:.58rem;color:rgba(255,255,255,.35);text-align:center">Loslassen<br>= Werfen</div>
+    <div style="font-size:.62rem;color:rgba(255,255,255,.4);text-align:center">⬆️ Mitte = Bullseye</div>
   </div><!-- end dart-joy -->
   </div><!-- end flex container -->
 
