@@ -1,113 +1,211 @@
-// STUNT CAR - replaces Jenga
+// RACE - Auto-Stunt-Rennen (ersetzt Jenga)
 const StuntGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
     if (!el) return;
-    const W=420,H=400;
-    el.innerHTML=`<div style="text-align:center">
-      <canvas id="stcv" width="${W}" height="${H}" style="background:#87CEEB;border-radius:8px;max-width:100%"></canvas>
-      <div style="display:flex;justify-content:center;gap:8px;margin-top:8px">
-        <button id="st-back" style="background:#E74C3C;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:700">↺ Rückwärts</button>
-        <button id="st-fwd" style="background:#27AE60;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:700">Vorwärts ↻</button>
+    const W=400, H=360;
+
+    el.innerHTML = `
+    <div style="text-align:center">
+      <div style="background:linear-gradient(135deg,#1a1a2e,#0d0d1a);border-radius:12px;padding:12px;margin-bottom:8px;text-align:left;font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.6">
+        🏁 <b style="color:#FFD700">Ziel:</b> Fahre 1 km so schnell wie möglich!<br>
+        🚗 <b>Vorwärts/Rückwärts</b> = Taste halten zum Beschleunigen<br>
+        🌄 Springe über Hügel — aber lande sicher! Überschlag = Ende
       </div>
-      <div style="font-size:.72rem;color:rgba(0,0,0,.5);margin-top:4px">Drehe das Auto über Hügel und lande sicher!</div>
+      <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;max-width:100%;display:block;margin:0 auto"></canvas>
+      <div style="display:flex;justify-content:center;gap:12px;margin-top:8px">
+        <button id="st-back" style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">◀ Rückwärts</button>
+        <button id="st-fwd" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">Vorwärts ▶</button>
+      </div>
     </div>`;
-    const cv=document.getElementById('stcv'),ctx=cv.getContext('2d');
-    // Terrain using sine waves
-    const TW=2000;
-    let terrain=[];
-    for(let x=0;x<TW;x+=4){
-      const h=H*0.65+Math.sin(x*0.02)*60+Math.sin(x*0.007)*90+Math.sin(x*0.04)*30;
-      terrain.push({x,y:h});
+
+    const cv=document.getElementById('stcv'), ctx=cv.getContext('2d');
+
+    // Generate terrain
+    const WORLD_W = 12000; // 1km = 12000 units
+    const GOAL = WORLD_W;
+    let terrainPts = [];
+    let ty = H*0.6;
+    for(let x=0; x<=WORLD_W+200; x+=8){
+      ty += (Math.random()-0.5)*6;
+      const hump = Math.sin(x*0.008)*40 + Math.sin(x*0.003)*80 + Math.sin(x*0.02)*20;
+      terrainPts.push({x, y: H*0.55 + hump});
     }
-    let car={x:80,y:200,vx:0,vy:0,angle:0,av:0,onGround:false};
-    let camX=0,score=0,maxX=0,running=true,tStart=Date.now(),animId;
-    let fwdHeld=false,backHeld=false;
-    const getY=(wx)=>{
-      const i=Math.floor(wx/4);
-      if(i<0||i>=terrain.length-1)return H*0.7;
-      return terrain[i].y;
+    const getTerrainY = wx => {
+      const idx = Math.floor(wx/8);
+      if(idx<0) return H*0.6;
+      if(idx>=terrainPts.length-1) return terrainPts[terrainPts.length-1].y;
+      const t=(wx/8)-idx;
+      return terrainPts[idx].y*(1-t)+terrainPts[idx+1].y*t;
     };
-    const getNorm=(wx)=>{
-      const dx=4,dy=getY(wx+dx)-getY(wx);
-      const len=Math.sqrt(dx*dx+dy*dy);
-      return{nx:-dy/len,ny:dx/len,ang:Math.atan2(dy,dx)};
+    const getTerrainAngle = wx => {
+      const y1=getTerrainY(wx-4), y2=getTerrainY(wx+4);
+      return Math.atan2(y2-y1, 8);
     };
-    document.getElementById('st-fwd').addEventListener('pointerdown',()=>fwdHeld=true);
-    document.getElementById('st-back').addEventListener('pointerdown',()=>backHeld=true);
-    document.addEventListener('pointerup',()=>{fwdHeld=false;backHeld=false;});
-    const onKey=e=>{if(e.key==='ArrowRight')fwdHeld=true;else if(e.key==='ArrowLeft')backHeld=true;};
-    const onKeyUp=e=>{if(e.key==='ArrowRight')fwdHeld=false;else if(e.key==='ArrowLeft')backHeld=false;};
+
+    // Car physics
+    let car = {
+      wx: 200, // world x
+      wy: getTerrainY(200)-20,
+      vx: 0, vy: 0,
+      angle: 0, av: 0,
+      onGround: false, airTime: 0,
+    };
+    let score=0, running=true, tStart=Date.now(), animId;
+    let fwdHeld=false, backHeld=false;
+    const CAM_X = W*0.3; // car shown at 30% from left
+
+    // Buttons
+    const setFwd=(v)=>{fwdHeld=v;};
+    const setBack=(v)=>{backHeld=v;};
+    document.getElementById('st-fwd').addEventListener('pointerdown',e=>{e.preventDefault();setFwd(true);});
+    document.getElementById('st-back').addEventListener('pointerdown',e=>{e.preventDefault();setBack(true);});
+    document.addEventListener('pointerup',()=>{setFwd(false);setBack(false);});
+    const onKey=e=>{if(e.key==='ArrowRight')setFwd(true);else if(e.key==='ArrowLeft')setBack(true);};
+    const onKeyUp=e=>{if(e.key==='ArrowRight')setFwd(false);else if(e.key==='ArrowLeft')setBack(false);};
     window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKeyUp);
+
     const end=(won)=>{
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKeyUp);
-      onComplete({rawScore:Math.min(100,Math.round(score)),timeMs:Date.now()-tStart,errors:0,passed:won||score>30});
+      const t=Date.now()-tStart;
+      const timeScore = won ? Math.max(10, 100-Math.floor(t/1000)*2) : Math.round(car.wx/GOAL*40);
+      onComplete({rawScore:Math.min(100,timeScore),timeMs:t,errors:0,passed:won});
     };
+
+    let frames=0;
     const loop=()=>{
       if(!running)return;
+      frames++;
+
       // Physics
-      car.vy+=0.4; // gravity
-      if(fwdHeld){car.vx+=Math.cos(car.angle)*0.5;car.av-=0.06;}
-      if(backHeld){car.vx-=Math.cos(car.angle)*0.3;car.av+=0.04;}
-      car.vx*=0.97;car.av*=0.92;
-      car.x+=car.vx;car.y+=car.vy;car.angle+=car.av;
-      // Ground collision
-      const gy=getY(car.x);
-      if(car.y>=gy-12){
-        car.y=gy-12;car.vy*=-0.3;car.onGround=true;
-        const {ang}=getNorm(car.x);car.angle+=(ang-car.angle)*0.15;
-        car.vx*=0.88;
-      } else {car.onGround=false;}
-      // Flip = death
-      const normAng=((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-      if(normAng>Math.PI*0.6&&normAng<Math.PI*1.4){end(false);return;}
-      // Score = distance
-      if(car.x>maxX){maxX=car.x;score=Math.round((maxX-80)/10);}
-      // Win at distance 1500
-      if(car.x>1600){end(true);return;}
-      // Fall off
-      if(car.y>H+50){end(false);return;}
-      // Camera
-      camX=car.x-W*0.35;
-      // Draw sky
-      ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,W,H);
-      // Clouds
-      [[100,60],[250,40],[380,70]].forEach(([cx,cy])=>{
-        ctx.fillStyle='rgba(255,255,255,.8)';
-        ctx.beginPath();ctx.ellipse(cx-camX%W,cy,40,20,0,0,Math.PI*2);ctx.fill();
-      });
-      // Terrain
-      ctx.fillStyle='#3d8b37';
-      ctx.beginPath();ctx.moveTo(0,H);
-      terrain.filter(p=>p.x-camX>-10&&p.x-camX<W+10)
-        .forEach(p=>ctx.lineTo(p.x-camX,p.y));
+      car.vy += 0.5; // gravity
+      const groundY = getTerrainY(car.wx);
+      const terrAngle = getTerrainAngle(car.wx);
+
+      if(car.wy >= groundY-16){
+        // On ground
+        car.wy = groundY-16;
+        car.onGround = true;
+        car.airTime = 0;
+        // Wheel torque
+        if(fwdHeld){ car.vx+=Math.cos(terrAngle)*0.8; car.av-=0.05; }
+        if(backHeld){ car.vx-=Math.cos(terrAngle)*0.5; car.av+=0.04; }
+        // Friction
+        car.vx *= 0.85;
+        // Normal force aligns car with ground
+        car.angle += (terrAngle - car.angle)*0.12;
+        car.av *= 0.7;
+        car.vy = 0;
+      } else {
+        car.onGround = false;
+        car.airTime++;
+        // Air rotation from buttons
+        if(fwdHeld) car.av -= 0.04;
+        if(backHeld) car.av += 0.04;
+        car.av *= 0.95;
+      }
+      car.angle += car.av;
+      car.vx = Math.max(-15, Math.min(18, car.vx));
+      car.wx += car.vx;
+      car.wy += car.vy;
+
+      // Check flip (angle > 90° from normal)
+      const normAng = ((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+      if(normAng>Math.PI*0.55&&normAng<Math.PI*1.45&&car.onGround){end(false);return;}
+
+      // Win condition
+      if(car.wx >= GOAL){end(true);return;}
+
+      // Draw
+      const camWX = car.wx - CAM_X; // world x that maps to screen x=0
+
+      // Sky gradient
+      const sky=ctx.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#1a0033');sky.addColorStop(1,'#4a0080');
+      ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+
+      // Stars
+      ctx.fillStyle='rgba(255,255,255,.4)';
+      for(let i=0;i<30;i++){
+        const sx=(i*137+frames)%W, sy=(i*79)%H*0.5;
+        ctx.fillRect(sx,sy,1,1);
+      }
+
+      // Moon/sun
+      ctx.fillStyle='#FFD700';ctx.beginPath();ctx.arc(W*0.85,40,20,0,Math.PI*2);ctx.fill();
+
+      // Ground terrain
+      ctx.fillStyle='#2d5016';ctx.beginPath();ctx.moveTo(0,H);
+      for(let sx=0;sx<=W;sx+=4){
+        const wx=camWX+sx;
+        ctx.lineTo(sx,getTerrainY(wx));
+      }
       ctx.lineTo(W,H);ctx.closePath();ctx.fill();
-      // Ground detail
-      ctx.strokeStyle='#2d6b27';ctx.lineWidth=2;ctx.beginPath();
-      terrain.filter(p=>p.x-camX>-10&&p.x-camX<W+10)
-        .forEach((p,i)=>{if(i===0)ctx.moveTo(p.x-camX,p.y);else ctx.lineTo(p.x-camX,p.y);});
+      // Grass top
+      ctx.strokeStyle='#3d7a1f';ctx.lineWidth=3;ctx.beginPath();
+      for(let sx=0;sx<=W;sx+=4){ctx.lineTo(sx,getTerrainY(camWX+sx));}
       ctx.stroke();
+
+      // Goal flag
+      const goalSX = GOAL - camWX;
+      if(goalSX > 0 && goalSX < W){
+        const gy=getTerrainY(GOAL);
+        ctx.fillStyle='#fff';ctx.fillRect(goalSX-1,gy-60,3,60);
+        ctx.fillStyle='#E74C3C';ctx.fillRect(goalSX,gy-60,20,14);
+        ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.textAlign='left';ctx.fillText('ZIEL',goalSX+2,gy-50);
+      }
+
       // Car
-      ctx.save();ctx.translate(car.x-camX,car.y);ctx.rotate(car.angle);
+      ctx.save();
+      ctx.translate(CAM_X, car.wy);
+      ctx.rotate(car.angle);
       // Body
-      ctx.fillStyle='#E74C3C';ctx.fillRect(-22,-12,44,16);
-      ctx.fillStyle='#C0392B';ctx.fillRect(-14,-22,28,12);
-      // Wheels
-      ctx.fillStyle='#333';[[-14,4],[14,4]].forEach(([wx,wy])=>{ctx.beginPath();ctx.arc(wx,wy,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#666';ctx.lineWidth=2;ctx.stroke();});
+      ctx.fillStyle='#E74C3C';
+      ctx.beginPath();ctx.roundRect(-22,-14,44,18,4);ctx.fill();
+      // Roof
+      ctx.fillStyle='#C0392B';
+      ctx.beginPath();ctx.roundRect(-14,-24,28,12,3);ctx.fill();
       // Window
-      ctx.fillStyle='rgba(150,220,255,.6)';ctx.fillRect(-10,-20,20,10);
+      ctx.fillStyle='rgba(150,230,255,.7)';
+      ctx.fillRect(-10,-22,20,9);
+      // Wheels
+      [[-14,4],[14,4]].forEach(([wx,wy])=>{
+        ctx.fillStyle='#222';ctx.beginPath();ctx.arc(wx,wy,8,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#555';ctx.lineWidth=2;ctx.stroke();
+        // Hubcap
+        ctx.fillStyle='#888';ctx.beginPath();ctx.arc(wx,wy,4,0,Math.PI*2);ctx.fill();
+      });
+      // Exhaust (going backwards)
+      if(fwdHeld){ctx.fillStyle='rgba(255,150,0,.5)';ctx.fillRect(-26,-4,8,4);}
       ctx.restore();
+
       // HUD
-      ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,W,30);
-      ctx.fillStyle='#FFD700';ctx.font='bold 14px monospace';ctx.textAlign='left';
-      ctx.fillText('🏁 '+score+' m',8,20);
+      const distLeft = Math.max(0, GOAL-car.wx);
+      const distKm = (distLeft/WORLD_W).toFixed(3);
+      const speed = Math.abs(car.vx*3).toFixed(0);
+      const elapsed = ((Date.now()-tStart)/1000).toFixed(1);
+
+      // HUD bar
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(0,0,W,34);
+      // Progress bar
+      const prog=(car.wx/GOAL);
+      ctx.fillStyle='rgba(255,255,255,.1)';ctx.fillRect(0,30,W,4);
+      ctx.fillStyle=prog>0.8?'#E74C3C':prog>0.5?'#F39C12':'#27AE60';
+      ctx.fillRect(0,30,W*prog,4);
+
+      ctx.fillStyle='#fff';ctx.font='bold 13px monospace';
+      ctx.textAlign='left';ctx.fillText('⏱ '+elapsed+'s',6,20);
+      ctx.textAlign='center';ctx.fillStyle='#FFD700';
+      ctx.fillText('🏁 '+distKm+' km verbleibend',W/2,20);
       ctx.textAlign='right';ctx.fillStyle='#29B6F6';
-      ctx.fillText('Ziel: 1600m',W-8,20);
+      ctx.fillText('⚡'+speed+' km/h',W-6,20);
+
       animId=requestAnimationFrame(loop);
     };
     loop();
-    setTimeout(()=>{if(running)end(score>50);},90000);
+    // 3 min timeout
+    setTimeout(()=>{if(running)end(false);},180000);
   }
 };
 window.StuntGame=StuntGame;

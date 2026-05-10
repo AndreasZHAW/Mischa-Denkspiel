@@ -35,7 +35,7 @@ const GAME_LIST = [
   { id:'differences',name:'Unterschiede',   icon:'👁️', type:'differences', baseReward:1.0, desc:'Finde alle Unterschiede zwischen den Bildern!' },
   { id:'balloon',    name:'Ballon',         icon:'🎈', type:'balloon',    baseReward:1.0, desc:'Pop die richtigen Ballons!' },
   { id:'typing',     name:'Tetris',         icon:'🟩', type:'tetris',     baseReward:1.0, desc:'Tippe den Text so schnell wie möglich!' },
-  { id:'jenga',      name:'Stunt-Auto',          icon:'🚗', type:'stunt',      baseReward:1.0, desc:'Ziehe Blöcke ohne den Turm umzuwerfen!' },
+  { id:'jenga',      name:'Race',          icon:'🚗', type:'stunt',      baseReward:1.0, desc:'Fahre 1km so schnell wie möglich!' },
   { id:'search',     name:'Suchen',         icon:'🔭', type:'search',     baseReward:1.0, desc:'Finde das gesuchte Objekt!' },
   { id:'minigames',  name:'Mini-Spiele',    icon:'🎮', type:'minigames',  baseReward:1.0, desc:'Verschiedene Mini-Herausforderungen!' },
   { id:'truefalse',  name:'Wahr oder Falsch',icon:'✅', type:'truefalse', baseReward:1.0, desc:'Ist die Aussage wahr oder falsch?' },
