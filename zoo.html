@@ -3555,9 +3555,74 @@ const ZAdmin = {
   cooldowns: {}, // action -> timestamp
   CD: 120000, // 120s cooldown
   
+  switchTab(tab){
+    document.querySelectorAll('.padmin-tab').forEach(t=>t.style.display='none');
+    document.querySelectorAll('.padmin-tab-btn').forEach(b=>{
+      b.style.color=b.dataset.tab===tab?'#FFD700':'rgba(255,255,255,.7)';
+      b.style.background=b.dataset.tab===tab?'rgba(255,215,0,.1)':'';
+    });
+    const el=document.getElementById('padmin-tab-'+tab);
+    if(el)el.style.display='block';
+    if(tab==='tiere')this._populateAnimalGrid();
+    if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
+    if(tab==='einst')this._populateEvents();
+  },
+  _populateAnimalGrid(){
+    const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
+    const animals=(window.ANIMALS||[]).slice(0,24);
+    grid.innerHTML=animals.map(a=>`<div onclick="ZAdmin._selectAnimal('${a.id}')" data-aid="${a.id}"
+      style="background:rgba(255,255,255,.06);border:2px solid transparent;border-radius:8px;padding:5px;text-align:center;cursor:pointer" title="${a.n}">
+      <div style="font-size:1.4rem">${a.e}</div><div style="font-size:.5rem;color:rgba(255,255,255,.4)">${a.n.substring(0,7)}</div>
+    </div>`).join('');
+  },
+  _selectAnimal(id){
+    this._selectedAnimal=id;
+    const a=(window.ANIMALS||[]).find(x=>x.id===id);if(!a)return;
+    document.querySelectorAll('[data-aid]').forEach(el=>{el.style.border=el.dataset.aid===id?'2px solid #FFD700':'2px solid transparent';});
+    const prev=document.getElementById('padmin-edit-animal-preview');if(prev)prev.textContent=a.e;
+    const nm=document.getElementById('padmin-edit-name');if(nm)nm.value=a.n;
+    const earn=document.getElementById('padmin-edit-earn');if(earn)earn.value=a.earn||10;
+    const rar=document.getElementById('padmin-edit-rarity');if(rar)rar.value=a.r||'normal';
+    ZAdmin._selectedCraftAnimal=id;
+    document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
+  },
+  _spawnSelected(){
+    const id=this._selectedAnimal;if(!id){ZP.toast('❗ Tier auswählen!',1500);return;}
+    const a=(window.ANIMALS||[]).find(x=>x.id===id);if(!a)return;
+    const cmd={type:'spawn_animal',animalId:id,target:this.target?.name?.toLowerCase()||'_all',id:Date.now().toString(),exp:Date.now()+10000};
+    try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
+    try{if(typeof _db!=='undefined'&&_db)_db.collection('zoo_events').add({...cmd,from:ZS.player,at:Date.now()}).catch(()=>{});}catch(e){}
+    ZP.toast('🐾 '+(a.e||'')+' '+a.n+' gespawnt!',2000);
+  },
+  _saveAnimalEdit(){
+    const id=this._selectedAnimal;if(!id){ZP.toast('❗ Tier auswählen!',1500);return;}
+    const a=(window.ANIMALS||[]).find(x=>x.id===id);if(!a)return;
+    a.n=document.getElementById('padmin-edit-name')?.value||a.n;
+    a.earn=parseFloat(document.getElementById('padmin-edit-earn')?.value)||a.earn;
+    a.r=document.getElementById('padmin-edit-rarity')?.value||a.r;
+    ZP.toast('✅ '+(a.e||'')+' '+a.n+' gespeichert!',2000);
+  },
+  _populateCraftIndex(){
+    const grid=document.getElementById('padmin-craft-index-grid');if(!grid)return;
+    const animals=[...(window.ANIMALS||[])];
+    grid.innerHTML=animals.map(a=>`<div onclick="ZAdmin._selectCraftAnimal('${a.id}')" data-caid="${a.id}"
+      style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px;text-align:center;cursor:pointer;font-size:1.2rem" title="${a.n}">
+      ${a.e||'?'}</div>`).join('');
+  },
+  _selectCraftAnimal(id){
+    this._selectedCraftAnimal=id;
+    document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
+  },
+  _populateEvents(){
+    const el=document.getElementById('padmin-event-select');if(!el||!window.EVENTS)return;
+    el.innerHTML=EVENTS.map(ev=>`<button class="padmin-btn" style="background:${ev.col||'#333'};font-size:.7rem;padding:5px 8px" onclick="ZAdmin._selEv('${ev.id}')">${ev.n}</button>`).join('');
+  },
+  _selEv(id){this._selectedEvent=id;ZP.toast('Event: '+id,1000);},
+  revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
+  clearDiscount(){window._adminDiscount=null;try{localStorage.removeItem('zoo_admin_discount');}catch(e){}ZP.toast('✅ Rabatt beendet',1500);},
   open(){
     const el=document.getElementById('padmin-wrap');
-    if(el){el.style.display='flex';this.loadPlayers();this._populateCraftSelect();SECRETS.trackAdminOpen&&SECRETS.trackAdminOpen();}
+    if(el){el.style.display='flex';this.loadPlayers();this.switchTab('tiere');SECRETS.trackAdminOpen&&SECRETS.trackAdminOpen();}
   },
   close(){
     const el=document.getElementById('padmin-wrap');
@@ -5043,6 +5108,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   </div>
 </div>
 <style>
+.padmin-tab-btn:hover{background:rgba(255,255,255,.05)!important;}
+.padmin-section-title{font-size:.72rem;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 5px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.08);}
 .padmin-btn{color:white;border:none;padding:10px;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;transition:opacity .15s}
 .padmin-btn:hover{opacity:.85}
 .padmin-btn:disabled{opacity:.4;cursor:not-allowed}
