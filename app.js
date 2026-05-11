@@ -401,18 +401,7 @@ const App = {
     if (nameLc === 'janoschtest' && pw !== 'janoschtest') {
       const e=document.getElementById('l-err'); if(e){e.textContent='❌ Falsches Passwort für Janoschtest!';e.style.display='block';} return;
     }
-    // Auto-create Janoschtest if doesn't exist yet
-    if (nameLc === 'janoschtest' && pw === 'janoschtest') {
-      let exists = State._local.get('janoschtest');
-      if (!exists) {
-        // Create automatically
-        const autoPlayer = { name:'Janoschtest', password:'janoschtest', totalScore:0,
-          character:'explorer', birthYear:2000, worlds:{}, currentWorld:1,
-          createdAt:Date.now() };
-        State._local.set('janoschtest', autoPlayer);
-      }
-    }
-    this._loading('Anmelden...');
+_loading('Anmelden...');
     let res;
     try {
       res = await Promise.race([
@@ -561,15 +550,7 @@ const App = {
     const _isRef = player.name.toLowerCase() === 'janoschtest';
     const _isAdmin = player.name.toLowerCase() === 'bu';
     // Bu gets displayed with special black/gold style
-    const displayName = _isAdmin ? '<span style="background:#FFD700;color:#000;font-weight:900;padding:2px 8px;border-radius:6px">Bu 🌀</span>' : _isRef ? '<span style="color:#ff6b6b">🔬 '+player.name+'</span>' : player.name;
-    // Show calibration banner for Janoschtest
-    // Detect device type for calibration
-    const _ua=navigator.userAgent;
-    const _isIPad=/iPad/.test(_ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    const _isIPhone=/iPhone/.test(_ua);
-    const _isAndroid=/Android/.test(_ua)&&/Mobile/.test(_ua);
-    const _deviceType=_isIPad?'iPad':_isIPhone?'iPhone':_isAndroid?'Android Handy':'Desktop';
-    const _deviceIcon=_isIPad?'📱':_isIPhone?'📱':_isAndroid?'🤖':'🖥️';
+    const displayName = _isAdmin ? '<span style="background:#FFD700;color:#000;font-weight:900;padding:2px 8px;border-radius:6px">Bu 🌀</span>' : player.name;
 
     if (_isRef) setTimeout(() => {
       document.getElementById('ref-banner')?.remove();
@@ -582,10 +563,16 @@ const App = {
     const ch = this._char(player);
 
     this._html(`
-      <div class="mountain-bg">
-        <div class="sky-gradient"></div>
-        <div class="cloud cloud-1"></div><div class="cloud cloud-2"></div>
-        ${mountainSVG()}
+      <div class="mountain-bg" id="wm-bg">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,#020008 0%,#060015 30%,#0a001f 55%,#120028 75%,#1e0035 90%,#120020 100%)"></div>
+        <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 35% at 25% 18%,rgba(70,0,110,.3),transparent),radial-gradient(ellipse 50% 25% at 75% 35%,rgba(0,15,70,.25),transparent)"></div>
+        <div style="position:absolute;top:5%;right:12%;width:46px;height:46px">
+          <div style="width:46px;height:46px;border-radius:50%;background:#fffbe0;box-shadow:0 0 18px rgba(255,245,200,.5)"></div>
+          <div style="position:absolute;top:5px;right:-7px;width:38px;height:38px;border-radius:50%;background:#020008"></div>
+        </div>
+        ${mountainSVG(true)}
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,10,.65) 100%)"></div>
       </div>
       <div class="page" style="padding-top:24px">
         <!-- Header -->
@@ -633,9 +620,7 @@ const App = {
           ${WORLDS.map(world => {
             const ws = player.worlds?.[world.id] || { tasks:Array(20).fill(null), jokerUsed:false, completed:false };
             const done = ws.tasks.filter(t=>t&&t.done).length;
-            // Janoschtest: all tasks always unlocked
-            const isRef = player.name.toLowerCase() === 'janoschtest';
-            const unlocked = isRef || world.id <= (player.currentWorld||1);
+            const unlocked = world.id <= (player.currentWorld||1);
             const completed = ws.completed;
             let cls = unlocked ? 'unlocked' : 'locked';
             if (completed) cls = 'completed';
@@ -736,7 +721,7 @@ const App = {
     const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
     const devLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
     const devName = {ipad:'iPad',iphone:'iPhone',android:'Android',desktop:'Desktop'}[devLabel];
-    const isRef = player.name.toLowerCase()==='janoschtest';
+    const isRef = false; // Admin sees cal table via admin panel
 
     // Load calibration store (all scores per game per device)
     let calStore = {};
@@ -1290,7 +1275,7 @@ const App = {
 // ============================================================
 // HELPERS
 // ============================================================
-function mountainSVG() {
+function mountainSVG(evening=false) {
   const lavRows = [0,1,2,3,4,5,6,7,8,9,10].map(i=>
     `<rect x="${i*34}" y="156" width="28" height="12" rx="6" fill="#9B59B6" opacity="0.65"/>` +
     `<rect x="${i*34+4}" y="162" width="20" height="6" rx="3" fill="#7D3C98" opacity="0.5"/>`

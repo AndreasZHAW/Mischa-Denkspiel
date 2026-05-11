@@ -188,7 +188,7 @@ const State = {
     const finalScore = this.calcFinalScore(result, player);
     
     // ── KALIBRIERUNG v3 ──
-    const isRef = playerName.toLowerCase() === 'janoschtest';
+    const isRef = false; // No special users anymore
     
     // New calibration: store all passed rawScores per game per device
     // MT = linear(min→0, avg→1, max→2)
@@ -277,35 +277,22 @@ const State = {
     await this.savePlayer(player);
     this.currentPlayer = player;
     
-    // Save calibration for Janoschtest
-    if (isRef && result.rawScore > 0) {
-      try {
-        const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-        const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined' && navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-        const deviceLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
-        const calData = JSON.parse(localStorage.getItem('janosch_cal_v2')||'{}');
-        if (!calData[deviceLabel]) calData[deviceLabel] = {};
-        calData[deviceLabel][taskIndex] = result.rawScore;
-        localStorage.setItem('janosch_cal_v2', JSON.stringify(calData));
-      } catch(e) {}
-    }
-    
+
     return player;
   },
 
   // ── KALIBRIERUNGS-SYSTEM ──
   
-  // Get Janoschtest reference score for a game (taskIndex)
-  // Returns: the rawScore to use as 1.0 MT reference, or null if no data
+  // Get calibration reference for a game+device (from cal_data_v3)
   _getCalibration(taskIndex) {
     try {
-      const raw = localStorage.getItem('janosch_cal');
-      if (!raw) return null;
-      const cal = JSON.parse(raw); // { taskIndex: [run1score, run2score, run3score] }
-      const scores = cal[taskIndex];
-      if (!scores || scores.length === 0) return null;
-      // Use LAST run (most recent Janoschtest play)
-      return scores[scores.length - 1];
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+      const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+      const scores = calStore[taskIndex+'_'+dev] || [];
+      if (!scores.length) return null;
+      return scores.reduce((a,b)=>a+b,0)/scores.length; // return average
     } catch(e) { return null; }
   },
   
