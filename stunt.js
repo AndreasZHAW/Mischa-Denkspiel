@@ -81,7 +81,7 @@ const StuntGame = {
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKeyUp);
       const t=Date.now()-tStart;
-      const timeScore=won?Math.max(10,100-Math.floor(t/1000)*1.5):Math.round(car.wx/GOAL*40);
+      const saltoBonus=Math.min(30,(car._saltos||0)*10);const timeScore=won?Math.max(10,Math.min(100,100-Math.floor(t/1000)*1.5+saltoBonus)):Math.round(car.wx/GOAL*40)+saltoBonus;
       onComplete({rawScore:Math.min(100,timeScore),timeMs:t,errors:0,passed:won});
     };
 
@@ -94,29 +94,46 @@ const StuntGame = {
 
       if(onGround){
         car.wy=terrY-16;
-        car.vy=0;
-        car.onGround=true;
-        car.airTime=0;
-        // Snap angle toward terrain smoothly
+        // Check landing - was airborne?
+        if(!car.onGround && car.airTime > 8) {
+          // Check for salto (full rotation in air)
+          const fullRotations = Math.abs(car.totalAirSpin||0) / (Math.PI*2);
+          if(fullRotations >= 0.9) {
+            const saltoBonus = Math.floor(fullRotations)*500;
+            score += saltoBonus;
+            // Show salto toast
+            if(typeof ZP !== 'undefined') ZP&&ZP.toast;
+            const toast=document.createElement('div');
+            toast.style.cssText='position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;font-weight:900;font-size:1.2rem;padding:10px 24px;border-radius:30px;pointer-events:none;animation:saltoFade 1.8s ease forwards';
+            toast.textContent=(fullRotations>=1.8?'🔄🔄 DOPPEL-SALTO! +'+saltoBonus:'🔄 SALTO! +'+saltoBonus);
+            document.body.appendChild(toast);
+            setTimeout(()=>toast.remove(),1800);
+          }
+          car.totalAirSpin=0;
+        }
+        car.vy=0;car.onGround=true;car.airTime=0;
         car.angle+=(terrAng-car.angle)*0.18;
-        car.spin*=0.7; // heavy damping on ground
-        // Wheel drive - push along terrain
-        if(fwdHeld())  car.vx+=Math.cos(terrAng)*0.85;
+        car.spin*=0.65;
+        if(fwdHeld())  car.vx+=Math.cos(terrAng)*1.1; // more speed for jumps
         if(backHeld()) car.vx-=Math.cos(terrAng)*0.55;
-        // Ground friction
         car.vx*=0.86;
       } else {
+        const wasOnGround = car.onGround;
         car.onGround=false;
         car.airTime++;
-        car.vy+=0.45; // gravity
-        car.spin*=0.94; // light damping in air
+        car.vy+=0.22; // MUCH less gravity = better jumps
+        car.spin*=0.97; // barely any air damping = can do saltos
       }
-      
-      // Rotation ONLY from buttons, very slow
-      if(rotUpHeld()) car.spin+=0.008;
-      if(rotDnHeld()) car.spin-=0.008;
-      car.spin=Math.max(-0.08,Math.min(0.08,car.spin));
+      // Rotation - faster in air for saltos
+      const inAir = !car.onGround;
+      const rotSpeed = inAir ? 0.025 : 0.010; // faster in air
+      if(rotUpHeld()) car.spin+=rotSpeed;
+      if(rotDnHeld()) car.spin-=rotSpeed;
+      car.spin=Math.max(-0.18,Math.min(0.18,car.spin)); // higher cap for saltos
       car.angle+=car.spin;
+      // Track total spin in air
+      if(inAir) car.totalAirSpin=(car.totalAirSpin||0)+car.spin;
+      else car.totalAirSpin=0;
       
       // Speed cap
       car.vx=Math.max(-12,Math.min(14,car.vx));
@@ -197,10 +214,24 @@ const StuntGame = {
       ctx.fillStyle='#fff';ctx.font='bold 12px monospace';ctx.textAlign='left';ctx.fillText('⏱ '+elapsed+'s',6,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';ctx.fillText('🏁 '+kmLeft+' km',W/2,19);
       ctx.textAlign='right';ctx.fillStyle='#29B6F6';ctx.fillText('⚡'+spd,W-6,19);
+      if(car._saltos>0){
+        ctx.textAlign='left';ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';
+        ctx.fillText('🔄 ×'+car._saltos+' +'+((car._saltos||0)*50)+'pts',6,H-6);
+      }
+      // Salto flash effect
+      if(car._saltoFlash>0){car._saltoFlash--;ctx.fillStyle='rgba(255,215,0,'+(car._saltoFlash/15)*0.5+')';ctx.fillRect(0,0,W,H);}
+      // Show salto bonus if any
+      if(score>0){ctx.textAlign='center';ctx.fillStyle='#FFD700';ctx.fillText('🌀 '+score+' pts',W/2,H-8);}
       animId=requestAnimationFrame(loop);
     };
     loop();
     setTimeout(()=>{if(running)end(false);},240000);
   }
 };
+// Add salto animation CSS
+if(!document.getElementById('salto-css')){
+  const s=document.createElement('style');s.id='salto-css';
+  s.textContent='@keyframes saltoFade{0%{opacity:0;transform:translateX(-50%) scale(.5)}20%{opacity:1;transform:translateX(-50%) scale(1.2)}80%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(.8) translateY(-30px)}}';
+  document.head.appendChild(s);
+}
 window.StuntGame=StuntGame;

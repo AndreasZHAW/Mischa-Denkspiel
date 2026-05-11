@@ -63,7 +63,14 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    const mt = State.currentPlayer?.totalScore || 0;
+   
+    // Draw stars on canvas
+    const wmc = document.getElementById('wm-stars');
+    if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
+      wctx.fillStyle='#000'; wctx.fillRect(0,0,wmc.width,wmc.height);
+      for(let i=0;i<200;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height*0.65,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
+      wmc.style.background='transparent';
+    } const mt = State.currentPlayer?.totalScore || 0;
     const hasEnough = mt >= 10;
     this._html(`
       <div class="mountain-bg">
@@ -1061,17 +1068,45 @@ const App = {
       </div>`);
 
     const onComplete = async (result) => {
-      // Show result immediately, save in background with timeout
+      // For janoschtest: save calibration immediately to localStorage
+      const pname = (player?.name||'').toLowerCase();
+      if (pname === 'janoschtest' && result.rawScore > 0 && result.passed !== false) {
+        try {
+          const ua = navigator.userAgent;
+          const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+          const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+          const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+          const key = taskIndex + '_' + dev;
+          if (!calStore[key]) calStore[key] = [];
+          calStore[key].push(result.rawScore);
+          localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
+        } catch(e) {}
+      }
+      // Save task result to player immediately (localStorage)
+      try {
+        const mt = State.calcMT ? State.calcMT(taskIndex, result) : 1.0;
+        const p = State.currentPlayer;
+        if (p && p.worlds) {
+          const wid = worldId;
+          if (!p.worlds[wid]) p.worlds[wid] = {tasks:Array(20).fill(null),jokerUsed:false,completed:false};
+          const prevPlays = p.worlds[wid].tasks[taskIndex]?.plays || 0;
+          p.worlds[wid].tasks[taskIndex] = {
+            done:true, score:State.calcFinalScore(result,p)||result.rawScore||0,
+            rawScore:result.rawScore||0, timeMs:result.timeMs||0,
+            passed:result.passed!==false, plays:prevPlays+1, lastPlayed:Date.now()
+          };
+          State._local && State._local.set(p.name, p);
+        }
+      } catch(e) {}
+      // Show result immediately
       this._showTaskComplete(worldId, taskIndex, result);
+      // Full save in background
       try {
         await Promise.race([
           State.completeTask(player.name, worldId, taskIndex, result),
-          new Promise(r => setTimeout(r, 3000)) // 3s max wait
+          new Promise(r => setTimeout(r, 4000))
         ]);
-      } catch(e) {
-        // Save failed silently - result still shown
-        try { State.completeTask(player.name, worldId, taskIndex, result); } catch(e2){}
-      }
+      } catch(e) {}
     };
 
     setTimeout(() => {

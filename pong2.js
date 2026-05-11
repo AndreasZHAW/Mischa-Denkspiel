@@ -16,11 +16,13 @@ const PongGame = {
       <div style="background:#222;height:4px"><div id="pong-tbar" style="background:#27AE60;height:4px;width:100%"></div></div>
       <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%"></canvas>
       ${isMobile ? `
-      <!-- Mobile: swipe on canvas OR use buttons -->
-      <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:6px;text-align:center">📱 Finger auf Bildschirm ziehen = Balken bewegen</div>
-      <div style="display:flex;justify-content:center;gap:10px;margin-top:6px">
-        <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 48px;border-radius:10px;font-size:1.4rem;cursor:pointer;user-select:none;touch-action:none">▲</button>
-        <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:14px 48px;border-radius:10px;font-size:1.4rem;cursor:pointer;user-select:none;touch-action:none">▼</button>
+      <!-- Mobile: dedicated touch zone OUTSIDE canvas -->
+      <div id="pong-touch-zone" style="margin-top:8px;background:linear-gradient(135deg,rgba(39,174,96,.15),rgba(39,174,96,.08));border:2px solid rgba(39,174,96,.5);border-radius:12px;padding:6px 12px;touch-action:none;user-select:none;cursor:grab;max-width:${W}px">
+        <div style="text-align:center;font-size:.7rem;color:rgba(39,174,96,.8);font-weight:700;margin-bottom:3px">👆 HIER Finger rauf und hoch/runter ziehen</div>
+        <div id="pong-touch-indicator" style="height:44px;background:rgba(39,174,96,.1);border-radius:8px;position:relative;display:flex;align-items:center;justify-content:center">
+          <div id="pong-touch-dot" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#27AE60,#1E8449);box-shadow:0 2px 8px rgba(39,174,96,.4);transition:transform .05s"></div>
+          <span style="position:absolute;right:8px;font-size:.65rem;color:rgba(255,255,255,.3)">↕ ziehen</span>
+        </div>
       </div>` 
       : `<div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
         <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▲</button>
@@ -49,16 +51,30 @@ const PongGame = {
     addBtn('pu');addBtn('pd');
     // Touch drag on canvas = move paddle directly
     if(isMobile){
-      let lastTouchY=null;
-      cv.addEventListener('touchstart',e=>{e.preventDefault();lastTouchY=e.touches[0].clientY;},{passive:false});
-      cv.addEventListener('touchmove',e=>{
-        e.preventDefault();
-        const ty=e.touches[0].clientY;
-        const dy=ty-lastTouchY;
-        py=Math.max(0,Math.min(H-PS,py+dy*1.2));
-        lastTouchY=ty;
-      },{passive:false});
-      cv.addEventListener('touchend',()=>lastTouchY=null);
+      const tz=document.getElementById('pong-touch-zone');
+      const tdot=document.getElementById('pong-touch-dot');
+      const tind=document.getElementById('pong-touch-indicator');
+      let lastTY=null,touchActive=false;
+      if(tz){
+        tz.addEventListener('touchstart',e=>{
+          e.preventDefault();lastTY=e.touches[0].clientY;touchActive=true;
+          if(tdot)tdot.style.transform='scale(1.2)';
+        },{passive:false});
+        tz.addEventListener('touchmove',e=>{
+          if(!touchActive)return;e.preventDefault();
+          const ty=e.touches[0].clientY;
+          const dy=ty-lastTY;
+          py=Math.max(0,Math.min(H-PS,py+dy*1.4));
+          lastTY=ty;
+          // Move dot indicator
+          if(tdot&&tind){
+            const r=tind.getBoundingClientRect();
+            const rel=Math.max(0,Math.min(1,(e.touches[0].clientY-r.top)/r.height));
+            tdot.style.top=(rel*100)+'%';
+          }
+        },{passive:false});
+        tz.addEventListener('touchend',()=>{touchActive=false;lastTY=null;if(tdot)tdot.style.transform='scale(1)';});
+      }
     }
     const onKey=e=>{if(e.key==='ArrowUp')upHeld=true;else if(e.key==='ArrowDown')dnHeld=true;};
     const onKeyUp=e=>{if(e.key==='ArrowUp')upHeld=false;else if(e.key==='ArrowDown')dnHeld=false;};
