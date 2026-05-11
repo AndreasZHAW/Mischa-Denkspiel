@@ -2255,7 +2255,12 @@ const ZG={
   _updOthers(others){const C=[0xff6b6b,0x4fc3f7,0xffe082];let ci=0;Object.keys(this.otherM).forEach(n=>{if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}});Object.values(others).forEach(op=>{if(!this.otherM[op.name]){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(.8,1.4,.6),new THREE.MeshBasicMaterial({color:C[ci%3]}));const head=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshBasicMaterial({color:0xffe0b0}));head.position.y=1.05;g.add(body,head);const lbl=this._txt(op.char+' '+op.name,.4,'#fff');lbl.position.y=1.8;g.add(lbl);this.scene.add(g);this.otherM[op.name]=g;ci++;}this.otherM[op.name].position.set(op.x,.7,op.z);});},
 
   // ═══ ADMIN CMD ═══
-  async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
+  async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
+      // Apply animal edit from admin
+      const a=(window.ANIMALS||[]).find(x=>x.id===cmd.animalId);
+      if(a){a.n=cmd.n;a.earn=cmd.earn;a.r=cmd.r;
+        ZP.toast('✏️ Admin hat '+a.e+' '+a.n+' geändert',2000);}
+    } else if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
       const pollDiv=document.createElement('div');
@@ -3620,12 +3625,27 @@ const ZAdmin = {
     ZP.toast('🐾 '+(a.e||'')+' '+a.n+' gespawnt!',2000);
   },
   _saveAnimalEdit(){
-    const id=this._selectedAnimal;if(!id){ZP.toast('❗ Tier auswählen!',1500);return;}
+    const id=this._selectedAnimal;
+    if(!id){ZP.toast('❗ Zuerst Tier im Grid auswählen!',2000);return;}
     const a=(window.ANIMALS||[]).find(x=>x.id===id);if(!a)return;
-    a.n=document.getElementById('padmin-edit-name')?.value||a.n;
-    a.earn=parseFloat(document.getElementById('padmin-edit-earn')?.value)||a.earn;
-    a.r=document.getElementById('padmin-edit-rarity')?.value||a.r;
-    ZP.toast('✅ '+(a.e||'')+' '+a.n+' gespeichert!',2000);
+    const newN=document.getElementById('padmin-edit-name')?.value||a.n;
+    const newE=parseFloat(document.getElementById('padmin-edit-earn')?.value)||a.earn;
+    const newR=document.getElementById('padmin-edit-rarity')?.value||a.r;
+    a.n=newN; a.earn=newE; a.r=newR;
+    // Broadcast edit to all players via Firebase
+    try{if(typeof _db!=='undefined'&&_db){
+      _db.collection('zoo_broadcast').doc('animal_edit').set({
+        type:'animal_edit',animalId:id,n:newN,earn:newE,r:newR,
+        from:ZS.player,at:Date.now()
+      }).catch(()=>{});
+    }}catch(e){}
+    // localStorage for same device
+    try{
+      const lsCmd={type:'animal_edit',animalId:id,n:newN,earn:newE,r:newR,
+        id:'ae'+Date.now(),exp:Date.now()+60000};
+      localStorage.setItem('zoo_admin_cmd',JSON.stringify(lsCmd));
+    }catch(e){}
+    ZP.toast('✅ '+(a.e||'')+' '+a.n+' gespeichert & gesendet!',2000);
   },
   _populateCraftIndex(){
     const grid=document.getElementById('padmin-craft-index-grid');if(!grid)return;
@@ -3789,10 +3809,16 @@ const ZAdmin = {
         question:msg,from:ZS.player,at:Date.now(),votes:{}
       }).catch(()=>{});
     }}catch(e){}
+    // ALSO broadcast via localStorage so same-device sees it immediately
+    try{
+      const lsCmd={type:'poll',msg,pollId,from:ZS.player,id:'p'+Date.now(),exp:Date.now()+120000};
+      localStorage.setItem('zoo_admin_cmd',JSON.stringify(lsCmd));
+      // Trigger storage event manually for same tab
+      const ev=new StorageEvent('storage',{key:'zoo_admin_cmd',newValue:JSON.stringify(lsCmd)});
+      window.dispatchEvent(ev);
+    }catch(e){}
     ZP.toast('📊 Umfrage gesendet!',2000);
     if(inp2)inp2.value='';
-    // Show poll locally for admin too
-    ZP.toast('📊 Umfrage gesendet an alle!',2000);
     this._watchPoll(pollId);
   },
   
@@ -4747,18 +4773,19 @@ const CraftMachine = {
   },
 
   _canDo(recipe, z){
-    const enc=(z.enc||[]).filter(e=>e&&e.animal);
+    const enc=(z.enc||[]).filter(e=>e&&e.animal&&e.animal.id);
     // Must check ALL inputs together (animals can't be used twice)
-    const available=[...enc]; // copy to track what's been "used"
+    const available=[...enc];
     for(const req of recipe.inputs){
       let needed=req.count||1;
       for(let i=0;i<available.length&&needed>0;i++){
         if(!available[i])continue;
         const a=available[i].animal;
-        const matches=req.id ? a.id===req.id : a.r===req.r;
-        if(matches){ available[i]=null; needed--; } // mark as used
+        const ar=a.r||'normal'; // default to normal if missing
+        const matches=req.id ? a.id===req.id : ar===req.r;
+        if(matches){ available[i]=null; needed--; }
       }
-      if(needed>0) return false; // not enough
+      if(needed>0) return false;
     }
     return true;
   },

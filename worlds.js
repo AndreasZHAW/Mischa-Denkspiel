@@ -18,28 +18,26 @@ const SPECIAL_PLAYERS = {
 // 20 SPIELE (keine Duplikate)
 // ══════════════════════════════════════════
 const GAME_LIST = [
-  // ─ Pflicht-Spiele ─
-  { id:'dart',       name:'Dart',           icon:'🎯', type:'dart',       baseReward:1.0, desc:'Wirf auf die Dartscheibe — Wind & Atmung!' },
-  { id:'french',     name:'Französisch',    icon:'🇫🇷', type:'truefalse',  baseReward:1.0, desc:'Französische Vokabeln — richtig oder falsch?' },
-  { id:'math',       name:'Rechnen',        icon:'🔢', type:'math',       baseReward:1.0, desc:'Schnell und richtig rechnen!' },
-  { id:'train',      name:'Zug',            icon:'🚂', type:'train',      baseReward:1.0, desc:'Ordne die Schweizer Zugrouten!' },
-  { id:'shutthebox', name:'Shut the Box',   icon:'🎲', type:'shutthebox', baseReward:1.0, desc:'Klassisches Würfelspiel — alle Felder schliessen!' },
-  // ─ Weitere Spiele ─
-  { id:'memory',     name:'Memory',         icon:'🧠', type:'memory',     baseReward:1.0, desc:'Finde die Paare — teste dein Gedächtnis!' },
-  { id:'anagram',    name:'Anagramm',       icon:'🔤', type:'anagram',    baseReward:1.0, desc:'Ordne die Buchstaben zum richtigen Wort!' },
-  { id:'simon',      name:'Simon',          icon:'🟢', type:'simon',      baseReward:1.0, desc:'Merke dir die Farb-Sequenz!' },
-  { id:'wordsearch', name:'Wortsuche',      icon:'🔍', type:'wordsearch', baseReward:1.0, desc:'Finde alle versteckten Wörter!' },
-  { id:'reaction',   name:'Reaktion',       icon:'⚡', type:'reaction',   baseReward:1.0, desc:'So schnell wie möglich auf das Signal reagieren!' },
-  { id:'colormix',   name:'Farbmischung',   icon:'🎨', type:'colormix',   baseReward:1.0, desc:'Mische die richtige Farbe!' },
-  { id:'slider',     name:'Schiebepuzzle',  icon:'🧩', type:'slider',     baseReward:1.0, desc:'Schiebe die Teile ins richtige Muster!' },
-  { id:'differences',name:'Unterschiede',   icon:'👁️', type:'differences', baseReward:1.0, desc:'Finde alle Unterschiede zwischen den Bildern!' },
-  { id:'balloon',    name:'Ballon',         icon:'🎈', type:'balloon',    baseReward:1.0, desc:'Pop die richtigen Ballons!' },
-  { id:'typing',     name:'Tetris',         icon:'🟩', type:'tetris',     baseReward:1.0, desc:'Tippe den Text so schnell wie möglich!' },
-  { id:'jenga',      name:'Race',          icon:'🚗', type:'stunt',      baseReward:1.0, desc:'Fahre 1km so schnell wie möglich!' },
-  { id:'search',     name:'Suchen',         icon:'🔭', type:'search',     baseReward:1.0, desc:'Finde das gesuchte Objekt!' },
-  { id:'minigames',  name:'Mini-Spiele',    icon:'🎮', type:'minigames',  baseReward:1.0, desc:'Verschiedene Mini-Herausforderungen!' },
-  { id:'truefalse',  name:'Wahr oder Falsch',icon:'✅', type:'truefalse', baseReward:1.0, desc:'Ist die Aussage wahr oder falsch?' },
-  { id:'quiz',       name:'Frankreich-Quiz',icon:'🗼', type:'truefalse',  baseReward:1.0, desc:'Fragen über Frankreich — wie viel weisst du?' },
+  { id:'dart',       name:'Dart',           icon:'🎯', type:'dart',       baseReward:1.0, desc:'Wirf auf die Dartscheibe!' },
+  { id:'french',     name:'Französisch',    icon:'🇫🇷', type:'truefalse',  baseReward:1.0, desc:'Wahr oder Falsch auf Französisch' },
+  { id:'math',       name:'Rechnen',        icon:'🔢', type:'math',       baseReward:1.0, desc:'Löse Rechenaufgaben' },
+  { id:'train',      name:'Zug',            icon:'🚂', type:'train',      baseReward:1.0, desc:'Lenke den Zug' },
+  { id:'shutthebox', name:'Shut the Box',   icon:'🎲', type:'shutthebox', baseReward:1.0, desc:'Würfelspiel' },
+  { id:'memory',     name:'Memory',         icon:'🧠', type:'memory',     baseReward:1.0, desc:'Finde die Paare' },
+  { id:'anagram',    name:'Anagramm',       icon:'🔤', type:'anagram',    baseReward:1.0, desc:'Ordne die Buchstaben' },
+  { id:'simon',      name:'Simon',          icon:'🟢', type:'simon',      baseReward:1.0, desc:'Merke die Farbreihenfolge' },
+  { id:'wordsearch', name:'Wortsuche',      icon:'🔍', type:'wordsearch', baseReward:1.0, desc:'Finde versteckte Wörter' },
+  { id:'reaction',   name:'Reaktion',       icon:'⚡', type:'reaction',   baseReward:1.0, desc:'Reagiere schnell!' },
+  { id:'colormix',   name:'Farben',         icon:'🎨', type:'colormix',   baseReward:1.0, desc:'Mische die Farben' },
+  { id:'slider',     name:'Schiebepuzzle',  icon:'🧩', type:'slider',     baseReward:1.0, desc:'Schiebe die Teile' },
+  { id:'typing',     name:'Tetris',         icon:'🟩', type:'tetris',     baseReward:1.0, desc:'Tetris spielen' },
+  { id:'balloon',    name:'Ballon',         icon:'🎈', type:'balloon',    baseReward:1.0, desc:'Halte den Ballon oben' },
+  { id:'jenga',      name:'Race',           icon:'🏎️', type:'stunt',      baseReward:1.0, desc:'Fahre 1km so schnell wie möglich' },
+  { id:'simon2',     name:'Pac-Man',        icon:'🟡', type:'pacman',     baseReward:1.5, desc:'Friss alle Punkte im Labyrinth' },
+  { id:'math2',      name:'Rechnen II',     icon:'➕', type:'math',       baseReward:1.5, desc:'Schwere Rechenaufgaben' },
+  { id:'memory2',    name:'Star Wars',      icon:'🚀', type:'starwars',   baseReward:1.5, desc:'Schiesse die feindlichen Raumschiffe ab' },
+  { id:'truefalse',  name:'Wahr/Falsch',    icon:'✅', type:'truefalse',  baseReward:1.0, desc:'Richtig oder Falsch?' },
+  { id:'dart2',      name:'Pong',           icon:'🏓', type:'pong',       baseReward:1.5, desc:'Klassisches Tennis' },
 ];
 
 // ══════════════════════════════════════════

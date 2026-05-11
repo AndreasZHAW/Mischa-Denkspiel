@@ -9,20 +9,13 @@ const StuntGame = {
     <div style="text-align:center">
 
       <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;max-width:100%;display:block;margin:0 auto"></canvas>
-      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:8px;max-width:340px;margin-left:auto;margin-right:auto">
-        <!-- Left: rotate buttons -->
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <button id="st-rotup" style="background:linear-gradient(135deg,#9B59B6,#8E44AD);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">↻ Drehen</button>
-          <button id="st-rotdn" style="background:linear-gradient(135deg,#8E44AD,#6C3483);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">↺ Drehen</button>
-        </div>
-        <!-- Center label -->
-        <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-align:center;line-height:1.4">↻↺<br>drehen</div>
-        <!-- Right: gas/brake -->
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <button id="st-fwd" style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">▶ Gas</button>
-          <button id="st-back" style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:12px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none;width:100%">◀ Bremse</button>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;max-width:340px;margin-left:auto;margin-right:auto">
+        <button id="st-rotdn" style="background:linear-gradient(135deg,#6C3483,#8E44AD);color:#fff;border:none;padding:14px;border-radius:10px;font-size:.9rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">↺ Drehen L</button>
+        <button id="st-fwd"   style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:10px;font-size:.9rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">Gas ▶</button>
+        <button id="st-rotup" style="background:linear-gradient(135deg,#8E44AD,#9B59B6);color:#fff;border:none;padding:14px;border-radius:10px;font-size:.9rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">↻ Drehen R</button>
+        <button id="st-back"  style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:14px;border-radius:10px;font-size:.9rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">◀ Bremse</button>
       </div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.35);text-align:center;margin-top:4px">Links: Drehen · Rechts: Gas/Bremse</div>
     </div>`;
 
     const cv=document.getElementById('stcv'), ctx=cv.getContext('2d');
