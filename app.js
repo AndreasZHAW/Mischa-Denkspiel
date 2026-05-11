@@ -727,79 +727,87 @@ const App = {
     const gl = window.GAME_LIST || [];
     const ua = navigator.userAgent;
     const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    const deviceLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
-    const deviceName = {ipad:'iPad',iphone:'iPhone',android:'Android',desktop:'Desktop'}[deviceLabel];
+    const devLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+    const devName = {ipad:'iPad',iphone:'iPhone',android:'Android',desktop:'Desktop'}[devLabel];
     const isRef = player.name.toLowerCase()==='janoschtest';
 
-    // Get calibration data per device
-    let calData = {};
-    try { calData = JSON.parse(localStorage.getItem('janosch_cal_v2')||'{}'); } catch(e){}
+    // Load calibration store (all scores per game per device)
+    let calStore = {};
+    try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e){}
 
-    // All players for comparison
-    let allP = {};
-    try { allP = JSON.parse(localStorage.getItem('mischa_players')||'{}'); } catch(e){}
+    const DEVS = ['desktop','ipad','iphone','android'];
+    const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱Phone',android:'🤖'};
 
-    const rows = gl.map((game,i) => {
+    // Build table rows
+    const tableRows = gl.map((game,i) => {
       const task = tasks[i];
       const myScore = task?.score || 0;
-      const myMt = task?.mt || 0;
-      const plays = task?.plays || (task?.done ? 1 : 0);
+      const myRaw = task?.rawScore || 0;
+      const plays = task?.plays || (task?.done?1:0);
 
-      // Other players' scores
-      const others = Object.values(allP)
-        .filter(p => p.name?.toLowerCase()!==player.name?.toLowerCase() && !['janoschtest','bu'].includes(p.name?.toLowerCase()))
-        .map(p => { const t=(p.worlds?.[1]||p.worlds?.['1']||{}).tasks?.[i]; return t?.score||0; })
-        .filter(s=>s>0).sort((a,b)=>b-a);
-      const avg = others.length ? Math.round(others.reduce((s,x)=>s+x,0)/others.length) : null;
-      const rank = others.filter(s=>s>myScore).length+1;
-      const better = avg!==null && myScore>0 && myScore>avg;
-
-      // Device calibration columns (only for Janoschtest)
-      const devScores = isRef ? {
-        desktop: calData.desktop?.[i] || null,
-        ipad: calData.ipad?.[i] || null,
-        iphone: calData.iphone?.[i] || null,
-        android: calData.android?.[i] || null,
-      } : null;
-
-      if(isRef) {
-        // Save current score to device calibration
-        if(myScore > 0 && !calData[deviceLabel]) calData[deviceLabel] = {};
-        if(myScore > 0) {
-          if(!calData[deviceLabel]) calData[deviceLabel] = {};
-          calData[deviceLabel][i] = myScore;
+      // Calibration stats per device for this game
+      const devStats = {};
+      DEVS.forEach(d => {
+        const key = i + '_' + d;
+        const scores = calStore[key] || [];
+        if (scores.length > 0) {
+          devStats[d] = {
+            min: Math.min(...scores),
+            max: Math.max(...scores),
+            avg: Math.round(scores.reduce((a,b)=>a+b,0)/scores.length),
+            n: scores.length,
+            scores
+          };
         }
+      });
+
+      if (isRef) {
+        // Janoschtest sees: min / avg / max per device + edit/delete buttons
+        const devCells = DEVS.map(d => {
+          const st = devStats[d];
+          if (!st) return `<td colspan="3" style="padding:3px 4px;text-align:center;color:#444;font-size:.68rem">—</td>`;
+          return `<td style="padding:3px 4px;text-align:center;font-size:.68rem;color:#E74C3C">${st.min}</td>
+            <td style="padding:3px 4px;text-align:center;font-size:.68rem;color:#FFD700">${st.avg}</td>
+            <td style="padding:3px 4px;text-align:center;font-size:.68rem;color:#27AE60">${st.max}
+              <button onclick="App._calEdit(${i},'${d}')" style="background:none;border:none;cursor:pointer;font-size:.6rem;opacity:.6" title="Bearbeiten">✏️</button>
+            </td>`;
+        }).join('');
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+          <td style="padding:4px 5px;font-size:.72rem">${game.icon} ${game.name}</td>
+          <td style="padding:4px 5px;text-align:center;color:${myScore>0?'#FFD700':'#555'};font-weight:700;font-size:.75rem">${myScore||'—'}</td>
+          ${devCells}
+        </tr>`;
+      } else {
+        // Normal players: just show their score and MT, with comparison
+        const allP_raw = (() => {
+          const scores_all = calStore[i+'_'+devLabel]||[];
+          if (!scores_all.length) return null;
+          return {min:Math.min(...scores_all),max:Math.max(...scores_all),avg:Math.round(scores_all.reduce((a,b)=>a+b,0)/scores_all.length),n:scores_all.length};
+        })();
+        const rank = allP_raw && myRaw > 0 ? 
+          (calStore[i+'_'+devLabel]||[]).filter(s=>s>myRaw).length + 1 : null;
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+          <td style="padding:5px 6px;font-size:.78rem">${game.icon} ${game.name}</td>
+          <td style="padding:5px 6px;text-align:center;color:${myScore>0?'#FFD700':'#555'};font-weight:700">${myScore||'—'}</td>
+          <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.74rem">${allP_raw?allP_raw.avg:'—'}</td>
+          <td style="padding:5px 6px;text-align:center;font-size:.74rem">${rank?`<span style="color:${rank<=3?'#FFD700':'#aaa'}">#${rank}</span>`:'—'}</td>
+          <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.72rem">${plays||'—'}</td>
+        </tr>`;
       }
-
-      return {game, myScore, myMt, plays, avg, rank, better, others, devScores};
-    });
-
-    // Save updated calibration
-    if(isRef) {
-      try { localStorage.setItem('janosch_cal_v2', JSON.stringify(calData)); } catch(e){}
-    }
-
-    const refCols = isRef ? `
-      <th style="padding:4px 6px;text-align:center;font-size:.65rem">🖥️</th>
-      <th style="padding:4px 6px;text-align:center;font-size:.65rem">📱iPad</th>
-      <th style="padding:4px 6px;text-align:center;font-size:.65rem">📱iPhone</th>
-      <th style="padding:4px 6px;text-align:center;font-size:.65rem">🤖Droid</th>` : '';
-
-    const tableRows = rows.map((r,i) => {
-      const ds = r.devScores;
-      const devCells = isRef ? `
-        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.desktop?'#FFD700':'#444'}">${ds?.desktop||'—'}</td>
-        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.ipad?'#29B6F6':'#444'}">${ds?.ipad||'—'}</td>
-        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.iphone?'#27AE60':'#444'}">${ds?.iphone||'—'}</td>
-        <td style="padding:4px 6px;text-align:center;font-size:.72rem;color:${ds?.android?'#E67E22':'#444'}">${ds?.android||'—'}</td>` : '';
-      return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-        <td style="padding:5px 6px;font-size:.78rem">${r.game.icon} ${r.game.name}</td>
-        <td style="padding:5px 6px;text-align:center;color:${r.myScore>0?'#FFD700':'#555'};font-weight:700">${r.myScore||'—'}</td>
-        <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.74rem">${r.avg!==null?r.avg:'—'}</td>
-        <td style="padding:5px 6px;text-align:center;font-size:.74rem">${r.myScore>0&&r.others.length?`<span style="color:${r.better?'#27AE60':'#E74C3C'}">#${r.rank}${r.better?' ✅':' ⚠️'}</span>`:'—'}</td>
-        ${devCells}
-      </tr>`;
     }).join('');
+
+    // Ref header has device columns
+    const refHeader = isRef ? DEVS.map(d=>`
+      <th colspan="3" style="padding:4px 6px;text-align:center;font-size:.65rem;border-left:1px solid rgba(255,255,255,.1)">${DEV_ICONS[d]}<button onclick="App._calClearDev('${d}')" style="background:none;border:none;cursor:pointer;font-size:.55rem;opacity:.5" title="Gerät löschen">🗑️</button></th>`).join('') : '';
+    const refSubHeader = isRef ? DEVS.map(d=>`
+      <th style="padding:3px 4px;text-align:center;font-size:.6rem;color:#E74C3C">Min</th>
+      <th style="padding:3px 4px;text-align:center;font-size:.6rem;color:#FFD700">Ø</th>
+      <th style="padding:3px 4px;text-align:center;font-size:.6rem;color:#27AE60">Max</th>`).join('') : '';
+
+    const normalHeader = !isRef ? `
+      <th style="padding:5px 6px;text-align:center">Ø Alle</th>
+      <th style="padding:5px 6px;text-align:center">Rang</th>
+      <th style="padding:5px 6px;text-align:center">Spiele</th>` : '';
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
@@ -808,25 +816,49 @@ const App = {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:.82rem">← Zurück</button>
             <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1rem;margin:0">📊 Kontoauszug</h2>
-            <div style="font-size:.66rem;color:rgba(255,255,255,.4)">${deviceName}${isRef?' · 🔬':''}</div>
+            <div style="font-size:.66rem;color:rgba(255,255,255,.4)">${devName}${isRef?' · 🔬':''}</div>
           </div>
-          ${isRef?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:.7rem;color:#E74C3C">🔬 Kalibrierung · Gerät: <b>${deviceName}</b> · Scores werden gespeichert</div>`:''}
+          ${isRef?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:.7rem;color:#E74C3C">
+            🔬 Kalibrierungs-Modus · Aktuelles Gerät: <b>${devName}</b> · Min=0MT · Ø=1MT · Max=2MT
+          </div>`:''}
           <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
             <table style="width:100%;border-collapse:collapse;font-size:.78rem">
               <thead>
-                <tr style="border-bottom:2px solid rgba(41,182,246,.2);color:rgba(255,255,255,.4)">
+                <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.4)">
                   <th style="padding:4px 6px;text-align:left">Spiel</th>
                   <th style="padding:4px 6px;text-align:center">Score</th>
-                  <th style="padding:4px 6px;text-align:center">Ø</th>
-                  <th style="padding:4px 6px;text-align:center">Rang</th>
-                  ${refCols}
+                  ${isRef ? refHeader : normalHeader}
                 </tr>
+                ${isRef ? `<tr style="border-bottom:2px solid rgba(41,182,246,.2);color:rgba(255,255,255,.3)">${'<th></th><th></th>'+refSubHeader}</tr>` : ''}
               </thead>
               <tbody>${tableRows}</tbody>
             </table>
           </div>
         </div>
       </div>`);
+  },
+
+  _calEdit(gameIdx, dev) {
+    const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+    const key = gameIdx+'_'+dev;
+    const scores = calStore[key] || [];
+    const newVal = prompt('Werte für Spiel '+gameIdx+' ('+dev+'):\n'+scores.join(', ')+'\n\nNeue Werte (kommagetrennt) eingeben, leer=löschen:');
+    if (newVal === null) return; // cancelled
+    if (newVal.trim() === '') {
+      delete calStore[key];
+    } else {
+      calStore[key] = newVal.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+    }
+    localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
+    this.showKontoauszug(); // refresh
+  },
+
+  _calClearDev(dev) {
+    if (!confirm('Alle Kalibrierungsdaten für '+dev+' löschen?')) return;
+    const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+    Object.keys(calStore).forEach(k=>{ if(k.endsWith('_'+dev)) delete calStore[k]; });
+    localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
+    this.showKontoauszug();
   },
 
   // ---- GELDBEUTEL ----

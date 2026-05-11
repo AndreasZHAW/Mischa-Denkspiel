@@ -187,27 +187,57 @@ const State = {
 
     const finalScore = this.calcFinalScore(result, player);
     
-    // ── KALIBRIERUNG ──
+    // ── KALIBRIERUNG v3 ──
     const isRef = playerName.toLowerCase() === 'janoschtest';
     
-    // Get calibration reference for this game (gameId = taskIndex)
-    const calRef = this._getCalibration(taskIndex);
-    
-    // Calculate MT earned
+    // New calibration: store all passed rawScores per game per device
+    // MT = linear(min→0, avg→1, max→2)
     let mtEarned;
     if (result.passed === false) {
-      mtEarned = 0.2; // Always 0.2 for not-passing
-    } else if (calRef !== null) {
-      // CALIBRATED: compare against Janoschtest reference
-      // calRef = Janoschtest's rawScore for this game (= 1.0 MT)
-      const ratio = (result.rawScore || 50) / calRef;
-      // ratio 1.0 = same as Janoschtest = 1.0 MT
-      // ratio 1.5+ = 50% better = 1.5 MT (max)
-      // ratio 0.5 = half as good = 0.8 MT (min when passing)
-      mtEarned = Math.round(Math.min(1.5, Math.max(0.5, ratio)) * 10) / 10;
+      mtEarned = 0.2; // Not passed = always 0.2 MT
     } else {
-      // FALLBACK: old formula (no calibration data yet)
-      mtEarned = Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10;
+      const raw = result.rawScore || 50;
+      // Load calibration store
+      let calStore = {};
+      try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e){}
+      
+      // Detect device
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+      
+      // Get scores for this game+device
+      const key = taskIndex + '_' + dev;
+      const scores = calStore[key] || [];
+      
+      if (scores.length === 0) {
+        // First play on this device for this game → 1 MT
+        mtEarned = 1.0;
+      } else {
+        const minS = Math.min(...scores);
+        const maxS = Math.max(...scores);
+        const avgS = scores.reduce((a,b)=>a+b,0)/scores.length;
+        if (maxS === minS) {
+          // All same → compare to that value
+          mtEarned = raw >= avgS ? 1.2 : 0.8;
+        } else if (raw <= minS) {
+          mtEarned = 0.0;
+        } else if (raw >= maxS) {
+          mtEarned = 2.0;
+        } else if (raw < avgS) {
+          // Between min and avg → 0 to 1 MT
+          mtEarned = Math.round(((raw - minS) / (avgS - minS)) * 10) / 10;
+        } else {
+          // Between avg and max → 1 to 2 MT
+          mtEarned = Math.round((1 + (raw - avgS) / (maxS - avgS)) * 10) / 10;
+        }
+      }
+      mtEarned = Math.round(Math.min(2.0, Math.max(0.0, mtEarned)) * 10) / 10;
+      
+      // Add this score to calibration store
+      scores.push(raw);
+      calStore[key] = scores;
+      try { localStorage.setItem('cal_data_v3', JSON.stringify(calStore)); } catch(e){}
     }
     
     const prevPlays = player.worlds[worldIndex].tasks[taskIndex]?.plays || 0;
@@ -246,6 +276,20 @@ const State = {
 
     await this.savePlayer(player);
     this.currentPlayer = player;
+    
+    // Save calibration for Janoschtest
+    if (isRef && result.rawScore > 0) {
+      try {
+        const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+        const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined' && navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+        const deviceLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+        const calData = JSON.parse(localStorage.getItem('janosch_cal_v2')||'{}');
+        if (!calData[deviceLabel]) calData[deviceLabel] = {};
+        calData[deviceLabel][taskIndex] = result.rawScore;
+        localStorage.setItem('janosch_cal_v2', JSON.stringify(calData));
+      } catch(e) {}
+    }
+    
     return player;
   },
 

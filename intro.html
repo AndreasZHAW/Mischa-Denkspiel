@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Mischa Denkspiel — Das Abenteuer beginnt</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif;}
@@ -21,8 +15,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 .chapter.active{display:flex;flex-direction:column;align-items:center;gap:16px;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 
-.chapter-label{font-size:.7rem;letter-spacing:4px;color:rgba(255,215,0,.5);text-transform:uppercase;}
-.chapter-icon{font-size:5rem;filter:drop-shadow(0 0 20px rgba(255,215,0,.6));animation:float 3s ease-in-out infinite;}
+.chapter-label{font-size:clamp(0.59rem,2.0vw,0.8rem);letter-spacing:4px;color:rgba(255,215,0,.5);text-transform:uppercase;}
+.chapter-icon{font-size:clamp(4.25rem,14.0vw,5.75rem);filter:drop-shadow(0 0 20px rgba(255,215,0,.6));animation:float 3s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
 .chapter-title{font-size:clamp(1.4rem,4vw,2.2rem);font-weight:900;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,.8);letter-spacing:1px;line-height:1.3;}
 .chapter-text{font-size:clamp(.85rem,2.5vw,1.1rem);color:rgba(255,255,255,.85);line-height:1.8;max-width:560px;text-shadow:0 2px 8px rgba(0,0,0,.8);}
@@ -33,9 +27,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 .char-card{display:flex;flex-direction:column;align-items:center;gap:6px;animation:charIn .6s ease both;}
 @keyframes charIn{from{opacity:0;transform:scale(.7) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .char-card:nth-child(2){animation-delay:.2s;}
-.char-avatar{font-size:3.5rem;filter:drop-shadow(0 0 15px rgba(255,215,0,.5));}
-.char-name{font-size:.75rem;letter-spacing:2px;color:#FFD700;text-transform:uppercase;}
-.char-desc{font-size:.65rem;color:rgba(255,255,255,.5);text-align:center;max-width:90px;}
+.char-avatar{font-size:clamp(2.98rem,9.8vw,4.02rem);filter:drop-shadow(0 0 15px rgba(255,215,0,.5));}
+.char-name{font-size:clamp(0.64rem,2.1vw,0.86rem);letter-spacing:2px;color:#FFD700;text-transform:uppercase;}
+.char-desc{font-size:clamp(0.55rem,1.8vw,0.75rem);color:rgba(255,255,255,.5);text-align:center;max-width:90px;}
 
 /* ── CINEMATIC BARS ── */
 .bar-top,.bar-bot{position:fixed;left:0;right:0;height:60px;background:#000;z-index:20;transition:height .8s ease;}
@@ -51,7 +45,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
   color:#FFD700;
   padding:12px 32px;
   border-radius:50px;
-  font-size:.9rem;
+  font-size:clamp(0.77rem,2.5vw,1.03rem);
   cursor:pointer;
   letter-spacing:2px;
   text-transform:uppercase;
@@ -66,7 +60,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
   position:fixed;top:20px;right:20px;z-index:100;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
   color:rgba(255,255,255,.5);padding:7px 16px;border-radius:50px;
-  font-size:.72rem;cursor:pointer;letter-spacing:1px;transition:all .2s;
+  font-size:clamp(0.61rem,2.0vw,0.83rem);cursor:pointer;letter-spacing:1px;transition:all .2s;
 }
 #skip-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
 
@@ -82,13 +76,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 /* ── END SCREEN ── */
 #end-screen{display:none;position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at center,#0a0a1a 0%,#000 100%);flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:24px;}
 #end-screen.show{display:flex;}
-.end-logo{font-size:3.5rem;animation:float 3s ease-in-out infinite;}
+.end-logo{font-size:clamp(2.98rem,9.8vw,4.02rem);animation:float 3s ease-in-out infinite;}
 .end-title{font-family:'Georgia',serif;font-size:clamp(1.5rem,5vw,2.8rem);font-weight:900;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.end-sub{font-size:.9rem;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;}
+.end-sub{font-size:clamp(0.77rem,2.5vw,1.03rem);color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;}
 .enter-btn{
   background:linear-gradient(135deg,#FFD700,#F39C12);
   color:#0a0a1a;border:none;padding:16px 40px;
-  border-radius:50px;font-size:1.1rem;font-weight:900;
+  border-radius:50px;font-size:clamp(0.94rem,3.1vw,1.26rem);font-weight:900;
   cursor:pointer;letter-spacing:1px;
   box-shadow:0 0 40px rgba(255,165,0,.5);
   animation:glow 2s ease-in-out infinite;
@@ -96,7 +90,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 }
 .enter-btn:hover{transform:scale(1.05);}
 @keyframes glow{0%,100%{box-shadow:0 0 30px rgba(255,165,0,.4);}50%{box-shadow:0 0 60px rgba(255,165,0,.8);}}
-.ver-badge{font-size:.65rem;color:rgba(255,255,255,.2);letter-spacing:1px;}
+.ver-badge{font-size:clamp(0.55rem,1.8vw,0.75rem);color:rgba(255,255,255,.2);letter-spacing:1px;}
 
 /* Chapter-specific backgrounds */
 .bg-blue{background:radial-gradient(ellipse at 50% 80%,rgba(0,100,200,.15),transparent 70%);}
@@ -136,9 +130,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
     <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.6">🌌</div>
     <div class="chapter-title">Irgendwo in der Welt...</div>
     <div class="chapter-text">
-      Es war ein gewöhnlicher Tag.<br>
-      Bis <b>Mischa</b> und <b>Janosch</b><br>
-      eine unmögliche Mission entdeckten.
+      Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum:<br>Einen eigenen Zoo leiten.
     </div>
     <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
   </div>
@@ -150,16 +142,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
       <div class="char-card">
         <div class="char-avatar">🧭</div>
         <div class="char-name">Mischa</div>
-        <div class="char-desc">Der Anführer. Mutig, schnell, unberechenbar.</div>
+        <div class="char-desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
       </div>
       <div class="char-card" style="animation-delay:.3s">
         <div class="char-avatar">🔬</div>
         <div class="char-name">Janosch</div>
-        <div class="char-desc">Der Stratege. Präzise, geduldig, genial.</div>
+        <div class="char-desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
       </div>
     </div>
     <div class="chapter-text">
-      Zwei Freunde. Eine gemeinsame Leidenschaft.<br>
+      Zwei Brüder. Ein riesiger Traum.<br>
       Und ein Traum, der grösser war als alles andere.
     </div>
     <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
@@ -171,12 +163,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
     <div class="chapter-icon">⚔️</div>
     <div class="chapter-title">Erkämpfe dein Startkapital</div>
     <div class="chapter-text">
-      Bevor ein Traum Wirklichkeit werden kann,<br>
-      muss man sich <b>beweisen</b>.<br><br>
-      In <b>aufregenden Spielen</b> warten Denkaufgaben,<br>
-      Geschicklichkeit und schnelle Reflexe.<br>
-      Jeder Sieg bringt <b>🌀 Mischa Taler</b>.
-    </div>
+      Mischa und Janosch reisen nach Frankreich —
+      voller Hoffnung und ohne einen Rappen in der Tasche.
+      Doch wer seinen Zoo bauen will, braucht Startkapital.
+      Löse Rätsel, überstehe Prüfungen,
+      und kämpfe dich durch — für euren Traum.</div>
     <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
   </div>
 
@@ -214,11 +205,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
     <div class="chapter-icon">🚀</div>
     <div class="chapter-title">Bist du bereit?</div>
     <div class="chapter-text">
-      Mischa und Janosch brauchen dich.<br><br>
-      Die Mission wartet.<br>
-      Die Tiere warten.<br>
-      <b>Der Zoo wartet auf seinen Erbauer.</b>
-    </div>
+      Mischa und Janosch zählen auf dich.
+      Die Reise durch Frankreich beginnt.
+      Die Rätsel warten. Die Tiere warten.
+      Dein Zoo wartet.</div>
     <button id="next-btn" onclick="showEnd()" style="background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,140,0,.2));border-color:#FFD700;font-size:1rem;padding:14px 36px;">
       🚀 Abenteuer starten
     </button>

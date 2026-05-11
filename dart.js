@@ -63,9 +63,13 @@ const DartGame = {
     try {
       const ctx = new (window.AudioContext||window.webkitAudioContext)();
       // Fanfare: ascending triumphant notes
+      // Dramatic fanfare - crowd roar then melody
       const notes = [
-        [440,0,0.1],[550,0.1,0.1],[660,0.2,0.1],[880,0.3,0.15],
-        [660,0.5,0.05],[880,0.56,0.05],[1100,0.62,0.3]
+        // Drum roll effect
+        [120,0,0.05],[120,0.06,0.05],[120,0.11,0.05],[120,0.15,0.05],
+        // Triumphant melody
+        [523,0.22,0.12],[659,0.36,0.12],[784,0.50,0.12],
+        [1047,0.65,0.35],[784,0.65,0.35]
       ];
       notes.forEach(([freq,start,dur])=>{
         const o=ctx.createOscillator();const g=ctx.createGain();
@@ -80,13 +84,23 @@ const DartGame = {
 
     // Speech synthesis "ONE HUNDRED AND EIGHTY!"
     try {
-      const u = new SpeechSynthesisUtterance('ONE HUNDRED AND EIGHTY!');
-      u.rate = 1.1; u.pitch = 0.8; u.volume = 1;
-      // Try to find a male UK voice
-      const voices = speechSynthesis.getVoices();
-      const uk = voices.find(v=>v.lang.includes('en-GB'))||voices.find(v=>v.lang.includes('en'));
-      if(uk) u.voice = uk;
-      speechSynthesis.speak(u);
+      // Passionate dart caller voice
+      const sayIt = () => {
+        const u = new SpeechSynthesisUtterance('ONE HUNDRED AND EIGHTY!');
+        u.rate = 0.85;   // Slower = more dramatic
+        u.pitch = 0.6;   // Deep voice
+        u.volume = 1;
+        // Prefer UK English for authentic dart feel
+        const voices = speechSynthesis.getVoices();
+        const uk = voices.find(v=>v.lang==='en-GB'&&v.name.toLowerCase().includes('male'))
+          || voices.find(v=>v.lang==='en-GB')
+          || voices.find(v=>v.lang.startsWith('en'));
+        if(uk) u.voice = uk;
+        speechSynthesis.speak(u);
+      };
+      // Wait for voices to load if needed
+      if(speechSynthesis.getVoices().length) sayIt();
+      else speechSynthesis.onvoiceschanged = sayIt;
     } catch(e){}
 
     // Visual animation overlay
