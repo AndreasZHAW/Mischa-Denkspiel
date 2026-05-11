@@ -16,14 +16,12 @@ const PongGame = {
       <div style="background:#222;height:4px"><div id="pong-tbar" style="background:#27AE60;height:4px;width:100%"></div></div>
       <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%"></canvas>
       ${isMobile ? `
-      <!-- Mobile: Up/Down on BOTH sides for easy reach -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;max-width:${W}px">
-        <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:18px;border-radius:10px;font-size:1.5rem;cursor:pointer;user-select:none;touch-action:none">▲</button>
-        <button id="pu2" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:18px;border-radius:10px;font-size:1.5rem;cursor:pointer;user-select:none;touch-action:none">▲</button>
-        <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:18px;border-radius:10px;font-size:1.5rem;cursor:pointer;user-select:none;touch-action:none">▼</button>
-        <button id="pd2" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:18px;border-radius:10px;font-size:1.5rem;cursor:pointer;user-select:none;touch-action:none">▼</button>
-      </div>
-      <div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-top:4px">Links oder Rechts tippen — beide Seiten funktionieren!</div>` 
+      <!-- Mobile: swipe on canvas OR use buttons -->
+      <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:6px;text-align:center">📱 Finger auf Bildschirm ziehen = Balken bewegen</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:6px">
+        <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 48px;border-radius:10px;font-size:1.4rem;cursor:pointer;user-select:none;touch-action:none">▲</button>
+        <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:14px 48px;border-radius:10px;font-size:1.4rem;cursor:pointer;user-select:none;touch-action:none">▼</button>
+      </div>` 
       : `<div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
         <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▲</button>
         <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▼</button>
@@ -44,12 +42,24 @@ const PongGame = {
 
     // Controls
     const addBtn=(id)=>{
-      const b=document.getElementById(id);
-      if(!b)return;
+      const b=document.getElementById(id);if(!b)return;
       if(id.startsWith('pu')){b.addEventListener('pointerdown',e=>{e.preventDefault();upHeld=true;});b.addEventListener('pointerup',()=>upHeld=false);}
       else{b.addEventListener('pointerdown',e=>{e.preventDefault();dnHeld=true;});b.addEventListener('pointerup',()=>dnHeld=false);}
     };
-    addBtn('pu');addBtn('pu2');addBtn('pd');addBtn('pd2');
+    addBtn('pu');addBtn('pd');
+    // Touch drag on canvas = move paddle directly
+    if(isMobile){
+      let lastTouchY=null;
+      cv.addEventListener('touchstart',e=>{e.preventDefault();lastTouchY=e.touches[0].clientY;},{passive:false});
+      cv.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const ty=e.touches[0].clientY;
+        const dy=ty-lastTouchY;
+        py=Math.max(0,Math.min(H-PS,py+dy*1.2));
+        lastTouchY=ty;
+      },{passive:false});
+      cv.addEventListener('touchend',()=>lastTouchY=null);
+    }
     const onKey=e=>{if(e.key==='ArrowUp')upHeld=true;else if(e.key==='ArrowDown')dnHeld=true;};
     const onKeyUp=e=>{if(e.key==='ArrowUp')upHeld=false;else if(e.key==='ArrowDown')dnHeld=false;};
     window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKeyUp);

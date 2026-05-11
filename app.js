@@ -944,10 +944,6 @@ const App = {
           <div class="banner-sub">${world.difficulty} · ${done}/10 geschafft</div>
         </div>
 
-        <!-- Path -->
-        <div style="background:rgba(255,255,255,0.9);border-radius:14px;overflow:hidden;margin-bottom:10px;width:100%;max-width:480px;box-shadow:var(--shadow)">
-          ${worldPathSVG(worldId, done, ch?.emoji||'🧭', world.icon)}
-        </div>
 
         <div class="card" style="max-width:480px;padding:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -1065,8 +1061,17 @@ const App = {
       </div>`);
 
     const onComplete = async (result) => {
-      await State.completeTask(player.name, worldId, taskIndex, result);
+      // Show result immediately, save in background with timeout
       this._showTaskComplete(worldId, taskIndex, result);
+      try {
+        await Promise.race([
+          State.completeTask(player.name, worldId, taskIndex, result),
+          new Promise(r => setTimeout(r, 3000)) // 3s max wait
+        ]);
+      } catch(e) {
+        // Save failed silently - result still shown
+        try { State.completeTask(player.name, worldId, taskIndex, result); } catch(e2){}
+      }
     };
 
     setTimeout(() => {

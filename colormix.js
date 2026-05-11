@@ -69,7 +69,7 @@ const ColorMixGame = {
     if (el) { el.style.border='4px solid #2C3E50'; el.style.transform='scale(0.95)'; }
     c.selected.push(i);
     // Update selection display
-    const dots = document.querySelectorAll('#game-area > div > div:last-child > div');
+    const dots = document.querySelectorAll('.cmix-dot');
     if (dots[c.selected.length-1]) dots[c.selected.length-1].style.background = c.currentOpts[i].color;
     if (c.selected.length===2) {
       const q = c.qs[c.index];
@@ -78,7 +78,7 @@ const ColorMixGame = {
       if (!correct) c.errors++;
       c.results.push(correct);
       // Feedback
-      const dots2 = document.querySelectorAll('#game-area > div > div:last-child > div');
+      const dots2 = document.querySelectorAll('.cmix-dot');
       dots2.forEach(d=>d.style.border=`3px solid ${correct?'#27AE60':'#E74C3C'}`);
       if (!correct) {
         // Show correct
