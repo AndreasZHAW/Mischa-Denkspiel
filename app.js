@@ -1061,6 +1061,13 @@ const App = {
           if (!calStore[key]) calStore[key] = [];
           calStore[key].push(result.rawScore);
           localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
+          // Sync to Firebase for cross-device calibration
+          try {
+            if (typeof _db !== 'undefined' && _db) {
+              const upd = {}; upd[key] = calStore[key];
+              _db.collection('calibration').doc('scores').set(upd, {merge:true}).catch(()=>{});
+            }
+          } catch(e) {}
         } catch(e) {}
       }
       // Save task result to player immediately (localStorage)

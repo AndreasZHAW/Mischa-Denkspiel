@@ -673,15 +673,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <script>
   // Load calibration from cal_data_v3 (localStorage)
-  function loadCalibration() {
+  async function loadCalibration() {
     const tbody = document.getElementById('cal-tbody');
     if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade von Firebase...</td></tr>';
+    
     const devFilter = document.getElementById('cal-dev')?.value || 'all';
     const DEVS = devFilter === 'all' ? ['desktop','ipad','iphone','android'] : [devFilter];
     const DEV_ICONS = {desktop:'🖥️',ipad:'📱',iphone:'📱',android:'🤖'};
 
+    // Load from Firebase first (cross-device data), then merge with local
     let calStore = {};
     try { calStore = JSON.parse(localStorage.getItem('cal_data_v3') || '{}'); } catch(e) {}
+    try {
+      if (typeof firebase !== 'undefined') {
+        const db = firebase.firestore();
+        const doc = await db.collection('calibration').doc('scores').get();
+        if (doc.exists) {
+          const cloudData = doc.data();
+          // Merge: take max data per key
+          Object.entries(cloudData).forEach(([key, scores]) => {
+            if (!Array.isArray(scores)) return;
+            if (!calStore[key] || calStore[key].length < scores.length) {
+              calStore[key] = scores;
+            }
+          });
+          // Save merged to local
+          localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
+        }
+      }
+    } catch(e) { console.log('Firebase cal load error:', e); }
 
     const gl = window.GAME_LIST || [];
     let totalPartien = 0, gamesWithData = 0;

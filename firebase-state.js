@@ -238,6 +238,14 @@ const State = {
       scores.push(raw);
       calStore[key] = scores;
       try { localStorage.setItem('cal_data_v3', JSON.stringify(calStore)); } catch(e){}
+      // Sync to Firebase so all devices share calibration data
+      try {
+        if (typeof _db !== 'undefined' && _db) {
+          const update = {};
+          update[key] = scores;
+          _db.collection('calibration').doc('scores').set(update, {merge: true}).catch(()=>{});
+        }
+      } catch(e) {}
     }
     
     const prevPlays = player.worlds[worldIndex].tasks[taskIndex]?.plays || 0;
@@ -283,6 +291,30 @@ const State = {
 
   // ── KALIBRIERUNGS-SYSTEM ──
   
+  // Load calibration from Firebase and merge with local
+  async loadCalibrationFromCloud() {
+    try {
+      if (typeof _db === 'undefined' || !_db || !this._useCloud()) return;
+      const doc = await _db.collection('calibration').doc('scores').get();
+      if (!doc.exists) return;
+      const cloudData = doc.data();
+      // Merge cloud data with local (cloud takes precedence for unknown keys)
+      let localStore = {};
+      try { localStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e){}
+      let changed = false;
+      Object.entries(cloudData).forEach(([key, scores]) => {
+        if (!Array.isArray(scores)) return;
+        if (!localStore[key] || localStore[key].length < scores.length) {
+          localStore[key] = scores;
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem('cal_data_v3', JSON.stringify(localStore));
+      }
+    } catch(e) {}
+  },
+
   // Get calibration reference for a game+device (from cal_data_v3)
   _getCalibration(taskIndex) {
     try {
