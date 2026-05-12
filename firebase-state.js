@@ -205,7 +205,7 @@ const State = {
       // Detect device
       const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
       const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
       
       // Get scores for this game+device
       const key = taskIndex + '_' + dev;
@@ -321,7 +321,7 @@ const State = {
     try {
       const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
       const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
       const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
       const scores = calStore[taskIndex+'_'+dev] || [];
       if (!scores.length) return null;

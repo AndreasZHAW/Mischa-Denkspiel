@@ -716,7 +716,7 @@ const App = {
     const gl = window.GAME_LIST || [];
     const ua = navigator.userAgent;
     const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    const devLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+    const devLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
     const devName = {ipad:'iPad',iphone:'iPhone',android:'Android',desktop:'Desktop'}[devLabel];
     const isRef = false; // Admin sees cal table via admin panel
 
@@ -1055,7 +1055,7 @@ const App = {
         try {
           const ua = navigator.userAgent;
           const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-          const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+          const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
           const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
           const key = taskIndex + '_' + dev;
           if (!calStore[key]) calStore[key] = [];
@@ -1085,7 +1085,7 @@ const App = {
               if(result.passed===false) return 0.2;
               const ua=navigator.userAgent;
               const isIPad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-              const dev=isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+              const dev=isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
               const calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
               const scores=calStore[taskIndex+'_'+dev]||[];
               if(!scores.length) return 1.0;

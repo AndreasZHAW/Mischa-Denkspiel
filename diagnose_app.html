@@ -97,6 +97,8 @@ async function forceLogin(){
 async function runDiag(){
   log.innerHTML='';
   L('=== DIAGNOSE GESTARTET ===','info');
+  const urlP = new URLSearchParams(window.location.search).get('player');
+  if(!urlP) L('💡 Tipp: Füge ?player=qqq zur URL hinzu um als eingeloggter Spieler zu testen','warn');
   L('Browser: '+navigator.userAgent,'dim');
   L('URL: '+location.href,'dim');
   SEP();

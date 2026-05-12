@@ -35,9 +35,17 @@ const PacmanGame = {
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
         ${isTouch ? `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
-          <span style="font-size:.72rem;color:rgba(255,255,255,.5)">Steuerung:</span>
-          <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 12px;border-radius:20px;font-size:.72rem;cursor:pointer">🎮 Tasten</button>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-size:.7rem;color:rgba(255,255,255,.5)">Steuerung:</span>
+          <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 10px;border-radius:20px;font-size:.7rem;cursor:pointer">🎮 Tasten</button>
+          <label id="pc-tilt-opts" style="display:none;align-items:center;gap:8px;font-size:.68rem;color:rgba(255,255,255,.5)">
+            <label style="display:flex;align-items:center;gap:3px;cursor:pointer">
+              <input type="checkbox" id="pc-rev-x" style="cursor:pointer"> Links/Rechts ↔
+            </label>
+            <label style="display:flex;align-items:center;gap:3px;cursor:pointer">
+              <input type="checkbox" id="pc-rev-y" style="cursor:pointer"> Oben/Unten ↕
+            </label>
+          </label>
         </div>` : ''}
         <canvas id="pccv" width="${W}" height="${H}" style="background:#000;border-radius:6px;max-width:min(${W}px,92vw)"></canvas>
         <div id="pc-btns" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:150px">
@@ -74,12 +82,14 @@ const PacmanGame = {
     const btnsDiv = document.getElementById('pc-btns');
     const tiltHint = document.getElementById('pc-tilt-hint');
 
+    const tiltOpts = document.getElementById('pc-tilt-opts');
     if(modeBtn) modeBtn.addEventListener('click', () => {
       useTilt = !useTilt;
       modeBtn.textContent = useTilt ? '📱 Neigen' : '🎮 Tasten';
       modeBtn.style.background = useTilt ? '#8e44ad' : '#2c3e50';
       if(btnsDiv) btnsDiv.style.display = useTilt ? 'none' : 'grid';
       if(tiltHint) tiltHint.style.display = useTilt ? 'block' : 'none';
+      if(tiltOpts) tiltOpts.style.display = useTilt ? 'flex' : 'none';
       if(useTilt && typeof DeviceMotionEvent !== 'undefined') {
         // Request permission on iOS 13+
         if(typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -95,16 +105,21 @@ const PacmanGame = {
     const onMotion = (e) => {
       if(!useTilt) return;
       const g = e.accelerationIncludingGravity || e.acceleration || {};
-      tiltX = g.x || 0; // left/right
-      tiltY = g.y || 0; // forward/back
+      let tx = g.x || 0;
+      let ty = g.y || 0;
+      // Apply reverse settings
+      const revX = document.getElementById('pc-rev-x')?.checked;
+      const revY = document.getElementById('pc-rev-y')?.checked;
+      if(revX) tx = -tx;
+      if(revY) ty = -ty;
+      tiltX = tx; tiltY = ty;
       const THRESH = 3;
-      if(Math.abs(tiltX) > Math.abs(tiltY)) {
-        if(tiltX < -THRESH){ wantDx=1; wantDy=0; }
-        else if(tiltX > THRESH){ wantDx=-1; wantDy=0; }
+      if(Math.abs(tx) > Math.abs(ty)) {
+        if(tx < -THRESH){ wantDx=1; wantDy=0; }
+        else if(tx > THRESH){ wantDx=-1; wantDy=0; }
       } else {
-        // Y axis swapped: tilt forward (positive Y) = move UP
-        if(tiltY > THRESH){ wantDx=0; wantDy=-1; }   // tilt forward = up
-        else if(tiltY < -THRESH){ wantDx=0; wantDy=1; } // tilt back = down
+        if(ty > THRESH){ wantDx=0; wantDy=-1; }
+        else if(ty < -THRESH){ wantDx=0; wantDy=1; }
       }
     };
     window.addEventListener('devicemotion', onMotion);
