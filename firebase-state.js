@@ -481,7 +481,7 @@ const State = {
     return 'schwer';
   },
 
-  getAdminPw() { return localStorage.getItem(ADMIN_KEY) || 'mischa2026'; },
+  getAdminPw() { return 'mischa2026'; }, // Fixed password
   setAdminPw(pw) { localStorage.setItem(ADMIN_KEY, pw); },
   checkAdmin(pw) { return pw === this.getAdminPw(); },
 

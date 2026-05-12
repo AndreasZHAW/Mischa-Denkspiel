@@ -44,9 +44,12 @@ const StuntGame = {
     let car={
       wx:150, wy:getTY(150)-14,
       vx:0, vy:0,
-      angle:0,    // body angle (follows terrain)
-      spin:0,     // extra spin from buttons
+      angle:0, spin:0,
       onGround:false, airTime:0,
+      gasTime:0,       // how long gas has been held
+      saltoRot:0,      // accumulated rotation in air
+      saltos:0,        // completed saltos
+      saltoFlash:0,
     };
     let fwdHeld=false,backHeld=false,rotUpHeld=false,rotDnHeld=false;
     let score=0,maxX=0,running=true,tStart=Date.now(),animId,frames=0;
@@ -81,8 +84,8 @@ const StuntGame = {
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKeyUp);
       const t=Date.now()-tStart;
-      const saltoBonus=Math.min(30,(car._saltos||0)*10);const timeScore=won?Math.max(10,Math.min(100,100-Math.floor(t/1000)*1.5+saltoBonus)):Math.round(car.wx/GOAL*40)+saltoBonus;
-      onComplete({rawScore:Math.min(100,timeScore),timeMs:t,errors:0,passed:won});
+      const saltoBonus=Math.min(40,(car.saltos||0)*10);const timeScore=won?Math.max(10,Math.min(100,100-Math.floor(t/1000)*1.5+saltoBonus)):Math.round(car.wx/GOAL*40)+saltoBonus;
+      onComplete({rawScore:Math.min(100,timeScore),timeMs:t,errors:0,passed:won,saltos:car.saltos||0});
     };
 
     const loop=()=>{
@@ -114,7 +117,13 @@ const StuntGame = {
         car.vy=0;car.onGround=true;car.airTime=0;
         car.angle+=(terrAng-car.angle)*0.18;
         car.spin*=0.65;
-        if(fwdHeld())  car.vx+=Math.cos(terrAng)*1.1; // more speed for jumps
+        // Progressive acceleration: faster the longer gas is held
+        if(fwdHeld()){
+          car.gasTime++;
+          const gasMult=Math.min(3.0, 1.0 + car.gasTime*0.008); // builds up to 3x
+          car.vx+=Math.cos(terrAng)*gasMult;
+        } else { car.gasTime=Math.max(0,car.gasTime-2); } // release slows buildup
+        if(backHeld()){ car.vx-=Math.cos(terrAng)*0.7; car.gasTime=0; }
         if(backHeld()) car.vx-=Math.cos(terrAng)*0.55;
         car.vx*=0.86;
       } else {
@@ -213,13 +222,22 @@ const StuntGame = {
       ctx.fillStyle=prog>0.8?'#E74C3C':prog>0.4?'#F39C12':'#27AE60';ctx.fillRect(0,27,W*prog,3);
       ctx.fillStyle='#fff';ctx.font='bold 12px monospace';ctx.textAlign='left';ctx.fillText('⏱ '+elapsed+'s',6,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';ctx.fillText('🏁 '+kmLeft+' km',W/2,19);
-      ctx.textAlign='right';ctx.fillStyle='#29B6F6';ctx.fillText('⚡'+spd,W-6,19);
-      if(car._saltos>0){
-        ctx.textAlign='left';ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';
-        ctx.fillText('🔄 ×'+car._saltos+' +'+((car._saltos||0)*50)+'pts',6,H-6);
+      ctx.textAlign='right';ctx.fillStyle='#29B6F6';ctx.fillText('⚡'+spd+' km/h',W-6,19);
+      // Gas level indicator
+      if(car.gasTime>10){
+        const gasPct=Math.min(1,car.gasTime/375);
+        ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(0,H-8,W,8);
+        const gc=ctx.createLinearGradient(0,0,W,0);
+        gc.addColorStop(0,'#27AE60');gc.addColorStop(0.5,'#F39C12');gc.addColorStop(1,'#E74C3C');
+        ctx.fillStyle=gc;ctx.fillRect(0,H-8,W*gasPct,8);
+        ctx.fillStyle='#fff';ctx.font='7px monospace';ctx.textAlign='center';
+        ctx.fillText('GAS TURBO',W/2,H-1);
       }
-      // Salto flash effect
-      if(car._saltoFlash>0){car._saltoFlash--;ctx.fillStyle='rgba(255,215,0,'+(car._saltoFlash/15)*0.5+')';ctx.fillRect(0,0,W,H);}
+      if(car.saltos>0){
+        ctx.textAlign='left';ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';
+        ctx.fillText('🔄 ×'+car.saltos+' Salto! +'+car.saltos*50+'pts',6,H-6);
+      }
+      if(car.saltoFlash>0){car.saltoFlash--;ctx.fillStyle='rgba(255,215,0,'+(car.saltoFlash/25)*0.5+')';ctx.fillRect(0,0,W,H);}
       // Show salto bonus if any
       if(score>0){ctx.textAlign='center';ctx.fillStyle='#FFD700';ctx.fillText('🌀 '+score+' pts',W/2,H-8);}
       animId=requestAnimationFrame(loop);

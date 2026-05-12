@@ -69,8 +69,8 @@
 <div class="aw" id="admin-app"></div>
 <div id="modal-area"></div>
 
-<script src="js/worlds.js"></script>
-<script src="js/firebase-state.js"></script>
+<script src="worlds.js"></script>
+<script src="firebase-state.js"></script>
 <script>
 
 const CEMOJIS = {spongebob:'🧽',patrick:'⭐',mario:'🍄',luigi:'💚',stickman:'🎨',woman:'👩',man:'👨',girl:'👧',boy:'👦',ninja:'🥷',astronaut:'🧑‍🚀',detective:'🕵️',princess:'👸',knight:'⚔️',scientist:'🧪',explorer:'🧭'};
@@ -87,7 +87,7 @@ const Admin = {
         <input type="password" id="apw" placeholder="Admin-Passwort" onkeyup="if(event.key==='Enter')Admin.login()"/>
         <button style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;border:none;padding:12px 24px;border-radius:50px;font-weight:900;font-size:1rem;cursor:pointer;width:100%;margin-top:8px" onclick="Admin.login()">Anmelden ➜</button>
         <div id="aerr" style="color:#E74C3C;margin-top:10px;font-size:0.85rem"></div>
-        <div style="margin-top:14px;font-size:0.72rem;color:rgba(255,255,255,0.25)">Standard: mischa2026</div>
+        <div style="margin-top:14px;font-size:0.72rem;color:rgba(255,255,255,0.25)">Passwort: mischa2026</div>
       </div>`;
   },
 
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="iphone">📱 iPhone</option>
         <option value="android">🤖 Android</option>
       </select>
-      <button onclick="clearAllCal()" style="background:#E74C3C;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🗑️ Alle löschen</button>
+
       <button onclick="loadCalibration()" style="background:#3498DB;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🔄 Aktualisieren</button>
     </div>
 

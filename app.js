@@ -730,7 +730,7 @@ const App = {
     // Build table rows
     const tableRows = gl.map((game,i) => {
       const task = tasks[i];
-      const myScore = task?.score || 0;
+      const myScore = task?.mt || 0;  // MT earned (0-2 range)
       const myRaw = task?.rawScore || 0;
       const plays = task?.plays || (task?.done?1:0);
 
@@ -763,7 +763,7 @@ const App = {
         }).join('');
         return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
           <td style="padding:4px 5px;font-size:.72rem">${game.icon} ${game.name}</td>
-          <td style="padding:4px 5px;text-align:center;color:${myScore>0?'#FFD700':'#555'};font-weight:700;font-size:.75rem">${myScore||'—'}</td>
+          <td style="padding:4px 5px;text-align:center;color:${myScore>=1.5?'#27AE60':myScore>=1?'#FFD700':myScore>0?'#E67E22':'#555'};font-weight:700;font-size:.75rem">${myScore>0?(myScore.toFixed(1)+' MT'):'—'}</td>
           ${devCells}
         </tr>`;
       } else {
@@ -777,7 +777,7 @@ const App = {
           (calStore[i+'_'+devLabel]||[]).filter(s=>s>myRaw).length + 1 : null;
         return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
           <td style="padding:5px 6px;font-size:.78rem">${game.icon} ${game.name}</td>
-          <td style="padding:5px 6px;text-align:center;color:${myScore>0?'#FFD700':'#555'};font-weight:700">${myScore||'—'}</td>
+          <td style="padding:5px 6px;text-align:center;color:${myScore>=1.5?'#27AE60':myScore>=1?'#FFD700':myScore>0?'#E67E22':'#555'};font-weight:700">${myScore||'—'}</td>
           <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.74rem">${allP_raw?allP_raw.avg:'—'}</td>
           <td style="padding:5px 6px;text-align:center;font-size:.74rem">${rank?`<span style="color:${rank<=3?'#FFD700':'#aaa'}">#${rank}</span>`:'—'}</td>
           <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.72rem">${plays||'—'}</td>
@@ -815,7 +815,7 @@ const App = {
               <thead>
                 <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.4)">
                   <th style="padding:4px 6px;text-align:left">Spiel</th>
-                  <th style="padding:4px 6px;text-align:center">Score</th>
+                  <th style="padding:4px 6px;text-align:center">MT</th>
                   ${isRef ? refHeader : normalHeader}
                 </tr>
                 ${isRef ? `<tr style="border-bottom:2px solid rgba(41,182,246,.2);color:rgba(255,255,255,.3)">${'<th></th><th></th>'+refSubHeader}</tr>` : ''}
@@ -1050,9 +1050,8 @@ const App = {
       </div>`);
 
     const onComplete = async (result) => {
-      // For janoschtest: save calibration immediately to localStorage
-      const pname = (player?.name||'').toLowerCase();
-      if (pname === 'janoschtest' && result.rawScore > 0 && result.passed !== false) {
+      // Save ALL players' scores to cal_data_v3 for calibration
+      if (result.rawScore > 0 && result.passed !== false) {
         try {
           const ua = navigator.userAgent;
           const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -1072,8 +1071,28 @@ const App = {
           const wid = worldId;
           if (!p.worlds[wid]) p.worlds[wid] = {tasks:Array(20).fill(null),jokerUsed:false,completed:false};
           const prevPlays = p.worlds[wid].tasks[taskIndex]?.plays || 0;
+          // Calculate MT for local save
+          const taskMT = (() => {
+            try {
+              const raw = result.rawScore||0;
+              if(result.passed===false) return 0.2;
+              const ua=navigator.userAgent;
+              const isIPad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+              const dev=isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
+              const calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+              const scores=calStore[taskIndex+'_'+dev]||[];
+              if(!scores.length) return 1.0;
+              const minS=Math.min(...scores),maxS=Math.max(...scores),avgS=scores.reduce((a,b)=>a+b,0)/scores.length;
+              if(maxS===minS) return raw>=avgS?1.2:0.8;
+              if(raw<=minS) return 0.0;
+              if(raw>=maxS) return 2.0;
+              return raw<avgS ? (raw-minS)/(avgS-minS) : 1+(raw-avgS)/(maxS-avgS);
+            } catch(e){ return 1.0; }
+          })();
           p.worlds[wid].tasks[taskIndex] = {
-            done:true, score:State.calcFinalScore(result,p)||result.rawScore||0,
+            done:true,
+            score:State.calcFinalScore(result,p)||result.rawScore||0,
+            mt: Math.round(Math.min(2.0,Math.max(0,taskMT))*10)/10,
             rawScore:result.rawScore||0, timeMs:result.timeMs||0,
             passed:result.passed!==false, plays:prevPlays+1, lastPlayed:Date.now()
           };
