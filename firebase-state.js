@@ -126,7 +126,7 @@ const State = {
     // Special players: auto-accept Janoschtest and bu
     const nameLc = name.toLowerCase();
     if (nameLc === 'janoschtest' && password !== 'janoschtest') return null;
-    if (nameLc === 'bu' && password !== 'mischa2024') return null;
+    if (nameLc === 'bu' && password !== 'mischa2026') return null;
     const existing = await this.getPlayer(name);
     if (existing) return null; // Player already exists
     const player = {
@@ -481,7 +481,7 @@ const State = {
     return 'schwer';
   },
 
-  getAdminPw() { return localStorage.getItem(ADMIN_KEY) || 'mischa2024'; },
+  getAdminPw() { return localStorage.getItem(ADMIN_KEY) || 'mischa2026'; },
   setAdminPw(pw) { localStorage.setItem(ADMIN_KEY, pw); },
   checkAdmin(pw) { return pw === this.getAdminPw(); },
 
