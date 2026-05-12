@@ -398,10 +398,7 @@ const App = {
     }
     // Special player shortcuts
     const nameLc = name.toLowerCase();
-    if (nameLc === 'janoschtest' && pw !== 'janoschtest') {
-      const e=document.getElementById('l-err'); if(e){e.textContent='❌ Falsches Passwort für Janoschtest!';e.style.display='block';} return;
-    }
-_loading('Anmelden...');
+    this._loading('Anmelden...');
     let res;
     try {
       res = await Promise.race([
