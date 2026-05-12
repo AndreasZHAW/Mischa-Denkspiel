@@ -150,7 +150,7 @@ const StuntGame = {
 
       // Flip check - only if significantly upside down AND on ground
       const norm=((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-      if(onGround&&norm>Math.PI*0.6&&norm<Math.PI*1.4){end(false);return;}
+      if(onGround&&norm>Math.PI*0.72&&norm<Math.PI*1.28){end(false);return;} // more tolerant landing
       if(car.wy>H+80||car.wx<-50){end(false);return;}
       if(car.wx>=GOAL){end(true);return;}
       if(car.wx>maxX){maxX=car.wx;score=Math.round((maxX-150)/10);}

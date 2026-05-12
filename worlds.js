@@ -117,7 +117,7 @@ const WORLD_DEFS = [
     {id:'reaction',   type:'reaction',   name:'Reaktion',      icon:'⚡', title:'Reaktionszeit'},
     {id:'colormix',   type:'colormix',   name:'Farben',        icon:'🎨', title:'Farben mischen'},
     {id:'slider',     type:'slider',     name:'Schiebepuzzle', icon:'🧩', title:'Puzzle lösen'},
-    {id:'typing',     type:'tetris',     name:'Tippen',        icon:'🟩', title:'Schnell tippen'},
+    {id:'typing',     type:'tetris',     name:'Tetris',        icon:'🟩', title:'Schnell tippen'},
     {id:'balloon',    type:'balloon',    name:'Ballon',        icon:'🎈', title:'Ballons poppen'},
     {id:'jenga',      type:'stunt',      name:'Race',          icon:'🏎️', title:'Race — 1km Rennen'},
     {id:'simon2',     type:'pacman',      name:'Pac-Man',      icon:'🟡', title:'Pac-Man'},

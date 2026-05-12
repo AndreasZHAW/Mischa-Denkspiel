@@ -615,7 +615,7 @@ const App = {
 
         <div class="world-map">
           ${WORLDS.map(world => {
-            const ws = player.worlds?.[world.id] || { tasks:Array(20).fill(null), jokerUsed:false, completed:false };
+            const ws = player.worlds?.[world.id] || player.worlds?.[String(world.id)] || { tasks:Array(20).fill(null), jokerUsed:false, completed:false };
             const done = ws.tasks.filter(t=>t&&t.done).length;
             const unlocked = world.id <= (player.currentWorld||1);
             const completed = ws.completed;
@@ -1075,7 +1075,7 @@ const App = {
         const mt = State.calcMT ? State.calcMT(taskIndex, result) : 1.0;
         const p = State.currentPlayer;
         if (p && p.worlds) {
-          const wid = worldId;
+          const wid = String(worldId); // Use string key for JSON consistency
           if (!p.worlds[wid]) p.worlds[wid] = {tasks:Array(20).fill(null),jokerUsed:false,completed:false};
           const prevPlays = p.worlds[wid].tasks[taskIndex]?.plays || 0;
           // Calculate MT for local save

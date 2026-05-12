@@ -736,7 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }).filter(Boolean).join(' ');
 
       rows += `<tr style="border-bottom:1px solid rgba(255,255,255,.05)" id="cal-row-${i}">
-        <td style="padding:7px 12px;font-size:.82rem">${game.icon} ${game.name}
+        <td style="padding:7px 12px;font-size:.82rem;color:#fff;font-weight:500">${game.icon} ${game.name}
           ${devBreakdown ? '<br><span style="font-size:.65rem;color:rgba(255,255,255,.3)">'+devBreakdown+'</span>' : ''}</td>
         <td style="padding:7px 12px;text-align:center;color:#E74C3C;font-weight:700">${minS}</td>
         <td style="padding:7px 12px;text-align:center;color:#FFD700;font-weight:700">${avgS}</td>
