@@ -65,6 +65,7 @@ const State = {
     get(name) { if(!name)return null; const lc=name.toLowerCase(); const all=this.getAll(); return all[lc]||all[name]||null; },
     set(name, player) {
       const all = this.getAll();
+      player.updatedAt = Date.now(); // Always stamp with current time
       all[name.toLowerCase()] = player;
       localStorage.setItem('mischa_players', JSON.stringify(all));
     },
@@ -582,13 +583,21 @@ const State = {
     // Try local first (instant)
     const local = this._local.get(player.name);
     if (local) { this.currentPlayer = local; }
-    // Then try cloud with timeout (non-blocking if local worked)
+    // Then try cloud - only use if NEWER than local (prevents overwriting fresh local save)
     try {
       const cloud = await Promise.race([
         this.getPlayer(player.name),
         new Promise(r => setTimeout(() => r(null), 3000))
       ]);
-      if (cloud) this.currentPlayer = cloud;
+      if (cloud) {
+        // Only use cloud data if it was updated more recently than local
+        const cloudTime = cloud.updatedAt || 0;
+        const localTime = local?.updatedAt || 0;
+        if (cloudTime >= localTime) {
+          this.currentPlayer = cloud;
+        }
+        // else: keep local (it has fresher task data)
+      }
     } catch(e) {}
     return this.currentPlayer;
   },

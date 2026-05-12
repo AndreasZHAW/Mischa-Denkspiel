@@ -6,9 +6,9 @@ const PongGame = {
     const W=360, H=300, PS=65, PW=10;
     const isMobile = 'ontouchstart' in window;
 
-    el.innerHTML=`<div style="text-align:center;max-width:${W}px;margin:0 auto">
-      <!-- HUD outside canvas -->
-      <div style="background:#111;border-radius:8px 8px 0 0;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;gap:6px">
+    el.innerHTML=`<div style="text-align:center">
+      <!-- HUD bar -->
+      <div style="background:#111;border-radius:8px 8px 0 0;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;gap:6px;max-width:${W+(isMobile?70:0)}px;margin:0 auto">
         <div id="pong-score" style="font-family:monospace;font-weight:900;font-size:1.2rem;color:#fff;min-width:60px">0 : 0</div>
         <div style="flex:1;text-align:center">
           <div id="pong-timer" style="font-size:.82rem;color:#27AE60;font-weight:700">⏱ 60s</div>
@@ -17,19 +17,24 @@ const PongGame = {
         <div id="pong-speed-level" style="font-size:.8rem;color:#FFD700;min-width:40px;text-align:right">⚡ Lv1</div>
       </div>
       <!-- Speed bar -->
-      <div style="background:#222;height:4px;position:relative">
+      <div style="background:#222;height:4px;max-width:${W+(isMobile?70:0)}px;margin:0 auto;position:relative">
         <div id="pong-tbar" style="background:#27AE60;height:4px;width:100%;transition:width .1s"></div>
         <div id="pong-5bar" style="position:absolute;top:0;left:0;height:4px;background:rgba(255,165,0,.6);transition:width .1s"></div>
       </div>
-      <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%"></canvas>
-      ${isMobile ? `
-      <div id="pong-touch-zone" style="margin-top:8px;background:linear-gradient(135deg,rgba(39,174,96,.15),rgba(39,174,96,.08));border:2px solid rgba(39,174,96,.5);border-radius:12px;padding:6px 12px;touch-action:none;user-select:none">
-        <div style="text-align:center;font-size:.7rem;color:rgba(39,174,96,.8);font-weight:700;margin-bottom:3px">👆 HIER Finger rauf und hoch/runter ziehen</div>
-        <div id="pong-touch-indicator" style="height:44px;background:rgba(39,174,96,.1);border-radius:8px;position:relative;display:flex;align-items:center;justify-content:center">
-          <div id="pong-touch-dot" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#27AE60,#1E8449);box-shadow:0 2px 8px rgba(39,174,96,.4)"></div>
+      <!-- Mobile: touch zone LEFT + canvas RIGHT side by side -->
+      ${isMobile ? `<div style="display:flex;align-items:stretch;gap:0;justify-content:center">
+        <!-- Left touch zone -->
+        <div id="pong-touch-zone" style="width:64px;flex-shrink:0;background:linear-gradient(180deg,rgba(39,174,96,.15),rgba(39,174,96,.08));border:2px solid rgba(39,174,96,.5);border-right:none;border-radius:0 0 0 8px;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px 4px;cursor:grab">
+          <div style="font-size:.62rem;color:rgba(39,174,96,.8);font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px">▲ ZIEHEN ▼</div>
+          <div id="pong-touch-indicator" style="width:40px;flex:1;background:rgba(39,174,96,.08);border-radius:8px;position:relative;min-height:100px">
+            <div id="pong-touch-dot" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#27AE60,#1E8449);box-shadow:0 2px 8px rgba(39,174,96,.5)"></div>
+          </div>
         </div>
+        <!-- Canvas -->
+        <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 0;max-width:calc(100vw - 80px)"></canvas>
       </div>` 
-      : `<div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
+      : `<canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%;margin:0 auto"></canvas>
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
         <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▲</button>
         <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▼</button>
       </div>
@@ -56,14 +61,20 @@ const PongGame = {
       const tdot=document.getElementById('pong-touch-dot');
       let lastTY=null;
       if(tz){
-        tz.addEventListener('touchstart',e=>{e.preventDefault();lastTY=e.touches[0].clientY;if(tdot)tdot.style.transform='scale(1.2)';},{passive:false});
+        const tind=document.getElementById('pong-touch-indicator');
+        tz.addEventListener('touchstart',e=>{e.preventDefault();lastTY=e.touches[0].clientY;if(tdot)tdot.style.boxShadow='0 2px 16px rgba(39,174,96,.8)';},{passive:false});
         tz.addEventListener('touchmove',e=>{
           if(!lastTY)return;e.preventDefault();
           const dy=e.touches[0].clientY-lastTY;
-          py=Math.max(0,Math.min(H-PS,py+dy*1.4));
+          py=Math.max(0,Math.min(H-PS,py+dy*1.5));
           lastTY=e.touches[0].clientY;
+          // Move dot indicator in vertical strip
+          if(tdot&&tind){
+            const pct=py/(H-PS);
+            tdot.style.top=(pct*(tind.clientHeight-34))+'px';
+          }
         },{passive:false});
-        tz.addEventListener('touchend',()=>{lastTY=null;if(tdot)tdot.style.transform='scale(1)';});
+        tz.addEventListener('touchend',()=>{lastTY=null;if(tdot)tdot.style.boxShadow='0 2px 8px rgba(39,174,96,.5)';});
       }
     } else {
       const pu=document.getElementById('pu'),pd=document.getElementById('pd');

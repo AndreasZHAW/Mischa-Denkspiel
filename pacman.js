@@ -102,8 +102,9 @@ const PacmanGame = {
         if(tiltX < -THRESH){ wantDx=1; wantDy=0; }
         else if(tiltX > THRESH){ wantDx=-1; wantDy=0; }
       } else {
-        if(tiltY < -THRESH){ wantDx=0; wantDy=1; }
-        else if(tiltY > THRESH){ wantDx=0; wantDy=-1; }
+        // Y axis swapped: tilt forward (positive Y) = move UP
+        if(tiltY > THRESH){ wantDx=0; wantDy=-1; }   // tilt forward = up
+        else if(tiltY < -THRESH){ wantDx=0; wantDy=1; } // tilt back = down
       }
     };
     window.addEventListener('devicemotion', onMotion);
