@@ -209,6 +209,14 @@ async function runDiag(){
     L('❌ Kein Benutzer — bitte einloggen','err');
   } else {
     L('🎮 Lade Player: "'+effectiveUser2+'"...','info');
+  // Also show cal_data_v3 summary before loading player
+  try {
+    const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+    const keys = Object.keys(calStore);
+    const devCounts = {};
+    keys.forEach(k => { const dev=k.split('_').pop(); devCounts[dev]=(devCounts[dev]||0)+calStore[k].length; });
+    L('📊 cal_data_v3: '+keys.length+' Spiel-Einträge | '+JSON.stringify(devCounts),'info');
+  } catch(e) {}
     try{
       const start=Date.now();
       // Force State to use the current session

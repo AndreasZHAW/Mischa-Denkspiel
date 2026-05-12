@@ -1061,11 +1061,24 @@ const App = {
           if (!calStore[key]) calStore[key] = [];
           calStore[key].push(result.rawScore);
           localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
-          // Sync to Firebase for cross-device calibration
+          // Sync to Firebase
           try {
             if (typeof _db !== 'undefined' && _db) {
               const upd = {}; upd[key] = calStore[key];
               _db.collection('calibration').doc('scores').set(upd, {merge:true}).catch(()=>{});
+              // Save individual record
+              _db.collection('calibration_records').add({
+                gameIdx: taskIndex, device: dev,
+                player: (player?.name||'?').toLowerCase(),
+                rawScore: result.rawScore, ts: Date.now(),
+                tsStr: new Date().toLocaleString('de-CH')
+              }).catch(()=>{});
+            } else {
+              try {
+                const q = JSON.parse(localStorage.getItem('cal_sync_queue')||'{}');
+                q[key] = calStore[key];
+                localStorage.setItem('cal_sync_queue', JSON.stringify(q));
+              } catch(e2){}
             }
           } catch(e) {}
         } catch(e) {}

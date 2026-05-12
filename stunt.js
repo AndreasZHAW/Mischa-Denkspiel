@@ -150,7 +150,11 @@ const StuntGame = {
 
       // Flip check - only if significantly upside down AND on ground
       const norm=((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-      if(onGround&&norm>Math.PI*0.72&&norm<Math.PI*1.28){end(false);return;} // more tolerant landing
+      // Only end on flip if on ground AND spin has almost stopped
+      // This allows landing after a salto (spin settles quickly due to ground damping)
+      if(onGround && Math.abs(car.spin)<0.05 && norm>Math.PI*0.72&&norm<Math.PI*1.28){end(false);return;}
+      // Also end if completely upside down in air for too long
+      if(!onGround && car.airTime>30 && norm>Math.PI*0.8&&norm<Math.PI*1.2){end(false);return;}
       if(car.wy>H+80||car.wx<-50){end(false);return;}
       if(car.wx>=GOAL){end(true);return;}
       if(car.wx>maxX){maxX=car.wx;score=Math.round((maxX-150)/10);}

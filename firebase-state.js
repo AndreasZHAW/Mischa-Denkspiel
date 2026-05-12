@@ -188,65 +188,75 @@ const State = {
 
     const finalScore = this.calcFinalScore(result, player);
     
-    // ── KALIBRIERUNG v3 ──
-    const isRef = false; // No special users anymore
-    
-    // New calibration: store all passed rawScores per game per device
-    // MT = linear(min→0, avg→1, max→2)
+    // ── KALIBRIERUNG v4 ──
+    // MT = linear: min→0MT, avg→1MT, max→2MT
+    // Supports admin overrides from cal_overrides_local
     let mtEarned;
     if (result.passed === false) {
-      mtEarned = 0.2; // Not passed = always 0.2 MT
+      mtEarned = 0.2;
     } else {
       const raw = result.rawScore || 50;
-      // Load calibration store
-      let calStore = {};
-      try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e){}
-      
-      // Detect device
       const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
       const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
-      
-      // Get scores for this game+device
+      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
       const key = taskIndex + '_' + dev;
+
+      // Load scores and overrides
+      let calStore = {};
+      try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e){}
+      let overrides = {};
+      try { overrides = JSON.parse(localStorage.getItem('cal_overrides_local')||'{}'); } catch(e){}
+
       const scores = calStore[key] || [];
-      
-      if (scores.length === 0) {
-        // First play on this device for this game → 1 MT
-        mtEarned = 1.0;
+
+      // Effective min/avg/max: use override if set, else compute from scores
+      let minS, avgS, maxS;
+      if (scores.length === 0 && !overrides[key+'_avg']) {
+        mtEarned = 1.0; // No data → 1 MT
       } else {
-        const minS = Math.min(...scores);
-        const maxS = Math.max(...scores);
-        const avgS = scores.reduce((a,b)=>a+b,0)/scores.length;
+        minS = overrides[key+'_min'] ?? (scores.length ? Math.min(...scores) : raw);
+        maxS = overrides[key+'_max'] ?? (scores.length ? Math.max(...scores) : raw);
+        avgS = overrides[key+'_avg'] ?? (scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : raw);
+
         if (maxS === minS) {
-          // All same → compare to that value
           mtEarned = raw >= avgS ? 1.2 : 0.8;
         } else if (raw <= minS) {
           mtEarned = 0.0;
         } else if (raw >= maxS) {
           mtEarned = 2.0;
         } else if (raw < avgS) {
-          // Between min and avg → 0 to 1 MT
-          mtEarned = Math.round(((raw - minS) / (avgS - minS)) * 10) / 10;
+          mtEarned = (raw - minS) / (avgS - minS);
         } else {
-          // Between avg and max → 1 to 2 MT
-          mtEarned = Math.round((1 + (raw - avgS) / (maxS - avgS)) * 10) / 10;
+          mtEarned = 1 + (raw - avgS) / (maxS - avgS);
         }
+        mtEarned = Math.round(Math.min(2.0, Math.max(0.0, mtEarned)) * 10) / 10;
       }
-      mtEarned = Math.round(Math.min(2.0, Math.max(0.0, mtEarned)) * 10) / 10;
-      
-      // Add this score to calibration store
+
+      // Save score to local store
       scores.push(raw);
       calStore[key] = scores;
       try { localStorage.setItem('cal_data_v3', JSON.stringify(calStore)); } catch(e){}
-      // Sync to Firebase so all devices share calibration data
-      try {
-        if (typeof _db !== 'undefined' && _db) {
-          const update = {};
-          update[key] = scores;
-          _db.collection('calibration').doc('scores').set(update, {merge: true}).catch(()=>{});
-        }
-      } catch(e) {}
+
+      // Sync aggregated + individual record to Firebase
+      if (typeof _db !== 'undefined' && _db) {
+        try {
+          const upd = {}; upd[key] = scores;
+          _db.collection('calibration').doc('scores').set(upd, {merge:true}).catch(()=>{});
+          _db.collection('calibration_records').add({
+            gameIdx: taskIndex, device: dev, player: playerName,
+            rawScore: raw, ts: Date.now(),
+            tsStr: typeof window !== 'undefined' ? new Date().toLocaleString('de-CH') : new Date().toISOString()
+          }).then(()=>{ if(typeof console!=='undefined') console.log('✅ Cal record saved'); })
+            .catch(e=>{ if(typeof console!=='undefined') console.warn('Cal record failed:', e.message); });
+        } catch(e){}
+      } else {
+        // Queue for retry on next boot
+        try {
+          const q = JSON.parse(localStorage.getItem('cal_sync_queue')||'{}');
+          q[key] = scores;
+          localStorage.setItem('cal_sync_queue', JSON.stringify(q));
+        } catch(e){}
+      }
     }
     
     const prevPlays = player.worlds[worldIndex].tasks[taskIndex]?.plays || 0;
@@ -296,6 +306,11 @@ const State = {
   async loadCalibrationFromCloud() {
     try {
       if (typeof _db === 'undefined' || !_db || !this._useCloud()) return;
+      // Load admin overrides first
+      try {
+        const ovDoc = await _db.collection('calibration_overrides').doc('values').get();
+        if (ovDoc.exists) localStorage.setItem('cal_overrides_local', JSON.stringify(ovDoc.data()));
+      } catch(e){}
       const doc = await _db.collection('calibration').doc('scores').get();
       if (!doc.exists) return;
       const cloudData = doc.data();
@@ -316,16 +331,22 @@ const State = {
     } catch(e) {}
   },
 
-  // Get calibration reference for a game+device (from cal_data_v3)
+  // Get calibration stats for display (not used in MT calc - that's inline above)
   _getCalibration(taskIndex) {
     try {
       const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
       const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
+      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)&&/Mobile/.test(ua)?'android':'desktop';
       const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
       const scores = calStore[taskIndex+'_'+dev] || [];
-      if (!scores.length) return null;
-      return scores.reduce((a,b)=>a+b,0)/scores.length; // return average
+      let overrides = {};
+      try { overrides = JSON.parse(localStorage.getItem('cal_overrides_local')||'{}'); } catch(e){}
+      const key = taskIndex+'_'+dev;
+      if (!scores.length && !overrides[key+'_avg']) return null;
+      const avg = overrides[key+'_avg'] ?? (scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : null);
+      const min = overrides[key+'_min'] ?? (scores.length ? Math.min(...scores) : null);
+      const max = overrides[key+'_max'] ?? (scores.length ? Math.max(...scores) : null);
+      return {avg, min, max, n: scores.length};
     } catch(e) { return null; }
   },
   

@@ -83,12 +83,14 @@ const PacmanGame = {
     const tiltHint = document.getElementById('pc-tilt-hint');
 
     const tiltOpts = document.getElementById('pc-tilt-opts');
+    const tiltOptions = document.getElementById('pc-tilt-options');
     if(modeBtn) modeBtn.addEventListener('click', () => {
       useTilt = !useTilt;
       modeBtn.textContent = useTilt ? '📱 Neigen' : '🎮 Tasten';
       modeBtn.style.background = useTilt ? '#8e44ad' : '#2c3e50';
       if(btnsDiv) btnsDiv.style.display = useTilt ? 'none' : 'grid';
       if(tiltHint) tiltHint.style.display = useTilt ? 'block' : 'none';
+      if(tiltOptions) tiltOptions.style.display = useTilt ? 'flex' : 'none';
       if(tiltOpts) tiltOpts.style.display = useTilt ? 'flex' : 'none';
       if(useTilt && typeof DeviceMotionEvent !== 'undefined') {
         // Request permission on iOS 13+

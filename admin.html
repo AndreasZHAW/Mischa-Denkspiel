@@ -618,19 +618,13 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
   <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- KALIBRIERUNG (cal_data_v3) -->
+  <!-- KALIBRIERUNG v4 -->
   <div class="aw" style="margin-top:30px">
     <div class="sl">📊 MT-Kalibrierung</div>
-    <div style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;color:rgba(255,255,255,.7);line-height:1.6">
-      <b>Wie funktioniert die Kalibrierung:</b><br>
-      Alle gespielten Partien (die bestanden wurden) werden pro Spiel und Gerät gesammelt.<br>
-      Der <b>Durchschnitt</b> aller Partien = <span style="color:#FFD700">1.0 MT</span> &nbsp;·&nbsp;
-      Das <b>Minimum</b> = <span style="color:#E74C3C">0 MT</span> &nbsp;·&nbsp;
-      Das <b>Maximum</b> = <span style="color:#27AE60">2.0 MT</span><br>
-      Jede neue gespielte Partie updatet die Referenzwerte automatisch.
+    <div style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.84rem;color:rgba(255,255,255,.7);line-height:1.6">
+      <b>Min</b>=0MT &nbsp;·&nbsp; <b>Ø</b>=1MT &nbsp;·&nbsp; <b>Max</b>=2MT &nbsp;·&nbsp; Linear interpoliert.<br>
+      ✏️ Edit-Buttons überschreiben die berechneten Werte. 📋 zeigt alle Einzel-Partien.
     </div>
-
-    <!-- Device filter -->
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
       <select id="cal-dev" onchange="loadCalibration()" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:8px;font-size:.82rem">
         <option value="all">Alle Geräte</option>
@@ -639,172 +633,211 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="iphone">📱 iPhone</option>
         <option value="android">🤖 Android</option>
       </select>
-
       <button onclick="loadCalibration()" style="background:#3498DB;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🔄 Aktualisieren</button>
     </div>
-
-    <!-- Summary stats -->
-    <div class="sr" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px" id="cal-summary">
-      <div class="sc"><div class="sv" id="cal-total-games">—</div><div class="sk">Gespielte Partien (gesamt)</div></div>
+    <div class="sr" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+      <div class="sc"><div class="sv" id="cal-total-games">—</div><div class="sk">Partien gesamt</div></div>
       <div class="sc"><div class="sv" id="cal-games-with-data">—</div><div class="sk">Spiele mit Daten</div></div>
-      <div class="sc"><div class="sv" id="cal-avg-mt" style="color:#FFD700">1.0 MT</div><div class="sk">Basis-Referenz</div></div>
+      <div class="sc"><div class="sv" style="color:#FFD700">1.0 MT</div><div class="sk">Basis-Referenz</div></div>
     </div>
-
-    <!-- Per-game table -->
     <div class="lb">
       <div class="sl" style="font-size:.85rem">Umrechnungsfaktoren pro Spiel</div>
-      <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.79rem">
         <thead>
           <tr style="border-bottom:2px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5)">
-            <th style="padding:8px 12px;text-align:left">Spiel</th>
-            <th style="padding:8px 12px;text-align:center;color:#E74C3C">Min (0 MT)</th>
-            <th style="padding:8px 12px;text-align:center;color:#FFD700">Ø (1 MT)</th>
-            <th style="padding:8px 12px;text-align:center;color:#27AE60">Max (2 MT)</th>
-            <th style="padding:8px 12px;text-align:center">Partien</th>
-            <th style="padding:8px 12px;text-align:center">Aktion</th>
+            <th style="padding:7px 10px;text-align:left">Spiel</th>
+            <th style="padding:7px 6px;text-align:center;color:#E74C3C">Min (0MT)</th>
+            <th style="padding:7px 6px;text-align:center;color:#FFD700">Ø (1MT)</th>
+            <th style="padding:7px 6px;text-align:center;color:#27AE60">Max (2MT)</th>
+            <th style="padding:7px 6px;text-align:center">Partien</th>
+            <th style="padding:7px 6px;text-align:center">Details</th>
           </tr>
         </thead>
-        <tbody id="cal-tbody">
-          <tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Lade Kalibrierungsdaten...</td></tr>
-        </tbody>
+        <tbody id="cal-tbody"></tbody>
       </table>
+      </div>
+    </div>
+    <!-- Detail records panel -->
+    <div id="cal-detail-panel" style="display:none;margin-top:16px" class="lb">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="sl" id="cal-detail-title" style="font-size:.85rem;flex:1">Partien</div>
+        <button onclick="document.getElementById('cal-detail-panel').style.display='none'"
+          style="background:rgba(255,255,255,.1);color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem">✕</button>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4)">
+            <th style="padding:5px 8px;text-align:left">Datum/Zeit</th>
+            <th style="padding:5px 8px;text-align:left">Spieler</th>
+            <th style="padding:5px 8px;text-align:center">Gerät</th>
+            <th style="padding:5px 8px;text-align:center">Punkte</th>
+            <th style="padding:5px 8px;text-align:center">Löschen</th>
+          </tr>
+        </thead>
+        <tbody id="cal-detail-tbody"></tbody>
+      </table>
+      </div>
     </div>
   </div>
 
   <script>
-  // Load calibration from cal_data_v3 (localStorage)
+  let calRecords = [];
+  let calOverrides = {};
+  let currentDetailGame = null;
+  const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱iPhone',android:'🤖Android'};
+
   async function loadCalibration() {
     const tbody = document.getElementById('cal-tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade von Firebase...</td></tr>';
-    
-    const devFilter = document.getElementById('cal-dev')?.value || 'all';
-    const DEVS = devFilter === 'all' ? ['desktop','ipad','iphone','android'] : [devFilter];
-    const DEV_ICONS = {desktop:'🖥️',ipad:'📱',iphone:'📱',android:'🤖'};
-
-    // Load from Firebase first (cross-device data), then merge with local
-    let calStore = {};
-    try { calStore = JSON.parse(localStorage.getItem('cal_data_v3') || '{}'); } catch(e) {}
+    if(!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</td></tr>';
+    const devFilter = document.getElementById('cal-dev')?.value||'all';
+    calRecords = [];
     try {
-      if (typeof firebase !== 'undefined') {
+      if(typeof firebase !== 'undefined') {
         const db = firebase.firestore();
-        const doc = await db.collection('calibration').doc('scores').get();
-        if (doc.exists) {
-          const cloudData = doc.data();
-          // Merge: take max data per key
-          Object.entries(cloudData).forEach(([key, scores]) => {
-            if (!Array.isArray(scores)) return;
-            if (!calStore[key] || calStore[key].length < scores.length) {
-              calStore[key] = scores;
-            }
-          });
-          // Save merged to local
-          localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
-        }
+        const snap = await db.collection('calibration_records').get();
+        snap.forEach(doc => calRecords.push({id:doc.id,...doc.data()}));
+        const ovDoc = await db.collection('calibration_overrides').doc('values').get();
+        if(ovDoc.exists) calOverrides = ovDoc.data();
       }
-    } catch(e) { console.log('Firebase cal load error:', e); }
-
-    const gl = window.GAME_LIST || [];
-    let totalPartien = 0, gamesWithData = 0;
-    let rows = '';
-
-    gl.forEach((game, i) => {
-      // Aggregate across selected devices
-      let allScores = [];
-      DEVS.forEach(d => {
-        const scores = calStore[i+'_'+d] || [];
-        allScores = allScores.concat(scores);
+    } catch(e) { console.log('Firebase cal load:', e.message); }
+    // Merge local cal_data_v3 (backwards compat)
+    try {
+      const ls = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+      Object.entries(ls).forEach(([k,scores])=>{
+        const parts=k.split('_'); const dev=parts.pop(); const gi=parseInt(parts.join('_'));
+        scores.forEach(s=>{
+          if(!calRecords.some(r=>r.gameIdx===gi&&r.device===dev&&r.rawScore===s&&r.player==='(lokal)'))
+            calRecords.push({gameIdx:gi,device:dev,player:'(lokal)',rawScore:s,ts:0,tsStr:'Lokal'});
+        });
       });
+    } catch(e){}
+    renderCalTable(devFilter);
+    if(currentDetailGame!==null) showRecords(currentDetailGame);
+  }
 
-      if (allScores.length === 0) {
-        rows += `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-          <td style="padding:7px 12px">${game.icon} ${game.name}</td>
-          <td colspan="4" style="text-align:center;color:rgba(255,255,255,.2)">— Noch keine Daten —</td>
-          <td></td>
+  function getRecords(gi,devFilter){
+    return calRecords.filter(r=>r.gameIdx===gi&&(devFilter==='all'||r.device===devFilter));
+  }
+
+  function computeStats(records){
+    if(!records.length) return null;
+    const vals=records.map(r=>r.rawScore);
+    return {min:Math.min(...vals),avg:Math.round(vals.reduce((a,b)=>a+b,0)/vals.length),max:Math.max(...vals),n:vals.length};
+  }
+
+  function effectiveStats(gi,devFilter){
+    const s=computeStats(getRecords(gi,devFilter));
+    const k=gi+'_'+devFilter;
+    const ov=calOverrides;
+    if(!s&&!ov[k+'_avg']) return null;
+    return {
+      min: ov[k+'_min']??s?.min??0,
+      avg: ov[k+'_avg']??s?.avg??0,
+      max: ov[k+'_max']??s?.max??0,
+      n: s?.n??0,
+      ovMin:ov[k+'_min']!==undefined,
+      ovAvg:ov[k+'_avg']!==undefined,
+      ovMax:ov[k+'_max']!==undefined
+    };
+  }
+
+  function renderCalTable(devFilter){
+    const tbody=document.getElementById('cal-tbody');
+    const gl=window.GAME_LIST||[];
+    let totalN=0,gamesN=0,rows='';
+    gl.forEach((game,i)=>{
+      const st=effectiveStats(i,devFilter);
+      const raw=computeStats(getRecords(i,devFilter));
+      if(raw){totalN+=raw.n;gamesN++;}
+      const k=i+'_'+devFilter;
+      const editBtn=(field,val,color,ovFlag)=>
+        `<span style="color:${color};font-weight:700${ovFlag?';text-decoration:underline':''}">${val??'—'}</span>`+
+        `<button onclick="editOverride(${i},'${devFilter}','${field}',${val??0})"
+          style="background:none;border:1px solid ${color}44;color:${color};padding:1px 5px;border-radius:4px;cursor:pointer;font-size:.62rem;margin-left:3px">✏️</button>`;
+      if(!st){
+        rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+          <td style="padding:6px 10px;color:#fff">${game.icon} ${game.name}</td>
+          <td colspan="4" style="text-align:center;color:rgba(255,255,255,.2);font-size:.75rem">— Noch keine Daten —</td>
+          <td style="text-align:center"><button onclick="showRecords(${i})"
+            style="background:rgba(52,152,219,.2);color:#3498DB;border:1px solid rgba(52,152,219,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.72rem">📋</button></td>
         </tr>`;
-        return;
+      } else {
+        rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+          <td style="padding:6px 10px;color:#fff">${game.icon} ${game.name}</td>
+          <td style="padding:4px 4px;text-align:center">${editBtn('min',st.min,'#E74C3C',st.ovMin)}</td>
+          <td style="padding:4px 4px;text-align:center">${editBtn('avg',st.avg,'#FFD700',st.ovAvg)}</td>
+          <td style="padding:4px 4px;text-align:center">${editBtn('max',st.max,'#27AE60',st.ovMax)}</td>
+          <td style="padding:4px 4px;text-align:center;color:rgba(255,255,255,.5)">${st.n}</td>
+          <td style="text-align:center"><button onclick="showRecords(${i})"
+            style="background:rgba(52,152,219,.2);color:#3498DB;border:1px solid rgba(52,152,219,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.72rem">📋 ${st.n}</button></td>
+        </tr>`;
       }
-
-      gamesWithData++;
-      totalPartien += allScores.length;
-      const minS = Math.min(...allScores);
-      const maxS = Math.max(...allScores);
-      const avgS = Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length);
-      const devBreakdown = DEVS.map(d => {
-        const s = calStore[i+'_'+d] || [];
-        return s.length ? DEV_ICONS[d]+'×'+s.length : '';
-      }).filter(Boolean).join(' ');
-
-      rows += `<tr style="border-bottom:1px solid rgba(255,255,255,.05)" id="cal-row-${i}">
-        <td style="padding:7px 12px;font-size:.82rem;color:#fff;font-weight:500">${game.icon} ${game.name}
-          ${devBreakdown ? '<br><span style="font-size:.65rem;color:rgba(255,255,255,.3)">'+devBreakdown+'</span>' : ''}</td>
-        <td style="padding:7px 12px;text-align:center;color:#E74C3C;font-weight:700">${minS}</td>
-        <td style="padding:7px 12px;text-align:center;color:#FFD700;font-weight:700">${avgS}</td>
-        <td style="padding:7px 12px;text-align:center;color:#27AE60;font-weight:700">${maxS}</td>
-        <td style="padding:7px 12px;text-align:center;color:rgba(255,255,255,.5)">${allScores.length}</td>
-        <td style="padding:7px 12px;text-align:center">
-          <button onclick="editCalGame(${i},'${devFilter}')" style="background:rgba(52,152,219,.3);color:#3498DB;border:1px solid rgba(52,152,219,.4);padding:3px 8px;border-radius:6px;cursor:pointer;font-size:.72rem">✏️ Edit</button>
-          <button onclick="deleteCalGame(${i},'${devFilter}')" style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.3);padding:3px 8px;border-radius:6px;cursor:pointer;font-size:.72rem;margin-left:4px">🗑️</button>
-        </td>
-      </tr>`;
     });
-
-    tbody.innerHTML = rows || '<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Kalibrierungsdaten gefunden</td></tr>';
-    const el1 = document.getElementById('cal-total-games');
-    const el2 = document.getElementById('cal-games-with-data');
-    if(el1) el1.textContent = totalPartien;
-    if(el2) el2.textContent = gamesWithData + '/20';
+    tbody.innerHTML=rows||'<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Daten</td></tr>';
+    const e1=document.getElementById('cal-total-games');
+    const e2=document.getElementById('cal-games-with-data');
+    if(e1)e1.textContent=totalN;
+    if(e2)e2.textContent=gamesN+'/20';
   }
 
-  function editCalGame(gameIdx, devFilter) {
-    let calStore = {};
-    try { calStore = JSON.parse(localStorage.getItem('cal_data_v3') || '{}'); } catch(e) {}
-    const DEVS = devFilter === 'all' ? ['desktop','ipad','iphone','android'] : [devFilter];
-    const gl = window.GAME_LIST || [];
-    const gameName = gl[gameIdx]?.name || ('Spiel ' + gameIdx);
-    
-    // Show all values for this game across selected devices
-    let info = DEVS.map(d => {
-      const s = calStore[gameIdx+'_'+d] || [];
-      return d + ': [' + s.join(', ') + ']';
-    }).join('');
-    
-    const dev = prompt('Spiel: ' + gameName + ' - Geraet (desktop/ipad/iphone/android):');
-    if (!dev) return;
-    const newVal = prompt('Neue Werte fuer ' + dev + ' (kommagetrennt, leer=loeschen):', (calStore[gameIdx+'_'+dev] || []).join(', '));
-    if (newVal === null) return;
-    const key = gameIdx + '_' + dev;
-    if (!newVal.trim()) {
-      delete calStore[key];
+  function showRecords(gi){
+    currentDetailGame=gi;
+    const devFilter=document.getElementById('cal-dev')?.value||'all';
+    const gl=window.GAME_LIST||[];
+    document.getElementById('cal-detail-title').textContent=(gl[gi]?.icon||'')+' '+(gl[gi]?.name||'Spiel '+gi)+' — Alle Partien';
+    const recs=getRecords(gi,devFilter).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(!recs.length){
+      document.getElementById('cal-detail-tbody').innerHTML=
+        '<tr><td colspan="5" style="text-align:center;padding:16px;color:rgba(255,255,255,.3)">Keine Partien</td></tr>';
     } else {
-      calStore[key] = newVal.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n)&&n>0);
+      document.getElementById('cal-detail-tbody').innerHTML=recs.map(r=>`
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+          <td style="padding:5px 8px;color:rgba(255,255,255,.7);font-size:.75rem">${r.tsStr||'—'}</td>
+          <td style="padding:5px 8px;color:#fff">${r.player||'—'}</td>
+          <td style="padding:5px 8px;text-align:center;font-size:.75rem">${DEV_ICONS[r.device]||r.device||'—'}</td>
+          <td style="padding:5px 8px;text-align:center;color:#FFD700;font-weight:700">${r.rawScore}</td>
+          <td style="padding:5px 8px;text-align:center">
+            ${r.id?`<button onclick="deleteRecord('${r.id}',${gi})"
+              style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.3);padding:2px 7px;border-radius:5px;cursor:pointer;font-size:.7rem">🗑️</button>`:''}
+          </td>
+        </tr>`).join('');
     }
-    localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
-    loadCalibration();
+    document.getElementById('cal-detail-panel').style.display='block';
+    document.getElementById('cal-detail-panel').scrollIntoView({behavior:'smooth'});
   }
 
-  function deleteCalGame(gameIdx, devFilter) {
-    const gl = window.GAME_LIST || [];
-    const gameName = gl[gameIdx]?.name || ('Spiel ' + gameIdx);
-    if (!confirm('Kalibrierungsdaten für "' + gameName + '" löschen?')) return;
-    let calStore = {};
-    try { calStore = JSON.parse(localStorage.getItem('cal_data_v3') || '{}'); } catch(e) {}
-    const DEVS = devFilter === 'all' ? ['desktop','ipad','iphone','android'] : [devFilter];
-    DEVS.forEach(d => delete calStore[gameIdx+'_'+d]);
-    localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
-    loadCalibration();
+  async function editOverride(gi,devFilter,field,cur){
+    const gl=window.GAME_LIST||[];
+    const label={min:'Min (0MT)',avg:'Durchschnitt (1MT)',max:'Max (2MT)'}[field];
+    const v=prompt((gl[gi]?.name||'Spiel '+gi)+' '+label+' Aktuell:'+cur+' Neuer Wert (leer=auto):');
+    if(v===null) return;
+    const k=gi+'_'+devFilter+'_'+field;
+    if(!v.trim()) delete calOverrides[k];
+    else { const n=parseFloat(v); if(!isNaN(n)) calOverrides[k]=n; }
+    try {
+      if(typeof firebase !== 'undefined')
+        await firebase.firestore().collection('calibration_overrides').doc('values').set(calOverrides);
+    } catch(e){ alert('Speichern fehlgeschlagen: '+e.message); }
+    // Also save locally
+    localStorage.setItem('cal_overrides_local',JSON.stringify(calOverrides));
+    renderCalTable(document.getElementById('cal-dev')?.value||'all');
   }
 
-  function clearAllCal() {
-    if (!confirm('Alle Kalibrierungsdaten löschen?')) return;
-    localStorage.removeItem('cal_data_v3');
-    loadCalibration();
+  async function deleteRecord(rid,gi){
+    if(!confirm('Eintrag löschen?')) return;
+    try {
+      if(typeof firebase !== 'undefined')
+        await firebase.firestore().collection('calibration_records').doc(rid).delete();
+      calRecords=calRecords.filter(r=>r.id!==rid);
+    } catch(e){ alert('Fehler: '+e.message); return; }
+    renderCalTable(document.getElementById('cal-dev')?.value||'all');
+    showRecords(gi);
   }
 
-  // Load when dashboard is shown
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(loadCalibration, 800);
-  });
+  document.addEventListener('DOMContentLoaded',()=>{ setTimeout(loadCalibration,800); });
   </script>
 
 </body>
