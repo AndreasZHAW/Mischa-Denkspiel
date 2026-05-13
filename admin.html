@@ -689,43 +689,224 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 
+  <!-- MELDUNGEN & MODERATIONSBEREICH -->
+  <div class="aw" style="margin-top:30px">
+    <div class="sl">🚨 Spieler-Meldungen</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button onclick="loadReports()" style="background:#3498DB;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🔄 Aktualisieren</button>
+    </div>
+    <div id="reports-container">
+      <div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Klicke "Aktualisieren" um Meldungen zu laden</div>
+    </div>
+  </div>
+
+  <!-- GESPERRTE SPIELER -->
+  <div class="aw" style="margin-top:24px">
+    <div class="sl">🚫 Gesperrte Spieler</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <input id="ban-player-name" placeholder="Spielername" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:8px;font-size:.82rem;flex:1">
+      <select id="ban-duration" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:8px;font-size:.82rem">
+        <option value="1h">1 Stunde</option>
+        <option value="24h">24 Stunden</option>
+        <option value="7d">7 Tage</option>
+        <option value="30d">30 Tage</option>
+        <option value="perm">Permanent</option>
+      </select>
+      <button onclick="banPlayer()" style="background:#E74C3C;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🚫 Sperren</button>
+    </div>
+    <div id="banned-list">
+      <div style="text-align:center;padding:10px;color:rgba(255,255,255,.3)">Klicke Aktualisieren um gesperrte Spieler zu sehen</div>
+    </div>
+    <button onclick="loadBannedPlayers()" style="background:rgba(255,255,255,.1);color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;margin-top:8px">Gesperrte anzeigen</button>
+  </div>
+
+  <!-- NACHRICHT AN SPIELER SENDEN -->
+  <div class="aw" style="margin-top:24px">
+    <div class="sl">📢 Nachricht an Spieler senden</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input id="msg-target" placeholder="Spielername (leer = alle)" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;font-size:.85rem">
+      <textarea id="msg-text" placeholder="Nachricht schreiben..." style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;font-size:.85rem;min-height:80px;resize:vertical"></textarea>
+      <select id="msg-type" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;font-size:.85rem">
+        <option value="info">ℹ️ Info</option>
+        <option value="warn">⚠️ Warnung</option>
+        <option value="ban_warn">🚫 Sperrwarnung</option>
+      </select>
+      <button onclick="sendAdminMessage()" style="background:#27AE60;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:700">📢 Senden</button>
+    </div>
+  </div>
+
+  <script>
+  // ===== REPORTS =====
+  async function loadReports() {
+    const el = document.getElementById('reports-container');
+    if(!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</div>';
+    try {
+      const db = firebase.firestore();
+      const snap = await db.collection('player_reports').orderBy('ts','desc').limit(100).get();
+      if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Meldungen vorhanden ✅</div>'; return; }
+      
+      const reports = [];
+      snap.forEach(doc => reports.push({id:doc.id,...doc.data()}));
+      
+      el.innerHTML = reports.map(r => `
+        <div id="report-${r.id}" style="background:${r.handled?'rgba(39,174,96,.08)':'rgba(231,76,60,.08)'};border:1px solid ${r.handled?'rgba(39,174,96,.25)':'rgba(231,76,60,.3)'};border-radius:10px;padding:12px 16px;margin-bottom:10px">
+          <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                ${r.handled ? '<span style="background:rgba(39,174,96,.3);color:#27AE60;padding:2px 8px;border-radius:12px;font-size:.7rem">✅ Erledigt</span>' : '<span style="background:rgba(231,76,60,.3);color:#E74C3C;padding:2px 8px;border-radius:12px;font-size:.7rem">🔴 Neu</span>'}
+                <span style="color:rgba(255,255,255,.4);font-size:.72rem">${r.tsStr||'—'}</span>
+              </div>
+              <div style="font-size:.9rem"><b style="color:#E74C3C">👤 Gemeldet: ${r.reported||'?'}</b></div>
+              <div style="font-size:.82rem;color:rgba(255,255,255,.6)">Von: ${r.reporter||'?'}</div>
+              <div style="font-size:.82rem;color:#FFD700;margin-top:4px">Grund: ${r.reason||'?'}</div>
+              ${r.desc ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;padding:6px;background:rgba(255,255,255,.04);border-radius:6px">${r.desc}</div>` : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:130px">
+              ${!r.handled ? `<button onclick="markHandled('${r.id}')" style="background:rgba(39,174,96,.2);color:#27AE60;border:1px solid rgba(39,174,96,.4);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">✅ Erledigt</button>` : ''}
+              <button onclick="quickBan('${r.reported||''}','${r.id}')" style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.4);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">🚫 Sperren</button>
+              <button onclick="quickMessage('${r.reported||''}')" style="background:rgba(255,215,0,.15);color:#FFD700;border:1px solid rgba(255,215,0,.3);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">📢 Schreiben</button>
+              <button onclick="deleteReport('${r.id}')" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">🗑️ Löschen</button>
+            </div>
+          </div>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div style="color:#E74C3C;padding:12px">Fehler: '+e.message+'</div>'; }
+  }
+
+  async function markHandled(reportId) {
+    try {
+      await firebase.firestore().collection('player_reports').doc(reportId).update({handled:true,handledAt:Date.now()});
+      const el = document.getElementById('report-'+reportId);
+      if(el) el.style.background = 'rgba(39,174,96,.08)';
+      loadReports();
+    } catch(e) { alert('Fehler: '+e.message); }
+  }
+
+  async function deleteReport(reportId) {
+    if(!confirm('Meldung löschen?')) return;
+    try {
+      await firebase.firestore().collection('player_reports').doc(reportId).delete();
+      loadReports();
+    } catch(e) { alert('Fehler: '+e.message); }
+  }
+
+  // ===== BAN/BLOCK =====
+  async function banPlayer() {
+    const name = document.getElementById('ban-player-name')?.value?.trim()?.toLowerCase();
+    const dur = document.getElementById('ban-duration')?.value;
+    if(!name) { alert('Spielername eingeben!'); return; }
+    
+    const durMs = {
+      '1h': 3600000, '24h': 86400000, '7d': 604800000, '30d': 2592000000, 'perm': -1
+    }[dur] || 86400000;
+    
+    const banData = {
+      player: name, 
+      bannedAt: Date.now(),
+      bannedBy: 'admin',
+      expiresAt: durMs === -1 ? null : Date.now() + durMs,
+      permanent: durMs === -1,
+      duration: dur,
+      reason: prompt('Grund für Sperrung (optional):') || ''
+    };
+    
+    try {
+      await firebase.firestore().collection('banned_players').doc(name).set(banData);
+      // Also write admin command so game picks it up
+      await firebase.firestore().collection('mischa_admin').doc('ban_'+name+'_'+Date.now()).set({
+        type: 'ban', target: name, ...banData, id: Date.now().toString()
+      });
+      alert('✅ ' + name + ' wurde gesperrt (' + dur + ')');
+      document.getElementById('ban-player-name').value = '';
+      loadBannedPlayers();
+    } catch(e) { alert('Fehler: '+e.message); }
+  }
+
+  async function quickBan(playerName, reportId) {
+    document.getElementById('ban-player-name').value = playerName;
+    document.getElementById('ban-duration').value = '24h';
+    document.querySelector('#ban-player-name').scrollIntoView({behavior:'smooth'});
+    if(reportId) await markHandled(reportId);
+  }
+
+  async function loadBannedPlayers() {
+    const el = document.getElementById('banned-list');
+    if(!el) return;
+    try {
+      const snap = await firebase.firestore().collection('banned_players').get();
+      if(snap.empty) { el.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:.8rem">Keine gesperrten Spieler</div>'; return; }
+      const now = Date.now();
+      const rows = [];
+      snap.forEach(doc => { const d=doc.data(); rows.push({id:doc.id,...d}); });
+      el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr style="color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:5px;text-align:left">Spieler</th><th style="padding:5px">Dauer</th><th style="padding:5px">Endet</th><th style="padding:5px">Grund</th><th style="padding:5px">Aktion</th></tr></thead><tbody>'+
+        rows.map(r=>{
+          const expired = r.expiresAt && r.expiresAt < now;
+          const remaining = r.permanent ? '∞ Permanent' : r.expiresAt ? new Date(r.expiresAt).toLocaleString('de-CH') : '?';
+          return `<tr style="border-bottom:1px solid rgba(255,255,255,.05);${expired?'opacity:.5':''}">
+            <td style="padding:5px;font-weight:700;color:${expired?'#aaa':'#E74C3C'}">${r.player}</td>
+            <td style="padding:5px;text-align:center">${r.duration||'?'}</td>
+            <td style="padding:5px;font-size:.72rem;color:rgba(255,255,255,.5)">${remaining}${expired?' (abgelaufen)':''}</td>
+            <td style="padding:5px;color:rgba(255,255,255,.5);font-size:.75rem">${r.reason||'—'}</td>
+            <td style="padding:5px;text-align:center">
+              <button onclick="unbanPlayer('${r.player}')" style="background:rgba(39,174,96,.2);color:#27AE60;border:1px solid rgba(39,174,96,.3);padding:2px 8px;border-radius:5px;cursor:pointer;font-size:.72rem">Entsperren</button>
+            </td>
+          </tr>`;
+        }).join('')+'</tbody></table>';
+    } catch(e) { el.innerHTML = '<div style="color:#E74C3C">Fehler: '+e.message+'</div>'; }
+  }
+
+  async function unbanPlayer(name) {
+    if(!confirm(name+' entsperren?')) return;
+    try {
+      await firebase.firestore().collection('banned_players').doc(name).delete();
+      loadBannedPlayers();
+    } catch(e) { alert('Fehler: '+e.message); }
+  }
+
+  // ===== NACHRICHTEN =====
+  function quickMessage(playerName) {
+    document.getElementById('msg-target').value = playerName;
+    document.getElementById('msg-text').focus();
+    document.getElementById('msg-target').scrollIntoView({behavior:'smooth'});
+  }
+
+  async function sendAdminMessage() {
+    const target = document.getElementById('msg-target')?.value?.trim() || '';
+    const text = document.getElementById('msg-text')?.value?.trim();
+    const type = document.getElementById('msg-type')?.value || 'info';
+    if(!text) { alert('Nachricht eingeben!'); return; }
+
+    const msgData = {
+      text, type, target: target||'_all',
+      from: 'admin', ts: Date.now(),
+      id: Date.now().toString(),
+      expiresAt: Date.now() + 3*24*60*60*1000 // 3 days
+    };
+
+    try {
+      // Write to Firebase and localStorage
+      await firebase.firestore().collection('mischa_admin').doc('msg_'+msgData.id).set({...msgData,type:'broadcast'});
+      // Also store as mischa_broadcast for clients to pick up
+      localStorage.setItem('mischa_broadcast', JSON.stringify(msgData));
+      alert('✅ Nachricht gesendet an: '+(target||'alle Spieler'));
+      document.getElementById('msg-text').value = '';
+    } catch(e) { alert('Fehler: '+e.message); }
+  }
+
+  // Auto-load reports on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(loadReports, 1500);
+  });
+  </script>
+
+
   <script>
   let calRecords = [];
   let calOverrides = {};
   let currentDetailGame = null;
   const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱iPhone',android:'🤖Android'};
 
-  async function _adminLoadReports() {
-    const el = document.getElementById('padmin-reports-list');
-    if(!el) return;
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</div>';
-    try {
-      if(typeof firebase === 'undefined') { el.innerHTML = '<div style="color:#E74C3C">Firebase nicht verfügbar</div>'; return; }
-      const db = firebase.firestore();
-      const snap = await db.collection('player_reports').orderBy('ts','desc').limit(50).get();
-      if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Meldungen</div>'; return; }
-      const rows = [];
-      snap.forEach(doc => { const d=doc.data(); rows.push({id:doc.id,...d}); });
-      el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.78rem"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4)"><th style="padding:6px;text-align:left">Zeit</th><th style="padding:6px">Gemeldet</th><th style="padding:6px">Von</th><th style="padding:6px;text-align:left">Grund</th><th style="padding:6px">Aktion</th></tr></thead><tbody>'+
-        rows.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-          <td style="padding:5px 6px;color:rgba(255,255,255,.5);font-size:.72rem">${r.tsStr||'—'}</td>
-          <td style="padding:5px 6px;text-align:center;font-weight:700;color:#E74C3C">${r.reported||'?'}</td>
-          <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.6)">${r.reporter||'?'}</td>
-          <td style="padding:5px 6px;color:#FFD700">${r.reason||'?'}${r.desc?'<br><span style="color:rgba(255,255,255,.4);font-size:.7rem">'+r.desc+'</span>':''}</td>
-          <td style="padding:5px 6px;text-align:center">
-            <button onclick="_adminDeleteReport('${r.id}')" style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.3);padding:2px 7px;border-radius:5px;cursor:pointer;font-size:.7rem">🗑️</button>
-          </td>
-        </tr>`).join('')+'</tbody></table>';
-    } catch(e) { el.innerHTML = '<div style="color:#E74C3C">Fehler: '+e.message+'</div>'; }
-  }
-  // Expose to ZAdmin
-  if(typeof ZAdmin !== 'undefined') ZAdmin._loadReports = _adminLoadReports;
-  else document.addEventListener('DOMContentLoaded', ()=>{ if(typeof ZAdmin!=='undefined') ZAdmin._loadReports=_adminLoadReports; });
 
-  async function _adminDeleteReport(id) {
-    if(!confirm('Meldung löschen?')) return;
-    try { await firebase.firestore().collection('player_reports').doc(id).delete(); _adminLoadReports(); } catch(e) { alert('Fehler: '+e.message); }
-  }
 
   async function resetAllScores() {
     if(!confirm('ACHTUNG: Alle Spielstände UND Kalibrierungsdaten werden gelöscht!\nWirklich fortfahren?')) return;

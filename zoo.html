@@ -3779,6 +3779,49 @@ const ZAdmin = {
     ZP.toast('🗑️ Kalibrierung gelöscht',1500);
     this._renderCalTable();
   },
+  _loadZooReports(){
+    const el=document.getElementById('zoo-reports-list');if(!el)return;
+    el.innerHTML='⏳ Lade...';
+    if(typeof _db==='undefined'||!_db){el.innerHTML='Firebase nicht verfügbar';return;}
+    _db.collection('player_reports').orderBy('ts','desc').limit(50).get().then(snap=>{
+      if(snap.empty){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:12px">Keine Meldungen ✅</div>';return;}
+      const rows=[];snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+      el.innerHTML=rows.map(r=>`
+        <div style="background:${r.handled?'rgba(39,174,96,.08)':'rgba(231,76,60,.08)'};border:1px solid ${r.handled?'rgba(39,174,96,.25)':'rgba(231,76,60,.3)'};border-radius:8px;padding:10px;margin-bottom:8px">
+          <div style="font-size:.8rem"><b style="color:#E74C3C">👤 ${r.reported}</b> gemeldet von <b>${r.reporter}</b></div>
+          <div style="font-size:.75rem;color:#FFD700">Grund: ${r.reason}</div>
+          ${r.desc?`<div style="font-size:.72rem;color:rgba(255,255,255,.5)">${r.desc}</div>`:''}
+          <div style="font-size:.68rem;color:rgba(255,255,255,.35)">${r.tsStr||''}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+            ${!r.handled?`<button onclick="ZAdmin._zooMarkHandled('${r.id}')" style="background:rgba(39,174,96,.2);color:#27AE60;border:1px solid rgba(39,174,96,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.7rem">✅ Erledigt</button>`:''}
+            <button onclick="document.getElementById('zoo-ban-name').value='${r.reported}';ZAdmin._loadZooReports()" style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.7rem">🚫 Sperren</button>
+            <button onclick="document.getElementById('zoo-msg-target').value='${r.reported}'" style="background:rgba(255,215,0,.15);color:#FFD700;border:1px solid rgba(255,215,0,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.7rem">📢 Schreiben</button>
+          </div>
+        </div>`).join('');
+    }).catch(e=>el.innerHTML='<div style="color:#E74C3C">'+e.message+'</div>');
+  },
+  _zooMarkHandled(id){
+    if(typeof _db==='undefined')return;
+    _db.collection('player_reports').doc(id).update({handled:true}).then(()=>this._loadZooReports()).catch(()=>{});
+  },
+  _zooBan(){
+    const name=document.getElementById('zoo-ban-name')?.value?.trim()?.toLowerCase();
+    const dur=document.getElementById('zoo-ban-dur')?.value;
+    if(!name){ZP.toast('Spielername eingeben!',2000);return;}
+    const durMs={'24h':86400000,'7d':604800000,'perm':-1}[dur]||86400000;
+    const data={player:name,bannedAt:Date.now(),expiresAt:durMs===-1?null:Date.now()+durMs,permanent:durMs===-1,duration:dur};
+    if(typeof _db!=='undefined')_db.collection('banned_players').doc(name).set(data).then(()=>ZP.toast('🚫 '+name+' gesperrt',2000)).catch(()=>{});
+  },
+  _zooSendMsg(){
+    const target=document.getElementById('zoo-msg-target')?.value?.trim()||'_all';
+    const text=document.getElementById('zoo-msg-text')?.value?.trim();
+    if(!text){ZP.toast('Nachricht eingeben!',2000);return;}
+    const msg={text,target,from:'zoo-admin',ts:Date.now(),id:Date.now().toString(),expiresAt:Date.now()+3*86400000,type:'info'};
+    try{localStorage.setItem('zoo_admin_cmd',JSON.stringify({...msg,type:'broadcast'}));}catch(e){}
+    if(typeof _db!=='undefined')_db.collection('mischa_admin').add({...msg,type:'broadcast'}).catch(()=>{});
+    ZP.toast('✅ Nachricht gesendet',2000);
+    document.getElementById('zoo-msg-text').value='';
+  },
   clearDiscount(){window._adminDiscount=null;try{localStorage.removeItem('zoo_admin_discount');}catch(e){}ZP.toast('✅ Rabatt beendet',1500);},
   open(){
     const el=document.getElementById('padmin-wrap');
@@ -5152,6 +5195,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="padmin-tab-btn" data-tab="server" onclick="ZAdmin.switchTab('server')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🌐 Server</div>
           <div class="padmin-tab-btn" data-tab="einst" onclick="ZAdmin.switchTab('einst')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚙️ Einstellungen</div>
           <div class="padmin-tab-btn" data-tab="cal" onclick="ZAdmin.switchTab('cal')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📊 Kalibrierung</div>
+          <div class="padmin-tab-btn" data-tab="meldungen" onclick="ZAdmin.switchTab('meldungen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🚨 Meldungen</div>
         </div>
       </div>
       <!-- Content area -->
@@ -5329,6 +5373,34 @@ document.addEventListener('DOMContentLoaded',()=>{
         <!-- TAB: KALIBRIERUNG -->
         <div class="padmin-tab" id="padmin-tab-cal" style="display:none">
           <div class="padmin-section-title">📊 Kalibrierungsdaten (cal_data_v3)</div>
+        <!-- TAB: MELDUNGEN -->
+        <div class="padmin-tab" id="padmin-tab-meldungen" style="display:none">
+          <div class="padmin-section-title">🚨 Spieler-Meldungen</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <button class="padmin-btn" style="background:#3498DB;font-size:.75rem;padding:6px 12px" onclick="ZAdmin._loadZooReports()">🔄 Laden</button>
+          </div>
+          <div id="zoo-reports-list" style="font-size:.8rem">
+            <div style="color:rgba(255,255,255,.4);text-align:center;padding:16px">Klicke "Laden"</div>
+          </div>
+          
+          <div class="padmin-section-title" style="margin-top:16px">🚫 Spieler sperren</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+            <input id="zoo-ban-name" placeholder="Spielername" style="flex:1;min-width:120px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:5px 8px;border-radius:6px;font-size:.8rem">
+            <select id="zoo-ban-dur" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:5px 8px;border-radius:6px;font-size:.8rem">
+              <option value="24h">24h</option>
+              <option value="7d">7 Tage</option>
+              <option value="perm">Permanent</option>
+            </select>
+            <button class="padmin-btn" style="background:#E74C3C;font-size:.78rem;padding:5px 10px" onclick="ZAdmin._zooBan()">🚫 Sperren</button>
+          </div>
+          
+          <div class="padmin-section-title" style="margin-top:16px">📢 Nachricht senden</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="zoo-msg-target" placeholder="Spieler (leer = alle)" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:5px 8px;border-radius:6px;font-size:.8rem">
+            <textarea id="zoo-msg-text" placeholder="Nachricht..." style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:5px 8px;border-radius:6px;font-size:.8rem;min-height:60px"></textarea>
+            <button class="padmin-btn" style="background:#27AE60;font-size:.78rem;padding:5px 10px" onclick="ZAdmin._zooSendMsg()">📢 Senden</button>
+          </div>
+        </div>
           <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:8px">
             Alle Spielergebnisse pro Spiel + Gerät. Min=0MT · Ø=1MT · Max=2MT
           </div>

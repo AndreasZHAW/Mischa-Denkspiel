@@ -412,6 +412,31 @@ const App = {
       return;
     }
     State.setCurrentPlayer(res.player);
+    // Check if player is banned
+    try {
+      if(typeof _db !== 'undefined' && _db) {
+        const banDoc = await _db.collection('banned_players').doc(res.player.name.toLowerCase()).get();
+        if(banDoc.exists) {
+          const ban = banDoc.data();
+          const now = Date.now();
+          if(ban.permanent || !ban.expiresAt || ban.expiresAt > now) {
+            State.currentPlayer = null;
+            sessionStorage.removeItem('mischa_current');
+            const until = ban.permanent ? 'permanent' : new Date(ban.expiresAt).toLocaleString('de-CH');
+            this.showLogin();
+            setTimeout(()=>{
+              const e=document.getElementById('l-err');
+              if(e){
+                e.textContent='🚫 Dein Konto ist gesperrt bis: '+until+(ban.reason?'\nGrund: '+ban.reason:'');
+                e.style.display='block';
+                e.style.whiteSpace='pre-line';
+              }
+            },50);
+            return;
+          }
+        }
+      }
+    } catch(e) {} // ban check failed silently, allow login
     this.showWorldMap();
   },
 
