@@ -9,7 +9,7 @@ const StuntGame = {
 
     el.innerHTML = `
     <div style="text-align:center">
-      <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;background:#06001a"></canvas>
+      <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;background:#06001a;touch-action:none"></canvas>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:8px;max-width:360px;margin-left:auto;margin-right:auto">
         <button id="st-rotdn" style="background:linear-gradient(135deg,#6C3483,#8E44AD);color:#fff;border:none;padding:14px 8px;border-radius:10px;font-size:1.1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">↺</button>
         <button id="st-back"  style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:14px 8px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">◀</button>
@@ -27,7 +27,7 @@ const StuntGame = {
     let ty=H*0.58;
     for(let x=0;x<=WORLD_W+200;x+=6){
       const hump=Math.sin(x*0.009)*30+Math.sin(x*0.004)*55+Math.sin(x*0.025)*12;
-      terrain.push({x,y:H*0.65+hump});
+      terrain.push({x,y:H*0.6+hump});
     }
     const getTY=wx=>{
       const idx=Math.floor(wx/6);

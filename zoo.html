@@ -3783,7 +3783,7 @@ const ZAdmin = {
     const el=document.getElementById('zoo-reports-list');if(!el)return;
     el.innerHTML='⏳ Lade...';
     if(typeof _db==='undefined'||!_db){el.innerHTML='Firebase nicht verfügbar';return;}
-    _db.collection('player_reports').orderBy('ts','desc').limit(50).get().then(snap=>{
+    _db.collection('player_reports').limit(50).get().then(snap=>{
       if(snap.empty){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:12px">Keine Meldungen ✅</div>';return;}
       const rows=[];snap.forEach(d=>rows.push({id:d.id,...d.data()}));
       el.innerHTML=rows.map(r=>`

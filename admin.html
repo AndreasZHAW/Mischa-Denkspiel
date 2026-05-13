@@ -743,11 +743,12 @@ document.addEventListener('DOMContentLoaded', () => {
     el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</div>';
     try {
       const db = firebase.firestore();
-      const snap = await db.collection('player_reports').orderBy('ts','desc').limit(100).get();
+      const snap = await db.collection('player_reports').limit(100).get();
       if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Meldungen vorhanden ✅</div>'; return; }
       
       const reports = [];
       snap.forEach(doc => reports.push({id:doc.id,...doc.data()}));
+      reports.sort((a,b) => (b.ts||0)-(a.ts||0)); // Sort newest first in JS
       
       el.innerHTML = reports.map(r => `
         <div id="report-${r.id}" style="background:${r.handled?'rgba(39,174,96,.08)':'rgba(231,76,60,.08)'};border:1px solid ${r.handled?'rgba(39,174,96,.25)':'rgba(231,76,60,.3)'};border-radius:10px;padding:12px 16px;margin-bottom:10px">

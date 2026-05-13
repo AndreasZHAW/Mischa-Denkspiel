@@ -1,3 +1,33 @@
+
+/* ===== RESPONSIVE GAME AREA ===== */
+/* Game fills available width always */
+#game-area {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+#game-area canvas {
+  display: block;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box;
+}
+/* On mobile portrait: card fills more of screen */
+@media (max-width: 480px) {
+  .card { padding: 8px !important; }
+  .page { padding: 4px !important; padding-top: 8px !important; }
+  .game-header { padding: 6px 8px !important; }
+  .game-title { font-size: 0.85rem !important; }
+}
+/* On landscape mobile: compact layout */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page { padding: 2px !important; }
+  .mountain-bg { height: 60px !important; }
+  .game-header { padding: 4px 8px !important; }
+}
+
 /* ===== MOBILE OPTIMIZATIONS ===== */
 /* Prevent double-tap zoom */
 button, .btn, .task-btn, .world-item, [onclick] {

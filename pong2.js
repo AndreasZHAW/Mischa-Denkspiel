@@ -94,7 +94,7 @@ const PongGame = {
     const end=()=>{
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKeyUp);
-      onComplete({rawScore:Math.min(100,pscore*14),timeMs:Date.now()-tStart,errors:ascore,passed:pscore>=7||pscore>ascore});
+      onComplete({rawScore:Math.min(100,Math.round((pscore/(pscore+ascore+0.1))*80 + speedLevel*2)),timeMs:Date.now()-tStart,errors:ascore,passed:pscore>=7||pscore>ascore});
     };
     
     // Speed up flash effect

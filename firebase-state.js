@@ -113,11 +113,15 @@ const State = {
     const key = player.name.toLowerCase();
     const data = { ...player, updatedAt: Date.now() };
     this._local.save(data); // Always save locally FIRST (instant)
+    this.currentPlayer = data; // Update in-memory state immediately
     if (this._useCloud()) {
+      // Fire and forget for Firebase - local is already updated
+      this._col().doc(key).set(data).catch(()=>{});
       try {
+        // Also try with legacy await for callers that depend on it
         await Promise.race([
-          this._col().doc(key).set(data),
-          new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
+          Promise.resolve(), // resolve immediately since we already saved locally
+          new Promise(r => setTimeout(r, 0))
         ]);
       } catch(e) { console.warn('savePlayer cloud failed, local OK:', e.message); }
     }
@@ -179,7 +183,17 @@ const State = {
 
   // ---- TASK COMPLETION ----
   async completeTask(playerName, worldIndex, taskIndex, result) {
-    const player = await this.getPlayer(playerName);
+    // Use LOCAL player data (instant) - no Firebase fetch that could block
+    let player = this._local.get(playerName);
+    if (!player) {
+      // Fallback: try to get from Firebase with short timeout
+      try {
+        player = await Promise.race([
+          this.getPlayer(playerName),
+          new Promise(r => setTimeout(() => r(this.currentPlayer), 500))
+        ]);
+      } catch(e) { player = this.currentPlayer; }
+    }
     if (!player) return;
     if (!player.worlds) player.worlds = {};
     if (!player.worlds[worldIndex]) player.worlds[worldIndex] = { tasks: Array(20).fill(null), jokerUsed: false, completed: false };
