@@ -1111,7 +1111,7 @@ const App = {
           const wid = String(worldId); // Use string key for JSON consistency
           if (!p.worlds[wid]) p.worlds[wid] = {tasks:Array(20).fill(null),jokerUsed:false,completed:false};
           const prevPlays = p.worlds[wid].tasks[taskIndex]?.plays || 0;
-          // Calculate MT for local save
+          // Preliminary MT for local display (completeTask will update with accurate value)
           const taskMT = (() => {
             try {
               const raw = result.rawScore||0;
@@ -1120,8 +1120,9 @@ const App = {
               const isIPad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
               const dev=isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
               const calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-              const scores=calStore[taskIndex+'_'+dev]||[];
-              if(!scores.length) return 1.0;
+              const scores=(calStore[taskIndex+'_'+dev]||[]).filter(s=>s!==raw);
+              // Use PREVIOUS scores only (exclude current raw to avoid double-count)
+              if(!scores.length) return 1.0; // First play always 1 MT
               const minS=Math.min(...scores),maxS=Math.max(...scores),avgS=scores.reduce((a,b)=>a+b,0)/scores.length;
               if(maxS===minS) return raw>=avgS?1.2:0.8;
               if(raw<=minS) return 0.0;

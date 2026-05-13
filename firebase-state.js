@@ -207,12 +207,12 @@ const State = {
       let overrides = {};
       try { overrides = JSON.parse(localStorage.getItem('cal_overrides_local')||'{}'); } catch(e){}
 
-      const scores = calStore[key] || [];
+      const scores = calStore[key] || []; // Clean array - only previous scores (app.js no longer adds here)
 
-      // Effective min/avg/max: use override if set, else compute from scores
+      // Effective min/avg/max: use override if set, else compute from previous scores
       let minS, avgS, maxS;
       if (scores.length === 0 && !overrides[key+'_avg']) {
-        mtEarned = 1.0; // No data → 1 MT
+        mtEarned = 1.0; // First play ever → always exactly 1 MT
       } else {
         minS = overrides[key+'_min'] ?? (scores.length ? Math.min(...scores) : raw);
         maxS = overrides[key+'_max'] ?? (scores.length ? Math.max(...scores) : raw);
@@ -232,7 +232,7 @@ const State = {
         mtEarned = Math.round(Math.min(2.0, Math.max(0.0, mtEarned)) * 10) / 10;
       }
 
-      // Save score to local store
+      // Save current score to cal store
       scores.push(raw);
       calStore[key] = scores;
       try { localStorage.setItem('cal_data_v3', JSON.stringify(calStore)); } catch(e){}
