@@ -31,7 +31,7 @@ const PongGame = {
           </div>
         </div>
         <!-- Canvas -->
-        <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 0;max-width:calc(100vw - 80px)"></canvas>
+        <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;width:100%;max-width:${W}px;height:auto;display:block;border-radius:0 0 8px 0;max-width:calc(100vw - 80px)"></canvas>
       </div>` 
       : `<canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%;margin:0 auto"></canvas>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:8px">

@@ -9,7 +9,7 @@ const StuntGame = {
 
     el.innerHTML = `
     <div style="text-align:center">
-      <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;max-width:100%;display:block;margin:0 auto"></canvas>
+      <canvas id="stcv" width="${W}" height="${H}" style="border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;background:#06001a"></canvas>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:8px;max-width:360px;margin-left:auto;margin-right:auto">
         <button id="st-rotdn" style="background:linear-gradient(135deg,#6C3483,#8E44AD);color:#fff;border:none;padding:14px 8px;border-radius:10px;font-size:1.1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">↺</button>
         <button id="st-back"  style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:14px 8px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;user-select:none;touch-action:none">◀</button>
@@ -141,7 +141,7 @@ const StuntGame = {
         car.spin*=0.985;
         // Track salto rotation
         car.saltoRot+=Math.abs(car.spin);
-        if(car.saltoRot>=Math.PI*2){
+        if(car.saltoRot>=Math.PI*1.85){  // 330° threshold for easier salto
           car.saltoRot-=Math.PI*2;
           car.saltos++;
           car.saltoFlash=30;
@@ -174,11 +174,11 @@ const StuntGame = {
 
       // ====== DRAW ======
       const camWX=car.wx-CAM_X;
-      // Fill canvas completely first (prevent any bleed)
-      ctx.fillStyle='#0d001a';ctx.fillRect(0,0,W,H);
-      // Night sky gradient
+      // Sky - fill completely to prevent bleed
+      ctx.fillStyle='#1a0a2e';ctx.fillRect(0,0,W,H);
+      // Night sky gradient  
       const sky=ctx.createLinearGradient(0,0,0,H);
-      sky.addColorStop(0,'#0d001a');sky.addColorStop(0.5,'#1a0033');sky.addColorStop(1,'#0f001a');
+      sky.addColorStop(0,'#06001a');sky.addColorStop(0.4,'#120028');sky.addColorStop(1,'#1e0a15');
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
       // Stars
       if(frames%3===0){ctx.fillStyle='rgba(255,255,255,.3)';for(let i=0;i<20;i++){const sx=(i*173)%W,sy=(i*97)%(H*0.5);ctx.fillRect(sx,sy,1,1);}}
@@ -186,11 +186,18 @@ const StuntGame = {
       ctx.fillStyle='rgba(255,220,100,.8)';ctx.beginPath();ctx.arc(W*0.82,35,18,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#0d001a';ctx.beginPath();ctx.arc(W*0.82+8,30,15,0,Math.PI*2);ctx.fill();
 
-      // Ground
-      ctx.fillStyle='#1a3a0f';ctx.beginPath();ctx.moveTo(0,H);
+      // Brown earth layer (below terrain)
+      ctx.fillStyle='#3d1a05';ctx.fillRect(0,H*0.7,W,H*0.3);
+      // Green terrain
+      ctx.fillStyle='#1e4a0e';ctx.beginPath();ctx.moveTo(0,H+2);
       for(let sx=0;sx<=W;sx+=6){ctx.lineTo(sx,getTY(camWX+sx));}
-      ctx.lineTo(W,H);ctx.closePath();ctx.fill();
-      ctx.strokeStyle='#2d6b1f';ctx.lineWidth=3;ctx.beginPath();
+      ctx.lineTo(W,H+2);ctx.closePath();ctx.fill();
+      // Darker green top layer (thinner)
+      ctx.fillStyle='#2a5f14';ctx.beginPath();ctx.moveTo(0,H+2);
+      for(let sx=0;sx<=W;sx+=6){ctx.lineTo(sx,getTY(camWX+sx));}
+      ctx.lineTo(W,H+2);ctx.closePath();
+      // Grass stripe
+      ctx.strokeStyle='#3a8020';ctx.lineWidth=4;ctx.beginPath();
       for(let sx=0;sx<=W;sx+=6){const y=getTY(camWX+sx);if(sx===0)ctx.moveTo(sx,y);else ctx.lineTo(sx,y);}
       ctx.stroke();
 

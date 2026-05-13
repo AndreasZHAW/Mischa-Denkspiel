@@ -1050,7 +1050,7 @@ const App = {
               </div>
             </div>
           </div>
-          <div id="game-area">
+          <div id="game-area" style="width:100%;transition:transform .2s;will-change:transform">
             <div style="text-align:center;padding:40px;color:var(--text-mid)">⏳ Laden...</div>
           </div>
         </div>
@@ -1149,7 +1149,26 @@ const App = {
     }, 120);
   },
 
+  _zoomLevel: 1,
+  _toggleZoom() {
+    const levels = [1, 1.3, 1.6, 2.0, 0.8];
+    this._zoomLevel = this._zoomLevel || 1;
+    const currentIdx = levels.findIndex(l => Math.abs(l - this._zoomLevel) < 0.05);
+    this._zoomLevel = levels[(currentIdx + 1) % levels.length];
+    const ga = document.getElementById('game-area');
+    const btn = document.getElementById('zoom-btn');
+    if (ga) {
+      ga.style.transform = `scale(${this._zoomLevel})`;
+      ga.style.transformOrigin = 'top center';
+      // Adjust container height to prevent overlap
+      ga.style.marginBottom = this._zoomLevel > 1 ? 
+        ((this._zoomLevel - 1) * ga.offsetHeight * 0.5) + 'px' : '0';
+    }
+    if (btn) btn.textContent = this._zoomLevel === 1 ? '🔍' : `🔍${Math.round(this._zoomLevel*100)}%`;
+  },
+
   _confirmLeave(worldId) {
+    this._zoomLevel = 1; // Reset zoom on leave
     if (confirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.')) {
       // Stop any running timers in games
       try { clearInterval(MemoryGame._timerInterval); } catch(e){}
