@@ -971,7 +971,7 @@ const App = {
                   style="touch-action:manipulation"
                   title="${task.name||task.title||'Spiel '+(i+1)}">
                   <span style="font-size:1.3rem">${task.icon||'🎮'}</span>
-                  <span style="font-size:0.62rem;font-weight:700">${task.name||('Spiel '+(i+1))}</span>
+                  <span style="font-size:clamp(0.7rem,2.2vw,0.85rem);font-weight:700;line-height:1.2">${task.name||('Spiel '+(i+1))}</span>
                   ${mtEarned?`<span style="font-size:0.6rem;color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:0.55rem;opacity:0.8">⭐${score}</span>`:''}
                 </button>`;
             }).join('')}
@@ -1112,7 +1112,7 @@ const App = {
         case 'math':        MathGame.start({ ageGroup, worldId, onComplete }); break;
         case 'reaction':    ReactionGame.start({ onComplete }); break;
         case 'memory':      MemoryGame.start({ emojis: world.memoryEmojis, onComplete }); break;
-        case 'train':       TrainGame.start({ worldId, onComplete }); break;
+        case 'train':       TrainGame.start({ ageGroup, worldId, onComplete }); break;
         case 'shutthebox':  ShutTheBoxGame.start({ onComplete }); break;
         case 'jenga':       JengaGame.start({ worldId, ageGroup, onComplete }); break;
         case 'slider':      SliderGame.start({ ageGroup, worldId, onComplete }); break;
@@ -1137,7 +1137,7 @@ const App = {
         case 'basketball':  BasketballGame.start({ onComplete }); break;
         case 'emojistory':  EmojiStoryGame.start({ onComplete }); break;
         case 'geo':         GeoGame.start({ onComplete }); break;
-        case 'french':      FrenchGame.start({ onComplete }); break;
+        case 'french':      FrenchGame.start({ ageGroup, onComplete }); break;
         case 'riddle':      RiddleGame.start({ onComplete }); break;
         default:
           document.getElementById('game-area').innerHTML = '<div style="padding:20px;text-align:center">🚧 Kommt bald!</div>';

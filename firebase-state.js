@@ -546,10 +546,10 @@ const State = {
 
   getAgeGroup(player) {
     const age = this.getAge(player);
-    if (age <= 7)  return 'sehr_einfach';
-    if (age <= 10) return 'einfach';
-    if (age <= 13) return 'mittel';
-    return 'schwer';
+    if (age < 10)  return 'sehr_einfach';  // unter 10
+    if (age <= 14) return 'einfach';        // 10-14
+    if (age <= 18) return 'mittel';         // 14-18 (schwer)
+    return 'schwer';                         // über 18 (Abi-Niveau)
   },
 
   getAdminPw() { return 'mischa2026'; }, // Fixed password

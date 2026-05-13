@@ -153,9 +153,9 @@ const StuntGame = {
       }
 
       // Rotation buttons (only meaningful in air)
-      if(rotup.v) car.spin+=0.012;
-      if(rotdn.v) car.spin-=0.012;
-      car.spin=Math.max(-0.12,Math.min(0.12,car.spin));
+      // Rotation buttons: stronger force to reverse direction mid-air
+      if(rotup.v){ car.spin = Math.min(0.12, car.spin + (car.spin < 0 ? 0.025 : 0.012)); }
+      if(rotdn.v){ car.spin = Math.max(-0.12, car.spin - (car.spin > 0 ? 0.025 : 0.012)); }
       car.angle+=car.spin;
 
       // Speed cap
@@ -165,8 +165,8 @@ const StuntGame = {
 
       // Crash: if upside down on ground after grace period
       const norm=((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-      const trulyUpsideDown=norm>Math.PI*0.72&&norm<Math.PI*1.28;
-      const noGrace=car.landingFrames>12;
+      const trulyUpsideDown=norm>Math.PI*0.6&&norm<Math.PI*1.4; // wider range
+      const noGrace=car.landingFrames>5; // faster detection
       if(onGround && trulyUpsideDown && noGrace){
         // Roof landing: subtract 20pts and bounce back instead of instant crash
         if(!car._roofLanded) {
@@ -175,7 +175,8 @@ const StuntGame = {
           car.vy = -4; // bounce
           car.spin = car.spin > 0 ? 0.08 : -0.08; // slight correction spin
           // Show penalty
-          car.penaltyFlash = 20;
+          car.penaltyFlash = 40; // longer flash
+          car.roofToast = 120; // show for 2 seconds
         }
         if(car.landingFrames > 30) { end(false); return; } // still crash if stuck too long
       } else {
@@ -194,39 +195,39 @@ const StuntGame = {
       ctx.fillStyle='#08001f';
       ctx.fillRect(0,0,W,H);
       // Night sky (top portion only - sky ends at terrain)
-      const skyGrad=ctx.createLinearGradient(0,0,0,H*0.65);
+      const skyGrad=ctx.createLinearGradient(0,0,0,H);
       skyGrad.addColorStop(0,'#06001a');
-      skyGrad.addColorStop(0.6,'#100025');
-      skyGrad.addColorStop(1,'#150030');
+      skyGrad.addColorStop(0.5,'#100025');
+      skyGrad.addColorStop(1,'#1a0030');
       ctx.fillStyle=skyGrad;
-      ctx.fillRect(0,0,W,H*0.75);
+      ctx.fillRect(0,0,W,H);  // Sky covers entire canvas, terrain overlays
       // Stars
       if(frames%3===0){ctx.fillStyle='rgba(255,255,255,.3)';for(let i=0;i<20;i++){const sx=(i*173)%W,sy=(i*97)%(H*0.5);ctx.fillRect(sx,sy,1,1);}}
       // Moon
       ctx.fillStyle='rgba(255,220,100,.8)';ctx.beginPath();ctx.arc(W*0.82,35,18,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#0d001a';ctx.beginPath();ctx.arc(W*0.82+8,30,15,0,Math.PI*2);ctx.fill();
 
-      // === TERRAIN: proper polygon from terrain to canvas bottom ===
-      // Fill entire bottom half with earth color first (prevents gaps)
-      ctx.fillStyle='#1a350a';
-      ctx.fillRect(0, H*0.5, W, H*0.5);
-      // Green terrain polygon
+      // === TERRAIN: single polygon, no horizontal helper lines ===
       ctx.fillStyle='#234a0d';
       ctx.beginPath();
-      ctx.moveTo(-1, H+1); // start bottom-left (off-canvas)
-      for(let sx=0;sx<=W+6;sx+=6){
+      // Go along terrain surface left to right
+      ctx.moveTo(-2, getTY(camWX-2));
+      for(let sx=0; sx<=W+2; sx+=4){
         ctx.lineTo(sx, getTY(camWX+sx));
       }
-      ctx.lineTo(W+1, H+1); // end bottom-right (off-canvas)
+      // Close down and around the bottom
+      ctx.lineTo(W+2, H+2);
+      ctx.lineTo(-2, H+2);
       ctx.closePath();
       ctx.fill();
-      // Grass top stripe (bright green line along terrain)
-      ctx.strokeStyle='#4a8f1f';
-      ctx.lineWidth=4;
+      // Grass stripe - only drawn ON TOP of terrain fill, no separate line
+      ctx.strokeStyle='#5aaf25';
+      ctx.lineWidth=3;
+      ctx.lineJoin='round';
       ctx.beginPath();
-      for(let sx=0;sx<=W;sx+=6){
-        const ty=getTY(camWX+sx);
-        if(sx===0) ctx.moveTo(sx,ty); else ctx.lineTo(sx,ty);
+      ctx.moveTo(-2, getTY(camWX-2));
+      for(let sx=0; sx<=W+2; sx+=4){
+        ctx.lineTo(sx, getTY(camWX+sx));
       }
       ctx.stroke();
 
@@ -287,6 +288,11 @@ const StuntGame = {
       ctx.fillStyle='#27AE60';ctx.fillRect(0,29,W*distPct,3);
       ctx.font='bold 12px monospace';ctx.textAlign='left';
       ctx.fillStyle='#fff';ctx.fillText('⏱ '+elapsed+'s',6,20);
+      // Show time bonus preview
+      if(car.wx>=GOAL-500){
+        const bonusPreview=Math.max(0,Math.round(250-(Date.now()-tStart)/1000*2));
+        if(bonusPreview>0){ctx.fillStyle='#27AE60';ctx.font='bold 10px monospace';ctx.fillText('+'+bonusPreview+'⏱',6,H-20);}
+      }
       ctx.textAlign='center';
       ctx.fillStyle='#FFD700';
       const timeBonusPreview = car.wx>=GOAL ? Math.max(0,Math.round(250-(Date.now()-tStart)/1000*2)) : 0;
@@ -305,6 +311,13 @@ const StuntGame = {
         if(gp>0.8){ctx.fillStyle='rgba(255,100,0,.2)';ctx.fillRect(0,0,W,H);}
       }
 
+      // Roof landing toast
+      if(car.roofToast>0){
+        car.roofToast--;
+        ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(0,H-28,W,28);
+        ctx.fillStyle='#E74C3C';ctx.font='bold 14px monospace';ctx.textAlign='center';
+        ctx.fillText(`⚠️ Dachlandung! -20 Punkte (${car.roofLandings||0}x)`,W/2,H-8);
+      }
       // Salto counter bottom
       if(car.saltos>0){
         ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,H-24,W,24);

@@ -44,8 +44,9 @@ const BalloonGame = {
                 ageGroup === 'mittel'        ? ['+','-','×'] : ['+','-','×','÷'];
     const op = ops[Math.floor(Math.random()*ops.length)];
     const max = ageGroup === 'sehr_einfach' ? 10 :
-                ageGroup === 'einfach'       ? 20 + diff*3 :
-                ageGroup === 'mittel'        ? 50 + diff*5 : 100 + diff*5;
+                ageGroup === 'einfach'       ? 25 + diff*3 :
+                ageGroup === 'mittel'        ? 50 + diff*5 :
+                                              150 + diff*8; // schwer: Abi-level
     let a, b, answer;
     if (op==='+') { a=Math.floor(Math.random()*max)+1; b=Math.floor(Math.random()*max)+1; answer=a+b; }
     else if (op==='-') { a=Math.floor(Math.random()*max)+max/2; b=Math.floor(Math.random()*(a-1))+1; answer=a-b; }
