@@ -1057,52 +1057,6 @@ const App = {
       </div>`);
 
     const onComplete = async (result) => {
-      // Save ALL players' scores to cal_data_v3 for calibration
-      if (result.rawScore > 0 && result.passed !== false) {
-        try {
-          const ua = navigator.userAgent;
-          const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-          const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
-          const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-          const key = taskIndex + '_' + dev;
-          if (!calStore[key]) calStore[key] = [];
-          calStore[key].push(result.rawScore);
-          localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
-          // Sync to Firebase
-          try {
-            if (typeof _db !== 'undefined' && _db) {
-              const upd = {}; upd[key] = calStore[key];
-              _db.collection('calibration').doc('scores').set(upd, {merge:true}).catch(()=>{});
-              // Save individual record
-              _db.collection('calibration_records').add({
-                gameIdx: taskIndex, device: dev,
-                player: (player?.name||'?').toLowerCase(),
-                rawScore: result.rawScore, ts: Date.now(),
-                tsStr: new Date().toLocaleString('de-CH')
-              }).catch(()=>{});
-            } else {
-              // Firebase not ready - queue it
-              try {
-                const q = JSON.parse(localStorage.getItem('cal_sync_queue')||'{}');
-                q[key] = calStore[key];
-                localStorage.setItem('cal_sync_queue', JSON.stringify(q));
-                // Try to flush after a delay
-                setTimeout(()=>{
-                  try {
-                    if(typeof _db!=='undefined'&&_db){
-                      const qq=JSON.parse(localStorage.getItem('cal_sync_queue')||'{}');
-                      if(Object.keys(qq).length){
-                        _db.collection('calibration').doc('scores').set(qq,{merge:true})
-                          .then(()=>localStorage.removeItem('cal_sync_queue')).catch(()=>{});
-                      }
-                    }
-                  }catch(e){}
-                }, 4000);
-              } catch(e2){}
-            }
-          } catch(e) {}
-        } catch(e) {}
-      }
       // Save task result to player immediately (localStorage)
       try {
         const mt = State.calcMT ? State.calcMT(taskIndex, result) : 1.0;

@@ -219,7 +219,8 @@ const State = {
         avgS = overrides[key+'_avg'] ?? (scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : raw);
 
         if (maxS === minS) {
-          mtEarned = raw >= avgS ? 1.2 : 0.8;
+          // Same score as all previous → 1.0 exactly; better → 1.2; worse → 0.8
+          mtEarned = raw === avgS ? 1.0 : raw > avgS ? 1.2 : 0.8;
         } else if (raw <= minS) {
           mtEarned = 0.0;
         } else if (raw >= maxS) {
