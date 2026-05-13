@@ -963,6 +963,7 @@ const App = {
               return `
                 <button class="task-btn ${cls}"
                   onclick="App.startTask(${worldId},${i})"
+                  style="touch-action:manipulation"
                   title="${task.name||task.title||'Spiel '+(i+1)}">
                   <span style="font-size:1.3rem">${task.icon||'🎮'}</span>
                   <span style="font-size:0.62rem;font-weight:700">${task.name||('Spiel '+(i+1))}</span>
@@ -1074,10 +1075,23 @@ const App = {
                 tsStr: new Date().toLocaleString('de-CH')
               }).catch(()=>{});
             } else {
+              // Firebase not ready - queue it
               try {
                 const q = JSON.parse(localStorage.getItem('cal_sync_queue')||'{}');
                 q[key] = calStore[key];
                 localStorage.setItem('cal_sync_queue', JSON.stringify(q));
+                // Try to flush after a delay
+                setTimeout(()=>{
+                  try {
+                    if(typeof _db!=='undefined'&&_db){
+                      const qq=JSON.parse(localStorage.getItem('cal_sync_queue')||'{}');
+                      if(Object.keys(qq).length){
+                        _db.collection('calibration').doc('scores').set(qq,{merge:true})
+                          .then(()=>localStorage.removeItem('cal_sync_queue')).catch(()=>{});
+                      }
+                    }
+                  }catch(e){}
+                }, 4000);
               } catch(e2){}
             }
           } catch(e) {}

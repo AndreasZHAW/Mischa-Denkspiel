@@ -64,6 +64,12 @@
     .mb-ok{flex:1;padding:10px;border-radius:50px;border:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#2C3E50;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer}
     .mb-cancel{flex:1;padding:10px;border-radius:50px;border:2px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.6);font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer}
   </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script>
+  let lastTap=0;
+  document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
+  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
+  </script>
 </head>
 <body>
 <div class="aw" id="admin-app"></div>

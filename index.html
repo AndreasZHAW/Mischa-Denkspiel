@@ -21,8 +21,34 @@
     @keyframes floatUp{0%{transform:translateY(0) rotate(-3deg)}100%{transform:translateY(-14px) rotate(3deg)}}
     @keyframes popBurst{0%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.5}100%{transform:scale(0);opacity:0}}
   </style>
+  <script>
+  // Prevent double-tap zoom globally
+  let lastTap = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      e.preventDefault();
+    }
+    lastTap = now;
+  }, {passive: false});
+  // Prevent pinch zoom
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, {passive: false});
+  </script>
+  <style>
+    /* Mobile: prevent double-tap zoom and 300ms delay */
+    * { -webkit-tap-highlight-color: transparent; }
+    button, a, [onclick] { touch-action: manipulation; }
+    /* Auto font scaling based on viewport */
+    html { font-size: clamp(14px, 2.5vw, 18px); }
+    /* Prevent text size adjustment on orientation change */
+    body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    /* Game area fills screen properly on mobile */
+    #game-area canvas { max-width: 100%; height: auto; }
+  </style>
 </head>
-<body>
+<body ontouchstart=""><!-- ontouchstart="" enables :active CSS on iOS -->
 <script>
 (function(){
   // FIRST: Restore session from localStorage backup if sessionStorage lost it
@@ -112,6 +138,14 @@
   <!-- App -->
   <script src="app.js"></script>
   <script>
+    // Prevent double-tap zoom on touch devices
+    let _lastTouch = 0;
+    document.addEventListener('touchend', e => {
+      const now = Date.now();
+      if (now - _lastTouch < 300) { e.preventDefault(); }
+      _lastTouch = now;
+    }, { passive: false });
+
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');

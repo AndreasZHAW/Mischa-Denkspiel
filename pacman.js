@@ -146,7 +146,7 @@ const PacmanGame = {
       running=false; cancelAnimationFrame(animId);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('devicemotion', onMotion);
-      onComplete({rawScore:Math.min(100,Math.round(score/3)),timeMs:Date.now()-tStart,errors:lives<3?1:0,passed:won||score>200});
+      onComplete({rawScore:Math.min(100,Math.round(eaten/(totalDots||1)*100)),timeMs:Date.now()-tStart,errors:lives<3?1:0,passed:won||score>200});
     };
 
     const moveGhost = (g) => {

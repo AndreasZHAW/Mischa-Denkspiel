@@ -17,6 +17,12 @@ button.ok{border-color:#0f0;color:#0f0}
 .ok{color:#0f0}.err{color:#f44}.warn{color:#fa0}.info{color:#4af}.dim{color:#666}
 .sep{color:#555;display:block;margin:4px 0}
 </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script>
+  let lastTap=0;
+  document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
+  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
+  </script>
 </head>
 <body>
 <h2>🔬 Mischa Denkspiel — Erweiterte Diagnose</h2>

@@ -1,3 +1,25 @@
+/* ===== MOBILE OPTIMIZATIONS ===== */
+/* Prevent double-tap zoom */
+button, .btn, .task-btn, .world-item, [onclick] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Responsive font size */
+html { font-size: clamp(13px, 3.5vw, 17px); }
+body { -webkit-text-size-adjust: 100%; }
+/* Game canvas fills mobile width */
+canvas { display: block; max-width: 100%; }
+/* Card padding reduces on small screens */
+@media (max-width: 400px) {
+  .card { padding: 10px !important; }
+  .btn { font-size: .88rem !important; }
+  .task-btn { min-width: 52px !important; min-height: 52px !important; touch-action: manipulation !important; }
+@media (max-width: 380px) {
+  .task-grid { gap: 4px; }
+  .task-btn { min-width: 44px !important; min-height: 44px !important; font-size: .65rem !important; }
+}
+}
+
 /* MISCHA DENKSPIEL v3 */
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 :root{--sky:#87CEEB;--sky-deep:#4A90D9;--mountain:#6B7F5E;--mountain-dark:#3D4F2E;--meadow:#7BC47F;--meadow-dark:#4A9E4E;--gold:#FFD700;--text-dark:#2C3E50;--text-mid:#5D6D7E;--radius:20px;--shadow:0 8px 32px rgba(0,0,0,0.15);--shadow-big:0 16px 48px rgba(0,0,0,0.2)}
@@ -59,7 +81,7 @@ html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background
 .world-name{font-family:'Fredoka One',cursive;font-size:0.95rem;color:var(--mountain-dark)}
 .world-desc{font-size:0.7rem;color:var(--text-mid);margin-top:1px}
 .world-progress{font-size:0.75rem;font-weight:700;color:var(--meadow-dark)}
-.task-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:10px 0}
+.task-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,1.5vw,7px);margin:10px 0}
 .task-btn{aspect-ratio:1;border-radius:12px;border:3px solid #DDD;background:white;font-family:'Fredoka One',cursive;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px}
 .task-btn.done{background:linear-gradient(135deg,var(--meadow),var(--meadow-dark));border-color:var(--meadow-dark);color:white}
 .task-btn.active{background:linear-gradient(135deg,var(--sky-deep),#2980B9);border-color:#2980B9;color:white;animation:pulse 1.5s ease-in-out infinite}
@@ -98,3 +120,52 @@ html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background
 @keyframes circleIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 @media(max-width:400px){.card{padding:16px 12px}.char-grid{grid-template-columns:repeat(3,1fr);gap:6px}.task-grid{gap:5px}}
 @media(min-width:768px){.card,.world-map{max-width:560px}}
+
+
+/* === MOBILE / ANDROID OPTIMIERUNGEN === */
+/* Prevent double-tap zoom on all interactive elements */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+button, .btn, .task-btn, [onclick], a {
+  touch-action: manipulation; /* prevents 300ms delay AND double-tap zoom */
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Prevent zoom on input focus (iOS) */
+input, select, textarea {
+  font-size: 16px !important; /* ≥16px prevents iOS zoom on focus */
+}
+/* Fluid text scaling */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* Game area: fill available space */
+#game-area {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+/* Cards: use full mobile width */
+@media (max-width: 480px) {
+  .card { 
+    margin: 4px !important; 
+    padding: 10px !important; 
+    border-radius: 12px !important;
+  }
+  .page {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+  .btn { 
+    font-size: clamp(0.85rem, 4vw, 1rem) !important;
+    padding: clamp(8px, 3vw, 14px) clamp(12px, 4vw, 24px) !important;
+  }
+  .task-btn {
+    font-size: clamp(1.2rem, 5vw, 1.5rem) !important;
+    min-width: clamp(48px, 13vw, 60px) !important;
+    min-height: clamp(48px, 13vw, 60px) !important;
+  }
+  /* Bigger tap targets */
+  button { min-height: 44px; }
+}

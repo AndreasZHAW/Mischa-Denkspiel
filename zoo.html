@@ -153,6 +153,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   .hbl{font-size:.48rem !important}
 }
 </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script>
+  let lastTap=0;
+  document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
+  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
+  </script>
 </head>
 <body>
 
