@@ -538,6 +538,44 @@ const State = {
   getAdminPw() { return 'mischa2026'; }, // Fixed password
   setAdminPw(pw) { localStorage.setItem(ADMIN_KEY, pw); },
   checkAdmin(pw) { return pw === this.getAdminPw(); },
+  
+  async resetAllScores() {
+    const all = this._local.getAll();
+    const players = Object.values(all).filter(p=>p.name);
+    players.forEach(player => {
+      ['1',1].forEach(key => {
+        if (player.worlds?.[key]) {
+          player.worlds[key].tasks = Array(20).fill(null);
+          player.worlds[key].completed = false;
+        }
+      });
+      player.totalScore = 0;
+      player.updatedAt = Date.now();
+    });
+    players.forEach(p => this._local.set(p.name, p));
+    // Sync to Firebase
+    try {
+      for (const p of players) {
+        if (this._useCloud()) await this._col().doc(p.name.toLowerCase()).set(p).catch(()=>{});
+      }
+    } catch(e) {}
+    // Clear calibration data
+    localStorage.removeItem('cal_data_v3');
+    localStorage.removeItem('cal_overrides_local');
+    localStorage.removeItem('cal_sync_queue');
+    // Clear Firebase calibration
+    try {
+      if (typeof _db !== 'undefined' && _db) {
+        await _db.collection('calibration').doc('scores').delete().catch(()=>{});
+        const snap = await _db.collection('calibration_records').limit(500).get();
+        const batch = _db.batch();
+        snap.docs.forEach(d => batch.delete(d.ref));
+        await batch.commit().catch(()=>{});
+        await _db.collection('calibration_overrides').doc('values').delete().catch(()=>{});
+      }
+    } catch(e) {}
+    return players.length;
+  },
 
   // ---- SESSION (mit Auto-Logout) ----
   currentPlayer: null,

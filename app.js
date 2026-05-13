@@ -666,7 +666,13 @@ const App = {
     // If cloud fails, use local storage
     if (!players.length) {
       players = Object.values(State._local.getAll())
-        .filter(p=>p&&p.name&&(window.isInLeaderboard?window.isInLeaderboard(p.name):true)).filter(p=>p&&p.name&&p.name.toLowerCase()!=='janoschtest'&&p.name.toLowerCase()!=='bu').sort((a,b)=>(b.totalScore||0)-(a.totalScore||0));
+        .filter(p=>p&&p.name&&(window.isInLeaderboard?window.isInLeaderboard(p.name):true)).filter(p=>p&&p.name&&p.name.toLowerCase()!=='janoschtest'&&p.name.toLowerCase()!=='bu').sort((a,b) => {
+      const getMT = p => {
+        const ws = p.worlds?.[1] || p.worlds?.['1'] || {};
+        return (ws.tasks||[]).reduce((sum,t) => sum + (t?.mt||0), 0);
+      };
+      return getMT(b) - getMT(a);
+    });
     }
     const player = State.currentPlayer;
 
@@ -696,7 +702,7 @@ const App = {
                       <div style="font-weight:700;font-size:0.95rem">${p.name}${isMe?' (du)':''}</div>
                       <div style="font-size:0.72rem;color:var(--text-mid)">Welt ${p.currentWorld||1}/10 · ${worldsDone} ✓ · ${new Date().getFullYear()-(p.birthYear||2000)}J</div>
                     </div>
-                    <div style="font-family:'Fredoka One',cursive;color:#E67E22;font-size:1rem">⭐ ${p.totalScore||0}</div>
+                    <div style="font-family:'Fredoka One',cursive;color:#E67E22;font-size:1rem">🌀 ${((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
                   </div>`;
               }).join('')
           }
@@ -930,7 +936,7 @@ const App = {
             <div class="world-banner ${world.bannerClass}" style="margin-bottom:10px">
           <span class="banner-icon">${world.icon}</span>
           <div class="banner-title">${world.name}</div>
-          <div class="banner-sub">${world.difficulty} · ${done}/10 geschafft</div>
+          <div class="banner-sub">${done}/20 geschafft · 🌀${(ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
         </div>
 
 
@@ -1178,6 +1184,12 @@ const App = {
         case 'riddle':      RiddleGame.start({ onComplete }); break;
         default:
           document.getElementById('game-area').innerHTML = '<div style="padding:20px;text-align:center">🚧 Kommt bald!</div>';
+          // Log unknown game type
+          try {
+            const el = JSON.parse(localStorage.getItem('mischa_error_log')||'[]');
+            el.push(new Date().toLocaleString('de-CH')+': Unbekannter Spieltyp: '+task.type);
+            localStorage.setItem('mischa_error_log', JSON.stringify(el.slice(-20)));
+          } catch(e2) {}
       }
     }, 120);
   },

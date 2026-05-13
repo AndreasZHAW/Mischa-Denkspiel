@@ -640,6 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="android">🤖 Android</option>
       </select>
       <button onclick="loadCalibration()" style="background:#3498DB;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🔄 Aktualisieren</button>
+      <button onclick="resetAllScores()" style="background:#E74C3C;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">⚠️ Alle Scores & Kalibrierung zurücksetzen</button>
     </div>
     <div class="sr" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
       <div class="sc"><div class="sv" id="cal-total-games">—</div><div class="sk">Partien gesamt</div></div>
@@ -693,6 +694,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let calOverrides = {};
   let currentDetailGame = null;
   const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱iPhone',android:'🤖Android'};
+
+  async function resetAllScores() {
+    if(!confirm('ACHTUNG: Alle Spielstände UND Kalibrierungsdaten werden gelöscht!\nWirklich fortfahren?')) return;
+    if(!confirm('Bist du SICHER? Dieser Vorgang kann nicht rückgängig gemacht werden!')) return;
+    try {
+      const n = await State.resetAllScores();
+      alert('✅ ' + n + ' Spieler zurückgesetzt. Kalibrierung gelöscht.');
+      loadCalibration();
+    } catch(e) { alert('Fehler: ' + e.message); }
+  }
 
   async function loadCalibration() {
     const tbody = document.getElementById('cal-tbody');
