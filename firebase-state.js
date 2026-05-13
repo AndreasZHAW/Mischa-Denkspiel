@@ -243,11 +243,13 @@ const State = {
         try {
           const upd = {}; upd[key] = scores;
           _db.collection('calibration').doc('scores').set(upd, {merge:true}).catch(()=>{});
-          _db.collection('calibration_records').add({
+          // Save record with dedup key to prevent duplicates
+          const dedupKey = playerName+'_'+taskIndex+'_'+dev+'_'+Math.floor(Date.now()/5000);
+          _db.collection('calibration_records').doc(dedupKey).set({
             gameIdx: taskIndex, device: dev, player: playerName,
             rawScore: raw, ts: Date.now(),
             tsStr: typeof window !== 'undefined' ? new Date().toLocaleString('de-CH') : new Date().toISOString()
-          }).then(()=>{ if(typeof console!=='undefined') console.log('✅ Cal record saved'); })
+          }).then(()=>{ if(typeof console!=='undefined') console.log('✅ Cal record saved:', dedupKey); })
             .catch(e=>{ if(typeof console!=='undefined') console.warn('Cal record failed:', e.message); });
         } catch(e){}
       } else {

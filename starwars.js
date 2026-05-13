@@ -41,7 +41,7 @@ const StarWarsGame = {
     const end=(won)=>{
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKeyUp);
-      onComplete({rawScore:Math.min(100,Math.round(score/2)),timeMs:Date.now()-tStart,errors:0,passed:score>50||won});
+      onComplete({rawScore:Math.min(100,wave*15+Math.round(score/10)),timeMs:Date.now()-tStart,errors:0,passed:wave>=2||won});
     };
     let tick=0;
     const loop=()=>{

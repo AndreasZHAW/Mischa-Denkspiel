@@ -720,17 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(ovDoc.exists) calOverrides = ovDoc.data();
       }
     } catch(e) { console.log('Firebase cal load:', e.message); }
-    // Merge local cal_data_v3 (backwards compat)
-    try {
-      const ls = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-      Object.entries(ls).forEach(([k,scores])=>{
-        const parts=k.split('_'); const dev=parts.pop(); const gi=parseInt(parts.join('_'));
-        scores.forEach(s=>{
-          if(!calRecords.some(r=>r.gameIdx===gi&&r.device===dev&&r.rawScore===s&&r.player==='(lokal)'))
-            calRecords.push({gameIdx:gi,device:dev,player:'(lokal)',rawScore:s,ts:0,tsStr:'Lokal'});
-        });
-      });
-    } catch(e){}
+    // Note: only Firebase records shown (local cal_data_v3 not merged to avoid duplicates)
     renderCalTable(devFilter);
     if(currentDetailGame!==null) showRecords(currentDetailGame);
   }

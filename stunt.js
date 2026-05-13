@@ -26,8 +26,8 @@ const StuntGame = {
     let terrain=[];
     let ty=H*0.58;
     for(let x=0;x<=WORLD_W+200;x+=6){
-      const hump=Math.sin(x*0.009)*45+Math.sin(x*0.004)*75+Math.sin(x*0.025)*15;
-      terrain.push({x,y:H*0.52+hump});
+      const hump=Math.sin(x*0.009)*30+Math.sin(x*0.004)*55+Math.sin(x*0.025)*12;
+      terrain.push({x,y:H*0.65+hump});
     }
     const getTY=wx=>{
       const idx=Math.floor(wx/6);
@@ -161,12 +161,11 @@ const StuntGame = {
       car.wx+=car.vx;
       car.wy+=car.vy;
 
-      // Crash detection: only if on ground, spin settled, truly upside down, no grace period
+      // Crash: if upside down on ground after short grace period
       const norm=((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-      const spinSettled=Math.abs(car.spin)<0.06;
-      const trulyUpsideDown=norm>Math.PI*0.75&&norm<Math.PI*1.25;
-      const noGrace=car.landingFrames>25;
-      if(onGround && spinSettled && trulyUpsideDown && noGrace){ end(false); return; }
+      const trulyUpsideDown=norm>Math.PI*0.72&&norm<Math.PI*1.28;
+      const noGrace=car.landingFrames>12; // 12 frames = ~0.2 seconds to correct
+      if(onGround && trulyUpsideDown && noGrace){ end(false); return; }
       // Fell off bottom or left
       if(car.wy>H+100||car.wx<-80){ end(false); return; }
       // Reached goal
@@ -175,9 +174,11 @@ const StuntGame = {
 
       // ====== DRAW ======
       const camWX=car.wx-CAM_X;
-      // Night sky
+      // Fill canvas completely first (prevent any bleed)
+      ctx.fillStyle='#0d001a';ctx.fillRect(0,0,W,H);
+      // Night sky gradient
       const sky=ctx.createLinearGradient(0,0,0,H);
-      sky.addColorStop(0,'#0d001a');sky.addColorStop(0.6,'#1a0033');sky.addColorStop(1,'#2d0050');
+      sky.addColorStop(0,'#0d001a');sky.addColorStop(0.5,'#1a0033');sky.addColorStop(1,'#0f001a');
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
       // Stars
       if(frames%3===0){ctx.fillStyle='rgba(255,255,255,.3)';for(let i=0;i<20;i++){const sx=(i*173)%W,sy=(i*97)%(H*0.5);ctx.fillRect(sx,sy,1,1);}}
