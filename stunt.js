@@ -186,19 +186,21 @@ const StuntGame = {
       ctx.fillStyle='rgba(255,220,100,.8)';ctx.beginPath();ctx.arc(W*0.82,35,18,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#0d001a';ctx.beginPath();ctx.arc(W*0.82+8,30,15,0,Math.PI*2);ctx.fill();
 
-      // Brown earth layer (below terrain)
-      ctx.fillStyle='#3d1a05';ctx.fillRect(0,H*0.7,W,H*0.3);
-      // Green terrain
-      ctx.fillStyle='#1e4a0e';ctx.beginPath();ctx.moveTo(0,H+2);
-      for(let sx=0;sx<=W;sx+=6){ctx.lineTo(sx,getTY(camWX+sx));}
-      ctx.lineTo(W,H+2);ctx.closePath();ctx.fill();
-      // Darker green top layer (thinner)
-      ctx.fillStyle='#2a5f14';ctx.beginPath();ctx.moveTo(0,H+2);
-      for(let sx=0;sx<=W;sx+=6){ctx.lineTo(sx,getTY(camWX+sx));}
-      ctx.lineTo(W,H+2);ctx.closePath();
-      // Grass stripe
-      ctx.strokeStyle='#3a8020';ctx.lineWidth=4;ctx.beginPath();
-      for(let sx=0;sx<=W;sx+=6){const y=getTY(camWX+sx);if(sx===0)ctx.moveTo(sx,y);else ctx.lineTo(sx,y);}
+      // GROUND: fill from terrain line to canvas bottom
+      // First fill entire bottom area with earth color
+      ctx.fillStyle='#2d4a0a';
+      ctx.beginPath();
+      ctx.moveTo(0, H+2);
+      for(let sx=0;sx<=W;sx+=6){ ctx.lineTo(sx, getTY(camWX+sx)); }
+      ctx.lineTo(W, H+2);
+      ctx.closePath();
+      ctx.fill();
+      // Bright grass top stripe
+      ctx.strokeStyle='#4a8c1c';ctx.lineWidth=5;ctx.beginPath();
+      for(let sx=0;sx<=W;sx+=6){
+        const y=getTY(camWX+sx);
+        if(sx===0) ctx.moveTo(sx,y); else ctx.lineTo(sx,y);
+      }
       ctx.stroke();
 
       // Goal flag

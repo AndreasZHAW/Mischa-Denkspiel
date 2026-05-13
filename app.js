@@ -1074,8 +1074,8 @@ const App = {
               const isIPad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
               const dev=isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
               const calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-              const scores=(calStore[taskIndex+'_'+dev]||[]).filter(s=>s!==raw);
-              // Use PREVIOUS scores only (exclude current raw to avoid double-count)
+              const scores=calStore[taskIndex+'_'+dev]||[];
+              // These are ALL previous scores (current score not yet added)
               if(!scores.length) return 1.0; // First play always 1 MT
               const minS=Math.min(...scores),maxS=Math.max(...scores),avgS=scores.reduce((a,b)=>a+b,0)/scores.length;
               if(maxS===minS) return raw>=avgS?1.2:0.8;
@@ -1150,6 +1150,58 @@ const App = {
   },
 
   _zoomLevel: 1,
+
+  reportPlayer(playerName) {
+    const reasons = ['Belästigung','Beleidigungen','Ausnutzung','Gewalt oder extremistische Inhalte','Unangemessener Inhalt','Spam','Sonstiges'];
+    this._html(`
+      <div style="max-width:480px;margin:0 auto;padding:16px">
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="margin:0;font-size:1.1rem">Spieler melden</h3>
+            <button onclick="App.showGlobalLeaderboard()" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1.2rem">✕</button>
+          </div>
+          <div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:2rem">👤</span>
+            <div><div style="font-weight:700">${playerName}</div><div style="font-size:.78rem;color:rgba(255,255,255,.4)">@${playerName}</div></div>
+          </div>
+          <div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:8px">Grund für die Meldung auswählen</div>
+          ${reasons.map(r => `<div onclick="App._selectReportReason('${playerName}','${r}',this)" style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px;transition:.15s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background=''">${r} <span style="opacity:.4">›</span></div>`).join('')}
+          <textarea id="report-desc" placeholder="Beschreibe das Problem (optional)" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;padding:10px;border-radius:8px;margin-top:12px;font-size:.85rem;resize:vertical;min-height:80px"></textarea>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button onclick="App.showGlobalLeaderboard()" style="flex:1;padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;cursor:pointer">Abbrechen</button>
+            <button id="report-submit-btn" onclick="App._submitReport('${playerName}')" style="flex:2;padding:10px;background:rgba(231,76,60,.3);border:1px solid rgba(231,76,60,.5);color:#E74C3C;border-radius:8px;cursor:pointer;font-weight:700" disabled>Meldung senden</button>
+          </div>
+          <div style="font-size:.72rem;color:rgba(255,165,0,.7);margin-top:10px;padding:8px;background:rgba(255,165,0,.08);border-radius:6px">⚠️ Wichtig: Falsche Meldungen können zu einer Sperrung deines Kontos führen.</div>
+        </div>
+      </div>`);
+  },
+
+  _selectedReportReason: null,
+  _selectReportReason(playerName, reason, el) {
+    this._selectedReportReason = reason;
+    document.querySelectorAll('[onclick*="_selectReportReason"]').forEach(e => e.style.background='');
+    el.style.background = 'rgba(231,76,60,.15)';
+    const btn = document.getElementById('report-submit-btn');
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+  },
+
+  async _submitReport(playerName) {
+    const reason = this._selectedReportReason;
+    if(!reason){ alert('Bitte wähle einen Grund aus.'); return; }
+    const desc = document.getElementById('report-desc')?.value||'';
+    const reporter = State.currentPlayer?.name||'?';
+    try {
+      if(typeof _db!=='undefined'&&_db){
+        await _db.collection('player_reports').add({
+          reported: playerName, reporter, reason, desc,
+          ts: Date.now(), tsStr: new Date().toLocaleString('de-CH')
+        });
+      }
+    } catch(e){}
+    this._html(`<div style="text-align:center;padding:40px"><div style="font-size:3rem">✅</div><div style="margin-top:16px;font-weight:700">Meldung gesendet</div><div style="color:rgba(255,255,255,.5);margin-top:8px;font-size:.85rem">Danke für deine Meldung. Wir werden sie prüfen.</div><button onclick="App.showGlobalLeaderboard()" style="margin-top:20px;padding:10px 24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;cursor:pointer">Zurück</button></div>`);
+  },
+
+  
   _toggleZoom() {
     const levels = [1, 1.3, 1.6, 2.0, 0.8];
     this._zoomLevel = this._zoomLevel || 1;
@@ -1201,8 +1253,10 @@ const App = {
     const allDone = (ws.tasks||[]).filter(t=>t&&t.done).length >= (world?.tasks?.length||20);
     const finalScore = wasJoker ? 0 : State.calcFinalScore(result);
     // Calculate MT earned for display
-    const mtEarned = wasJoker ? 0 : (result.passed !== false ? 
-      Math.round(Math.min(1.5, 0.8 + (result.rawScore||50)/100 * 0.7) * 10) / 10 : 0.2);
+    // Read MT from locally saved task (set by preliminary calc in onComplete)
+    const _wid = String(worldId);
+    const _savedTask = player?.worlds?.[_wid]?.tasks?.[taskIndex] || player?.worlds?.[worldId]?.tasks?.[taskIndex];
+    const mtEarned = wasJoker ? 0 : (_savedTask?.mt ?? (result.passed !== false ? 1.0 : 0.2));
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
