@@ -211,14 +211,15 @@ html {
 
   /* World map - task buttons BIGGER */
   .task-btn {
-    min-width: 56px !important;
-    min-height: 56px !important;
-    font-size: 0.72rem !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    font-size: 0.75rem !important;
     border-radius: 10px !important;
+    padding: 4px 2px !important;
   }
   .task-grid {
-    gap: 6px !important;
-    padding: 4px !important;
+    gap: 5px !important;
+    padding: 2px !important;
   }
   /* World map card text */
   .world-name { font-size: 1.1rem !important; }
@@ -231,9 +232,14 @@ html {
   .card { padding: 10px !important; }
   /* Buttons in world */
   .btn { font-size: 0.85rem !important; padding: 8px 14px !important; }
+  /* World selection card */
+  .world-item { padding: 10px 8px !important; gap: 8px !important; }
+  .world-name { font-size: 1.05rem !important; }
+  .world-desc { font-size: 0.78rem !important; }
+  .world-progress { font-size: 0.82rem !important; }
+  .world-icon { font-size: 1.8rem !important; }
   /* Header player name */
-  h2, h3 { font-size: 1.2rem !important; }
-  p, div { min-font-size: 0.75rem; }
+  h2, h3 { font-size: 1.1rem !important; }
 }
 
 /* Very small screens */

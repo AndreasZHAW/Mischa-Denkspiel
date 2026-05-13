@@ -70,7 +70,8 @@ const App = {
       wctx.fillStyle='#000'; wctx.fillRect(0,0,wmc.width,wmc.height);
       for(let i=0;i<200;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height*0.65,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
       wmc.style.background='transparent';
-    } const mt = State.currentPlayer?.totalScore || 0;
+    } const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
+    const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0);
     const hasEnough = mt >= 10;
     this._html(`
       <div class="mountain-bg">
@@ -630,7 +631,7 @@ const App = {
         </div>` : `
         <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:480px;width:100%">
           <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">🦁 Zoo freischalten</div>
-          <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${10-(player.totalScore||0)} 🌀 MT bis zur Teleportation</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${Math.max(0,(10-mt)).toFixed(1)} 🌀 MT bis zur Teleportation</div>
           <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
             <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,(player.totalScore||0)/10*100)}%"></div>
           </div>
@@ -652,7 +653,7 @@ const App = {
                 <div class="world-info">
                   <div class="world-name">${world.name}</div>
                   <div class="world-desc">${world.difficulty}</div>
-                  <div class="world-progress">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${player.totalScore||0} MT</div>
+                  <div class="world-progress">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1)} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
@@ -939,7 +940,7 @@ const App = {
         </div>
 
 
-        <div class="card" style="max-width:480px;padding:16px">
+        <div class="card" style="max-width:100%;padding:clamp(8px,2vw,16px);box-sizing:border-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">◀ Welten</button>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">

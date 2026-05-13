@@ -98,11 +98,16 @@ const StuntGame = {
       window.removeEventListener('keydown',onKey);
       window.removeEventListener('keyup',onKeyUp);
       const t=Date.now()-tStart;
-      // Scoring: finish=500, time bonus up to +250, each salto=500, roof land -20
+      // Scoring: 
+      // Finish base: 500pts if won
+      // Time bonus: linear - under 30s = full 500pts bonus, each sec over = -10pts
+      // Salto: +500 per salto
+      // Roof landing: -20 per landing
       const timeSecs = t/1000;
-      const timeBonus = won ? Math.max(0, Math.round(250 - timeSecs*2)) : 0; // faster = more bonus
+      const timeBonus = won ? Math.max(0, Math.round(500 - Math.max(0, timeSecs-10)*10)) : 0;
+      // 10s=500, 30s=300, 50s=100, 60s=0
       const roofPenalty = (car.roofLandings||0) * 20;
-      const totalPts = (won?500:0) + timeBonus + car.saltos*500 - roofPenalty;
+      const totalPts = (won?200:0) + timeBonus + car.saltos*500 - roofPenalty;
       const rawScore = Math.min(100, Math.max(0, Math.round(totalPts/10)));
       onComplete({rawScore, timeMs:t, errors:car.roofLandings||0, passed:won||car.saltos>0, saltos:car.saltos});
     };
@@ -112,10 +117,10 @@ const StuntGame = {
       frames++;
       const terrY=getTY(car.wx);
       const terrAng=getAngle(car.wx);
-      const onGround=car.wy>=terrY-18;
+      const onGround=car.wy>=terrY-22;
 
       if(onGround){
-        car.wy=terrY-14;
+        car.wy=terrY-22;  // high enough so body stays above terrain
         car.vy=0;
         car.onGround=true;
         car.landingFrames++;
@@ -154,8 +159,8 @@ const StuntGame = {
 
       // Rotation buttons (only meaningful in air)
       // Rotation buttons: stronger force to reverse direction mid-air
-      if(rotup.v){ car.spin = Math.min(0.12, car.spin + (car.spin < 0 ? 0.025 : 0.012)); }
-      if(rotdn.v){ car.spin = Math.max(-0.12, car.spin - (car.spin > 0 ? 0.025 : 0.012)); }
+      if(rotup.v){ car.spin = Math.min(0.18, car.spin + (car.spin < 0 ? 0.04 : 0.018)); }
+      if(rotdn.v){ car.spin = Math.max(-0.18, car.spin - (car.spin > 0 ? 0.04 : 0.018)); }
       car.angle+=car.spin;
 
       // Speed cap
