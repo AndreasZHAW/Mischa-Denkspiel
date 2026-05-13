@@ -833,6 +833,7 @@ const ZG={
                 // Launch myself into sky (visual only)
                 ZG._slapLaunchSelf(slapDur);
                 ZP.toast(`🍀 ${d.from} hat dich in den Himmel geschleudert! ${Math.round(slapDur/1000)}s`,3000);
+                ZP._showReportBtn(d.from, 'slap');
               } else if(slapId==='france'){
                 // French flag flash + BOOM
                 const ov=document.createElement('div');
@@ -860,11 +861,13 @@ const ZG={
                 document.body.appendChild(ice);
                 setTimeout(()=>ice.remove(),slapDur);
                 ZP.toast(`❄️ ${d.from}: ICE SLAP! Eingefroren! ${Math.round(slapDur/1000)}s`,3000);
+                ZP._showReportBtn(d.from, 'slap');
               } else {
                 // Default red flash
                 const fl=G('bflash');
                 if(fl){fl.style.background='rgba(255,0,0,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
                 ZP.toast(`${d.slapEmoji||'🤚'} ${d.from}: ${d.slapId?.toUpperCase()||'BASIC'} SLAP! ${Math.round(slapDur/1000)}s!`,3000);
+                ZP._showReportBtn(d.from, d.slapId);
               }
               
               // Void + France: send to own zoo after stun
@@ -1534,6 +1537,33 @@ const ZG={
 
   _tick(){
     const z=ZS.zoo;if(!z)return;
+    if(this._st==='d'){
+      const sc=G('scont');if(!sc)return;
+      // Load Mischa Denkspiel Rangliste from Firebase
+      sc.innerHTML='<div style="padding:12px"><div style="font-family:Fredoka One,cursive;font-size:1.2rem;color:#29B6F6;margin-bottom:10px">🎮 Denkspiel Rangliste</div><div id="z-ds-rl">⏳ Lade...</div><a href="index.html" style="display:block;margin-top:10px;background:rgba(41,182,246,.15);border:1px solid rgba(41,182,246,.3);color:#29B6F6;padding:8px 14px;border-radius:8px;text-align:center;font-weight:700;text-decoration:none">🎮 Denkspiel spielen →</a></div>';
+      // Fetch calibration records from Firebase
+      if(typeof _db!=='undefined'&&_db){
+        _db.collection('calibration').doc('scores').get().then(doc=>{
+          const el=G('z-ds-rl');if(!el)return;
+          // Build leaderboard from mischa_players
+          _db.collection('mischa_players').get().then(snap=>{
+            const players=[];
+            snap.forEach(d=>{const p=d.data();if(p.name&&p.name.toLowerCase()!=='bu')players.push(p);});
+            players.sort((a,b)=>{
+              const getMT=p=>((p.worlds?.['1']||p.worlds?.[1]||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0);
+              return getMT(b)-getMT(a);
+            });
+            if(!players.length){el.innerHTML='<div style="color:rgba(255,255,255,.4)">Keine Spieler</div>';return;}
+            const medals=['🥇','🥈','🥉'];
+            el.innerHTML=players.map((p,i)=>{
+              const mt=((p.worlds?.['1']||p.worlds?.[1]||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1);
+              return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span style="font-size:.9rem;min-width:20px">'+(medals[i]||('#'+(i+1)))+'</span><span style="flex:1;font-weight:700">'+p.name+'</span><span style="color:#FFD700;font-weight:900">🌀'+mt+' MT</span></div>';
+            }).join('');
+          }).catch(()=>{el.innerHTML='<div style="color:rgba(255,255,255,.3)">Nicht verfügbar</div>';});
+        }).catch(()=>{});
+      }
+      return;
+    }
     ZSteal.checkDelivery&&ZSteal.checkDelivery();
     if(!z.enc||z.tv===undefined)ZS._fix(); // migrate on the fly
     if(!z.enc)return;
@@ -2574,6 +2604,28 @@ const LW={
 // ═══ PANELS ═══
 const ZP={
   _tt:null,_st:'z',_tt2:'m',
+  _showReportBtn(playerName, reason) {
+    // Show a small floating report button for 5 seconds
+    let rb = document.getElementById('z-report-btn');
+    if(rb) rb.remove();
+    rb = document.createElement('div');
+    rb.id = 'z-report-btn';
+    rb.style.cssText = 'position:fixed;bottom:80px;right:12px;background:rgba(231,76,60,.85);color:#fff;padding:6px 12px;border-radius:20px;font-size:.78rem;cursor:pointer;z-index:9999;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.4)';
+    rb.textContent = '⚑ ' + playerName + ' melden';
+    rb.onclick = () => {
+      if(!confirm('Spieler "'+playerName+'" melden wegen: '+reason+'?')) return;
+      rb.remove();
+      if(typeof _db!=='undefined'&&_db) {
+        _db.collection('player_reports').add({
+          reported: playerName, reporter: ZS.player||'?', reason: 'Slap: '+reason,
+          ts: Date.now(), tsStr: new Date().toLocaleString('de-CH')
+        });
+      }
+      ZP.toast('✅ Gemeldet!', 2000);
+    };
+    document.body.appendChild(rb);
+    setTimeout(()=>rb.remove(), 5000);
+  },
   toast(msg,ms=2500){const t=G('zt');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
   _showStationMenu(){
     // Remove existing menu if any

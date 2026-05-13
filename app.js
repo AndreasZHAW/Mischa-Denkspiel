@@ -654,58 +654,58 @@ const App = {
   // ---- GLOBAL LEADERBOARD ----
   async showGlobalLeaderboard() {
     this._loading('Rangliste laden...');
-    // Load from cloud with timeout, fallback to local
-    let players = [];
+    let all;
     try {
-      const result = await Promise.race([
-        State.getLeaderboard(30),
-        new Promise(r => setTimeout(() => r(null), 4000))
-      ]);
-      players = result || [];
-    } catch(e) { players = []; }
-    // If cloud fails, use local storage
-    if (!players.length) {
-      players = Object.values(State._local.getAll())
-        .filter(p=>p&&p.name&&(window.isInLeaderboard?window.isInLeaderboard(p.name):true)).filter(p=>p&&p.name&&p.name.toLowerCase()!=='janoschtest'&&p.name.toLowerCase()!=='bu').sort((a,b) => {
-      const getMT = p => {
-        const ws = p.worlds?.[1] || p.worlds?.['1'] || {};
-        return (ws.tasks||[]).reduce((sum,t) => sum + (t?.mt||0), 0);
-      };
-      return getMT(b) - getMT(a);
-    });
-    }
+      all = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),4000))]);
+    } catch(e) { all = null; }
+    
     const player = State.currentPlayer;
+    const localAll = State._local.getAll();
+    const players = Object.values(all || localAll || {})
+      .filter(p => p.name && p.name.toLowerCase() !== 'bu')
+      .map(p => ({
+        ...p,
+        _mt: (() => {
+        const ws = p.worlds?.[1] || p.worlds?.['1'] || p.worlds?.[String(1)] || {};
+        return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
+      })()
+      }))
+      .sort((a,b) => b._mt - a._mt);
+
+    const myMT = (() => {
+      const ws = player?.worlds?.[1] || player?.worlds?.['1'] || {};
+      return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
+    })();
+
+    const rows = players.map((p, i) => {
+      const isMe = p.name?.toLowerCase() === player?.name?.toLowerCase();
+      const mt = p._mt.toFixed(1);
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      const tasksDone = ((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).filter(t=>t?.done).length;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:${isMe?'rgba(41,182,246,.12)':'rgba(255,255,255,.04)'};border:${isMe?'1px solid rgba(41,182,246,.3)':'1px solid transparent'}">
+        <div style="font-size:1.1rem;min-width:28px;text-align:center">${medal||('<span style="color:rgba(255,255,255,.3);font-size:.85rem">#'+(i+1)+'</span>')}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:.7rem;color:#29B6F6">(Du)</span>':''}</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1rem;font-weight:900;color:${parseFloat(mt)>=10?'#27AE60':parseFloat(mt)>=5?'#FFD700':'#E67E22'}">🌀${mt} MT</div>
+        </div>
+        ${p.name?.toLowerCase() !== player?.name?.toLowerCase() ? 
+          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:.7rem;touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
+      </div>`;
+    }).join('');
 
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
-      <div class="page" style="padding-top:20px">
-        <div style="display:flex;align-items:center;gap:10px;width:100%;max-width:480px;margin-bottom:14px">
-          <button onclick="${player?'App.showWorldMap()':'App.showWelcome()'}" style="background:rgba(255,255,255,0.3);border:2px solid white;color:white;padding:7px 14px;border-radius:50px;font-weight:700;cursor:pointer">◀</button>
-          <div style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:white;text-shadow:0 2px 6px rgba(0,0,0,0.3)">🌍 Weltrangliste</div>
-        </div>
-
-        <div style="background:rgba(255,255,255,0.92);border-radius:18px;padding:16px;width:100%;max-width:480px;box-shadow:var(--shadow-big);max-height:70vh;overflow-y:auto">
-          ${players.length === 0
-            ? '<div style="text-align:center;padding:30px;color:var(--text-mid)">Noch keine Spieler 😊</div>'
-            : players.map((p, i) => {
-                const ch = CHARACTERS.find(c=>c.id===p.character);
-                const rankIcon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
-                const isMe = player && p.name.toLowerCase()===player.name.toLowerCase();
-                const worldsDone = Object.values(p.worlds||{}).filter(w=>w.completed).length;
-                return `
-                  <div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;margin-bottom:6px;
-                    background:${isMe?'rgba(123,196,127,0.15)':'transparent'};
-                    border:${isMe?'2px solid var(--meadow)':'2px solid transparent'}">
-                    <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;width:28px;text-align:center">${rankIcon}</div>
-                    <span style="font-size:1.4rem">${ch?.emoji||'🧭'}</span>
-                    <div style="flex:1">
-                      <div style="font-weight:700;font-size:0.95rem">${p.name}${isMe?' (du)':''}</div>
-                      <div style="font-size:0.72rem;color:var(--text-mid)">Welt ${p.currentWorld||1}/10 · ${worldsDone} ✓ · ${new Date().getFullYear()-(p.birthYear||2000)}J</div>
-                    </div>
-                    <div style="font-family:'Fredoka One',cursive;color:#E67E22;font-size:1rem">🌀 ${((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
-                  </div>`;
-              }).join('')
-          }
+      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
+      <div class="page" style="padding-top:10px">
+        <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:.82rem">← Zurück</button>
+            <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
+            ${player ? `<div style="font-size:.8rem;color:#FFD700">Du: 🌀${myMT.toFixed(1)} MT</div>` : ''}
+          </div>
+          ${rows || '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>'}
         </div>
       </div>`);
   },
@@ -720,89 +720,30 @@ const App = {
     const ws = player.worlds?.[1] || player.worlds?.['1'] || {};
     const tasks = ws.tasks || [];
     const gl = window.GAME_LIST || [];
-    const ua = navigator.userAgent;
-    const isIPad = /iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    const devLabel = isIPad?'ipad':/iPhone/.test(ua)?'iphone':/Android/.test(ua)?'android':'desktop';
-    const devName = {ipad:'iPad',iphone:'iPhone',android:'Android',desktop:'Desktop'}[devLabel];
-    const isRef = false; // Admin sees cal table via admin panel
+    const isRef = false;
 
-    // Load calibration store (all scores per game per device)
-    let calStore = {};
-    try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e){}
+    // Calculate total MT
+    const totalMT = tasks.reduce((s,t) => s + (t?.mt || 0), 0);
+    const doneTasks = tasks.filter(t => t?.done).length;
 
-    const DEVS = ['desktop','ipad','iphone','android'];
-    const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱Phone',android:'🤖'};
-
-    // Build table rows
-    const tableRows = gl.map((game,i) => {
+    // Build rows
+    const tableRows = gl.map((game, i) => {
       const task = tasks[i];
-      const myScore = task?.mt || 0;  // MT earned (0-2 range)
-      const myRaw = task?.rawScore || 0;
-      const plays = task?.plays || (task?.done?1:0);
+      const mt = task?.mt || 0;
+      const rawScore = task?.rawScore || 0;
+      const plays = task?.plays || (task?.done ? 1 : 0);
+      const done = task?.done || false;
+      
+      const mtColor = mt >= 1.5 ? '#27AE60' : mt >= 1.0 ? '#FFD700' : mt > 0 ? '#E67E22' : '#555';
+      const mtDisplay = done ? `<span style="color:${mtColor};font-weight:700">${mt.toFixed(1)} MT</span>` : '—';
 
-      // Calibration stats per device for this game
-      const devStats = {};
-      DEVS.forEach(d => {
-        const key = i + '_' + d;
-        const scores = calStore[key] || [];
-        if (scores.length > 0) {
-          devStats[d] = {
-            min: Math.min(...scores),
-            max: Math.max(...scores),
-            avg: Math.round(scores.reduce((a,b)=>a+b,0)/scores.length),
-            n: scores.length,
-            scores
-          };
-        }
-      });
-
-      if (isRef) {
-        // Janoschtest sees: min / avg / max per device + edit/delete buttons
-        const devCells = DEVS.map(d => {
-          const st = devStats[d];
-          if (!st) return `<td colspan="3" style="padding:3px 4px;text-align:center;color:#444;font-size:.68rem">—</td>`;
-          return `<td style="padding:3px 4px;text-align:center;font-size:.68rem;color:#E74C3C">${st.min}</td>
-            <td style="padding:3px 4px;text-align:center;font-size:.68rem;color:#FFD700">${st.avg}</td>
-            <td style="padding:3px 4px;text-align:center;font-size:.68rem;color:#27AE60">${st.max}
-              <button onclick="App._calEdit(${i},'${d}')" style="background:none;border:none;cursor:pointer;font-size:.6rem;opacity:.6" title="Bearbeiten">✏️</button>
-            </td>`;
-        }).join('');
-        return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-          <td style="padding:4px 5px;font-size:.72rem">${game.icon} ${game.name}</td>
-          <td style="padding:4px 5px;text-align:center;color:${myScore>=1.5?'#27AE60':myScore>=1?'#FFD700':myScore>0?'#E67E22':'#555'};font-weight:700;font-size:.75rem">${myScore>0?(myScore.toFixed(1)+' MT'):'—'}</td>
-          ${devCells}
-        </tr>`;
-      } else {
-        // Normal players: just show their score and MT, with comparison
-        const allP_raw = (() => {
-          const scores_all = calStore[i+'_'+devLabel]||[];
-          if (!scores_all.length) return null;
-          return {min:Math.min(...scores_all),max:Math.max(...scores_all),avg:Math.round(scores_all.reduce((a,b)=>a+b,0)/scores_all.length),n:scores_all.length};
-        })();
-        const rank = allP_raw && myRaw > 0 ? 
-          (calStore[i+'_'+devLabel]||[]).filter(s=>s>myRaw).length + 1 : null;
-        return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-          <td style="padding:5px 6px;font-size:.78rem">${game.icon} ${game.name}</td>
-          <td style="padding:5px 6px;text-align:center;color:${myScore>=1.5?'#27AE60':myScore>=1?'#FFD700':myScore>0?'#E67E22':'#555'};font-weight:700">${myScore||'—'}</td>
-          <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.74rem">${allP_raw?allP_raw.avg:'—'}</td>
-          <td style="padding:5px 6px;text-align:center;font-size:.74rem">${rank?`<span style="color:${rank<=3?'#FFD700':'#aaa'}">#${rank}</span>`:'—'}</td>
-          <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.4);font-size:.72rem">${plays||'—'}</td>
-        </tr>`;
-      }
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+        <td style="padding:5px 8px;font-size:.78rem">${game.icon} ${game.name}</td>
+        <td style="padding:5px 8px;text-align:center">${mtDisplay}</td>
+        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:.75rem">${rawScore > 0 ? rawScore : '—'}</td>
+        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.35);font-size:.72rem">${plays || '—'}</td>
+      </tr>`;
     }).join('');
-
-    // Ref header has device columns
-    const refHeader = isRef ? DEVS.map(d=>`
-      <th colspan="3" style="padding:4px 6px;text-align:center;font-size:.65rem;border-left:1px solid rgba(255,255,255,.1)">${DEV_ICONS[d]}<button onclick="App._calClearDev('${d}')" style="background:none;border:none;cursor:pointer;font-size:.55rem;opacity:.5" title="Gerät löschen">🗑️</button></th>`).join('') : '';
-    const refSubHeader = isRef ? DEVS.map(d=>`
-      <th style="padding:3px 4px;text-align:center;font-size:.6rem;color:#E74C3C">Min</th>
-      <th style="padding:3px 4px;text-align:center;font-size:.6rem;color:#FFD700">Ø</th>
-      <th style="padding:3px 4px;text-align:center;font-size:.6rem;color:#27AE60">Max</th>`).join('') : '';
-
-    const normalHeader = !isRef ? `
-      <th style="padding:5px 6px;text-align:center">Ø Alle</th>
-      <th style="padding:5px 6px;text-align:center">Rang</th>
-      <th style="padding:5px 6px;text-align:center">Spiele</th>` : '';
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
@@ -811,20 +752,31 @@ const App = {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:.82rem">← Zurück</button>
             <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1rem;margin:0">📊 Kontoauszug</h2>
-            <div style="font-size:.66rem;color:rgba(255,255,255,.4)">${devName}${isRef?' · 🔬':''}</div>
           </div>
-          ${isRef?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:.7rem;color:#E74C3C">
-            🔬 Kalibrierungs-Modus · Aktuelles Gerät: <b>${devName}</b> · Min=0MT · Ø=1MT · Max=2MT
-          </div>`:''}
-          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <!-- Summary -->
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <div style="flex:1;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${totalMT.toFixed(1)}</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.5)">Gesamt MT</div>
+            </div>
+            <div style="flex:1;background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.3);border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:900;color:#29B6F6">${doneTasks}/20</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.5)">Aufgaben</div>
+            </div>
+            <div style="flex:1;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:1.4rem;font-weight:900;color:#27AE60">${doneTasks > 0 ? (totalMT/doneTasks).toFixed(1) : '—'}</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.5)">Ø MT/Spiel</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:.78rem">
               <thead>
                 <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.4)">
-                  <th style="padding:4px 6px;text-align:left">Spiel</th>
-                  <th style="padding:4px 6px;text-align:center">MT</th>
-                  ${isRef ? refHeader : normalHeader}
+                  <th style="padding:5px 8px;text-align:left">Spiel</th>
+                  <th style="padding:5px 8px;text-align:center">MT</th>
+                  <th style="padding:5px 8px;text-align:center">Punkte</th>
+                  <th style="padding:5px 8px;text-align:center">Spiele</th>
                 </tr>
-                ${isRef ? `<tr style="border-bottom:2px solid rgba(41,182,246,.2);color:rgba(255,255,255,.3)">${'<th></th><th></th>'+refSubHeader}</tr>` : ''}
               </thead>
               <tbody>${tableRows}</tbody>
             </table>
@@ -859,16 +811,20 @@ const App = {
   // ---- GELDBEUTEL ----
   showGeldbeutel() {
     const player = State.currentPlayer;
-    if (!player) return;
-    const ws = player.worlds?.[1] || player.worlds?.['1'] || {tasks: Array(20).fill(null)};
+    if (!player) { this.showWorldMap(); return; }
+    const ws = player.worlds?.[1] || player.worlds?.['1'] || player.worlds?.['1'] || {tasks: Array(20).fill(null)};
+    // Ensure tasks array exists
+    if (!ws.tasks) ws.tasks = Array(20).fill(null);
     const gl = window.GAME_LIST || [];
-    const rows = gl.map((game, i) => {
+    const allRows = gl.map((game, i) => {
       const task = ws.tasks?.[i];
       const mt = task?.mt || 0;
       const score = task?.score || '—';
       const plays = task?.plays || (task?.done ? 1 : 0);
       return {game, mt, score, plays, done: task?.done||false};
-    }).sort((a,b) => b.mt - a.mt);
+    });
+    const rows = allRows.filter(r => r.done).sort((a,b) => b.mt - a.mt);
+    const unplayedRows = allRows.filter(r => !r.done);
     const totalMT = rows.reduce((s,r)=>s+r.mt,0);
     const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:.82rem">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:.8rem">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:.75rem">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
     this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:.75rem;color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
@@ -1039,7 +995,11 @@ const App = {
         <div class="game-container">
           <div class="game-header">
             <div class="game-title">${task.icon} ${task.title}</div>
-            <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;gap:6px;align-items:center">
+              <button onclick="App._toggleZoom()" id="zoom-btn"
+                style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:0.75rem;font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">
+                🔍
+              </button>
               <button onclick="App._confirmLeave(${worldId})"
                 style="background:#FFF5F5;border:2px solid #E74C3C;color:#E74C3C;padding:5px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;cursor:pointer">
                 ✕ Verlassen
@@ -1094,15 +1054,15 @@ const App = {
           State._local && State._local.set(p.name, p);
         }
       } catch(e) {}
-      // Show result immediately
-      this._showTaskComplete(worldId, taskIndex, result);
-      // Full save in background
+      // Run completeTask first (local operations are instant, Firebase async)
       try {
         await Promise.race([
           State.completeTask(player.name, worldId, taskIndex, result),
-          new Promise(r => setTimeout(r, 4000))
+          new Promise(r => setTimeout(r, 1500)) // 1.5s max for local+firebase start
         ]);
       } catch(e) {}
+      // Show result with correct MT (completeTask updated State.currentPlayer)
+      this._showTaskComplete(worldId, taskIndex, result);
     };
 
     setTimeout(() => {
@@ -1203,7 +1163,7 @@ const App = {
 
   
   _toggleZoom() {
-    const levels = [1, 1.3, 1.6, 2.0, 0.8];
+    const levels = [1, 1.25, 1.5, 1.75, 0.85];
     this._zoomLevel = this._zoomLevel || 1;
     const currentIdx = levels.findIndex(l => Math.abs(l - this._zoomLevel) < 0.05);
     this._zoomLevel = levels[(currentIdx + 1) % levels.length];
@@ -1212,11 +1172,13 @@ const App = {
     if (ga) {
       ga.style.transform = `scale(${this._zoomLevel})`;
       ga.style.transformOrigin = 'top center';
-      // Adjust container height to prevent overlap
       ga.style.marginBottom = this._zoomLevel > 1 ? 
-        ((this._zoomLevel - 1) * ga.offsetHeight * 0.5) + 'px' : '0';
+        Math.round((this._zoomLevel - 1) * 200) + 'px' : '0';
     }
-    if (btn) btn.textContent = this._zoomLevel === 1 ? '🔍' : `🔍${Math.round(this._zoomLevel*100)}%`;
+    if (btn) {
+      btn.textContent = this._zoomLevel === 1 ? '🔍' : `🔍 ${Math.round(this._zoomLevel*100)}%`;
+      btn.style.background = this._zoomLevel !== 1 ? 'rgba(41,182,246,.25)' : 'rgba(41,182,246,.12)';
+    }
   },
 
   _confirmLeave(worldId) {

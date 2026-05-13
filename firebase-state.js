@@ -556,10 +556,23 @@ const State = {
       player.updatedAt = Date.now();
     });
     players.forEach(p => this._local.set(p.name, p));
-    // Sync to Firebase
+    // Sync to Firebase - force update all player tasks
     try {
-      for (const p of players) {
-        if (this._useCloud()) await this._col().doc(p.name.toLowerCase()).set(p).catch(()=>{});
+      if (this._useCloud()) {
+        for (const p of players) {
+          const key = p.name.toLowerCase();
+          // Use update to only reset the worlds field, more reliable than full set
+          await this._col().doc(key).set(p).catch(async () => {
+            // Try again with just worlds reset
+            await this._col().doc(key).update({
+              'worlds.1.tasks': Array(20).fill(null),
+              'worlds.1.completed': false,
+              "worlds['1'].tasks": Array(20).fill(null),
+              totalScore: 0,
+              updatedAt: Date.now()
+            }).catch(()=>{});
+          });
+        }
       }
     } catch(e) {}
     // Clear calibration data

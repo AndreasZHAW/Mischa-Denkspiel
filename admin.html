@@ -695,6 +695,38 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentDetailGame = null;
   const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱iPhone',android:'🤖Android'};
 
+  async function _adminLoadReports() {
+    const el = document.getElementById('padmin-reports-list');
+    if(!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</div>';
+    try {
+      if(typeof firebase === 'undefined') { el.innerHTML = '<div style="color:#E74C3C">Firebase nicht verfügbar</div>'; return; }
+      const db = firebase.firestore();
+      const snap = await db.collection('player_reports').orderBy('ts','desc').limit(50).get();
+      if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Meldungen</div>'; return; }
+      const rows = [];
+      snap.forEach(doc => { const d=doc.data(); rows.push({id:doc.id,...d}); });
+      el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.78rem"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4)"><th style="padding:6px;text-align:left">Zeit</th><th style="padding:6px">Gemeldet</th><th style="padding:6px">Von</th><th style="padding:6px;text-align:left">Grund</th><th style="padding:6px">Aktion</th></tr></thead><tbody>'+
+        rows.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+          <td style="padding:5px 6px;color:rgba(255,255,255,.5);font-size:.72rem">${r.tsStr||'—'}</td>
+          <td style="padding:5px 6px;text-align:center;font-weight:700;color:#E74C3C">${r.reported||'?'}</td>
+          <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.6)">${r.reporter||'?'}</td>
+          <td style="padding:5px 6px;color:#FFD700">${r.reason||'?'}${r.desc?'<br><span style="color:rgba(255,255,255,.4);font-size:.7rem">'+r.desc+'</span>':''}</td>
+          <td style="padding:5px 6px;text-align:center">
+            <button onclick="_adminDeleteReport('${r.id}')" style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.3);padding:2px 7px;border-radius:5px;cursor:pointer;font-size:.7rem">🗑️</button>
+          </td>
+        </tr>`).join('')+'</tbody></table>';
+    } catch(e) { el.innerHTML = '<div style="color:#E74C3C">Fehler: '+e.message+'</div>'; }
+  }
+  // Expose to ZAdmin
+  if(typeof ZAdmin !== 'undefined') ZAdmin._loadReports = _adminLoadReports;
+  else document.addEventListener('DOMContentLoaded', ()=>{ if(typeof ZAdmin!=='undefined') ZAdmin._loadReports=_adminLoadReports; });
+
+  async function _adminDeleteReport(id) {
+    if(!confirm('Meldung löschen?')) return;
+    try { await firebase.firestore().collection('player_reports').doc(id).delete(); _adminLoadReports(); } catch(e) { alert('Fehler: '+e.message); }
+  }
+
   async function resetAllScores() {
     if(!confirm('ACHTUNG: Alle Spielstände UND Kalibrierungsdaten werden gelöscht!\nWirklich fortfahren?')) return;
     if(!confirm('Bist du SICHER? Dieser Vorgang kann nicht rückgängig gemacht werden!')) return;
