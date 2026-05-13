@@ -98,11 +98,13 @@ const StuntGame = {
       window.removeEventListener('keydown',onKey);
       window.removeEventListener('keyup',onKeyUp);
       const t=Date.now()-tStart;
-      // Scoring: finish=500, each salto=500
-      // rawScore = min(100, total_points/10) for calibration
-      const totalPts = (won?500:0) + car.saltos*500;
-      const rawScore = Math.min(100, Math.round(totalPts/10));
-      onComplete({rawScore, timeMs:t, errors:0, passed:won||car.saltos>0, saltos:car.saltos});
+      // Scoring: finish=500, time bonus up to +250, each salto=500, roof land -20
+      const timeSecs = t/1000;
+      const timeBonus = won ? Math.max(0, Math.round(250 - timeSecs*2)) : 0; // faster = more bonus
+      const roofPenalty = (car.roofLandings||0) * 20;
+      const totalPts = (won?500:0) + timeBonus + car.saltos*500 - roofPenalty;
+      const rawScore = Math.min(100, Math.max(0, Math.round(totalPts/10)));
+      onComplete({rawScore, timeMs:t, errors:car.roofLandings||0, passed:won||car.saltos>0, saltos:car.saltos});
     };
 
     const loop=()=>{
@@ -161,11 +163,24 @@ const StuntGame = {
       car.wx+=car.vx;
       car.wy+=car.vy;
 
-      // Crash: if upside down on ground after short grace period
+      // Crash: if upside down on ground after grace period
       const norm=((car.angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
       const trulyUpsideDown=norm>Math.PI*0.72&&norm<Math.PI*1.28;
-      const noGrace=car.landingFrames>12; // 12 frames = ~0.2 seconds to correct
-      if(onGround && trulyUpsideDown && noGrace){ end(false); return; }
+      const noGrace=car.landingFrames>12;
+      if(onGround && trulyUpsideDown && noGrace){
+        // Roof landing: subtract 20pts and bounce back instead of instant crash
+        if(!car._roofLanded) {
+          car._roofLanded = true;
+          car.roofLandings = (car.roofLandings||0)+1;
+          car.vy = -4; // bounce
+          car.spin = car.spin > 0 ? 0.08 : -0.08; // slight correction spin
+          // Show penalty
+          car.penaltyFlash = 20;
+        }
+        if(car.landingFrames > 30) { end(false); return; } // still crash if stuck too long
+      } else {
+        car._roofLanded = false;
+      }
       // Fell off bottom or left
       if(car.wy>H+100||car.wx<-80){ end(false); return; }
       // Reached goal
@@ -174,32 +189,44 @@ const StuntGame = {
 
       // ====== DRAW ======
       const camWX=car.wx-CAM_X;
-      // Sky - fill completely to prevent bleed
-      ctx.fillStyle='#1a0a2e';ctx.fillRect(0,0,W,H);
-      // Night sky gradient  
-      const sky=ctx.createLinearGradient(0,0,0,H);
-      sky.addColorStop(0,'#06001a');sky.addColorStop(0.4,'#120028');sky.addColorStop(1,'#1e0a15');
-      ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+      // === DRAW: solid background first ===
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#08001f';
+      ctx.fillRect(0,0,W,H);
+      // Night sky (top portion only - sky ends at terrain)
+      const skyGrad=ctx.createLinearGradient(0,0,0,H*0.65);
+      skyGrad.addColorStop(0,'#06001a');
+      skyGrad.addColorStop(0.6,'#100025');
+      skyGrad.addColorStop(1,'#150030');
+      ctx.fillStyle=skyGrad;
+      ctx.fillRect(0,0,W,H*0.75);
       // Stars
       if(frames%3===0){ctx.fillStyle='rgba(255,255,255,.3)';for(let i=0;i<20;i++){const sx=(i*173)%W,sy=(i*97)%(H*0.5);ctx.fillRect(sx,sy,1,1);}}
       // Moon
       ctx.fillStyle='rgba(255,220,100,.8)';ctx.beginPath();ctx.arc(W*0.82,35,18,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#0d001a';ctx.beginPath();ctx.arc(W*0.82+8,30,15,0,Math.PI*2);ctx.fill();
 
-      // GROUND: fill from terrain line to canvas bottom
-      // First fill entire bottom area with earth color
-      ctx.fillStyle='#2d4a0a';
+      // === TERRAIN: proper polygon from terrain to canvas bottom ===
+      // Fill entire bottom half with earth color first (prevents gaps)
+      ctx.fillStyle='#1a350a';
+      ctx.fillRect(0, H*0.5, W, H*0.5);
+      // Green terrain polygon
+      ctx.fillStyle='#234a0d';
       ctx.beginPath();
-      ctx.moveTo(0, H+2);
-      for(let sx=0;sx<=W;sx+=6){ ctx.lineTo(sx, getTY(camWX+sx)); }
-      ctx.lineTo(W, H+2);
+      ctx.moveTo(-1, H+1); // start bottom-left (off-canvas)
+      for(let sx=0;sx<=W+6;sx+=6){
+        ctx.lineTo(sx, getTY(camWX+sx));
+      }
+      ctx.lineTo(W+1, H+1); // end bottom-right (off-canvas)
       ctx.closePath();
       ctx.fill();
-      // Bright grass top stripe
-      ctx.strokeStyle='#4a8c1c';ctx.lineWidth=5;ctx.beginPath();
+      // Grass top stripe (bright green line along terrain)
+      ctx.strokeStyle='#4a8f1f';
+      ctx.lineWidth=4;
+      ctx.beginPath();
       for(let sx=0;sx<=W;sx+=6){
-        const y=getTY(camWX+sx);
-        if(sx===0) ctx.moveTo(sx,y); else ctx.lineTo(sx,y);
+        const ty=getTY(camWX+sx);
+        if(sx===0) ctx.moveTo(sx,ty); else ctx.lineTo(sx,ty);
       }
       ctx.stroke();
 
@@ -236,6 +263,14 @@ const StuntGame = {
       if(fwd.v){ctx.fillStyle='rgba(255,120,0,.6)';ctx.fillRect(-28,-4,8,4);}
       ctx.restore();
 
+      // Roof landing penalty flash (-20pts)
+      if(car.penaltyFlash>0){
+        car.penaltyFlash--;
+        ctx.fillStyle=`rgba(231,76,60,${car.penaltyFlash/20*0.5})`;
+        ctx.fillRect(0,0,W,H);
+        ctx.fillStyle='#E74C3C';ctx.font='bold 18px monospace';ctx.textAlign='center';
+        ctx.fillText('-20pts ⚠️',W/2,H/2);
+      }
       // Salto flash
       if(car.saltoFlash>0){
         car.saltoFlash--;
@@ -254,7 +289,8 @@ const StuntGame = {
       ctx.fillStyle='#fff';ctx.fillText('⏱ '+elapsed+'s',6,20);
       ctx.textAlign='center';
       ctx.fillStyle='#FFD700';
-      const ptsStr = (car.wx>=GOAL?'🏁 ':'')+((car.saltos?`🔄×${car.saltos} `:'')+(car.wx>=GOAL?'500pts':'')+(car.saltos?`+${car.saltos*500}pts`:''));
+      const timeBonusPreview = car.wx>=GOAL ? Math.max(0,Math.round(250-(Date.now()-tStart)/1000*2)) : 0;
+      const ptsStr = (car.wx>=GOAL?`🏁 500`:(Math.round(car.wx/GOAL*100)+'%'))+' · '+(car.saltos?`🔄×${car.saltos} +${car.saltos*500}`:'')+`${car.wx>=GOAL&&timeBonusPreview?'+'+timeBonusPreview+'⏱':''}`;
       ctx.fillText(ptsStr||'🏁 ziel=500pts · salto=+500pts',W/2,20);
       ctx.textAlign='right';
       const spd=Math.abs(car.vx*3.6).toFixed(0);

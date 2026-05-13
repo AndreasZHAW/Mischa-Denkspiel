@@ -679,14 +679,32 @@ const App = {
   // ---- GLOBAL LEADERBOARD ----
   async showGlobalLeaderboard() {
     this._loading('Rangliste laden...');
-    let all;
+    // Load from both Firebase AND local, merge with local priority
+    const localAll = State._local.getAll() || {};
+    let firebaseAll = {};
     try {
-      all = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),4000))]);
-    } catch(e) { all = null; }
+      const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
+      if (fb) firebaseAll = fb;
+    } catch(e) {}
+    
+    // Merge: for each player, use whichever version has MORE completed tasks
+    const merged = {...firebaseAll};
+    Object.entries(localAll).forEach(([name, localP]) => {
+      const fbP = firebaseAll[name];
+      if (!fbP) { merged[name] = localP; return; }
+      // Count tasks in world 1
+      const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
+      const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
+      const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;
+      const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
+      // Use local if it has more tasks OR newer timestamp
+      if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) {
+        merged[name] = localP;
+      }
+    });
     
     const player = State.currentPlayer;
-    const localAll = State._local.getAll();
-    const players = Object.values(all || localAll || {})
+    const players = Object.values(merged)
       .filter(p => p.name && p.name.toLowerCase() !== 'bu')
       .map(p => ({
         ...p,
@@ -1015,9 +1033,8 @@ const App = {
     const ws = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {}) || {};
 
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
-      <div class="page">
-        <div class="game-container">
+      <div class="page" style="padding:2px;min-height:100vh;background:var(--bg)">
+        <div class="game-container" style="margin:0;border-radius:8px">
           <div class="game-header">
             <div class="game-title">${task.icon} ${task.title}</div>
             <div style="display:flex;gap:6px;align-items:center">
