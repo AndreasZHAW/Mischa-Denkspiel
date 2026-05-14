@@ -26,7 +26,7 @@ const PongGame = {
         <!-- Left touch zone -->
         <div id="pong-touch-zone" style="width:64px;flex-shrink:0;background:linear-gradient(180deg,rgba(39,174,96,.15),rgba(39,174,96,.08));border:2px solid rgba(39,174,96,.5);border-right:none;border-radius:0 0 0 8px;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px 4px;cursor:grab">
           <div style="font-size:.62rem;color:rgba(39,174,96,.8);font-weight:700;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px">▲ ZIEHEN ▼</div>
-          <div id="pong-touch-indicator" style="width:40px;flex:1;background:rgba(39,174,96,.08);border-radius:8px;position:relative;min-height:100px">
+          <div id="pong-touch-indicator" style="width:60px;flex:1;background:rgba(39,174,96,.08);border-radius:8px;position:relative;min-height:100px">
             <div id="pong-touch-dot" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#27AE60,#1E8449);box-shadow:0 2px 8px rgba(39,174,96,.5)"></div>
           </div>
         </div>

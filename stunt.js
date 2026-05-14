@@ -195,45 +195,48 @@ const StuntGame = {
 
       // ====== DRAW ======
       const camWX=car.wx-CAM_X;
-      // === DRAW: solid background first ===
+      // === DRAW ===
       ctx.clearRect(0,0,W,H);
-      ctx.fillStyle='#08001f';
+      // Step 1: Fill entire canvas with terrain green (prevents ANY gap showing through)
+      ctx.fillStyle='#1e4008';
       ctx.fillRect(0,0,W,H);
-      // Night sky (top portion only - sky ends at terrain)
+      // Step 2: Clip sky to area ABOVE terrain only
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(-2, -1);
+      ctx.lineTo(W+2, -1);
+      for(let sx=W+2; sx>=-2; sx-=4){
+        ctx.lineTo(sx, getTY(camWX+sx));
+      }
+      ctx.closePath();
+      ctx.clip();
       const skyGrad=ctx.createLinearGradient(0,0,0,H);
       skyGrad.addColorStop(0,'#06001a');
-      skyGrad.addColorStop(0.5,'#100025');
-      skyGrad.addColorStop(1,'#1a0030');
+      skyGrad.addColorStop(0.55,'#100028');
+      skyGrad.addColorStop(1,'#1a0035');
       ctx.fillStyle=skyGrad;
-      ctx.fillRect(0,0,W,H);  // Sky covers entire canvas, terrain overlays
+      ctx.fillRect(0,0,W,H);
+      ctx.restore(); // Remove clip - sky is now perfectly contained above terrain
       // Stars
       if(frames%3===0){ctx.fillStyle='rgba(255,255,255,.3)';for(let i=0;i<20;i++){const sx=(i*173)%W,sy=(i*97)%(H*0.5);ctx.fillRect(sx,sy,1,1);}}
       // Moon
       ctx.fillStyle='rgba(255,220,100,.8)';ctx.beginPath();ctx.arc(W*0.82,35,18,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#0d001a';ctx.beginPath();ctx.arc(W*0.82+8,30,15,0,Math.PI*2);ctx.fill();
 
-      // === TERRAIN: single polygon, no horizontal helper lines ===
-      ctx.fillStyle='#234a0d';
+      // Draw terrain surface (canvas base is already green from step 1)
+      // Slightly darker green for terrain body
+      ctx.fillStyle='#1e4008';
       ctx.beginPath();
-      // Go along terrain surface left to right
       ctx.moveTo(-2, getTY(camWX-2));
-      for(let sx=0; sx<=W+2; sx+=4){
-        ctx.lineTo(sx, getTY(camWX+sx));
-      }
-      // Close down and around the bottom
+      for(let sx=0; sx<=W+2; sx+=4){ ctx.lineTo(sx, getTY(camWX+sx)); }
       ctx.lineTo(W+2, H+2);
       ctx.lineTo(-2, H+2);
       ctx.closePath();
       ctx.fill();
-      // Grass stripe - only drawn ON TOP of terrain fill, no separate line
-      ctx.strokeStyle='#5aaf25';
-      ctx.lineWidth=3;
-      ctx.lineJoin='round';
-      ctx.beginPath();
-      ctx.moveTo(-2, getTY(camWX-2));
-      for(let sx=0; sx<=W+2; sx+=4){
-        ctx.lineTo(sx, getTY(camWX+sx));
-      }
+      // Bright grass line on terrain surface
+      ctx.strokeStyle='#5aaf25'; ctx.lineWidth=3; ctx.lineJoin='round';
+      ctx.beginPath(); ctx.moveTo(-2, getTY(camWX-2));
+      for(let sx=0; sx<=W+2; sx+=4){ ctx.lineTo(sx, getTY(camWX+sx)); }
       ctx.stroke();
 
       // Goal flag

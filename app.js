@@ -597,9 +597,9 @@ const App = {
         ${mountainSVG(true)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,10,.65) 100%)"></div>
       </div>
-      <div class="page" style="padding-top:24px">
+      <div class="page" style="padding-top:16px;padding-left:4px;padding-right:4px;width:100%;box-sizing:border-box">
         <!-- Header -->
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:480px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:100%;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
             <div>
@@ -625,11 +625,11 @@ const App = {
         <!-- Teleport Button -->
         ${(player.totalScore||0)>=10 ? `
         <div style="margin-bottom:12px">
-          <button onclick="App.teleportToZoo()" style="width:100%;max-width:480px;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
+          <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
             🚀 In den Zoo teleportieren! (10 🌀 MT)
           </button>
         </div>` : `
-        <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:480px;width:100%">
+        <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:100%;width:100%">
           <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">🦁 Zoo freischalten</div>
           <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${Math.max(0,(10-mt)).toFixed(1)} 🌀 MT bis zur Teleportation</div>
           <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
@@ -1113,7 +1113,7 @@ const App = {
         case 'math':        MathGame.start({ ageGroup, worldId, onComplete }); break;
         case 'reaction':    ReactionGame.start({ onComplete }); break;
         case 'memory':      MemoryGame.start({ emojis: world.memoryEmojis, onComplete }); break;
-        case 'train':       TrainGame.start({ ageGroup, worldId, onComplete }); break;
+        case 'sokoban':     SokobanGame.start({ onComplete }); break;
         case 'shutthebox':  ShutTheBoxGame.start({ onComplete }); break;
         case 'jenga':       JengaGame.start({ worldId, ageGroup, onComplete }); break;
         case 'slider':      SliderGame.start({ ageGroup, worldId, onComplete }); break;
@@ -1226,6 +1226,7 @@ const App = {
 
   _confirmLeave(worldId) {
     this._zoomLevel = 1; // Reset zoom on leave
+    if(typeof SokobanGame !== 'undefined' && SokobanGame._cleanup) SokobanGame._cleanup();
     if (confirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.')) {
       // Stop any running timers in games
       try { clearInterval(MemoryGame._timerInterval); } catch(e){}

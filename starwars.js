@@ -5,8 +5,8 @@ const StarWarsGame = {
     if (!el) return;
     const W=400,H=500;
     el.innerHTML=`<div style="text-align:center">
-      <canvas id="swcv" width="${W}" height="${H}" style="background:#000;border-radius:8px;max-width:100%"></canvas>
-      <div style="display:flex;justify-content:center;gap:12px;margin-top:8px">
+      <canvas id="swcv" width="${W}" height="${H}" style="background:#000;border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto"></canvas>
+      <div style="display:flex;justify-content:column;gap:6px;margin-top:8px"><div style="text-align:center;font-size:.7rem;color:rgba(255,215,0,.6);margin-bottom:4px">📱 Handy kippen = Steuern · 🔥 = Schiessen</div><div style="display:flex;justify-content:center;gap:12px">
         <button id="sw-left" style="background:#1a1a2e;color:#FFD700;border:2px solid #FFD700;padding:12px 24px;border-radius:8px;font-size:1.2rem;cursor:pointer;-webkit-tap-highlight-color:transparent">◀</button>
         <button id="sw-fire" style="background:#E74C3C;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:900">🔫 Schießen</button>
         <button id="sw-right" style="background:#1a1a2e;color:#FFD700;border:2px solid #FFD700;padding:12px 24px;border-radius:8px;font-size:1.2rem;cursor:pointer;-webkit-tap-highlight-color:transparent">▶</button>
@@ -33,6 +33,33 @@ const StarWarsGame = {
     document.getElementById('sw-right').addEventListener('pointerdown',()=>rightHeld=true);
     document.getElementById('sw-fire').addEventListener('pointerdown',fire);
     document.addEventListener('pointerup',()=>{leftHeld=false;rightHeld=false;});
+    
+    // GYROSCOPE: tilt phone left/right to move ship
+    let _gyroActive = false;
+    const gyroHandler = e => {
+      if(!running) return;
+      const tilt = e.gamma || 0; // -90 (left) to +90 (right)
+      leftHeld = tilt < -8;   // tilt left = move left
+      rightHeld = tilt > 8;   // tilt right = move right
+      _gyroActive = true;
+    };
+    if(window.DeviceOrientationEvent) {
+      if(typeof DeviceOrientationEvent.requestPermission === 'function') {
+        // iOS 13+ needs explicit permission - request on tap
+        document.getElementById('sw-fire')?.addEventListener('click', ()=>{
+          DeviceOrientationEvent.requestPermission().then(p=>{
+            if(p==='granted') window.addEventListener('deviceorientation', gyroHandler);
+          }).catch(()=>{});
+        }, {once:true});
+      } else {
+        window.addEventListener('deviceorientation', gyroHandler);
+      }
+    }
+    StarWarsGame._cleanup = ()=>{
+      window.removeEventListener('keydown',onKey);
+      window.removeEventListener('keyup',onKeyUp);
+      window.removeEventListener('deviceorientation', gyroHandler);
+    };
     const onKey=e=>{if(e.key==='ArrowLeft')leftHeld=true;else if(e.key==='ArrowRight')rightHeld=true;else if(e.key===' ')fire();};
     const onKeyUp=e=>{if(e.key==='ArrowLeft')leftHeld=false;else if(e.key==='ArrowRight')rightHeld=false;};
     window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKeyUp);
@@ -48,8 +75,13 @@ const StarWarsGame = {
       if(!running)return;
       tick++;
       // Move ship
+      // Keyboard movement
       if(leftHeld)ship.x=Math.max(15,ship.x-5);
       if(rightHeld)ship.x=Math.min(W-15,ship.x+5);
+      // Gyroscope movement (mobile tilt)
+      if(typeof _gyroTilt!=='undefined' && Math.abs(_gyroTilt)>2) {
+        ship.x=Math.max(15,Math.min(W-15, ship.x + _gyroTilt*0.4));
+      }
       // Move stars
       stars_bg.forEach(s=>{s.y+=0.5;if(s.y>H)s.y=0;});
       // Move bullets
