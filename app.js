@@ -146,65 +146,159 @@ const App = {
   },
 
   _showTeleportCinema(playerName, charEmoji, mtLeft){
-    // Full-screen cinematic overlay
-    const ov=document.createElement('div');
-    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:24px';
-    
-    const phases=[
-      {icon:'🌟',title:'Gut gemacht, '+playerName+'!',text:'Du hast dein Startkapital erkämpft. Jetzt beginnt das eigentliche Abenteuer!',delay:0},
-      {icon:charEmoji,title:'Dein Zoo wartet',text:'In Welt 2 erwartet dich ein lebendiger 3D-Zoo. Mischa und Janosch sind stolz auf dich!',delay:3000},
-      {icon:'\uD83E\uDD81',title:'Willkommen im Zoo!',text:'Die Tiere warten auf ihren neuen Besitzer. Bereit?',delay:5500},
-    ];
-    
-    // Stars background
-    const stars=document.createElement('canvas');
-    stars.style.cssText='position:absolute;inset:0;z-index:0';
-    stars.width=window.innerWidth;stars.height=window.innerHeight;
-    const sctx=stars.getContext('2d');
-    for(let i=0;i<150;i++){
-      sctx.beginPath();sctx.arc(Math.random()*stars.width,Math.random()*stars.height,Math.random()*1.5+.3,0,Math.PI*2);
-      sctx.fillStyle='rgba(255,255,255,'+(Math.random()*.6+.1)+')';sctx.fill();
-    }
-    ov.appendChild(stars);
-    
-    const content=document.createElement('div');
-    content.style.cssText='position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:16px;';
-    ov.appendChild(content);
+    const ov = document.createElement('div');
+    ov.id = 'teleport-cinema';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Fredoka One,cursive';
     document.body.appendChild(ov);
-    
-    // Play intro theme
-    this._playTeleportMusic();
-    
-    let phase=0;
-    function showPhase(){
-      if(phase>=phases.length){
-        // Fade out and go to zoo
-        ov.style.transition='opacity .8s';ov.style.opacity='0';
-        setTimeout(()=>{ window.location.href='zoo.html'; },800);
-        return;
+
+    // Canvas for galaxy animation
+    const cv = document.createElement('canvas');
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    ov.appendChild(cv);
+    const ctx = cv.getContext('2d');
+    const W = cv.width, H = cv.height;
+
+    // Text overlay
+    const txt = document.createElement('div');
+    txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;pointer-events:none';
+    ov.appendChild(txt);
+
+    // Stars
+    const stars = Array.from({length:300}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      z: Math.random()*W, pz: 0,
+    }));
+    // Galaxy particles
+    const particles = Array.from({length:80}, (_, i) => ({
+      angle: (i/80)*Math.PI*2,
+      radius: 20 + Math.random()*120,
+      speed: 0.01 + Math.random()*0.02,
+      size: 1 + Math.random()*3,
+      color: ['#FFD700','#00CFFF','#FF69B4','#7FFF00','#FF4500','#9B59B6'][Math.floor(Math.random()*6)],
+    }));
+
+    // Epic sound
+    const playSound = () => {
+      try {
+        const ac = new (window.AudioContext||window.webkitAudioContext)();
+        // Build epic chord sequence
+        const notes = [
+          {freq:110, t:0, dur:0.5},
+          {freq:165, t:0.2, dur:0.5},
+          {freq:220, t:0.4, dur:0.6},
+          {freq:330, t:0.6, dur:0.8},
+          {freq:440, t:0.8, dur:1.0},
+          {freq:660, t:1.0, dur:1.2},
+          {freq:880, t:1.2, dur:1.5},
+          {freq:1320,t:1.5, dur:2.0},
+        ];
+        notes.forEach(n => {
+          ['sine','sawtooth'].forEach((type, ti) => {
+            const o = ac.createOscillator();
+            const g = ac.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(n.freq * (ti===1?0.5:1), ac.currentTime + n.t);
+            o.frequency.exponentialRampToValueAtTime(n.freq * 2, ac.currentTime + n.t + n.dur);
+            g.gain.setValueAtTime(0, ac.currentTime + n.t);
+            g.gain.linearRampToValueAtTime(ti===0?0.15:0.05, ac.currentTime + n.t + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + n.t + n.dur);
+            o.connect(g); g.connect(ac.destination);
+            o.start(ac.currentTime + n.t);
+            o.stop(ac.currentTime + n.t + n.dur + 0.1);
+          });
+        });
+        // Bass rumble
+        const bass = ac.createOscillator();
+        const bassG = ac.createGain();
+        bass.type = 'sine'; bass.frequency.value = 55;
+        bassG.gain.setValueAtTime(0.2, ac.currentTime);
+        bassG.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 4);
+        bass.connect(bassG); bassG.connect(ac.destination);
+        bass.start(); bass.stop(ac.currentTime + 4);
+      } catch(e) {}
+    };
+    playSound();
+
+    let frame = 0, speed = 1;
+    const TOTAL = 180; // 3 seconds at 60fps
+
+    const phases = [
+      { at:0,   icon:'⚡', title:'Lade Teleporter...', sub:'MT-Energie wird gebündelt' },
+      { at:30,  icon:'🌀', title:'Quantensprung!', sub:'Raum-Zeit wird gefaltet' },
+      { at:80,  icon:'🚀', title:charEmoji+' '+playerName, sub:'Fliegt durch die Galaxis!' },
+      { at:130, icon:'🌌', title:'Fast da...', sub:'Zielkoordinaten gesichert' },
+      { at:160, icon:'🦁', title:'Willkommen im Zoo!', sub:'🌀 '+mtLeft.toFixed(1)+' MT verbleibend' },
+    ];
+
+    const animate = () => {
+      ctx.fillStyle = `rgba(0,0,0,${frame<30?1:0.15})`;
+      ctx.fillRect(0,0,W,H);
+
+      const t = frame / TOTAL;
+      speed = 1 + t * 25; // accelerate
+
+      // Warp stars
+      stars.forEach(s => {
+        s.pz = s.z;
+        s.z -= speed * 4;
+        if(s.z <= 0){ s.z = W; s.x = Math.random()*W; s.y = Math.random()*H; }
+        const sx = (s.x - W/2) * (W/s.z) + W/2;
+        const sy = (s.y - H/2) * (W/s.z) + H/2;
+        const px = (s.x - W/2) * (W/s.pz) + W/2;
+        const py = (s.y - H/2) * (W/s.pz) + H/2;
+        const r = Math.max(0.5, W/s.z);
+        ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, r/3)})`;
+        ctx.lineWidth = r;
+        ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(sx,sy); ctx.stroke();
+      });
+
+      // Rotating galaxy particles
+      if(frame > 20 && frame < 160) {
+        particles.forEach(p => {
+          p.angle += p.speed * (speed/5);
+          const gx = W/2 + Math.cos(p.angle) * p.radius * (0.5 + frame/TOTAL);
+          const gy = H/2 + Math.sin(p.angle) * p.radius * 0.3 * (0.5 + frame/TOTAL);
+          ctx.beginPath();
+          ctx.arc(gx, gy, p.size, 0, Math.PI*2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
       }
-      const ph=phases[phase];
-      content.style.opacity='0';content.style.transition='opacity .5s';
-      setTimeout(()=>{
-        content.innerHTML=
-          '<div style="font-size:5rem;filter:drop-shadow(0 0 20px rgba(255,215,0,.7));animation:teleFloat 2s ease-in-out infinite">'+ph.icon+'</div>'+
-          '<div style="font-size:clamp(1.3rem,4vw,2rem);font-weight:900;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">'+ph.title+'</div>'+
-          '<div style="font-size:.95rem;color:rgba(255,255,255,.75);line-height:1.8;line-height:1.8">'+ph.text+'</div>'+
-          (phase===phases.length-1?'<div style="font-size:.75rem;color:rgba(255,215,0,.5);letter-spacing:2px;margin-top:8px">🌀 '+Math.round(mtLeft)+' MT · Starte jetzt</div>':'');
-        content.style.opacity='1';
-        phase++;
-        const nextDelay=phase<phases.length?(phases[phase]?.delay-ph.delay||2500):2500;
-        setTimeout(showPhase, nextDelay);
-      },300);
-    }
-    showPhase();
-    
-    // Add CSS animation
-    const styleEl=document.createElement('style');
-    styleEl.textContent='@keyframes teleFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}';
-    document.head.appendChild(styleEl);
+
+      // Color burst at end
+      if(frame > 150) {
+        const alpha = (frame-150)/30;
+        const burst = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W);
+        burst.addColorStop(0, `rgba(255,215,0,${alpha*0.6})`);
+        burst.addColorStop(0.3, `rgba(39,174,96,${alpha*0.3})`);
+        burst.addColorStop(1, `rgba(0,0,0,0)`);
+        ctx.fillStyle = burst;
+        ctx.fillRect(0,0,W,H);
+      }
+
+      // Show phase text
+      const phase = phases.filter(p=>frame>=p.at).pop() || phases[0];
+      const scale = frame < 30 ? frame/30 : 1;
+      txt.innerHTML = `
+        <div style="font-size:${Math.min(5,2+t*3)}rem;animation:pulse 0.5s infinite;filter:drop-shadow(0 0 20px #FFD700)">${phase.icon}</div>
+        <div style="font-size:clamp(1.2rem,4vw,2rem);color:#FFD700;font-weight:900;margin:10px 0;text-shadow:0 0 30px #FFD700;opacity:${scale}">${phase.title}</div>
+        <div style="font-size:clamp(.8rem,2.5vw,1.1rem);color:rgba(255,255,255,.7);opacity:${scale}">${phase.sub}</div>
+        <div style="margin-top:20px;width:min(300px,80vw);height:6px;background:rgba(255,255,255,.2);border-radius:3px">
+          <div style="width:${(frame/TOTAL)*100}%;height:100%;background:linear-gradient(90deg,#27AE60,#FFD700,#00CFFF);border-radius:3px;transition:width .1s"></div>
+        </div>`;
+
+      frame++;
+      if(frame < TOTAL + 30) {
+        requestAnimationFrame(animate);
+      } else {
+        ov.remove();
+        window.location.href = 'zoo.html?player=' + encodeURIComponent(playerName.toLowerCase());
+      }
+    };
+    requestAnimationFrame(animate);
   },
-  
+
   _teleportMusicCtx: null,
   _teleportMusicNodes: [],
   _playTeleportMusic(){
@@ -584,6 +678,8 @@ const App = {
       document.body.prepend(b);
     }, 600);
     const ch = this._char(player);
+    const _wsmt = player.worlds?.['1'] || player.worlds?.[1] || {};
+    const mt = (_wsmt.tasks || []).reduce((s, t) => s + (t && t.mt || 0), 0);
 
     this._html(`
       <div class="mountain-bg" id="wm-bg">
@@ -604,7 +700,7 @@ const App = {
             <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
             <div>
               <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${displayName}</div>
-              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:.82rem;padding:3px 10px;border-radius:20px">🌀 ${player.totalScore||0} MT</div>
+              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:.82rem;padding:3px 10px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -617,13 +713,13 @@ const App = {
         <!-- MT Counter prominent -->
         <div style="text-align:center;margin-bottom:10px">
           <div style="background:rgba(255,215,0,.2);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;display:inline-block">
-            <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${player.totalScore||0} MT</span>
+            <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${mt.toFixed(1)} MT</span>
             <span style="font-size:.75rem;color:rgba(255,255,255,.7);margin-left:8px">Mischa Taler</span>
           </div>
         </div>
 
         <!-- Teleport Button -->
-        ${(player.totalScore||0)>=10 ? `
+        ${mt>=10 ? `
         <div style="margin-bottom:12px">
           <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
             🚀 In den Zoo teleportieren! (10 🌀 MT)
@@ -633,7 +729,7 @@ const App = {
           <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">🦁 Zoo freischalten</div>
           <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${Math.max(0,(10-mt)).toFixed(1)} 🌀 MT bis zur Teleportation</div>
           <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
-            <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,(player.totalScore||0)/10*100)}%"></div>
+            <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,mt/10*100)}%"></div>
           </div>
         </div>`}
 
