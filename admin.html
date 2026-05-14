@@ -812,10 +812,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     try {
-      await firebase.firestore().collection('banned_players').doc(name).set(banData);
-      // Also write admin command so game picks it up
-      await firebase.firestore().collection('mischa_admin').doc('ban_'+name+'_'+Date.now()).set({
-        type: 'ban', target: name, ...banData, id: Date.now().toString()
+      const db = firebase.firestore();
+      await db.collection('banned_players').doc(name).set(banData);
+      // Notify player via player_messages
+      await db.collection('player_messages').doc(name+'_ban_'+Date.now()).set({
+        type: 'ban_warn', target: name, text: '🚫 Du wurdest gesperrt bis: '+(banData.permanent?'permanent':new Date(banData.expiresAt).toLocaleString('de-CH'))+(banData.reason?'\nGrund: '+banData.reason:''),
+        ts: Date.now(), id: Date.now().toString()
       });
       alert('✅ ' + name + ' wurde gesperrt (' + dur + ')');
       document.getElementById('ban-player-name').value = '';
@@ -885,11 +887,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      // Write to Firebase and localStorage
-      await firebase.firestore().collection('mischa_admin').doc('msg_'+msgData.id).set({...msgData,type:'broadcast'});
-      // Also store as mischa_broadcast for clients to pick up
+      const db = firebase.firestore();
+      // Save as broadcast (shown to all/specific player via mischa_broadcast polling)
+      await db.collection('mischa_broadcasts').doc('msg_'+msgData.id).set(msgData);
+      // For 'all': also update the single broadcast doc that clients poll
+      if(!target) {
+        await db.collection('config').doc('broadcast').set({...msgData, updatedAt: Date.now()});
+      }
+      // Also save as player_message for direct delivery
+      if(target) {
+        await db.collection('player_messages').doc(target.toLowerCase()+'_'+msgData.id).set(msgData);
+      }
+      // localStorage broadcast for THIS browser session
       localStorage.setItem('mischa_broadcast', JSON.stringify(msgData));
       alert('✅ Nachricht gesendet an: '+(target||'alle Spieler'));
+      document.getElementById('msg-target').value = '';
       document.getElementById('msg-text').value = '';
     } catch(e) { alert('Fehler: '+e.message); }
   }

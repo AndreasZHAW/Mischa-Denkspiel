@@ -4,8 +4,8 @@ const StarWarsGame = {
     const el = document.getElementById('game-area');
     if (!el) return;
     const W=400,H=500;
-    el.innerHTML=`<div style="text-align:center">
-      <canvas id="swcv" width="${W}" height="${H}" style="background:#000;border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto"></canvas>
+    el.innerHTML=`<div style="text-align:center;touch-action:none;user-select:none;-webkit-user-select:none">
+      <canvas id="swcv" width="${W}" height="${H}" style="background:#000;border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;touch-action:none;user-select:none"></canvas>
       <div style="display:flex;justify-content:column;gap:6px;margin-top:8px"><div style="text-align:center;font-size:.7rem;color:rgba(255,215,0,.6);margin-bottom:4px">📱 Handy kippen = Steuern · 🔥 = Schiessen</div><div style="display:flex;justify-content:center;gap:12px">
         <button id="sw-left" style="background:#1a1a2e;color:#FFD700;border:2px solid #FFD700;padding:12px 24px;border-radius:8px;font-size:1.2rem;cursor:pointer;-webkit-tap-highlight-color:transparent">◀</button>
         <button id="sw-fire" style="background:#E74C3C;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:900">🔫 Schießen</button>
@@ -31,7 +31,16 @@ const StarWarsGame = {
     const fire=()=>{bullets.push({x:ship.x,y:ship.y-10,dy:-8});};
     document.getElementById('sw-left').addEventListener('pointerdown',()=>leftHeld=true);
     document.getElementById('sw-right').addEventListener('pointerdown',()=>rightHeld=true);
-    document.getElementById('sw-fire').addEventListener('pointerdown',fire);
+    const fireBtn = document.getElementById('sw-fire');
+    let rapidFireInterval = null;
+    fireBtn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      fire(); // immediate shot
+      rapidFireInterval = setInterval(fire, 180); // rapid fire
+    });
+    fireBtn.addEventListener('pointerup', () => { clearInterval(rapidFireInterval); rapidFireInterval = null; });
+    fireBtn.addEventListener('pointercancel', () => { clearInterval(rapidFireInterval); rapidFireInterval = null; });
+    fireBtn.addEventListener('touchstart', e => e.preventDefault(), {passive:false});
     document.addEventListener('pointerup',()=>{leftHeld=false;rightHeld=false;});
     
     // GYROSCOPE: tilt phone left/right to move ship

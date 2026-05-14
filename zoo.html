@@ -14,8 +14,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .scr{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
 .scr.off{display:none!important}
 #s-login,#s-char,#s-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.ztitle{font-size:2.3rem;color:#FFD700;text-align:center;font-weight:900;margin-bottom:4px}
-.zsub{color:rgba(255,255,255,.4);font-size:.82rem;text-align:center;margin-bottom:18px}
+.ztitle{font-size:clamp(1.6rem,3vw,2.3rem);color:#FFD700;text-align:center;font-weight:900;margin-bottom:4px}
+.zsub{color:rgba(255,255,255,.6);font-size:.92rem;text-align:center;margin-bottom:18px}
 .card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:22px 18px;width:100%;max-width:360px}
 .inp{width:100%;padding:11px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:.92rem;margin-bottom:9px}
 .inp:focus{outline:none;border-color:#FFD700}.inp::placeholder{color:rgba(255,255,255,.3)}
@@ -424,6 +424,38 @@ const ANIMALS=[
   {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,p:15000000,earn:2040000},{id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,p:40000000,earn:5440000},
   {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,p:100000000,earn:13600000},{id:'thor',n:'Thor',e:'🔨',r:'mythic',w:.00001,p:300000000,earn:40800000},
   {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:500000000,earn:68000000},{id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:5000000000,earn:680000000},
+  // === 50 NEW ANIMALS ===
+  // Normal
+  {id:'goat',n:'Ziege',e:'🐐',r:'normal',w:8,p:11,earn:1.0},{id:'sheep',n:'Schaf',e:'🐑',r:'normal',w:9,p:10,earn:.95},
+  {id:'pig',n:'Schwein',e:'🐷',r:'normal',w:7,p:13,earn:1.15},{id:'cow',n:'Kuh',e:'🐄',r:'normal',w:6,p:14,earn:1.25},
+  {id:'rooster',n:'Hahn',e:'🐓',r:'normal',w:7,p:12,earn:1.1},{id:'chick',n:'Küken',e:'🐤',r:'normal',w:10,p:9,earn:.8},
+  {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:8,earn:.75},{id:'snail',n:'Schnecke',e:'🐌',r:'normal',w:5,p:16,earn:1.4},
+  {id:'ladybug',n:'Marienkäfer',e:'🐞',r:'normal',w:6,p:14,earn:1.2},{id:'butterfly',n:'Schmetterling',e:'🦋',r:'normal',w:5,p:16,earn:1.35},
+  // Rare
+  {id:'fox',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
+  {id:'bear',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
+  {id:'lion',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
+  {id:'elephant',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
+  {id:'rhino',n:'Nashorn',e:'🦏',r:'rare',w:0.5,p:215,earn:29},{id:'giraffe',n:'Giraffe',e:'🦒',r:'rare',w:0.6,p:190,earn:26},
+  {id:'camel',n:'Kamel',e:'🐪',r:'rare',w:0.8,p:155,earn:20},{id:'horse',n:'Pferd',e:'🐴',r:'rare',w:1.1,p:115,earn:15},
+  {id:'donkey',n:'Esel',e:'🫏',r:'rare',w:1.0,p:120,earn:15.5},{id:'bison',n:'Bison',e:'🦬',r:'rare',w:0.7,p:170,earn:22},
+  {id:'moose',n:'Elch',e:'🫎',r:'rare',w:0.8,p:150,earn:19},
+  // Epic
+  {id:'gorilla',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
+  {id:'whale',n:'Wal',e:'🐋',r:'epic',w:0.4,p:500,earn:70},{id:'shark',n:'Hai',e:'🦈',r:'epic',w:0.5,p:420,earn:58},
+  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
+  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
+  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
+  // Legendary
+  {id:'dragon',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
+  {id:'phoenix',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
+  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
+  {id:'dodo',n:'Dodo',e:'🦤',r:'legendary',w:0.15,p:2100,earn:315},{id:'yeti',n:'Yeti',e:'🏔️',r:'legendary',w:0.09,p:3000,earn:450},
+  // Ultra-Legendary
+  {id:'alien_pet',n:'Alien-Tier',e:'👽',r:'ultralegendary',w:0.02,p:15000,earn:2500},{id:'robot_pet',n:'Roboter-Hund',e:'🤖',r:'ultralegendary',w:0.02,p:14000,earn:2300},
+  {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:16000,earn:2700},{id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:20000,earn:3500},
+  {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
+  {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
 ];
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:2},diamond:{n:'DIAMOND',c:'td',m:2,p:1},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:.5},void:{n:'VOID',c:'tv',m:5,p:.5}};
@@ -601,7 +633,7 @@ const ZG={
     const _dbg = document.createElement('div');
     _dbg.id='_dbg';
     _dbg.style.cssText='position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font:13px monospace;padding:8px 12px;z-index:9999;border-bottom:2px solid #0f0';
-    _dbg.textContent='⚙️ Starte 3D Zoo... (bitte warten)';
+    _dbg.textContent='⚙️ Lade Zoo...';
     document.body.appendChild(_dbg);
     const _log = function(msg,col){_dbg.textContent=msg;_dbg.style.color=col||'#0f0';console.log('[ZOO]',msg);};
     
@@ -2680,6 +2712,35 @@ const ZP={
     }
   },
   close(p){hide('p-'+p);},
+  _teleportBackToDenkspiel() {
+    ZP.close('menu');
+    // Simple reverse teleport animation
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column';
+    document.body.appendChild(ov);
+    const W=window.innerWidth, H=window.innerHeight;
+    const cv=document.createElement('canvas');
+    cv.width=W;cv.height=H;cv.style.cssText='position:absolute;inset:0;width:100%;height:100%';
+    ov.appendChild(cv);
+    const ctx=cv.getContext('2d');
+    // Sound
+    try{const ac=new(window.AudioContext||window.webkitAudioContext)();
+      [1047,784,659,523,392,261,196,164,130].forEach((n,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(n,ac.currentTime+i*0.1);g.gain.setValueAtTime(0.07,ac.currentTime+i*0.1);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.1+0.4);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*0.1);o.stop(ac.currentTime+i*0.1+0.4);});
+    }catch(e){}
+    const stars=Array.from({length:300},()=>({angle:Math.random()*Math.PI*2,dist:100+Math.random()*Math.max(W,H)*0.6,speed:2+Math.random()*4,size:0.5+Math.random()*1.5,color:['#fff','#adf','#faf','#ffd'][Math.floor(Math.random()*4)]}));
+    let frame=0;
+    const loop=()=>{
+      ctx.fillStyle='rgba(0,0,5,0.85)';ctx.fillRect(0,0,W,H);
+      stars.forEach(s=>{s.dist-=s.speed*(1+frame*0.01);if(s.dist<0)s.dist=Math.max(W,H);
+        const sx=W/2+Math.cos(s.angle)*s.dist,sy=H/2+Math.sin(s.angle)*s.dist;
+        ctx.fillStyle=s.color;ctx.globalAlpha=Math.max(0,s.dist/300)*0.8;
+        ctx.beginPath();ctx.arc(sx,sy,s.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;});
+      frame++;
+      if(frame>90){ov.remove();window.location.href='index.html';return;}
+      requestAnimationFrame(loop);
+    };
+    loop();
+  },
   openEnc(i){show('p-enc');G('pent').textContent='Gehege #'+(i+1);this._rEnc(i);},
   openLimo(zi){
     // Find first enclosure in this zone
@@ -4859,18 +4920,18 @@ const CRAFT_RECIPES = [
   {id:'cr11', inputs:[{r:'epic',count:2},{r:'legendary',count:1}], result:{id:'chimera',n:'Chimera',e:'🐉',r:'mythic',earn:1500,craftOnly:true}, chance:0.15},
   {id:'cr12', inputs:[{r:'legendary',count:4}], result:{id:'cosmicbeing',n:'Kosmisches Wesen',e:'🌌',r:'ultralegendary',earn:5000,craftOnly:true}, chance:0.2},
   // TIER-DOWNS (ultra-rare → rare)
-  {id:'cr13', inputs:[{r:'ultralegendary',count:4}], result:{id:'mysticchick',n:'Mystisches Küken',e:'🐣',r:'rare',earn:5,craftOnly:true}, chance:0.05},
+  // cr13 removed (ultralegendary tier-down not useful)
   // MORE
-  {id:'cr14', inputs:[{r:'normal',count:2},{r:'rare',count:1}], result:{id:'crystalcat',n:'Kristall-Katze',e:'🐈',r:'epic',earn:45}, chance:1.0},
+  {id:'cr14', inputs:[{r:'normal',count:4},{r:'rare',count:2}], result:{id:'crystalcat',n:'Kristall-Katze',e:'🐈',r:'epic',earn:45}, chance:0.9},
   {id:'cr15', inputs:[{r:'rare',count:2},{r:'epic',count:1}], result:{id:'starfox',n:'Stern-Fuchs',e:'🦊',r:'legendary',earn:200}, chance:0.8},
-  {id:'cr16', inputs:[{r:'epic',count:1},{r:'legendary',count:1}], result:{id:'dragontiger',n:'Drachen-Tiger',e:'🐯',r:'god',earn:500}, chance:0.9},
+  {id:'cr16', inputs:[{r:'epic',count:3},{r:'legendary',count:1}], result:{id:'dragontiger',n:'Drachen-Tiger',e:'🐯',r:'god',earn:500}, chance:0.7},
   {id:'cr17', inputs:[{r:'god',count:1},{r:'mythic',count:1}], result:{id:'voidbeast',n:'Leeres Wesen',e:'🌑',r:'ultralegendary',earn:4000,craftOnly:true}, chance:0.25},
   // ELEMENT RECIPES
   {id:'cr18', inputs:[{r:'normal',count:2},{r:'rare',count:2}], result:{id:'waterdrake',n:'Wasser-Drache',e:'💧',r:'legendary',earn:190}, chance:0.9},
   {id:'cr19', inputs:[{r:'rare',count:2},{r:'epic',count:2}], result:{id:'firelion',n:'Feuer-Löwe',e:'🔆',r:'god',earn:520}, chance:0.8},
   {id:'cr20', inputs:[{r:'epic',count:2},{r:'god',count:1}], result:{id:'thunderbird',n:'Donner-Vogel',e:'⚡',r:'mythic',earn:1100}, chance:0.6},
   // TRADE-DOWNS (rare downgrade recipes for fun)
-  {id:'cr21', inputs:[{r:'ultralegendary',count:1}], result:{id:'goldennugget',n:'Gold-Nugget',e:'🌟',r:'legendary',earn:150,craftOnly:true}, chance:0.5},
+  // cr21 removed (was too OP: 1 ultralegendary → legendary)
   // SEASON RECIPES  
   {id:'cr22', inputs:[{r:'rare',count:3},{r:'normal',count:2}], result:{id:'snowleopard',n:'Schnee-Leopard',e:'🐆',r:'epic',earn:55}, chance:1.0},
   {id:'cr23', inputs:[{r:'epic',count:2},{r:'rare',count:3}], result:{id:'arcticfox',n:'Arktis-Fuchs',e:'🦊',r:'legendary',earn:210}, chance:0.85},

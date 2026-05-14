@@ -1,4 +1,12 @@
 
+/* Prevent pinch-zoom on game canvases */
+#game-area canvas,
+#game-area {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* ========== LANDSCAPE / ORIENTATION SYSTEM ========== */
 
 /* Base: fluid font scaling based on viewport */

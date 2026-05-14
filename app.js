@@ -153,189 +153,179 @@ const App = {
     ov.id = 'teleport-cinema';
     ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Fredoka One,cursive';
     document.body.appendChild(ov);
-
     const W = window.innerWidth, H = window.innerHeight;
     const cv = document.createElement('canvas');
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
     cv.width = W; cv.height = H;
     ov.appendChild(cv);
     const ctx = cv.getContext('2d');
-
-    // Text overlay
     const txt = document.createElement('div');
-    txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:2';
+    txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8%;pointer-events:none;z-index:2';
     ov.appendChild(txt);
 
     // === EPIC SOUND ===
-    const playEpicSound = () => {
-      try {
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-        const playNote = (freq, start, dur, type='sine', vol=0.3) => {
-          const o = ac.createOscillator(), g = ac.createGain();
-          o.type = type; o.frequency.setValueAtTime(freq, ac.currentTime + start);
-          o.frequency.exponentialRampToValueAtTime(freq * 1.5, ac.currentTime + start + dur * 0.5);
-          g.gain.setValueAtTime(0, ac.currentTime + start);
-          g.gain.linearRampToValueAtTime(vol, ac.currentTime + start + 0.05);
-          g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + start + dur);
-          o.connect(g); g.connect(ac.destination);
-          o.start(ac.currentTime + start); o.stop(ac.currentTime + start + dur);
-        };
-        // Ascending epic chord sequence
-        const notes = [130, 164, 196, 261, 329, 392, 523, 659, 784, 1047];
-        notes.forEach((n, i) => {
-          playNote(n, i * 0.12, 0.6, 'sawtooth', 0.08);
-          playNote(n * 2, i * 0.12 + 0.06, 0.3, 'sine', 0.05);
-        });
-        // Deep bass boom
-        playNote(65, 0, 1.2, 'square', 0.15);
-        playNote(98, 0.3, 0.8, 'square', 0.12);
-        // Final crescendo
-        playNote(523, 1.2, 0.8, 'sine', 0.2);
-        playNote(659, 1.35, 0.7, 'sine', 0.2);
-        playNote(784, 1.5, 0.6, 'sine', 0.2);
-        playNote(1047, 1.65, 1.0, 'sine', 0.25);
-        // Warp woosh
-        const wo = ac.createOscillator(), wg = ac.createGain();
-        wo.type = 'sawtooth';
-        wo.frequency.setValueAtTime(200, ac.currentTime);
-        wo.frequency.exponentialRampToValueAtTime(4000, ac.currentTime + 2.5);
-        wg.gain.setValueAtTime(0.08, ac.currentTime);
-        wg.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 2.5);
-        wo.connect(wg); wg.connect(ac.destination);
-        wo.start(); wo.stop(ac.currentTime + 2.5);
-      } catch(e) {}
-    };
-    playEpicSound();
+    try {
+      const ac = new (window.AudioContext||window.webkitAudioContext)();
+      const note=(freq,start,dur,type='sine',vol=0.2)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(freq,ac.currentTime+start);g.gain.setValueAtTime(0,ac.currentTime+start);g.gain.linearRampToValueAtTime(vol,ac.currentTime+start+0.04);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+start+dur);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+start);o.stop(ac.currentTime+start+dur);};
+      [130,164,196,261,329,392,523,659,784,1047].forEach((n,i)=>{note(n,i*0.12,0.6,'sawtooth',0.07);note(n*2,i*0.12+0.06,0.3,'sine',0.04);});
+      note(65,0,1.2,'square',0.12);note(523,1.2,0.8,'sine',0.18);note(659,1.35,0.7,'sine',0.18);note(784,1.5,0.6,'sine',0.18);note(1047,1.65,1.0,'sine',0.22);
+      const wo=ac.createOscillator(),wg=ac.createGain();wo.type='sawtooth';wo.frequency.setValueAtTime(150,ac.currentTime);wo.frequency.exponentialRampToValueAtTime(5000,ac.currentTime+2.8);wg.gain.setValueAtTime(0.06,ac.currentTime);wg.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+2.8);wo.connect(wg);wg.connect(ac.destination);wo.start();wo.stop(ac.currentTime+2.8);
+    } catch(e) {}
 
-    // === GALAXY PARTICLES ===
-    const stars = Array.from({length: 300}, () => ({
-      x: Math.random() * W, y: Math.random() * H,
-      z: Math.random() * W,
-      pz: 0,
-      r: Math.random() * 2 + 0.5,
-      color: ['#fff','#adf','#fda','#faf','#aff'][Math.floor(Math.random()*5)]
+    // === STARS: fly outward from center ===
+    const stars = Array.from({length: 500}, () => ({
+      angle: Math.random() * Math.PI * 2,
+      dist: Math.random() * 50,        // start near center
+      speed: 0.5 + Math.random() * 2.5,
+      size: 0.5 + Math.random() * 2,
+      color: ['#fff','#adf','#faf','#ffd','#aff','#f9f','#9ff'][Math.floor(Math.random()*7)],
+      trail: 0
     }));
-    
-    // Galaxy spiral arms
-    const galaxyParticles = Array.from({length: 200}, (_, i) => {
-      const arm = Math.floor(Math.random() * 3);
-      const t = Math.random() * Math.PI * 4;
-      const r = (t / (Math.PI * 4)) * Math.min(W, H) * 0.4;
-      const angle = t + arm * (Math.PI * 2 / 3);
-      return {
-        x: W/2 + Math.cos(angle) * r + (Math.random()-0.5)*30,
-        y: H/2 + Math.sin(angle) * r * 0.5 + (Math.random()-0.5)*30,
-        size: Math.random() * 3 + 0.5,
-        opacity: Math.random() * 0.8 + 0.2,
-        color: `hsl(${200 + Math.random()*160}, 80%, ${60+Math.random()*30}%)`
-      };
-    });
 
-    const phases = [
-      { at: 0,   icon: '🚀', title: 'Initiiere Teleport...', color: '#29B6F6' },
-      { at: 40,  icon: '⚡', title: 'Warptriebwerk aktiv!', color: '#FFD700' },
-      { at: 80,  icon: '🌌', title: 'Durchquere die Galaxis...', color: '#E91E8C' },
-      { at: 130, icon: '✨', title: 'Ankunft im Zoo!', color: '#27AE60' },
-    ];
+    // Nebula clouds
+    const nebulae = Array.from({length:8}, ()=>({
+      x: W/2 + (Math.random()-0.5)*W*0.8,
+      y: H/2 + (Math.random()-0.5)*H*0.8,
+      r: 60+Math.random()*120,
+      color: `hsl(${200+Math.random()*160},70%,60%)`
+    }));
 
     let frame = 0;
-    const totalFrames = 175;
+    const TOTAL = 190;
     let animId;
 
+    const drawSpaceship = (cx, cy, scale, engineOn) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+
+      // Engine glow
+      if(engineOn) {
+        const eng = ctx.createRadialGradient(0, 28, 0, 0, 28, 40);
+        eng.addColorStop(0, 'rgba(100,200,255,0.9)');
+        eng.addColorStop(0.4, 'rgba(50,100,255,0.4)');
+        eng.addColorStop(1, 'rgba(0,0,100,0)');
+        ctx.fillStyle = eng;
+        ctx.fillRect(-40, 20, 80, 60);
+        // Engine exhaust flame
+        ctx.fillStyle = 'rgba(150,220,255,0.8)';
+        ctx.beginPath();
+        ctx.moveTo(-12, 22); ctx.lineTo(12, 22);
+        ctx.lineTo(6+Math.sin(frame*0.3)*4, 50+Math.sin(frame*0.2)*10);
+        ctx.lineTo(0, 60+Math.sin(frame*0.4)*15);
+        ctx.lineTo(-6-Math.sin(frame*0.3)*4, 50+Math.sin(frame*0.2)*10);
+        ctx.closePath(); ctx.fill();
+      }
+
+      // Ship hull (sleek triangle body)
+      const hullGrad = ctx.createLinearGradient(-25, -40, 25, 20);
+      hullGrad.addColorStop(0, '#c8d8f0'); hullGrad.addColorStop(0.5, '#8090b0'); hullGrad.addColorStop(1, '#404860');
+      ctx.fillStyle = hullGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, -45);      // nose
+      ctx.bezierCurveTo(18, -20, 22, 0, 20, 20);   // right
+      ctx.lineTo(10, 22); ctx.lineTo(-10, 22);       // engine bottom
+      ctx.lineTo(-20, 20);
+      ctx.bezierCurveTo(-22, 0, -18, -20, 0, -45);
+      ctx.fill();
+
+      // Wings
+      ctx.fillStyle='#5060a0';
+      ctx.beginPath(); ctx.moveTo(20,5); ctx.lineTo(48,18); ctx.lineTo(40,22); ctx.lineTo(14,15); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-20,5); ctx.lineTo(-48,18); ctx.lineTo(-40,22); ctx.lineTo(-14,15); ctx.closePath(); ctx.fill();
+      // Wing highlight
+      ctx.fillStyle='rgba(255,255,255,.2)';
+      ctx.beginPath(); ctx.moveTo(20,5); ctx.lineTo(48,18); ctx.lineTo(44,16); ctx.lineTo(20,7); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-20,5); ctx.lineTo(-48,18); ctx.lineTo(-44,16); ctx.lineTo(-20,7); ctx.closePath(); ctx.fill();
+
+      // Cockpit dome
+      const cockGrad = ctx.createRadialGradient(-5,-25,2,-2,-22,18);
+      cockGrad.addColorStop(0,'rgba(200,240,255,0.95)'); cockGrad.addColorStop(0.5,'rgba(100,180,255,0.7)'); cockGrad.addColorStop(1,'rgba(20,60,120,0.4)');
+      ctx.fillStyle=cockGrad;
+      ctx.beginPath(); ctx.ellipse(0,-22,13,18,0,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='rgba(150,200,255,0.8)'; ctx.lineWidth=1.5; ctx.stroke();
+
+      // Lights
+      ctx.fillStyle=`rgba(0,255,200,${0.5+Math.sin(frame*0.15)*0.5})`;
+      ctx.beginPath(); ctx.arc(-20,15,3,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=`rgba(255,100,0,${0.5+Math.sin(frame*0.15+Math.PI)*0.5})`;
+      ctx.beginPath(); ctx.arc(20,15,3,0,Math.PI*2); ctx.fill();
+
+      // Hull highlight
+      ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(-8,-42); ctx.bezierCurveTo(-3,-40,3,-40,8,-42); ctx.stroke();
+
+      ctx.restore();
+    };
+
     const loop = () => {
-      const t = frame / totalFrames;
+      const t = frame / TOTAL;
       ctx.clearRect(0, 0, W, H);
 
       // Deep space background
-      const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H));
-      bg.addColorStop(0, `rgba(10, 0, 40, 1)`);
-      bg.addColorStop(0.5, `rgba(5, 0, 20, 1)`);
-      bg.addColorStop(1, `rgba(0, 0, 10, 1)`);
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
+      const bg = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H));
+      bg.addColorStop(0, t > 0.6 ? `rgba(10,0,40,1)` : '#000008');
+      bg.addColorStop(1, '#000000');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-      // Galaxy arms (fade in then spin out)
-      if (frame < 80) {
-        const galAlpha = Math.min(1, frame / 40);
-        galaxyParticles.forEach(p => {
-          ctx.globalAlpha = p.opacity * galAlpha;
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
+      // Nebula clouds (fade in middle phase)
+      if(frame > 30 && frame < 150) {
+        const nAlpha = Math.min(1,(frame-30)/30) * Math.min(1,(150-frame)/30) * 0.25;
+        nebulae.forEach(n => {
+          const ng = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*(0.5+t*1.5));
+          ng.addColorStop(0,n.color.replace(')',`,${nAlpha})`).replace('hsl','hsla'));
+          ng.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=ng; ctx.fillRect(0,0,W,H);
         });
-        ctx.globalAlpha = 1;
       }
 
-      // Warp stars - zoom effect
-      const speed = Math.min(W * 0.04, 5 + t * 35);
+      // Stars flying outward from center
+      const speedMult = Math.min(5, 0.3 + t*6);
       stars.forEach(s => {
-        s.pz = s.z;
-        s.z -= speed;
-        if (s.z <= 0) { s.z = W; s.x = Math.random()*W; s.y = Math.random()*H; s.pz = s.z; }
-        
-        const sx = (s.x - W/2) * (W / s.z) + W/2;
-        const sy = (s.y - H/2) * (W / s.z) + H/2;
-        const px = (s.x - W/2) * (W / s.pz) + W/2;
-        const py = (s.y - H/2) * (W / s.pz) + H/2;
-        const size = Math.max(0.5, (1 - s.z/W) * 3 * (1 + t * 2));
-        
-        if (frame > 30) {
-          ctx.strokeStyle = s.color;
-          ctx.lineWidth = size * 0.8;
-          ctx.globalAlpha = Math.min(1, (frame - 30) / 30);
-          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sx, sy); ctx.stroke();
-        }
+        s.dist += s.speed * speedMult;
+        if(s.dist > Math.max(W,H)) s.dist = Math.random()*20;
+
+        const sx = W/2 + Math.cos(s.angle)*s.dist;
+        const sy = H/2 + Math.sin(s.angle)*s.dist;
+        const prevDist = s.dist - s.speed * speedMult * 3;
+        const px = W/2 + Math.cos(s.angle)*Math.max(0,prevDist);
+        const py = H/2 + Math.sin(s.angle)*Math.max(0,prevDist);
+
+        const brightness = Math.min(1, s.dist/(Math.max(W,H)*0.3));
+        ctx.globalAlpha = brightness * 0.9;
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = s.size * (0.5 + speedMult*0.3);
+        ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(sx,sy); ctx.stroke();
         ctx.globalAlpha = 1;
         ctx.fillStyle = s.color;
-        ctx.beginPath(); ctx.arc(sx, sy, size * 0.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(sx,sy,s.size*0.4,0,Math.PI*2); ctx.fill();
       });
 
-      // Color burst rings at warp
-      if (frame > 50 && frame < 120) {
-        for (let i = 0; i < 3; i++) {
-          const r = ((frame - 50 + i * 20) % 60) * W / 60;
-          const alpha = 1 - r / W;
-          const colors = ['#29B6F6', '#E91E8C', '#FFD700'];
-          ctx.strokeStyle = colors[i % 3];
-          ctx.lineWidth = 3;
-          ctx.globalAlpha = alpha * 0.6;
-          ctx.beginPath(); ctx.arc(W/2, H/2, r, 0, Math.PI*2); ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
-      }
+      // Spaceship: starts small, flies toward viewer, then away
+      const shipScale = frame < 80
+        ? 0.4 + (frame/80)*0.8          // zoom in
+        : 1.2 - ((frame-80)/110)*0.9;   // zoom out into distance
+      const shipY = H/2 + Math.sin(frame*0.04)*20;
+      const engineOn = frame > 20;
+      if(shipScale > 0.05) drawSpaceship(W/2, shipY, shipScale, engineOn);
 
-      // Bright flash at arrival
-      if (frame > 140) {
-        const flashAlpha = Math.max(0, 1 - (frame - 140) / 25);
-        ctx.fillStyle = `rgba(255,255,255,${flashAlpha * 0.8})`;
-        ctx.fillRect(0, 0, W, H);
-      }
-
-      // Phase text
-      const phase = phases.filter(p => frame >= p.at).pop() || phases[0];
-      const fadeIn = Math.min(1, (frame - phase.at) / 15);
-      const scale = 0.8 + fadeIn * 0.2;
+      // Text
+      const phase = frame < 50 ? {t:'🚀 Teleportation startet!', c:'#29B6F6'}
+                  : frame < 100 ? {t:'⭐ Durchs Universum...', c:'#FFD700'}
+                  : frame < 150 ? {t:'🌌 Fast da!', c:'#E91E8C'}
+                  : {t:'🦁 Willkommen im Zoo!', c:'#27AE60'};
+      const fade = Math.min(1, (frame%50)/10);
       txt.innerHTML = `
-        <div style="font-size:clamp(3rem,12vw,6rem);transform:scale(${scale});filter:drop-shadow(0 0 30px ${phase.color})">
-          ${phase.icon}
+        <div style="font-size:clamp(1.2rem,4vw,2rem);color:${phase.c};font-weight:900;
+          text-shadow:0 0 20px ${phase.c};opacity:${fade};margin-bottom:8px">
+          ${phase.t}
         </div>
-        <div style="font-size:clamp(1.2rem,4vw,2rem);color:${phase.color};font-weight:900;margin:10px 0;
-          text-shadow:0 0 30px ${phase.color};opacity:${fadeIn}">
-          ${phase.title}
-        </div>
-        ${frame > 100 ? `<div style="font-size:clamp(.9rem,3vw,1.2rem);color:rgba(255,255,255,.8);margin-top:8px;opacity:${Math.min(1,(frame-100)/20)}">
-          ${charEmoji} ${playerName} · 🌀 ${mtLeft.toFixed(1)} MT
-        </div>` : ''}
-      `;
+        <div style="font-size:clamp(.85rem,2.5vw,1.1rem);color:rgba(255,255,255,.7);opacity:${fade}">
+          ${charEmoji} ${playerName} · 🌀 ${typeof mtLeft==='number'?mtLeft.toFixed(1):mtLeft} MT
+        </div>`;
 
       frame++;
-      if (frame >= totalFrames) {
-        cancelAnimationFrame(animId);
-        ov.remove();
-        window.location.href = 'zoo.html';
-        return;
-      }
+      if(frame >= TOTAL) { cancelAnimationFrame(animId); ov.remove(); window.location.href='zoo.html'; return; }
       animId = requestAnimationFrame(loop);
     };
     loop();
@@ -720,6 +710,9 @@ const App = {
       document.body.prepend(b);
     }, 600);
     const ch = this._char(player);
+    // Check for admin messages to this player
+    this._checkAdminMessages(player.name);
+
     // Calculate total MT from LOCAL player data (most reliable)
     let mt = 0;
     try {
@@ -927,8 +920,8 @@ const App = {
       return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
         <td style="padding:5px 8px;font-size:.78rem">${game.icon} ${game.name}</td>
         <td style="padding:5px 8px;text-align:center">${mtDisplay}</td>
-        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:.75rem">${rawScore > 0 ? rawScore : '—'}</td>
-        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.35);font-size:.72rem">${plays || '—'}</td>
+        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.75);font-size:.75rem">${rawScore > 0 ? rawScore : '—'}</td>
+        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.7);font-size:.72rem">${plays || '—'}</td>
       </tr>`;
     }).join('');
 
@@ -944,21 +937,21 @@ const App = {
           <div style="display:flex;gap:8px;margin-bottom:10px">
             <div style="flex:1;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:10px;text-align:center">
               <div style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${totalMT.toFixed(1)}</div>
-              <div style="font-size:.72rem;color:rgba(255,255,255,.5)">Gesamt MT</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.8)">Gesamt MT</div>
             </div>
             <div style="flex:1;background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.3);border-radius:10px;padding:10px;text-align:center">
               <div style="font-size:1.4rem;font-weight:900;color:#29B6F6">${doneTasks}/20</div>
-              <div style="font-size:.72rem;color:rgba(255,255,255,.5)">Aufgaben</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.8)">Aufgaben</div>
             </div>
             <div style="flex:1;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:10px;text-align:center">
               <div style="font-size:1.4rem;font-weight:900;color:#27AE60">${doneTasks > 0 ? (totalMT/doneTasks).toFixed(1) : '—'}</div>
-              <div style="font-size:.72rem;color:rgba(255,255,255,.5)">Ø MT/Spiel</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.8)">Ø MT/Spiel</div>
             </div>
           </div>
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:.78rem">
               <thead>
-                <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.4)">
+                <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.75)">
                   <th style="padding:5px 8px;text-align:left">Spiel</th>
                   <th style="padding:5px 8px;text-align:center">MT</th>
                   <th style="padding:5px 8px;text-align:center">Punkte</th>
@@ -1352,6 +1345,34 @@ const App = {
   },
 
   
+  async _checkAdminMessages(playerName) {
+    try {
+      if(typeof _db === 'undefined' || !_db || !playerName) return;
+      const snap = await _db.collection('player_messages')
+        .where('target','==',playerName.toLowerCase())
+        .limit(5).get();
+      if(snap.empty) return;
+      const msgs = [];
+      snap.forEach(doc => msgs.push({id:doc.id,...doc.data()}));
+      msgs.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      const latest = msgs[0];
+      if(!latest) return;
+      // Check if already seen
+      const seenKey = 'msg_seen_'+latest.id;
+      if(sessionStorage.getItem(seenKey)) return;
+      sessionStorage.setItem(seenKey,'1');
+      // Show message banner
+      const icon = {info:'ℹ️',warn:'⚠️',ban_warn:'🚫',broadcast:'📢'}[latest.type]||'📢';
+      const color = {info:'#29B6F6',warn:'#FFD700',ban_warn:'#E74C3C',broadcast:'#27AE60'}[latest.type]||'#29B6F6';
+      const banner = document.createElement('div');
+      banner.style.cssText=`position:fixed;top:0;left:0;right:0;z-index:9999;background:${color};color:#000;padding:12px 16px;text-align:center;font-weight:700;font-size:.92rem;animation:slideDown .4s ease;cursor:pointer`;
+      banner.innerHTML=`${icon} ${latest.text} <span style="float:right;opacity:.7">✕</span>`;
+      banner.onclick=()=>banner.remove();
+      document.body.prepend(banner);
+      setTimeout(()=>banner?.remove(),8000);
+    } catch(e) {}
+  },
+
   _setupOrientationHandler() {
     const handle = () => {
       const isLandscape = window.innerWidth > window.innerHeight;
