@@ -29,6 +29,35 @@ const SokobanGame = {
       '+': null,       // player on goal
     };
 
+    // Hints for each level
+    const HINTS = [
+      "Schiebe die Box direkt nach unten auf den Zielkreis.",
+      "Gehe zuerst nach rechts an die Box, dann schiebe sie links auf das Ziel.",
+      "Schiebe erst die obere Box nach unten auf das obere Ziel, dann die untere Box nach oben.",
+      "Nutze die Lücke in der Mitte. Schiebe Box A auf Ziel links, Box B auf Ziel rechts.",
+      "Beginne mit den äusseren Boxen. Reihenfolge: links, rechts, dann die inneren.",
+      "Schiebe die Boxen nacheinander in die Ecken der Zielfelder — starte von aussen.",
+      "Spirale nach innen: erst die äusseren 4 Boxen platzieren, dann die inneren.",
+    ];
+    let hintsUsed = 0;
+    let hintPenalty = 0;
+
+    SokobanGame._showHint = () => {
+      const hint = HINTS[levelIdx] || "Versuche, Boxen (🟫) auf die roten Kreise zu schieben!";
+      hintsUsed++;
+      hintPenalty += 5;
+      // Show hint overlay
+      const hintDiv = document.getElementById('sok-hint');
+      if(hintDiv) hintDiv.remove();
+      const d = document.createElement('div');
+      d.id = 'sok-hint';
+      d.style.cssText = 'background:rgba(0,0,0,.92);border:2px solid rgba(255,215,0,.5);border-radius:12px;padding:14px;margin-top:8px;font-size:clamp(.82rem,2.5vw,.95rem);color:#FFD700;max-width:100%;box-sizing:border-box';
+      d.innerHTML = '<b>💡 Tipp:</b> ' + hint + '<br><span style="font-size:.72rem;color:rgba(255,100,100,.8)">-5 Punkte für diesen Tipp</span>';
+      const el = document.getElementById('game-area');
+      if(el) el.querySelector('div').appendChild(d);
+      setTimeout(() => d.remove(), 6000);
+    };
+
     const loadLevel = (idx) => {
       const raw = LEVELS[idx].map;
       grid = raw.map(row => row.split(''));
@@ -105,8 +134,12 @@ const SokobanGame = {
           <canvas id="sok-cv" width="${W}" height="${H}" 
             style="border-radius:8px;max-width:100%;border:2px solid rgba(255,255,255,.2);touch-action:none;cursor:pointer"></canvas>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;max-width:220px;margin:10px auto 0">
+            <div style="display:flex;gap:6px">
             <button onclick="SokobanGame._reset()" 
-              style="background:rgba(231,76,60,.2);border:2px solid rgba(231,76,60,.4);color:#E74C3C;padding:8px;border-radius:8px;cursor:pointer;font-size:.8rem;touch-action:manipulation;grid-column:1/4">🔄 Level neu</button>
+              style="flex:1;background:rgba(231,76,60,.2);border:2px solid rgba(231,76,60,.4);color:#E74C3C;padding:8px;border-radius:8px;cursor:pointer;font-size:.8rem;touch-action:manipulation">🔄 Neu</button>
+            <button onclick="SokobanGame._showHint()" 
+              style="flex:1;background:rgba(255,215,0,.15);border:2px solid rgba(255,215,0,.4);color:#FFD700;padding:8px;border-radius:8px;cursor:pointer;font-size:.8rem;touch-action:manipulation">💡 Tipp (-5pts)</button>
+          </div>
           </div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:6px">
             Pfeil- oder WASD-Tasten · Wischen auf Mobile

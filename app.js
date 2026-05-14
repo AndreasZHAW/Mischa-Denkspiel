@@ -127,7 +127,10 @@ const App = {
   async teleportToZoo() {
     const p = State.currentPlayer;
     if (!p) { alert('Bitte erst anmelden!'); return; }
-    const mt = p.totalScore || 0;
+    // Use real MT from LOCAL player (don't trust cloud which may be stale)
+    const _localP = State._local.get(p.name) || p;
+    const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
+    const mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
     const cost = 10;
     if (mt < cost) { alert('Zu wenig MT! Du brauchst 10 MT. Du hast: ' + mt + ' MT'); return; }
     if (!confirm(`🦁 Für ${cost} MT in den Zoo teleportieren?\nDu hast: ${mt} MT\nNach Teleport: ${mt-cost} MT`)) return;
@@ -145,158 +148,197 @@ const App = {
     this._showTeleportCinema(p.name, charData?.emoji||'🧭', mt-cost);
   },
 
-  _showTeleportCinema(playerName, charEmoji, mtLeft){
+  _showTeleportCinema(playerName, charEmoji, mtLeft) {
     const ov = document.createElement('div');
     ov.id = 'teleport-cinema';
     ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Fredoka One,cursive';
     document.body.appendChild(ov);
 
-    // Canvas for galaxy animation
+    const W = window.innerWidth, H = window.innerHeight;
     const cv = document.createElement('canvas');
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
-    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    cv.width = W; cv.height = H;
     ov.appendChild(cv);
     const ctx = cv.getContext('2d');
-    const W = cv.width, H = cv.height;
 
     // Text overlay
     const txt = document.createElement('div');
-    txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;pointer-events:none';
+    txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:2';
     ov.appendChild(txt);
 
-    // Stars
-    const stars = Array.from({length:300}, () => ({
-      x: Math.random()*W, y: Math.random()*H,
-      z: Math.random()*W, pz: 0,
-    }));
-    // Galaxy particles
-    const particles = Array.from({length:80}, (_, i) => ({
-      angle: (i/80)*Math.PI*2,
-      radius: 20 + Math.random()*120,
-      speed: 0.01 + Math.random()*0.02,
-      size: 1 + Math.random()*3,
-      color: ['#FFD700','#00CFFF','#FF69B4','#7FFF00','#FF4500','#9B59B6'][Math.floor(Math.random()*6)],
-    }));
-
-    // Epic sound
-    const playSound = () => {
+    // === EPIC SOUND ===
+    const playEpicSound = () => {
       try {
-        const ac = new (window.AudioContext||window.webkitAudioContext)();
-        // Build epic chord sequence
-        const notes = [
-          {freq:110, t:0, dur:0.5},
-          {freq:165, t:0.2, dur:0.5},
-          {freq:220, t:0.4, dur:0.6},
-          {freq:330, t:0.6, dur:0.8},
-          {freq:440, t:0.8, dur:1.0},
-          {freq:660, t:1.0, dur:1.2},
-          {freq:880, t:1.2, dur:1.5},
-          {freq:1320,t:1.5, dur:2.0},
-        ];
-        notes.forEach(n => {
-          ['sine','sawtooth'].forEach((type, ti) => {
-            const o = ac.createOscillator();
-            const g = ac.createGain();
-            o.type = type;
-            o.frequency.setValueAtTime(n.freq * (ti===1?0.5:1), ac.currentTime + n.t);
-            o.frequency.exponentialRampToValueAtTime(n.freq * 2, ac.currentTime + n.t + n.dur);
-            g.gain.setValueAtTime(0, ac.currentTime + n.t);
-            g.gain.linearRampToValueAtTime(ti===0?0.15:0.05, ac.currentTime + n.t + 0.05);
-            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + n.t + n.dur);
-            o.connect(g); g.connect(ac.destination);
-            o.start(ac.currentTime + n.t);
-            o.stop(ac.currentTime + n.t + n.dur + 0.1);
-          });
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        const playNote = (freq, start, dur, type='sine', vol=0.3) => {
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.type = type; o.frequency.setValueAtTime(freq, ac.currentTime + start);
+          o.frequency.exponentialRampToValueAtTime(freq * 1.5, ac.currentTime + start + dur * 0.5);
+          g.gain.setValueAtTime(0, ac.currentTime + start);
+          g.gain.linearRampToValueAtTime(vol, ac.currentTime + start + 0.05);
+          g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + start + dur);
+          o.connect(g); g.connect(ac.destination);
+          o.start(ac.currentTime + start); o.stop(ac.currentTime + start + dur);
+        };
+        // Ascending epic chord sequence
+        const notes = [130, 164, 196, 261, 329, 392, 523, 659, 784, 1047];
+        notes.forEach((n, i) => {
+          playNote(n, i * 0.12, 0.6, 'sawtooth', 0.08);
+          playNote(n * 2, i * 0.12 + 0.06, 0.3, 'sine', 0.05);
         });
-        // Bass rumble
-        const bass = ac.createOscillator();
-        const bassG = ac.createGain();
-        bass.type = 'sine'; bass.frequency.value = 55;
-        bassG.gain.setValueAtTime(0.2, ac.currentTime);
-        bassG.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 4);
-        bass.connect(bassG); bassG.connect(ac.destination);
-        bass.start(); bass.stop(ac.currentTime + 4);
+        // Deep bass boom
+        playNote(65, 0, 1.2, 'square', 0.15);
+        playNote(98, 0.3, 0.8, 'square', 0.12);
+        // Final crescendo
+        playNote(523, 1.2, 0.8, 'sine', 0.2);
+        playNote(659, 1.35, 0.7, 'sine', 0.2);
+        playNote(784, 1.5, 0.6, 'sine', 0.2);
+        playNote(1047, 1.65, 1.0, 'sine', 0.25);
+        // Warp woosh
+        const wo = ac.createOscillator(), wg = ac.createGain();
+        wo.type = 'sawtooth';
+        wo.frequency.setValueAtTime(200, ac.currentTime);
+        wo.frequency.exponentialRampToValueAtTime(4000, ac.currentTime + 2.5);
+        wg.gain.setValueAtTime(0.08, ac.currentTime);
+        wg.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 2.5);
+        wo.connect(wg); wg.connect(ac.destination);
+        wo.start(); wo.stop(ac.currentTime + 2.5);
       } catch(e) {}
     };
-    playSound();
+    playEpicSound();
 
-    let frame = 0, speed = 1;
-    const TOTAL = 180; // 3 seconds at 60fps
+    // === GALAXY PARTICLES ===
+    const stars = Array.from({length: 300}, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      z: Math.random() * W,
+      pz: 0,
+      r: Math.random() * 2 + 0.5,
+      color: ['#fff','#adf','#fda','#faf','#aff'][Math.floor(Math.random()*5)]
+    }));
+    
+    // Galaxy spiral arms
+    const galaxyParticles = Array.from({length: 200}, (_, i) => {
+      const arm = Math.floor(Math.random() * 3);
+      const t = Math.random() * Math.PI * 4;
+      const r = (t / (Math.PI * 4)) * Math.min(W, H) * 0.4;
+      const angle = t + arm * (Math.PI * 2 / 3);
+      return {
+        x: W/2 + Math.cos(angle) * r + (Math.random()-0.5)*30,
+        y: H/2 + Math.sin(angle) * r * 0.5 + (Math.random()-0.5)*30,
+        size: Math.random() * 3 + 0.5,
+        opacity: Math.random() * 0.8 + 0.2,
+        color: `hsl(${200 + Math.random()*160}, 80%, ${60+Math.random()*30}%)`
+      };
+    });
 
     const phases = [
-      { at:0,   icon:'⚡', title:'Lade Teleporter...', sub:'MT-Energie wird gebündelt' },
-      { at:30,  icon:'🌀', title:'Quantensprung!', sub:'Raum-Zeit wird gefaltet' },
-      { at:80,  icon:'🚀', title:charEmoji+' '+playerName, sub:'Fliegt durch die Galaxis!' },
-      { at:130, icon:'🌌', title:'Fast da...', sub:'Zielkoordinaten gesichert' },
-      { at:160, icon:'🦁', title:'Willkommen im Zoo!', sub:'🌀 '+mtLeft.toFixed(1)+' MT verbleibend' },
+      { at: 0,   icon: '🚀', title: 'Initiiere Teleport...', color: '#29B6F6' },
+      { at: 40,  icon: '⚡', title: 'Warptriebwerk aktiv!', color: '#FFD700' },
+      { at: 80,  icon: '🌌', title: 'Durchquere die Galaxis...', color: '#E91E8C' },
+      { at: 130, icon: '✨', title: 'Ankunft im Zoo!', color: '#27AE60' },
     ];
 
-    const animate = () => {
-      ctx.fillStyle = `rgba(0,0,0,${frame<30?1:0.15})`;
-      ctx.fillRect(0,0,W,H);
+    let frame = 0;
+    const totalFrames = 175;
+    let animId;
 
-      const t = frame / TOTAL;
-      speed = 1 + t * 25; // accelerate
+    const loop = () => {
+      const t = frame / totalFrames;
+      ctx.clearRect(0, 0, W, H);
 
-      // Warp stars
-      stars.forEach(s => {
-        s.pz = s.z;
-        s.z -= speed * 4;
-        if(s.z <= 0){ s.z = W; s.x = Math.random()*W; s.y = Math.random()*H; }
-        const sx = (s.x - W/2) * (W/s.z) + W/2;
-        const sy = (s.y - H/2) * (W/s.z) + H/2;
-        const px = (s.x - W/2) * (W/s.pz) + W/2;
-        const py = (s.y - H/2) * (W/s.pz) + H/2;
-        const r = Math.max(0.5, W/s.z);
-        ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, r/3)})`;
-        ctx.lineWidth = r;
-        ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(sx,sy); ctx.stroke();
-      });
+      // Deep space background
+      const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H));
+      bg.addColorStop(0, `rgba(10, 0, 40, 1)`);
+      bg.addColorStop(0.5, `rgba(5, 0, 20, 1)`);
+      bg.addColorStop(1, `rgba(0, 0, 10, 1)`);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
 
-      // Rotating galaxy particles
-      if(frame > 20 && frame < 160) {
-        particles.forEach(p => {
-          p.angle += p.speed * (speed/5);
-          const gx = W/2 + Math.cos(p.angle) * p.radius * (0.5 + frame/TOTAL);
-          const gy = H/2 + Math.sin(p.angle) * p.radius * 0.3 * (0.5 + frame/TOTAL);
-          ctx.beginPath();
-          ctx.arc(gx, gy, p.size, 0, Math.PI*2);
+      // Galaxy arms (fade in then spin out)
+      if (frame < 80) {
+        const galAlpha = Math.min(1, frame / 40);
+        galaxyParticles.forEach(p => {
+          ctx.globalAlpha = p.opacity * galAlpha;
           ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           ctx.fill();
         });
+        ctx.globalAlpha = 1;
       }
 
-      // Color burst at end
-      if(frame > 150) {
-        const alpha = (frame-150)/30;
-        const burst = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W);
-        burst.addColorStop(0, `rgba(255,215,0,${alpha*0.6})`);
-        burst.addColorStop(0.3, `rgba(39,174,96,${alpha*0.3})`);
-        burst.addColorStop(1, `rgba(0,0,0,0)`);
-        ctx.fillStyle = burst;
-        ctx.fillRect(0,0,W,H);
+      // Warp stars - zoom effect
+      const speed = Math.min(W * 0.04, 5 + t * 35);
+      stars.forEach(s => {
+        s.pz = s.z;
+        s.z -= speed;
+        if (s.z <= 0) { s.z = W; s.x = Math.random()*W; s.y = Math.random()*H; s.pz = s.z; }
+        
+        const sx = (s.x - W/2) * (W / s.z) + W/2;
+        const sy = (s.y - H/2) * (W / s.z) + H/2;
+        const px = (s.x - W/2) * (W / s.pz) + W/2;
+        const py = (s.y - H/2) * (W / s.pz) + H/2;
+        const size = Math.max(0.5, (1 - s.z/W) * 3 * (1 + t * 2));
+        
+        if (frame > 30) {
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = size * 0.8;
+          ctx.globalAlpha = Math.min(1, (frame - 30) / 30);
+          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sx, sy); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = s.color;
+        ctx.beginPath(); ctx.arc(sx, sy, size * 0.5, 0, Math.PI * 2); ctx.fill();
+      });
+
+      // Color burst rings at warp
+      if (frame > 50 && frame < 120) {
+        for (let i = 0; i < 3; i++) {
+          const r = ((frame - 50 + i * 20) % 60) * W / 60;
+          const alpha = 1 - r / W;
+          const colors = ['#29B6F6', '#E91E8C', '#FFD700'];
+          ctx.strokeStyle = colors[i % 3];
+          ctx.lineWidth = 3;
+          ctx.globalAlpha = alpha * 0.6;
+          ctx.beginPath(); ctx.arc(W/2, H/2, r, 0, Math.PI*2); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
       }
 
-      // Show phase text
-      const phase = phases.filter(p=>frame>=p.at).pop() || phases[0];
-      const scale = frame < 30 ? frame/30 : 1;
+      // Bright flash at arrival
+      if (frame > 140) {
+        const flashAlpha = Math.max(0, 1 - (frame - 140) / 25);
+        ctx.fillStyle = `rgba(255,255,255,${flashAlpha * 0.8})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // Phase text
+      const phase = phases.filter(p => frame >= p.at).pop() || phases[0];
+      const fadeIn = Math.min(1, (frame - phase.at) / 15);
+      const scale = 0.8 + fadeIn * 0.2;
       txt.innerHTML = `
-        <div style="font-size:${Math.min(5,2+t*3)}rem;animation:pulse 0.5s infinite;filter:drop-shadow(0 0 20px #FFD700)">${phase.icon}</div>
-        <div style="font-size:clamp(1.2rem,4vw,2rem);color:#FFD700;font-weight:900;margin:10px 0;text-shadow:0 0 30px #FFD700;opacity:${scale}">${phase.title}</div>
-        <div style="font-size:clamp(.8rem,2.5vw,1.1rem);color:rgba(255,255,255,.7);opacity:${scale}">${phase.sub}</div>
-        <div style="margin-top:20px;width:min(300px,80vw);height:6px;background:rgba(255,255,255,.2);border-radius:3px">
-          <div style="width:${(frame/TOTAL)*100}%;height:100%;background:linear-gradient(90deg,#27AE60,#FFD700,#00CFFF);border-radius:3px;transition:width .1s"></div>
-        </div>`;
+        <div style="font-size:clamp(3rem,12vw,6rem);transform:scale(${scale});filter:drop-shadow(0 0 30px ${phase.color})">
+          ${phase.icon}
+        </div>
+        <div style="font-size:clamp(1.2rem,4vw,2rem);color:${phase.color};font-weight:900;margin:10px 0;
+          text-shadow:0 0 30px ${phase.color};opacity:${fadeIn}">
+          ${phase.title}
+        </div>
+        ${frame > 100 ? `<div style="font-size:clamp(.9rem,3vw,1.2rem);color:rgba(255,255,255,.8);margin-top:8px;opacity:${Math.min(1,(frame-100)/20)}">
+          ${charEmoji} ${playerName} · 🌀 ${mtLeft.toFixed(1)} MT
+        </div>` : ''}
+      `;
 
       frame++;
-      if(frame < TOTAL + 30) {
-        requestAnimationFrame(animate);
-      } else {
+      if (frame >= totalFrames) {
+        cancelAnimationFrame(animId);
         ov.remove();
-        window.location.href = 'zoo.html?player=' + encodeURIComponent(playerName.toLowerCase());
+        window.location.href = 'zoo.html';
+        return;
       }
+      animId = requestAnimationFrame(loop);
     };
-    requestAnimationFrame(animate);
+    loop();
   },
 
   _teleportMusicCtx: null,
@@ -678,8 +720,13 @@ const App = {
       document.body.prepend(b);
     }, 600);
     const ch = this._char(player);
-    const _wsmt = player.worlds?.['1'] || player.worlds?.[1] || {};
-    const mt = (_wsmt.tasks || []).reduce((s, t) => s + (t && t.mt || 0), 0);
+    // Calculate total MT from LOCAL player data (most reliable)
+    let mt = 0;
+    try {
+      const _localForMt = State._local.get(player.name) || player;
+      const _wsmt = _localForMt.worlds?.['1'] || _localForMt.worlds?.[1] || {};
+      mt = (Array.isArray(_wsmt.tasks) ? _wsmt.tasks : []).reduce((s, t) => s + (t && typeof t.mt === 'number' ? t.mt : 0), 0);
+    } catch(_e) { mt = 0; }
 
     this._html(`
       <div class="mountain-bg" id="wm-bg">
@@ -1134,6 +1181,10 @@ const App = {
         <div class="game-container" style="margin:0;border-radius:8px">
           <div class="game-header">
             <div class="game-title">${task.icon} ${task.title}</div>
+            <!-- Portrait rotate hint (mobile only) -->
+            <div class="rotate-hint" style="display:none;background:rgba(255,165,0,.9);color:#000;padding:3px 8px;border-radius:6px;font-size:.72rem;font-weight:700;align-items:center;gap:4px">
+              📱↻ Querformat
+            </div>
             <div style="display:flex;gap:6px;align-items:center">
               <button onclick="App._toggleZoom()" id="zoom-btn"
                 style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:0.75rem;font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">
@@ -1300,6 +1351,31 @@ const App = {
     this._html(`<div style="text-align:center;padding:40px"><div style="font-size:3rem">✅</div><div style="margin-top:16px;font-weight:700">Meldung gesendet</div><div style="color:rgba(255,255,255,.5);margin-top:8px;font-size:.85rem">Danke für deine Meldung. Wir werden sie prüfen.</div><button onclick="App.showGlobalLeaderboard()" style="margin-top:20px;padding:10px 24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;cursor:pointer">Zurück</button></div>`);
   },
 
+  
+  _setupOrientationHandler() {
+    const handle = () => {
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const isMobile = window.innerWidth < 900;
+      document.body.classList.toggle('landscape-mode', isLandscape);
+      document.body.classList.toggle('portrait-mode', !isLandscape);
+      document.body.classList.toggle('mobile-device', isMobile);
+      // Resize canvases dynamically
+      document.querySelectorAll('#game-area canvas').forEach(cv => {
+        if(isLandscape && isMobile) {
+          cv.style.maxHeight = (window.innerHeight - 65) + 'px';
+          cv.style.width = 'auto';
+          cv.style.maxWidth = '100%';
+        } else {
+          cv.style.maxHeight = '';
+          cv.style.width = '100%';
+          cv.style.maxWidth = '';
+        }
+      });
+    };
+    window.addEventListener('resize', handle);
+    window.addEventListener('orientationchange', () => setTimeout(handle, 100));
+    handle(); // initial
+  },
   
   _toggleZoom() {
     const levels = [1, 1.25, 1.5, 1.75, 0.85];

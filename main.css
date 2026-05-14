@@ -1,4 +1,68 @@
 
+/* ========== LANDSCAPE / ORIENTATION SYSTEM ========== */
+
+/* Base: fluid font scaling based on viewport */
+:root {
+  --fluid-base: clamp(13px, 2.2vw, 17px);
+  --fluid-sm:   clamp(11px, 1.8vw, 14px);
+  --fluid-lg:   clamp(15px, 2.6vw, 20px);
+  --fluid-xl:   clamp(18px, 3.5vw, 28px);
+}
+body { font-size: var(--fluid-base); }
+
+/* Portrait on mobile: show rotate hint for GAMES only */
+@media (max-width: 600px) and (orientation: portrait) {
+  .game-container .rotate-hint { display: flex !important; }
+  /* Scale up game text in portrait */
+  .task-btn span { font-size: clamp(0.75rem, 3.5vw, 0.9rem) !important; }
+  .game-header .game-title { font-size: clamp(0.85rem, 3.5vw, 1rem) !important; }
+  #game-area { 
+    width: 100% !important;
+  }
+}
+
+/* Landscape on mobile: maximize game space */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mountain-bg { display: none !important; }
+  .page { padding: 0 !important; }
+  .game-container { margin: 0 !important; border-radius: 0 !important; }
+  .game-header { padding: 3px 8px !important; font-size: 0.78rem !important; }
+  #game-area canvas { 
+    max-height: calc(100dvh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    width: auto !important;
+  }
+  /* World map in landscape: side layout */
+  .world-map { flex-direction: row !important; flex-wrap: wrap !important; }
+  .world-item { flex: 1 1 45% !important; }
+}
+
+/* Auto-scale text based on viewport for all devices */
+.world-name { font-size: var(--fluid-lg) !important; }
+.world-desc { font-size: var(--fluid-sm) !important; }
+.world-progress { font-size: var(--fluid-sm) !important; }
+.banner-title { font-size: var(--fluid-xl) !important; }
+.btn { font-size: var(--fluid-base) !important; }
+
+/* Task grid: larger on all mobile */  
+@media (max-width: 600px) {
+  .task-grid { 
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+  .task-btn {
+    min-height: 66px !important;
+    font-size: clamp(0.72rem, 3vw, 0.85rem) !important;
+  }
+  .task-btn span:first-child { font-size: clamp(1.2rem, 5vw, 1.6rem) !important; }
+}
+
+/* Game area fills screen */
+#game-area {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Prevent game overflow on small screens */
 #game-area {
   max-height: calc(100dvh - 100px);
@@ -268,4 +332,32 @@ html {
 @media (max-width: 360px) {
   .task-btn { min-width: 48px !important; min-height: 48px !important; font-size: 0.65rem !important; }
   .task-grid { gap: 4px !important; }
+}
+
+/* Body mode classes set by JS */
+body.landscape-mode.mobile-device .mountain-bg { 
+  min-height: 60px !important; 
+  max-height: 80px !important;
+}
+body.landscape-mode.mobile-device .page { 
+  padding: 2px !important; 
+}
+body.landscape-mode.mobile-device .game-container { 
+  margin: 0 !important; 
+  padding: 4px !important;
+  border-radius: 4px !important;
+}
+body.landscape-mode.mobile-device .game-header { 
+  padding: 3px 6px !important; 
+  font-size: 0.75rem !important;
+}
+body.landscape-mode.mobile-device #game-area canvas {
+  max-height: calc(100dvh - 56px) !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: calc(100dvh - 56px) !important;
+}
+/* Landscape world map: 2 columns */
+body.landscape-mode.mobile-device .task-grid {
+  grid-template-columns: repeat(5, 1fr) !important;
 }

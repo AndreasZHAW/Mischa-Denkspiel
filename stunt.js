@@ -197,8 +197,8 @@ const StuntGame = {
       const camWX=car.wx-CAM_X;
       // === DRAW ===
       ctx.clearRect(0,0,W,H);
-      // Step 1: Fill entire canvas with terrain green (prevents ANY gap showing through)
-      ctx.fillStyle='#1e4008';
+      // Step 1: Fill entire canvas with sky color (base layer - no gaps possible)
+      ctx.fillStyle='#06001a';  // same as sky top color
       ctx.fillRect(0,0,W,H);
       // Step 2: Clip sky to area ABOVE terrain only
       ctx.save();
@@ -225,7 +225,7 @@ const StuntGame = {
 
       // Draw terrain surface (canvas base is already green from step 1)
       // Slightly darker green for terrain body
-      ctx.fillStyle='#1e4008';
+      ctx.fillStyle='#1a3a0a';  // proper dark green terrain
       ctx.beginPath();
       ctx.moveTo(-2, getTY(camWX-2));
       for(let sx=0; sx<=W+2; sx+=4){ ctx.lineTo(sx, getTY(camWX+sx)); }
