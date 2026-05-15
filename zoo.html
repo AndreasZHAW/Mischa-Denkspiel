@@ -30,7 +30,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 16px;width:100%;max-width:320px;cursor:pointer;text-align:center;margin-bottom:10px;transition:all .22s}
 .mc:hover{border-color:#FFD700;transform:translateY(-2px)}
 /* ZOO */
-#s-zoo{overflow:hidden;padding:0;background:#000;position:fixed;inset:0}
+#s-zoo{overflow:hidden;padding:0;background:#0a1a0a;position:fixed;inset:0}
 #zc{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:crosshair;z-index:1}
 /* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:110}
@@ -567,7 +567,11 @@ const ZA={
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
   _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS.char?.e||''} Hallo ${ZS.player}!`;},
-  async checkPrivate(){await ZS.load();if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
+  async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
+    const _ls = document.getElementById('zoo-load-status');
+    if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
+    await ZS.load();
+    if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     await ZS.load();
@@ -710,6 +714,16 @@ const ZG={
       document.body.appendChild(errDiv);
     }
     this._controls();
+    // Hide loading overlay
+    const _loadOv = document.getElementById('zoo-loading');
+    if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
+    // Hide loading overlay when loop starts
+    const _loadOvFinal = document.getElementById('zoo-loading');
+    if(_loadOvFinal) { 
+      const _lbF = document.getElementById('zoo-load-bar');
+      if(_lbF) _lbF.style.width='100%';
+      setTimeout(()=>{ _loadOvFinal.style.opacity='0'; _loadOvFinal.style.transition='opacity .5s'; setTimeout(()=>_loadOvFinal?.remove(),600); },300);
+    }
     this._raf=requestAnimationFrame(()=>this._loop());
     this._ivs.push(setInterval(()=>this._tick(),100));
     this._ivs.push(setInterval(()=>ZS.save(),15000));
@@ -1418,6 +1432,16 @@ const ZG={
 
   _carAngle:0,
   _loop(){
+    // Hide loading overlay
+    const _loadOv = document.getElementById('zoo-loading');
+    if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
+    // Hide loading overlay when loop starts
+    const _loadOvFinal = document.getElementById('zoo-loading');
+    if(_loadOvFinal) { 
+      const _lbF = document.getElementById('zoo-load-bar');
+      if(_lbF) _lbF.style.width='100%';
+      setTimeout(()=>{ _loadOvFinal.style.opacity='0'; _loadOvFinal.style.transition='opacity .5s'; setTimeout(()=>_loadOvFinal?.remove(),600); },300);
+    }
     this._raf=requestAnimationFrame(()=>this._loop());
     const dt=Math.min(this.clock.getDelta(),.05);
     this._move(dt); SECRETS.trackMovement();
@@ -2320,7 +2344,17 @@ const ZG={
     G('gint').style.display='none';
     // Restore sky color and restart main loop
     if(this.renderer)this.renderer.setClearColor(0x87CEEB,1);
-    if(!this._raf)this._raf=requestAnimationFrame(()=>this._loop());
+    if(!this._raf)// Hide loading overlay
+    const _loadOv = document.getElementById('zoo-loading');
+    if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
+    // Hide loading overlay when loop starts
+    const _loadOvFinal = document.getElementById('zoo-loading');
+    if(_loadOvFinal) { 
+      const _lbF = document.getElementById('zoo-load-bar');
+      if(_lbF) _lbF.style.width='100%';
+      setTimeout(()=>{ _loadOvFinal.style.opacity='0'; _loadOvFinal.style.transition='opacity .5s'; setTimeout(()=>_loadOvFinal?.remove(),600); },300);
+    }
+    this._raf=requestAnimationFrame(()=>this._loop());
     if(tp){ZP.toast('⏰ Zeit! Teleportiert zum Zoo.',3000);}
     this.pl.x=this.ZONES[0].x;this.pl.z=this.ZONES[0].z+14;
   },
@@ -5198,7 +5232,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       const autoStart = new URLSearchParams(window.location.search).get('autostart')==='1'
                      || localStorage.getItem('zoo_visited_'+ZS.player)==='1';
       if(autoStart) {
-        ZA.startZoo('public');
+        // Wait for THREE.js to be available (CDN might still be loading)
+        const waitForThree = (tries) => {
+          if(typeof THREE !== 'undefined') {
+            ZA.startZoo('public');
+          } else if(tries > 0) {
+            setTimeout(() => waitForThree(tries-1), 200);
+          } else {
+            ZA._showMode(); // fallback to manual start
+          }
+        };
+        waitForThree(20); // wait up to 4 seconds
       } else {
         ZA._showMode();
       }

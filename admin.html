@@ -6,488 +6,688 @@
 <title>🔧 Mischa Admin</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0a0a18; color: #e0e0f0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-.topbar { background: linear-gradient(135deg, #1a0030, #0d001f); border-bottom: 1px solid rgba(150,50,255,.3); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; }
-.topbar h1 { font-size: 1.1rem; font-weight: 800; color: #d4aaff; }
-.topbar small { color: rgba(255,255,255,.4); font-size: .72rem; }
-#admin-login { max-width: 380px; margin: 100px auto; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 32px; text-align: center; }
-#admin-login h2 { color: #d4aaff; margin-bottom: 20px; font-size: 1.4rem; }
-.inp { width: 100%; padding: 12px 14px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); border-radius: 10px; color: #fff; font-size: 1rem; margin-bottom: 12px; outline: none; transition: border .2s; }
-.inp:focus { border-color: rgba(150,50,255,.6); }
-.btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: .9rem; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; }
-.btn-primary { background: linear-gradient(135deg,#6c3483,#9b59b6); color: #fff; }
-.btn-primary:hover { filter: brightness(1.15); }
-.btn-green { background: linear-gradient(135deg,#1e8449,#27ae60); color: #fff; }
-.btn-red { background: linear-gradient(135deg,#c0392b,#e74c3c); color: #fff; }
-.btn-blue { background: linear-gradient(135deg,#1a5276,#2980b9); color: #fff; }
-.btn-orange { background: linear-gradient(135deg,#784212,#e67e22); color: #fff; }
-.btn-sm { padding: 6px 12px; font-size: .78rem; border-radius: 7px; }
-.btn-ghost { background: rgba(255,255,255,.06); color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.12); }
-.btn-ghost:hover { background: rgba(255,255,255,.1); }
-#main { display: none; }
-.tabs { display: flex; gap: 4px; padding: 12px 16px; background: rgba(0,0,0,.3); border-bottom: 1px solid rgba(255,255,255,.06); overflow-x: auto; }
-.tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.5); border: none; background: transparent; white-space: nowrap; transition: all .15s; }
-.tab.active { background: rgba(150,50,255,.25); color: #d4aaff; border: 1px solid rgba(150,50,255,.4); }
-.tab:hover:not(.active) { background: rgba(255,255,255,.06); color: #fff; }
-.panel { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
-.panel.active { display: block; }
-.card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
-.card-title { font-size: 1rem; font-weight: 700; color: #d4aaff; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-.player-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
-.player-row:last-child { border-bottom: none; }
-.player-name-big { font-size: 1rem; font-weight: 700; flex: 1; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: .7rem; font-weight: 700; }
-.badge-green { background: rgba(39,174,96,.2); color: #27AE60; border: 1px solid rgba(39,174,96,.3); }
-.badge-yellow { background: rgba(255,215,0,.2); color: #FFD700; border: 1px solid rgba(255,215,0,.3); }
-.badge-red { background: rgba(231,76,60,.2); color: #E74C3C; border: 1px solid rgba(231,76,60,.3); }
-.badge-blue { background: rgba(41,182,246,.2); color: #29B6F6; border: 1px solid rgba(41,182,246,.3); }
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; }
-.stat-box { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 14px; text-align: center; }
-.stat-val { font-size: 1.6rem; font-weight: 900; color: #d4aaff; }
-.stat-lbl { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 4px; }
-.form-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin-bottom: 10px; }
-.form-lbl { font-size: .78rem; color: rgba(255,255,255,.5); margin-bottom: 5px; }
-.msg-row { padding: 12px; background: rgba(255,255,255,.03); border-radius: 10px; margin-bottom: 8px; border-left: 3px solid rgba(150,50,255,.5); }
-.msg-row.warn { border-left-color: #E74C3C; }
-.msg-row.info { border-left-color: #29B6F6; }
-.report-row { padding: 12px; background: rgba(231,76,60,.05); border: 1px solid rgba(231,76,60,.15); border-radius: 10px; margin-bottom: 8px; }
-.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #d4aaff; border-radius: 50%; animation: spin .6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.status { padding: 10px 14px; border-radius: 8px; font-size: .85rem; margin-top: 10px; }
-.status.ok { background: rgba(39,174,96,.15); border: 1px solid rgba(39,174,96,.3); color: #27AE60; }
-.status.err { background: rgba(231,76,60,.15); border: 1px solid rgba(231,76,60,.3); color: #E74C3C; }
-#loading-overlay { position: fixed; inset: 0; background: rgba(10,10,24,.95); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; z-index: 9999; }
+body { background: #0d0d1a; color: #e0e0f0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; font-size: 14px; }
+
+/* TOP BAR */
+.topbar { background: linear-gradient(135deg,#1a0030,#0d001f); border-bottom: 1px solid rgba(150,50,255,.3); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top:0; z-index:100; }
+.topbar h1 { font-size:1rem; font-weight:800; color:#d4aaff; }
+.topbar-right { display:flex; gap:8px; align-items:center; }
+
+/* TABS */
+.tabs { display:flex; gap:3px; padding:10px 12px; background:rgba(0,0,0,.3); border-bottom:1px solid rgba(255,255,255,.06); overflow-x:auto; flex-wrap:nowrap; }
+.tab { padding:7px 14px; border-radius:7px; cursor:pointer; font-size:.82rem; font-weight:600; color:rgba(255,255,255,.5); border:1px solid transparent; background:transparent; white-space:nowrap; transition:all .15s; }
+.tab.active { background:rgba(150,50,255,.22); color:#d4aaff; border-color:rgba(150,50,255,.4); }
+.tab:hover:not(.active) { background:rgba(255,255,255,.07); color:#fff; }
+
+/* PANELS */
+.panel { display:none; padding:16px; max-width:860px; margin:0 auto; }
+.panel.active { display:block; }
+
+/* CARDS */
+.card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px; margin-bottom:14px; }
+.card-title { font-size:.95rem; font-weight:700; color:#d4aaff; margin-bottom:12px; }
+
+/* FORMS */
+.inp { width:100%; padding:10px 12px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.15); border-radius:8px; color:#fff; font-size:.88rem; margin-bottom:8px; outline:none; }
+.inp:focus { border-color:rgba(150,50,255,.6); }
+label { font-size:.78rem; color:rgba(255,255,255,.5); display:block; margin-bottom:4px; }
+
+/* BUTTONS */
+.btn { padding:9px 18px; border:none; border-radius:8px; font-size:.85rem; font-weight:700; cursor:pointer; transition:all .15s; }
+.btn-primary { background:linear-gradient(135deg,#6c3483,#9b59b6); color:#fff; }
+.btn-green { background:linear-gradient(135deg,#1a6b3a,#27ae60); color:#fff; }
+.btn-red { background:linear-gradient(135deg,#922b21,#e74c3c); color:#fff; }
+.btn-blue { background:linear-gradient(135deg,#1a4a72,#2980b9); color:#fff; }
+.btn-orange { background:linear-gradient(135deg,#784212,#e67e22); color:#fff; }
+.btn-sm { padding:5px 11px; font-size:.76rem; border-radius:6px; }
+.btn-ghost { background:rgba(255,255,255,.07); color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.12); }
+.btn-ghost:hover { background:rgba(255,255,255,.12); }
+.btn:hover { filter:brightness(1.12); }
+
+/* TABLES */
+.data-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+.data-table th { padding:8px 10px; text-align:left; color:rgba(255,255,255,.5); font-weight:600; border-bottom:1px solid rgba(255,255,255,.08); font-size:.76rem; }
+.data-table td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:middle; }
+.data-table tr:hover td { background:rgba(255,255,255,.025); }
+
+/* STAT BOXES */
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:16px; }
+.stat-box { background:rgba(150,50,255,.08); border:1px solid rgba(150,50,255,.2); border-radius:10px; padding:14px; text-align:center; }
+.stat-val { font-size:1.6rem; font-weight:900; color:#d4aaff; }
+.stat-lbl { font-size:.7rem; color:rgba(255,255,255,.45); margin-top:3px; }
+
+/* BADGE */
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.7rem; font-weight:700; }
+.badge-green { background:rgba(39,174,96,.2); color:#27AE60; border:1px solid rgba(39,174,96,.3); }
+.badge-red { background:rgba(231,76,60,.2); color:#E74C3C; border:1px solid rgba(231,76,60,.3); }
+.badge-yellow { background:rgba(255,215,0,.2); color:#FFD700; border:1px solid rgba(255,215,0,.3); }
+.badge-blue { background:rgba(41,182,246,.2); color:#29B6F6; border:1px solid rgba(41,182,246,.3); }
+.badge-gray { background:rgba(255,255,255,.08); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.1); }
+
+/* STATUS */
+.status-ok { padding:10px 14px; border-radius:8px; background:rgba(39,174,96,.15); border:1px solid rgba(39,174,96,.35); color:#27AE60; font-size:.85rem; margin-top:8px; }
+.status-err { padding:10px 14px; border-radius:8px; background:rgba(231,76,60,.15); border:1px solid rgba(231,76,60,.35); color:#E74C3C; font-size:.85rem; margin-top:8px; }
+
+/* OTHER */
+.spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.2); border-top-color:#d4aaff; border-radius:50%; animation:spin .6s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.sep { height:1px; background:rgba(255,255,255,.07); margin:12px 0; }
+.row { display:flex; gap:8px; align-items:center; }
+textarea.inp { resize:vertical; min-height:80px; }
+
+/* LOGIN */
+#login-wrap { max-width:360px; margin:80px auto; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:28px; text-align:center; }
+#login-wrap h2 { color:#d4aaff; margin-bottom:18px; }
 </style>
 </head>
 <body>
-<!-- Loading -->
-<div id="loading-overlay">
-  <div style="font-size:2rem">🔧</div>
-  <div style="color:#d4aaff;font-size:1rem">Firebase laden...</div>
-  <div class="spinner"></div>
-</div>
 
-<!-- Login -->
-<div id="admin-login">
+<!-- LOGIN -->
+<div id="login-wrap">
   <h2>🔒 Admin-Zugang</h2>
-  <input type="password" id="pw-inp" class="inp" placeholder="Admin-Passwort" onkeydown="if(event.key==='Enter')checkPw()">
-  <button class="btn btn-primary" style="width:100%" onclick="checkPw()">🔓 Anmelden</button>
-  <div id="pw-err" style="color:#E74C3C;font-size:.82rem;margin-top:8px"></div>
+  <input type="password" id="pw" class="inp" placeholder="Passwort" onkeydown="if(event.key==='Enter')doLogin()">
+  <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="doLogin()">Anmelden</button>
+  <div id="pw-err" style="color:#E74C3C;font-size:.8rem;margin-top:8px"></div>
 </div>
 
-<!-- Main -->
-<div id="main">
+<!-- ADMIN MAIN -->
+<div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin</h1>
-      <small id="admin-status">Lädt...</small>
+      <h1>🔧 Mischa Admin Panel</h1>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-sm btn-ghost" onclick="loadAll()">🔄 Neu laden</button>
+    <div class="topbar-right">
+      <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
+      <button class="btn btn-sm btn-ghost" onclick="reloadAll()">🔄</button>
       <a href="index.html" class="btn btn-sm btn-ghost">← Spiel</a>
     </div>
   </div>
-  
+
   <div class="tabs">
-    <button class="tab active" data-tab="players" onclick="showTab('players')">👥 Spieler</button>
-    <button class="tab" data-tab="messages" onclick="showTab('messages')">💬 Nachrichten</button>
-    <button class="tab" data-tab="bans" onclick="showTab('bans')">🚫 Sperren</button>
-    <button class="tab" data-tab="reports" onclick="showTab('reports')">🚨 Meldungen</button>
-    <button class="tab" data-tab="calibration" onclick="showTab('calibration')">📊 Kalibrierung</button>
-    <button class="tab" data-tab="danger" onclick="showTab('danger')">⚠️ Reset</button>
+    <button class="tab active" onclick="tab('players')">👥 Spieler</button>
+    <button class="tab" onclick="tab('cal')">📊 Kalibrierung</button>
+    <button class="tab" onclick="tab('msg')">💬 Nachrichten</button>
+    <button class="tab" onclick="tab('ban')">🚫 Sperren</button>
+    <button class="tab" onclick="tab('reports')">🚨 Meldungen</button>
+    <button class="tab" onclick="tab('reset')">⚠️ Reset</button>
   </div>
-  
-  <!-- PLAYERS TAB -->
-  <div id="tab-players" class="panel active">
-    <div class="stat-grid" id="player-stats">
-      <div class="stat-box"><div class="stat-val" id="stat-count">–</div><div class="stat-lbl">Spieler gesamt</div></div>
-      <div class="stat-box"><div class="stat-val" id="stat-active">–</div><div class="stat-lbl">Aktiv (7 Tage)</div></div>
-      <div class="stat-box"><div class="stat-val" id="stat-avg-mt">–</div><div class="stat-lbl">Ø MT</div></div>
-      <div class="stat-box"><div class="stat-val" id="stat-top-mt">–</div><div class="stat-lbl">Top MT</div></div>
+
+  <!-- ═══ SPIELER ═══ -->
+  <div id="p-players" class="panel active">
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" id="s-total">–</div><div class="stat-lbl">Spieler</div></div>
+      <div class="stat-box"><div class="stat-val" id="s-active">–</div><div class="stat-lbl">Aktiv (7d)</div></div>
+      <div class="stat-box"><div class="stat-val" id="s-avgmt">–</div><div class="stat-lbl">Ø MT</div></div>
+      <div class="stat-box"><div class="stat-val" id="s-topmt">–</div><div class="stat-lbl">Top MT</div></div>
     </div>
-    <div class="card" style="margin-top:16px">
-      <div class="card-title">👥 Alle Spieler <span id="player-loading" class="spinner"></span></div>
-      <div id="players-list"></div>
-    </div>
-  </div>
-  
-  <!-- MESSAGES TAB -->
-  <div id="tab-messages" class="panel">
     <div class="card">
-      <div class="card-title">📢 Nachricht senden</div>
-      <div>
-        <div class="form-lbl">Empfänger (leer = alle Spieler)</div>
-        <input id="msg-target" class="inp" placeholder="Spielername (optional)" style="margin-bottom:10px">
-        <div class="form-lbl">Nachrichtentyp</div>
-        <select id="msg-type" class="inp" style="margin-bottom:10px">
-          <option value="info">ℹ️ Info (blau)</option>
-          <option value="warn">⚠️ Warnung (gelb)</option>
-          <option value="broadcast">📢 Ankündigung (grün)</option>
-        </select>
-        <div class="form-lbl">Nachricht</div>
-        <textarea id="msg-text" class="inp" rows="3" placeholder="Nachricht eingeben..."></textarea>
-        <button class="btn btn-green" style="width:100%;margin-top:10px" onclick="sendMessage()">📤 Nachricht senden</button>
-        <div id="msg-status"></div>
+      <div class="card-title">👥 Alle Spieler <span id="pl-spin" class="spin" style="margin-left:8px"></span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th>Name</th><th>MT</th><th>Tasks</th><th>Welt</th><th>Zuletzt aktiv</th><th>Aktionen</th>
+          </tr></thead>
+          <tbody id="players-tbody"></tbody>
+        </table>
       </div>
     </div>
+  </div>
+
+  <!-- ═══ KALIBRIERUNG ═══ -->
+  <div id="p-cal" class="panel">
+    <div class="card">
+      <div class="card-title">📊 Kalibrierungsdaten <span id="cal-spin" class="spin" style="margin-left:8px"></span></div>
+      <div id="cal-table"></div>
+      <div class="sep"></div>
+      <div class="row">
+        <button class="btn btn-blue btn-sm" onclick="exportCal()">📥 Export JSON</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadCal()">🔄 Neu laden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ NACHRICHTEN ═══ -->
+  <div id="p-msg" class="panel">
+    <div class="card">
+      <div class="card-title">📤 Nachricht senden</div>
+      
+      <label>Empfänger (leer = alle Spieler)</label>
+      <div class="row" style="margin-bottom:8px">
+        <input id="msg-target" class="inp" placeholder="Spielername oder leer lassen" style="margin:0;flex:1">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('msg-target').value=''">Alle</button>
+      </div>
+
+      <label>Typ</label>
+      <select id="msg-type" class="inp" style="margin-bottom:8px">
+        <option value="info">ℹ️ Info (blau)</option>
+        <option value="warn">⚠️ Warnung (gelb)</option>
+        <option value="broadcast">📢 Ankündigung (grün)</option>
+      </select>
+
+      <label>Nachricht</label>
+      <textarea id="msg-text" class="inp" placeholder="Nachricht eingeben..."></textarea>
+
+      <button class="btn btn-green" style="width:100%;margin-top:6px" onclick="sendMsg()">
+        📤 Nachricht senden
+      </button>
+      <div id="msg-result"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">📋 Gesendete Nachrichten</div>
-      <div id="msg-list"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Lädt...</div></div>
+      <div id="msg-list"><span class="spin"></span></div>
     </div>
   </div>
-  
-  <!-- BANS TAB -->
-  <div id="tab-bans" class="panel">
+
+  <!-- ═══ SPERREN ═══ -->
+  <div id="p-ban" class="panel">
     <div class="card">
       <div class="card-title">🚫 Spieler sperren</div>
-      <div>
-        <div class="form-lbl">Spielername</div>
-        <input id="ban-name" class="inp" placeholder="Spielername" style="margin-bottom:10px">
-        <div class="form-lbl">Sperrdauer</div>
-        <select id="ban-dur" class="inp" style="margin-bottom:10px">
-          <option value="3600000">1 Stunde</option>
-          <option value="86400000">24 Stunden</option>
-          <option value="604800000" selected>7 Tage</option>
-          <option value="2592000000">30 Tage</option>
-          <option value="-1">Permanent</option>
-        </select>
-        <div class="form-lbl">Grund (optional)</div>
-        <input id="ban-reason" class="inp" placeholder="Grund für Sperre" style="margin-bottom:10px">
-        <button class="btn btn-red" style="width:100%" onclick="banPlayer()">🚫 Spieler sperren</button>
-        <div id="ban-status"></div>
-      </div>
+
+      <label>Spielername *</label>
+      <input id="ban-name" class="inp" placeholder="Spielername eingeben">
+
+      <label>Sperrdauer *</label>
+      <select id="ban-dur" class="inp">
+        <option value="3600000">⏱ 1 Stunde</option>
+        <option value="10800000">⏱ 3 Stunden</option>
+        <option value="86400000">📅 1 Tag (24h)</option>
+        <option value="259200000">📅 3 Tage</option>
+        <option value="604800000" selected>📅 7 Tage</option>
+        <option value="1209600000">📅 14 Tage</option>
+        <option value="2592000000">📅 30 Tage</option>
+        <option value="-1">🚫 Permanent</option>
+      </select>
+
+      <label>Grund (wird dem Spieler gezeigt)</label>
+      <input id="ban-reason" class="inp" placeholder="z.B. Unangemessenes Verhalten">
+
+      <button class="btn btn-red" style="width:100%;margin-top:4px" onclick="doBan()">
+        🚫 Spieler sperren
+      </button>
+      <div id="ban-result"></div>
     </div>
+
     <div class="card">
-      <div class="card-title">📋 Gesperrte Spieler</div>
-      <div id="bans-list"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Lädt...</div></div>
+      <div class="card-title">📋 Gesperrte Spieler <span id="ban-spin" class="spin" style="margin-left:8px"></span></div>
+      <div id="ban-list"></div>
     </div>
   </div>
-  
-  <!-- REPORTS TAB -->
-  <div id="tab-reports" class="panel">
+
+  <!-- ═══ MELDUNGEN ═══ -->
+  <div id="p-reports" class="panel">
     <div class="card">
-      <div class="card-title">🚨 Spieler-Meldungen <span id="reports-loading" class="spinner"></span></div>
-      <div id="reports-list"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Lädt...</div></div>
+      <div class="card-title">🚨 Spieler-Meldungen <span id="rep-spin" class="spin" style="margin-left:8px"></span></div>
+      <div id="rep-list"></div>
     </div>
   </div>
-  
-  <!-- CALIBRATION TAB -->
-  <div id="tab-calibration" class="panel">
-    <div class="card">
-      <div class="card-title">📊 Kalibrierungs-Daten <span id="cal-loading" class="spinner"></span></div>
-      <div id="cal-list"></div>
-    </div>
-  </div>
-  
-  <!-- DANGER TAB -->
-  <div id="tab-danger" class="panel">
+
+  <!-- ═══ RESET ═══ -->
+  <div id="p-reset" class="panel">
     <div class="card" style="border-color:rgba(231,76,60,.3)">
-      <div class="card-title" style="color:#E74C3C">⚠️ Gefährliche Aktionen</div>
-      <p style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:16px">Diese Aktionen können nicht rückgängig gemacht werden!</p>
-      <button class="btn btn-red" onclick="resetCalibration()">🗑️ Kalibrierung zurücksetzen</button>
-      <p style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Löscht alle Spieler-Kalibrierungsdaten und Punktestände</p>
+      <div class="card-title" style="color:#E74C3C">⚠️ Zurücksetzen</div>
+      <p style="font-size:.83rem;color:rgba(255,255,255,.5);margin-bottom:14px">
+        Diese Aktionen können NICHT rückgängig gemacht werden!
+      </p>
+      <button class="btn btn-red" onclick="doResetCal()">🗑️ Kalibrierung + Scores zurücksetzen</button>
+      <p style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:6px">
+        Löscht cal_data_v3 localStorage und setzt totalScore auf 0 in Firebase
+      </p>
     </div>
   </div>
 </div>
 
-<!-- Firebase + Admin JS -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script>
-const ADMIN_PW = 'mischa2026';
-const FB_CONFIG = {
+// ═══ FIREBASE SETUP ═══
+// Load Firebase v8 compatible (same as index.html approach)
+const FB = {
   apiKey: "AIzaSyBECgS_DLTmLTXABeyFQ2rNKISFyf6jwlE",
   authDomain: "mischa-denkspiel.firebaseapp.com",
   projectId: "mischa-denkspiel"
 };
+const ADMIN_PW = 'mischa2026';
 
-let db, allPlayers = [];
+let _db = null;
+let _players = [];
 
-// Init Firebase
-try {
-  firebase.initializeApp(FB_CONFIG);
-  db = firebase.firestore();
-  document.getElementById('loading-overlay').style.display = 'none';
-} catch(e) {
-  document.getElementById('loading-overlay').innerHTML = '<div style="color:#E74C3C">Firebase Fehler: '+e.message+'</div>';
-}
-
-function checkPw() {
-  const pw = document.getElementById('pw-inp').value;
-  if(pw === ADMIN_PW || pw === 'mischa2024' || pw === 'admin') {
-    document.getElementById('admin-login').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    loadAll();
-  } else {
-    document.getElementById('pw-err').textContent = '❌ Falsches Passwort';
-    document.getElementById('pw-inp').style.border = '1px solid #E74C3C';
+// Dynamic Firebase load - same pattern as index.html
+function loadFirebase(cb) {
+  if(window.firebase && window.firebase.firestore) {
+    try { firebase.app(); } catch(e) { firebase.initializeApp(FB); }
+    _db = firebase.firestore();
+    if(cb) cb();
+    return;
   }
+  // Load scripts dynamically
+  const s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+  s1.onload = () => {
+    const s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
+    s2.onload = () => {
+      try { firebase.app(); } catch(e) { firebase.initializeApp(FB); }
+      _db = firebase.firestore();
+      setStatus('Firebase bereit');
+      if(cb) cb();
+    };
+    s2.onerror = () => setStatus('❌ Firestore lädt nicht');
+    document.head.appendChild(s2);
+  };
+  s1.onerror = () => setStatus('❌ Firebase lädt nicht');
+  document.head.appendChild(s1);
 }
 
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+// ═══ UI HELPERS ═══
+function setStatus(txt) {
+  const el = document.getElementById('status-txt');
+  if(el) el.textContent = txt;
+}
+function tab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['players','cal','msg','ban','reports','reset'][i]===name));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
+  const el = document.getElementById('p-'+name);
+  if(el) el.classList.add('active');
+  // Load data for the tab
+  if(name==='players') loadPlayers();
+  if(name==='cal') loadCal();
+  if(name==='msg') loadMsgs();
+  if(name==='ban') loadBans();
+  if(name==='reports') loadReports();
 }
-
-function getMT(player) {
+function showResult(elId, ok, msg) {
+  const el = document.getElementById(elId);
+  if(el) { el.className = ok ? 'status-ok' : 'status-err'; el.textContent = msg; }
+}
+function stopSpin(id) {
+  const el = document.getElementById(id);
+  if(el) el.style.display = 'none';
+}
+function getMT(p) {
   try {
-    const ws = player.worlds?.['1'] || player.worlds?.[1] || {};
+    const ws = p.worlds?.['1'] || p.worlds?.[1] || {};
     return (ws.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
   } catch(e) { return 0; }
 }
-
-async function loadAll() {
-  document.getElementById('admin-status').textContent = 'Lädt Daten...';
-  await Promise.all([loadPlayers(), loadMessages(), loadBans(), loadReports(), loadCalibration()]);
-  document.getElementById('admin-status').textContent = 'Bereit · ' + new Date().toLocaleTimeString('de-CH');
+function fmt(ts) {
+  if(!ts) return '–';
+  return new Date(ts).toLocaleDateString('de-CH', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function fmtDate(ts) {
+  if(!ts) return '–';
+  return new Date(ts).toLocaleDateString('de-CH');
 }
 
-async function loadPlayers() {
-  const el = document.getElementById('players-list');
-  const spin = document.getElementById('player-loading');
-  spin.style.display = 'inline-block';
-  try {
-    const snap = await db.collection('mischa_players').get();
-    allPlayers = [];
-    snap.forEach(doc => allPlayers.push({id:doc.id,...doc.data()}));
-    // Merge with localStorage
-    try {
-      const local = JSON.parse(localStorage.getItem('mischa_players')||'{}');
-      Object.entries(local).forEach(([k,v]) => {
-        if(!allPlayers.find(p=>p.name===k)) allPlayers.push({...v,name:k,_local:true});
-      });
-    } catch(e){}
-    allPlayers.sort((a,b) => getMT(b)-getMT(a));
-    
-    // Stats
-    const week = Date.now()-7*24*3600000;
-    document.getElementById('stat-count').textContent = allPlayers.length;
-    document.getElementById('stat-active').textContent = allPlayers.filter(p=>p.updatedAt>week).length;
-    const mts = allPlayers.map(p=>getMT(p)).filter(m=>m>0);
-    document.getElementById('stat-avg-mt').textContent = mts.length ? (mts.reduce((a,b)=>a+b,0)/mts.length).toFixed(1) : '0';
-    document.getElementById('stat-top-mt').textContent = mts.length ? Math.max(...mts).toFixed(1) : '0';
-    
-    el.innerHTML = allPlayers.map(p => {
-      const mt = getMT(p);
-      const lastSeen = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('de-CH') : '?';
-      const world = p.currentWorld||1;
-      const done = (() => { try { return (p.worlds?.['1']?.tasks||[]).filter(t=>t&&t.done).length; } catch(e){return 0;} })();
-      return `<div class="player-row">
-        <span style="font-size:1.4rem">${p.character?'🧑':'👤'}</span>
-        <div style="flex:1;min-width:0">
-          <div class="player-name-big">${p.name||p.id}</div>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.4)">Welt ${world} · ${done}/20 Tasks · Zuletzt: ${lastSeen}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-weight:900;color:#FFD700">🌀${mt.toFixed(1)} MT</div>
-          <div style="display:flex;gap:4px;margin-top:4px">
-            <button class="btn btn-sm btn-blue" onclick="sendTo('${p.name||p.id}')">💬</button>
-            <button class="btn btn-sm btn-red" onclick="banQuick('${p.name||p.id}')">🚫</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('') || '<div style="color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>';
-  } catch(e) { el.innerHTML = '<div class="status err">Fehler: '+e.message+'</div>'; }
-  spin.style.display = 'none';
-}
-
-function sendTo(name) {
-  document.getElementById('msg-target').value = name;
-  showTab('messages');
-}
-function banQuick(name) {
-  document.getElementById('ban-name').value = name;
-  showTab('bans');
-}
-
-async function sendMessage() {
-  const target = document.getElementById('msg-target').value.trim().toLowerCase();
-  const text = document.getElementById('msg-text').value.trim();
-  const type = document.getElementById('msg-type').value;
-  const status = document.getElementById('msg-status');
-  if(!text) { status.className='status err'; status.textContent='❌ Nachrichtentext fehlt'; return; }
-  
-  status.innerHTML = '<div class="spinner"></div> Sendet...';
-  const msgData = { text, type, ts: Date.now(), id: Date.now().toString(), from:'admin', target: target||'all', expiresAt: Date.now()+86400000*7 };
-  
-  try {
-    if(target) {
-      // Direct message to specific player
-      await db.collection('player_messages').doc(target+'_'+msgData.id).set(msgData);
-      status.className='status ok'; status.textContent='✅ Nachricht an "'+target+'" gesendet!';
-    } else {
-      // Broadcast to all
-      await db.collection('mischa_broadcasts').doc(msgData.id).set(msgData);
-      await db.collection('config').doc('broadcast').set({...msgData, updatedAt:Date.now()});
-      localStorage.setItem('mischa_broadcast', JSON.stringify(msgData));
-      status.className='status ok'; status.textContent='✅ Broadcast an alle Spieler gesendet!';
-    }
-    document.getElementById('msg-text').value='';
-    document.getElementById('msg-target').value='';
-    await loadMessages();
-  } catch(e) { status.className='status err'; status.textContent='❌ Fehler: '+e.message; }
-}
-
-async function loadMessages() {
-  const el = document.getElementById('msg-list');
-  try {
-    const snap = await db.collection('mischa_broadcasts').orderBy('ts','desc').limit(20).get();
-    if(snap.empty) { el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.85rem">Noch keine Nachrichten</div>'; return; }
-    const msgs = [];
-    snap.forEach(doc => msgs.push({id:doc.id,...doc.data()}));
-    el.innerHTML = msgs.map(m => `
-      <div class="msg-row ${m.type||'info'}">
-        <div style="display:flex;justify-content:space-between;align-items:start">
-          <span style="font-size:.72rem;color:rgba(255,255,255,.4)">${new Date(m.ts||0).toLocaleString('de-CH')} · ${m.target||'alle'}</span>
-          <span class="badge ${m.type==='warn'?'badge-red':m.type==='broadcast'?'badge-green':'badge-blue'}">${m.type||'info'}</span>
-        </div>
-        <div style="margin-top:6px;font-size:.88rem">${m.text||''}</div>
-      </div>`).join('');
-  } catch(e) {
-    // Try without orderBy if index missing
-    try {
-      const snap2 = await db.collection('mischa_broadcasts').limit(20).get();
-      const msgs = []; snap2.forEach(doc => msgs.push({id:doc.id,...doc.data()}));
-      el.innerHTML = msgs.map(m => `<div class="msg-row"><div style="font-size:.88rem">${m.text||''}</div></div>`).join('') || '<div style="color:rgba(255,255,255,.4)">Keine</div>';
-    } catch(e2) { el.innerHTML='<div class="status err">Fehler: '+e2.message+'</div>'; }
+// ═══ LOGIN ═══
+function doLogin() {
+  const pw = document.getElementById('pw').value;
+  if(pw === ADMIN_PW || pw === 'mischa2024' || pw === 'admin') {
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('admin-wrap').style.display = 'block';
+    loadFirebase(() => {
+      setStatus('Firebase verbunden');
+      loadPlayers();
+      loadMsgs();
+      loadBans();
+      loadReports();
+    });
+  } else {
+    document.getElementById('pw-err').textContent = '❌ Falsches Passwort';
   }
 }
+document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-async function banPlayer() {
-  const name = document.getElementById('ban-name').value.trim().toLowerCase();
-  const dur = parseInt(document.getElementById('ban-dur').value);
-  const reason = document.getElementById('ban-reason').value.trim();
-  const status = document.getElementById('ban-status');
-  if(!name) { status.className='status err'; status.textContent='❌ Spielername fehlt'; return; }
+function reloadAll() {
+  loadPlayers(); loadMsgs(); loadBans(); loadReports(); loadCal();
+  setStatus('Geladen: '+new Date().toLocaleTimeString('de-CH'));
+}
+
+// ═══ SPIELER ═══
+async function loadPlayers() {
+  const tbody = document.getElementById('players-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px"><span class="spin"></span></td></tr>';
   
-  status.innerHTML = '<div class="spinner"></div> Sperrt...';
-  const perm = dur===-1;
-  const banData = { name, bannedAt:Date.now(), reason: reason||'Kein Grund angegeben', permanent:perm, expiresAt:perm?null:Date.now()+dur };
+  _players = [];
+  
+  // Load from localStorage first (instant)
   try {
-    await db.collection('banned_players').doc(name).set(banData);
-    // Notify player
-    await db.collection('player_messages').doc(name+'_ban_'+Date.now()).set({
-      type:'ban_warn', target:name,
-      text:'🚫 Du wurdest gesperrt'+(perm?' permanent':' bis: '+new Date(banData.expiresAt).toLocaleString('de-CH'))+(reason?'\nGrund: '+reason:''),
-      ts:Date.now(), id:Date.now().toString()
-    });
-    status.className='status ok'; status.textContent='✅ Spieler "'+name+'" gesperrt!';
-    document.getElementById('ban-name').value='';
-    document.getElementById('ban-reason').value='';
-    await loadBans();
-  } catch(e) { status.className='status err'; status.textContent='❌ Fehler: '+e.message; }
-}
-
-async function loadBans() {
-  const el = document.getElementById('bans-list');
-  try {
-    const snap = await db.collection('banned_players').get();
-    if(snap.empty) { el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.85rem">Keine gesperrten Spieler</div>'; return; }
-    const bans = [];
-    snap.forEach(doc => bans.push({id:doc.id,...doc.data()}));
-    el.innerHTML = bans.map(b => {
-      const exp = b.permanent?'Permanent':new Date(b.expiresAt||0).toLocaleString('de-CH');
-      const expired = !b.permanent && b.expiresAt < Date.now();
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(231,76,60,${expired?.03:.06});border-radius:8px;margin-bottom:6px;border:1px solid rgba(231,76,60,${expired?.1:.2})">
-        <div style="flex:1">
-          <span style="font-weight:700">${b.name}</span>
-          <span class="badge ${expired?'badge-green':'badge-red'}" style="margin-left:6px">${expired?'Abgelaufen':'Aktiv'}</span>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:2px">${b.reason||''} · bis: ${exp}</div>
+    const local = JSON.parse(localStorage.getItem('mischa_players')||'{}');
+    Object.entries(local).forEach(([k,v]) => _players.push({...v, name:k, _src:'local'}));
+  } catch(e) {}
+  
+  // Load from Firebase
+  if(_db) {
+    try {
+      const snap = await _db.collection('mischa_players').get();
+      snap.forEach(doc => {
+        const d = {id:doc.id, ...doc.data(), _src:'cloud'};
+        const existing = _players.findIndex(p => (p.name||p.id)?.toLowerCase() === d.id?.toLowerCase());
+        if(existing >= 0) {
+          // Merge: use whichever has more MT
+          const localMT = getMT(_players[existing]);
+          const cloudMT = getMT(d);
+          if(cloudMT > localMT) _players[existing] = d;
+          else _players[existing]._src = 'both';
+        } else {
+          _players.push(d);
+        }
+      });
+    } catch(e) { setStatus('Firebase Fehler: '+e.message); }
+  }
+  
+  _players.sort((a,b) => getMT(b)-getMT(a));
+  
+  // Stats
+  const week = Date.now()-7*24*3600*1000;
+  const mts = _players.map(p=>getMT(p));
+  document.getElementById('s-total').textContent = _players.length;
+  document.getElementById('s-active').textContent = _players.filter(p=>p.updatedAt>week).length;
+  document.getElementById('s-avgmt').textContent = mts.length ? (mts.reduce((a,b)=>a+b,0)/mts.length).toFixed(1) : '0';
+  document.getElementById('s-topmt').textContent = mts.length ? Math.max(...mts).toFixed(1) : '0';
+  
+  stopSpin('pl-spin');
+  
+  if(!_players.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,.4);padding:20px">Keine Spieler gefunden</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = _players.map(p => {
+    const name = p.name || p.id || '?';
+    const mt = getMT(p);
+    const done = (() => { try { return (p.worlds?.['1']?.tasks||p.worlds?.[1]?.tasks||[]).filter(t=>t&&t.done).length; } catch(e){return 0;} })();
+    const world = p.currentWorld || 1;
+    const lastSeen = fmtDate(p.updatedAt);
+    const srcBadge = p._src==='cloud' ? '<span class="badge badge-blue">☁️</span>' : p._src==='both' ? '<span class="badge badge-green">✓</span>' : '<span class="badge badge-gray">📱</span>';
+    return `<tr>
+      <td><b>${name}</b> ${srcBadge}</td>
+      <td><b style="color:#FFD700">🌀${mt.toFixed(1)}</b></td>
+      <td>${done}/20</td>
+      <td>${world}</td>
+      <td style="color:rgba(255,255,255,.5)">${lastSeen}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm btn-blue" onclick="quickMsg('${name}')">💬</button>
+          <button class="btn btn-sm btn-red" onclick="quickBan('${name}')">🚫</button>
         </div>
-        <button class="btn btn-sm btn-ghost" onclick="unban('${b.id}')">🔓 Entsperren</button>
-      </div>`;
-    }).join('');
-  } catch(e) { el.innerHTML='<div class="status err">Fehler: '+e.message+'</div>'; }
+      </td>
+    </tr>`;
+  }).join('');
 }
 
-async function unban(name) {
-  if(!confirm('Sperre für "'+name+'" aufheben?')) return;
-  await db.collection('banned_players').doc(name).delete();
-  await loadBans();
-}
+function quickMsg(name) { tab('msg'); document.getElementById('msg-target').value=name; }
+function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=name; }
 
-async function loadReports() {
-  const el = document.getElementById('reports-list');
-  const spin = document.getElementById('reports-loading');
-  spin.style.display = 'inline-block';
+// ═══ KALIBRIERUNG ═══
+function loadCal() {
+  stopSpin('cal-spin');
+  const el = document.getElementById('cal-table');
+  if(!el) return;
   try {
-    const snap = await db.collection('player_reports').get();
-    if(snap.empty) { el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.85rem">✅ Keine Meldungen</div>'; spin.style.display='none'; return; }
-    const reports = [];
-    snap.forEach(doc => reports.push({id:doc.id,...doc.data()}));
-    reports.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    el.innerHTML = reports.map(r => `
-      <div class="report-row">
-        <div style="display:flex;justify-content:space-between;align-items:start">
-          <div>
-            <span style="font-weight:700;color:#E74C3C">${r.reported||'?'}</span>
-            <span style="color:rgba(255,255,255,.4);font-size:.78rem"> gemeldet von ${r.reporter||'?'}</span>
-          </div>
-          <span style="font-size:.72rem;color:rgba(255,255,255,.4)">${new Date(r.ts||0).toLocaleString('de-CH')}</span>
-        </div>
-        <div style="margin-top:6px;font-size:.85rem">${r.reason||''}</div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn btn-sm btn-red" onclick="banQuick('${r.reported}')">🚫 Sperren</button>
-          <button class="btn btn-sm btn-ghost" onclick="dismissReport('${r.id}')">✓ Erledigt</button>
-        </div>
-      </div>`).join('');
-  } catch(e) { el.innerHTML='<div class="status err">Fehler: '+e.message+'</div>'; }
-  spin.style.display = 'none';
-}
-
-async function dismissReport(id) {
-  await db.collection('player_reports').doc(id).delete();
-  await loadReports();
-}
-
-async function loadCalibration() {
-  const el = document.getElementById('cal-list');
-  const spin = document.getElementById('cal-loading');
-  spin.style.display = 'inline-block';
-  try {
-    const raw = localStorage.getItem('cal_data_v3');
-    const data = raw ? JSON.parse(raw) : {};
+    const data = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
     const entries = Object.entries(data);
-    if(!entries.length) { el.innerHTML='<div style="color:rgba(255,255,255,.4)">Keine lokalen Kalibrierungsdaten</div>'; spin.style.display='none'; return; }
-    el.innerHTML = `<div style="display:grid;gap:6px">${entries.map(([k,v])=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px">
-        <div style="flex:1"><span style="font-weight:700;font-size:.85rem">${k}</span></div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.5)">${Array.isArray(v)?v.slice(-5).join(', '):'–'}</div>
-        <button class="btn btn-sm btn-red" onclick="clearCal('${k}')">🗑️</button>
-      </div>`).join('')}</div>
-    <div style="margin-top:14px;display:flex;gap:8px">
-      <button class="btn btn-ghost btn-sm" onclick="exportCal()">📥 Export</button>
-    </div>`;
-  } catch(e) { el.innerHTML='<div class="status err">Fehler: '+e.message+'</div>'; }
-  spin.style.display = 'none';
+    if(!entries.length) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Keine Kalibrierungsdaten im lokalen Speicher</p>'; return; }
+    el.innerHTML = `<table class="data-table">
+      <thead><tr><th>Spiel-Key</th><th>Werte</th><th>Einträge</th><th></th></tr></thead>
+      <tbody>${entries.map(([k,v])=>`<tr>
+        <td><code style="font-size:.78rem;color:#d4aaff">${k}</code></td>
+        <td style="color:rgba(255,255,255,.6);font-size:.75rem">${Array.isArray(v)?v.slice(-5).join(', '):String(v)}</td>
+        <td>${Array.isArray(v)?v.length:1}</td>
+        <td><button class="btn btn-sm btn-red" onclick="delCal('${k}')">🗑</button></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  } catch(e) { el.innerHTML='<p style="color:#E74C3C">Fehler: '+e.message+'</p>'; }
 }
 
-function clearCal(key) {
+function delCal(key) {
   const data = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-  delete data[key]; localStorage.setItem('cal_data_v3', JSON.stringify(data));
-  loadCalibration();
+  delete data[key];
+  localStorage.setItem('cal_data_v3', JSON.stringify(data));
+  loadCal();
 }
 
 function exportCal() {
   const data = localStorage.getItem('cal_data_v3')||'{}';
   const b = new Blob([data],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(b);
-  a.download='calibration-'+Date.now()+'.json'; a.click();
+  a.download='cal-'+Date.now()+'.json'; a.click();
 }
 
-async function resetCalibration() {
-  if(!confirm('WIRKLICH alle Kalibrierungsdaten löschen?')) return;
+// ═══ NACHRICHTEN ═══
+async function sendMsg() {
+  const target = (document.getElementById('msg-target').value||'').trim().toLowerCase();
+  const text = (document.getElementById('msg-text').value||'').trim();
+  const type = document.getElementById('msg-type').value;
+  
+  if(!text) { showResult('msg-result', false, '❌ Bitte Nachrichtentext eingeben'); return; }
+  
+  document.getElementById('msg-result').innerHTML = '<span class="spin"></span> Sendet...';
+  
+  const id = Date.now().toString();
+  const msgData = {
+    text, type, ts: Date.now(), id,
+    from: 'admin',
+    target: target || 'all',
+    expiresAt: Date.now() + 7*24*3600*1000
+  };
+  
+  try {
+    if(!_db) throw new Error('Firebase nicht verbunden');
+    
+    if(target) {
+      // To specific player
+      await _db.collection('player_messages').doc(target+'_'+id).set(msgData);
+      // Also save locally for that player if they're on this device
+      try {
+        const pm = JSON.parse(localStorage.getItem('mischa_player_msg_'+target)||'[]');
+        pm.push(msgData);
+        localStorage.setItem('mischa_player_msg_'+target, JSON.stringify(pm.slice(-10)));
+      } catch(e) {}
+      showResult('msg-result', true, '✅ Nachricht an "'+target+'" gesendet!');
+    } else {
+      // Broadcast to all
+      await _db.collection('mischa_broadcasts').doc(id).set(msgData);
+      // Also write to config/broadcast for clients polling
+      await _db.collection('config').doc('broadcast').set({...msgData, updatedAt: Date.now()});
+      // Fallback: localStorage broadcast
+      localStorage.setItem('mischa_broadcast', JSON.stringify(msgData));
+      showResult('msg-result', true, '✅ Broadcast an alle Spieler gesendet!');
+    }
+    
+    document.getElementById('msg-text').value = '';
+    document.getElementById('msg-target').value = '';
+    setTimeout(loadMsgs, 500);
+    
+  } catch(e) {
+    showResult('msg-result', false, '❌ Fehler: '+e.message);
+  }
+}
+
+async function loadMsgs() {
+  const el = document.getElementById('msg-list');
+  if(!el) return;
+  
+  if(!_db) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Firebase nicht verbunden</p>'; return; }
+  
+  el.innerHTML = '<span class="spin"></span>';
+  try {
+    let snap;
+    try {
+      snap = await _db.collection('mischa_broadcasts').orderBy('ts','desc').limit(20).get();
+    } catch(e) {
+      // Try without orderBy if index not created
+      snap = await _db.collection('mischa_broadcasts').limit(20).get();
+    }
+    
+    if(snap.empty) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Noch keine Nachrichten gesendet</p>'; return; }
+    
+    const msgs = [];
+    snap.forEach(doc => msgs.push({id:doc.id,...doc.data()}));
+    msgs.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    
+    const typeMap = {info:'badge-blue',warn:'badge-yellow',broadcast:'badge-green'};
+    el.innerHTML = msgs.map(m=>`
+      <div style="padding:10px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:6px;border:1px solid rgba(255,255,255,.06)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span class="badge ${typeMap[m.type]||'badge-gray'}">${m.type||'info'}</span>
+          <span style="font-size:.72rem;color:rgba(255,255,255,.35)">${fmt(m.ts)} · an: ${m.target||'alle'}</span>
+        </div>
+        <div style="font-size:.85rem;color:rgba(255,255,255,.85)">${m.text||''}</div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML='<p style="color:#E74C3C;font-size:.83rem">Fehler: '+e.message+'</p>'; }
+}
+
+// ═══ SPERREN ═══
+async function doBan() {
+  const name = (document.getElementById('ban-name').value||'').trim().toLowerCase();
+  const durVal = document.getElementById('ban-dur').value;
+  const reason = (document.getElementById('ban-reason').value||'').trim();
+  
+  if(!name) { showResult('ban-result', false, '❌ Spielername fehlt'); return; }
+  
+  document.getElementById('ban-result').innerHTML = '<span class="spin"></span> Sperrt...';
+  
+  const perm = durVal === '-1';
+  const dur = perm ? null : parseInt(durVal);
+  const expiresAt = perm ? null : Date.now() + dur;
+  
+  const banData = {
+    name,
+    bannedAt: Date.now(),
+    reason: reason || 'Kein Grund angegeben',
+    permanent: perm,
+    expiresAt,
+    by: 'admin'
+  };
+  
+  // Human-readable duration
+  const durText = perm ? 'permanent' : new Date(expiresAt).toLocaleString('de-CH');
+  
+  try {
+    if(!_db) throw new Error('Firebase nicht verbunden');
+    
+    await _db.collection('banned_players').doc(name).set(banData);
+    
+    // Notify the player via player_messages
+    const notifId = Date.now().toString();
+    await _db.collection('player_messages').doc(name+'_ban_'+notifId).set({
+      text: `🚫 Dein Konto wurde gesperrt bis: ${durText}${reason ? '\nGrund: '+reason : ''}`,
+      type: 'ban_warn',
+      ts: Date.now(),
+      id: notifId,
+      target: name,
+      from: 'admin'
+    });
+    
+    showResult('ban-result', true, '✅ '+name+' gesperrt bis: '+durText);
+    document.getElementById('ban-name').value='';
+    document.getElementById('ban-reason').value='';
+    setTimeout(loadBans, 500);
+    
+  } catch(e) { showResult('ban-result', false, '❌ Fehler: '+e.message); }
+}
+
+async function loadBans() {
+  const el = document.getElementById('ban-list');
+  const spin = document.getElementById('ban-spin');
+  if(!el) return;
+  
+  if(!_db) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Firebase nicht verbunden</p>'; return; }
+  
+  el.innerHTML = '<span class="spin"></span>';
+  try {
+    const snap = await _db.collection('banned_players').get();
+    stopSpin('ban-spin');
+    
+    if(snap.empty) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">✅ Keine gesperrten Spieler</p>'; return; }
+    
+    const bans = [];
+    snap.forEach(doc => bans.push({id:doc.id,...doc.data()}));
+    bans.sort((a,b)=>(b.bannedAt||0)-(a.bannedAt||0));
+    
+    el.innerHTML = bans.map(b => {
+      const expired = !b.permanent && b.expiresAt && b.expiresAt < Date.now();
+      const expText = b.permanent ? '🚫 Permanent' : (b.expiresAt ? fmt(b.expiresAt) : '?');
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(231,76,60,${expired?.02:.06});border:1px solid rgba(231,76,60,${expired?.1:.25});border-radius:8px;margin-bottom:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">${b.name||b.id}
+            <span class="badge ${expired?'badge-green':'badge-red'}" style="margin-left:6px">${expired?'Abgelaufen':'Aktiv'}</span>
+          </div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px">${b.reason||''}</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.35)">Bis: ${expText}</div>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="unban('${b.id}')">🔓 Aufheben</button>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML='<p style="color:#E74C3C;font-size:.83rem">Fehler: '+e.message+'</p>'; }
+}
+
+async function unban(id) {
+  if(!confirm('Sperre für "'+id+'" aufheben?')) return;
+  try {
+    await _db.collection('banned_players').doc(id).delete();
+    loadBans();
+  } catch(e) { alert('Fehler: '+e.message); }
+}
+
+// ═══ MELDUNGEN ═══
+async function loadReports() {
+  const el = document.getElementById('rep-list');
+  if(!el) return;
+  
+  if(!_db) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Firebase nicht verbunden</p>'; return; }
+  
+  el.innerHTML = '<span class="spin"></span>';
+  try {
+    const snap = await _db.collection('player_reports').get();
+    stopSpin('rep-spin');
+    
+    if(snap.empty) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">✅ Keine offenen Meldungen</p>'; return; }
+    
+    const reports = [];
+    snap.forEach(doc => reports.push({id:doc.id,...doc.data()}));
+    reports.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    
+    el.innerHTML = reports.map(r=>`
+      <div style="padding:12px;background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.18);border-radius:8px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <b style="color:#E74C3C">${r.reported||'?'}</b>
+            <span style="color:rgba(255,255,255,.4);font-size:.78rem"> gemeldet von <b>${r.reporter||'?'}</b></span>
+          </div>
+          <span style="font-size:.72rem;color:rgba(255,255,255,.35)">${fmt(r.ts)}</span>
+        </div>
+        <div style="font-size:.83rem;margin-top:6px;color:rgba(255,255,255,.75)">${r.reason||r.text||'Kein Grund'}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-sm btn-red" onclick="quickBan('${r.reported||''}')">🚫 Sperren</button>
+          <button class="btn btn-sm btn-blue" onclick="quickMsg('${r.reported||''}')">💬 Nachricht</button>
+          <button class="btn btn-sm btn-ghost" onclick="dismissReport('${r.id}')">✓ Erledigt</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML='<p style="color:#E74C3C;font-size:.83rem">Fehler: '+e.message+'</p>'; }
+}
+
+async function dismissReport(id) {
+  try {
+    await _db.collection('player_reports').doc(id).delete();
+    loadReports();
+  } catch(e) { alert('Fehler: '+e.message); }
+}
+
+// ═══ RESET ═══
+async function doResetCal() {
+  if(!confirm('WIRKLICH alle Kalibrierungsdaten löschen? Diese Aktion ist nicht rückgängig zu machen!')) return;
   localStorage.removeItem('cal_data_v3');
   try {
-    const snap = await db.collection('mischa_players').get();
-    const batch = db.batch();
-    snap.forEach(doc => batch.update(doc.ref, {totalScore:0}));
-    await batch.commit();
-    alert('✅ Kalibrierung zurückgesetzt!');
-    loadCalibration();
-  } catch(e) { alert('Fehler: '+e.message); }
+    if(_db) {
+      const snap = await _db.collection('mischa_players').get();
+      const batch = _db.batch();
+      snap.forEach(doc => batch.update(doc.ref, {totalScore:0}));
+      await batch.commit();
+    }
+    alert('✅ Kalibrierung und Scores zurückgesetzt!');
+    loadCal();
+  } catch(e) { alert('Fehler (localStorage gelöscht, Firebase: '+e.message+')'); }
 }
 </script>
 </body>

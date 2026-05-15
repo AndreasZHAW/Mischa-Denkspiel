@@ -685,13 +685,24 @@ const State = {
         new Promise(r => setTimeout(() => r(null), 3000))
       ]);
       if (cloud) {
-        // Only use cloud data if it was updated more recently than local
-        const cloudTime = cloud.updatedAt || 0;
-        const localTime = local?.updatedAt || 0;
-        if (cloudTime >= localTime) {
+        // Compare MT values: local MT should NEVER be overwritten by lower cloud MT
+        const getPlayerMT = (p) => {
+          try {
+            const ws = p?.worlds?.['1'] || p?.worlds?.[1] || {};
+            return (ws.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
+          } catch(e) { return 0; }
+        };
+        const localMT = getPlayerMT(local);
+        const cloudMT = getPlayerMT(cloud);
+        const localDone = (() => { try { const ws=local?.worlds?.['1']||local?.worlds?.[1]||{}; return (ws.tasks||[]).filter(t=>t&&t.done).length; } catch(e){return 0;} })();
+        const cloudDone = (() => { try { const ws=cloud?.worlds?.['1']||cloud?.worlds?.[1]||{}; return (ws.tasks||[]).filter(t=>t&&t.done).length; } catch(e){return 0;} })();
+        
+        // Use cloud ONLY if it has strictly MORE completed tasks AND more MT
+        // This prevents cloud from ever overwriting newer local progress
+        if (cloudDone > localDone && cloudMT >= localMT) {
           this.currentPlayer = cloud;
         }
-        // else: keep local (it has fresher task data)
+        // else: keep local data (it has the freshest task/MT data)
       }
     } catch(e) {}
     return this.currentPlayer;
