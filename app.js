@@ -160,9 +160,9 @@ const App = {
     const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
     const mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
     const cost = 10;
-    if (mt < cost) { alert('Zu wenig MT! Du brauchst 10 MT. Du hast: ' + mt + ' MT'); return; }
-    if (!confirm(`🦁 Für ${cost} MT in den Zoo teleportieren?\nDu hast: ${mt} MT\nNach Teleport: ${mt-cost} MT`)) return;
-    await State.addPoints(p.name, -cost);
+    if (mt < cost) { alert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
+    if (!confirm('🦁 In den Zoo teleportieren?')) return;
+    // Zoo is FREE once unlocked - no MT deduction
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());
     // Pass character so zoo skips its own login
     const charData = (window.CHARACTERS||CHARACTERS||[]).find(c=>c.id===p.character);
@@ -173,7 +173,7 @@ const App = {
     localStorage.setItem('zoo_users', JSON.stringify(zooUsers));
     sessionStorage.setItem('mischa_birthyear', p.birthYear||2000);
     // ── CINEMATIC TELEPORT SCREEN ──
-    this._showTeleportCinema(p.name, charData?.emoji||'🧭', mt-cost);
+    this._showTeleportCinema(p.name, charData?.emoji||'🧭', mt);
   },
 
   _showTeleportCinema(playerName, charEmoji, mtLeft) {

@@ -421,22 +421,71 @@ function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=
 // ═══ KALIBRIERUNG ═══
 function loadCal() {
   stopSpin('cal-spin');
-  const el = document.getElementById('cal-table');
+  renderCalTable();
+}
+
+function renderCalTable() {
+  const el = document.getElementById('cal-output');
   if(!el) return;
-  try {
-    const data = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-    const entries = Object.entries(data);
-    if(!entries.length) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Keine Kalibrierungsdaten im lokalen Speicher</p>'; return; }
-    el.innerHTML = `<table class="data-table">
-      <thead><tr><th>Spiel-Key</th><th>Werte</th><th>Einträge</th><th></th></tr></thead>
-      <tbody>${entries.map(([k,v])=>`<tr>
-        <td><code style="font-size:.78rem;color:#d4aaff">${k}</code></td>
-        <td style="color:rgba(255,255,255,.6);font-size:.75rem">${Array.isArray(v)?v.slice(-5).join(', '):String(v)}</td>
-        <td>${Array.isArray(v)?v.length:1}</td>
-        <td><button class="btn btn-sm btn-red" onclick="delCal('${k}')">🗑</button></td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  } catch(e) { el.innerHTML='<p style="color:#E74C3C">Fehler: '+e.message+'</p>'; }
+  const devFilter = document.getElementById('cal-dev-filter')?.value || 'all';
+  let calStore = {};
+  try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+  
+  // Game list from WORLDS or fallback
+  const GAMES = [
+    {n:'Dart',i:'🎯'},{n:'Französisch',i:'🇫🇷'},{n:'Rechnen',i:'🔢'},{n:'Sokoban',i:'📦'},
+    {n:'Shut the Box',i:'🎲'},{n:'Memory',i:'🧠'},{n:'Anagramm',i:'🔤'},{n:'Simon',i:'🟢'},
+    {n:'Wortsuche',i:'🔍'},{n:'Reaktion',i:'⚡'},{n:'Farben',i:'🎨'},{n:'Schiebepuzzle',i:'🧩'},
+    {n:'Tetris',i:'🟥'},{n:'Ballon',i:'🎈'},{n:'Race',i:'🏎'},{n:'Pac-Man',i:'🟡'},
+    {n:'Rechnen II',i:'🧮'},{n:'Star Wars',i:'⚡'},{n:'Wahr/Falsch',i:'✅'},{n:'Pong',i:'🏓'}
+  ];
+  
+  const DEVS = devFilter === 'all' ? ['desktop','ipad','iphone','android'] : [devFilter];
+  const DEV_ICONS = {desktop:'🖥',ipad:'📱iPad',iphone:'📱Phone',android:'🤖'};
+  
+  const devHeaders = DEVS.map(d => `<th colspan="3" style="text-align:center;padding:5px 8px;border-left:1px solid rgba(255,255,255,.08)">${DEV_ICONS[d]}</th>`).join('');
+  const devSubHeaders = DEVS.map(() => `<th style="padding:3px 5px;color:#E74C3C;font-size:.7rem">Min</th><th style="padding:3px 5px;color:#FFD700;font-size:.7rem">Ø</th><th style="padding:3px 5px;color:#27AE60;font-size:.7rem">Max</th>`).join('');
+  
+  const rows = GAMES.map((game, i) => {
+    const devCells = DEVS.map(dev => {
+      const key = i + '_' + dev;
+      const scores = calStore[key] || [];
+      if(!scores.length) return `<td colspan="3" style="text-align:center;color:rgba(255,255,255,.2);padding:5px">—</td>`;
+      const minS = Math.min(...scores), maxS = Math.max(...scores);
+      const avgS = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+      return `<td style="text-align:center;padding:4px 5px;color:#E74C3C">${minS}</td>
+        <td style="text-align:center;padding:4px 5px;color:#FFD700">${avgS}<br><span style="font-size:.65rem;color:rgba(255,255,255,.3)">${scores.length}×</span></td>
+        <td style="text-align:center;padding:4px 5px;color:#27AE60">${maxS} <button onclick="editCal(${i},'${dev}')" style="background:none;border:none;cursor:pointer;opacity:.4;font-size:.65rem" title="Bearbeiten">✏️</button></td>`;
+    }).join('');
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+      <td style="padding:5px 8px;font-size:.82rem">${game.i} ${game.n}</td>
+      ${devCells}
+    </tr>`;
+  }).join('');
+  
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.8rem">
+    <thead style="background:rgba(255,255,255,.04)">
+      <tr><th style="text-align:left;padding:5px 8px">Spiel</th>${devHeaders}</tr>
+      <tr><th></th>${devSubHeaders}</tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div style="margin-top:10px;font-size:.72rem;color:rgba(255,255,255,.3)">
+    ${Object.keys(calStore).length} Einträge · Zuletzt aktualisiert: ${new Date().toLocaleTimeString('de-CH')}
+  </div>`;
+}
+
+function editCal(gameIdx, dev) {
+  let calStore = {};
+  try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+  const key = gameIdx+'_'+dev;
+  const scores = calStore[key] || [];
+  const newVal = prompt('Spiel '+gameIdx+' ('+dev+')\nAktuelle Werte: '+scores.join(', ')+'\n\nNeue Werte (kommagetrennt), leer=löschen:');
+  if(newVal === null) return;
+  if(!newVal.trim()) { delete calStore[key]; }
+  else { calStore[key] = newVal.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n)&&n>0); }
+  localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
+  renderCalTable();
 }
 
 function delCal(key) {
@@ -511,6 +560,7 @@ async function loadMsgs() {
   
   el.innerHTML = '<span class="spin"></span>';
   try {
+    if(!_db) { el.innerHTML='<p style="color:rgba(255,255,255,.4);font-size:.83rem">Warte auf Firebase...</p>'; return; }
     let snap;
     try {
       snap = await _db.collection('mischa_broadcasts').orderBy('ts','desc').limit(20).get();
