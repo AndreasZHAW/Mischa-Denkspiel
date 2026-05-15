@@ -324,6 +324,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html'">← Denkspiel</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
 <div class="zp off" id="p-adm"><div class="zpi"><button class="pcls" onclick="ZP.close('adm')">✕</button><div class="pt">👑 Admin</div><div id="padm"></div></div></div>
 
+<script>
+// Load THREE.js with fallback CDN
+(function(){
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  s.onerror = function() {
+    var s2 = document.createElement('script');
+    s2.src = 'https://unpkg.com/three@0.128.0/build/three.min.js';
+    s2.onerror = function() {
+      document.body.innerHTML = '<div style="position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:16px"><div style="font-size:3rem">🦁</div><div style="font-size:1.1rem">Zoo braucht Internet</div><button onclick="location.reload()" style="padding:10px 24px;background:#27AE60;border:none;border-radius:8px;color:#fff;font-size:1rem;cursor:pointer">🔄 Neu laden</button><a href="index.html" style="color:rgba(255,255,255,.5);font-size:.9rem">← Zurück</a></div>';
+    };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s);
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -567,12 +583,13 @@ const ZA={
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
   _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS.char?.e||''} Hallo ${ZS.player}!`;},
-  async checkPrivate(){
-    
-     
+  async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
+    const _ls = document.getElementById('zoo-load-status');
+    if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
     await ZS.load();
-     if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
+    if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');
+    if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     await ZS.load();
     if(ZS.zoo) ZS._fix(); // ensure all fields migrated before 3D starts
@@ -715,8 +732,15 @@ const ZG={
     }
     this._controls();
     // Hide loading overlay
-    
-
+    const _loadOv = document.getElementById('zoo-loading');
+    if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
+    // Hide loading overlay when loop starts
+    const _loadOvFinal = document.getElementById('zoo-loading');
+    if(_loadOvFinal) { 
+      const _lbF = document.getElementById('zoo-load-bar');
+      if(_lbF) _lbF.style.width='100%';
+      setTimeout(()=>{ _loadOvFinal.style.opacity='0'; _loadOvFinal.style.transition='opacity .5s'; setTimeout(()=>_loadOvFinal?.remove(),600); },300);
+    }
     this._raf=requestAnimationFrame(()=>this._loop());
     this._ivs.push(setInterval(()=>this._tick(),100));
     this._ivs.push(setInterval(()=>ZS.save(),15000));
@@ -1426,8 +1450,15 @@ const ZG={
   _carAngle:0,
   _loop(){
     // Hide loading overlay
-    
-
+    const _loadOv = document.getElementById('zoo-loading');
+    if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
+    // Hide loading overlay when loop starts
+    const _loadOvFinal = document.getElementById('zoo-loading');
+    if(_loadOvFinal) { 
+      const _lbF = document.getElementById('zoo-load-bar');
+      if(_lbF) _lbF.style.width='100%';
+      setTimeout(()=>{ _loadOvFinal.style.opacity='0'; _loadOvFinal.style.transition='opacity .5s'; setTimeout(()=>_loadOvFinal?.remove(),600); },300);
+    }
     this._raf=requestAnimationFrame(()=>this._loop());
     const dt=Math.min(this.clock.getDelta(),.05);
     this._move(dt); SECRETS.trackMovement();
@@ -2331,8 +2362,15 @@ const ZG={
     // Restore sky color and restart main loop
     if(this.renderer)this.renderer.setClearColor(0x87CEEB,1);
     if(!this._raf)// Hide loading overlay
-    
-
+    const _loadOv = document.getElementById('zoo-loading');
+    if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
+    // Hide loading overlay when loop starts
+    const _loadOvFinal = document.getElementById('zoo-loading');
+    if(_loadOvFinal) { 
+      const _lbF = document.getElementById('zoo-load-bar');
+      if(_lbF) _lbF.style.width='100%';
+      setTimeout(()=>{ _loadOvFinal.style.opacity='0'; _loadOvFinal.style.transition='opacity .5s'; setTimeout(()=>_loadOvFinal?.remove(),600); },300);
+    }
     this._raf=requestAnimationFrame(()=>this._loop());
     if(tp){ZP.toast('⏰ Zeit! Teleportiert zum Zoo.',3000);}
     this.pl.x=this.ZONES[0].x;this.pl.z=this.ZONES[0].z+14;
@@ -2736,6 +2774,35 @@ const ZP={
     }
   },
   close(p){hide('p-'+p);},
+  _teleportBackToDenkspiel() {
+    ZP.close('menu');
+    // Simple reverse teleport animation
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column';
+    document.body.appendChild(ov);
+    const W=window.innerWidth, H=window.innerHeight;
+    const cv=document.createElement('canvas');
+    cv.width=W;cv.height=H;cv.style.cssText='position:absolute;inset:0;width:100%;height:100%';
+    ov.appendChild(cv);
+    const ctx=cv.getContext('2d');
+    // Sound
+    try{const ac=new(window.AudioContext||window.webkitAudioContext)();
+      [1047,784,659,523,392,261,196,164,130].forEach((n,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(n,ac.currentTime+i*0.1);g.gain.setValueAtTime(0.07,ac.currentTime+i*0.1);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.1+0.4);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*0.1);o.stop(ac.currentTime+i*0.1+0.4);});
+    }catch(e){}
+    const stars=Array.from({length:300},()=>({angle:Math.random()*Math.PI*2,dist:100+Math.random()*Math.max(W,H)*0.6,speed:2+Math.random()*4,size:0.5+Math.random()*1.5,color:['#fff','#adf','#faf','#ffd'][Math.floor(Math.random()*4)]}));
+    let frame=0;
+    const loop=()=>{
+      ctx.fillStyle='rgba(0,0,5,0.85)';ctx.fillRect(0,0,W,H);
+      stars.forEach(s=>{s.dist-=s.speed*(1+frame*0.01);if(s.dist<0)s.dist=Math.max(W,H);
+        const sx=W/2+Math.cos(s.angle)*s.dist,sy=H/2+Math.sin(s.angle)*s.dist;
+        ctx.fillStyle=s.color;ctx.globalAlpha=Math.max(0,s.dist/300)*0.8;
+        ctx.beginPath();ctx.arc(sx,sy,s.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;});
+      frame++;
+      if(frame>90){ov.remove();window.location.href='index.html';return;}
+      requestAnimationFrame(loop);
+    };
+    loop();
+  },
   _teleportBackToDenkspiel() {
     ZP.close('menu');
     // Simple reverse teleport animation
