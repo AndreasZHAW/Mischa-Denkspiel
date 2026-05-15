@@ -59,6 +59,7 @@ const ColorMixGame = {
           ${Array.from({length:2},(_,i)=>`
             <div style="width:36px;height:36px;border-radius:10px;background:${c.selected[i]?c.currentOpts[c.selected[i]].color:'#E0E6EE'};border:2px solid #DDD"></div>`).join('')}
         </div>
+        <div id="colormix-feedback" style="min-height:40px;margin-top:8px;text-align:center;padding:6px;border-radius:8px;background:rgba(255,255,255,.06);opacity:0;transition:opacity .3s;font-size:.9rem"></div>
       </div>`;
   },
   _pick(i) {
@@ -66,7 +67,7 @@ const ColorMixGame = {
     if (c.selected.includes(i)) return;
     if (c.selected.length>=2) return;
     const el = document.getElementById(`copt-${i}`);
-    if (el) { el.style.border='4px solid #2C3E50'; el.style.transform='scale(0.95)'; }
+    if (el) { el.style.border='5px solid #FFD700'; el.style.transform='scale(1.08)'; el.style.boxShadow='0 0 15px rgba(255,215,0,.8)'; }
     c.selected.push(i);
     // Update selection display
     const dots = document.querySelectorAll('.cmix-dot');
@@ -80,16 +81,26 @@ const ColorMixGame = {
       // Feedback
       const dots2 = document.querySelectorAll('.cmix-dot');
       dots2.forEach(d=>d.style.border=`3px solid ${correct?'#27AE60':'#E74C3C'}`);
-      if (!correct) {
-        // Show correct
-        [q.aC,q.bC].forEach(col=>{
-          const idx = c.currentOpts.findIndex(o=>o.color===col);
-          const el2 = document.getElementById(`copt-${idx}`);
-          if (el2) { el2.style.border='4px solid #27AE60'; el2.style.transform='scale(1.05)'; }
-        });
+      // ALWAYS show correct answer for 2 seconds
+      [q.aC,q.bC].forEach(col=>{
+        const cIdx = c.currentOpts.findIndex(o=>o.color===col);
+        const el2 = document.getElementById(`copt-\${cIdx}`);
+        if (el2) {
+          el2.style.border='5px solid #27AE60';
+          el2.style.boxShadow='0 0 18px rgba(39,174,96,.9)';
+          el2.style.transform='scale(1.1)';
+        }
+      });
+      // Show answer text
+      const feedbackDiv = document.getElementById('colormix-feedback');
+      if(feedbackDiv) {
+        feedbackDiv.innerHTML = correct
+          ? '<span style="color:#27AE60;font-size:1.1rem;font-weight:900">✅ Richtig! '+q.a+' + '+q.b+' = '+q.result+'</span>'
+          : '<span style="color:#E74C3C;font-size:1.0rem;font-weight:900">❌ Falsch! Richtig: '+q.a+' + '+q.b+'</span>';
+        feedbackDiv.style.opacity='1';
       }
       c.index++;
-      setTimeout(()=>this._renderQ(), correct?700:1400);
+      setTimeout(()=>this._renderQ(), 2000);
     }
   },
   _showResult() {

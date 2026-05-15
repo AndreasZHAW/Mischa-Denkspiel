@@ -2,7 +2,8 @@
 const PongGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
-    if (!el) return;
+    if (!el) { if(typeof GameLog!=='undefined')GameLog.error('pong2','game-area not found'); return; }
+    if(typeof GameLog!=='undefined')GameLog.log('pong2','start()');
     const W=360, H=300, PS=65, PW=10;
     const isMobile = 'ontouchstart' in window;
 

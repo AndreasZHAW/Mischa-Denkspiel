@@ -23,6 +23,7 @@ const SokobanGame = {
     ];
 
     let levelIdx = 0, moves = 0, totalSolved = 0, hintsUsed = 0, hintPenalty = 0;
+    const gameStartTime = Date.now();
     let grid = [], px = 0, py = 0;
     let running = true;
 
@@ -37,10 +38,35 @@ const SokobanGame = {
       return true;
     };
 
+    let levelStartTime = Date.now();
+    let levelTimeLimit = 180; // 3 minutes per level
+    let levelTimer = null;
+
     const loadLevel = (idx) => {
       moves = 0;
-      const raw = LEVELS[idx].map;
-      grid = raw.map(row => [...row]);
+      levelStartTime = Date.now();
+      if(levelTimer) clearInterval(levelTimer);
+      // Level time limit scales: early levels 3min, later levels 2min
+      levelTimeLimit = Math.max(90, 180 - idx*10);
+      levelTimer = setInterval(() => {
+        const elapsed = (Date.now()-levelStartTime)/1000;
+        if(elapsed >= levelTimeLimit) {
+          clearInterval(levelTimer); levelTimer = null;
+          // Time's up! End the game
+          const raw = Math.min(100, Math.max(5, Math.round(40 + totalSolved*8 - hintPenalty)));
+          running = false;
+          onComplete({rawScore: raw, passed: totalSolved>=2, errors: hintsUsed, timeMs: Date.now()-gameStartTime});
+        }
+      }, 1000);
+      if(idx >= LEVELS.length) {
+        // Repeat harder levels for endless play
+        const repeatIdx = LEVELS.length - 1 - ((idx - LEVELS.length) % 3);
+        const raw = LEVELS[Math.max(0,repeatIdx)].map;
+        grid = raw.map(row => [...row]);
+      } else {
+        const raw = LEVELS[idx].map;
+        grid = raw.map(row => [...row]);
+      }
       for(let r=0;r<grid.length;r++) for(let c=0;c<(grid[r]?.length||0);c++)
         if(grid[r][c]==='@'||grid[r][c]==='+'){px=c;py=r;}
       render();
@@ -67,9 +93,14 @@ const SokobanGame = {
         totalSolved++;
         setTimeout(() => {
           levelIdx++;
+          // Always load next level (endless mode)
+          // Score based on levels completed and total time
+          const totalTimeSec = (Date.now()-gameStartTime)/1000;
+          const timeBonus = Math.max(0, Math.round(20 - totalTimeSec/30));
+          const raw = Math.min(100, Math.max(10, Math.round(40 + totalSolved*8 + timeBonus - hintPenalty)));
           if(levelIdx>=LEVELS.length) {
-            const raw = Math.min(100, Math.max(10, Math.round(60 + totalSolved*6 - Math.floor(moves/15) - hintPenalty)));
-            onComplete({rawScore:raw, passed:true, errors:hintsUsed, timeMs:0});
+            // Past all designed levels - still keep going!
+            onComplete({rawScore: Math.min(100,raw+20), passed:true, errors:hintsUsed, timeMs: Date.now()-gameStartTime});
           } else {
             loadLevel(levelIdx);
           }
@@ -106,9 +137,10 @@ const SokobanGame = {
       el.innerHTML = `
         <div id="sok-wrap" style="padding:6px 4px;text-align:center;position:relative;max-width:520px;margin:0 auto">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:clamp(.78rem,2.5vw,.9rem);padding:0 2px">
-            <span style="font-weight:700">📦 ${level.name} (${levelIdx+1}/${LEVELS.length})</span>
+            <span style="font-weight:700">📦 Lvl ${levelIdx+1}</span>
             <span style="color:#FFD700">✅ ${boxesDone}/${total}</span>
             <span style="color:rgba(255,255,255,.6)">👣 ${moves}</span>
+            <span id="sok-timer" style="color:#29B6F6;font-size:.82rem">⏱...</span>
           </div>
           <canvas id="sok-cv" width="${W}" height="${H}"
             style="border-radius:10px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;touch-action:none;cursor:pointer;border:2px solid rgba(255,255,255,.15)"></canvas>
@@ -218,6 +250,16 @@ const SokobanGame = {
         }
       }
 
+      // Update timer display
+      const timerEl = document.getElementById('sok-timer');
+      if(timerEl) {
+        const elapsed = Math.floor((Date.now()-levelStartTime)/1000);
+        const remaining = Math.max(0, levelTimeLimit - elapsed);
+        const min = Math.floor(remaining/60);
+        const sec = remaining%60;
+        timerEl.textContent = '⏱'+min+':'+(sec<10?'0':'')+sec;
+        timerEl.style.color = remaining<30?'#E74C3C':remaining<60?'#FFD700':'#29B6F6';
+      }
       // Swipe
       let tx0=0,ty0=0;
       cv.ontouchstart = e=>{ tx0=e.touches[0].clientX; ty0=e.touches[0].clientY; e.preventDefault(); };
@@ -226,7 +268,7 @@ const SokobanGame = {
 
     const onKey = e => { const m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1],w:[-1,0],s:[1,0],a:[0,-1],d:[0,1]}[e.key]; if(m){move(...m);e.preventDefault();} };
     window.addEventListener('keydown', onKey);
-    SokobanGame._cleanup = () => window.removeEventListener('keydown', onKey);
+    SokobanGame._cleanup = () => { window.removeEventListener('keydown', onKey); if(levelTimer)clearInterval(levelTimer); };
     loadLevel(0);
   }
 };

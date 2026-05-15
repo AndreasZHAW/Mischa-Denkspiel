@@ -277,7 +277,7 @@ const Shop = {
             <div>
               <div style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700">
                 ${isGift?`🎁 Für ${Shop._forPlayer}`:'🛒 Shop'}</div>
-              <div style="font-size:0.8rem;color:rgba(255,255,255,0.45)">⭐ <b style="color:#FFD700">${(player.totalScore||0).toLocaleString()}</b> Sterne</div>
+              <div style="font-size:0.8rem;color:rgba(255,255,255,0.45)">🌀 <b style="color:#FFD700">${(()=>{const ws=player.worlds?.["1"]||player.worlds?.[1]||{};return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1);})()}</b> MT</div>
               ${(()=>{const m=State.getCharacterMultiplier(player);return m>1?`<div style="font-size:0.75rem;margin-top:2px;background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60,#4A90D9,#9B59B6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">✨ ${m.toFixed(1)}× Charakter-Bonus aktiv!</div>`:''})()}
             </div>
             <button onclick="Shop.close()" style="background:rgba(255,255,255,0.1);border:none;color:white;
@@ -312,7 +312,8 @@ const Shop = {
 
   _card(item, player, isGift) {
     const now = Date.now();
-    const canAfford = (player.totalScore||0) >= getDiscountedPrice(item.price, item.id);
+    const _playerMT = (()=>{const ws=player.worlds?.['1']||player.worlds?.[1]||{};return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0);})();
+    const canAfford = _playerMT >= getDiscountedPrice(item.price, item.id);
     const disc = getDiscount(item.id);
     const dp = getDiscountedPrice(item.price, item.id);
     const timeLeft = item.limitExpires ? item.limitExpires - now : null;
@@ -336,7 +337,7 @@ const Shop = {
         </div>
         <div style="text-align:right;flex-shrink:0;min-width:72px">
           ${item.price>0?`
-            ${disc?`<div style="font-size:0.65rem;color:rgba(255,255,255,0.3);text-decoration:line-through">⭐${dp<item.price?item.price.toLocaleString():''}</div>`:''}
+            ${disc?`<div style="font-size:0.65rem;color:rgba(255,255,255,0.3);text-decoration:line-through">🌀${dp<item.price?item.price.toLocaleString():''}</div>`:''}
             <div style="font-family:'Fredoka One',cursive;color:${disc?'#27AE60':'#FFD700'};font-size:0.85rem">
               ⭐${dp.toLocaleString()}${disc?` <span style="background:#E74C3C;color:white;border-radius:3px;padding:1px 3px;font-size:0.6rem">-${disc}%</span>`:''}
             </div>`:''}
@@ -460,7 +461,8 @@ const Shop = {
     const item = getShopItems(buyer).find(i=>i.id===itemId);
     if (!item) return;
     const dp = getDiscountedPrice(item.price, itemId);
-    if ((buyer.totalScore||0) < dp) { Shop._toast('❌ Nicht genug Sterne!', false); return; }
+    const _buyerMT = (()=>{const ws=buyer.worlds?.['1']||buyer.worlds?.[1]||{};return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0);})();
+    if (_buyerMT < dp) { Shop._toast('❌ Nicht genug MT! Du hast: '+_buyerMT.toFixed(1)+' MT', false); return; }
 
     await State.addPoints(buyer.name, -dp);
     const targetName = isGift ? Shop._forPlayer : buyer.name;
@@ -602,7 +604,7 @@ const Wardrobe = {
                 style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
                   border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;opacity:0.55">
                 <div style="font-size:1.8rem;filter:grayscale(1)">${c.emoji}</div>
-                <div style="font-size:0.55rem;color:rgba(255,255,255,0.35);margin-top:2px">🔒 ⭐${c.price||300}</div>
+                <div style="font-size:0.55rem;color:rgba(255,255,255,0.35);margin-top:2px">🔒 🌀${c.price||1}</div>
               </div>`).join('')}
           </div>`:''}
         <button onclick="Wardrobe.close();Shop.open(null,()=>App&&App.showWorldMap&&App.showWorldMap())"

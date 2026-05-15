@@ -1,3 +1,31 @@
+// Game event logger
+const GameLog = {
+  _log: [],
+  log(game, msg, level='info') {
+    const entry = {ts: Date.now(), game, msg, level};
+    this._log.push(entry);
+    // Keep last 200 entries in memory
+    if(this._log.length > 200) this._log.shift();
+    // Save to localStorage (keep last 100)
+    try {
+      const stored = JSON.parse(localStorage.getItem('mischa_game_log')||'[]');
+      stored.push(entry);
+      localStorage.setItem('mischa_game_log', JSON.stringify(stored.slice(-100)));
+    } catch(e) {}
+    console.log('[GAME:'+game+']', msg);
+  },
+  error(game, msg) {
+    this.log(game, msg, 'err');
+    try {
+      const el = JSON.parse(localStorage.getItem('mischa_error_log')||'[]');
+      el.push(new Date().toLocaleString('de-CH')+' ['+game+']: '+msg);
+      localStorage.setItem('mischa_error_log', JSON.stringify(el.slice(-50)));
+    } catch(e) {}
+  },
+  clear() { this._log=[]; localStorage.removeItem('mischa_game_log'); localStorage.removeItem('mischa_error_log'); }
+};
+window.GameLog = GameLog;
+
 const APP_VERSION = 'v88-isActive-fix';
 /**
  * app.js v3 — Mischa Denkspiel
@@ -1163,6 +1191,8 @@ const App = {
 
   // ---- LAUNCH GAME ----
   async launchGame(worldId, taskIndex) {
+    const _taskInfo = WORLDS[0]?.tasks?.[taskIndex];
+    GameLog.log(_taskInfo?.type||'unknown', 'launchGame started: world='+worldId+' idx='+taskIndex);
     const player = await State.refreshCurrentPlayer();
     const world  = WORLDS.find(w=>w.id===worldId);
     const task   = world.tasks[taskIndex];
@@ -1200,6 +1230,7 @@ const App = {
       </div>`);
 
     const onComplete = async (result) => {
+      GameLog.log(task.type||task.id, 'onComplete: rawScore='+result.rawScore+' passed='+result.passed+' errors='+result.errors);
       // Save task result to player immediately (localStorage)
       try {
         const mt = State.calcMT ? State.calcMT(taskIndex, result) : 1.0;

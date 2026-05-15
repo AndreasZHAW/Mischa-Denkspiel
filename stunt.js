@@ -27,8 +27,16 @@ const StuntGame = {
     let ty = H * 0.62;
     const STEP = 5;
     for(let x = 0; x <= GOAL + 300; x += STEP) {
-      ty += (Math.random() - 0.5) * 8;
-      ty = Math.max(H*0.35, Math.min(H*0.78, ty));
+      // Bigger hills with occasional ramps
+      const hillMode = Math.random();
+      if(hillMode < 0.03) {
+        ty -= 35 + Math.random()*25; // big hill up (ramp for jump)
+      } else if(hillMode < 0.06) {
+        ty += 30 + Math.random()*20; // valley after hill
+      } else {
+        ty += (Math.random() - 0.5) * 14;
+      }
+      ty = Math.max(H*0.28, Math.min(H*0.80, ty));
       terrain.push({x, y: ty});
     }
     const getTY = wx => {
@@ -201,8 +209,7 @@ const StuntGame = {
 
       // ── CAR ──
       ctx.save(); ctx.translate(CAM_X,car.wy); ctx.rotate(car.angle);
-      // Car shadow
-      ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(0,8,26,8,0,0,Math.PI*2); ctx.fill();
+      // (shadow removed)
       // Body
       const carG=ctx.createLinearGradient(-22,-14,22,6);
       carG.addColorStop(0,'#E74C3C'); carG.addColorStop(.5,'#c0392b'); carG.addColorStop(1,'#922b21');

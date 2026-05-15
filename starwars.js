@@ -2,7 +2,8 @@
 const StarWarsGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
-    if (!el) return;
+    if (!el) { if(typeof GameLog!=='undefined')GameLog.error('starwars','game-area not found'); return; }
+    if(typeof GameLog!=='undefined')GameLog.log('starwars','start()');
     const W=400,H=500;
     el.innerHTML=`<div style="text-align:center;touch-action:none;user-select:none;-webkit-user-select:none">
       <canvas id="swcv" width="${W}" height="${H}" style="background:#000;border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;touch-action:none;user-select:none"></canvas>

@@ -2,7 +2,8 @@
 const PacmanGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
-    if (!el) return;
+    if (!el) { if(typeof GameLog!=='undefined')GameLog.error('pacman','game-area not found'); return; }
+    if(typeof GameLog!=='undefined')GameLog.log('pacman','start()');
 
     const CELL=24, COLS=19, ROWS=21;
     const MAZE_TEMPLATE = [
