@@ -179,6 +179,7 @@ const App = {
   _showTeleportCinema(playerName, charEmoji, mtLeft) {
     const ov = document.createElement('div');
     ov.id = 'teleport-cinema';
+    document.body.style.background='#000';
     ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Fredoka One,cursive';
     document.body.appendChild(ov);
     const W = window.innerWidth, H = window.innerHeight;
