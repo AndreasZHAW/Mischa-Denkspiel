@@ -112,7 +112,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:.62rem;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.05.05-1141</p>
+          <p style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.05.05-1141</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -120,7 +120,7 @@ const App = {
           <!-- Welt 1 Box - dark dramatic style -->
           <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 Welt 1 — Denkspiel</div>
-            <div style="font-size:.82rem;color:#333;line-height:1.6">
+            <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#333;line-height:1.6">
               Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.<br>
               Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).<br>
               <span style="color:#888;font-size:.76rem">🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...</span>
@@ -130,7 +130,7 @@ const App = {
           <!-- Welt 2 Box -->
           <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
             <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 Welt 2 — Zoo-Empire</div>
-            <div style="font-size:.82rem;color:#333;line-height:1.6">
+            <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#333;line-height:1.6">
               Teleportiere für <b>10 🌀 MT</b> in den Zoo.<br>
               Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.<br>
               <span style="color:#888;font-size:.76rem">🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System</span>
@@ -143,7 +143,7 @@ const App = {
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
               <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">👜 Geldbeutel</button>
-              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()">📊 Kontoauszug</button>
+              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()" style="flex:1;background:rgba(255,215,0,.12);color:#FFD700;border:2px solid rgba(255,215,0,.3);font-size:clamp(0.78rem,3.5vw,0.92rem);min-height:40px;padding:6px 8px">📊 Konto</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>
@@ -409,9 +409,9 @@ const App = {
       <div style="background:white;border-radius:20px;padding:24px;text-align:center;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
         <div style="font-family:'Fredoka One',cursive;color:#2980B9;font-size:1.1rem;margin-bottom:10px">📱 Neuer Spieler beitreten</div>
         <img src="${qrUrl}" style="width:200px;height:200px;border-radius:8px;display:block;margin:0 auto" alt="QR Code"/>
-        <div style="font-size:.75rem;color:#666;margin-top:10px;word-break:break-all">${url}</div>
+        <div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:#666;margin-top:10px;word-break:break-all">${url}</div>
         <button onclick="navigator.clipboard?.writeText('${url}').then(()=>this.textContent='✅ Kopiert!').catch(()=>{})" style="margin-top:10px;background:#2980B9;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem">📋 Link kopieren</button>
-        <br><button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:8px;background:none;border:none;color:#888;cursor:pointer;font-size:.82rem">Schliessen</button>
+        <br><button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:8px;background:none;border:none;color:#888;cursor:pointer;font-size:clamp(0.9rem,3.7vw,1rem)">Schliessen</button>
       </div>`;
     document.body.appendChild(modal);
   },
@@ -435,7 +435,7 @@ const App = {
               </div>`).join('')}
           </div>
           <div id="color-section" style="display:none;margin:10px 0;text-align:center">
-            <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:7px">🎨 Farbe:</div>
+            <div style="font-size:clamp(0.9rem,3.7vw,1rem);font-weight:700;color:var(--text-mid);margin-bottom:7px">🎨 Farbe:</div>
             <div class="color-picker">
               ${STICKMAN_COLORS.map(c => `
                 <div class="color-dot" id="cdot-${c.color.replace('#','')}" style="background:${c.color}" title="${c.name}"
@@ -651,7 +651,7 @@ const App = {
       if(!animals.length) return;
       const col = RARITY_COLORS[r] || '#888';
       gridHTML += `<div style="margin-bottom:20px">
-        <div style="font-size:.75rem;font-weight:700;color:${col};margin-bottom:8px;padding:4px 10px;background:${col}22;border-radius:6px;display:inline-block">
+        <div style="font-size:clamp(0.85rem,3.5vw,0.95rem);font-weight:700;color:${col};margin-bottom:8px;padding:4px 10px;background:${col}22;border-radius:6px;display:inline-block">
           ${RARITY_LABELS[r]||r} (${animals.filter(a=>owned.has(a.id||a.n)).length}/${animals.length})
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px">`;
@@ -673,7 +673,7 @@ const App = {
           <button class="btn-back" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.9rem">◀ Zurück</button>
           <div>
             <div style="font-size:1.1rem;font-weight:900;color:#FFD700">🦁 Tiersammlung</div>
-            <div style="font-size:.75rem;color:rgba(255,255,255,.5)">${ch} ${player.name}</div>
+            <div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:rgba(255,255,255,.5)">${ch} ${player.name}</div>
           </div>
         </div>
         
@@ -686,7 +686,7 @@ const App = {
           <div style="background:rgba(255,255,255,.1);border-radius:50px;height:12px;overflow:hidden">
             <div style="height:100%;background:linear-gradient(90deg,#27AE60,#FFD700);width:${pct}%;transition:width 1s ease;border-radius:50px"></div>
           </div>
-          <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-top:6px;text-align:center">
+          <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:rgba(255,255,255,.4);margin-top:6px;text-align:center">
             ${totalAnimals-ownedCount} Tiere noch nicht gefunden
           </div>
         </div>
@@ -765,16 +765,16 @@ const App = {
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:100%;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:1.8rem">${ch?.emoji||'🧭'}</span>
+            <span style="font-size:clamp(2rem,8vw,2.4rem)">${ch?.emoji||'🧭'}</span>
             <div>
-              <div style="font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${displayName}</div>
-              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:.82rem;padding:3px 10px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
+              <div style="font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,4.5vw,1.3rem);color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${displayName}</div>
+              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:clamp(0.9rem,3.8vw,1rem);padding:4px 12px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:6px 12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.78rem">🌍 Rangliste</button>
-            <button onclick="Shop.open(null,()=>App.showWorldMap())" style="background:rgba(255,215,0,0.3);border:2px solid #FFD700;color:#FFD700;padding:6px 12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.78rem">🛒 Shop</button>
-            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:6px 12px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.78rem">Abmelden</button>
+            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">🌍 Rangliste</button>
+            <button onclick="Shop.open(null,()=>App.showWorldMap())" style="background:rgba(255,215,0,0.3);border:2px solid #FFD700;color:#FFD700;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">🛒 Shop</button>
+            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">Abmelden</button>
           </div>
         </div>
 
@@ -782,7 +782,7 @@ const App = {
         <div style="text-align:center;margin-bottom:10px">
           <div style="background:rgba(255,215,0,.2);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;display:inline-block">
             <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${mt.toFixed(1)} MT</span>
-            <span style="font-size:.75rem;color:rgba(255,255,255,.7);margin-left:8px">Mischa Taler</span>
+            <span style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:rgba(255,255,255,.7);margin-left:8px">Mischa Taler</span>
           </div>
         </div>
 
@@ -795,7 +795,7 @@ const App = {
         </div>` : `
         <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:100%;width:100%">
           <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">🦁 Zoo freischalten</div>
-          <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${Math.max(0,(10-mt)).toFixed(1)} 🌀 MT bis zur Teleportation</div>
+          <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:rgba(255,255,255,.6);margin-top:4px">Noch ${Math.max(0,(10-mt)).toFixed(1)} 🌀 MT bis zur Teleportation</div>
           <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
             <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,mt/10*100)}%"></div>
           </div>
@@ -815,9 +815,9 @@ const App = {
               <div class="world-item ${cls}" onclick="${unlocked?`App.showWorld(${world.id})`:'void(0)'}">
                 <span class="world-icon">${world.icon}</span>
                 <div class="world-info">
-                  <div class="world-name">${world.name}</div>
+                  <div class="world-name" style="font-size:clamp(1rem,4.5vw,1.25rem);font-weight:900">${world.name}</div>
                   <div class="world-desc">${world.difficulty}</div>
-                  <div class="world-progress">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1)} MT</div>
+                  <div class="world-progress" style="font-size:clamp(0.85rem,3.5vw,0.95rem)">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1)} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
@@ -893,14 +893,14 @@ const App = {
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:${isMe?'rgba(41,182,246,.12)':'rgba(255,255,255,.04)'};border:${isMe?'1px solid rgba(41,182,246,.3)':'1px solid transparent'}">
         <div style="font-size:1.1rem;min-width:28px;text-align:center">${medal||('<span style="color:rgba(255,255,255,.3);font-size:.85rem">#'+(i+1)+'</span>')}</div>
         <div style="flex:1">
-          <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:.7rem;color:#29B6F6">(Du)</span>':''}</div>
+          <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#29B6F6">(Du)</span>':''}</div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:1rem;font-weight:900;color:${parseFloat(mt)>=10?'#27AE60':parseFloat(mt)>=5?'#FFD700':'#E67E22'}">🌀${mt} MT</div>
         </div>
         ${p.name?.toLowerCase() !== player?.name?.toLowerCase() ? 
-          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:.7rem;touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
+          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:clamp(0.82rem,3.5vw,0.92rem);touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
       </div>`;
     }).join('');
 
@@ -909,9 +909,9 @@ const App = {
       <div class="page" style="padding-top:10px">
         <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:.82rem">← Zurück</button>
+            <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:clamp(0.9rem,3.7vw,1rem)">← Zurück</button>
             <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
-            ${player ? `<div style="font-size:.8rem;color:#FFD700">Du: 🌀${myMT.toFixed(1)} MT</div>` : ''}
+            ${player ? `<div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#FFD700">Du: 🌀${myMT.toFixed(1)} MT</div>` : ''}
           </div>
           ${rows || '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>'}
         </div>
@@ -946,9 +946,9 @@ const App = {
       const mtDisplay = done ? `<span style="color:${mtColor};font-weight:700">${mt.toFixed(1)} MT</span>` : '—';
 
       return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-        <td style="padding:5px 8px;font-size:.78rem">${game.icon} ${game.name}</td>
+        <td style="padding:5px 8px;font-size:clamp(0.88rem,3.6vw,0.98rem)">${game.icon} ${game.name}</td>
         <td style="padding:5px 8px;text-align:center">${mtDisplay}</td>
-        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.75);font-size:.75rem">${rawScore > 0 ? rawScore : '—'}</td>
+        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.75);font-size:clamp(0.85rem,3.5vw,0.95rem)">${rawScore > 0 ? rawScore : '—'}</td>
         <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.7);font-size:.72rem">${plays || '—'}</td>
       </tr>`;
     }).join('');
@@ -958,7 +958,7 @@ const App = {
       <div class="page" style="padding-top:10px">
         <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:12px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-            <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:.82rem">← Zurück</button>
+            <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:clamp(0.9rem,3.7vw,1rem)">← Zurück</button>
             <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1rem;margin:0">📊 Kontoauszug</h2>
           </div>
           <!-- Summary -->
@@ -977,7 +977,7 @@ const App = {
             </div>
           </div>
           <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+            <table style="width:100%;border-collapse:collapse;font-size:clamp(0.88rem,3.6vw,0.98rem)">
               <thead>
                 <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.75)">
                   <th style="padding:5px 8px;text-align:left">Spiel</th>
@@ -1034,8 +1034,8 @@ const App = {
     const rows = allRows.filter(r => r.done).sort((a,b) => b.mt - a.mt);
     const unplayedRows = allRows.filter(r => !r.done);
     const totalMT = rows.reduce((s,r)=>s+r.mt,0);
-    const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:.82rem">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:.8rem">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:.75rem">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
-    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:.75rem;color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
+    const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:clamp(0.9rem,3.7vw,1rem)">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:clamp(0.9rem,3.7vw,1rem)">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:clamp(0.85rem,3.5vw,0.95rem)">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
+    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:clamp(0.9rem,3.7vw,1rem)"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
   },
 
   // ---- WORLD VIEW ----
@@ -1085,7 +1085,7 @@ const App = {
       lastRunGames = lastRun ? Object.keys(lastRun.games||{}).length : 0;
       const statusMsg = runsCount===0 ? 'Noch kein vollständiger Durchgang — alle Spiele einmal spielen!' :
             runsCount<3 ? 'Noch '+(3-runsCount)+' weitere Durchgänge für maximale Genauigkeit' : 'Kalibrierung vollständig (3 Durchgänge)';
-      calStatus = '<div style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.82rem">'
+      calStatus = '<div style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:clamp(0.9rem,3.7vw,1rem)">'
         +'<div style="font-weight:900;font-size:.95rem;margin-bottom:4px">&#128302; KALIBRIERUNGS-MODUS</div>'
         +'<div>Deine Spiele kalibrieren die MT-Belohnungen für alle anderen Spieler.</div>'
         +'<div style="margin-top:6px">&#128202; Kalibriert: <b>'+calCount+'/20</b> &nbsp; &#128260; Durchgänge: <b>'+runsCount+'</b>'+(lastRun?'&nbsp; &#128197; Letzter Run: <b>'+lastRunGames+'/20</b>':'')+'</div>'
@@ -1108,9 +1108,9 @@ const App = {
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">◀ Welten</button>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.75rem">🌍 Rangliste</button>
-              <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.8rem">📊 Kontoauszug</button>
-              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.75rem">👗 Garderobe</button>
+              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,0.95rem)">🌍 Rangliste</button>
+              <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.9rem,3.7vw,1rem)">📊 Kontoauszug</button>
+              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:clamp(5px,1.5vw,8px) clamp(8px,2.5vw,12px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.78rem,3.3vw,0.9rem);min-height:40px">👗 Kleider</button>
               <div class="joker-badge ${State.getJokersRemaining(player,worldId)===0?'used':''}"
               onclick="${State.getJokersRemaining(player,worldId)===0?'':  `App.showJokerMenu(${worldId})`}">
               🃏 ${State.getJokersRemaining(player,worldId)} Joker
@@ -1118,9 +1118,9 @@ const App = {
             </div>
           </div>
 
-          <div style="font-size:0.8rem;color:var(--text-mid);margin-bottom:8px">Tippe auf die nächste Aufgabe:</div>
+          <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:var(--text-mid);margin-bottom:8px">Tippe auf die nächste Aufgabe:</div>
 
-          ${_isRefW ? '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:.82rem;color:#fff"><b style="color:#E74C3C">&#128302; Kalibrierung:</b> '+calCount+'/20 Spiele &middot; '+runsCount+' Durchgang'+(runsCount>=3?' &middot; ✅ Vollständig':runsCount>0?' &middot; '+Math.round(calCount/20*100)+'%':'')+'</div>' : ''}
+          ${_isRefW ? '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:clamp(0.9rem,3.7vw,1rem);color:#fff"><b style="color:#E74C3C">&#128302; Kalibrierung:</b> '+calCount+'/20 Spiele &middot; '+runsCount+' Durchgang'+(runsCount>=3?' &middot; ✅ Vollständig':runsCount>0?' &middot; '+Math.round(calCount/20*100)+'%':'')+'</div>' : ''}
       <div class="task-grid">
             ${world.tasks.map((task,i) => {
               const tdone = ws.tasks[i]&&ws.tasks[i].done;
@@ -1135,9 +1135,9 @@ const App = {
                   onclick="App.startTask(${worldId},${i})"
                   style="touch-action:manipulation"
                   title="${task.name||task.title||'Spiel '+(i+1)}">
-                  <span style="font-size:1.3rem">${task.icon||'🎮'}</span>
-                  <span style="font-size:clamp(0.7rem,2.2vw,0.85rem);font-weight:700;line-height:1.2">${task.name||('Spiel '+(i+1))}</span>
-                  ${mtEarned?`<span style="font-size:0.6rem;color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:0.55rem;opacity:0.8">⭐${score}</span>`:''}
+                  <span class="task-icon" style="font-size:clamp(1.4rem,6vw,1.8rem);display:block;margin-bottom:2px;line-height:1">${task.icon||'🎮'}</span>
+                  <span class="task-name" style="font-size:clamp(0.82rem,3.8vw,1rem);font-weight:700;line-height:1.2;display:block">${task.name||('Spiel '+(i+1))}</span>
+                  ${mtEarned?`<span style="font-size:clamp(0.75rem,3.2vw,0.85rem);color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:clamp(0.72rem,3vw,0.82rem);opacity:0.8">⭐${score}</span>`:''}
                 </button>`;
             }).join('')}
           </div>
@@ -1146,7 +1146,7 @@ const App = {
             <div class="progress-bar-wrap">
               <div class="progress-bar-fill" style="width:${done*10}%"></div>
             </div>
-            <div style="text-align:center;font-size:0.75rem;color:var(--text-mid)">${done}/10 Aufgaben</div>
+            <div style="text-align:center;font-size:clamp(0.85rem,3.5vw,0.95rem);color:var(--text-mid)">${done}/10 Aufgaben</div>
           </div>
         </div>
       </div>`);
@@ -1210,11 +1210,11 @@ const App = {
             </div>
             <div style="display:flex;gap:6px;align-items:center">
               <button onclick="App._toggleZoom()" id="zoom-btn"
-                style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:0.75rem;font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">
+                style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:clamp(0.85rem,3.5vw,0.95rem);font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">
                 🔍
               </button>
               <button onclick="App._confirmLeave(${worldId})"
-                style="background:#FFF5F5;border:2px solid #E74C3C;color:#E74C3C;padding:5px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;cursor:pointer">
+                style="background:#FFF5F5;border:2px solid #E74C3C;color:#E74C3C;padding:5px 10px;border-radius:50px;font-size:clamp(0.85rem,3.5vw,0.95rem);font-weight:700;cursor:pointer">
                 ✕ Verlassen
               </button>
               <div class="joker-badge ${ws.jokerUsed?'used':''}"
@@ -1336,7 +1336,7 @@ const App = {
           </div>
           <div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
             <span style="font-size:2rem">👤</span>
-            <div><div style="font-weight:700">${playerName}</div><div style="font-size:.78rem;color:rgba(255,255,255,.4)">@${playerName}</div></div>
+            <div><div style="font-weight:700">${playerName}</div><div style="font-size:clamp(0.88rem,3.6vw,0.98rem);color:rgba(255,255,255,.4)">@${playerName}</div></div>
           </div>
           <div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:8px">Grund für die Meldung auswählen</div>
           ${reasons.map(r => `<div onclick="App._selectReportReason('${playerName}','${r}',this)" style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:8px;transition:.15s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background=''">${r} <span style="opacity:.4">›</span></div>`).join('')}
@@ -1539,9 +1539,9 @@ const App = {
               -webkit-background-clip:text;-webkit-text-fill-color:transparent">
               ×${newMult.toFixed(1)} Multiplikator!
             </div>
-            ${isAdminUnlock ? `<div style="margin-top:8px;font-size:0.82rem;color:#E74C3C;font-weight:700">
+            ${isAdminUnlock ? `<div style="margin-top:8px;font-size:clamp(0.9rem,3.7vw,1rem);color:#E74C3C;font-weight:700">
               🔐 Nach 10 Resets: Admin-Chat freigeschaltet!
-            </div>` : `<div style="font-size:0.75rem;color:var(--text-mid);margin-top:6px">
+            </div>` : `<div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:var(--text-mid);margin-top:6px">
               Nach 10 Resets: Admin-Chat freischalten 🔐
             </div>`}
           </div>

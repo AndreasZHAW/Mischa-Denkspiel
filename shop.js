@@ -330,16 +330,16 @@ const Shop = {
         <div style="font-size:1.7rem;min-width:38px;text-align:center">${item.icon}</div>
         <div style="flex:1;min-width:0">
           <div style="font-family:'Fredoka One',cursive;font-size:0.88rem;${item.maxLuck?'background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60,#4A90D9,#9B59B6);-webkit-background-clip:text;-webkit-text-fill-color:transparent':''}color:${!item.maxLuck&&item.ultraRare?'#FFD700':'white'}">${item.maxLuck?'👑 '+item.name:item.name}</div>
-          <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:1px;line-height:1.3">${item.desc}</div>
-          ${isOwned&&item.permanent?'<div style="font-size:0.7rem;color:#27AE60;margin-top:2px">✅ Besitzt du</div>':''}
-          ${activeLeft&&activeLeft>0?`<div id="at-${item.id}" style="font-size:0.7rem;color:#27AE60;margin-top:2px">✅ Aktiv: ${formatTimeLeft(activeLeft)}</div>`:''}
-          ${timeLeft&&timeLeft>0&&!isOwned?`<div id="lt-${item.id}" style="font-size:0.7rem;color:#E67E22;margin-top:2px">⏰ ${formatTimeLeft(timeLeft)}</div>`:''}
+          <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,0.4);margin-top:1px;line-height:1.3">${item.desc}</div>
+          ${isOwned&&item.permanent?'<div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#27AE60;margin-top:2px">✅ Besitzt du</div>':''}
+          ${activeLeft&&activeLeft>0?`<div id="at-${item.id}" style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#27AE60;margin-top:2px">✅ Aktiv: ${formatTimeLeft(activeLeft)}</div>`:''}
+          ${timeLeft&&timeLeft>0&&!isOwned?`<div id="lt-${item.id}" style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#E67E22;margin-top:2px">⏰ ${formatTimeLeft(timeLeft)}</div>`:''}
         </div>
         <div style="text-align:right;flex-shrink:0;min-width:72px">
           ${item.price>0?`
-            ${disc?`<div style="font-size:0.65rem;color:rgba(255,255,255,0.3);text-decoration:line-through">🌀${dp<item.price?item.price.toLocaleString():''}</div>`:''}
+            ${disc?`<div style="font-size:clamp(0.78rem,3.3vw,0.9rem);color:rgba(255,255,255,0.3);text-decoration:line-through">🌀${dp<item.price?item.price.toLocaleString():''}</div>`:''}
             <div style="font-family:'Fredoka One',cursive;color:${disc?'#27AE60':'#FFD700'};font-size:0.85rem">
-              ⭐${dp.toLocaleString()}${disc?` <span style="background:#E74C3C;color:white;border-radius:3px;padding:1px 3px;font-size:0.6rem">-${disc}%</span>`:''}
+              ⭐${dp.toLocaleString()}${disc?` <span style="background:#E74C3C;color:white;border-radius:3px;padding:1px 3px;font-size:clamp(0.75rem,3.2vw,0.85rem)">-${disc}%</span>`:''}
             </div>`:''}
           ${!cantBuy&&item.price>0?`
             <button onclick="Shop._confirm('${item.id}',${isGift})"
@@ -349,7 +349,7 @@ const Shop = {
                 color:${canAfford?'#2C3E50':'rgba(255,255,255,0.25)'};
                 ${!canAfford?'cursor:not-allowed':''}">
               ${canAfford?'Kaufen':'Zu wenig'}
-            </button>`:cantBuy&&!item.activeUntil?'<div style="font-size:0.68rem;color:#27AE60;margin-top:4px">✅</div>':''}
+            </button>`:cantBuy&&!item.activeUntil?'<div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:#27AE60;margin-top:4px">✅</div>':''}
         </div>
       </div>
     </div>`;
@@ -398,7 +398,7 @@ const Shop = {
             <span style="font-size:1.3rem">${E[p.character]||'🧭'}</span>
             <div style="flex:1">
               <div style="color:white;font-size:0.88rem;font-weight:700">${p.name}</div>
-              <div style="font-size:0.7rem;color:rgba(255,255,255,0.35)">⭐${p.totalScore||0} · Welt ${p.currentWorld||1}/10</div>
+              <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,0.35)">⭐${p.totalScore||0} · Welt ${p.currentWorld||1}/10</div>
             </div>
             <span style="color:#FF69B4">🎁</span>
           </div>`).join('')}`;
@@ -432,7 +432,7 @@ const Shop = {
             background:rgba(255,255,255,0.38);border-radius:50px;pointer-events:none;
             transition:none"></div>
         </div>
-        <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);margin-bottom:10px">Klicke zum Kaufen</div>
+        <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:rgba(255,255,255,0.3);margin-bottom:10px">Klicke zum Kaufen</div>
         <button onclick="document.getElementById('shop-confirm-modal').remove()"
           style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
             color:rgba(255,255,255,0.5);padding:6px 20px;border-radius:50px;cursor:pointer;font-size:0.85rem">
@@ -604,7 +604,7 @@ const Wardrobe = {
                 style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
                   border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;opacity:0.55">
                 <div style="font-size:1.8rem;filter:grayscale(1)">${c.emoji}</div>
-                <div style="font-size:0.55rem;color:rgba(255,255,255,0.35);margin-top:2px">🔒 🌀${c.price||1}</div>
+                <div style="font-size:clamp(0.72rem,3vw,0.82rem);color:rgba(255,255,255,0.35);margin-top:2px">🔒 🌀${c.price||1}</div>
               </div>`).join('')}
           </div>`:''}
         <button onclick="Wardrobe.close();Shop.open(null,()=>App&&App.showWorldMap&&App.showWorldMap())"

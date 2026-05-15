@@ -95,12 +95,12 @@ const DifferencesGame = {
       <div class="diff-container">
         <div class="diff-img-wrap" id="diff-left" onclick="DifferencesGame._handleClick(event,'left')">
           ${this._buildSVG(false, c.scene)}
-          <div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.5);color:white;font-size:0.65rem;padding:2px 7px;border-radius:6px">Bild 1</div>
+          <div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.5);color:white;font-size:clamp(0.78rem,3.3vw,0.9rem);padding:2px 7px;border-radius:6px">Bild 1</div>
           ${this._renderCircles('left', c)}
         </div>
         <div class="diff-img-wrap" id="diff-right" onclick="DifferencesGame._handleClick(event,'right')">
           ${this._buildSVG(true, c.scene)}
-          <div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.5);color:white;font-size:0.65rem;padding:2px 7px;border-radius:6px">Bild 2</div>
+          <div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.5);color:white;font-size:clamp(0.78rem,3.3vw,0.9rem);padding:2px 7px;border-radius:6px">Bild 2</div>
           ${this._renderCircles('right', c)}
         </div>
       </div>

@@ -138,15 +138,15 @@ const DartGame = {
   <!-- Score board -->
   <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:8px">
     <div style="background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
-      <div style="font-size:.68rem;color:${isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">👤 Du</div>
+      <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:${isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">👤 Du</div>
       <div style="font-family:'Fredoka One',cursive;font-size:2rem;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
-      <div style="font-size:.62rem;color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">${isP?`Pfeil ${c.dartsThisRound+1}/3`:'warte...'}</div>
+      <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">${isP?`Pfeil ${c.dartsThisRound+1}/3`:'warte...'}</div>
     </div>
     <div style="font-family:'Fredoka One',cursive;font-size:.85rem;color:var(--text-mid);align-self:center">VS</div>
     <div style="background:${!isP?'linear-gradient(135deg,#c0392b,#7b0000)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
-      <div style="font-size:.68rem;color:${!isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">🤖 CPU</div>
+      <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:${!isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">🤖 CPU</div>
       <div style="font-family:'Fredoka One',cursive;font-size:2rem;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
-      <div style="font-size:.62rem;color:${!isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">301 Double-Out</div>
+      <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:${!isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">301 Double-Out</div>
     </div>
   </div>
 
@@ -180,12 +180,12 @@ const DartGame = {
     <!-- Wind info text -->
     <div style="flex:1;min-width:0">
       <div style="font-size:.82rem;font-weight:700;color:var(--text-dark)">${c.wind.name}</div>
-      <div style="font-size:.68rem;color:var(--text-mid)">Richtung: ${Math.round(c.wind.angle)}°</div>
+      <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:var(--text-mid)">Richtung: ${Math.round(c.wind.angle)}°</div>
       <!-- Strength bar -->
       <div style="background:#ddd;border-radius:50px;height:5px;margin-top:3px;overflow:hidden">
         <div style="background:${c.wind.strength<1.2?'#27AE60':c.wind.strength<2.5?'#F39C12':'#E74C3C'};height:100%;border-radius:50px;transition:width .5s;width:${Math.min(100,c.wind.strength/3.5*100)}%"></div>
       </div>
-      <div style="font-size:.62rem;color:var(--text-mid);margin-top:1px">Stärke: ${c.wind.strength.toFixed(1)}/3.5 — ändert sich alle 3-4s</div>
+      <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:var(--text-mid);margin-top:1px">Stärke: ${c.wind.strength.toFixed(1)}/3.5 — ändert sich alle 3-4s</div>
     </div>
   </div>
 
@@ -221,23 +221,23 @@ const DartGame = {
 
   <!-- Mobile joystick (shown only on touch devices) -->
   <div id="dart-joy" style="display:none;flex-direction:column;align-items:center;gap:6px;margin-left:8px;touch-action:none;user-select:none">
-    <div style="font-size:.7rem;color:#FFD700;text-align:center;font-weight:700;line-height:1.3">🎯 Zielen<br><span style="color:rgba(255,255,255,.5);font-size:.62rem;font-weight:400">Schieben → Ziel<br>Loslassen = Wurf</span></div>
+    <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#FFD700;text-align:center;font-weight:700;line-height:1.3">🎯 Zielen<br><span style="color:rgba(255,255,255,.5);font-size:clamp(0.76rem,3.2vw,0.86rem);font-weight:400">Schieben → Ziel<br>Loslassen = Wurf</span></div>
     <div id="dart-joy-pad" style="position:relative;width:100px;height:100px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 12px rgba(255,215,0,.2)">
       <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:36px;height:36px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);transition:none;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
     </div>
-    <div style="font-size:.62rem;color:rgba(255,255,255,.4);text-align:center">⬆️ Mitte = Bullseye</div>
+    <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:rgba(255,255,255,.4);text-align:center">⬆️ Mitte = Bullseye</div>
   </div><!-- end dart-joy -->
   </div><!-- end flex container -->
 
   <!-- Last throws row -->
   <div style="display:flex;gap:3px;justify-content:center;min-height:24px;margin-bottom:6px;flex-wrap:wrap">
-    ${c.player.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:${d.pts>0?'#3498DB':'#E74C3C'};color:white;font-size:.68rem;font-weight:700">${d.label}</div>`).join('')}
-    ${c.cpu.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:rgba(231,76,60,.25);color:var(--text-dark);font-size:.68rem">🤖 ${d.label}</div>`).join('')}
+    ${c.player.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:${d.pts>0?'#3498DB':'#E74C3C'};color:white;font-size:clamp(0.8rem,3.4vw,0.9rem);font-weight:700">${d.label}</div>`).join('')}
+    ${c.cpu.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:rgba(231,76,60,.25);color:var(--text-dark);font-size:clamp(0.8rem,3.4vw,0.9rem)">🤖 ${d.label}</div>`).join('')}
   </div>
 
   <!-- Instruction -->
   <div style="text-align:center;font-size:.75rem;color:var(--text-mid);padding:0 8px">
-    ${isP?'🖱️ Bewege Maus/Finger zum Zielen — Klick/Tippe zum Werfen!<br><span style="font-size:.65rem;color:#E74C3C">Atmung verschiebt Fadenkreuz — ziele aktiv gegen!</span>':'<span style="font-family:\'Fredoka One\',cursive;color:#E74C3C">🤖 CPU wirft...</span>'}
+    ${isP?'🖱️ Bewege Maus/Finger zum Zielen — Klick/Tippe zum Werfen!<br><span style="font-size:clamp(0.78rem,3.3vw,0.9rem);color:#E74C3C">Atmung verschiebt Fadenkreuz — ziele aktiv gegen!</span>':'<span style="font-family:\'Fredoka One\',cursive;color:#E74C3C">🤖 CPU wirft...</span>'}
   </div>
 </div>`;
 

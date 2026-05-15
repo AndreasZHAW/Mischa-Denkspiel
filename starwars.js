@@ -7,7 +7,7 @@ const StarWarsGame = {
     const W=400,H=500;
     el.innerHTML=`<div style="text-align:center;touch-action:none;user-select:none;-webkit-user-select:none">
       <canvas id="swcv" width="${W}" height="${H}" style="background:#000;border-radius:8px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;touch-action:none;user-select:none"></canvas>
-      <div style="display:flex;justify-content:column;gap:6px;margin-top:8px"><div style="text-align:center;font-size:.7rem;color:rgba(255,215,0,.6);margin-bottom:4px">📱 Handy kippen = Steuern · 🔥 = Schiessen</div><div style="display:flex;justify-content:center;gap:12px">
+      <div style="display:flex;justify-content:column;gap:6px;margin-top:8px"><div style="text-align:center;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,215,0,.6);margin-bottom:4px">📱 Handy kippen = Steuern · 🔥 = Schiessen</div><div style="display:flex;justify-content:center;gap:12px">
         <button id="sw-left" style="background:#1a1a2e;color:#FFD700;border:2px solid #FFD700;padding:12px 24px;border-radius:8px;font-size:1.2rem;cursor:pointer;-webkit-tap-highlight-color:transparent">◀</button>
         <button id="sw-fire" style="background:#E74C3C;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:900">🔫 Schießen</button>
         <button id="sw-right" style="background:#1a1a2e;color:#FFD700;border:2px solid #FFD700;padding:12px 24px;border-radius:8px;font-size:1.2rem;cursor:pointer;-webkit-tap-highlight-color:transparent">▶</button>

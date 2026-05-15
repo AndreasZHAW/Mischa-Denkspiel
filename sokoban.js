@@ -7,19 +7,19 @@ const SokobanGame = {
     // Carefully verified levels: boxes === goals always
     const LEVELS = [
       { name:'Tutorial',  map:['######','# .  #','# $  #','# @  #','######'],
-        hint:'Schiebe die Box (braun) mit den Pfeiltasten auf den Zielkreis (rot X).' },
+        hint:'Schiebe die Box einmal nach oben. Fertig! (1 Zug)' },
       { name:'Einfach 1', map:['######','# .  #','#  $ #','#  @ #','######'],
-        hint:'Gehe links neben die Box, dann schiebe sie nach links und oben zum Ziel.' },
+        hint:'Lösung: ↑ → ↑ ← (4 Züge) — Box nach oben, dann rechts ranstellen und nochmals nach oben.' },
       { name:'Einfach 2', map:['#######','# . . #','# $ $ #','#  @  #','#######'],
-        hint:'Schiebe die linke Box auf das linke Ziel, dann die rechte Box auf das rechte Ziel.' },
-      { name:'Mittel 1',  map:['########','#  .    #','#  $    #','# @  .  #','#    $  #','########'],
-        hint:'Starte mit der oberen Box: schiebe sie nach oben aufs obere Ziel. Dann die untere Box nach rechts.' },
+        hint:'Lösung: ← ↑ ↓ → → ↑ (6 Züge) — Linke Box zuerst auf linkes Ziel, dann rechte Box.' },
+      { name:'Mittel 1',  map:['########','# .    .#','# $    $#','#    @  #','########'],
+        hint:'Lösung (10 Züge): → → ↑ ↓ ← ← ← ← ← ↑ — Erst rechts gehen, rechte Box nach oben, dann ganz links zur linken Box.' },
       { name:'Mittel 2',  map:['########','#  ..   #','# $$    #','#    @  #','########'],
-        hint:'Beide Boxen müssen auf die zwei Ziele. Nutze die Lücke rechts um die Position zu wechseln.' },
+        hint:'Lösung (12 Züge): ← ← ↑ ↓ ← ← ↑ → → ↓ → ↑ — Linke Box auf linkes Ziel, dann rechte Box.' },
       { name:'Schwer 1',  map:['#########','# ...    #','# $$$    #','#   @    #','#########'],
-        hint:'Alle 3 Boxen auf die 3 Ziele. Von rechts nach links arbeiten: erst rechte Box, dann mittlere, dann linke.' },
+        hint:'Lösung (7 Züge): ↑ ↓ ← ↑ ↓ ← ↑ — Jede Box einzeln von unten auf ihr Ziel schieben.' },
       { name:'Schwer 2',  map:['##########','#   ..    #','# @ $$    #','#         #','##########'],
-        hint:'Schiebe die rechte Box auf das rechte Ziel. Dann die linke Box auf das linke Ziel. Weg freibalten!' },
+        hint:'Lösung (7 Züge): ↓ → → ↑ ↓ → ↑ — Erst nach unten, dann rechts zwei Felder, dann nach oben.' },
     ];
 
     let levelIdx = 0, moves = 0, totalSolved = 0, hintsUsed = 0, hintPenalty = 0;
@@ -150,7 +150,7 @@ const SokobanGame = {
             <button onclick="SokobanGame._showHint()"
               style="flex:2;background:rgba(255,215,0,.12);border:2px solid rgba(255,215,0,.35);color:#FFD700;padding:9px;border-radius:10px;cursor:pointer;font-size:.85rem;font-weight:700;touch-action:manipulation">💡 Tipp <span style="color:rgba(255,100,100,.7);font-size:.72rem">(-5 Punkte)</span></button>
           </div>
-          <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-top:4px">← → ↑ ↓ oder Wischen</div>
+          <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.35);margin-top:4px">← → ↑ ↓ oder Wischen</div>
         </div>`;
 
       const cv = document.getElementById('sok-cv');

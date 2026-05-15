@@ -1,4 +1,156 @@
 
+
+/* ===== STRONG MOBILE TYPOGRAPHY (Android + iPhone) ===== */
+@media screen and (max-width: 768px) {
+  /* BASE FONT: legible on all mobile screens */
+  body { font-size: 16px !important; }
+  
+  /* Task buttons: emoji + name clearly visible */
+  .task-btn {
+    min-height: 68px !important;
+    min-width: 68px !important;
+    border-radius: 12px !important;
+    padding: 4px 2px !important;
+  }
+  .task-btn .task-icon { 
+    font-size: 28px !important; 
+    display: block !important; 
+    margin-bottom: 3px !important;
+  }
+  .task-btn .task-name { 
+    font-size: 13px !important; 
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+  }
+  .task-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  /* World list */
+  .world-name { font-size: 18px !important; font-weight: 900 !important; }
+  .world-desc { font-size: 13px !important; }
+  .world-progress { font-size: 13px !important; }
+  .world-icon { font-size: 32px !important; }
+  .world-item { padding: 12px 10px !important; gap: 12px !important; }
+  
+  /* Navigation buttons */
+  .btn { 
+    font-size: 15px !important; 
+    min-height: 44px !important; 
+    padding: 8px 14px !important;
+  }
+  
+  /* Player header */
+  .player-name { font-size: 20px !important; }
+  .player-sub { font-size: 13px !important; }
+  
+  /* MT display */
+  .mt-display { font-size: 18px !important; }
+  
+  /* Cards */
+  .card { padding: 14px 12px !important; }
+  
+  /* ALL game canvases */
+  #game-area canvas {
+    max-width: 100vw !important;
+    width: 100% !important;
+    height: auto !important;
+    touch-action: none !important;
+  }
+  #game-area {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+}
+/* ===== iPhone OPTIMIZATIONS ===== */
+/* Prevent ALL horizontal overflow */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+* {
+  box-sizing: border-box;
+}
+
+/* Minimum tap target size 44x44px (Apple HIG) */
+@media (max-width: 430px) {
+  button, .btn {
+    min-height: 44px !important;
+    font-size: clamp(0.88rem, 3.8vw, 1rem) !important;
+  }
+  .task-btn {
+    min-height: 62px !important;
+    min-width: 62px !important;
+    font-size: clamp(0.73rem, 3.2vw, 0.88rem) !important;
+  }
+  .task-btn span:first-child {
+    font-size: clamp(1.3rem, 5.5vw, 1.7rem) !important;
+    display: block;
+    margin-bottom: 2px;
+  }
+  /* Task grid: 4 columns on iPhone */
+  .task-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 7px !important;
+  }
+  /* World map */
+  .world-name { font-size: clamp(1.0rem, 4vw, 1.15rem) !important; }
+  .world-desc { font-size: clamp(0.8rem, 3.2vw, 0.9rem) !important; }
+  .world-progress { font-size: clamp(0.8rem, 3.2vw, 0.9rem) !important; }
+  .banner-title { font-size: clamp(1.4rem, 6vw, 1.8rem) !important; }
+  /* Cards */
+  .card { padding: 10px 8px !important; }
+  .page { padding: 4px !important; }
+  /* Game header */
+  .game-header { padding: 5px 8px !important; }
+  .game-title { font-size: clamp(0.88rem, 3.8vw, 1rem) !important; }
+  /* Prevent canvas overflow */
+  #game-area canvas {
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+  #game-area {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  /* Joker button */
+  .joker-btn { min-height: 44px !important; font-size: 0.9rem !important; }
+  /* Nav buttons (Rangliste, Kontoauszug, Garderobe) */
+  .nav-btn, [class*="nav"] button {
+    font-size: clamp(0.78rem, 3.3vw, 0.9rem) !important;
+    padding: 6px 8px !important;
+  }
+}
+
+/* Very small (iPhone SE 375px) */
+@media (max-width: 390px) {
+  .task-grid { 
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px !important;
+    padding: 2px !important;
+  }
+  .task-btn {
+    min-height: 58px !important;
+    min-width: 58px !important;
+    font-size: clamp(0.68rem, 3vw, 0.8rem) !important;
+  }
+  .card { padding: 8px 6px !important; }
+  h2 { font-size: clamp(1.1rem, 5vw, 1.3rem) !important; }
+  h3 { font-size: clamp(0.95rem, 4vw, 1.1rem) !important; }
+  /* 3 column layout option for very small */
+  .banner-sub { font-size: clamp(0.78rem, 3.3vw, 0.88rem) !important; }
+}
+
+/* iOS safe area support */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
 /* Prevent pinch-zoom on game canvases */
 #game-area canvas,
 #game-area {

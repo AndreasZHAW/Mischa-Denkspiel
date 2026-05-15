@@ -663,7 +663,7 @@ const BasketballGame = {
         <div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:6px">Tippe wenn die Kraft stimmt!</div>
         <div style="background:#E0E6EE;border-radius:50px;height:24px;overflow:hidden;margin-bottom:12px;position:relative">
           <div id="bball-power" style="height:100%;background:linear-gradient(90deg,#27AE60,#E67E22,#E74C3C);border-radius:50px;width:0%;transition:none"></div>
-          <div style="position:absolute;top:50%;right:12px;transform:translateY(-50%);font-size:0.7rem;color:var(--text-mid)">💪</div>
+          <div style="position:absolute;top:50%;right:12px;transform:translateY(-50%);font-size:clamp(0.82rem,3.5vw,0.92rem);color:var(--text-mid)">💪</div>
         </div>
         <button class="btn btn-primary btn-full btn-big" id="shoot-btn" onclick="BasketballGame._shoot()">
           🏀 Werfen!

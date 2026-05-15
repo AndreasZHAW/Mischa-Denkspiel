@@ -77,7 +77,7 @@ const FrenchGame = {
       const q = questions[qi];
       const shuffled = [...q.choices].sort(()=>Math.random()-0.5);
       el.innerHTML = `
-        <div style="padding:12px;max-width:520px;margin:0 auto">
+        <div style="padding:10px 8px;max-width:min(520px,100vw);margin:0 auto;overflow-x:hidden">
           <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:.82rem;color:rgba(255,255,255,.5)">
             <span>🇫🇷 Frage ${qi+1}/${questions.length}</span>
             <span>✅ ${correct} ❌ ${wrong}</span>

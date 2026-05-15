@@ -37,9 +37,9 @@ const PacmanGame = {
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
         ${isTouch ? `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-          <span style="font-size:.7rem;color:rgba(255,255,255,.5)">Steuerung:</span>
-          <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 10px;border-radius:20px;font-size:.7rem;cursor:pointer">🎮 Tasten</button>
-          <label id="pc-tilt-opts" style="display:none;align-items:center;gap:8px;font-size:.68rem;color:rgba(255,255,255,.5)">
+          <span style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.5)">Steuerung:</span>
+          <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 10px;border-radius:20px;font-size:clamp(0.82rem,3.5vw,0.92rem);cursor:pointer">🎮 Tasten</button>
+          <label id="pc-tilt-opts" style="display:none;align-items:center;gap:8px;font-size:clamp(0.8rem,3.4vw,0.9rem);color:rgba(255,255,255,.5)">
             <label style="display:flex;align-items:center;gap:3px;cursor:pointer">
               <input type="checkbox" id="pc-rev-x" style="cursor:pointer"> Links/Rechts ↔
             </label>
@@ -57,7 +57,7 @@ const PacmanGame = {
           <button class="pc-btn" data-d="down" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▼</button>
           <button class="pc-btn" data-d="right" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▶</button>
         </div>
-        ${isTouch ? '<div id="pc-tilt-hint" style="display:none;font-size:.7rem;color:rgba(255,255,255,.4);text-align:center">📱 Gerät neigen zum Steuern</div>' : ''}
+        ${isTouch ? '<div id="pc-tilt-hint" style="display:none;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.4);text-align:center">📱 Gerät neigen zum Steuern</div>' : ''}
       </div>`;
 
     const cv = document.getElementById('pccv');

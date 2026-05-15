@@ -8,14 +8,14 @@ const StuntGame = {
 
     el.innerHTML = `<div style="text-align:center;font-family:sans-serif">
       <canvas id="stcv" width="${W}" height="${H}"
-        style="border-radius:10px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;background:#06001a;touch-action:none"></canvas>
+        style="border-radius:10px;width:100%;max-width:min(${W}px,100vw);height:auto;display:block;margin:0 auto;background:#06001a;touch-action:none"></canvas>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:8px;max-width:${W}px;margin-left:auto;margin-right:auto">
         <button id="st-rotdn" style="background:linear-gradient(135deg,#6C3483,#8E44AD);color:#fff;border:none;padding:12px 6px;border-radius:10px;font-size:1.1rem;font-weight:900;cursor:pointer;touch-action:none;user-select:none">↺</button>
         <button id="st-back"  style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:12px 6px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;touch-action:none;user-select:none">◀</button>
         <button id="st-fwd"   style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:12px 6px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;touch-action:none;user-select:none">▶</button>
         <button id="st-rotup" style="background:linear-gradient(135deg,#8E44AD,#9B59B6);color:#fff;border:none;padding:12px 6px;border-radius:10px;font-size:1.1rem;font-weight:900;cursor:pointer;touch-action:none;user-select:none">↻</button>
       </div>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-top:3px">↺↻ = Drehen · ◀ Rückwärts · ▶ Gas</div>
+      <div style="font-size:clamp(0.78rem,3.3vw,0.9rem);color:rgba(255,255,255,.35);margin-top:3px">↺↻ = Drehen · ◀ Rückwärts · ▶ Gas</div>
     </div>`;
 
     const cv = document.getElementById('stcv');

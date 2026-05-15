@@ -107,7 +107,7 @@ const JengaGame = {
 
         <!-- Tower visual -->
         <div style="flex-shrink:0;width:70px">
-          <div style="font-size:0.7rem;color:var(--text-mid);text-align:center;margin-bottom:4px">${bricksLeft} Steine</div>
+          <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:var(--text-mid);text-align:center;margin-bottom:4px">${bricksLeft} Steine</div>
           <div style="display:flex;flex-direction:column;gap:2px;align-items:center" id="jenga-tower">
             ${this._renderTower()}
           </div>

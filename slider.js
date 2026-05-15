@@ -160,7 +160,7 @@ const SliderGame = {
           border:3px solid ${isCorrect ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)'}
           ${isCorrect ? ';transform:scale(0.97)' : ''}">
         ${emoji}
-        <span style="font-size:0.6rem;opacity:0.7;font-weight:700">${tile}</span>
+        <span style="font-size:clamp(0.75rem,3.2vw,0.85rem);opacity:0.7;font-weight:700">${tile}</span>
       </div>`;
   },
 
