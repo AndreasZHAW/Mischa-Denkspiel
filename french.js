@@ -43,16 +43,29 @@ const FrenchGame = {
         { q:"'Se rendre compte' bedeutet:", a:"sich bewusst werden", choices:["sich bewusst werden","zurückkommen","sich hinsetzen","Auskunft geben"] },
       ],
       schwer: [
-        { q:"Erklären Sie den Unterschied zwischen 'Passé composé' und 'Imparfait':", a:"PC: abgeschlossene Handlung; Imparfait: Zustand/Wiederholung", choices:["PC: abgeschlossene Handlung; Imparfait: Zustand/Wiederholung","Beide beschreiben Vergangenheit identisch","PC ist höflicher","Imparfait nur für Literatur"] },
-        { q:"'Le subjonctif' nach 'bien que' – Beispiel korrekt?", a:"Bien qu'il soit fatigué, il travaille", choices:["Bien qu'il soit fatigué, il travaille","Bien qu'il est fatigué, il travaille","Bien qu'il sera fatigué","Bien qu'il serait fatigué"] },
-        { q:"'La mondialisation' im Argumentationskontext:", a:"Globalisierung – wirtschaftliche und kulturelle Vernetzung", choices:["Globalisierung – wirtschaftliche und kulturelle Vernetzung","Lokalisierung regionaler Märkte","Digitalisierung der Wirtschaft","Europäische Integration"] },
-        { q:"Welche Aussage über den Relativsatz mit 'dont' ist korrekt?", a:"'dont' = de + qui/lequel (ersetzt Genitiv)", choices:["'dont' = de + qui/lequel (ersetzt Genitiv)","'dont' = à + qui","'dont' = pour + quoi","'dont' nur mit Personen"] },
-        { q:"'Quoique' + ?", a:"Subjonctif (obwohl)", choices:["Subjonctif (obwohl)","Indicatif (weil)","Infinitif (um zu)","Conditionnel (wenn)"] },
-        { q:"Das Gérondif 'en parlant' entspricht:", a:"indem man spricht / während man spricht", choices:["indem man spricht / während man spricht","nachdem man gesprochen hat","um zu sprechen","ohne zu sprechen"] },
-        { q:"'Le discours indirect' – Zeitverschiebung von Présent ins Passé:", a:"Présent → Imparfait", choices:["Présent → Imparfait","Présent → Passé composé","Présent → Futur","Présent → Subjonctif"] },
-        { q:"Übersetzung: 'Malgré les difficultés, il a réussi à s'imposer'", a:"Trotz der Schwierigkeiten gelang es ihm, sich durchzusetzen", choices:["Trotz der Schwierigkeiten gelang es ihm, sich durchzusetzen","Wegen der Schwierigkeiten scheiterte er","Ohne Schwierigkeiten hatte er Erfolg","Er kämpfte gegen die Schwierigkeiten"] },
-        { q:"'Mettre en lumière' bedeutet im akademischen Kontext:", a:"hervorheben / beleuchten", choices:["hervorheben / beleuchten","im Dunkeln lassen","kritisieren","vereinfachen"] },
-        { q:"Welcher Modus nach 'pour que'?", a:"Subjonctif", choices:["Subjonctif","Indicatif","Conditionnel","Infinitif"] },
+        // Grammatik
+        { q:"Welcher Modus steht nach 'pour que'?", a:"Subjonctif", choices:["Subjonctif","Indicatif","Conditionnel","Infinitif"] },
+        { q:"'Bien que' + __ (korrekte Form)?", a:"il soit fatigué", choices:["il soit fatigué","il est fatigué","il serait fatigué","il sera fatigué"] },
+        { q:"Das Passé composé von 'venir' (je) ist:", a:"je suis venu(e)", choices:["je suis venu(e)","j'ai venu","j'étais venu","je venais"] },
+        { q:"'Dont' ersetzt:", a:"de + nom / pronom", choices:["de + nom / pronom","à + nom","avec + nom","en + nom"] },
+        { q:"Gérondif von 'parler' ist:", a:"en parlant", choices:["en parlant","en parlé","en parler","parlant"] },
+        { q:"Das Futur antérieur von 'finir' (j') ist:", a:"j'aurai fini", choices:["j'aurai fini","j'aurais fini","j'ai fini","j'avais fini"] },
+        { q:"'Quoique' verlangt welchen Modus?", a:"Subjonctif", choices:["Subjonctif","Indicatif","Conditionnel","Infinitif"] },
+        { q:"Conditionnel passé von 'avoir' (vous) ist:", a:"vous auriez eu", choices:["vous auriez eu","vous aurez eu","vous aviez eu","vous avez eu"] },
+        // Vokabular / Übersetzung (schwer)
+        { q:"'Malgré' bedeutet auf Deutsch:", a:"trotz", choices:["trotz","wegen","während","ohne"] },
+        { q:"'Néanmoins' bedeutet:", a:"dennoch / trotzdem", choices:["dennoch / trotzdem","außerdem","deshalb","obwohl"] },
+        { q:"'Se rendre compte de qch' bedeutet:", a:"sich etw. bewusst werden", choices:["sich etw. bewusst werden","etw. zurückgeben","ankommen","sich bedanken"] },
+        { q:"'Mettre en lumière' bedeutet im akademischen Kontext:", a:"hervorheben / beleuchten", choices:["hervorheben / beleuchten","im Dunkeln lassen","kritisieren","ausschalten"] },
+        { q:"'Voire' als Adverb bedeutet:", a:"ja sogar / und sogar", choices:["ja sogar / und sogar","vielleicht","obwohl","jedoch"] },
+        { q:"'Davantage' bedeutet:", a:"mehr / stärker", choices:["mehr / stärker","heute","davor","meistens"] },
+        { q:"Übersetzung von 'Il s'agit de':", a:"Es handelt sich um", choices:["Es handelt sich um","Er kommt aus","Es gibt","Es scheint"] },
+        { q:"'En revanche' bedeutet:", a:"dagegen / im Gegensatz dazu", choices:["dagegen / im Gegensatz dazu","als Rache","in der Rückkehr","einerseits"] },
+        // Diskurs / Stil
+        { q:"'Le discours indirect' – wie ändert sich 'Présent' bei Vergangenheitsform?", a:"Présent → Imparfait", choices:["Présent → Imparfait","Présent → PC","Présent → Futur","Présent → Subjonctif"] },
+        { q:"Ein 'connecteur logique' zur Einräumung ist:", a:"certes / il est vrai que", choices:["certes / il est vrai que","donc / alors","car / puisque","ainsi / c'est pourquoi"] },
+        { q:"'Par conséquent' leitet ein:", a:"eine Schlussfolgerung ein", choices:["eine Schlussfolgerung ein","einen Gegensatz ein","eine Bedingung ein","eine Erklärung ein"] },
+        { q:"'En effet' bedeutet im argumentativen Text:", a:"tatsächlich / nämlich (Begründung)", choices:["tatsächlich / nämlich (Begründung)","trotzdem","außerdem","im Gegenteil"] },
       ]
     };
 

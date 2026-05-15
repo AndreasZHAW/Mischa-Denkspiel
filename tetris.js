@@ -15,7 +15,7 @@ const TetrisGame = {
     ];
     const COLORS=['#00CFFF','#FFD700','#9B59B6','#E67E22','#3498DB','#E74C3C','#27AE60'];
     el.innerHTML=`<div style="display:flex;gap:10px;justify-content:center;align-items:flex-start">
-      <canvas id="trcv" width="${COLS*CS}" height="${ROWS*CS}" style="border:2px solid #333;border-radius:4px;background:#111"></canvas>
+      <canvas id="trcv" width="${COLS*CS}" height="${ROWS*CS}" style="border:2px solid #333;border-radius:4px;background:#111;display:block;margin:0 auto;max-width:100%"></canvas>
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:10px">
         <div id="tr-score" style="color:#FFD700;font-weight:900;font-size:1rem;min-width:80px">Score:<br>0</div>
         <div id="tr-level" style="color:#29B6F6;font-size:.85rem">Level: 1</div>

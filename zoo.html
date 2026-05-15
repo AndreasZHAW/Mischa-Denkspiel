@@ -632,10 +632,10 @@ const ZG={
     // ── DEBUG PANEL ──
     const _dbg = document.createElement('div');
     _dbg.id='_dbg';
-    _dbg.style.cssText='position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font:13px monospace;padding:8px 12px;z-index:9999;border-bottom:2px solid #0f0';
+    _dbg.style.cssText='position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.85);color:#0f0;font:11px monospace;padding:4px 8px;z-index:9999;pointer-events:none;transition:opacity .5s;display:none';
     _dbg.textContent='⚙️ Lade Zoo...';
     document.body.appendChild(_dbg);
-    const _log = function(msg,col){_dbg.textContent=msg;_dbg.style.color=col||'#0f0';console.log('[ZOO]',msg);};
+    const _log = function(msg,col){console.log('[ZOO]',msg); // _dbg hidden};
     
     if(typeof THREE === 'undefined'){
       _log('❌ THREE.js nicht geladen! Kein Internet?','#f00');
@@ -1055,6 +1055,8 @@ const ZG={
     this.scene.add(testCube);
     console.log('World built. Scene objects:', this.scene.children.length);
     if(window._log) window._log('✅ Welt: '+this.scene.children.length+' Objekte');
+    // Hide loading bar now that 3D world is ready
+    setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
 
   _station(){
