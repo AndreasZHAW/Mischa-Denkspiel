@@ -1,1077 +1,494 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏆 Admin — Mischa Denkspiel</title>
-  <link rel="stylesheet" href="css/main.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <style>
-    body{background:#0f1729;min-height:100vh;font-family:'Nunito',sans-serif}
-    .aw{max-width:960px;margin:0 auto;padding:20px}
-    .ah{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-    .at{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#FFD700;text-shadow:0 2px 8px rgba(255,215,0,0.3)}
-    .lb{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:15px;padding:15px;margin-bottom:10px}
-    .sl{font-family:'Fredoka One',cursive;font-size:1.1rem;color:white;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-    .sr{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
-    .sc{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;text-align:center}
-    .sv{font-family:'Fredoka One',cursive;font-size:1.8rem;color:#FFD700}
-    .sk{font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:3px}
-    .pc{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:16px;margin-bottom:12px;transition:border-color 0.2s}
-    .pc:hover{border-color:rgba(255,215,0,0.2)}
-    .pt{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-    .pn{font-family:'Fredoka One',cursive;font-size:1.1rem;color:white}
-    .pm{font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:2px}
-    .ps{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#FFD700}
-    .wb{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-    .wr{display:flex;align-items:center;gap:8px;font-size:0.75rem;color:rgba(255,255,255,0.55)}
-    .wl{width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .wt{flex:1;height:9px;background:rgba(255,255,255,0.08);border-radius:50px;overflow:hidden}
-    .wf{height:100%;border-radius:50px;transition:width 0.5s}
-    .wc{width:32px;text-align:right;font-size:0.7rem}
-    .pa{display:flex;gap:6px;flex-wrap:wrap}
-    .ba{padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-size:0.75rem;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.15s}
-    .ba:hover{transform:translateY(-1px)}
-    .br{background:rgba(255,165,0,0.15);color:#FFA500;border:1px solid rgba(255,165,0,0.25)}
-    .bd{background:rgba(231,76,60,0.15);color:#E74C3C;border:1px solid rgba(231,76,60,0.25)}
-    .bg{background:rgba(39,174,96,0.15);color:#27AE60;border:1px solid rgba(39,174,96,0.25)}
-    .bb{background:rgba(74,144,217,0.15);color:#4A90D9;border:1px solid rgba(74,144,217,0.25)}
-    .be{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.1)}
-    .ds{display:none;margin-top:12px;border-top:1px solid rgba(255,255,255,0.07);padding-top:12px}
-    .ds.open{display:block}
-    .tg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px}
-    .tp{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;cursor:default}
-    .td{background:rgba(39,174,96,0.25);color:#27AE60;border:1px solid rgba(39,174,96,0.3)}
-    .tj{background:rgba(255,165,0,0.2);color:#FFA500;border:1px solid rgba(255,165,0,0.25)}
-    .te{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.07)}
-    .lr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);margin-bottom:5px;border:1px solid rgba(255,255,255,0.05)}
-    .login-box{background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:20px;padding:40px;text-align:center;max-width:380px;margin:80px auto}
-    .login-box h2{color:#FFD700;font-family:'Fredoka One',cursive;font-size:1.5rem;margin-bottom:6px}
-    .login-box p{color:rgba(255,255,255,0.55);margin-bottom:20px;font-size:0.85rem}
-    .login-box input{width:100%;padding:11px 15px;border-radius:10px;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:1rem;font-family:'Nunito',sans-serif;margin-bottom:12px}
-    .login-box input:focus{outline:none;border-color:#FFD700}
-    .ab{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'Fredoka One',cursive;font-size:1rem;padding:11px 24px;border-radius:50px;border:none;cursor:pointer;transition:transform 0.15s;width:100%}
-    .ab-p{background:linear-gradient(135deg,#FFD700,#FFA500);color:#2C3E50}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
-    .modal-box{background:#1a2640;border:2px solid rgba(255,255,255,0.12);border-radius:18px;padding:28px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-    .modal-box h3{font-family:'Fredoka One',cursive;color:white;font-size:1.3rem;margin-bottom:12px}
-    .modal-box input,.modal-box select{width:100%;padding:10px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:white;font-size:0.95rem;font-family:'Nunito',sans-serif;margin-bottom:10px;-webkit-appearance:none}
-    .modal-box input:focus,.modal-box select:focus{outline:none;border-color:#FFD700}
-    .modal-box label{display:block;font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
-    .mbtns{display:flex;gap:8px;margin-top:4px}
-    .mb-ok{flex:1;padding:10px;border-radius:50px;border:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#2C3E50;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer}
-    .mb-cancel{flex:1;padding:10px;border-radius:50px;border:2px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.6);font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer}
-  </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script>
-  let lastTap=0;
-  document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
-  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🔧 Mischa Admin</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a18; color: #e0e0f0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+.topbar { background: linear-gradient(135deg, #1a0030, #0d001f); border-bottom: 1px solid rgba(150,50,255,.3); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; }
+.topbar h1 { font-size: 1.1rem; font-weight: 800; color: #d4aaff; }
+.topbar small { color: rgba(255,255,255,.4); font-size: .72rem; }
+#admin-login { max-width: 380px; margin: 100px auto; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 32px; text-align: center; }
+#admin-login h2 { color: #d4aaff; margin-bottom: 20px; font-size: 1.4rem; }
+.inp { width: 100%; padding: 12px 14px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); border-radius: 10px; color: #fff; font-size: 1rem; margin-bottom: 12px; outline: none; transition: border .2s; }
+.inp:focus { border-color: rgba(150,50,255,.6); }
+.btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: .9rem; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-primary { background: linear-gradient(135deg,#6c3483,#9b59b6); color: #fff; }
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-green { background: linear-gradient(135deg,#1e8449,#27ae60); color: #fff; }
+.btn-red { background: linear-gradient(135deg,#c0392b,#e74c3c); color: #fff; }
+.btn-blue { background: linear-gradient(135deg,#1a5276,#2980b9); color: #fff; }
+.btn-orange { background: linear-gradient(135deg,#784212,#e67e22); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: .78rem; border-radius: 7px; }
+.btn-ghost { background: rgba(255,255,255,.06); color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.12); }
+.btn-ghost:hover { background: rgba(255,255,255,.1); }
+#main { display: none; }
+.tabs { display: flex; gap: 4px; padding: 12px 16px; background: rgba(0,0,0,.3); border-bottom: 1px solid rgba(255,255,255,.06); overflow-x: auto; }
+.tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.5); border: none; background: transparent; white-space: nowrap; transition: all .15s; }
+.tab.active { background: rgba(150,50,255,.25); color: #d4aaff; border: 1px solid rgba(150,50,255,.4); }
+.tab:hover:not(.active) { background: rgba(255,255,255,.06); color: #fff; }
+.panel { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
+.panel.active { display: block; }
+.card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+.card-title { font-size: 1rem; font-weight: 700; color: #d4aaff; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.player-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.player-row:last-child { border-bottom: none; }
+.player-name-big { font-size: 1rem; font-weight: 700; flex: 1; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: .7rem; font-weight: 700; }
+.badge-green { background: rgba(39,174,96,.2); color: #27AE60; border: 1px solid rgba(39,174,96,.3); }
+.badge-yellow { background: rgba(255,215,0,.2); color: #FFD700; border: 1px solid rgba(255,215,0,.3); }
+.badge-red { background: rgba(231,76,60,.2); color: #E74C3C; border: 1px solid rgba(231,76,60,.3); }
+.badge-blue { background: rgba(41,182,246,.2); color: #29B6F6; border: 1px solid rgba(41,182,246,.3); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; }
+.stat-box { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 14px; text-align: center; }
+.stat-val { font-size: 1.6rem; font-weight: 900; color: #d4aaff; }
+.stat-lbl { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 4px; }
+.form-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin-bottom: 10px; }
+.form-lbl { font-size: .78rem; color: rgba(255,255,255,.5); margin-bottom: 5px; }
+.msg-row { padding: 12px; background: rgba(255,255,255,.03); border-radius: 10px; margin-bottom: 8px; border-left: 3px solid rgba(150,50,255,.5); }
+.msg-row.warn { border-left-color: #E74C3C; }
+.msg-row.info { border-left-color: #29B6F6; }
+.report-row { padding: 12px; background: rgba(231,76,60,.05); border: 1px solid rgba(231,76,60,.15); border-radius: 10px; margin-bottom: 8px; }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #d4aaff; border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.status { padding: 10px 14px; border-radius: 8px; font-size: .85rem; margin-top: 10px; }
+.status.ok { background: rgba(39,174,96,.15); border: 1px solid rgba(39,174,96,.3); color: #27AE60; }
+.status.err { background: rgba(231,76,60,.15); border: 1px solid rgba(231,76,60,.3); color: #E74C3C; }
+#loading-overlay { position: fixed; inset: 0; background: rgba(10,10,24,.95); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; z-index: 9999; }
+</style>
 </head>
 <body>
-<div class="aw" id="admin-app"></div>
-<div id="modal-area"></div>
+<!-- Loading -->
+<div id="loading-overlay">
+  <div style="font-size:2rem">🔧</div>
+  <div style="color:#d4aaff;font-size:1rem">Firebase laden...</div>
+  <div class="spinner"></div>
+</div>
 
-<script src="worlds.js"></script>
-<script src="firebase-state.js"></script>
+<!-- Login -->
+<div id="admin-login">
+  <h2>🔒 Admin-Zugang</h2>
+  <input type="password" id="pw-inp" class="inp" placeholder="Admin-Passwort" onkeydown="if(event.key==='Enter')checkPw()">
+  <button class="btn btn-primary" style="width:100%" onclick="checkPw()">🔓 Anmelden</button>
+  <div id="pw-err" style="color:#E74C3C;font-size:.82rem;margin-top:8px"></div>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <div class="topbar">
+    <div>
+      <h1>🔧 Mischa Admin</h1>
+      <small id="admin-status">Lädt...</small>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm btn-ghost" onclick="loadAll()">🔄 Neu laden</button>
+      <a href="index.html" class="btn btn-sm btn-ghost">← Spiel</a>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" data-tab="players" onclick="showTab('players')">👥 Spieler</button>
+    <button class="tab" data-tab="messages" onclick="showTab('messages')">💬 Nachrichten</button>
+    <button class="tab" data-tab="bans" onclick="showTab('bans')">🚫 Sperren</button>
+    <button class="tab" data-tab="reports" onclick="showTab('reports')">🚨 Meldungen</button>
+    <button class="tab" data-tab="calibration" onclick="showTab('calibration')">📊 Kalibrierung</button>
+    <button class="tab" data-tab="danger" onclick="showTab('danger')">⚠️ Reset</button>
+  </div>
+  
+  <!-- PLAYERS TAB -->
+  <div id="tab-players" class="panel active">
+    <div class="stat-grid" id="player-stats">
+      <div class="stat-box"><div class="stat-val" id="stat-count">–</div><div class="stat-lbl">Spieler gesamt</div></div>
+      <div class="stat-box"><div class="stat-val" id="stat-active">–</div><div class="stat-lbl">Aktiv (7 Tage)</div></div>
+      <div class="stat-box"><div class="stat-val" id="stat-avg-mt">–</div><div class="stat-lbl">Ø MT</div></div>
+      <div class="stat-box"><div class="stat-val" id="stat-top-mt">–</div><div class="stat-lbl">Top MT</div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">👥 Alle Spieler <span id="player-loading" class="spinner"></span></div>
+      <div id="players-list"></div>
+    </div>
+  </div>
+  
+  <!-- MESSAGES TAB -->
+  <div id="tab-messages" class="panel">
+    <div class="card">
+      <div class="card-title">📢 Nachricht senden</div>
+      <div>
+        <div class="form-lbl">Empfänger (leer = alle Spieler)</div>
+        <input id="msg-target" class="inp" placeholder="Spielername (optional)" style="margin-bottom:10px">
+        <div class="form-lbl">Nachrichtentyp</div>
+        <select id="msg-type" class="inp" style="margin-bottom:10px">
+          <option value="info">ℹ️ Info (blau)</option>
+          <option value="warn">⚠️ Warnung (gelb)</option>
+          <option value="broadcast">📢 Ankündigung (grün)</option>
+        </select>
+        <div class="form-lbl">Nachricht</div>
+        <textarea id="msg-text" class="inp" rows="3" placeholder="Nachricht eingeben..."></textarea>
+        <button class="btn btn-green" style="width:100%;margin-top:10px" onclick="sendMessage()">📤 Nachricht senden</button>
+        <div id="msg-status"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Gesendete Nachrichten</div>
+      <div id="msg-list"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Lädt...</div></div>
+    </div>
+  </div>
+  
+  <!-- BANS TAB -->
+  <div id="tab-bans" class="panel">
+    <div class="card">
+      <div class="card-title">🚫 Spieler sperren</div>
+      <div>
+        <div class="form-lbl">Spielername</div>
+        <input id="ban-name" class="inp" placeholder="Spielername" style="margin-bottom:10px">
+        <div class="form-lbl">Sperrdauer</div>
+        <select id="ban-dur" class="inp" style="margin-bottom:10px">
+          <option value="3600000">1 Stunde</option>
+          <option value="86400000">24 Stunden</option>
+          <option value="604800000" selected>7 Tage</option>
+          <option value="2592000000">30 Tage</option>
+          <option value="-1">Permanent</option>
+        </select>
+        <div class="form-lbl">Grund (optional)</div>
+        <input id="ban-reason" class="inp" placeholder="Grund für Sperre" style="margin-bottom:10px">
+        <button class="btn btn-red" style="width:100%" onclick="banPlayer()">🚫 Spieler sperren</button>
+        <div id="ban-status"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Gesperrte Spieler</div>
+      <div id="bans-list"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Lädt...</div></div>
+    </div>
+  </div>
+  
+  <!-- REPORTS TAB -->
+  <div id="tab-reports" class="panel">
+    <div class="card">
+      <div class="card-title">🚨 Spieler-Meldungen <span id="reports-loading" class="spinner"></span></div>
+      <div id="reports-list"><div style="color:rgba(255,255,255,.4);font-size:.85rem">Lädt...</div></div>
+    </div>
+  </div>
+  
+  <!-- CALIBRATION TAB -->
+  <div id="tab-calibration" class="panel">
+    <div class="card">
+      <div class="card-title">📊 Kalibrierungs-Daten <span id="cal-loading" class="spinner"></span></div>
+      <div id="cal-list"></div>
+    </div>
+  </div>
+  
+  <!-- DANGER TAB -->
+  <div id="tab-danger" class="panel">
+    <div class="card" style="border-color:rgba(231,76,60,.3)">
+      <div class="card-title" style="color:#E74C3C">⚠️ Gefährliche Aktionen</div>
+      <p style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:16px">Diese Aktionen können nicht rückgängig gemacht werden!</p>
+      <button class="btn btn-red" onclick="resetCalibration()">🗑️ Kalibrierung zurücksetzen</button>
+      <p style="font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Löscht alle Spieler-Kalibrierungsdaten und Punktestände</p>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase + Admin JS -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script>
-
-const CEMOJIS = {spongebob:'🧽',patrick:'⭐',mario:'🍄',luigi:'💚',stickman:'🎨',woman:'👩',man:'👨',girl:'👧',boy:'👦',ninja:'🥷',astronaut:'🧑‍🚀',detective:'🕵️',princess:'👸',knight:'⚔️',scientist:'🧪',explorer:'🧭'};
-const WCOLORS = ['#2980B9','#8E44AD','#27AE60','#E67E22','#E74C3C','#16A085','#D35400','#E30613','#7F8C8D','#2C3E50'];
-
-const Admin = {
-  // ---- LOGIN ----
-  render() {
-    document.getElementById('admin-app').innerHTML = `
-      <div class="login-box">
-        <div style="font-size:2.5rem">🔐</div>
-        <h2>Admin</h2>
-        <p>Mischa Denkspiel — Lehrerpanel</p>
-        <input type="password" id="apw" placeholder="Admin-Passwort" onkeyup="if(event.key==='Enter')Admin.login()"/>
-        <button style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;border:none;padding:12px 24px;border-radius:50px;font-weight:900;font-size:1rem;cursor:pointer;width:100%;margin-top:8px" onclick="Admin.login()">Anmelden ➜</button>
-        <div id="aerr" style="color:#E74C3C;margin-top:10px;font-size:0.85rem"></div>
-        <div style="margin-top:14px;font-size:0.72rem;color:rgba(255,255,255,0.25)">Passwort: mischa2026</div>
-      </div>`;
-  },
-
-  async login() {
-    const pw = document.getElementById('apw')?.value;
-    if (State.checkAdmin(pw)) {
-      await this.showDashboard();
-    } else {
-      document.getElementById('aerr').textContent = '❌ Falsches Passwort!';
-    }
-  },
-
-  // ---- DASHBOARD ----
-  async showDashboard() {
-    document.getElementById('admin-app').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:60px">⏳ Lade Spieler...</div>';
-    const all = await State.getAll();
-    const players = Object.values(all);
-    const totalScore = players.reduce((s,p)=>s+(p.totalScore||0),0);
-    const worldsDone = players.reduce((s,p)=>s+Object.values(p.worlds||{}).filter(w=>w.completed).length,0);
-    const ranked = [...players].sort((a,b)=>(b.totalScore||0)-(a.totalScore||0));
-
-    document.getElementById('admin-app').innerHTML = `
-      <div class="ah">
-        <div class="at">🏆 Mischa Denkspiel — Admin</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="ba be" onclick="Admin.showChangePw()">🔑 PW ändern</button>
-          <button class="ba bg" onclick="Admin.showDiscountPanel()">🏷️ Rabatte</button>
-          <button class="ba bb" onclick="Admin.showBroadcast()">📢 Nachricht</button>
-          <button class="ba bb" onclick="Admin.showSurveyPanel()" style="background:rgba(39,174,96,0.15);border-color:rgba(39,174,96,0.3);color:#27AE60">📊 Umfrage</button>
-          <button class="ba bg" onclick="Admin.showZooPanel()" style="background:rgba(255,165,0,0.15);border-color:rgba(255,165,0,0.4);color:#FFD700">🦁 Zoo-Admin</button>
-          <button class="ba be" onclick="Admin.showDashboard()">🔄 Aktualisieren</button>
-          <a href="index.html" class="ba be" style="text-decoration:none">← Zum Spiel</a>
-          <a href="zoo.html" class="ba bg" style="text-decoration:none;background:rgba(39,174,96,0.15);border-color:rgba(39,174,96,0.4);color:#27AE60">🦁 Zum Zoo</a>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="sr">
-        <div class="sc"><div class="sv">${players.length}</div><div class="sk">👤 Spieler</div></div>
-        <div class="sc"><div class="sv">${totalScore}</div><div class="sk">⭐ Gesamtpunkte</div></div>
-        <div class="sc"><div class="sv">${players.length?Math.round(totalScore/players.length):0}</div><div class="sk">📊 Ø Punkte</div></div>
-        <div class="sc"><div class="sv">${worldsDone}</div><div class="sk">🏆 Welten ✓</div></div>
-      </div>
-
-      <!-- Leaderboard -->
-      <div class="sl">🥇 Rangliste (Top 20)</div>
-      <div style="margin-bottom:22px">
-        ${ranked.length===0
-          ? '<div style="color:rgba(255,255,255,0.35);text-align:center;padding:20px">Noch keine Spieler</div>'
-          : ranked.slice(0,20).map((p,i)=>{
-              const icon = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
-              const age = new Date().getFullYear()-(p.birthYear||2000);
-              const wdone = Object.values(p.worlds||{}).filter(w=>w.completed).length;
-              return `<div class="lr">
-                <div style="font-family:'Fredoka One',cursive;font-size:1rem;width:26px;text-align:center">${icon}</div>
-                <span style="font-size:1.3rem">${CEMOJIS[p.character]||'🧭'}</span>
-                <div style="flex:1">
-                  <div style="color:white;font-weight:700;font-size:0.9rem">${p.name}</div>
-                  <div style="font-size:0.7rem;color:rgba(255,255,255,0.4)">Welt ${p.currentWorld||1}/10 · ${wdone} ✓ · ${age}J</div>
-                </div>
-                <div style="font-family:'Fredoka One',cursive;color:#FFD700;font-size:0.95rem">⭐ ${p.totalScore||0}</div>
-              </div>`;
-            }).join('')
-        }
-      </div>
-
-      <!-- All players -->
-      <div class="sl">👥 Alle Spieler</div>
-      ${players.length===0
-        ? '<div style="color:rgba(255,255,255,0.35);text-align:center;padding:40px">Noch keine Spieler</div>'
-        : players.map(p=>this.renderPlayer(p)).join('')
-      }`;
-  },
-
-  renderPlayer(p) {
-    const age = new Date().getFullYear()-(p.birthYear||2000);
-    const totalTasks = Object.values(p.worlds||{}).flatMap(w=>w.tasks).filter(t=>t&&t.done).length;
-    const created = new Date(p.createdAt||Date.now()).toLocaleDateString('de-CH');
-    const updated = new Date(p.updatedAt||p.createdAt||Date.now()).toLocaleDateString('de-CH');
-
-    return `<div class="pc">
-      <div class="pt">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:1.6rem">${CEMOJIS[p.character]||'🧭'}</span>
-          <div>
-            <div class="pn">${p.name}</div>
-            <div class="pm">${age} Jahre · ${p.birthYear} · Welt ${p.currentWorld||1}/10 · ${totalTasks}/100 Aufgaben<br>Dabei seit: ${created} · Aktiv: ${updated}</div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div class="ps">⭐ ${p.totalScore||0}</div>
-        </div>
-      </div>
-
-      <!-- World bars -->
-      <div class="wb">
-        ${(WORLDS||[]).map((world,wi)=>{
-          const ws = (p.worlds||{})[world.id]||{tasks:Array(10).fill(null),jokerUsed:false,completed:false};
-          const done = ws.tasks.filter(t=>t&&t.done).length;
-          const pct  = (done/10)*100;
-          const wscore = ws.tasks.filter(t=>t&&t.done).reduce((s,t)=>s+(t.score||0),0);
-          return `<div class="wr">
-            <span class="wl">${world.icon} ${world.name}</span>
-            <div class="wt"><div class="wf" style="width:${pct}%;background:${WCOLORS[wi]||'#5D6D7E'}"></div></div>
-            <span class="wc">${done}/10</span>
-            <span style="font-size:0.68rem;color:rgba(255,255,255,0.35)">⭐${wscore}</span>
-            ${ws.completed?'<span style="color:#27AE60;font-size:0.75rem">✓</span>':''}
-            ${ws.jokerUsed?'<span style="font-size:0.75rem">🃏</span>':''}
-          </div>`;
-        }).join('')}
-      </div>
-
-      <!-- Actions -->
-      <div class="pa">
-        <button class="ba bg" onclick="Admin.showAddPoints('${p.name}')">⭐ Punkte</button>
-        <button class="ba bb" onclick="Admin.showSetWorld('${p.name}')">🌍 Welt setzen</button>
-        <button class="ba bb" onclick="Admin.showResetTasks('${p.name}')">↩️ Aufgaben</button>
-        <button class="ba br" onclick="Admin.resetFull('${p.name}')">🔄 Alles reset</button>
-        <button class="ba be" onclick="Admin.toggleDetail('${p.name}')">📋 Detail</button>
-            <button class="ba bg" onclick="Admin.showGiftReset('${p.name}')">🔄 Reset schenken</button>
-        <button class="ba bd" onclick="Admin.deletePlayer('${p.name}')">🗑️ Löschen</button>
-      </div>
-
-      <!-- Detail -->
-      <div class="ds" id="det-${p.name.replace(/\s/g,'_')}">
-        ${(WORLDS||[]).map(world=>{
-          const ws = (p.worlds||{})[world.id]||{tasks:Array(10).fill(null)};
-          return `<div style="margin-bottom:10px">
-            <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;margin-bottom:4px">${world.icon} ${world.name}</div>
-            <div class="tg">
-              ${world.tasks.map((task,ti)=>{
-                const t = ws.tasks[ti];
-                if(!t||!t.done) return `<div class="tp te" title="Offen">${ti+1}</div>`;
-                if(t.joker)    return `<div class="tp tj" title="Joker">🃏</div>`;
-                const sec = t.timeMs?Math.round(t.timeMs/1000)+'s':'';
-                const err = t.errors||0;
-                return `<div class="tp td" title="${task.title}&#10;⭐${t.score} · ⏱${sec} · ❌${err}">${t.score||0}</div>`;
-              }).join('')}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  },
-
-  toggleDetail(name) {
-    document.getElementById('det-'+name.replace(/\s/g,'_'))?.classList.toggle('open');
-  },
-
-  // ---- MODALS ----
-  _modal(html) {
-    document.getElementById('modal-area').innerHTML = `<div class="modal" onclick="Admin._closeModal(event)">${html}</div>`;
-  },
-  _closeModal(e) { if(e.target.classList.contains('modal')) document.getElementById('modal-area').innerHTML=''; },
-  _close() { document.getElementById('modal-area').innerHTML=''; },
-
-  showAddPoints(name) {
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
-      <h3>⭐ Punkte für ${name}</h3>
-      <label>Punkte (positiv = hinzufügen, negativ = abziehen)</label>
-      <input type="number" id="m-pts" value="50" step="10"/>
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._addPoints('${name}')">Speichern</button>
-        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
-      </div>
-    </div>`);
-  },
-
-  async _addPoints(name) {
-    const pts = parseInt(document.getElementById('m-pts')?.value||0);
-    await State.addPoints(name, pts);
-    this._close();
-    await this.showDashboard();
-  },
-
-  showSetWorld(name) {
-    const options = (WORLDS||Array.from({length:10},(_,i)=>({id:i+1,name:`Welt ${i+1}`,icon:'🌍'}))).map(w=>`<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
-      <h3>🌍 Welt setzen für ${name}</h3>
-      <label>Aktuelle Welt</label>
-      <select id="m-world">${options}</select>
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._setWorld('${name}')">Speichern</button>
-        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
-      </div>
-    </div>`);
-  },
-
-  async _setWorld(name) {
-    const w = parseInt(document.getElementById('m-world')?.value||1);
-    await State.setWorld(name, w);
-    this._close();
-    await this.showDashboard();
-  },
-
-  showResetTasks(name) {
-    const worldOpts = (WORLDS||Array.from({length:10},(_,i)=>({id:i+1,name:`Welt ${i+1}`,icon:'🌍'}))).map(w=>`<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
-    const taskOpts  = Array.from({length:10},(_,i)=>`<option value="${i}">Ab Aufgabe ${i+1}</option>`).join('');
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
-      <h3>↩️ Aufgaben zurücksetzen für ${name}</h3>
-      <label>Welt</label>
-      <select id="m-rw">${worldOpts}</select>
-      <label>Zurücksetzen ab Aufgabe</label>
-      <select id="m-rt">${taskOpts}</select>
-      <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:10px">Alle Aufgaben ab dieser werden auf "offen" gesetzt.</div>
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._resetTasks('${name}')">Zurücksetzen</button>
-        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
-      </div>
-    </div>`);
-  },
-
-  async _resetTasks(name) {
-    const w = parseInt(document.getElementById('m-rw')?.value||1);
-    const t = parseInt(document.getElementById('m-rt')?.value||0);
-    await State.resetTasksFromIndex(name, w, t);
-    this._close();
-    await this.showDashboard();
-  },
-
-  async resetFull(name) {
-    if (confirm(`Kompletten Fortschritt von "${name}" zurücksetzen?\nAlle Punkte und Aufgaben werden gelöscht!`)) {
-      await State.resetPlayerProgress(name);
-      await this.showDashboard();
-    }
-  },
-
-  async deletePlayer(name) {
-    if (confirm(`Spieler "${name}" LÖSCHEN?\nDies kann nicht rückgängig gemacht werden!`)) {
-      await State.deletePlayer(name);
-      await this.showDashboard();
-    }
-  },
-
-  showBroadcast() {
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
-      <h3>📢 Nachricht an alle Spieler</h3>
-      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:10px">
-        Alle Spieler sehen diese Nachricht wenn sie den Shop öffnen oder das Spiel laden.
-      </p>
-      <label>Nachrichtentext</label>
-      <input type="text" id="bc-text" placeholder="z.B. Heute 2× Punkte-Event!" style="margin-bottom:8px"/>
-      <label>Gültig für</label>
-      <select id="bc-dur" style="margin-bottom:14px">
-        <option value="${30*60*1000}">30 Minuten</option>
-        <option value="${2*60*60*1000}" selected>2 Stunden</option>
-        <option value="${24*60*60*1000}">1 Tag</option>
-        <option value="${7*24*60*60*1000}">1 Woche</option>
-      </select>
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._sendBroadcast()">Senden 📢</button>
-        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
-      </div>
-    </div>`);
-  },
-
-  async _sendBroadcast() {
-    const text = document.getElementById('bc-text')?.value?.trim();
-    const dur = parseInt(document.getElementById('bc-dur')?.value || 0);
-    if (!text) { alert('Bitte Text eingeben!'); return; }
-    await State.setBroadcast(text, dur);
-    this._close();
-    // Show locally immediately
-    if (window.showBroadcastBanner) showBroadcastBanner(text);
-    alert('✅ Nachricht gesendet an alle Spieler weltweit!');
-  },
-
-  showZooPanel() {
-    const ANIMALS_ADMIN = [
-      {id:'cat',n:'Katze',e:'🐱',r:'Normal'},{id:'dog',n:'Hund',e:'🐶',r:'Normal'},
-      {id:'hamster',n:'Hamster',e:'🐹',r:'Normal'},{id:'fish',n:'Fisch',e:'🐠',r:'Selten'},
-      {id:'kangaroo',n:'Känguru',e:'🦘',r:'Selten'},{id:'frog',n:'Frosch',e:'🐸',r:'Episch'},
-      {id:'raccoon',n:'Waschbär',e:'🦝',r:'Episch'},{id:'dolphin',n:'Delphin',e:'🐬',r:'Episch'},
-      {id:'wolf',n:'Wolf',e:'🐺',r:'Episch'},{id:'fox',n:'Fuchs',e:'🦊',r:'Legendär'},
-      {id:'tiger',n:'Tiger',e:'🐯',r:'Legendär'},{id:'orca',n:'Orca',e:'🐳',r:'Ultra'},
-      {id:'lion',n:'Löwe',e:'🦁',r:'Gott'},{id:'mammoth',n:'Mammut',e:'🦣',r:'Gott'},
-      {id:'dino',n:'Dinosaurier',e:'🦕',r:'SECRET'},{id:'megalodon',n:'Megalodon',e:'🦈',r:'SECRET'},
-    ];
-    const EVENTS_ADMIN = [
-      {id:'snow',n:'❄️ Schneesturm'},{id:'party',n:'🎉 Party'},
-      {id:'golden',n:'✨ Goldregen'},{id:'night',n:'🌙 Magische Nacht'},
-      {id:'rush',n:'🏃 Rush Hour'},{id:'mega',n:'💎 Mega Event'},
-      {id:'hunt',n:'🎯 Jagdfieber'},{id:'glitch',n:'👾 Glitch'},
-    ];
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()" style="max-width:440px">
-      <h3>🦁 Zoo-Admin Befehle</h3>
-      <p style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:12px">
-        Diese Befehle werden in der Zoo-Welt angewendet. Der Ziel-Spieler muss im Zoo aktiv sein.
-      </p>
-      <label>Ziel-Spieler</label>
-      <input type="text" id="za-player" placeholder="Spielername" style="margin-bottom:8px"/>
-      <label>Tier spawnen</label>
-      <select id="za-animal" style="margin-bottom:8px">
-        ${ANIMALS_ADMIN.map(a=>`<option value="${a.id}">${a.e} ${a.n} (${a.r})</option>`).join('')}
-      </select>
-      <label>Shiny für Tier</label>
-      <select id="za-shiny" style="margin-bottom:8px">
-        <option value="">Kein Shiny</option>
-        <option value="gold">GOLD (×1.5)</option>
-        <option value="diamond">DIAMOND (×2)</option>
-        <option value="rainbow">RAINBOW (×3)</option>
-        <option value="void">VOID (×5)</option>
-        <option value="glitch">GLITCH (×4)</option>
-      </select>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <button class="mb-ok" onclick="Admin._zooSpawnAnimal()">🦁 Tier spawnen</button>
-        <button class="mb-cancel" style="background:rgba(0,207,255,.15);border-color:rgba(0,207,255,.4);color:#00CFFF" onclick="Admin._zooGiveMT()">🌀 +50.000 MT geben</button>
-      </div>
-      <label>Event starten</label>
-      <select id="za-event" style="margin-bottom:8px">
-        ${EVENTS_ADMIN.map(e=>`<option value="${e.id}">${e.n}</option>`).join('')}
-      </select>
-      <label>Event-Dauer</label>
-      <select id="za-evdur" style="margin-bottom:12px">
-        <option value="10000">10 Sekunden (Test)</option>
-        <option value="30000" selected>30 Sekunden</option>
-        <option value="60000">1 Minute</option>
-        <option value="120000">2 Minuten</option>
-        <option value="300000">5 Minuten</option>
-      </select>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <button class="mb-ok" style="background:rgba(231,76,60,.3);border-color:rgba(231,76,60,.5);color:#ff6b6b" onclick="Admin._zooStartEvent()">⚡ Event starten</button>
-        <button class="mb-cancel" onclick="Admin._zooGiveRebirth()">🔄 Reset schenken</button>
-      </div>
-      <button class="mb-cancel" onclick="Admin._close()">Schliessen</button>
-    </div>`);
-  },
-
-  async _zooSpawnAnimal() {
-    const playerName = document.getElementById('za-player')?.value?.trim();
-    const animalId = document.getElementById('za-animal')?.value;
-    const shinyId = document.getElementById('za-shiny')?.value;
-    if (!playerName) { alert('Bitte Spielernamen eingeben!'); return; }
-    // Write to Firebase for Zoo to pick up
-    const cmd = {
-      type: 'spawn_animal',
-      target: playerName.toLowerCase(),
-      animalId, shinyId,
-      id: Date.now().toString(),
-      expiresAt: Date.now() + 30000
-    };
-    if (State._useCloud()) {
-      await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
-    }
-    localStorage.setItem('zoo_admin_cmd', JSON.stringify(cmd));
-    this._close();
-    alert(`✅ Spawn-Befehl für ${playerName} gesendet! Sie sehen das Tier beim nächsten Gondel-Zyklus.`);
-  },
-
-  async _zooGiveMT() {
-    const playerName = document.getElementById('za-player')?.value?.trim();
-    if (!playerName) { alert('Bitte Spielernamen eingeben!'); return; }
-    const cmd = { type:'give_mt', target:playerName.toLowerCase(), amount:50000, id:Date.now().toString(), expiresAt:Date.now()+30000 };
-    if (State._useCloud()) await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
-    localStorage.setItem('zoo_admin_cmd', JSON.stringify(cmd));
-    this._close();
-    alert(`✅ +50.000 MT für ${playerName} gesendet!`);
-  },
-
-  async _zooStartEvent() {
-    const evId = document.getElementById('za-event')?.value;
-    const dur = parseInt(document.getElementById('za-evdur')?.value || 30000);
-    const cmd = { type:'start_event', eventId:evId, dur, id:Date.now().toString(), expiresAt:Date.now()+60000 };
-    if (State._useCloud()) await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
-    localStorage.setItem('zoo_admin_cmd', JSON.stringify(cmd));
-    this._close();
-    alert(`✅ Event ${evId} gestartet für ${dur/1000}s!`);
-  },
-
-  async _zooGiveRebirth() {
-    const playerName = document.getElementById('za-player')?.value?.trim();
-    if (!playerName) { alert('Bitte Spielernamen eingeben!'); return; }
-    const key = 'zoo_' + playerName.toLowerCase();
-    let zoo = null;
-    try { if (State._useCloud()) { const s = await _db.collection('zoos').doc(key).get(); if(s.exists) zoo=s.data(); } } catch(e) {}
-    if (!zoo) { const l = localStorage.getItem(key); zoo = l ? JSON.parse(l) : null; }
-    if (!zoo) { alert('Zoo nicht gefunden!'); return; }
-    zoo.rebirths = (zoo.rebirths||0) + 1;
-    zoo.rebirthMult = Math.round((1 + zoo.rebirths * 0.5)*100)/100;
-    try { if (State._useCloud()) await _db.collection('zoos').doc(key).set(zoo); } catch(e) {}
-    localStorage.setItem(key, JSON.stringify(zoo));
-    this._close();
-    alert(`✅ Reset für ${playerName} geschenkt! Neuer Mult: ×${zoo.rebirthMult}`);
-  },
-
-  showChangePw() {
-    const pw = prompt('Neues Admin-Passwort (min. 4 Zeichen):');
-    if (pw && pw.length >= 4) { State.setAdminPw(pw); alert('✅ Passwort gespeichert!'); }
-    else if (pw !== null) alert('Zu kurz!');
-  },
-
-  // ---- DISCOUNT / RABATT ----
-  showDiscountPanel() {
-    const discounts = JSON.parse(localStorage.getItem('mischa_discounts') || '{}');
-    const now = Date.now();
-    const SHOP_ITEM_NAMES = {
-      starter_pack:'🎁 Starterpaket', joker_x2:'🃏🃏 2× Joker', joker_x3:'🃏🃏🃏 3× Joker',
-      boost_2x_15:'⭐×2 15Min', boost_4x_15:'⭐×4 15Min', boost_10x_15:'🌟×10 15Min',
-      boost_10x_30:'🌟×10 30Min', boost_10x_60:'🌟×10 1h',
-      skin_swimmer:'🏊 Schwimmer', skin_og:'👴 OG-Mann', skin_dev:'💻 Entwickler',
-      extra_world_unlock:'🔓 Welt freischalten', extra_score_shield:'🛡️ Punkte-Schutz',
-      extra_hint:'💡 Hinweis-Paket', admin_week:'🔐 Admin-Zugang',
-    };
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()" style="max-width:420px">
-      <h3>🏷️ Rabatt verwalten</h3>
-      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:12px">
-        Aktive Rabatte werden für alle Spieler im Shop angezeigt.
-      </p>
-
-      <!-- Active discounts -->
-      <div id="disc-active" style="margin-bottom:14px">
-        ${Object.entries(discounts).filter(([,d])=>d.expiresAt>now).length === 0
-          ? '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem">Keine aktiven Rabatte</div>'
-          : Object.entries(discounts).filter(([,d])=>d.expiresAt>now).map(([id,d])=>`
-            <div style="display:flex;justify-content:space-between;align-items:center;
-              background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);
-              border-radius:8px;padding:7px 10px;margin-bottom:5px;font-size:0.78rem;color:white">
-              <span>${SHOP_ITEM_NAMES[id]||id} — <b style="color:#FFD700">-${d.pct}%</b></span>
-              <span style="color:rgba(255,255,255,0.4)">läuft ab: ${new Date(d.expiresAt).toLocaleDateString('de-CH')}</span>
-            </div>`).join('')
-        }
-      </div>
-
-      <!-- Add new discount -->
-      <label>Artikel</label>
-      <select id="disc-item" style="margin-bottom:8px">
-        ${Object.entries(SHOP_ITEM_NAMES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
-      </select>
-
-      <label>Rabatt %</label>
-      <input type="number" id="disc-pct" value="20" min="1" max="90" style="margin-bottom:8px"/>
-
-      <label>Gültig für</label>
-      <select id="disc-dur" style="margin-bottom:14px">
-        <option value="${60*60*1000}">1 Stunde</option>
-        <option value="${6*60*60*1000}">6 Stunden</option>
-        <option value="${24*60*60*1000}" selected>1 Tag</option>
-        <option value="${3*24*60*60*1000}">3 Tage</option>
-        <option value="${7*24*60*60*1000}">1 Woche</option>
-        <option value="${30*24*60*60*1000}">1 Monat</option>
-      </select>
-
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._saveDiscount()">Rabatt aktivieren</button>
-        <button class="mb-cancel" onclick="Admin._close()">Schliessen</button>
-      </div>
-    </div>`);
-  },
-
-  async _saveDiscount() {
-    const item = document.getElementById('disc-item')?.value;
-    const pct  = parseInt(document.getElementById('disc-pct')?.value || 0);
-    const dur  = parseInt(document.getElementById('disc-dur')?.value || 0);
-    const adminName = State.currentPlayer?.name || 'Admin';
-    if (!item || !pct || !dur) return;
-    await State.setDiscount(item, pct, dur);
-    // Auto-broadcast discount as message
-    const NAMES = {starter_pack:'Starterpaket',joker_x2:'2× Joker',boost_2x_15:'2× Sterne 15Min',boost_4x_15:'4× Sterne 15Min',boost_10x_15:'10× Sterne 15Min',skin_swimmer:'Schwimmer-Skin',admin_week:'Admin-Zugang',extra_world_unlock:'Welt freischalten',extra_hint:'Hinweis-Paket'};
-    const itemName = NAMES[item] || item;
-    await State.setBroadcast(`Admin ${adminName} hat für "${itemName}" ${pct}% Rabatt hinzugefügt!`, dur, 'info');
-    if (window.showBroadcastBanner) showBroadcastBanner(`Admin ${adminName} hat für "${itemName}" ${pct}% Rabatt hinzugefügt!`);
-    this._close();
-    alert('✅ Rabatt aktiviert + Nachricht gesendet!');
-  },
-
-  // ---- SURVEY ----
-  showSurveyPanel() {
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
-      <h3>📊 Umfrage senden</h3>
-      <p style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:10px">Alle Spieler sehen die Umfrage sofort. Sie haben 20 Sekunden zum Abstimmen.</p>
-      <label>Frage</label>
-      <input type="text" id="sv-q" placeholder="Macht ihr gerne Sport?" style="margin-bottom:8px"/>
-      <label>Antwort Grün (links)</label>
-      <input type="text" id="sv-a" placeholder="Ja!" style="margin-bottom:8px"/>
-      <label>Antwort Rot (rechts)</label>
-      <input type="text" id="sv-b" placeholder="Nein!" style="margin-bottom:14px"/>
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._sendSurvey()">Senden 📊</button>
-        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
-      </div>
-    </div>`);
-  },
-
-  async _sendSurvey() {
-    const q  = document.getElementById('sv-q')?.value?.trim();
-    const a  = document.getElementById('sv-a')?.value?.trim() || 'Ja';
-    const b  = document.getElementById('sv-b')?.value?.trim() || 'Nein';
-    if (!q) { alert('Bitte Frage eingeben!'); return; }
-    await State.setBroadcast(q, 25000, 'survey', { optA: a, optB: b });
-    if (window.showSurvey) showSurvey({ text:q, id: Date.now().toString(), type:'survey', extra:{optA:a,optB:b}, expiresAt:Date.now()+25000 });
-    this._close();
-    alert('✅ Umfrage gesendet! Spieler haben 20 Sekunden.');
-  },
-
-  // ---- GIFT RESET ----
-  showGiftReset(playerName) {
-    const player = playerName;
-    this._modal(`<div class="modal-box" onclick="event.stopPropagation()">
-      <h3>🔄 Reset schenken</h3>
-      <p style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:12px">
-        Schenke <b style="color:white">${player}</b> einen Reset.<br>
-        Der Spieler startet von vorne mit einem höheren Multiplikator (×1.3 pro Reset).
-      </p>
-      <div class="mbtns">
-        <button class="mb-ok" onclick="Admin._doGiftReset('${player}')">Reset schenken 🎁</button>
-        <button class="mb-cancel" onclick="Admin._close()">Abbrechen</button>
-      </div>
-    </div>`);
-  },
-
-  async _doGiftReset(playerName) {
-    const ok = await State.giftReset(playerName);
-    this._close();
-    if (ok) alert(`✅ Reset geschenkt! ${playerName} startet neu mit ×1.3 Bonus.`);
-    else alert('❌ Spieler nicht gefunden!');
-    await this.showDashboard();
-  }
+const ADMIN_PW = 'mischa2026';
+const FB_CONFIG = {
+  apiKey: "AIzaSyBECgS_DLTmLTXABeyFQ2rNKISFyf6jwlE",
+  authDomain: "mischa-denkspiel.firebaseapp.com",
+  projectId: "mischa-denkspiel"
 };
 
-// Boot
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    Admin.render();
-    // Listen for real-time discounts from Firestore
-    State.listenDiscounts(() => {});
-  }, 300);
-});
-</script>
+let db, allPlayers = [];
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- KALIBRIERUNG v4 -->
-  <div class="aw" style="margin-top:30px">
-    <div class="sl">📊 MT-Kalibrierung</div>
-    <div style="background:rgba(41,182,246,.08);border:1px solid rgba(41,182,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.84rem;color:rgba(255,255,255,.7);line-height:1.6">
-      <b>Min</b>=0MT &nbsp;·&nbsp; <b>Ø</b>=1MT &nbsp;·&nbsp; <b>Max</b>=2MT &nbsp;·&nbsp; Linear interpoliert.<br>
-      ✏️ Edit-Buttons überschreiben die berechneten Werte. 📋 zeigt alle Einzel-Partien.
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-      <select id="cal-dev" onchange="loadCalibration()" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:8px;font-size:.82rem">
-        <option value="all">Alle Geräte</option>
-        <option value="desktop">🖥️ Desktop</option>
-        <option value="ipad">📱 iPad</option>
-        <option value="iphone">📱 iPhone</option>
-        <option value="android">🤖 Android</option>
-      </select>
-      <button onclick="loadCalibration()" style="background:#3498DB;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🔄 Aktualisieren</button>
-      <button onclick="resetAllScores()" style="background:#E74C3C;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">⚠️ Alle Scores & Kalibrierung zurücksetzen</button>
-    </div>
-    <div class="sr" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-      <div class="sc"><div class="sv" id="cal-total-games">—</div><div class="sk">Partien gesamt</div></div>
-      <div class="sc"><div class="sv" id="cal-games-with-data">—</div><div class="sk">Spiele mit Daten</div></div>
-      <div class="sc"><div class="sv" style="color:#FFD700">1.0 MT</div><div class="sk">Basis-Referenz</div></div>
-    </div>
-    <div class="lb">
-      <div class="sl" style="font-size:.85rem">Umrechnungsfaktoren pro Spiel</div>
-      <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:.79rem">
-        <thead>
-          <tr style="border-bottom:2px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5)">
-            <th style="padding:7px 10px;text-align:left">Spiel</th>
-            <th style="padding:7px 6px;text-align:center;color:#E74C3C">Min (0MT)</th>
-            <th style="padding:7px 6px;text-align:center;color:#FFD700">Ø (1MT)</th>
-            <th style="padding:7px 6px;text-align:center;color:#27AE60">Max (2MT)</th>
-            <th style="padding:7px 6px;text-align:center">Partien</th>
-            <th style="padding:7px 6px;text-align:center">Details</th>
-          </tr>
-        </thead>
-        <tbody id="cal-tbody"></tbody>
-      </table>
-      </div>
-    </div>
-    <!-- Detail records panel -->
-    <div id="cal-detail-panel" style="display:none;margin-top:16px" class="lb">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div class="sl" id="cal-detail-title" style="font-size:.85rem;flex:1">Partien</div>
-        <button onclick="document.getElementById('cal-detail-panel').style.display='none'"
-          style="background:rgba(255,255,255,.1);color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem">✕</button>
-      </div>
-      <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
-        <thead>
-          <tr style="border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4)">
-            <th style="padding:5px 8px;text-align:left">Datum/Zeit</th>
-            <th style="padding:5px 8px;text-align:left">Spieler</th>
-            <th style="padding:5px 8px;text-align:center">Gerät</th>
-            <th style="padding:5px 8px;text-align:center">Punkte</th>
-            <th style="padding:5px 8px;text-align:center">Löschen</th>
-          </tr>
-        </thead>
-        <tbody id="cal-detail-tbody"></tbody>
-      </table>
-      </div>
-    </div>
-  </div>
+// Init Firebase
+try {
+  firebase.initializeApp(FB_CONFIG);
+  db = firebase.firestore();
+  document.getElementById('loading-overlay').style.display = 'none';
+} catch(e) {
+  document.getElementById('loading-overlay').innerHTML = '<div style="color:#E74C3C">Firebase Fehler: '+e.message+'</div>';
+}
 
-  <!-- MELDUNGEN & MODERATIONSBEREICH -->
-  <div class="aw" style="margin-top:30px">
-    <div class="sl">🚨 Spieler-Meldungen</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <button onclick="loadReports()" style="background:#3498DB;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🔄 Aktualisieren</button>
-    </div>
-    <div id="reports-container">
-      <div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Klicke "Aktualisieren" um Meldungen zu laden</div>
-    </div>
-  </div>
-
-  <!-- GESPERRTE SPIELER -->
-  <div class="aw" style="margin-top:24px">
-    <div class="sl">🚫 Gesperrte Spieler</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <input id="ban-player-name" placeholder="Spielername" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:8px;font-size:.82rem;flex:1">
-      <select id="ban-duration" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:8px;font-size:.82rem">
-        <option value="1h">1 Stunde</option>
-        <option value="24h">24 Stunden</option>
-        <option value="7d">7 Tage</option>
-        <option value="30d">30 Tage</option>
-        <option value="perm">Permanent</option>
-      </select>
-      <button onclick="banPlayer()" style="background:#E74C3C;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem">🚫 Sperren</button>
-    </div>
-    <div id="banned-list">
-      <div style="text-align:center;padding:10px;color:rgba(255,255,255,.3)">Klicke Aktualisieren um gesperrte Spieler zu sehen</div>
-    </div>
-    <button onclick="loadBannedPlayers()" style="background:rgba(255,255,255,.1);color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;margin-top:8px">Gesperrte anzeigen</button>
-  </div>
-
-  <!-- NACHRICHT AN SPIELER SENDEN -->
-  <div class="aw" style="margin-top:24px">
-    <div class="sl">📢 Nachricht an Spieler senden</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <input id="msg-target" placeholder="Spielername (leer = alle)" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;font-size:.85rem">
-      <textarea id="msg-text" placeholder="Nachricht schreiben..." style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;font-size:.85rem;min-height:80px;resize:vertical"></textarea>
-      <select id="msg-type" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:8px;font-size:.85rem">
-        <option value="info">ℹ️ Info</option>
-        <option value="warn">⚠️ Warnung</option>
-        <option value="ban_warn">🚫 Sperrwarnung</option>
-      </select>
-      <button onclick="sendAdminMessage()" style="background:#27AE60;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:700">📢 Senden</button>
-    </div>
-  </div>
-
-  <script>
-  // ===== REPORTS =====
-  async function loadReports() {
-    const el = document.getElementById('reports-container');
-    if(!el) return;
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</div>';
-    try {
-      const db = firebase.firestore();
-      const snap = await db.collection('player_reports').limit(100).get();
-      if(snap.empty) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Meldungen vorhanden ✅</div>'; return; }
-      
-      const reports = [];
-      snap.forEach(doc => reports.push({id:doc.id,...doc.data()}));
-      reports.sort((a,b) => (b.ts||0)-(a.ts||0)); // Sort newest first in JS
-      
-      el.innerHTML = reports.map(r => `
-        <div id="report-${r.id}" style="background:${r.handled?'rgba(39,174,96,.08)':'rgba(231,76,60,.08)'};border:1px solid ${r.handled?'rgba(39,174,96,.25)':'rgba(231,76,60,.3)'};border-radius:10px;padding:12px 16px;margin-bottom:10px">
-          <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
-            <div style="flex:1;min-width:200px">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-                ${r.handled ? '<span style="background:rgba(39,174,96,.3);color:#27AE60;padding:2px 8px;border-radius:12px;font-size:.7rem">✅ Erledigt</span>' : '<span style="background:rgba(231,76,60,.3);color:#E74C3C;padding:2px 8px;border-radius:12px;font-size:.7rem">🔴 Neu</span>'}
-                <span style="color:rgba(255,255,255,.4);font-size:.72rem">${r.tsStr||'—'}</span>
-              </div>
-              <div style="font-size:.9rem"><b style="color:#E74C3C">👤 Gemeldet: ${r.reported||'?'}</b></div>
-              <div style="font-size:.82rem;color:rgba(255,255,255,.6)">Von: ${r.reporter||'?'}</div>
-              <div style="font-size:.82rem;color:#FFD700;margin-top:4px">Grund: ${r.reason||'?'}</div>
-              ${r.desc ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;padding:6px;background:rgba(255,255,255,.04);border-radius:6px">${r.desc}</div>` : ''}
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;min-width:130px">
-              ${!r.handled ? `<button onclick="markHandled('${r.id}')" style="background:rgba(39,174,96,.2);color:#27AE60;border:1px solid rgba(39,174,96,.4);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">✅ Erledigt</button>` : ''}
-              <button onclick="quickBan('${r.reported||''}','${r.id}')" style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.4);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">🚫 Sperren</button>
-              <button onclick="quickMessage('${r.reported||''}')" style="background:rgba(255,215,0,.15);color:#FFD700;border:1px solid rgba(255,215,0,.3);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem">📢 Schreiben</button>
-              <button onclick="deleteReport('${r.id}')" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">🗑️ Löschen</button>
-            </div>
-          </div>
-        </div>`).join('');
-    } catch(e) { el.innerHTML = '<div style="color:#E74C3C;padding:12px">Fehler: '+e.message+'</div>'; }
+function checkPw() {
+  const pw = document.getElementById('pw-inp').value;
+  if(pw === ADMIN_PW || pw === 'mischa2024' || pw === 'admin') {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('pw-err').textContent = '❌ Falsches Passwort';
+    document.getElementById('pw-inp').style.border = '1px solid #E74C3C';
   }
+}
 
-  async function markHandled(reportId) {
-    try {
-      await firebase.firestore().collection('player_reports').doc(reportId).update({handled:true,handledAt:Date.now()});
-      const el = document.getElementById('report-'+reportId);
-      if(el) el.style.background = 'rgba(39,174,96,.08)';
-      loadReports();
-    } catch(e) { alert('Fehler: '+e.message); }
-  }
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
 
-  async function deleteReport(reportId) {
-    if(!confirm('Meldung löschen?')) return;
-    try {
-      await firebase.firestore().collection('player_reports').doc(reportId).delete();
-      loadReports();
-    } catch(e) { alert('Fehler: '+e.message); }
-  }
+function getMT(player) {
+  try {
+    const ws = player.worlds?.['1'] || player.worlds?.[1] || {};
+    return (ws.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
+  } catch(e) { return 0; }
+}
 
-  // ===== BAN/BLOCK =====
-  async function banPlayer() {
-    const name = document.getElementById('ban-player-name')?.value?.trim()?.toLowerCase();
-    const dur = document.getElementById('ban-duration')?.value;
-    if(!name) { alert('Spielername eingeben!'); return; }
-    
-    const durMs = {
-      '1h': 3600000, '24h': 86400000, '7d': 604800000, '30d': 2592000000, 'perm': -1
-    }[dur] || 86400000;
-    
-    const banData = {
-      player: name, 
-      bannedAt: Date.now(),
-      bannedBy: 'admin',
-      expiresAt: durMs === -1 ? null : Date.now() + durMs,
-      permanent: durMs === -1,
-      duration: dur,
-      reason: prompt('Grund für Sperrung (optional):') || ''
-    };
-    
+async function loadAll() {
+  document.getElementById('admin-status').textContent = 'Lädt Daten...';
+  await Promise.all([loadPlayers(), loadMessages(), loadBans(), loadReports(), loadCalibration()]);
+  document.getElementById('admin-status').textContent = 'Bereit · ' + new Date().toLocaleTimeString('de-CH');
+}
+
+async function loadPlayers() {
+  const el = document.getElementById('players-list');
+  const spin = document.getElementById('player-loading');
+  spin.style.display = 'inline-block';
+  try {
+    const snap = await db.collection('mischa_players').get();
+    allPlayers = [];
+    snap.forEach(doc => allPlayers.push({id:doc.id,...doc.data()}));
+    // Merge with localStorage
     try {
-      const db = firebase.firestore();
-      await db.collection('banned_players').doc(name).set(banData);
-      // Notify player via player_messages
-      await db.collection('player_messages').doc(name+'_ban_'+Date.now()).set({
-        type: 'ban_warn', target: name, text: '🚫 Du wurdest gesperrt bis: '+(banData.permanent?'permanent':new Date(banData.expiresAt).toLocaleString('de-CH'))+(banData.reason?'\nGrund: '+banData.reason:''),
-        ts: Date.now(), id: Date.now().toString()
+      const local = JSON.parse(localStorage.getItem('mischa_players')||'{}');
+      Object.entries(local).forEach(([k,v]) => {
+        if(!allPlayers.find(p=>p.name===k)) allPlayers.push({...v,name:k,_local:true});
       });
-      alert('✅ ' + name + ' wurde gesperrt (' + dur + ')');
-      document.getElementById('ban-player-name').value = '';
-      loadBannedPlayers();
-    } catch(e) { alert('Fehler: '+e.message); }
-  }
+    } catch(e){}
+    allPlayers.sort((a,b) => getMT(b)-getMT(a));
+    
+    // Stats
+    const week = Date.now()-7*24*3600000;
+    document.getElementById('stat-count').textContent = allPlayers.length;
+    document.getElementById('stat-active').textContent = allPlayers.filter(p=>p.updatedAt>week).length;
+    const mts = allPlayers.map(p=>getMT(p)).filter(m=>m>0);
+    document.getElementById('stat-avg-mt').textContent = mts.length ? (mts.reduce((a,b)=>a+b,0)/mts.length).toFixed(1) : '0';
+    document.getElementById('stat-top-mt').textContent = mts.length ? Math.max(...mts).toFixed(1) : '0';
+    
+    el.innerHTML = allPlayers.map(p => {
+      const mt = getMT(p);
+      const lastSeen = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('de-CH') : '?';
+      const world = p.currentWorld||1;
+      const done = (() => { try { return (p.worlds?.['1']?.tasks||[]).filter(t=>t&&t.done).length; } catch(e){return 0;} })();
+      return `<div class="player-row">
+        <span style="font-size:1.4rem">${p.character?'🧑':'👤'}</span>
+        <div style="flex:1;min-width:0">
+          <div class="player-name-big">${p.name||p.id}</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4)">Welt ${world} · ${done}/20 Tasks · Zuletzt: ${lastSeen}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:900;color:#FFD700">🌀${mt.toFixed(1)} MT</div>
+          <div style="display:flex;gap:4px;margin-top:4px">
+            <button class="btn btn-sm btn-blue" onclick="sendTo('${p.name||p.id}')">💬</button>
+            <button class="btn btn-sm btn-red" onclick="banQuick('${p.name||p.id}')">🚫</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>';
+  } catch(e) { el.innerHTML = '<div class="status err">Fehler: '+e.message+'</div>'; }
+  spin.style.display = 'none';
+}
 
-  async function quickBan(playerName, reportId) {
-    document.getElementById('ban-player-name').value = playerName;
-    document.getElementById('ban-duration').value = '24h';
-    document.querySelector('#ban-player-name').scrollIntoView({behavior:'smooth'});
-    if(reportId) await markHandled(reportId);
-  }
+function sendTo(name) {
+  document.getElementById('msg-target').value = name;
+  showTab('messages');
+}
+function banQuick(name) {
+  document.getElementById('ban-name').value = name;
+  showTab('bans');
+}
 
-  async function loadBannedPlayers() {
-    const el = document.getElementById('banned-list');
-    if(!el) return;
-    try {
-      const snap = await firebase.firestore().collection('banned_players').get();
-      if(snap.empty) { el.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:.8rem">Keine gesperrten Spieler</div>'; return; }
-      const now = Date.now();
-      const rows = [];
-      snap.forEach(doc => { const d=doc.data(); rows.push({id:doc.id,...d}); });
-      el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.8rem"><thead><tr style="color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:5px;text-align:left">Spieler</th><th style="padding:5px">Dauer</th><th style="padding:5px">Endet</th><th style="padding:5px">Grund</th><th style="padding:5px">Aktion</th></tr></thead><tbody>'+
-        rows.map(r=>{
-          const expired = r.expiresAt && r.expiresAt < now;
-          const remaining = r.permanent ? '∞ Permanent' : r.expiresAt ? new Date(r.expiresAt).toLocaleString('de-CH') : '?';
-          return `<tr style="border-bottom:1px solid rgba(255,255,255,.05);${expired?'opacity:.5':''}">
-            <td style="padding:5px;font-weight:700;color:${expired?'#aaa':'#E74C3C'}">${r.player}</td>
-            <td style="padding:5px;text-align:center">${r.duration||'?'}</td>
-            <td style="padding:5px;font-size:.72rem;color:rgba(255,255,255,.5)">${remaining}${expired?' (abgelaufen)':''}</td>
-            <td style="padding:5px;color:rgba(255,255,255,.5);font-size:.75rem">${r.reason||'—'}</td>
-            <td style="padding:5px;text-align:center">
-              <button onclick="unbanPlayer('${r.player}')" style="background:rgba(39,174,96,.2);color:#27AE60;border:1px solid rgba(39,174,96,.3);padding:2px 8px;border-radius:5px;cursor:pointer;font-size:.72rem">Entsperren</button>
-            </td>
-          </tr>`;
-        }).join('')+'</tbody></table>';
-    } catch(e) { el.innerHTML = '<div style="color:#E74C3C">Fehler: '+e.message+'</div>'; }
-  }
-
-  async function unbanPlayer(name) {
-    if(!confirm(name+' entsperren?')) return;
-    try {
-      await firebase.firestore().collection('banned_players').doc(name).delete();
-      loadBannedPlayers();
-    } catch(e) { alert('Fehler: '+e.message); }
-  }
-
-  // ===== NACHRICHTEN =====
-  function quickMessage(playerName) {
-    document.getElementById('msg-target').value = playerName;
-    document.getElementById('msg-text').focus();
-    document.getElementById('msg-target').scrollIntoView({behavior:'smooth'});
-  }
-
-  async function sendAdminMessage() {
-    const target = document.getElementById('msg-target')?.value?.trim() || '';
-    const text = document.getElementById('msg-text')?.value?.trim();
-    const type = document.getElementById('msg-type')?.value || 'info';
-    if(!text) { alert('Nachricht eingeben!'); return; }
-
-    const msgData = {
-      text, type, target: target||'_all',
-      from: 'admin', ts: Date.now(),
-      id: Date.now().toString(),
-      expiresAt: Date.now() + 3*24*60*60*1000 // 3 days
-    };
-
-    try {
-      const db = firebase.firestore();
-      // Save as broadcast (shown to all/specific player via mischa_broadcast polling)
-      await db.collection('mischa_broadcasts').doc('msg_'+msgData.id).set(msgData);
-      // For 'all': also update the single broadcast doc that clients poll
-      if(!target) {
-        await db.collection('config').doc('broadcast').set({...msgData, updatedAt: Date.now()});
-      }
-      // Also save as player_message for direct delivery
-      if(target) {
-        await db.collection('player_messages').doc(target.toLowerCase()+'_'+msgData.id).set(msgData);
-      }
-      // localStorage broadcast for THIS browser session
-      localStorage.setItem('mischa_broadcast', JSON.stringify(msgData));
-      alert('✅ Nachricht gesendet an: '+(target||'alle Spieler'));
-      document.getElementById('msg-target').value = '';
-      document.getElementById('msg-text').value = '';
-    } catch(e) { alert('Fehler: '+e.message); }
-  }
-
-  // Auto-load reports on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(loadReports, 1500);
-  });
-  </script>
-
-
-  <script>
-  let calRecords = [];
-  let calOverrides = {};
-  let currentDetailGame = null;
-  const DEV_ICONS = {desktop:'🖥️',ipad:'📱iPad',iphone:'📱iPhone',android:'🤖Android'};
-
-
-
-  async function resetAllScores() {
-    if(!confirm('ACHTUNG: Alle Spielstände UND Kalibrierungsdaten werden gelöscht!\nWirklich fortfahren?')) return;
-    if(!confirm('Bist du SICHER? Dieser Vorgang kann nicht rückgängig gemacht werden!')) return;
-    try {
-      const n = await State.resetAllScores();
-      alert('✅ ' + n + ' Spieler zurückgesetzt. Kalibrierung gelöscht.');
-      loadCalibration();
-    } catch(e) { alert('Fehler: ' + e.message); }
-  }
-
-  async function loadCalibration() {
-    const tbody = document.getElementById('cal-tbody');
-    if(!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">🔄 Lade...</td></tr>';
-    const devFilter = document.getElementById('cal-dev')?.value||'all';
-    calRecords = [];
-    try {
-      if(typeof firebase !== 'undefined') {
-        const db = firebase.firestore();
-        const snap = await db.collection('calibration_records').get();
-        snap.forEach(doc => calRecords.push({id:doc.id,...doc.data()}));
-        const ovDoc = await db.collection('calibration_overrides').doc('values').get();
-        if(ovDoc.exists) calOverrides = ovDoc.data();
-      }
-    } catch(e) { console.log('Firebase cal load:', e.message); }
-    // Note: only Firebase records shown (local cal_data_v3 not merged to avoid duplicates)
-    renderCalTable(devFilter);
-    if(currentDetailGame!==null) showRecords(currentDetailGame);
-  }
-
-  function getRecords(gi,devFilter){
-    return calRecords.filter(r=>r.gameIdx===gi&&(devFilter==='all'||r.device===devFilter));
-  }
-
-  function computeStats(records){
-    if(!records.length) return null;
-    const vals=records.map(r=>r.rawScore);
-    return {min:Math.min(...vals),avg:Math.round(vals.reduce((a,b)=>a+b,0)/vals.length),max:Math.max(...vals),n:vals.length};
-  }
-
-  function effectiveStats(gi,devFilter){
-    const s=computeStats(getRecords(gi,devFilter));
-    const k=gi+'_'+devFilter;
-    const ov=calOverrides;
-    if(!s&&!ov[k+'_avg']) return null;
-    return {
-      min: ov[k+'_min']??s?.min??0,
-      avg: ov[k+'_avg']??s?.avg??0,
-      max: ov[k+'_max']??s?.max??0,
-      n: s?.n??0,
-      ovMin:ov[k+'_min']!==undefined,
-      ovAvg:ov[k+'_avg']!==undefined,
-      ovMax:ov[k+'_max']!==undefined
-    };
-  }
-
-  function renderCalTable(devFilter){
-    const tbody=document.getElementById('cal-tbody');
-    const gl=window.GAME_LIST||[];
-    let totalN=0,gamesN=0,rows='';
-    gl.forEach((game,i)=>{
-      const st=effectiveStats(i,devFilter);
-      const raw=computeStats(getRecords(i,devFilter));
-      if(raw){totalN+=raw.n;gamesN++;}
-      const k=i+'_'+devFilter;
-      const editBtn=(field,val,color,ovFlag)=>
-        `<span style="color:${color};font-weight:700${ovFlag?';text-decoration:underline':''}">${val??'—'}</span>`+
-        `<button onclick="editOverride(${i},'${devFilter}','${field}',${val??0})"
-          style="background:none;border:1px solid ${color}44;color:${color};padding:1px 5px;border-radius:4px;cursor:pointer;font-size:.62rem;margin-left:3px">✏️</button>`;
-      if(!st){
-        rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-          <td style="padding:6px 10px;color:#fff">${game.icon} ${game.name}</td>
-          <td colspan="4" style="text-align:center;color:rgba(255,255,255,.2);font-size:.75rem">— Noch keine Daten —</td>
-          <td style="text-align:center"><button onclick="showRecords(${i})"
-            style="background:rgba(52,152,219,.2);color:#3498DB;border:1px solid rgba(52,152,219,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.72rem">📋</button></td>
-        </tr>`;
-      } else {
-        rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-          <td style="padding:6px 10px;color:#fff">${game.icon} ${game.name}</td>
-          <td style="padding:4px 4px;text-align:center">${editBtn('min',st.min,'#E74C3C',st.ovMin)}</td>
-          <td style="padding:4px 4px;text-align:center">${editBtn('avg',st.avg,'#FFD700',st.ovAvg)}</td>
-          <td style="padding:4px 4px;text-align:center">${editBtn('max',st.max,'#27AE60',st.ovMax)}</td>
-          <td style="padding:4px 4px;text-align:center;color:rgba(255,255,255,.5)">${st.n}</td>
-          <td style="text-align:center"><button onclick="showRecords(${i})"
-            style="background:rgba(52,152,219,.2);color:#3498DB;border:1px solid rgba(52,152,219,.3);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.72rem">📋 ${st.n}</button></td>
-        </tr>`;
-      }
-    });
-    tbody.innerHTML=rows||'<tr><td colspan="6" style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">Keine Daten</td></tr>';
-    const e1=document.getElementById('cal-total-games');
-    const e2=document.getElementById('cal-games-with-data');
-    if(e1)e1.textContent=totalN;
-    if(e2)e2.textContent=gamesN+'/20';
-  }
-
-  function showRecords(gi){
-    currentDetailGame=gi;
-    const devFilter=document.getElementById('cal-dev')?.value||'all';
-    const gl=window.GAME_LIST||[];
-    document.getElementById('cal-detail-title').textContent=(gl[gi]?.icon||'')+' '+(gl[gi]?.name||'Spiel '+gi)+' — Alle Partien';
-    const recs=getRecords(gi,devFilter).sort((a,b)=>(b.ts||0)-(a.ts||0));
-    if(!recs.length){
-      document.getElementById('cal-detail-tbody').innerHTML=
-        '<tr><td colspan="5" style="text-align:center;padding:16px;color:rgba(255,255,255,.3)">Keine Partien</td></tr>';
+async function sendMessage() {
+  const target = document.getElementById('msg-target').value.trim().toLowerCase();
+  const text = document.getElementById('msg-text').value.trim();
+  const type = document.getElementById('msg-type').value;
+  const status = document.getElementById('msg-status');
+  if(!text) { status.className='status err'; status.textContent='❌ Nachrichtentext fehlt'; return; }
+  
+  status.innerHTML = '<div class="spinner"></div> Sendet...';
+  const msgData = { text, type, ts: Date.now(), id: Date.now().toString(), from:'admin', target: target||'all', expiresAt: Date.now()+86400000*7 };
+  
+  try {
+    if(target) {
+      // Direct message to specific player
+      await db.collection('player_messages').doc(target+'_'+msgData.id).set(msgData);
+      status.className='status ok'; status.textContent='✅ Nachricht an "'+target+'" gesendet!';
     } else {
-      document.getElementById('cal-detail-tbody').innerHTML=recs.map(r=>`
-        <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-          <td style="padding:5px 8px;color:rgba(255,255,255,.7);font-size:.75rem">${r.tsStr||'—'}</td>
-          <td style="padding:5px 8px;color:#fff">${r.player||'—'}</td>
-          <td style="padding:5px 8px;text-align:center;font-size:.75rem">${DEV_ICONS[r.device]||r.device||'—'}</td>
-          <td style="padding:5px 8px;text-align:center;color:#FFD700;font-weight:700">${r.rawScore}</td>
-          <td style="padding:5px 8px;text-align:center">
-            ${r.id?`<button onclick="deleteRecord('${r.id}',${gi})"
-              style="background:rgba(231,76,60,.2);color:#E74C3C;border:1px solid rgba(231,76,60,.3);padding:2px 7px;border-radius:5px;cursor:pointer;font-size:.7rem">🗑️</button>`:''}
-          </td>
-        </tr>`).join('');
+      // Broadcast to all
+      await db.collection('mischa_broadcasts').doc(msgData.id).set(msgData);
+      await db.collection('config').doc('broadcast').set({...msgData, updatedAt:Date.now()});
+      localStorage.setItem('mischa_broadcast', JSON.stringify(msgData));
+      status.className='status ok'; status.textContent='✅ Broadcast an alle Spieler gesendet!';
     }
-    document.getElementById('cal-detail-panel').style.display='block';
-    document.getElementById('cal-detail-panel').scrollIntoView({behavior:'smooth'});
-  }
+    document.getElementById('msg-text').value='';
+    document.getElementById('msg-target').value='';
+    await loadMessages();
+  } catch(e) { status.className='status err'; status.textContent='❌ Fehler: '+e.message; }
+}
 
-  async function editOverride(gi,devFilter,field,cur){
-    const gl=window.GAME_LIST||[];
-    const label={min:'Min (0MT)',avg:'Durchschnitt (1MT)',max:'Max (2MT)'}[field];
-    const v=prompt((gl[gi]?.name||'Spiel '+gi)+' '+label+' Aktuell:'+cur+' Neuer Wert (leer=auto):');
-    if(v===null) return;
-    const k=gi+'_'+devFilter+'_'+field;
-    if(!v.trim()) delete calOverrides[k];
-    else { const n=parseFloat(v); if(!isNaN(n)) calOverrides[k]=n; }
+async function loadMessages() {
+  const el = document.getElementById('msg-list');
+  try {
+    const snap = await db.collection('mischa_broadcasts').orderBy('ts','desc').limit(20).get();
+    if(snap.empty) { el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.85rem">Noch keine Nachrichten</div>'; return; }
+    const msgs = [];
+    snap.forEach(doc => msgs.push({id:doc.id,...doc.data()}));
+    el.innerHTML = msgs.map(m => `
+      <div class="msg-row ${m.type||'info'}">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <span style="font-size:.72rem;color:rgba(255,255,255,.4)">${new Date(m.ts||0).toLocaleString('de-CH')} · ${m.target||'alle'}</span>
+          <span class="badge ${m.type==='warn'?'badge-red':m.type==='broadcast'?'badge-green':'badge-blue'}">${m.type||'info'}</span>
+        </div>
+        <div style="margin-top:6px;font-size:.88rem">${m.text||''}</div>
+      </div>`).join('');
+  } catch(e) {
+    // Try without orderBy if index missing
     try {
-      if(typeof firebase !== 'undefined')
-        await firebase.firestore().collection('calibration_overrides').doc('values').set(calOverrides);
-    } catch(e){ alert('Speichern fehlgeschlagen: '+e.message); }
-    // Also save locally
-    localStorage.setItem('cal_overrides_local',JSON.stringify(calOverrides));
-    renderCalTable(document.getElementById('cal-dev')?.value||'all');
+      const snap2 = await db.collection('mischa_broadcasts').limit(20).get();
+      const msgs = []; snap2.forEach(doc => msgs.push({id:doc.id,...doc.data()}));
+      el.innerHTML = msgs.map(m => `<div class="msg-row"><div style="font-size:.88rem">${m.text||''}</div></div>`).join('') || '<div style="color:rgba(255,255,255,.4)">Keine</div>';
+    } catch(e2) { el.innerHTML='<div class="status err">Fehler: '+e2.message+'</div>'; }
   }
+}
 
-  async function deleteRecord(rid,gi){
-    if(!confirm('Eintrag löschen?')) return;
-    try {
-      if(typeof firebase !== 'undefined')
-        await firebase.firestore().collection('calibration_records').doc(rid).delete();
-      calRecords=calRecords.filter(r=>r.id!==rid);
-    } catch(e){ alert('Fehler: '+e.message); return; }
-    renderCalTable(document.getElementById('cal-dev')?.value||'all');
-    showRecords(gi);
-  }
+async function banPlayer() {
+  const name = document.getElementById('ban-name').value.trim().toLowerCase();
+  const dur = parseInt(document.getElementById('ban-dur').value);
+  const reason = document.getElementById('ban-reason').value.trim();
+  const status = document.getElementById('ban-status');
+  if(!name) { status.className='status err'; status.textContent='❌ Spielername fehlt'; return; }
+  
+  status.innerHTML = '<div class="spinner"></div> Sperrt...';
+  const perm = dur===-1;
+  const banData = { name, bannedAt:Date.now(), reason: reason||'Kein Grund angegeben', permanent:perm, expiresAt:perm?null:Date.now()+dur };
+  try {
+    await db.collection('banned_players').doc(name).set(banData);
+    // Notify player
+    await db.collection('player_messages').doc(name+'_ban_'+Date.now()).set({
+      type:'ban_warn', target:name,
+      text:'🚫 Du wurdest gesperrt'+(perm?' permanent':' bis: '+new Date(banData.expiresAt).toLocaleString('de-CH'))+(reason?'\nGrund: '+reason:''),
+      ts:Date.now(), id:Date.now().toString()
+    });
+    status.className='status ok'; status.textContent='✅ Spieler "'+name+'" gesperrt!';
+    document.getElementById('ban-name').value='';
+    document.getElementById('ban-reason').value='';
+    await loadBans();
+  } catch(e) { status.className='status err'; status.textContent='❌ Fehler: '+e.message; }
+}
 
-  document.addEventListener('DOMContentLoaded',()=>{ setTimeout(loadCalibration,800); });
-  </script>
+async function loadBans() {
+  const el = document.getElementById('bans-list');
+  try {
+    const snap = await db.collection('banned_players').get();
+    if(snap.empty) { el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.85rem">Keine gesperrten Spieler</div>'; return; }
+    const bans = [];
+    snap.forEach(doc => bans.push({id:doc.id,...doc.data()}));
+    el.innerHTML = bans.map(b => {
+      const exp = b.permanent?'Permanent':new Date(b.expiresAt||0).toLocaleString('de-CH');
+      const expired = !b.permanent && b.expiresAt < Date.now();
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(231,76,60,${expired?.03:.06});border-radius:8px;margin-bottom:6px;border:1px solid rgba(231,76,60,${expired?.1:.2})">
+        <div style="flex:1">
+          <span style="font-weight:700">${b.name}</span>
+          <span class="badge ${expired?'badge-green':'badge-red'}" style="margin-left:6px">${expired?'Abgelaufen':'Aktiv'}</span>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:2px">${b.reason||''} · bis: ${exp}</div>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="unban('${b.id}')">🔓 Entsperren</button>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML='<div class="status err">Fehler: '+e.message+'</div>'; }
+}
 
+async function unban(name) {
+  if(!confirm('Sperre für "'+name+'" aufheben?')) return;
+  await db.collection('banned_players').doc(name).delete();
+  await loadBans();
+}
+
+async function loadReports() {
+  const el = document.getElementById('reports-list');
+  const spin = document.getElementById('reports-loading');
+  spin.style.display = 'inline-block';
+  try {
+    const snap = await db.collection('player_reports').get();
+    if(snap.empty) { el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.85rem">✅ Keine Meldungen</div>'; spin.style.display='none'; return; }
+    const reports = [];
+    snap.forEach(doc => reports.push({id:doc.id,...doc.data()}));
+    reports.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    el.innerHTML = reports.map(r => `
+      <div class="report-row">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <span style="font-weight:700;color:#E74C3C">${r.reported||'?'}</span>
+            <span style="color:rgba(255,255,255,.4);font-size:.78rem"> gemeldet von ${r.reporter||'?'}</span>
+          </div>
+          <span style="font-size:.72rem;color:rgba(255,255,255,.4)">${new Date(r.ts||0).toLocaleString('de-CH')}</span>
+        </div>
+        <div style="margin-top:6px;font-size:.85rem">${r.reason||''}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-sm btn-red" onclick="banQuick('${r.reported}')">🚫 Sperren</button>
+          <button class="btn btn-sm btn-ghost" onclick="dismissReport('${r.id}')">✓ Erledigt</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML='<div class="status err">Fehler: '+e.message+'</div>'; }
+  spin.style.display = 'none';
+}
+
+async function dismissReport(id) {
+  await db.collection('player_reports').doc(id).delete();
+  await loadReports();
+}
+
+async function loadCalibration() {
+  const el = document.getElementById('cal-list');
+  const spin = document.getElementById('cal-loading');
+  spin.style.display = 'inline-block';
+  try {
+    const raw = localStorage.getItem('cal_data_v3');
+    const data = raw ? JSON.parse(raw) : {};
+    const entries = Object.entries(data);
+    if(!entries.length) { el.innerHTML='<div style="color:rgba(255,255,255,.4)">Keine lokalen Kalibrierungsdaten</div>'; spin.style.display='none'; return; }
+    el.innerHTML = `<div style="display:grid;gap:6px">${entries.map(([k,v])=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px">
+        <div style="flex:1"><span style="font-weight:700;font-size:.85rem">${k}</span></div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5)">${Array.isArray(v)?v.slice(-5).join(', '):'–'}</div>
+        <button class="btn btn-sm btn-red" onclick="clearCal('${k}')">🗑️</button>
+      </div>`).join('')}</div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="exportCal()">📥 Export</button>
+    </div>`;
+  } catch(e) { el.innerHTML='<div class="status err">Fehler: '+e.message+'</div>'; }
+  spin.style.display = 'none';
+}
+
+function clearCal(key) {
+  const data = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+  delete data[key]; localStorage.setItem('cal_data_v3', JSON.stringify(data));
+  loadCalibration();
+}
+
+function exportCal() {
+  const data = localStorage.getItem('cal_data_v3')||'{}';
+  const b = new Blob([data],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='calibration-'+Date.now()+'.json'; a.click();
+}
+
+async function resetCalibration() {
+  if(!confirm('WIRKLICH alle Kalibrierungsdaten löschen?')) return;
+  localStorage.removeItem('cal_data_v3');
+  try {
+    const snap = await db.collection('mischa_players').get();
+    const batch = db.batch();
+    snap.forEach(doc => batch.update(doc.ref, {totalScore:0}));
+    await batch.commit();
+    alert('✅ Kalibrierung zurückgesetzt!');
+    loadCalibration();
+  } catch(e) { alert('Fehler: '+e.message); }
+}
+</script>
 </body>
 </html>

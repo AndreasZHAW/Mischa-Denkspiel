@@ -353,7 +353,7 @@ const App = {
         </div>`;
 
       frame++;
-      if(frame >= TOTAL) { cancelAnimationFrame(animId); ov.remove(); window.location.href='zoo.html'; return; }
+      if(frame >= TOTAL) { cancelAnimationFrame(animId); ov.remove(); window.location.href='zoo.html?autostart=1'; return; }
       animId = requestAnimationFrame(loop);
     };
     loop();

@@ -569,6 +569,7 @@ const ZA={
   _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS.char?.e||''} Hallo ${ZS.player}!`;},
   async checkPrivate(){await ZS.load();if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');
+    if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     await ZS.load();
     if(ZS.zoo) ZS._fix(); // ensure all fields migrated before 3D starts
     // Wait for browser to render and give canvas real dimensions
@@ -638,9 +639,17 @@ const ZG={
     const _log = function(msg,col){console.log('[ZOO]',msg); // _dbg hidden};
     
     if(typeof THREE === 'undefined'){
-      _log('❌ THREE.js nicht geladen! Kein Internet?','#f00');
-      document.getElementById('s-zoo').style.background='#1a4a1a';
-      ZP.toast('❌ Three.js CDN nicht geladen! Bitte Internet-Verbindung prüfen.',5000);
+      console.error('[ZOO] THREE.js not loaded');
+      document.getElementById('s-zoo').style.cssText='background:#0a1a0a;display:flex!important;align-items:center;justify-content:center;flex-direction:column';
+      (function(){
+        const d=document.createElement('div');
+        d.style.cssText='text-align:center;color:#fff;padding:20px';
+        d.innerHTML='<div style="font-size:3rem">🦁</div><div style="font-size:1.2rem;margin:12px 0">3D-Zoo lädt nicht</div><div style="font-size:.9rem;color:rgba(255,255,255,.6);margin-bottom:16px">Bitte Internet-Verbindung prüfen</div>';
+        const b1=document.createElement('button');b1.textContent='🔄 Neu laden';b1.style.cssText='background:#27AE60;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-size:1rem;cursor:pointer;margin:4px';b1.onclick=()=>location.reload();
+        const b2=document.createElement('button');b2.textContent='← Zurück';b2.style.cssText='background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:8px;font-size:.9rem;cursor:pointer;margin:4px';b2.onclick=()=>location.href='index.html';
+        d.appendChild(b1);d.appendChild(document.createElement('br'));d.appendChild(b2);
+        document.getElementById('s-zoo').appendChild(d);
+      })();
       return;
     }
 
@@ -5183,7 +5192,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
     ZS.player=main.toLowerCase();
     ZS.isAdmin=ZS.player==='mischa'||ZS.player==='admin'||ZS.player==='bu';
-    if(u.ch&&u.ch.id&&u.ch.id!=='default'){ZS.char=u.ch;ZA._showMode();}
+    if(u.ch&&u.ch.id&&u.ch.id!=='default'){
+      ZS.char=u.ch;
+      // Auto-start if coming from teleport OR has visited before
+      const autoStart = new URLSearchParams(window.location.search).get('autostart')==='1'
+                     || localStorage.getItem('zoo_visited_'+ZS.player)==='1';
+      if(autoStart) {
+        ZA.startZoo('public');
+      } else {
+        ZA._showMode();
+      }
+    }
     else{ZA._showChar();}
   } else {
     // No session - show login
