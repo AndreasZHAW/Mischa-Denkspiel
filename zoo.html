@@ -396,8 +396,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
       },6000);
     }
   }
-  console.error=function(){_show('error',arguments);};
-  console.warn=function(){_show('warn',arguments);};
+  // ── Diagnose-Seite Bridge: letzte 2min Logs per localStorage ──
+  var _crashRing=[];var _crashHead=0;var CRASH_MAX=600;var _crashFlushTimer=null;
+  function _pushCrash(level,msg){
+    var entry={ts:Date.now(),level:level,src:'zoo',msg:String(msg).slice(0,250)};
+    if(_crashRing.length<CRASH_MAX){_crashRing.push(entry);}else{_crashRing[_crashHead]=entry;}
+    _crashHead=(_crashHead+1)%CRASH_MAX;
+    if(!_crashFlushTimer)_crashFlushTimer=setInterval(function(){
+      try{var cutoff=Date.now()-120000;var recent=_crashRing.filter(function(e){return e.ts>cutoff;});
+        localStorage.setItem('_mischa_crash_log',JSON.stringify(recent.slice(-400)));}catch(ex){}
+    },4000);
+  }
+  console.error=function(){_show('error',arguments);_pushCrash('E',Array.from(arguments).join(' '));};
+  console.warn=function(){_show('warn',arguments);_pushCrash('W',Array.from(arguments).join(' '));};
+  console.log=function(){_orig.log.apply(console,arguments);_pushCrash('I',Array.from(arguments).join(' '));};
   window._getZooLogs=function(){return _errs.join('\n');};
   window.onerror=function(msg,src,line,col,err){
     if(!_isIgnored(msg)) _show('error',[msg+' ('+src.split('/').pop()+':'+line+')']);
@@ -678,11 +690,14 @@ const ZG={
     // Get actual viewport dimensions
     // iPad fix: use screen dimensions as fallback
     // Get real canvas/viewport size - try multiple sources
-    const W = (canvas.offsetWidth > 10 ? canvas.offsetWidth : null)
-           || (window.innerWidth > 10 ? window.innerWidth : null)
+    // Always prefer window.innerWidth/Height for fullscreen canvas.
+    // canvas.offsetHeight can be wrong (e.g. 77px) due to flex-parent
+    // layout timing, even when position:fixed is set on the canvas.
+    const W = (window.innerWidth > 10 ? window.innerWidth : null)
+           || (canvas.offsetWidth > 10 ? canvas.offsetWidth : null)
            || screen.width || 1280;
-    const H = (canvas.offsetHeight > 10 ? canvas.offsetHeight : null)
-           || (window.innerHeight > 10 ? window.innerHeight : null)
+    const H = (window.innerHeight > 10 ? window.innerHeight : null)
+           || (canvas.offsetHeight > 10 ? canvas.offsetHeight : null)
            || screen.height || 720;
     console.log('Canvas real size:', canvas.offsetWidth, 'x', canvas.offsetHeight, '| window:', window.innerWidth, 'x', window.innerHeight, '| using:', W, 'x', H);
     // Set canvas buffer AND display size explicitly

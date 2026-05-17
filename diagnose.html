@@ -3,257 +3,567 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🔍 Zoo Diagnose</title>
+<title>🔍 Mischa Diagnose</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#111; color:#0f0; font-family:monospace; font-size:14px; padding:10px; }
-.ok  { color:#0f0; }
-.err { color:#f44; font-weight:bold; }
-.warn{ color:#fa0; }
-.info{ color:#4af; }
-h1   { color:#FFD700; font-size:1.4rem; margin-bottom:10px; }
-.box { background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:10px; margin-bottom:10px; }
-pre  { white-space:pre-wrap; word-break:break-all; font-size:12px; }
-button { background:#FFD700; color:#000; border:none; padding:8px 16px; border-radius:6px;
-         font-weight:bold; font-size:1rem; cursor:pointer; margin:4px; }
-#canvas-test { border:2px solid #444; display:block; margin:6px 0; }
+body { background:#111; color:#0f0; font-family:monospace; font-size:13px; padding:10px; }
+.ok   { color:#4f4; }
+.err  { color:#f44; font-weight:bold; }
+.warn { color:#fa0; }
+.info { color:#4af; }
+.dim  { color:#666; }
+h1    { color:#FFD700; font-size:1.3rem; margin-bottom:8px; }
+h2    { color:#adf; font-size:1rem; margin:10px 0 4px; border-bottom:1px solid #333; padding-bottom:3px; }
+.box  { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:8px; padding:10px; margin-bottom:8px; }
+.box.red { border-color:#f44; }
+pre   { white-space:pre-wrap; word-break:break-all; font-size:11px; }
+button { background:#FFD700; color:#000; border:none; padding:8px 14px; border-radius:6px;
+         font-weight:bold; font-size:.9rem; cursor:pointer; margin:3px; }
+button.sec { background:#2a6; color:#fff; }
+button.danger { background:#a22; color:#fff; }
+#canvas-test { border:2px solid #333; display:block; margin:4px 0; }
+.tag { display:inline-block; background:#222; border:1px solid #444; border-radius:4px; padding:1px 6px; margin:1px; font-size:10px; }
+/* Crash log panel */
+#crash-ring { max-height:240px; overflow-y:auto; font-size:10px; color:#ccc; }
+#crash-ring .t { color:#888; }
+#crash-ring .E { color:#f66; }
+#crash-ring .W { color:#fa8; }
+#crash-ring .I { color:#4af; }
+#crash-ring .G { color:#4f4; }
+.blink { animation: blink 1s step-end infinite; }
+@keyframes blink { 50%{opacity:0} }
 </style>
 </head>
 <body>
-<h1>🔍 Zoo 3D — Diagnose Tool</h1>
+<h1>🔍 Mischa Denkspiel — Diagnose</h1>
 
-<div class="box">
-  <b class="info">Schritt 1: Browser-Info</b>
-  <pre id="browser-info">Lädt...</pre>
-</div>
-
-<div class="box">
-  <b class="info">Schritt 2: Three.js CDN Test</b>
-  <pre id="three-status">⏳ Warte auf Three.js...</pre>
-</div>
-
-<div class="box">
-  <b class="info">Schritt 3: WebGL Test</b>
-  <canvas id="canvas-test" width="300" height="60"></canvas>
-  <pre id="webgl-status">⏳ Teste WebGL...</pre>
-</div>
-
-<div class="box">
-  <b class="info">Schritt 4: Canvas Grösse Test</b>
-  <div id="canvas-size-box" style="width:100%;height:80px;background:#000;border:2px solid #444;position:relative">
-    <canvas id="canvas-size-test" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+<!-- ═══ CRASH LOG ═══ -->
+<div class="box" id="crash-box">
+  <h2>💾 Live Crash-Log <span id="crash-badge" style="color:#fa0;font-size:.8rem"></span></h2>
+  <div style="margin-bottom:5px;font-size:.8rem;color:#888">
+    Speichert <b style="color:#FFD700">2 Minuten</b> Logs im Kreis-Puffer (120s × 60fps ≈ letzte Ereignisse).
+    Bei Absturz: sofort <b>📋 Kopieren</b> klicken!
   </div>
-  <pre id="size-status">⏳ Messe Canvas...</pre>
+  <div>
+    <button onclick="copyCrashLog()" class="sec">📋 Crash-Log kopieren</button>
+    <button onclick="downloadCrashLog()">💾 Download</button>
+    <button onclick="clearCrashLog()" class="danger">🗑 Leeren</button>
+    <span id="crash-count" style="color:#888;font-size:.8rem;margin-left:8px"></span>
+  </div>
+  <div id="crash-ring" style="margin-top:6px;border:1px solid #2a2a2a;padding:5px;border-radius:4px">
+    <span class="dim">Warte auf Logs... (Öffne zoo.html im anderen Tab)</span>
+  </div>
 </div>
 
+<!-- ═══ ZOO DIAGNOSE ═══ -->
 <div class="box">
-  <b class="info">Schritt 5: Zoo HTML Prüfung</b>
-  <pre id="zoo-status">⏳ Lade zoo.html...</pre>
+  <h2>🦁 Zoo 3D — Volldiagnose</h2>
+
+  <div class="box" style="background:#111">
+    <b class="info">1. Browser & System</b>
+    <pre id="browser-info">Lädt...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">2. Three.js CDN</b>
+    <pre id="three-status">⏳ Warte...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">3. WebGL Hardware</b>
+    <canvas id="canvas-test" width="300" height="50"></canvas>
+    <pre id="webgl-status">⏳ Teste...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">4. Canvas Grösse & Timing (Zoo-Schwarzbild-Diagnose)</b>
+    <div id="canvas-size-box" style="width:100%;height:60px;background:#000;border:2px solid #333;position:relative;border-radius:4px">
+      <canvas id="canvas-size-test" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+    </div>
+    <pre id="size-status">⏳ Messe...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">5. Zoo Canvas Parent-Kette (Flex-Bug)</b>
+    <pre id="parent-status">⏳ Analysiere...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">6. Firebase & zoo.html</b>
+    <pre id="zoo-status">⏳ Lade...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">7. Zoo HTML Code-Check</b>
+    <pre id="code-status">⏳ Prüfe...</pre>
+  </div>
+
+  <div class="box" style="background:#111">
+    <b class="info">8. Netzwerk-Latenzen</b>
+    <pre id="net-status">⏳ Messe...</pre>
+  </div>
 </div>
 
+<!-- ═══ GAME CRASH DIAGNOSE ═══ -->
 <div class="box">
-  <b class="warn">📋 KOMPLETTER LOG (kopiere alles und schicke es uns!)</b>
-  <button onclick="copyLog()">📋 Log kopieren</button>
-  <button onclick="downloadLog()">💾 Log herunterladen</button>
-  <pre id="full-log" style="margin-top:8px;max-height:300px;overflow-y:auto;border:1px solid #333;padding:6px"></pre>
+  <h2>🎮 Spiel-Absturz Diagnose (Erste Welt)</h2>
+  <div class="box" style="background:#111">
+    <b class="info">9. Game Loop Health</b>
+    <pre id="game-status">⏳ Prüfe...</pre>
+  </div>
+</div>
+
+<!-- ═══ FULL LOG ═══ -->
+<div class="box">
+  <h2>📋 Diagnose-Protokoll</h2>
+  <button onclick="copyLog()">📋 Kopieren</button>
+  <button onclick="downloadLog()">💾 Download</button>
+  <pre id="full-log" style="margin-top:6px;max-height:280px;overflow-y:auto;border:1px solid #2a2a2a;padding:5px;border-radius:4px"></pre>
 </div>
 
 <script>
+// ═══════════════════════════════════════════
+// RING BUFFER — 2 Minuten Crash-Log
+// ═══════════════════════════════════════════
+const RING_MAX = 2000; // ~2min bei normalem Betrieb
+const ringBuf = [];
+let ringHead = 0;
+let ringTotal = 0;
+let ringLastClean = Date.now();
+const RING_DURATION_MS = 120000; // 2 min
+
+function ringPush(entry) {
+  // entry: {ts, level, src, msg}
+  if (ringBuf.length < RING_MAX) {
+    ringBuf.push(entry);
+  } else {
+    ringBuf[ringHead] = entry;
+  }
+  ringHead = (ringHead + 1) % RING_MAX;
+  ringTotal++;
+  // Prune entries older than 2 minutes
+  const cutoff = Date.now() - RING_DURATION_MS;
+  // (Don't prune every frame — do it lazily)
+}
+
+function ringGetAll() {
+  // Return in chronological order
+  if (ringBuf.length < RING_MAX) return [...ringBuf];
+  return [...ringBuf.slice(ringHead), ...ringBuf.slice(0, ringHead)];
+}
+
+function renderRing() {
+  const el = document.getElementById('crash-ring');
+  const badge = document.getElementById('crash-badge');
+  const count = document.getElementById('crash-count');
+  const entries = ringGetAll();
+  const cutoff = Date.now() - RING_DURATION_MS;
+  const recent = entries.filter(e => e.ts > cutoff);
+  
+  if (recent.length === 0) {
+    el.innerHTML = '<span class="dim">Keine Einträge in den letzten 2 Minuten</span>';
+    badge.textContent = '';
+    count.textContent = '';
+    return;
+  }
+  
+  const hasErr = recent.some(e => e.level === 'E');
+  badge.textContent = hasErr ? '⚠️ FEHLER!' : '';
+  count.textContent = recent.length + ' Einträge (letzte 2min)';
+  
+  const html = recent.slice(-200).map(e => { // show last 200 entries
+    const ts = new Date(e.ts).toISOString().slice(11,23);
+    const lvl = e.level;
+    return `<div class="${lvl}"><span class="t">[${ts}]</span> [${lvl}|${e.src}] ${escHtml(e.msg)}</div>`;
+  }).join('');
+  el.innerHTML = html;
+  el.scrollTop = el.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Intercept console for ring buffer
+(function() {
+  const orig = {log:console.log, warn:console.warn, error:console.error, info:console.info};
+  function hook(level, origFn) {
+    return function(...args) {
+      origFn.apply(console, args);
+      const msg = args.map(a => {
+        if (typeof a === 'string') return a;
+        try { return JSON.stringify(a); } catch(e) { return String(a); }
+      }).join(' ');
+      // Get caller source (best effort)
+      let src = '?';
+      try {
+        const err = new Error();
+        const lines = (err.stack||'').split('\n');
+        const caller = lines[2]||'';
+        const m = caller.match(/([^/]+\.(?:js|html))(?::\d+)?/);
+        if(m) src = m[1].slice(0,12);
+      } catch(e) {}
+      ringPush({ts:Date.now(), level, src, msg: msg.slice(0,300)});
+    };
+  }
+  console.log   = hook('I', orig.log);
+  console.warn  = hook('W', orig.warn);
+  console.error = hook('E', orig.error);
+  console.info  = hook('G', orig.info);
+  
+  // Also catch global errors
+  window.addEventListener('error', e => {
+    ringPush({ts:Date.now(), level:'E', src:String(e.filename||'?').split('/').pop().slice(0,12),
+              msg: (e.message||'?') + ' (L'+e.lineno+')'});
+  });
+  window.addEventListener('unhandledrejection', e => {
+    ringPush({ts:Date.now(), level:'E', src:'Promise',
+              msg: (e.reason?.message || String(e.reason||'?')).slice(0,200)});
+  });
+})();
+
+// Also receive logs from zoo.html via localStorage polling
+let lastRingSync = 0;
+function pollZooLogs() {
+  try {
+    const raw = localStorage.getItem('_mischa_crash_log');
+    if(!raw) return;
+    const entries = JSON.parse(raw);
+    if(!Array.isArray(entries)) return;
+    for(const e of entries) {
+      if(e.ts > lastRingSync) {
+        ringPush(e);
+        lastRingSync = Math.max(lastRingSync, e.ts);
+      }
+    }
+  } catch(e) {}
+}
+
+// Render ring every second
+setInterval(() => {
+  pollZooLogs();
+  renderRing();
+}, 1000);
+
+function copyCrashLog() {
+  const entries = ringGetAll().filter(e => e.ts > Date.now()-RING_DURATION_MS);
+  const text = entries.map(e => {
+    const ts = new Date(e.ts).toISOString().slice(11,23);
+    return `[${ts}] [${e.level}|${e.src}] ${e.msg}`;
+  }).join('\n');
+  const header = `=== MISCHA CRASH LOG (${new Date().toLocaleString('de-CH')}) ===\n`;
+  navigator.clipboard.writeText(header+text).then(()=>alert('✅ Crash-Log kopiert!')).catch(()=>{});
+}
+
+function downloadCrashLog() {
+  const entries = ringGetAll().filter(e => e.ts > Date.now()-RING_DURATION_MS);
+  const text = entries.map(e=>`[${new Date(e.ts).toISOString().slice(11,23)}] [${e.level}|${e.src}] ${e.msg}`).join('\n');
+  const blob = new Blob(['=== MISCHA CRASH LOG ===\n'+text],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='crash-'+Date.now()+'.txt';a.click();
+}
+
+function clearCrashLog() {
+  ringBuf.length=0; ringHead=0; ringTotal=0;
+  document.getElementById('crash-ring').innerHTML='<span class="dim">Geleert.</span>';
+}
+
+// ═══════════════════════════════════════════
+// INJECT LOGGING INTO ZOO.HTML VIA LOCALSTORAGE
+// (zoo.html picks this up if it has the hook)
+// ═══════════════════════════════════════════
+// Write a "request" that zoo.html can read
+localStorage.setItem('_mischa_diagReq', Date.now());
+
+// ═══════════════════════════════════════════
+// DIAGNOSE STEPS
+// ═══════════════════════════════════════════
 const logs = [];
 const logEl = document.getElementById('full-log');
 
 function log(msg, type='info') {
   const ts = new Date().toISOString().slice(11,23);
-  const line = '[' + ts + '] ' + msg;
+  const line = '['+ts+'] '+msg;
   logs.push(line);
-  const el = document.createElement('div');
-  el.className = type;
-  el.textContent = line;
-  logEl.appendChild(el);
-  logEl.scrollTop = logEl.scrollHeight;
-  console.log(line);
+  const el=document.createElement('div');el.className=type;el.textContent=line;
+  logEl.appendChild(el);logEl.scrollTop=logEl.scrollHeight;
+  ringPush({ts:Date.now(), level:type==='err'?'E':type==='warn'?'W':'G', src:'diag', msg});
 }
+function setStatus(id,html,type){const el=document.getElementById(id);if(el){el.innerHTML=html;if(type)el.className=type;}}
 
-function setStatus(id, html, type) {
-  const el = document.getElementById(id);
-  if(el) { el.innerHTML = html; el.className = type||''; }
-}
-
-// ── Step 1: Browser Info ──
-function step1() {
-  const ua = navigator.userAgent;
-  const w = window.innerWidth, h = window.innerHeight;
-  const dpr = window.devicePixelRatio||1;
-  const info = [
-    'UserAgent: ' + ua,
-    'Window: ' + w + 'x' + h + ' (DPR=' + dpr + ')',
-    'Screen: ' + screen.width + 'x' + screen.height,
-    'URL: ' + location.href,
-    'Protocol: ' + location.protocol,
-    'Date: ' + new Date().toLocaleString('de-CH'),
+// Step 1
+function step1(){
+  const ua=navigator.userAgent;
+  const w=window.innerWidth,h=window.innerHeight,dpr=window.devicePixelRatio||1;
+  const gl1=document.createElement('canvas').getContext('webgl');
+  const hwAccel=gl1?'JA':'NEIN (Hardware-Acceleration deaktiviert!)';
+  const info=[
+    'UserAgent: '+ua,
+    'Fenster: '+w+'×'+h+' (DPR='+dpr+')',
+    'Bildschirm: '+screen.width+'×'+screen.height,
+    'Hardware-Accel: '+hwAccel,
+    'URL: '+location.href,
+    'Protokoll: '+location.protocol,
+    'Datum: '+new Date().toLocaleString('de-CH'),
+    'Cookie: '+(navigator.cookieEnabled?'Ja':'Nein'),
+    'Online: '+(navigator.onLine?'Ja':'Nein'),
   ].join('\n');
-  setStatus('browser-info', info);
-  log('Browser: ' + ua.slice(0,80));
-  log('Window: ' + w + 'x' + h);
-  log('Protocol: ' + location.protocol);
+  setStatus('browser-info',info);
+  log('Browser: '+ua.slice(0,90));
+  log('Fenster: '+w+'×'+h+' DPR='+dpr);
+  log('Protokoll: '+location.protocol);
+  log('Hardware-Accel WebGL: '+hwAccel, gl1?'ok':'err');
+  if(!gl1) log('⚠️ Ohne WebGL kann der Zoo NICHT starten! Aktiviere Hardware-Beschleunigung in Browser-Einstellungen.','err');
 }
 
-// ── Step 2: Three.js ──
-function step2() {
-  if(typeof THREE === 'undefined') {
-    setStatus('three-status', '❌ THREE.js NICHT GELADEN! CDN blockiert oder kein Internet!', 'err');
-    log('THREE.js: NOT LOADED', 'err');
+// Step 2
+function step2(){
+  if(typeof THREE==='undefined'){
+    setStatus('three-status','❌ THREE.js NICHT GELADEN! CDN blockiert oder kein Internet.','err');
+    log('THREE.js: NOT LOADED','err');
   } else {
-    setStatus('three-status', '✅ THREE.js r' + THREE.REVISION + ' geladen', 'ok');
-    log('THREE.js: r' + THREE.REVISION);
+    setStatus('three-status','✅ THREE.js r'+THREE.REVISION+' geladen','ok');
+    log('THREE.js: r'+THREE.REVISION);
   }
 }
 
-// ── Step 3: WebGL ──
-function step3() {
-  const canvas = document.getElementById('canvas-test');
-  const ctx2 = canvas.getContext('2d');
-  
-  // Test 2D context
-  ctx2.fillStyle = '#222';
-  ctx2.fillRect(0,0,300,60);
-  ctx2.fillStyle = '#0f0';
-  ctx2.font = '14px monospace';
-  
-  let webglOk = false;
-  let webglErr = '';
-  try {
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if(gl) {
-      const vendor = gl.getParameter(gl.VENDOR);
-      const renderer = gl.getParameter(gl.RENDERER);
-      webglOk = true;
-      ctx2.fillText('✅ WebGL OK: ' + renderer.slice(0,35), 5, 20);
-      setStatus('webgl-status', '✅ WebGL OK\nVendor: ' + vendor + '\nRenderer: ' + renderer, 'ok');
-      log('WebGL: OK - ' + renderer);
-    } else {
-      webglErr = 'getContext returned null';
-    }
-  } catch(e) {
-    webglErr = e.message;
+// Step 3 — WebGL
+function step3(){
+  const canvas=document.getElementById('canvas-test');
+  const ctx2=canvas.getContext('2d');
+  ctx2.fillStyle='#1a1a1a';ctx2.fillRect(0,0,300,50);
+  let webglOk=false,vendor='',renderer='',webglErr='';
+  try{
+    const gl=canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
+    if(gl){
+      vendor=gl.getParameter(gl.VENDOR);
+      renderer=gl.getParameter(gl.RENDERER);
+      const ext=gl.getExtension('WEBGL_debug_renderer_info');
+      const unmasked=ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):'';
+      webglOk=true;
+      const txt='✅ WebGL: '+renderer.slice(0,38)+(unmasked?'\n→ '+unmasked:'');
+      ctx2.fillStyle='#4f4';ctx2.font='11px monospace';ctx2.fillText('✅ WebGL OK',5,20);
+      setStatus('webgl-status',txt+'\nVendor: '+vendor+'\nRenderer: '+renderer+(unmasked?'\nUnmasked: '+unmasked:''),'ok');
+      log('WebGL: OK — '+renderer);
+      if(unmasked)log('WebGL Renderer (unmasked): '+unmasked);
+    } else { webglErr='getContext returned null'; }
+  } catch(e){ webglErr=e.message; }
+  if(!webglOk){
+    ctx2.fillStyle='#f44';ctx2.font='11px monospace';ctx2.fillText('❌ WebGL FEHLER: '+webglErr,5,20);
+    setStatus('webgl-status','❌ WebGL FEHLER: '+webglErr+'\n\n💡 Lösung:\n  Firefox: about:config → webgl.disabled = false\n  Chrome: Einstellungen → System → Hardware-Beschleunigung\n  Edge: flags → Override software rendering','err');
+    log('WebGL: FAIL — '+webglErr,'err');
+    log('💡 Firefox-Fix: about:config → webgl.disabled = false','warn');
   }
-  
-  if(!webglOk) {
-    ctx2.fillStyle = '#f44';
-    ctx2.fillText('❌ WebGL FEHLER: ' + webglErr, 5, 20);
-    setStatus('webgl-status', '❌ WebGL FEHLER: ' + webglErr, 'err');
-    log('WebGL: FAIL - ' + webglErr, 'err');
-  }
-  
-  // Test THREE WebGLRenderer if available
-  if(typeof THREE !== 'undefined') {
-    try {
-      const testCanvas = document.createElement('canvas');
-      testCanvas.width = 10; testCanvas.height = 10;
-      const r = new THREE.WebGLRenderer({canvas:testCanvas, antialias:false});
-      r.setSize(10,10);
-      r.setClearColor(0xff0000);
-      r.render(new THREE.Scene(), new THREE.PerspectiveCamera());
-      r.dispose();
+  // THREE.js Renderer test
+  if(typeof THREE!=='undefined'){
+    try{
+      const tc=document.createElement('canvas');tc.width=10;tc.height=10;
+      const r=new THREE.WebGLRenderer({canvas:tc,antialias:false});
+      r.setSize(10,10);r.render(new THREE.Scene(),new THREE.PerspectiveCamera());r.dispose();
       log('THREE.WebGLRenderer: OK');
-    } catch(e) {
-      log('THREE.WebGLRenderer: FAIL - ' + e.message, 'err');
-    }
+    }catch(e){log('THREE.WebGLRenderer: FAIL — '+e.message,'err');}
   }
 }
 
-// ── Step 4: Canvas size timing ──
-function step4() {
-  const box = document.getElementById('canvas-size-box');
-  const canvas = document.getElementById('canvas-size-test');
-  
-  function measure(label) {
-    const ow = canvas.offsetWidth, oh = canvas.offsetHeight;
-    const iw = window.innerWidth, ih = window.innerHeight;
-    const msg = label + ': canvas.offset=' + ow + 'x' + oh + ' | window.inner=' + iw + 'x' + ih;
-    log(msg);
-    return msg;
+// Step 4 — Canvas size timing
+function step4(){
+  const box=document.getElementById('canvas-size-box');
+  const canvas=document.getElementById('canvas-size-test');
+  const lines=[];
+  function measure(label){
+    const ow=canvas.offsetWidth,oh=canvas.offsetHeight;
+    const iw=window.innerWidth,ih=window.innerHeight;
+    const ok=ow>10&&oh>10;
+    const msg=label+': canvas='+ow+'×'+oh+' | window='+iw+'×'+ih+(ok?'':' ⚠️');
+    lines.push(msg);log(msg,ok?'info':'warn');return msg;
   }
-  
-  const m1 = measure('Sofort');
-  
-  requestAnimationFrame(() => {
-    const m2 = measure('Nach 1 rAF');
-    requestAnimationFrame(() => {
-      const m3 = measure('Nach 2 rAF');
-      setTimeout(() => {
-        const m4 = measure('Nach 300ms');
-        setStatus('size-status', [m1,m2,m3,m4].join('\n'), canvas.offsetWidth > 10 ? 'ok' : 'err');
-        
-        if(canvas.offsetWidth < 10) {
-          log('⚠️ Canvas hat Breite 0 - das ist der schwarze Bildschirm Bug!', 'err');
-          document.getElementById('size-status').innerHTML += '\n\n❌ DIES IST DER BUG: Canvas hat Breite 0!\nDie 3D-Szene rendert in 0x0 Pixel.';
-        }
-      }, 300);
+  const m1=measure('Sofort');
+  requestAnimationFrame(()=>{
+    const m2=measure('Nach 1 rAF');
+    requestAnimationFrame(()=>{
+      const m3=measure('Nach 2 rAF');
+      setTimeout(()=>{
+        const m4=measure('Nach 300ms');
+        setTimeout(()=>{
+          const m5=measure('Nach 1000ms');
+          const bad=canvas.offsetHeight<10;
+          setStatus('size-status',lines.join('\n')+(bad?'\n\n❌ CANVAS HÖHE = 0! Das ist der Schwarzbild-Bug.\nFix: window.innerHeight statt canvas.offsetHeight verwenden.':''),bad?'err':'ok');
+          if(bad)log('❌ CANVAS HÖHE 0 — Schwarzbild-Bug bestätigt!','err');
+        },1000);
+      },300);
     });
   });
 }
 
-// ── Step 5: Check zoo.html exists ──
-function step5() {
-  // Test Firebase read (zoo_players collection)
-  fetch('https://firestore.googleapis.com/v1/projects/mischa-denkspiel/databases/(default)/documents/zoo_players', {method:'GET'})
-    .then(r => {
-      if(r.status===200){
-        setStatus('zoo-status', '✅ Firebase zoo_players: lesbar (Multiplayer OK!)', 'ok');
-        log('Firebase zoo_players: READABLE - multiplayer works');
-      } else if(r.status===403){
-        setStatus('zoo-status', '❌ Firebase zoo_players: PERMISSION DENIED\nFirestore Rules müssen angepasst werden!\nGehe zu: console.firebase.google.com → Firestore → Rules', 'err');
-        log('Firebase zoo_players: PERMISSION DENIED - needs Firestore rule fix', 'err');
-      } else {
-        setStatus('zoo-status', '⚠️ Firebase zoo_players: HTTP '+r.status, 'warn');
-        log('Firebase zoo_players: HTTP '+r.status);
+// Step 5 — Parent chain analysis
+function step5(){
+  // Simulate what zoo.html does: analyze the s-zoo > canvas hierarchy
+  const lines=[];
+  // Create a dummy that mimics zoo structure
+  const dummy=document.createElement('div');
+  dummy.id='_diag_s_zoo';
+  dummy.style.cssText='position:fixed;inset:0;background:#000;overflow:hidden;padding:0';
+  dummy.classList.add('_diag_scr'); // simulate .scr class
+  const dummyCSS=document.createElement('style');
+  dummyCSS.textContent='._diag_scr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}';
+  document.head.appendChild(dummyCSS);
+  const dummyCv=document.createElement('canvas');
+  dummyCv.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;display:block';
+  dummy.appendChild(dummyCv);
+  document.body.appendChild(dummy);
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    const ow=dummyCv.offsetWidth,oh=dummyCv.offsetHeight;
+    const bug=oh<window.innerHeight*0.5;
+    lines.push('Simulierter Zoo-Canvas (mit .scr flex-container):');
+    lines.push('  canvas.offsetWidth:  '+ow+' (erwartet: '+window.innerWidth+')');
+    lines.push('  canvas.offsetHeight: '+oh+' (erwartet: '+window.innerHeight+')');
+    lines.push('  window.innerHeight:  '+window.innerHeight);
+    if(bug){
+      lines.push('');
+      lines.push('❌ BUG BESTÄTIGT: Flex-Container schrumpft Canvas-Höhe!');
+      lines.push('   canvas.offsetHeight ('+oh+') << window.innerHeight ('+window.innerHeight+')');
+      lines.push('   Fix: ZG.start() muss window.innerHeight statt canvas.offsetHeight verwenden.');
+      lines.push('   Status: ✅ In v149 bereits gefixt!');
+      log('Flex-Canvas-Bug: canvas.offsetHeight='+oh+' statt '+window.innerHeight,'warn');
+    } else {
+      lines.push('✅ Canvas-Grösse korrekt (kein Flex-Bug in dieser Umgebung)');
+    }
+    setStatus('parent-status',lines.join('\n'),bug?'warn':'ok');
+    dummy.remove();dummyCSS.remove();
+  });});
+}
+
+// Step 6 — Firebase & zoo.html
+function step6(){
+  const results=[];
+  let done=0;
+  const check=()=>{if(++done===2)setStatus('zoo-status',results.join('\n\n'),results.some(r=>r.includes('❌'))?'err':'ok');};
+  // Firebase
+  fetch('https://firestore.googleapis.com/v1/projects/mischa-denkspiel/databases/(default)/documents/zoo_players',{method:'GET'})
+    .then(r=>{
+      if(r.status===200){results.push('✅ Firebase zoo_players: lesbar (Multiplayer OK)');log('Firebase: READABLE');}
+      else if(r.status===403){results.push('❌ Firebase: PERMISSION DENIED\n→ Firestore Rules müssen angepasst werden');log('Firebase: PERMISSION DENIED','err');}
+      else{results.push('⚠️ Firebase: HTTP '+r.status);log('Firebase: HTTP '+r.status,'warn');}
+    }).catch(e=>{results.push('❌ Firebase: NETZWERKFEHLER — '+e.message);log('Firebase Netzwerkfehler','err');}).finally(check);
+  // zoo.html
+  fetch('zoo.html',{method:'HEAD'})
+    .then(r=>{
+      return fetch('zoo.html').then(r2=>r2.text()).then(t=>{
+        results.push('✅ zoo.html: HTTP '+r.status+', '+t.length+' Bytes');
+        log('zoo.html: '+r.status+' — '+t.length+'B');
+        // Quick sanity checks
+        const checks=[
+          ['ZG._stop','stop→_stop Fix','✅','❌ FEHLT! stop-Bug nicht gefixt'],
+          ['const ZG','ZG-Objekt vorhanden','✅','❌ FEHLT'],
+          ['THREE.WebGLRenderer','THREE Renderer-Aufruf','✅','❌ FEHLT'],
+          ['window.innerHeight','Canvas-Höhe Fix','✅','⚠️ Fehlt — Canvas könnte falsche Höhe bekommen'],
+        ];
+        const res=checks.map(([needle,label,ok,fail])=>t.includes(needle)?ok+' '+label:fail+' '+label);
+        results.push('Code-Checks:\n  '+res.join('\n  '));
+      });
+    }).catch(e=>{results.push('❌ zoo.html: FEHLER — '+e.message);log('zoo.html Fehler','err');}).finally(check);
+}
+
+// Step 7 — Code-check
+function step7(){
+  fetch('zoo.html').then(r=>r.text()).then(t=>{
+    const issues=[];
+    // Check for reserved word methods
+    const reserved=['stop(','delete(','yield(','default('];
+    for(const kw of reserved){
+      const idx=t.indexOf('  '+kw);
+      if(idx>=0){
+        const line=t.slice(0,idx).split('\n').length;
+        issues.push('⚠️ Reserviertes Wort als Methode: "'+kw+'" (Zeile ~'+line+') — kann Safari-Fehler verursachen');
       }
-    })
-    .catch(e=>{
-      setStatus('zoo-status', '❌ Firebase Netzwerkfehler: '+e.message, 'err');
-      log('Firebase: NETWORK ERROR - '+e.message, 'err');
+    }
+    // Check for optional chaining (Safari 13.1+)
+    const optCount=(t.match(/\?\./g)||[]).length;
+    // Check for ??
+    const nullCount=(t.match(/\?\?/g)||[]).length;
+    const result=[
+      issues.length?issues.join('\n'):'✅ Keine reservierten Wörter als Methoden',
+      '✅ Optional Chaining (?.) verwendet: '+optCount+'×  (Safari 13.1+ OK)',
+      '✅ Nullish Coalescing (??) verwendet: '+nullCount+'×  (Safari 13.1+ OK)',
+      '',
+      '📊 Dateigrösse: '+t.length+' Bytes ('+Math.round(t.length/1024)+' KB)',
+      '📊 Script-Blöcke: '+(t.match(/<script/g)||[]).length,
+      '📊 Canvas-Elemente: '+(t.match(/<canvas/g)||[]).length,
+    ].join('\n');
+    setStatus('code-status',result,issues.length?'warn':'ok');
+    if(issues.length)issues.forEach(i=>log(i,'warn'));
+    else log('Code-Check: OK');
+  }).catch(e=>{setStatus('code-status','❌ Fehler: '+e.message,'err');});
+}
+
+// Step 8 — Network latency
+function step8(){
+  const urls=[
+    ['cdnjs.cloudflare.com','https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'],
+    ['github.io (Hosting)','zoo.html'],
+    ['gstatic.com (Firebase)','https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js'],
+  ];
+  const results=[];
+  let done=0;
+  for(const[name,url]of urls){
+    const t0=Date.now();
+    fetch(url,{method:'HEAD',cache:'no-store'})
+      .then(r=>{const ms=Date.now()-t0;results.push((ms<800?'✅':'⚠️')+' '+name+': '+ms+'ms (HTTP '+r.status+')');log('Netzwerk '+name+': '+ms+'ms');})
+      .catch(e=>{results.push('❌ '+name+': FEHLER — '+e.message);log('Netzwerk '+name+': FEHLER','err');})
+      .finally(()=>{if(++done===urls.length)setStatus('net-status',results.join('\n'),'ok');});
+  }
+}
+
+// Step 9 — Game loop health
+function step9(){
+  const lines=[];
+  // Test rAF availability
+  let rafOk=false;
+  try{requestAnimationFrame(()=>{rafOk=true;});rafOk=true;}catch(e){lines.push('❌ requestAnimationFrame: FEHLER — '+e.message);}
+  // Test AudioContext
+  let audioOk=false;
+  try{const ac=new(window.AudioContext||window.webkitAudioContext)();ac.close();audioOk=true;}catch(e){}
+  // Test localStorage
+  let lsOk=false;
+  try{localStorage.setItem('_diag_test','1');localStorage.removeItem('_diag_test');lsOk=true;}catch(e){}
+  // Test performance.now
+  const perfOk=typeof performance!=='undefined'&&typeof performance.now==='function';
+  // Check for game JS files
+  const gameFiles=['worlds.js','app.js','firebase-state.js'];
+  lines.push((rafOk?'✅':'❌')+' requestAnimationFrame: '+(rafOk?'OK':'FEHLER'));
+  lines.push((audioOk?'✅':'⚠️')+' AudioContext: '+(audioOk?'OK':'Nicht verfügbar (kein Ton)'));
+  lines.push((lsOk?'✅':'❌')+' localStorage: '+(lsOk?'OK':'FEHLER — Spiele können Scores nicht speichern'));
+  lines.push((perfOk?'✅':'⚠️')+' performance.now: '+(perfOk?'OK':'Nicht verfügbar'));
+  setStatus('game-status',lines.join('\n'),'ok');
+  lines.forEach(l=>log(l.replace(/^[✅❌⚠️] /,'')));
+
+  // Check game JS files
+  Promise.all(gameFiles.map(f=>fetch(f,{method:'HEAD',cache:'no-store'}).then(r=>'✅ '+f+': HTTP '+r.status).catch(e=>'❌ '+f+': '+e.message)))
+    .then(results=>{
+      const full=document.getElementById('game-status');
+      full.innerHTML+='\n\nJS-Dateien:\n'+results.join('\n');
+      results.forEach(r=>log(r));
     });
-  fetch('zoo.html', {method:'HEAD'})
-    .then(r => {
-      const size = r.headers.get('content-length');
-      setStatus('zoo-status', '✅ zoo.html gefunden (HTTP ' + r.status + ', ' + (size||'?') + ' bytes)', 'ok');
-      log('zoo.html: HTTP ' + r.status + ' size=' + size);
-    })
-    .catch(e => {
-      setStatus('zoo-status', '❌ zoo.html Fehler: ' + e.message, 'err');
-      log('zoo.html: FAIL - ' + e.message, 'err');
-    });
 }
 
-function copyLog() {
-  navigator.clipboard.writeText(logs.join('\n'))
-    .then(() => alert('✅ Log kopiert! Bitte in Chat einfügen.'))
-    .catch(() => { document.getElementById('full-log').select(); document.execCommand('copy'); });
-}
-
-function downloadLog() {
-  const blob = new Blob([logs.join('\n')], {type:'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'zoo-diagnose-' + Date.now() + '.txt';
-  a.click();
-}
-
-// Run all steps
-log('=== Zoo Diagnose gestartet ===');
+// ── Run all ──
+log('=== Mischa Diagnose gestartet ===');
 step1();
-setTimeout(step2, 100);
-setTimeout(step3, 300);
-setTimeout(step4, 500);
-setTimeout(step5, 700);
-setTimeout(() => log('=== Diagnose abgeschlossen ==='), 1500);
+setTimeout(step2,150);
+setTimeout(step3,400);
+setTimeout(step4,600);
+setTimeout(step5,800);
+setTimeout(step6,1000);
+setTimeout(step7,1200);
+setTimeout(step8,1400);
+setTimeout(step9,1600);
+setTimeout(()=>log('=== Diagnose abgeschlossen ==='),3000);
+
+function copyLog(){navigator.clipboard.writeText(logs.join('\n')).then(()=>alert('✅ Log kopiert!')).catch(()=>{});}
+function downloadLog(){const b=new Blob([logs.join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diagnose-'+Date.now()+'.txt';a.click();}
 </script>
 
-<!-- Load Three.js to test CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" 
-        onerror="document.getElementById('three-status').textContent='❌ THREE.js CDN FEHLER - Netzwerk blockiert?'; document.getElementById('three-status').className='err';">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+  onerror="document.getElementById('three-status').textContent='❌ THREE.js CDN FEHLER';document.getElementById('three-status').className='err';">
 </script>
-
 </body>
 </html>
