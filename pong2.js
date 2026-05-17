@@ -81,7 +81,7 @@ const PongGame = {
           // Set paddle position from touch X
           const tzRect=tz.getBoundingClientRect();
           const pct=Math.max(0,Math.min(1,(tx-tzRect.left)/tzRect.width));
-          playerY=Math.round(PS/2 + pct*(H-PS));
+          py=Math.round(pct*(H-PS));
         },{passive:false});
         tz.addEventListener('touchmove',e=>{
           if(!isDragging)return;
@@ -90,7 +90,7 @@ const PongGame = {
           updateIndicator(tx);
           const tzRect=tz.getBoundingClientRect();
           const pct=Math.max(0,Math.min(1,(tx-tzRect.left)/tzRect.width));
-          playerY=Math.round(PS/2 + pct*(H-PS));
+          py=Math.round(pct*(H-PS));
           lastTX=tx;
         },{passive:false});
         tz.addEventListener('touchend',()=>{isDragging=false;});

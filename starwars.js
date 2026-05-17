@@ -15,21 +15,41 @@ const StarWarsGame = {
     </div>`;
     const cv=document.getElementById('swcv'),ctx=cv.getContext('2d');
     let ship={x:200,y:440,w:30,h:20};
-    let bullets=[],stars_bg=[],enemies=[],explosions=[];
+    let bullets=[],stars_bg=[],enemies=[],explosions=[],powerups=[];
+    let fireMode='single'; // single, rapid, triple
+    let fireModeTimer=0;
+    let rapidFireActive=false;
     let score=0,lives=3,running=true,wave=1,tStart=Date.now(),animId;
     // Stars background
     for(let i=0;i<80;i++) stars_bg.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*2+0.5});
     // Spawn wave
     const spawnWave=()=>{
-      const rows=Math.min(4,2+Math.floor(wave/2)); // more rows later
-      const cols=Math.min(10,7+wave);
+      const rows=Math.min(4,1+Math.floor(wave/2));
+      const cols=Math.min(8,5+wave);
+      const spacing=Math.min(42,Math.floor((W-60)/cols));
+      const baseSpeed=1.0+wave*0.3; // much gentler scaling (was 1.5*wave)
       for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
-        enemies.push({x:30+c*36,y:25+r*34,w:24,h:20,hp:1+(r>=2?1:0)+(wave>3?1:0),dx:1.5*wave,dy:0.35,type:r%3});
+        enemies.push({x:30+c*spacing,y:25+r*34,w:24,h:20,
+          hp:1+(r>=2?1:0)+(wave>4?1:0),
+          dx:baseSpeed,dy:0.25+(wave>3?0.05:0),type:r%3});
+      // Spawn powerup at wave start
+      if(wave>=2){
+        const px=50+Math.random()*(W-100);
+        powerups.push({x:px,y:-20,dy:1.5,type:wave>=4?'triple':wave>=3?'rapid':'shield',alive:true});
+      }
     };
     spawnWave();
     // Controls
     let leftHeld=false,rightHeld=false;
-    const fire=()=>{bullets.push({x:ship.x,y:ship.y-10,dy:-8});};
+    const fire=()=>{
+      if(fireMode==='triple'){
+        bullets.push({x:ship.x,y:ship.y-10,dy:-9,dx:0});
+        bullets.push({x:ship.x-8,y:ship.y-6,dy:-8,dx:-1.5});
+        bullets.push({x:ship.x+8,y:ship.y-6,dy:-8,dx:1.5});
+      } else {
+        bullets.push({x:ship.x,y:ship.y-10,dy:-9,dx:0});
+      }
+    };
     document.getElementById('sw-left').addEventListener('pointerdown',()=>leftHeld=true);
     document.getElementById('sw-right').addEventListener('pointerdown',()=>rightHeld=true);
     const fireBtn = document.getElementById('sw-fire');
@@ -37,7 +57,7 @@ const StarWarsGame = {
     fireBtn.addEventListener('pointerdown', e => {
       e.preventDefault();
       fire(); // immediate shot
-      rapidFireInterval = setInterval(fire, 180); // rapid fire
+      rapidFireInterval = setInterval(fire, fireMode==='rapid'?80:180); // rapid fire
     });
     fireBtn.addEventListener('pointerup', () => { clearInterval(rapidFireInterval); rapidFireInterval = null; });
     fireBtn.addEventListener('pointercancel', () => { clearInterval(rapidFireInterval); rapidFireInterval = null; });
@@ -95,10 +115,28 @@ const StarWarsGame = {
       // Move stars
       stars_bg.forEach(s=>{s.y+=0.5;if(s.y>H)s.y=0;});
       // Move bullets
-      bullets=bullets.filter(b=>{b.y+=b.dy;return b.y>0&&b.y<H;});
+      fireModeTimer=Math.max(0,fireModeTimer-1);
+      if(fireModeTimer<=0&&fireMode!=='single'){fireMode='single';rapidFireActive=false;}
+      bullets=bullets.filter(b=>{b.y+=b.dy;if(b.dx)b.x+=b.dx;return b.y>0&&b.y<H&&b.x>0&&b.x<W;});
+      // Powerups
+      powerups=powerups.filter(p=>{
+        if(!p.alive)return false;
+        p.y+=p.dy;
+        if(p.y>H)return false;
+        // Player collision
+        if(Math.abs(p.x-ship.x)<20&&Math.abs(p.y-ship.y)<20){
+          if(p.type==='rapid'){fireMode='rapid';fireModeTimer=300;rapidFireActive=true;}
+          else if(p.type==='triple'){fireMode='triple';fireModeTimer=400;}
+          else if(p.type==='shield'){lives=Math.min(5,lives+1);}
+          p.alive=false;
+          explosions.push({x:p.x,y:p.y,t:20,col:'#00ff88'});
+          return false;
+        }
+        return true;
+      });
       // Enemy fire
       efTick++;
-      if(efTick>Math.max(20,60-wave*8)&&enemies.length){efTick=0;const e=enemies[Math.floor(Math.random()*enemies.length)];bullets.push({x:e.x,y:e.y+10,dy:4,enemy:true});}
+      if(efTick>Math.max(35,80-wave*6)&&enemies.length){efTick=0;const e=enemies[Math.floor(Math.random()*enemies.length)];bullets.push({x:e.x,y:e.y+10,dy:4,enemy:true});}
       // Move enemies
       let edgeHit=false;
       enemies.forEach(e=>{e.x+=e.dx;e.y+=e.dy*0.3;if(e.x<20||e.x>W-20)edgeHit=true;});
@@ -207,6 +245,26 @@ const StarWarsGame = {
         ep.addColorStop(0,`rgba(255,220,0,${e.t/20})`);ep.addColorStop(.5,`rgba(255,80,0,${e.t/30})`);ep.addColorStop(1,'rgba(0,0,0,0)');
         ctx.fillStyle=ep;ctx.beginPath();ctx.arc(e.x,e.y,22-e.t,0,Math.PI*2);ctx.fill();
       });
+
+      // Powerups
+      powerups.forEach(p=>{
+        const cols={'shield':'#00ff88','rapid':'#ff69b4','triple':'#FFD700'};
+        const icons={'shield':'🛡️','rapid':'⚡','triple':'🔱'};
+        ctx.fillStyle=cols[p.type]||'#fff';
+        ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,.15)';ctx.beginPath();ctx.arc(p.x,p.y,15,0,Math.PI*2);ctx.stroke?.();
+        ctx.font='14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(icons[p.type]||'?',p.x,p.y);
+        ctx.textBaseline='alphabetic';
+      });
+      // Fire mode indicator
+      if(fireMode!=='single'){
+        ctx.fillStyle=fireMode==='triple'?'rgba(255,215,0,.25)':'rgba(255,105,180,.25)';
+        ctx.fillRect(0,H-26,W,26);
+        ctx.fillStyle=fireMode==='triple'?'#FFD700':'#ff69b4';
+        ctx.font='bold 12px monospace';ctx.textAlign='center';
+        ctx.fillText((fireMode==='triple'?'🔱 TRIPLE SHOT':'⚡ RAPID FIRE')+' — '+Math.ceil(fireModeTimer/60)+'s',W/2,H-8);
+      }
 
       // HUD
       ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,W,26);
