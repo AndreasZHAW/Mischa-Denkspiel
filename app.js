@@ -143,7 +143,7 @@ const App = {
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
               <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">👜 Geldbeutel</button>
-              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()" style="flex:1;background:rgba(255,215,0,.12);color:#FFD700;border:2px solid rgba(255,215,0,.3);font-size:clamp(0.78rem,3.5vw,0.92rem);min-height:40px;padding:6px 8px">📊 Konto</button>
+              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()" style="flex:1;background:rgba(255,215,0,.12);color:#FFD700;border:2px solid rgba(255,215,0,.3);font-size:clamp(0.9rem,4vw,1rem);min-height:40px;padding:6px 8px">📊 Konto</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>
@@ -918,7 +918,7 @@ const App = {
           <div style="font-size:1rem;font-weight:900;color:${parseFloat(mt)>=10?'#27AE60':parseFloat(mt)>=5?'#FFD700':'#E67E22'}">🌀${mt} MT</div>
         </div>
         ${p.name?.toLowerCase() !== player?.name?.toLowerCase() ? 
-          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:clamp(0.82rem,3.5vw,0.92rem);touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
+          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:clamp(0.92rem,4vw,1.02rem);touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
       </div>`;
     }).join('');
 
@@ -1128,7 +1128,7 @@ const App = {
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,0.95rem)">🌍 Rangliste</button>
               <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.9rem,3.7vw,1rem)">📊 Kontoauszug</button>
-              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:clamp(5px,1.5vw,8px) clamp(8px,2.5vw,12px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.78rem,3.3vw,0.9rem);min-height:40px">👗 Kleider</button>
+              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:clamp(5px,1.5vw,8px) clamp(8px,2.5vw,12px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.88rem,3.8vw,1rem);min-height:40px">👗 Kleider</button>
               <div class="joker-badge ${State.getJokersRemaining(player,worldId)===0?'used':''}"
               onclick="${State.getJokersRemaining(player,worldId)===0?'':  `App.showJokerMenu(${worldId})`}">
               🃏 ${State.getJokersRemaining(player,worldId)} Joker
@@ -1155,7 +1155,7 @@ const App = {
                   title="${task.name||task.title||'Spiel '+(i+1)}">
                   <span class="task-icon" style="font-size:clamp(1.4rem,6vw,1.8rem);display:block;margin-bottom:2px;line-height:1">${task.icon||'🎮'}</span>
                   <span class="task-name" style="font-size:clamp(0.82rem,3.8vw,1rem);font-weight:700;line-height:1.2;display:block">${task.name||('Spiel '+(i+1))}</span>
-                  ${mtEarned?`<span style="font-size:clamp(0.75rem,3.2vw,0.85rem);color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:clamp(0.72rem,3vw,0.82rem);opacity:0.8">⭐${score}</span>`:''}
+                  ${mtEarned?`<span style="font-size:clamp(0.88rem,3.8vw,0.97rem);color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:clamp(0.85rem,3.5vw,0.95rem);opacity:0.8">⭐${score}</span>`:''}
                 </button>`;
             }).join('')}
           </div>

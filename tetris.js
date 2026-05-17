@@ -57,14 +57,17 @@ const TetrisGame = {
     ctx.scale(DPR,DPR); nxCtx.scale(DPR,DPR);
 
     let board=Array(ROWS).fill(null).map(()=>Array(COLS).fill(null));
-    let cur,curX,curY,curPiece,next,score=0,lines=0,level=1,running=true,tStart=Date.now(),animId,lastDrop=0,dropInt=800;
-
     const pickPiece=()=>PIECES[Math.floor(Math.random()*PIECES.length)];
+    let cur,curX,curY,curPiece,next=pickPiece(),score=0,lines=0,level=1,running=true,tStart=Date.now(),animId,lastDrop=0,dropInt=800;
+    let holdIntervals=[];
+
     const newPiece=()=>{
       curPiece=next||pickPiece(); next=pickPiece();
       cur=curPiece.cells.map(r=>[...r]);
       curX=Math.floor((COLS-cur[0].length)/2); curY=0;
       if(!valid(cur,curX,curY)){running=false;cancelAnimationFrame(animId);
+        holdIntervals.forEach(clearInterval);holdIntervals=[];
+        window.removeEventListener('keydown',onKey);
         onComplete({rawScore:Math.min(100,Math.round(score/80+lines)),timeMs:Date.now()-tStart,errors:0,passed:score>200||lines>5});}
     };
     const valid=(piece,ox,oy)=>{
@@ -132,6 +135,7 @@ const TetrisGame = {
     };
 
     const drawNext=()=>{
+      if(!next||!next.cells||!next.cells[0])return;
       nxCtx.fillStyle='#000014';nxCtx.fillRect(0,0,CS*4,CS*4);
       const off=[(CS*4-next.cells[0].length*CS)/2,(CS*4-next.cells.length*CS)/2];
       for(let r=0;r<next.cells.length;r++) for(let c=0;c<next.cells[r].length;c++)
@@ -160,10 +164,11 @@ const TetrisGame = {
     const wireBtn=(id,fn)=>{const b=document.getElementById(id);if(!b)return;
       b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);fn();});};
     wireBtn('tr-rot',rotate);
-    let leftIv,rightIv,downIv;
+    let leftIv=null;
     const wireHold=(id,fn)=>{const b=document.getElementById(id);if(!b)return;
-      b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);fn();clearInterval(leftIv);leftIv=setInterval(fn,120);});
-      ['pointerup','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>clearInterval(leftIv)));};
+      let iv=null;
+      b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);fn();clearInterval(iv);iv=setInterval(fn,110);holdIntervals.push(iv);});
+      ['pointerup','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>{clearInterval(iv);iv=null;}));};
     wireHold('tr-left',()=>{if(valid(cur,curX-1,curY))curX--;});
     wireHold('tr-right',()=>{if(valid(cur,curX+1,curY))curX++;});
     wireHold('tr-down',()=>{if(valid(cur,curX,curY+1)){curY++;score+=1;}else place();});
@@ -180,6 +185,7 @@ const TetrisGame = {
     };
     newPiece();
     animId=requestAnimationFrame(loop);
-    setTimeout(()=>{if(running)onComplete({rawScore:Math.min(100,Math.round(score/80+lines)),timeMs:Date.now()-tStart,errors:0,passed:score>100});},180000);
+    const cleanupTetris=()=>{running=false;cancelAnimationFrame(animId);holdIntervals.forEach(clearInterval);holdIntervals=[];window.removeEventListener('keydown',onKey);};
+    setTimeout(()=>{if(running){cleanupTetris();onComplete({rawScore:Math.min(100,Math.round(score/80+lines)),timeMs:Date.now()-tStart,errors:0,passed:score>100});}},180000);
   }
 };

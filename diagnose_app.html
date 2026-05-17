@@ -3,427 +3,373 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Diagnose — Mischa Denkspiel</title>
+<title>Diagnose — Welt 1 (App)</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0a;color:#0f0;font-family:'Courier New',monospace;padding:12px;font-size:.82rem}
-h2{color:#FFD700;margin-bottom:10px;font-size:1.1rem}
-.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-button{background:#222;color:#fff;border:1px solid #555;padding:7px 12px;cursor:pointer;border-radius:4px;font-size:.78rem}
-button:hover{background:#333}
-button.danger{border-color:#f44;color:#f44}
-button.ok{border-color:#0f0;color:#0f0}
-#log{white-space:pre-wrap;line-height:1.7;font-size:.8rem}
-.ok{color:#0f0}.err{color:#f44}.warn{color:#fa0}.info{color:#4af}.dim{color:#666}
-.sep{color:#555;display:block;margin:4px 0}
+body{background:#0a0a0a;color:#ccc;font-family:'Courier New',monospace;padding:10px;font-size:14px}
+h1{color:#FFD700;font-size:1.1rem;margin-bottom:8px}
+h2{color:#4af;font-size:.95rem;margin:10px 0 5px;border-bottom:1px solid #333;padding-bottom:3px}
+.ok  {color:#2ecc71}
+.err {color:#e74c3c;font-weight:bold}
+.warn{color:#f39c12}
+.info{color:#4af}
+.dim {color:#666}
+.box {background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:10px;margin-bottom:8px}
+.box.red{border-color:#e74c3c}
+.box.green{border-color:#2ecc71}
+pre {font-size:11px;white-space:pre-wrap;word-break:break-all}
+button{background:#FFD700;color:#000;border:none;padding:8px 14px;border-radius:6px;font-weight:bold;font-size:.9rem;cursor:pointer;margin:3px}
+button.sec{background:#2a6;color:#fff}
+button.danger{background:#a22;color:#fff}
+button.info{background:#2a6ab5;color:#fff}
+.step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a1a1a}
+.step:last-child{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:bold}
 </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script>
-  let lastTap=0;
-  document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
-  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
-  </script>
 </head>
 <body>
-<h2>🔬 Mischa Denkspiel — Erweiterte Diagnose</h2>
-<div class="btn-row">
-  <button onclick="runDiag()">🔄 Komplett-Check</button>
-  <button class="ok" onclick="goToGame()">▶ Direkt zu Welt 1</button>
-  <button onclick="repairState()">🔧 State reparieren</button>
-  <button onclick="testWorld()">🧪 Welt 1 simulieren</button>
-  <button onclick="testLogin()">👤 Login testen</button>
-  <button class="danger" onclick="clearAll()">🗑️ ALLES löschen</button>
-  <button onclick="showStorage()">💾 Storage anzeigen</button>
-  <button onclick="forceLogin()">🔑 Session setzen</button>
+<h1>🎮 Diagnose — Mischa Denkspiel (Welt 1)</h1>
+<div style="font-size:.8rem;color:#666;margin-bottom:10px">
+  Für Welt-1-Abstürze. Für Zoo-Probleme → <a href="diagnose.html" style="color:#4af">diagnose.html</a>
 </div>
-<div id="log"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="worlds.js"></script>
-<!-- Load Firebase SDK for real test -->
+<div class="box">
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
+    <button onclick="runAll()" class="sec">▶ Alle Tests</button>
+    <button onclick="copyLog()">📋 Log kopieren</button>
+    <button onclick="goToGame()" class="info">▶ Welt 1 starten</button>
+    <button onclick="clearSave()" class="danger">🗑 Speicher löschen</button>
+  </div>
+  <div id="status" style="font-size:.8rem;color:#666">Bereit.</div>
+</div>
+
+<!-- ══ MOBILE FONT STRATEGIE ══ -->
+<div class="box">
+  <h2>📱 Mobile Font-Strategie (Analyse)</h2>
+  <div id="font-analysis">
+    <div class="step">
+      <span id="fa-dpr" class="badge" style="background:#333">...</span>
+      <span id="fa-dpr-text">Device Pixel Ratio</span>
+    </div>
+    <div class="step">
+      <span id="fa-vw" class="badge" style="background:#333">...</span>
+      <span id="fa-vw-text">Viewport Breite</span>
+    </div>
+    <div class="step">
+      <span id="fa-ph" class="badge" style="background:#333">...</span>
+      <span id="fa-ph-text">Physische Auflösung</span>
+    </div>
+    <div class="step">
+      <span id="fa-root" class="badge" style="background:#333">...</span>
+      <span id="fa-root-text">Root Font-Size (aktuell)</span>
+    </div>
+    <div class="step">
+      <span id="fa-clamp" class="badge" style="background:#333">...</span>
+      <span id="fa-clamp-text">clamp() Unterstützung</span>
+    </div>
+    <div class="step">
+      <span id="fa-btn" class="badge" style="background:#333">...</span>
+      <span id="fa-btn-text">Button Touch-Grösse</span>
+    </div>
+  </div>
+  <div style="margin-top:8px;padding:8px;background:#0d1a0d;border-radius:6px;font-size:.78rem;color:#2ecc71;line-height:1.7">
+    <b>Strategie für lesbare Schrift auf Android:</b><br>
+    <b>1. Viewport korrekt:</b> <code>width=device-width, initial-scale=1</code> — CSS px ≠ physische px.<br>
+    <b>2. clamp() überall:</b> <code>font-size: clamp(1rem, 4vw, 1.2rem)</code> — skaliert mit Viewport.<br>
+    <b>3. Basis-rem erhöhen:</b> Auf schmalen Screens (&lt;400px) root → 17-18px.<br>
+    <b>4. Touch-Targets:</b> Alle Buttons/Inputs min. 48px Höhe (Material Design Guideline).<br>
+    <b>5. DPR berücksichtigen:</b> Bei DPR=3 sind 12px-CSS-Text nur 4px physisch → winzig!<br>
+    <b>6. Kein zoom-blocking:</b> <code>user-scalable=no</code> entfernen für Accessibility.<br>
+    <b>Fazit für dieses Gerät:</b> <span id="font-conclusion" style="color:#FFD700">wird berechnet...</span>
+  </div>
+</div>
+
+<!-- ══ WELT 1 TESTS ══ -->
+<div class="box">
+  <h2>1. Firebase & Spielerdaten</h2>
+  <pre id="fb-status">⏳ Warte...</pre>
+</div>
+
+<div class="box">
+  <h2>2. JavaScript-Dateien</h2>
+  <pre id="js-status">⏳ Warte...</pre>
+</div>
+
+<div class="box">
+  <h2>3. Spieler-Fortschritt</h2>
+  <pre id="player-status">⏳ Warte...</pre>
+</div>
+
+<div class="box">
+  <h2>4. Spiel-Engines (JS-Syntax)</h2>
+  <pre id="engine-status">⏳ Warte...</pre>
+</div>
+
+<div class="box">
+  <h2>5. localStorage & Speicher</h2>
+  <pre id="storage-status">⏳ Warte...</pre>
+</div>
+
+<div class="box">
+  <h2>6. Absturz-Analyse (letzter Crash)</h2>
+  <pre id="crash-status">⏳ Warte...</pre>
+</div>
+
+<!-- ══ CRASH LOG ══ -->
+<div class="box">
+  <h2>💾 Live-Crash-Log (Welt 1)</h2>
+  <div style="margin-bottom:5px">
+    <button onclick="copyCrashLog()" class="sec">📋 Crash-Log kopieren</button>
+    <button onclick="clearCrashLog()" class="danger">🗑 Leeren</button>
+    <span id="crash-count" style="color:#666;font-size:.78rem;margin-left:6px"></span>
+  </div>
+  <div id="crash-ring" style="max-height:200px;overflow-y:auto;font-size:10px;background:#050505;border-radius:4px;padding:6px;border:1px solid #1a1a1a">
+    <span style="color:#444">Logs erscheinen hier wenn Spiele laufen...</span>
+  </div>
+</div>
+
+<!-- ══ FULL LOG ══ -->
+<div class="box">
+  <h2>📋 Vollständiges Diagnose-Log</h2>
+  <button onclick="copyLog()">📋 Kopieren</button>
+  <button onclick="downloadLog()">💾 Download</button>
+  <pre id="full-log" style="margin-top:6px;max-height:250px;overflow-y:auto;border:1px solid #222;padding:5px;border-radius:4px"></pre>
+</div>
+
 <script>
-window._fbLoaded = false;
-const _s1 = document.createElement('script');
-_s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-_s1.onload = () => {
-  const _s2 = document.createElement('script');
-  _s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
-  _s2.onload = () => { window._fbLoaded = true; };
-  document.head.appendChild(_s2);
-};
-document.head.appendChild(_s1);
-</script>
-<script src="firebase-state.js"></script>
-<script>
-const log = document.getElementById('log');
-let _L = (msg,cls='')=>{ log.innerHTML+='<span class="'+(cls||'')+'">['
-  +new Date().toLocaleTimeString()+'] '+msg+'</span>\n'; log.scrollTop=log.scrollHeight;};
-const L=(m,c)=>_L(m,c);
-const SEP=()=>L('────────────────────────────────','dim');
-
-function clearAll(){
-  localStorage.clear(); sessionStorage.clear();
-  L('✅ localStorage + sessionStorage komplett gelöscht','ok');
-  L('→ Lade Seite neu...','info');
-  setTimeout(()=>location.reload(),1000);
-}
-function clearIntro(){
-  localStorage.removeItem('mischa_intro_ts');
-  sessionStorage.removeItem('mischa_intro_ts');
-  L('✅ Intro-Timer gelöscht — Intro erscheint beim nächsten Öffnen','ok');
-}
-function showStorage(){
-  SEP(); L('💾 KOMPLETTES STORAGE:','info');
-  L('--- localStorage ('+localStorage.length+' Einträge):','info');
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    let v=localStorage.getItem(k);
-    if(v&&v.length>200) v=v.substring(0,200)+'...';
-    L('  '+k+' = '+v,'dim');
-  }
-  L('--- sessionStorage ('+sessionStorage.length+' Einträge):','info');
-  for(let i=0;i<sessionStorage.length;i++){
-    const k=sessionStorage.key(i);
-    let v=sessionStorage.getItem(k);
-    if(v&&v.length>200) v=v.substring(0,200)+'...';
-    L('  '+k+' = '+v,'dim');
-  }
+const logs=[];
+const logEl=document.getElementById('full-log');
+function L(msg,type='info'){
+  const ts=new Date().toISOString().slice(11,23);
+  const line='['+ts+'] '+msg;
+  logs.push(line);
+  const el=document.createElement('div');el.className=type;el.textContent=line;
+  logEl.appendChild(el);logEl.scrollTop=logEl.scrollHeight;
 }
 
-async function forceLogin(){
-  const name = prompt('Spielername eingeben:');
-  if(!name) return;
-  sessionStorage.setItem('mischa_current', name.toLowerCase());
-  L('✅ Session gesetzt: mischa_current = '+name.toLowerCase(),'ok');
-  L('→ Gehe zu index.html...','info');
-  setTimeout(()=>location.href='index.html',800);
+// ══ FONT ANALYSIS ══
+function analyzeFonts(){
+  const dpr=window.devicePixelRatio||1;
+  const vw=window.innerWidth;
+  const ph=Math.round(vw*dpr);
+  const rootFs=parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const clampOk=CSS.supports('font-size','clamp(1rem,4vw,2rem)');
+  const testBtn=document.createElement('button');
+  testBtn.style.cssText='min-height:var(--touch-min,44px);position:fixed;left:-9999px';
+  document.body.appendChild(testBtn);
+  const btnH=testBtn.offsetHeight;
+  testBtn.remove();
+
+  const set=(id,text,col)=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=text;el.style.background=col;}
+  };
+
+  set('fa-dpr',`DPR: ${dpr.toFixed(1)}`,dpr>=2?'#1a5a2a':'#5a3a00');
+  set('fa-vw',`${vw}px CSS`,vw>=360?'#1a5a2a':'#5a3a00');
+  set('fa-ph',`${ph}px physisch`,ph>=720?'#1a5a2a':'#5a3a00');
+  set('fa-root',`Root: ${rootFs}px`,rootFs>=14?'#1a5a2a':'#8a1a00');
+  set('fa-clamp',clampOk?'✅ clamp() OK':'❌ kein clamp()',clampOk?'#1a5a2a':'#8a1a00');
+  set('fa-btn',`Button: ${btnH}px`,btnH>=44?'#1a5a2a':'#8a1a00');
+
+  document.getElementById('fa-dpr-text').textContent=`Device Pixel Ratio (DPR=${dpr}) — bei DPR≥2 müssen CSS-Schriften grösser sein!`;
+  document.getElementById('fa-vw-text').textContent=`Viewport: ${vw}×${window.innerHeight}px (CSS-Pixels)`;
+  document.getElementById('fa-ph-text').textContent=`Physisch: ${ph}×${Math.round(window.innerHeight*dpr)}px — was du wirklich siehst`;
+  document.getElementById('fa-root-text').textContent=`Root font-size=${rootFs}px — empfohlen: ≥15px auf Mobile`;
+  document.getElementById('fa-btn-text').textContent=`Touch-Target Höhe: ${btnH}px — Material Design: min. 48px`;
+
+  const minFont=12/dpr;
+  const conclusion=rootFs<14?`⚠️ Root font zu klein (${rootFs}px)! Empfehle ${Math.ceil(14*dpr/dpr)}px.`:
+    dpr>=2&&rootFs<16?`⚠️ Bei DPR=${dpr.toFixed(1)} wirken ${rootFs}px nur ${(rootFs/dpr).toFixed(1)}px "phys. gross". Empfehle 17-18px Root.`:
+    `✅ Font-Einstellungen für DPR=${dpr.toFixed(1)} passend (Root=${rootFs}px).`;
+  document.getElementById('font-conclusion').textContent=conclusion;
+
+  L(`DPR=${dpr}, viewport=${vw}px, root=${rootFs}px, clamp=${clampOk}, btnH=${btnH}px`);
 }
 
-async function runDiag(){
-  log.innerHTML='';
-  L('=== DIAGNOSE GESTARTET ===','info');
-  const urlP = new URLSearchParams(window.location.search).get('player');
-  if(!urlP) L('💡 Tipp: Füge ?player=qqq zur URL hinzu um als eingeloggter Spieler zu testen','warn');
-  L('Browser: '+navigator.userAgent,'dim');
-  L('URL: '+location.href,'dim');
-  SEP();
+// ══ STEP 1: Firebase ══
+async function step1(){
+  const r=[];
+  try{
+    const res=await fetch('https://firestore.googleapis.com/v1/projects/mischa-denkspiel/databases/(default)/documents/players',{method:'GET'});
+    r.push(`Firebase Players: HTTP ${res.status} ${res.status===200?'✅':'⚠️'}`);
+  }catch(e){r.push('❌ Firebase: '+e.message);}
+  document.getElementById('fb-status').textContent=r.join('\n');
+  r.forEach(l=>L(l));
+}
 
-  // 1. localStorage
-  L('📦 localStorage:','info');
-  const introTs = localStorage.getItem('mischa_intro_ts');
-  if(introTs){
-    const age = Math.round((Date.now()-parseInt(introTs))/1000/60);
-    L((age<10?'✅':'⚠️')+' intro_ts: '+age+' Min alt → Intro '+(age<10?'ÜBERSPRUNGEN':'würde erscheinen'), age<10?'ok':'warn');
-  } else {
-    L('⚠️ kein intro_ts → Intro erscheint beim nächsten Öffnen von index.html','warn');
-  }
-  // Show all localStorage keys
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k!=='mischa_intro_ts'){
-      let v=localStorage.getItem(k);
-      if(v&&v.length>100)v=v.substring(0,100)+'...';
-      L('  '+k+': '+v,'dim');
-    }
-  }
-  SEP();
+// ══ STEP 2: JS files ══
+async function step2(){
+  const files=['app.js','worlds.js','firebase-state.js','tetris.js','sokoban.js','starwars.js','stunt.js','pong2.js'];
+  const r=[];
+  await Promise.all(files.map(f=>fetch(f,{method:'HEAD',cache:'no-store'})
+    .then(res=>{const ok=res.ok;r.push((ok?'✅':'❌')+' '+f+': HTTP '+res.status);L((ok?'':'❌ ')+f+': '+res.status,ok?'ok':'err');})
+    .catch(e=>{r.push('❌ '+f+': FEHLER '+e.message);L('❌ '+f+': '+e.message,'err');})));
+  document.getElementById('js-status').textContent=r.sort().join('\n');
+}
 
-  // 2. sessionStorage
-  L('🔐 sessionStorage:','info');
-  const curUser = sessionStorage.getItem('mischa_current');
-  const backupUser = localStorage.getItem('mischa_current_backup');
-  const effectiveUser = curUser || backupUser;
-  if(curUser){ L('✅ sessionStorage: Eingeloggt als: "'+curUser+'"','ok'); }
-  else if(backupUser){ 
-    L('⚠️ sessionStorage leer, aber localStorage backup: "'+backupUser+'" → wird wiederhergestellt','warn');
-    // Auto-restore
-    sessionStorage.setItem('mischa_current', backupUser);
-    L('  → Session wurde wiederhergestellt!','ok');
-  } else {
-    L('❌ NICHT EINGELOGGT — weder sessionStorage noch localStorage backup!','err');
-    L('  → Geh zu index.html und logge dich ein','warn');
-  }
-  for(let i=0;i<sessionStorage.length;i++){
-    const k=sessionStorage.key(i);
-    let v=sessionStorage.getItem(k);
-    if(v&&v.length>100)v=v.substring(0,100)+'...';
-    L('  '+k+': '+v,'dim');
-  }
-  SEP();
+// ══ STEP 3: Player data ══
+function step3(){
+  const r=[];
+  try{
+    const cur=sessionStorage.getItem('mischa_current')||localStorage.getItem('mischa_current_backup');
+    if(cur)r.push('✅ Aktueller Spieler: '+cur);
+    else r.push('⚠️ Kein aktueller Spieler im Storage');
 
-  // 3. Firebase
-  L('🔥 Firebase:','info');
-  // Try to init Firebase first
-  try { initFirebase(); } catch(e) {}
-  try {
-    // Wait a moment for Firebase to connect
-    await new Promise(r => setTimeout(r, 1000));
-    const ok = typeof firebase !== 'undefined' && firebase.apps.length > 0;
-    if(ok){ L('✅ Firebase SDK geladen und initialisiert','ok'); }
-    else {
-      L('❌ Firebase NICHT initialisiert!','err');
-      L('  → Mögliche Ursachen: Kein Internet / GitHub Pages / Firewall','warn');
-      L('  → Aber: localStorage-Fallback sollte trotzdem funktionieren','info');
-    }
-  } catch(e){ L('❌ Firebase Exception: '+e.message,'err'); }
-  SEP();
-
-  // 4. State methods
-  L('⚙️ State-Methoden:','info');
-  const methods=['getJokersRemaining','getCurrentPlayer','refreshCurrentPlayer','_getAllCalibration','_getCalibrationRuns','_local','getPlayer','savePlayer'];
-  methods.forEach(m=>{
-    const t = typeof State[m];
-    L((t!=='undefined'?'✅':'❌')+' State.'+m+': '+t, t!=='undefined'?'ok':'err');
-  });
-  SEP();
-
-  // 5. localStorage player data
-  L('👤 Player im localStorage:','info');
-  const localData = localStorage.getItem('mischa_players');
-  if(localData){
-    try{
-      const players = JSON.parse(localData);
-      const names = Object.keys(players);
-      L('✅ '+names.length+' Spieler gespeichert: '+names.join(', '),'ok');
+    // Check localStorage players
+    const raw=localStorage.getItem('mischa_players');
+    if(raw){
+      const players=JSON.parse(raw);
+      const names=Object.keys(players);
+      r.push(`✅ ${names.length} Spieler lokal: ${names.join(', ')}`);
       names.forEach(n=>{
         const p=players[n];
-        const worldsType = Array.isArray(p.worlds)?'ARRAY⚠️':typeof p.worlds;
-        L('  '+n+': score='+p.totalScore+', worlds='+worldsType+
-          (Array.isArray(p.worlds)?'['+p.worlds+']':'{'+Object.keys(p.worlds||{}).join(',')+'}'),'dim');
+        const mt=(p.mt||0).toFixed(1);
+        const curW=p.currentWorld||1;
+        const w1done=Object.values(p.worlds||{}).flatMap(w=>Array.isArray(w?.tasks)?w.tasks:[]).filter(t=>t?.done).length;
+        r.push(`  👤 ${n}: ${mt} MT, Welt ${curW}, ~${w1done} Tasks erledigt`);
       });
-    }catch(e){ L('❌ JSON Parse Error: '+e.message,'err'); }
-  } else {
-    L('⚠️ Keine Spieler im localStorage','warn');
-  }
-  SEP();
+    }else r.push('⚠️ Keine lokalen Spielerdaten (noch nicht gespielt oder nur Firebase)');
 
-  // 6. Load current player
-  L('🎮 Player laden:','info');
-  // Try to restore from backup if not logged in
-  if(!curUser){
-    const backup = localStorage.getItem('mischa_current_backup');
-    if(backup){
-      sessionStorage.setItem('mischa_current', backup);
-      L('🔄 Session aus Backup wiederhergestellt: "'+backup+'"','ok');
-      curUser = backup;
-    }
-  }
-  // Always try to load player - use effectiveUser (restored from backup)
-  const effectiveUser2 = sessionStorage.getItem('mischa_current');
-  if(!effectiveUser2){ 
-    L('❌ Kein Benutzer — bitte einloggen','err');
-  } else {
-    L('🎮 Lade Player: "'+effectiveUser2+'"...','info');
-  // Also show cal_data_v3 summary before loading player
-  try {
-    const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
-    const keys = Object.keys(calStore);
-    const devCounts = {};
-    keys.forEach(k => { const dev=k.split('_').pop(); devCounts[dev]=(devCounts[dev]||0)+calStore[k].length; });
-    L('📊 cal_data_v3: '+keys.length+' Spiel-Einträge | '+JSON.stringify(devCounts),'info');
-  } catch(e) {}
+    // Zoo unlock
+    const stored=Object.keys(localStorage).filter(k=>k.startsWith('zoo_unlocked_'));
+    if(stored.length)r.push(`✅ Zoo freigeschaltet für: ${stored.map(k=>k.replace('zoo_unlocked_','')).join(', ')}`);
+  }catch(e){r.push('❌ Storage-Fehler: '+e.message);}
+  document.getElementById('player-status').textContent=r.join('\n');
+  r.forEach(l=>L(l));
+}
+
+// ══ STEP 4: Game engine syntax check ══
+async function step4(){
+  const r=[];
+  const games=[
+    {file:'tetris.js',   check:'TetrisGame'},
+    {file:'sokoban.js',  check:'SokobanGame'},
+    {file:'starwars.js', check:'StarWarsGame'},
+    {file:'stunt.js',    check:'StuntGame'},
+    {file:'pong2.js',    check:'PongGame'},
+    {file:'pacman.js',   check:'PacManGame'},
+  ];
+  for(const g of games){
     try{
-      const start=Date.now();
-      // Force State to use the current session
-      State.currentPlayer = null; // reset cache
-      const p = await Promise.race([
-        State.getCurrentPlayer(),
-        new Promise(r=>setTimeout(()=>r(null),4000))
-      ]);
-      const ms=Date.now()-start;
-      if(p){
-        L('✅ Player geladen in '+ms+'ms','ok');
-        L('  name: "'+p.name+'"','ok');
-        L('  totalScore: '+p.totalScore,'ok');
-        const wt = Array.isArray(p.worlds)?'❌ ARRAY (BUG!)':'✅ object';
-        L('  worlds: '+wt+(Array.isArray(p.worlds)?'':'  Keys: ['+Object.keys(p.worlds||{}).join(',')+']'),(Array.isArray(p.worlds)?'err':'ok'));
-        L('  character: '+p.character,'ok');
-        
-        if(Array.isArray(p.worlds)){
-          L('❌ worlds ist Array — das ist der Bug! "ALLES löschen" klicken','err');
-        } else {
-          // Test world 1 access
-          const w1 = p.worlds['1'] || p.worlds[1];
-          L(w1 ? '✅ Welt 1 Daten: '+w1.tasks?.filter(t=>t&&t.done).length+' Tasks erledigt' : '⚠️ Welt 1 noch nicht gespielt (leer = OK)','ok');
-          
-          // Test getJokersRemaining
-          try{
-            const j = State.getJokersRemaining(p,1);
-            L('✅ getJokersRemaining(1): '+j,'ok');
-          }catch(e){ L('❌ getJokersRemaining Error: '+e.message,'err'); }
-          
-          // Test WORLDS.find
-          const world = window.WORLDS?.find(w=>w.id===1);
-          L(world ? '✅ WORLDS.find(1): "'+world.name+'" ('+world.tasks?.length+' Tasks)' : '❌ WORLDS nicht geladen!','ok');
-          
-          SEP();
-          L('✅✅✅ ALLES OK — Spiel sollte laden!','ok');
-          L('→ Klicke "▶ Direkt zu Welt 1" um das Spiel zu starten','info');
-        }
-      } else {
-        L('❌ Player NULL nach '+ms+'ms','err');
-        L('  mischa_players hat "'+effectiveUser+'"? '+
-          (JSON.parse(localStorage.getItem('mischa_players')||'{}')[effectiveUser2]?'JA':'NEIN'),'err');
-        L('  → Mögliche Ursache: State._local nicht mit localStorage synchronisiert','warn');
-        
-        // Try direct localStorage access
-        try{
-          const raw = JSON.parse(localStorage.getItem('mischa_players')||'{}');
-          const directP = raw[effectiveUser] || raw[effectiveUser.toLowerCase()];
-          if(directP){
-            L('✅ Direkt aus localStorage: Player gefunden!','ok');
-            L('  name: '+directP.name+', score: '+directP.totalScore,'ok');
-            L('  → State._local ist nicht initialisiert — das ist der Bug!','err');
-            L('  → Fix: Klicke "🔧 State reparieren"','warn');
-          }
-        }catch(e){}
-      }
-    }catch(e){ L('❌ Exception: '+e.message+' @ '+e.stack?.split('\n')[1],'err'); }
+      const res=await fetch(g.file,{cache:'no-store'});
+      const txt=await res.text();
+      const hasObj=txt.includes('const '+g.check)||txt.includes('window.'+g.check);
+      const hasStart=txt.includes('start(');
+      const hasOnComplete=txt.includes('onComplete');
+      const size=txt.length;
+      const status=hasObj&&hasStart&&hasOnComplete?'✅':'⚠️';
+      r.push(`${status} ${g.file} (${(size/1024).toFixed(1)}KB) — ${g.check}: ${hasObj?'✅':'❌'}, start: ${hasStart?'✅':'❌'}`);
+      L(`${g.file}: ${size}B, ${g.check}=${hasObj}, start=${hasStart}`);
+    }catch(e){r.push('❌ '+g.file+': '+e.message);}
   }
-  SEP();
-
-  // 7. WORLDS check
-  L('🌍 WORLDS + GAME_LIST:','info');
-  L((window.WORLDS?'✅':'❌')+' WORLDS: '+(window.WORLDS?.length||0)+' Welten', window.WORLDS?'ok':'err');
-  if(window.WORLDS?.[0]){
-    L('  Welt 1 tasks: '+window.WORLDS[0].tasks?.length,'dim');
-    L('  Erste Task: '+JSON.stringify(window.WORLDS[0].tasks?.[0]),'dim');
-  }
-  L((window.GAME_LIST?'✅':'❌')+' GAME_LIST: '+(window.GAME_LIST?.length||0)+' Spiele', window.GAME_LIST?'ok':'err');
-  SEP();
-
-  L('=== DIAGNOSE FERTIG ===','info');
+  document.getElementById('engine-status').textContent=r.join('\n');
 }
 
-async function testWorld(){
-  SEP(); L('🧪 WELT 1 SIMULATION:','info');
-  const curUser = sessionStorage.getItem('mischa_current');
-  if(!curUser){ L('❌ Nicht eingeloggt — zuerst einloggen!','err'); return; }
+// ══ STEP 5: Storage ══
+function step5(){
+  const r=[];
   try{
-    L('1. refreshCurrentPlayer()...','info');
-    const start=Date.now();
-    const p = await Promise.race([State.refreshCurrentPlayer(), new Promise(r=>setTimeout(()=>r(null),5000))]);
-    L((p?'✅':'❌')+' Player: '+(p?.name||'null')+' in '+(Date.now()-start)+'ms', p?'ok':'err');
-    if(!p){L('→ STOPP: Kein Player','err');return;}
-
-    L('2. worlds Format prüfen...','info');
-    if(Array.isArray(p.worlds)){
-      L('❌ worlds ist ARRAY — FIX wird angewendet...','err');
-      p.worlds={};
-    }
-    if(!p.worlds) p.worlds={};
-    L('✅ worlds OK: '+JSON.stringify(Object.keys(p.worlds)),'ok');
-
-    L('3. WORLDS.find(id=1)...','info');
-    const world = window.WORLDS?.find(w=>w.id===1);
-    L((world?'✅':'❌')+' Welt 1: '+(world?.name||'NICHT GEFUNDEN'), world?'ok':'err');
-    if(!world){L('→ STOPP: WORLDS nicht geladen','err');return;}
-
-    L('4. ws (Spieler-Fortschritt)...','info');
-    let ws = p.worlds[1] ?? p.worlds['1'];
-    if(!ws) ws={tasks:Array(20).fill(null),jokerUsed:false,completed:false};
-    L('✅ ws.tasks: '+ws.tasks?.length+' Einträge','ok');
-
-    L('5. world.tasks.map() testen...','info');
-    const done = ws.tasks.filter(t=>t&&t.done).length;
-    L('✅ done: '+done+'/'+world.tasks.length,'ok');
-
-    L('6. getJokersRemaining...','info');
-    const rem = State.getJokersRemaining(p, 1);
-    L('✅ Joker: '+rem,'ok');
-
-    L('','');
-    L('✅✅✅ ALLE CHECKS BESTANDEN — Welt 1 sollte laden!','ok');
-    L('→ Falls es trotzdem hängt: Browser-Konsole (F12) öffnen und Fehler zeigen','warn');
-  }catch(e){
-    L('❌ FEHLER: '+e.message,'err');
-    L('  Stack: '+e.stack?.split('\n').slice(0,3).join(' | '),'err');
-  }
+    // Storage size
+    let total=0;
+    for(const k of Object.keys(localStorage)){total+=localStorage[k].length+k.length;}
+    r.push(`localStorage: ${(total/1024).toFixed(1)}KB belegt`);
+    // Crash log
+    const cl=localStorage.getItem('_mischa_crash_log');
+    if(cl){
+      const entries=JSON.parse(cl);
+      r.push(`Crash-Log: ${entries.length} Einträge`);
+    }else r.push('Kein Crash-Log im Storage');
+    // sessionStorage
+    const ss=sessionStorage.getItem('mischa_current');
+    r.push(`sessionStorage.mischa_current: ${ss||'(leer)'}`);
+  }catch(e){r.push('❌ Storage: '+e.message);}
+  document.getElementById('storage-status').textContent=r.join('\n');
+  r.forEach(l=>L(l));
 }
 
-async function testLogin(){
-  SEP(); L('🔑 TIEFER LOGIN-TEST:','info');
-  const name = prompt('Nutzername:','qqq');
-  const pw = prompt('Passwort:');
-  if(!name||!pw) return;
-  
-  // Step 1: Check local storage
-  const localP = State._local.get(name.toLowerCase());
-  L('1. localStorage: '+(localP?'✅ Spieler gefunden: '+localP.name:'❌ NICHT vorhanden — nur Firebase möglich'),'info');
-  if(localP){ L('   worlds: '+JSON.stringify(Object.keys(localP.worlds||{})),'dim'); }
-  
-  // Step 2: Check local password
-  if(localP){
-    const pwOk = localP.password === pw;
-    L('2. Passwort lokal: '+(pwOk?'✅ korrekt':'❌ falsch'),'info');
-    if(pwOk){
-      L('   → Login würde sofort lokal funktionieren!','ok');
-      sessionStorage.setItem('mischa_current', name.toLowerCase());
-      localStorage.setItem('mischa_current_backup', name.toLowerCase());
-      L('   → Session gesetzt!','ok');
-    }
-  }
-  
-  // Step 3: Try Firebase
-  L('3. Firebase verfügbar: '+(State._useCloud&&State._useCloud()?'✅ JA':'❌ NEIN — Firebase nicht geladen'),'info');
-  
-  // Step 4: Full login
-  L('4. State.login() aufrufen...','info');
+// ══ STEP 6: Crash analysis ══
+function step6(){
+  const r=[];
   try{
-    const start=Date.now();
-    const res = await Promise.race([
-      State.login(name, pw),
-      new Promise(r=>setTimeout(()=>r({ok:false,error:'Timeout nach 5s'}),5000))
-    ]);
-    const ms=Date.now()-start;
-    L((res?.ok?'✅':'❌')+' Login in '+ms+'ms: '+(res?.ok?res.player?.name:res?.error), res?.ok?'ok':'err');
-    if(res?.ok){
-      const wt = Array.isArray(res.player?.worlds)?'❌ ARRAY (BUG!)':'✅ object';
-      L('  worlds type: '+wt, Array.isArray(res.player?.worlds)?'err':'ok');
-      L('  worlds keys: '+JSON.stringify(Object.keys(res.player?.worlds||{})),'dim');
-      // Auto set session
-      sessionStorage.setItem('mischa_current', name.toLowerCase());
-      localStorage.setItem('mischa_current_backup', name.toLowerCase());
-      L('  → Session gesetzt! Du kannst jetzt zu index.html gehen.','ok');
+    const cl=localStorage.getItem('_mischa_crash_log');
+    if(!cl){r.push('Kein Crash-Log vorhanden');document.getElementById('crash-status').textContent=r.join('\n');return;}
+    const entries=JSON.parse(cl);
+    const errors=entries.filter(e=>e.level==='E');
+    if(!errors.length){r.push('✅ Keine Fehler im letzten Log');} 
+    else {
+      r.push(`❌ ${errors.length} Fehler gefunden:`);
+      errors.slice(-10).forEach(e=>{
+        const ts=new Date(e.ts).toISOString().slice(11,23);
+        r.push(`  [${ts}] [${e.src}] ${e.msg}`);
+      });
     }
-  }catch(e){L('❌ '+e.message,'err');}
+    // Common patterns
+    if(entries.some(e=>e.msg.includes('darken')||e.msg.includes('tetris')||e.msg.includes('Tetris'))){
+      r.push('⚠️ Tetris-Fehler erkannt');
+    }
+    if(entries.some(e=>e.msg.includes('undefined')&&e.msg.includes('cells'))){
+      r.push('⚠️ Tetris next.cells undefined — in v158 gefixt!');
+    }
+  }catch(e){r.push('❌ Crash-Analyse: '+e.message);}
+  document.getElementById('crash-status').textContent=r.join('\n');
+  r.forEach(l=>L(l));
 }
 
-function goToGame(){
-  const u = sessionStorage.getItem('mischa_current') || localStorage.getItem('mischa_current_backup');
-  if(!u){ alert('Nicht eingeloggt!'); return; }
-  sessionStorage.setItem('mischa_current', u);
-  localStorage.setItem('mischa_current_backup', u);
-  localStorage.setItem('mischa_intro_ts', Date.now().toString());
-  L('→ Gehe zu index.html als: '+u,'ok');
-  setTimeout(()=>location.href='index.html?from_intro=1', 500);
-}
-
-function repairState(){
-  L('🔧 Repariere State._local...','info');
+// ══ CRASH RING (from localStorage) ══
+function renderCrashRing(){
+  const el=document.getElementById('crash-ring');
+  const ct=document.getElementById('crash-count');
   try{
-    const raw = JSON.parse(localStorage.getItem('mischa_players')||'{}');
-    const names = Object.keys(raw);
-    L('  Gefunden: '+names.join(', '),'info');
-    // Re-inject into State._local
-    names.forEach(n=>{
-      State._local.set(n, raw[n]);
-      L('  ✅ '+n+' in State._local geladen','ok');
-    });
-    // Restore session
-    const u = sessionStorage.getItem('mischa_current') || localStorage.getItem('mischa_current_backup');
-    if(u && raw[u]){
-      State.currentPlayer = raw[u];
-      L('✅ currentPlayer gesetzt: '+u,'ok');
-    }
-    L('✅ State repariert — lade neu...','ok');
-    setTimeout(()=>runDiag(), 500);
-  }catch(e){ L('❌ Repair Fehler: '+e.message,'err'); }
+    const raw=localStorage.getItem('_mischa_crash_log');
+    if(!raw){el.innerHTML='<span style="color:#444">Noch keine Logs</span>';return;}
+    const entries=JSON.parse(raw);
+    const cutoff=Date.now()-120000;
+    const recent=entries.filter(e=>e.ts>cutoff);
+    ct.textContent=recent.length+' Einträge (letzte 2min)';
+    const LEVEL_COL={E:'#e74c3c',W:'#f39c12',I:'#4af',G:'#2ecc71'};
+    el.innerHTML=recent.slice(-100).map(e=>{
+      const ts=new Date(e.ts).toISOString().slice(11,23);
+      const col=LEVEL_COL[e.level]||'#ccc';
+      return `<div style="color:${col}">[${ts}] [${e.level}|${e.src}] ${e.msg.replace(/</g,'&lt;')}</div>`;
+    }).join('');
+    el.scrollTop=el.scrollHeight;
+  }catch(e){el.textContent='Fehler: '+e.message;}
+}
+setInterval(renderCrashRing,2000);
+
+function copyCrashLog(){
+  try{
+    const raw=localStorage.getItem('_mischa_crash_log')||'[]';
+    const e=JSON.parse(raw);
+    const txt=e.map(x=>`[${new Date(x.ts).toISOString().slice(11,23)}] [${x.level}|${x.src}] ${x.msg}`).join('\n');
+    navigator.clipboard.writeText('=== CRASH LOG ===\n'+txt).then(()=>alert('✅ Kopiert!'));
+  }catch(e){alert('Fehler: '+e.message);}
+}
+function clearCrashLog(){localStorage.removeItem('_mischa_crash_log');document.getElementById('crash-ring').innerHTML='<span style="color:#444">Geleert.</span>';}
+function copyLog(){navigator.clipboard.writeText(logs.join('\n')).then(()=>alert('✅ Log kopiert!'));}
+function downloadLog(){const b=new Blob([logs.join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='diagnose-welt1-'+Date.now()+'.txt';a.click();}
+function goToGame(){window.location.href='index.html';}
+function clearSave(){if(confirm('Wirklich alle lokalen Spielerdaten löschen?')){['mischa_players','mischa_current_backup','_mischa_crash_log'].forEach(k=>localStorage.removeItem(k));sessionStorage.clear();alert('✅ Geleert. Seite neu laden!');}}
+
+async function runAll(){
+  document.getElementById('status').textContent='🔄 Tests laufen...';
+  L('=== Welt-1 Diagnose gestartet ===');
+  L('Browser: '+navigator.userAgent.slice(0,80));
+  analyzeFonts();
+  await step1();
+  await step2();
+  step3();
+  await step4();
+  step5();
+  step6();
+  renderCrashRing();
+  document.getElementById('status').textContent='✅ Fertig — '+new Date().toLocaleTimeString('de-CH');
+  L('=== Diagnose abgeschlossen ===');
 }
 
-// Auto-run on load
-window.onload = async function(){ await runDiag(); };
+// Auto-run
+runAll();
 </script>
 </body>
 </html>

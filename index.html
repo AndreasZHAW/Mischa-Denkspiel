@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#87CEEB">
   <title>Das Mischa Denkspiel ✈️ v29</title>
@@ -73,6 +73,29 @@
     /* Game area fills screen properly on mobile */
     #game-area canvas { max-width: 100%; height: auto; }
   </style>
+<script>
+// ══ RESPONSIVE FONT SCALER ══
+// Strategy: Calculate optimal root font-size based on device viewport and DPR.
+// Problem: On Android (DPR=2-3), fixed px sizes appear tiny because
+// CSS pixels are smaller than physical pixels. 
+// Solution: Set root font-size to scale with viewport width.
+(function(){
+  var vw = window.innerWidth || document.documentElement.clientWidth;
+  var dpr = window.devicePixelRatio || 1;
+  // Base size: 15px at 360px viewport, scales up for wider screens
+  // On very small screens (< 340px), use 16px to ensure legibility
+  var base;
+  if(vw < 340) base = 17;
+  else if(vw < 380) base = 16;
+  else if(vw < 420) base = 15.5;
+  else if(vw < 500) base = 15;
+  else base = 15; // desktop: keep at 15, let clamp() handle max
+  document.documentElement.style.fontSize = base + 'px';
+  // Store for games to use
+  window._mobileFontBase = base;
+  window._isMobileDevice = dpr >= 1.5 || vw <= 600;
+})();
+</script>
 </head>
 <body ontouchstart=""><!-- ontouchstart="" enables :active CSS on iOS -->
 <script>
