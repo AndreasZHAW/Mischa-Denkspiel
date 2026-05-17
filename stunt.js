@@ -106,7 +106,7 @@ const StuntGame = {
       window.removeEventListener('keydown',onKD); window.removeEventListener('keyup',onKU);
       const secs=(Date.now()-tStart)/1000;
       const tBonus=won?Math.max(0,Math.round(700-Math.max(0,secs-12)*15)):0;
-      const pts=(won?200:0)+tBonus+car.saltos*500-car.roofLandings*30;
+      const pts=(won?200:0)+tBonus+car.saltos*500+(car.stylePoints||0)-car.roofLandings*10;
       onComplete({rawScore:Math.min(100,Math.max(0,pts/10|0)), timeMs:Date.now()-tStart,
                   errors:car.roofLandings, passed:won||car.saltos>0, saltos:car.saltos});
     };
@@ -155,26 +155,37 @@ const StuntGame = {
       // Exhaust pipe
       ctx.fillStyle='#555'; roundRect(-23,-8,4,6,1); ctx.fill();
 
-      // Wheels (4)
-      const wPos=[[-15,10],[-15,-4],[14,10],[14,-4]];
+      // Wheels (2: front and rear, side view)
+      const wPos=[[-14,10],[14,10]]; // front and rear
       for(const[wx,wy]of wPos){
         ctx.save(); ctx.translate(wx,wy); ctx.rotate(wAng);
+        // Outer tire shadow
+        ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.arc(1,1,9,0,Math.PI*2); ctx.fill();
         // Tire
-        ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(0,0,7.5,0,Math.PI*2); ctx.fill();
-        // Tire tread
-        ctx.strokeStyle='#333'; ctx.lineWidth=2;
-        ctx.beginPath(); ctx.arc(0,0,7.5,0,Math.PI*2); ctx.stroke();
-        // Rim
-        const rg2=ctx.createRadialGradient(-2,-2,0,0,0,5);
-        rg2.addColorStop(0,'#ccc'); rg2.addColorStop(1,'#666');
-        ctx.fillStyle=rg2; ctx.beginPath(); ctx.arc(0,0,4.5,0,Math.PI*2); ctx.fill();
-        // Hub cap detail
-        ctx.fillStyle='#888'; ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI*2); ctx.fill();
-        // Spokes
-        ctx.strokeStyle='#777'; ctx.lineWidth=1.2;
+        ctx.fillStyle='#111'; ctx.beginPath(); ctx.arc(0,0,8.5,0,Math.PI*2); ctx.fill();
+        // Tire highlight arc
+        ctx.strokeStyle='#2a2a2a'; ctx.lineWidth=3;
+        ctx.beginPath(); ctx.arc(0,0,8.5,0,Math.PI*2); ctx.stroke();
+        // Rubber detail
+        for(let t=0;t<8;t++){
+          const a=t*Math.PI/4;
+          ctx.fillStyle='#1a1a1a';
+          ctx.beginPath(); ctx.arc(Math.cos(a)*8.5,Math.sin(a)*8.5,2,0,Math.PI*2); ctx.fill();
+        }
+        // Rim (nice gradient)
+        const rg2=ctx.createRadialGradient(-2,-2,0,0,0,6);
+        rg2.addColorStop(0,'#ddd'); rg2.addColorStop(0.5,'#888'); rg2.addColorStop(1,'#444');
+        ctx.fillStyle=rg2; ctx.beginPath(); ctx.arc(0,0,5.5,0,Math.PI*2); ctx.fill();
+        // Rim ring
+        ctx.strokeStyle='#aaa'; ctx.lineWidth=1.2;
+        ctx.beginPath(); ctx.arc(0,0,5.5,0,Math.PI*2); ctx.stroke();
+        // Center hub
+        ctx.fillStyle='#ccc'; ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI*2); ctx.fill();
+        // 5 spokes
+        ctx.strokeStyle='#999'; ctx.lineWidth=1.5;
         for(let s=0;s<5;s++){
           const a=s*Math.PI*2/5;
-          ctx.beginPath(); ctx.moveTo(Math.cos(a)*2,Math.sin(a)*2); ctx.lineTo(Math.cos(a)*4.2,Math.sin(a)*4.2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(Math.cos(a)*2,Math.sin(a)*2); ctx.lineTo(Math.cos(a)*5,Math.sin(a)*5); ctx.stroke();
         }
         ctx.restore();
       }
@@ -252,10 +263,10 @@ const StuntGame = {
 
       if(onGround){
         car.wy=terrY-CAR_H; car.vy=0; car.onGround=true; car.airTime=0; car.saltoRot=0;
-        // Smooth angle to slope
+        // Smooth angle firmly to slope on landing
         const dAng=((terrAng-car.ang+Math.PI*3)%(Math.PI*2))-Math.PI;
-        car.ang+=dAng*0.28;
-        car.spin*=0.20;
+        car.ang+=dAng*0.45; // stronger angle correction
+        car.spin*=0.08; // strongly damp spin on ground contact
         if(inp.fwd){
           car.gasTime=Math.min(car.gasTime+1,180);
           const boost=0.85+Math.min(3.8,car.gasTime*.022);
@@ -284,9 +295,26 @@ const StuntGame = {
       // Roof landing
       const norm=((car.ang%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
       const upside=norm>Math.PI*.55&&norm<Math.PI*1.45;
+      // Mid-air tilt bonus: 30-150° = style points
+      if(!onGround && car.airTime>8){
+        const tilt = Math.min(norm, Math.PI*2-norm); // 0=upright, π=inverted
+        if(tilt > Math.PI*.25 && !car._tiltBonus){ // significantly tilted
+          car._tiltBonus=true;
+          car.stylePoints=(car.stylePoints||0)+50;
+          car.styleFlash=30;
+        }
+      } else { car._tiltBonus=false; }
+      // Roof landing: small penalty, just bounce back up
       if(onGround&&upside){
-        if(!car._roofLanded){car._roofLanded=true;car.roofLandings++;car.vy=-5.5;car.spin=(car.spin>0?.12:-.12);car.penaltyFlash=55;car.roofToast=140;}
-        if(car.airTime===0&&frames%90===0){finish(false);return;}
+        if(!car._roofLanded){
+          car._roofLanded=true;
+          car.roofLandings++;
+          car.vy=-4.0; // gentle bounce
+          car.spin=(car.spin>0?.08:-.08);
+          car.penaltyFlash=35;
+          car.roofToast=100;
+        }
+        // Never end game from roof - just bounce
       } else car._roofLanded=false;
 
       if(car.wy>H+200||car.wx<-150){finish(false);return;}
@@ -448,6 +476,15 @@ const StuntGame = {
         ctx.fillStyle='#FFD700';
         ctx.textAlign='center'; ctx.font='bold 22px sans-serif';
         ctx.fillText('🔄 SALTO! +500',W/2,H*.42);
+        ctx.globalAlpha=1;
+      }
+      // Style point flash
+      if(car.styleFlash>0){
+        car.styleFlash--;
+        ctx.globalAlpha=car.styleFlash/30;
+        ctx.fillStyle='#ff69b4';
+        ctx.textAlign='center'; ctx.font='bold 18px sans-serif';
+        ctx.fillText('✨ STYLE! +50',W/2,H*.52);
         ctx.globalAlpha=1;
       }
 

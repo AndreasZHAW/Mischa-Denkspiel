@@ -1345,84 +1345,74 @@ const App = {
 
   reportPlayer(playerName) {
     const reasons = [
-      {id:'harassment', label:'Belästigung / Stalking', icon:'😤'},
-      {id:'insults',    label:'Beleidigungen / Hass',   icon:'🤬'},
-      {id:'exploit',    label:'Ausnutzung / Cheaten',   icon:'🎮'},
-      {id:'violence',   label:'Gewalt / Extremismus',   icon:'⚠️'},
-      {id:'inappropriate', label:'Unangemessener Inhalt', icon:'🚫'},
-      {id:'spam',       label:'Spam / Werbung',          icon:'📢'},
-      {id:'other',      label:'Sonstiges',               icon:'❓'},
+      {id:'harassment', label:'Belästigung / Stalking',      icon:'😤'},
+      {id:'insults',    label:'Beleidigungen / Hass',         icon:'🤬'},
+      {id:'exploit',    label:'Cheaten / Ausnutzung',         icon:'🎮'},
+      {id:'violence',   label:'Gewalt / Extremismus',         icon:'⚠️'},
+      {id:'inappropriate', label:'Unangemessener Inhalt',     icon:'🚫'},
+      {id:'spam',       label:'Spam / Werbung',               icon:'📢'},
+      {id:'other',      label:'Sonstiges',                    icon:'❓'},
     ];
     this._selectedReportReason = null;
     this._reportImageB64 = null;
     this._html(`
-      <div style="max-width:500px;margin:0 auto;padding:12px">
-        <div style="background:rgba(20,10,30,.95);border:1px solid rgba(231,76,60,.3);border-radius:16px;overflow:hidden">
-          <!-- Header -->
-          <div style="background:rgba(231,76,60,.15);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(231,76,60,.2)">
-            <div style="font-weight:900;font-size:1.05rem;color:#E74C3C">⚑ Spieler melden</div>
-            <button onclick="App.showGlobalLeaderboard()" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1.3rem;line-height:1">✕</button>
+      <div style="max-width:500px;margin:0 auto;padding:10px">
+        <div style="background:rgba(20,10,30,.97);border:1.5px solid rgba(231,76,60,.35);border-radius:16px;overflow:hidden">
+          <div style="background:linear-gradient(135deg,rgba(231,76,60,.25),rgba(192,57,43,.15));padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(231,76,60,.2)">
+            <div style="font-weight:900;font-size:1.05rem;color:#ff6b6b">⚑ Spieler melden</div>
+            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,.1);border:none;color:#fff;cursor:pointer;font-size:1rem;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center">✕</button>
           </div>
-          <!-- Player info -->
-          <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)">
-            <div style="width:44px;height:44px;border-radius:50%;background:rgba(231,76,60,.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem">👤</div>
-            <div>
-              <div style="font-weight:900;font-size:1rem">${playerName}</div>
-              <div style="font-size:.8rem;color:rgba(255,255,255,.4)">Wird gemeldet von ${State.currentPlayer?.name||'?'}</div>
-            </div>
+          <div style="padding:12px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)">
+            <div style="width:42px;height:42px;border-radius:50%;background:rgba(231,76,60,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">👤</div>
+            <div><div style="font-weight:900">${playerName}</div><div style="font-size:.78rem;color:rgba(255,255,255,.35)">gemeldet von ${State.currentPlayer?.name||'?'}</div></div>
           </div>
-          <!-- Reason list -->
+          <div style="padding:12px 18px 0">
+            <div style="font-size:.72rem;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Grund wählen *</div>
+            ${reasons.map(r => `<div data-rid="${r.id}" onclick="App._pickReason('${playerName}','${r.label}',this)"
+              style="padding:10px 14px;margin-bottom:3px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:10px;
+                     border:1.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);transition:.12s">
+              <span style="font-size:1.15rem">${r.icon}</span>
+              <span style="flex:1;font-size:.88rem">${r.label}</span>
+              <span class="rck" style="opacity:0;color:#E74C3C;font-weight:900">✓</span>
+            </div>`).join('')}
+          </div>
           <div style="padding:10px 18px 0">
-            <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Grund wählen *</div>
-            <div id="report-reasons-list">
-              ${reasons.map(r => `<div data-reason="${r.id}" onclick="App._selectReportReason('${playerName}','${r.label}',this)"
-                style="padding:11px 14px;margin-bottom:4px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:10px;
-                       border:1.5px solid rgba(255,255,255,.08);transition:.15s;background:rgba(255,255,255,.03)"
-                onmouseover="this.style.background='rgba(231,76,60,.12)';this.style.borderColor='rgba(231,76,60,.3)'"
-                onmouseout="if(!this.classList.contains('sel')){this.style.background='rgba(255,255,255,.03)';this.style.borderColor='rgba(255,255,255,.08)'}">
-                <span style="font-size:1.2rem">${r.icon}</span>
-                <span style="flex:1;font-size:.9rem">${r.label}</span>
-                <span class="r-check" style="font-size:.9rem;opacity:0">✓</span>
-              </div>`).join('')}
-            </div>
-          </div>
-          <!-- Description -->
-          <div style="padding:8px 18px 0">
-            <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Beschreibung *</div>
-            <textarea id="report-desc" placeholder="Was genau ist passiert? Bitte so genau wie möglich beschreiben..."
+            <div style="font-size:.72rem;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Was ist passiert? *</div>
+            <textarea id="rdesc" placeholder="Bitte genau beschreiben was passiert ist..." rows="3"
               style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
-                     color:#fff;padding:10px 12px;border-radius:9px;font-size:.88rem;resize:vertical;min-height:90px;outline:none;
-                     font-family:inherit"
-              oninput="App._updateReportBtn()"></textarea>
+                     color:#fff;padding:10px;border-radius:9px;font-size:.88rem;resize:vertical;font-family:inherit;outline:none"
+              oninput="App._updateRBtn()"></textarea>
           </div>
-          <!-- Image upload -->
           <div style="padding:8px 18px 0">
-            <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Beweis-Bild (optional)</div>
-            <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;border:1.5px dashed rgba(255,255,255,.15);cursor:pointer;background:rgba(255,255,255,.03)">
-              <span style="font-size:1.4rem">📸</span>
-              <div>
-                <div style="font-size:.88rem;color:#fff">Screenshot hochladen</div>
-                <div style="font-size:.72rem;color:rgba(255,255,255,.35)">JPG, PNG, max. 5MB</div>
+            <div style="font-size:.72rem;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Screenshot als Beweis (optional)</div>
+            <div id="img-drop-zone" onclick="document.getElementById('rimg').click()"
+              style="border:2px dashed rgba(255,255,255,.18);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.15s;background:rgba(255,255,255,.02)"
+              onmouseover="this.style.borderColor='rgba(74,144,226,.6)';this.style.background='rgba(74,144,226,.06)'"
+              onmouseout="this.style.borderColor='rgba(255,255,255,.18)';this.style.background='rgba(255,255,255,.02)'"
+              ondragover="event.preventDefault();this.style.borderColor='rgba(74,144,226,.8)';this.style.background='rgba(74,144,226,.1)'"
+              ondragleave="this.style.borderColor='rgba(255,255,255,.18)';this.style.background='rgba(255,255,255,.02)'"
+              ondrop="event.preventDefault();App._dropImg(event)">
+              <input type="file" id="rimg" accept="image/*" style="display:none" onchange="App._loadImg(this.files[0])">
+              <div id="img-placeholder">
+                <div style="font-size:2rem;margin-bottom:6px">📸</div>
+                <div style="font-size:.88rem;color:#ccc">Tippen oder Bild hierher ziehen</div>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:3px">JPG · PNG · max 3MB</div>
               </div>
-              <input type="file" id="report-img-input" accept="image/*" style="display:none" onchange="App._handleReportImage(this)">
-            </label>
-            <div id="report-img-preview" style="margin-top:6px;display:none">
-              <img id="report-img-thumb" style="max-width:100%;max-height:140px;border-radius:8px;object-fit:contain;border:1px solid rgba(255,255,255,.1)">
-              <button onclick="App._clearReportImage()" style="display:block;margin-top:4px;background:none;border:none;color:rgba(231,76,60,.7);font-size:.78rem;cursor:pointer;padding:0">✕ Bild entfernen</button>
+              <div id="img-preview-wrap" style="display:none">
+                <img id="img-preview" style="max-width:100%;max-height:160px;border-radius:8px;object-fit:contain">
+                <div style="margin-top:6px;font-size:.75rem;color:#4af">✅ Bild geladen — <span onclick="event.stopPropagation();App._clearImg()" style="color:#E74C3C;cursor:pointer;text-decoration:underline">entfernen</span></div>
+              </div>
             </div>
           </div>
-          <!-- Warning + Actions -->
           <div style="padding:10px 18px 14px">
-            <div style="font-size:.7rem;color:rgba(255,165,0,.65);padding:7px 10px;background:rgba(255,165,0,.07);border-radius:7px;margin-bottom:10px">
+            <div style="font-size:.68rem;color:rgba(255,165,0,.6);padding:7px 10px;background:rgba(255,165,0,.07);border-radius:7px;margin-bottom:10px">
               ⚠️ Falsche Meldungen können zur Sperrung deines Kontos führen.
             </div>
             <div style="display:flex;gap:8px">
-              <button onclick="App.showGlobalLeaderboard()" style="flex:1;padding:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:9px;cursor:pointer;font-size:.9rem">Abbrechen</button>
-              <button id="report-submit-btn" onclick="App._submitReport('${playerName}')"
-                style="flex:2;padding:11px;background:rgba(231,76,60,.15);border:1.5px solid rgba(231,76,60,.25);color:rgba(231,76,60,.5);
-                       border-radius:9px;cursor:not-allowed;font-weight:700;font-size:.9rem;transition:.2s" disabled>
-                Meldung senden
-              </button>
+              <button onclick="App.showGlobalLeaderboard()" style="flex:1;padding:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:9px;cursor:pointer">Abbrechen</button>
+              <button id="rsend" onclick="App._sendReport('${playerName}')"
+                style="flex:2;padding:11px;background:rgba(231,76,60,.12);border:1.5px solid rgba(231,76,60,.2);
+                       color:rgba(231,76,60,.4);border-radius:9px;cursor:not-allowed;font-weight:900;transition:.2s" disabled>Meldung senden</button>
             </div>
           </div>
         </div>
@@ -1432,273 +1422,377 @@ const App = {
   _selectedReportReason: null,
   _reportImageB64: null,
 
-  _selectReportReason(playerName, reason, el) {
-    this._selectedReportReason = reason;
-    document.querySelectorAll('[data-reason]').forEach(e => {
-      e.classList.remove('sel');
-      e.style.background = 'rgba(255,255,255,.03)';
-      e.style.borderColor = 'rgba(255,255,255,.08)';
-      e.querySelector('.r-check').style.opacity = '0';
+  _pickReason(playerName, label, el) {
+    this._selectedReportReason = label;
+    document.querySelectorAll('[data-rid]').forEach(e => {
+      e.style.background = 'rgba(255,255,255,.02)';
+      e.style.borderColor = 'rgba(255,255,255,.07)';
+      e.querySelector('.rck').style.opacity = '0';
     });
-    el.classList.add('sel');
-    el.style.background = 'rgba(231,76,60,.18)';
-    el.style.borderColor = 'rgba(231,76,60,.5)';
-    el.querySelector('.r-check').style.opacity = '1';
-    this._updateReportBtn();
+    el.style.background = 'rgba(231,76,60,.15)';
+    el.style.borderColor = 'rgba(231,76,60,.45)';
+    el.querySelector('.rck').style.opacity = '1';
+    this._updateRBtn();
   },
 
-  _updateReportBtn() {
-    const btn = document.getElementById('report-submit-btn');
-    const desc = document.getElementById('report-desc')?.value?.trim() || '';
-    const ready = this._selectedReportReason && desc.length >= 5;
-    if(btn) {
-      btn.disabled = !ready;
-      btn.style.cursor = ready ? 'pointer' : 'not-allowed';
-      btn.style.background = ready ? 'rgba(231,76,60,.5)' : 'rgba(231,76,60,.15)';
-      btn.style.borderColor = ready ? 'rgba(231,76,60,.8)' : 'rgba(231,76,60,.25)';
-      btn.style.color = ready ? '#fff' : 'rgba(231,76,60,.5)';
-    }
+  _updateRBtn() {
+    const btn = document.getElementById('rsend');
+    const desc = (document.getElementById('rdesc')?.value||'').trim();
+    const ok = !!this._selectedReportReason && desc.length >= 5;
+    if(!btn) return;
+    btn.disabled = !ok;
+    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    btn.style.background = ok ? 'rgba(231,76,60,.5)' : 'rgba(231,76,60,.12)';
+    btn.style.borderColor = ok ? '#E74C3C' : 'rgba(231,76,60,.2)';
+    btn.style.color = ok ? '#fff' : 'rgba(231,76,60,.4)';
   },
 
-  _handleReportImage(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (file.size > 5*1024*1024) { alert('Bild zu groß! Max. 5MB.'); input.value=''; return; }
+  _dropImg(ev) {
+    const file = ev.dataTransfer?.files?.[0];
+    if(file && file.type.startsWith('image/')) this._loadImg(file);
+  },
+
+  _loadImg(file) {
+    if(!file) return;
+    if(file.size > 3*1024*1024) { alert('Bild zu groß! Bitte max. 3MB.'); return; }
     const reader = new FileReader();
     reader.onload = e => {
-      this._reportImageB64 = e.target.result;
-      const thumb = document.getElementById('report-img-thumb');
-      const preview = document.getElementById('report-img-preview');
-      if(thumb) thumb.src = e.target.result;
-      if(preview) preview.style.display = 'block';
+      // Compress to max 800px wide, quality 0.7
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if(w > MAX){ h = Math.round(h*MAX/w); w = MAX; }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        // Use JPEG for photos, PNG for screenshots with transparency
+        const b64 = cv.toDataURL('image/jpeg', 0.72);
+        this._reportImageB64 = b64;
+        const prev = document.getElementById('img-preview');
+        const prevWrap = document.getElementById('img-preview-wrap');
+        const placeholder = document.getElementById('img-placeholder');
+        if(prev) prev.src = b64;
+        if(prevWrap) prevWrap.style.display = 'block';
+        if(placeholder) placeholder.style.display = 'none';
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   },
 
-  _clearReportImage() {
+  _clearImg() {
     this._reportImageB64 = null;
-    const input = document.getElementById('report-img-input');
-    const preview = document.getElementById('report-img-preview');
-    if(input) input.value = '';
-    if(preview) preview.style.display = 'none';
+    const inp = document.getElementById('rimg');
+    const prevWrap = document.getElementById('img-preview-wrap');
+    const placeholder = document.getElementById('img-placeholder');
+    if(inp) inp.value = '';
+    if(prevWrap) prevWrap.style.display = 'none';
+    if(placeholder) placeholder.style.display = 'block';
   },
 
-  async _submitReport(playerName) {
+  async _sendReport(playerName) {
     const reason = this._selectedReportReason;
-    if(!reason){ alert('Bitte wähle einen Grund aus.'); return; }
-    const desc = document.getElementById('report-desc')?.value?.trim()||'';
-    if(desc.length < 5){ alert('Bitte beschreibe das Problem genauer.'); return; }
+    if(!reason) { alert('Bitte Grund wählen.'); return; }
+    const desc = (document.getElementById('rdesc')?.value||'').trim();
+    if(desc.length < 5) { alert('Bitte Beschreibung ausfüllen.'); return; }
     const reporter = State.currentPlayer?.name||'?';
-    const btn = document.getElementById('report-submit-btn');
-    if(btn){ btn.disabled=true; btn.textContent='Wird gesendet...'; }
+    const btn = document.getElementById('rsend');
+    if(btn) { btn.disabled=true; btn.textContent='Wird gesendet...'; }
     try {
-      if(typeof _db!=='undefined'&&_db){
-        const reportData = {
-          reported: playerName.toLowerCase(), reporter: reporter.toLowerCase(),
-          reporterDisplay: reporter, reason, desc,
-          ts: Date.now(), tsStr: new Date().toLocaleString('de-CH'),
+      if(typeof _db!=='undefined'&&_db) {
+        // Split image into separate doc if present (Firestore 1MB limit)
+        let imageDocId = null;
+        if(this._reportImageB64) {
+          const imgRef = await _db.collection('report_images').add({
+            imageB64: this._reportImageB64,
+            ts: Date.now(),
+            reporter: reporter.toLowerCase(),
+            reported: playerName.toLowerCase(),
+          });
+          imageDocId = imgRef.id;
+        }
+        await _db.collection('player_reports').add({
+          reported: playerName.toLowerCase(),
+          reportedDisplay: playerName,
+          reporter: reporter.toLowerCase(),
+          reporterDisplay: reporter,
+          reason, desc,
+          ts: Date.now(),
+          tsStr: new Date().toLocaleString('de-CH'),
           status: 'open',
-          imageB64: this._reportImageB64 || null,
-        };
-        await _db.collection('player_reports').add(reportData);
+          imageDocId,  // reference to separate image doc
+          hasImage: !!this._reportImageB64,
+        });
       }
-    } catch(e){ console.warn('Report save failed:', e.message); }
+    } catch(e) { console.warn('Report failed:', e.message); }
     this._reportImageB64 = null;
     this._selectedReportReason = null;
     this._html(`
       <div style="text-align:center;padding:50px 20px">
         <div style="font-size:4rem;margin-bottom:16px">✅</div>
-        <div style="font-weight:900;font-size:1.2rem;margin-bottom:8px">Meldung eingereicht</div>
-        <div style="color:rgba(255,255,255,.5);font-size:.9rem;max-width:300px;margin:0 auto 24px">
+        <div style="font-weight:900;font-size:1.15rem;margin-bottom:8px">Meldung eingereicht!</div>
+        <div style="color:rgba(255,255,255,.45);font-size:.9rem;max-width:300px;margin:0 auto 24px;line-height:1.5">
           Danke! Wir prüfen den Fall und informieren dich falls Maßnahmen ergriffen werden.
         </div>
-        <button onclick="App.showGlobalLeaderboard()" style="padding:11px 28px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;cursor:pointer;font-size:.95rem">← Zurück</button>
+        <button onclick="App.showGlobalLeaderboard()" style="padding:11px 28px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:10px;cursor:pointer">← Zurück</button>
       </div>`);
   },
 
-  // ── ADMIN: Meldungen anzeigen ──
+  // ═══════════════════════════════
+  // ADMIN — Meldungen verwalten
+  // ═══════════════════════════════
   async showAdminReports() {
     const player = State.currentPlayer;
-    if (!player || player.name.toLowerCase() !== 'bu') { alert('Kein Zugriff.'); return; }
+    const name = player?.name?.toLowerCase()||'';
+    if (!player || (name !== 'bu' && name !== 'mischa' && name !== 'admin')) { alert('Kein Zugriff.'); return; }
     this._loading('Lade Meldungen...');
     let reports = [];
     try {
       if(typeof _db !== 'undefined' && _db) {
-        const snap = await _db.collection('player_reports').orderBy('ts','desc').limit(50).get();
+        const snap = await _db.collection('player_reports').orderBy('ts','desc').limit(80).get();
         snap.forEach(doc => reports.push({id: doc.id, ...doc.data()}));
       }
-    } catch(e) { console.warn('Reports load failed:', e); }
+    } catch(e) { console.warn('Load failed:', e); }
 
-    const statusColor = {open:'#E74C3C', reviewing:'#F39C12', resolved:'#27AE60', dismissed:'#888'};
-    const statusLabel = {open:'Offen', reviewing:'In Prüfung', resolved:'Erledigt', dismissed:'Abgewiesen'};
+    window._rCache = {};
+    reports.forEach(r => window._rCache[r.id] = r);
+
+    const SC = {open:'#E74C3C', reviewing:'#F39C12', resolved:'#2ecc71', dismissed:'#888'};
+    const SL = {open:'Offen', reviewing:'In Prüfung', resolved:'Erledigt', dismissed:'Abgewiesen'};
+    const openCount = reports.filter(r=>r.status==='open'||!r.status).length;
 
     this._html(`
-      <div style="max-width:600px;margin:0 auto;padding:12px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <button onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:7px 13px;border-radius:8px;cursor:pointer">← Zurück</button>
-          <h2 style="margin:0;font-size:1.1rem">⚑ Meldungen (${reports.length})</h2>
+      <div style="max-width:620px;margin:0 auto;padding:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <button onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.9rem">← Zurück</button>
+          <h2 style="margin:0;flex:1;font-size:1.05rem">⚑ Meldungen <span style="color:#E74C3C">(${openCount} offen)</span></h2>
+          <button onclick="App.showAdminReports()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem">🔄 Aktualisieren</button>
         </div>
-        ${reports.length === 0 ? '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.4)">Keine Meldungen vorhanden</div>' :
-          reports.map(r => `
-            <div onclick="App._showReportDetail('${r.id}')"
-              style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;
-                     padding:14px;margin-bottom:8px;cursor:pointer;transition:.15s"
-              onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='rgba(255,255,255,.04)'">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <div style="flex:1">
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-                    <span style="font-weight:900;color:#E74C3C">⚑ ${r.reported||'?'}</span>
-                    <span style="font-size:.72rem;padding:2px 8px;border-radius:20px;background:${statusColor[r.status||'open']}22;color:${statusColor[r.status||'open']};border:1px solid ${statusColor[r.status||'open']}44">
-                      ${statusLabel[r.status||'open']}
-                    </span>
-                    ${r.imageB64 ? '<span style="font-size:.72rem;color:#4af">📸 Bild</span>' : ''}
+        ${reports.length === 0
+          ? '<div style="text-align:center;padding:50px;color:rgba(255,255,255,.3);font-size:1.1rem">✅ Keine Meldungen</div>'
+          : reports.map(r => {
+              const st = r.status||'open';
+              return `<div onclick="App._openReport('${r.id}')"
+                style="background:rgba(255,255,255,.03);border:1.5px solid ${st==='open'?'rgba(231,76,60,.3)':'rgba(255,255,255,.07)'};
+                       border-radius:12px;padding:13px 16px;margin-bottom:7px;cursor:pointer;transition:.15s;position:relative"
+                onmouseover="this.style.background='rgba(255,255,255,.07)';this.style.transform='translateX(2px)'"
+                onmouseout="this.style.background='rgba(255,255,255,.03)';this.style.transform=''">
+                <div style="display:flex;align-items:flex-start;gap:10px">
+                  <div style="flex:1">
+                    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px">
+                      <span style="font-weight:900;color:#ff6b6b;font-size:.95rem">⚑ ${r.reportedDisplay||r.reported||'?'}</span>
+                      <span style="font-size:.68rem;padding:2px 8px;border-radius:20px;background:${SC[st]}22;color:${SC[st]};border:1px solid ${SC[st]}55;font-weight:700">${SL[st]}</span>
+                      ${r.hasImage ? '<span style="font-size:.68rem;color:#4af;background:rgba(74,144,226,.1);padding:2px 7px;border-radius:20px;border:1px solid rgba(74,144,226,.3)">📸 Screenshot</span>' : ''}
+                    </div>
+                    <div style="font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:3px">
+                      <b style="color:#FFD700">${r.reason||'?'}</b>
+                      <span style="color:rgba(255,255,255,.35)"> · von ${r.reporterDisplay||r.reporter||'?'}</span>
+                    </div>
+                    <div style="font-size:.77rem;color:rgba(255,255,255,.35);line-height:1.4">
+                      ${(r.desc||'').slice(0,100)}${(r.desc||'').length>100?'…':''}
+                    </div>
                   </div>
-                  <div style="font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:3px">
-                    <b>${r.reason||'?'}</b> · gemeldet von ${r.reporterDisplay||r.reporter||'?'}
-                  </div>
-                  <div style="font-size:.78rem;color:rgba(255,255,255,.35)">
-                    ${(r.desc||'').slice(0,80)}${(r.desc||'').length>80?'…':''}
+                  <div style="text-align:right;font-size:.68rem;color:rgba(255,255,255,.25);white-space:nowrap;flex-shrink:0">
+                    ${(r.tsStr||'').split(',')[0]||''}<br>
+                    <span style="font-size:1rem;color:rgba(255,255,255,.2)">›</span>
                   </div>
                 </div>
-                <div style="text-align:right;font-size:.72rem;color:rgba(255,255,255,.3);margin-left:10px;white-space:nowrap">
-                  ${r.tsStr||''}<br>›
-                </div>
-              </div>
-            </div>`).join('')
+              </div>`;
+            }).join('')
         }
       </div>`);
-    // Store reports for detail view
-    window._adminReportCache = {};
-    reports.forEach(r => window._adminReportCache[r.id] = r);
   },
 
-  async _showReportDetail(reportId) {
-    const r = (window._adminReportCache||{})[reportId];
-    if (!r) { alert('Meldung nicht gefunden.'); return; }
-    const statusColor = {open:'#E74C3C', reviewing:'#F39C12', resolved:'#27AE60', dismissed:'#888'};
-    const statusLabel = {open:'Offen', reviewing:'In Prüfung', resolved:'Erledigt', dismissed:'Abgewiesen'};
+  async _openReport(reportId) {
+    const r = (window._rCache||{})[reportId];
+    if(!r) { alert('Nicht gefunden.'); return; }
+    // Load image from separate collection if needed
+    let imageB64 = r.imageB64 || null;
+    if(!imageB64 && r.imageDocId && typeof _db !== 'undefined' && _db) {
+      try {
+        const imgDoc = await _db.collection('report_images').doc(r.imageDocId).get();
+        if(imgDoc.exists) imageB64 = imgDoc.data().imageB64;
+        r.imageB64 = imageB64; // cache
+      } catch(e) { console.warn('Image load failed:', e); }
+    }
+
+    const SC = {open:'#E74C3C', reviewing:'#F39C12', resolved:'#2ecc71', dismissed:'#888'};
+    const SL = {open:'Offen', reviewing:'In Prüfung', resolved:'Erledigt', dismissed:'Abgewiesen'};
+    const st = r.status||'open';
 
     this._html(`
-      <div style="max-width:540px;margin:0 auto;padding:12px">
+      <div style="max-width:560px;margin:0 auto;padding:10px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <button onclick="App.showAdminReports()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:7px 13px;border-radius:8px;cursor:pointer">← Zurück</button>
-          <h2 style="margin:0;font-size:1rem">Meldung — Detail</h2>
+          <button onclick="App.showAdminReports()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.9rem">← Meldungen</button>
+          <div style="font-weight:700;font-size:.95rem">Meldung — Detail</div>
         </div>
-        <div style="background:rgba(20,10,30,.9);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden">
-          <!-- Header -->
-          <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(231,76,60,.08)">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-weight:900;font-size:1.05rem;color:#E74C3C">⚑ ${r.reported}</span>
-              <span style="font-size:.75rem;padding:3px 10px;border-radius:20px;background:${statusColor[r.status||'open']}22;color:${statusColor[r.status||'open']};border:1px solid ${statusColor[r.status||'open']}44">
-                ${statusLabel[r.status||'open']}
-              </span>
+
+        <div style="background:rgba(20,10,30,.97);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden">
+          <!-- Status header -->
+          <div style="background:rgba(231,76,60,.1);padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-bottom:3px">GEMELDETER SPIELER</div>
+              <div style="font-weight:900;font-size:1.1rem;color:#ff6b6b">⚑ ${r.reportedDisplay||r.reported}</div>
             </div>
-            <div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-top:3px">${r.tsStr||''}</div>
+            <span style="font-size:.75rem;padding:4px 12px;border-radius:20px;background:${SC[st]}22;color:${SC[st]};border:1.5px solid ${SC[st]}55;font-weight:700">${SL[st]}</span>
           </div>
-          <!-- Details -->
+
+          <!-- Info rows -->
           <div style="padding:14px 18px">
-            <div style="margin-bottom:12px">
-              <div style="font-size:.72rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;margin-bottom:4px">Melder</div>
-              <div style="font-size:.92rem">${r.reporterDisplay||r.reporter||'?'}</div>
-            </div>
-            <div style="margin-bottom:12px">
-              <div style="font-size:.72rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;margin-bottom:4px">Grund</div>
-              <div style="font-size:.92rem;font-weight:700;color:#E74C3C">${r.reason||'?'}</div>
-            </div>
-            <div style="margin-bottom:12px">
-              <div style="font-size:.72rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;margin-bottom:4px">Beschreibung</div>
-              <div style="font-size:.88rem;line-height:1.5;background:rgba(255,255,255,.04);padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.07)">
-                ${r.desc||'<i style="opacity:.4">Keine Beschreibung</i>'}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div style="background:rgba(255,255,255,.03);border-radius:9px;padding:10px 12px">
+                <div style="font-size:.67rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;margin-bottom:4px">Gemeldet von</div>
+                <div style="font-size:.9rem;font-weight:700">${r.reporterDisplay||r.reporter||'?'}</div>
+              </div>
+              <div style="background:rgba(255,255,255,.03);border-radius:9px;padding:10px 12px">
+                <div style="font-size:.67rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;margin-bottom:4px">Datum</div>
+                <div style="font-size:.85rem">${r.tsStr||'?'}</div>
               </div>
             </div>
-            ${r.imageB64 ? `
-            <div style="margin-bottom:12px">
-              <div style="font-size:.72rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;margin-bottom:6px">📸 Beweis-Bild</div>
-              <img src="${r.imageB64}" style="max-width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer" onclick="window.open(this.src,'_blank')">
-              <div style="font-size:.7rem;color:rgba(255,255,255,.3);margin-top:3px">Klicken zum Vergrößern</div>
+
+            <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:9px;padding:11px 13px;margin-bottom:12px">
+              <div style="font-size:.67rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;margin-bottom:4px">Grund</div>
+              <div style="font-size:.95rem;font-weight:900;color:#ff6b6b">${r.reason||'?'}</div>
+            </div>
+
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:11px 13px;margin-bottom:14px">
+              <div style="font-size:.67rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;margin-bottom:6px">Beschreibung</div>
+              <div style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.85)">${r.desc||'<i style="opacity:.4">Keine Beschreibung angegeben</i>'}</div>
+            </div>
+
+            ${imageB64 ? `
+            <div style="margin-bottom:14px">
+              <div style="font-size:.67rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;margin-bottom:7px">📸 BEWEIS-SCREENSHOT</div>
+              <div style="border-radius:10px;overflow:hidden;border:2px solid rgba(74,144,226,.3);cursor:pointer;background:#000;text-align:center"
+                onclick="App._fullscreenImg('${imageB64}')">
+                <img src="${imageB64}" style="max-width:100%;max-height:220px;object-fit:contain;display:block;margin:0 auto">
+                <div style="padding:5px;font-size:.72rem;color:rgba(74,144,226,.7);background:rgba(74,144,226,.06)">🔍 Tippen zum Vergrößern</div>
+              </div>
+            </div>` : r.hasImage ? `
+            <div style="margin-bottom:14px;padding:12px;border-radius:9px;background:rgba(255,165,0,.07);border:1px solid rgba(255,165,0,.2);text-align:center;color:rgba(255,165,0,.7);font-size:.82rem">
+              ⏳ Screenshot wird geladen...
             </div>` : ''}
           </div>
-          <!-- Admin Actions -->
-          <div style="padding:0 18px 14px">
-            <div style="font-size:.72rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;margin-bottom:8px">Admin-Aktionen</div>
-            <!-- Status change -->
-            <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-              ${['open','reviewing','resolved','dismissed'].map(s =>
-                `<button onclick="App._setReportStatus('${reportId}','${s}')"
-                  style="flex:1;min-width:80px;padding:8px 6px;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;
-                         background:${statusColor[s]}22;border:1.5px solid ${statusColor[s]}44;color:${statusColor[s]}">
-                  ${statusLabel[s]}
-                </button>`
-              ).join('')}
+
+          <!-- Status buttons -->
+          <div style="padding:0 18px 8px">
+            <div style="font-size:.67rem;color:rgba(255,255,255,.35);font-weight:700;text-transform:uppercase;margin-bottom:7px">Status ändern</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              ${Object.entries(SL).map(([k,v]) => `
+                <button onclick="App._setStatus('${reportId}','${k}')"
+                  style="flex:1;min-width:70px;padding:8px 5px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.15s;
+                         background:${k===st?SC[k]+'44':'rgba(255,255,255,.06)'};
+                         border:1.5px solid ${k===st?SC[k]:' rgba(255,255,255,.1)'};
+                         color:${k===st?SC[k]:'rgba(255,255,255,.5)'}">${v}</button>
+              `).join('')}
             </div>
-            <!-- Ban section -->
-            <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:10px;padding:12px">
-              <div style="font-weight:700;color:#E74C3C;margin-bottom:8px;font-size:.88rem">🚫 Spieler sperren: ${r.reported}</div>
-              <select id="ban-duration" style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:7px;margin-bottom:8px;font-size:.85rem">
-                <option value="3600000">1 Stunde</option>
-                <option value="86400000">24 Stunden</option>
-                <option value="259200000">3 Tage</option>
-                <option value="604800000">7 Tage</option>
-                <option value="2592000000">30 Tage</option>
-                <option value="0">Permanent</option>
-              </select>
-              <input id="ban-reason" placeholder="Sperrgrund (wird dem Spieler angezeigt)" value="${r.reason||''}"
-                style="width:100%;box-sizing:border-box;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:7px;margin-bottom:8px;font-size:.85rem">
-              <button onclick="App._banPlayerFromReport('${r.reported}','${reportId}')"
-                style="width:100%;padding:10px;background:rgba(231,76,60,.4);border:1.5px solid rgba(231,76,60,.6);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:.9rem">
-                🚫 Spieler sperren
-              </button>
-              <button onclick="App._unbanPlayer('${r.reported}')"
-                style="width:100%;margin-top:6px;padding:9px;background:rgba(39,174,96,.15);border:1px solid rgba(39,174,96,.3);color:#27AE60;border-radius:8px;cursor:pointer;font-size:.85rem">
-                ✅ Sperrung aufheben
-              </button>
+          </div>
+
+          <!-- Ban actions -->
+          <div style="padding:10px 18px 16px">
+            <div style="background:rgba(231,76,60,.07);border:1.5px solid rgba(231,76,60,.2);border-radius:12px;padding:14px">
+              <div style="font-weight:900;color:#E74C3C;margin-bottom:10px;display:flex;align-items:center;gap:7px">
+                🚫 <span>Spieler sperren</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                <!-- Ban reported -->
+                <div style="background:rgba(0,0,0,.2);border-radius:9px;padding:10px">
+                  <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:7px;font-weight:700">⚑ ${r.reportedDisplay||r.reported}</div>
+                  <select id="ban-dur-reported" style="width:100%;padding:7px 8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:7px;font-size:.8rem;margin-bottom:7px">
+                    <option value="3600000">1 Stunde</option>
+                    <option value="86400000" selected>24 Stunden</option>
+                    <option value="259200000">3 Tage</option>
+                    <option value="604800000">7 Tage</option>
+                    <option value="2592000000">30 Tage</option>
+                    <option value="0">Permanent</option>
+                  </select>
+                  <button onclick="App._doBan('${r.reportedDisplay||r.reported}','${reportId}','reported')"
+                    style="width:100%;padding:9px;background:rgba(231,76,60,.4);border:1.5px solid rgba(231,76,60,.6);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:.82rem">
+                    🚫 Sperren
+                  </button>
+                  <button onclick="App._doUnban('${r.reportedDisplay||r.reported}')"
+                    style="width:100%;margin-top:5px;padding:8px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:#2ecc71;border-radius:7px;cursor:pointer;font-size:.78rem">
+                    ✅ Freigeben
+                  </button>
+                </div>
+                <!-- Ban reporter (false report) -->
+                <div style="background:rgba(0,0,0,.2);border-radius:9px;padding:10px">
+                  <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:7px;font-weight:700">📢 ${r.reporterDisplay||r.reporter} (Melder)</div>
+                  <select id="ban-dur-reporter" style="width:100%;padding:7px 8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:7px;font-size:.8rem;margin-bottom:7px">
+                    <option value="3600000">1 Stunde</option>
+                    <option value="86400000" selected>24 Stunden</option>
+                    <option value="259200000">3 Tage</option>
+                    <option value="604800000">7 Tage</option>
+                    <option value="2592000000">30 Tage</option>
+                    <option value="0">Permanent</option>
+                  </select>
+                  <button onclick="App._doBan('${r.reporterDisplay||r.reporter}','${reportId}','reporter')"
+                    style="width:100%;padding:9px;background:rgba(231,76,60,.4);border:1.5px solid rgba(231,76,60,.6);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:.82rem">
+                    🚫 Sperren
+                  </button>
+                  <button onclick="App._doUnban('${r.reporterDisplay||r.reporter}')"
+                    style="width:100%;margin-top:5px;padding:8px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:#2ecc71;border-radius:7px;cursor:pointer;font-size:.78rem">
+                    ✅ Freigeben
+                  </button>
+                </div>
+              </div>
+              <input id="ban-reason-txt" value="${(r.reason||'').replace(/"/g,"'")}" placeholder="Sperrgrund"
+                style="width:100%;box-sizing:border-box;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:7px;font-size:.85rem">
             </div>
           </div>
         </div>
       </div>`);
   },
 
-  async _setReportStatus(reportId, status) {
-    try {
-      if(typeof _db!=='undefined'&&_db) await _db.collection('player_reports').doc(reportId).update({status});
-      if(window._adminReportCache?.[reportId]) window._adminReportCache[reportId].status = status;
-    } catch(e) { console.warn(e); }
-    this.showAdminReports();
+  _fullscreenImg(src) {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:10px';
+    ov.onclick = () => ov.remove();
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,.8)';
+    ov.appendChild(img);
+    document.body.appendChild(ov);
   },
 
-  async _banPlayerFromReport(playerName, reportId) {
-    const dur = parseInt(document.getElementById('ban-duration')?.value||'86400000');
-    const reason = document.getElementById('ban-reason')?.value||'Regelverstoß';
-    if(!confirm(`Spieler "${playerName}" sperren?
+  async _setStatus(reportId, status) {
+    try {
+      if(typeof _db!=='undefined'&&_db) await _db.collection('player_reports').doc(reportId).update({status});
+      if(window._rCache?.[reportId]) window._rCache[reportId].status = status;
+      await this._openReport(reportId);
+    } catch(e) { alert('Fehler: '+e.message); }
+  },
+
+  async _doBan(playerName, reportId, who) {
+    const selectId = who === 'reported' ? 'ban-dur-reported' : 'ban-dur-reporter';
+    const dur = parseInt(document.getElementById(selectId)?.value||'86400000');
+    const reason = document.getElementById('ban-reason-txt')?.value||'Regelverstoß';
+    if(!confirm(`"${playerName}" sperren?
 Grund: ${reason}`)) return;
     try {
       if(typeof _db!=='undefined'&&_db) {
-        const banData = {
-          reason, bannedAt: Date.now(),
-          permanent: dur === 0,
-          expiresAt: dur === 0 ? null : Date.now() + dur,
-          bannedBy: State.currentPlayer?.name||'admin',
-          reportId,
-        };
-        await _db.collection('player_bans').doc(playerName.toLowerCase()).set(banData);
-        await _db.collection('player_reports').doc(reportId).update({status:'resolved'});
-        if(window._adminReportCache?.[reportId]) window._adminReportCache[reportId].status = 'resolved';
+        await _db.collection('player_bans').doc(playerName.toLowerCase()).set({
+          reason, bannedAt: Date.now(), permanent: dur===0,
+          expiresAt: dur===0 ? null : Date.now()+dur,
+          bannedBy: State.currentPlayer?.name||'admin', reportId,
+        });
+        if(who==='reported') await _db.collection('player_reports').doc(reportId).update({status:'resolved'});
       }
-      alert(`✅ ${playerName} wurde gesperrt.`);
+      alert(`✅ ${playerName} gesperrt${dur===0?' (permanent)':' für '+(dur/3600000<24?dur/3600000+'h':dur/86400000+'d')}.`);
+      this.showAdminReports();
     } catch(e) { alert('Fehler: '+e.message); }
-    this.showAdminReports();
   },
 
-  async _unbanPlayer(playerName) {
+  async _doUnban(playerName) {
     if(!confirm(`Sperrung von "${playerName}" aufheben?`)) return;
     try {
       if(typeof _db!=='undefined'&&_db) await _db.collection('player_bans').doc(playerName.toLowerCase()).delete();
-      alert(`✅ Sperrung von ${playerName} aufgehoben.`);
+      alert(`✅ ${playerName} freigegeben.`);
     } catch(e) { alert('Fehler: '+e.message); }
-    this.showAdminReports();
   },
 
-  
+
   async _checkAdminMessages(playerName) {
     try {
       if(typeof _db === 'undefined' || !_db || !playerName) return;
@@ -1753,7 +1847,7 @@ Grund: ${reason}`)) return;
   },
   
   _toggleZoom() {
-    const levels = [1, 1.25, 1.5, 1.75, 0.85];
+    const levels = [1, 1.25, 1.5, 1.75, 2.0, 2.5, 0.85];
     this._zoomLevel = this._zoomLevel || 1;
     const currentIdx = levels.findIndex(l => Math.abs(l - this._zoomLevel) < 0.05);
     this._zoomLevel = levels[(currentIdx + 1) % levels.length];

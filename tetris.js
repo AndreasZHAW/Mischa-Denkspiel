@@ -3,7 +3,10 @@ const TetrisGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
     if (!el) return;
-    const COLS=10,ROWS=20,CS=22;
+    const COLS=10, ROWS=20;
+    // Compute cell size so board fits screen with correct aspect ratio
+    const maxW = Math.min(el.offsetWidth||300, 300);
+    const CS = Math.max(16, Math.floor(maxW / (COLS + 4))); // leave room for sidebar
     const PIECES=[
       [[1,1,1,1]],
       [[1,1],[1,1]],
@@ -15,7 +18,7 @@ const TetrisGame = {
     ];
     const COLORS=['#00CFFF','#FFD700','#9B59B6','#E67E22','#3498DB','#E74C3C','#27AE60'];
     el.innerHTML=`<div style="display:flex;gap:10px;justify-content:center;align-items:flex-start">
-      <canvas id="trcv" width="${COLS*CS}" height="${ROWS*CS}" style="border:2px solid #333;border-radius:4px;background:#111;display:block;margin:0 auto;max-width:100%"></canvas>
+      <canvas id="trcv" width="${COLS*CS}" height="${ROWS*CS}" style="border:2px solid #333;border-radius:4px;background:#111;display:block;width:${COLS*CS}px;height:${ROWS*CS}px;flex-shrink:0"></canvas>
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:10px">
         <div id="tr-score" style="color:#FFD700;font-weight:900;font-size:1rem;min-width:80px">Score:<br>0</div>
         <div id="tr-level" style="color:#29B6F6;font-size:.85rem">Level: 1</div>
