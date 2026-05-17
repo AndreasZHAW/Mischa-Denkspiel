@@ -112,7 +112,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.05.05-1141</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.05.05-1141</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -123,7 +123,7 @@ const App = {
             <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#333;line-height:1.6">
               Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.<br>
               Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).<br>
-              <span style="color:#888;font-size:.76rem">🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...</span>
+              <span style="color:#888;font-size:var(--fs-sm)">🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...</span>
             </div>
           </div>
 
@@ -133,7 +133,7 @@ const App = {
             <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#333;line-height:1.6">
               Teleportiere für <b>10 🌀 MT</b> in den Zoo.<br>
               Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.<br>
-              <span style="color:#888;font-size:.76rem">🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System</span>
+              <span style="color:#888;font-size:var(--fs-sm)">🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System</span>
             </div>
           </div>
 
@@ -911,7 +911,7 @@ const App = {
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:${isMe?'rgba(41,182,246,.12)':'rgba(255,255,255,.04)'};border:${isMe?'1px solid rgba(41,182,246,.3)':'1px solid transparent'}">
         <div style="font-size:1.1rem;min-width:28px;text-align:center">${medal||('<span style="color:rgba(255,255,255,.3);font-size:.85rem">#'+(i+1)+'</span>')}</div>
         <div style="flex:1">
-          <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#29B6F6">(Du)</span>':''}</div>
+          <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:clamp(0.92rem,4vw,1.05rem);color:#29B6F6">(Du)</span>':''}</div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>
         </div>
         <div style="text-align:right">

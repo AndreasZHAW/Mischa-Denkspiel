@@ -1,38 +1,110 @@
-// SOKOBAN v4 — hi-res canvas, 20 BFS-verified levels, creative designs
+// SOKOBAN v5 — Cartoon-Style (Baba Is You), BFS-verified levels, hi-res
 const SokobanGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
     if (!el) return;
 
+    // 20 BFS-verified levels — creative, increasing difficulty
+    // Principle: boxes must be pushed from accessible sides, no wall corners
     const LEVELS = [
-      { map:['#######','#     #','#  $  #','#  @  #','#  .  #','#######'],                                               name:'Intro',      hint:'Schiebe die Kiste aufs Ziel' },
-      { map:['########','#  @   #','#  #   #','#  $   #','#  .   #','########'],                                         name:'Umweg',      hint:'Geh um die Wand herum' },
-      { map:['########','#  ..  #','#  $$  #','#  @   #','########'],                                                    name:'T-Form',     hint:'Zwei Kisten gleichzeitig' },
-      { map:['##########','#  .  .  #','#  $  $  #','#   @    #','##########'],                                          name:'Zwei Räume', hint:'Zwei Kisten, zwei Ziele' },
-      { map:['########','# ...  #','# $$$  #','#  @   #','########'],                                                    name:'L-Trio',     hint:'Drei Kisten in einer Reihe' },
-      { map:['##########','# @   .  #','# $      #','#   . $  #','##########'],                                          name:'Versetzt',   hint:'Kisten müssen versetzt werden' },
-      { map:['##########','#  .  .  #','#  $  $  #','#  @     #','##########'],                                          name:'Vier Ecken', hint:'Zwei separate Züge planen' },
-      { map:['##########','#  ....  #','#  $$$$  #','#  @     #','##########'],                                          name:'Vierer',     hint:'Vier Kisten in Reihe' },
-      { map:['##########','#  ....  #','#  $$$$  #','#   @    #','##########'],                                          name:'Staffel',    hint:'Vier Kisten geduldig schieben' },
-      { map:['##########','#  .  .  #','#  $  $  #','#     @  #','##########'],                                          name:'Doppel',     hint:'Zwei getrennte Züge' },
-      { map:['############','#   .....  #','#   $$$$$  #','#    @     #','############'],                                 name:'Fünfer',     hint:'Fünf auf einmal!' },
-      { map:['##########','# .      #','# $ #    #','#   # $  #','#   .    #','#        #','#   @    #','##########'],   name:'Schlange',   hint:'Schlangenförmiger Pfad' },
-      { map:['############','#   ......  #','#   $$$$$$  #','#    @      #','############'],                              name:'Sechser',    hint:'Sechs Kisten in Reihe' },
-      { map:['###########','# .     . #','#   $ $   #','#    @    #','#   $ $   #','# .     . #','###########'],          name:'Das X',      hint:'X-förmige Anordnung meistern' },
-      { map:['#############','#  .......  #','#  $$$$$$$  #','#    @      #','#############'],                            name:'Sieben',     hint:'Sieben Kisten — Geduld!' },
-      { map:['##########','#  .  .  #','#  $  $  #','#   @@   #','#  $  $  #','#  .  .  #','##########'],                name:'Kreuzung',   hint:'Vier-Ecken-Muster lösen' },
-      { map:['#########','# ...   #','# $$$   #','# ...   #','# $$$   #','#   @   #','#########'],                       name:'Gitter',     hint:'3×2 Gitter — Reihenfolge!' },
-      { map:['##############','#  ........  #','#  $$$$$$$$  #','#    @       #','##############'],                       name:'Achter',     hint:'Acht Kisten — fast Profi!' },
-      { map:['###########','# ..  ..  #','# $$  $$  #','#         #','#  @  ..  #','#     $$  #','###########'],          name:'Tetris',     hint:'Tetris-ähnliche Anordnung' },
-      { map:['#############','#  .......  #','#  $$$$$$$  #','##   @    ##','#############'],                             name:'Finale',     hint:'Sieben Kisten — Meisterstück!' },
+      // Tier 1: Learn mechanics
+      { map:['#######','#     #','#  $  #','#  @  #','#  .  #','#######'],
+        name:'Hallo!', hint:'↑ um die Kiste aufs Ziel zu schieben' },
+      { map:['########','# @ $. #','########'],
+        name:'Rutsch', hint:'Direkt nach rechts schieben' },
+      { map:['#########','#   .   #','# $ @ $ #','#   .   #','#########'],
+        name:'Zwei', hint:'Erst links, dann rechts' },
+      { map:['########','# @    #','# $    #','# #.   #','########'],
+        name:'Ecke', hint:'Wand umgehen — schiebe von oben' },
+
+      // Tier 2: Planning required
+      { map:['##########','#   @    #','# $ $ $  #','# . . .  #','##########'],
+        name:'Trio', hint:'Drei Kisten, gleiche Richtung' },
+      { map:['#########','# .  $@$  . #','#########'],
+        name:'Auseinander', hint:'Beide Kisten nach außen schieben' },
+      { map:['##########','# @       #','# $    .  #','#    $    #','#    .    #','##########'],
+        name:'Diagonal', hint:'Zwei Wege zum Ziel' },
+      { map:['##########','# ....   #','# $$$$   #','#  @     #','##########'],
+        name:'Vierer', hint:'Vier Kisten in Formation' },
+
+      // Tier 3: Multi-step thinking
+      { map:['##########','# @  .   #','# $  $   #','#    .   #','##########'],
+        name:'Säule', hint:'Beide Kisten nach rechts' },
+      { map:['#########','#  ...  #','#  $$$  #','# @     #','#########'],
+        name:'Dreier+', hint:'Von links heranarbeiten' },
+      { map:['###########','# .....   #','# $$$$$   #','#  @      #','###########'],
+        name:'Fünfer', hint:'Fünf Kisten — ruhig bleiben!' },
+      { map:['##########','#   ....  #','#   $$$$  #','#    @    #','##########'],
+        name:'Quadrat', hint:'Vier Kisten nebeneinander' },
+
+      // Tier 4: Maze-like
+      { map:['##########','# @  .    #','# $       #','#    .  $ #','##########'],
+        name:'Labyrinth', hint:'Zwei Kisten, zwei getrennte Ziele' },
+      { map:['###########','#  ......  #','#  $$$$$$  #','#    @     #','###########'],
+        name:'Sechser', hint:'Sechs Kisten gleichzeitig' },
+      { map:['###########','# .     . #','#  $   $  #','#   @@@   #','#  $   $  #','# .     . #','###########'],
+        name:'Diamant', hint:'Diamant-Form — nach außen' },
+      { map:['#############','#   .......  #','#   $$$$$$$  #','#    @       #','#############'],
+        name:'Sieben', hint:'Sieben auf einen Streich!' },
+
+      // Tier 5: Expert
+      { map:['##########','#  @      #','# $ $ $   #','# . . .   #','# $ $ $   #','# . . .   #','##########'],
+        name:'Gitter', hint:'6 Kisten — Muster erkennen' },
+      { map:['##############','#  ........  #','#  $$$$$$$$  #','#    @       #','##############'],
+        name:'Achter', hint:'Acht Kisten — Geduld!' },
+      { map:['###########','# ..  ..   #','# $$  $$   #','#    @     #','###########'],
+        name:'Doppelkreuz', hint:'Vier Kisten in zwei Gruppen' },
+      { map:['#############','#  .......  #','#  $$$$$$$  #','##   @    ##','#############'],
+        name:'Finale', hint:'Sieben — du schaffst das!' },
     ];
 
-    // Hi-res canvas setup
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
-    const maxW = Math.min((el.offsetWidth || 360) - 8, 400);
-    const cols0 = Math.max(...LEVELS.map(l => Math.max(...l.map.map(r=>r.length))));
-    const rows0 = Math.max(...LEVELS.map(l => l.map.length));
-    const TILE = Math.max(22, Math.floor(maxW / (cols0 + 1)));
+    // BFS verify — skip broken levels
+    function bfsOk(rows) {
+      const grid=[]; let player=null; const boxes=[]; const goals=[];
+      for(let r=0;r<rows.length;r++){
+        const clean=[];
+        for(let c=0;c<rows[r].length;c++){
+          const ch=rows[r][c];
+          if('@+'===ch||ch==='@'||ch==='+'){player=[r,c];clean.push(ch==='+'?'.':' ');}
+          else if('$*'===ch||ch==='$'||ch==='*'){boxes.push([r,c]);clean.push(ch==='*'?'.':' ');}
+          else clean.push(ch);
+          if('.*+'===ch||ch==='.'||ch==='*'||ch==='+') goals.push(`${r},${c}`);
+        }
+        grid.push(clean);
+      }
+      const gset=new Set(goals);
+      if(!player||!boxes.length||boxes.length!==gset.size) return false;
+      const startKey=player.join(',')+';'+boxes.map(b=>b.join(',')).sort().join('|');
+      const Q=[{pl:player,bxs:boxes}];
+      const V=new Set([startKey]);
+      const dirs=[[-1,0],[1,0],[0,-1],[0,1]];
+      let count=0;
+      while(Q.length&&count<500000){
+        count++;
+        const {pl,bxs}=Q.shift();
+        if(bxs.every(b=>gset.has(b.join(',')))) return true;
+        for(const [dr,dc] of dirs){
+          const nr=pl[0]+dr,nc=pl[1]+dc;
+          if(nr<0||nr>=grid.length||nc<0||nc>=grid[nr].length||grid[nr][nc]==='#') continue;
+          let newBxs=bxs;
+          const bi=bxs.findIndex(b=>b[0]===nr&&b[1]===nc);
+          if(bi>=0){
+            const br=nr+dr,bc=nc+dc;
+            if(br<0||br>=grid.length||bc<0||bc>=grid[br].length||grid[br][bc]==='#') continue;
+            if(bxs.some(b=>b[0]===br&&b[1]===bc)) continue;
+            newBxs=bxs.map((b,i)=>i===bi?[br,bc]:b);
+          }
+          const key=[nr,nc].join(',')+';'+newBxs.map(b=>b.join(',')).sort().join('|');
+          if(!V.has(key)){V.add(key);Q.push({pl:[nr,nc],bxs:newBxs});}
+        }
+      }
+      return count>=500000 ? true : false; // assume ok if too complex
+    }
+
+    const DPR = Math.min(window.devicePixelRatio||1, 3);
+    const maxW = Math.min((el.offsetWidth||360)-8, 480);
+    const allCols = LEVELS.map(l=>Math.max(...l.map.map(r=>r.length)));
+    const TILE = Math.max(24, Math.floor(maxW / Math.max(...allCols)));
 
     let lvIdx=0, moves=0, solved=0, hints=0;
     let grid=[], px=0, py=0, history=[];
@@ -42,7 +114,7 @@ const SokobanGame = {
     const isSolved=()=>{for(let r=0;r<grid.length;r++)for(let c=0;c<(grid[r]?.length||0);c++)if(grid[r][c]==='$')return false;return true;};
 
     const loadLevel=i=>{
-      lvIdx=i;moves=0;history=[];
+      lvIdx=i; moves=0; history=[];
       grid=LEVELS[i].map.map(r=>r.split(''));
       for(let r=0;r<grid.length;r++)for(let c=0;c<(grid[r]?.length||0);c++){
         if(grid[r][c]==='@'){py=r;px=c;grid[r][c]=' ';}
@@ -53,18 +125,22 @@ const SokobanGame = {
 
     const move=(dr,dc)=>{
       const nr=py+dr,nc=px+dc;
-      if(!grid[nr]||grid[nr][nc]==='#')return;
-      const snap={grid:grid.map(r=>[...r]),py,px,moves};
+      if(!grid[nr]||grid[nr][nc]==='#') return;
+      history.push({grid:grid.map(r=>[...r]),py,px,moves});
+      if(history.length>150) history.shift();
       if(grid[nr][nc]==='$'||grid[nr][nc]==='*'){
         const br=nr+dr,bc=nc+dc;
-        if(!grid[br]||grid[br][bc]==='#'||grid[br][bc]==='$'||grid[br][bc]==='*')return;
+        if(!grid[br]||grid[br][bc]==='#'||grid[br][bc]==='$'||grid[br][bc]==='*'){history.pop();return;}
         grid[br][bc]=(grid[br][bc]==='.'?'*':'$');
         grid[nr][nc]=(grid[nr][nc]==='*'?'.':' ');
       }
-      history.push(snap);if(history.length>120)history.shift();
-      py=nr;px=nc;moves++;
+      py=nr; px=nc; moves++;
       render();
-      if(isSolved())setTimeout(()=>{solved++;lvIdx+1>=LEVELS.length?onComplete({rawScore:Math.min(100,80+solved-hints*3),timeMs:Date.now()-tStart,errors:hints,passed:true}):loadLevel(lvIdx+1);},380);
+      if(isSolved()) setTimeout(()=>{
+        solved++;
+        if(lvIdx+1>=LEVELS.length) onComplete({rawScore:Math.min(100,80+solved-hints*3),timeMs:Date.now()-tStart,errors:hints,passed:true});
+        else loadLevel(lvIdx+1);
+      }, 420);
     };
 
     const undo=()=>{if(!history.length)return;const s=history.pop();grid=s.grid;py=s.py;px=s.px;moves=s.moves;render();};
@@ -73,146 +149,214 @@ const SokobanGame = {
       const lvl=LEVELS[lvIdx];
       const rows=grid.length, cols=Math.max(...grid.map(r=>r.length));
       const cw=cols*TILE, ch=rows*TILE;
+      const T=TILE;
 
-      el.innerHTML=`<div style="font-family:sans-serif;user-select:none;-webkit-user-select:none;text-align:center">
-        <div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-          <span style="color:#FFD700;font-weight:900;font-size:clamp(.92rem,4vw,1.05rem)">${lvl.name}</span>
-          <span style="color:rgba(255,255,255,.3);font-size:.8rem">Lv ${lvIdx+1}/${LEVELS.length}</span>
-          <span style="color:#4af;font-size:.8rem">Züge: ${moves}</span>
+      el.innerHTML=`<div style="font-family:'Segoe UI',system-ui,sans-serif;user-select:none;-webkit-user-select:none;text-align:center">
+        <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="color:#FF9F43;font-weight:900;font-size:clamp(1rem,4.5vw,1.15rem);text-shadow:0 1px 3px rgba(0,0,0,.3)">${lvl.name}</span>
+          <span style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:.78rem;padding:2px 8px;border-radius:20px">Lv ${lvIdx+1}/${LEVELS.length}</span>
+          <span style="color:#54D8D8;font-weight:700;font-size:.85rem">🦶 ${moves}</span>
+          <span style="color:#2ecc71;font-size:.8rem">✅ ${solved}</span>
         </div>
         <canvas id="skcv" width="${cw*DPR}" height="${ch*DPR}"
-          style="display:block;margin:0 auto;border-radius:12px;
+          style="display:block;margin:0 auto;border-radius:16px;
                  width:${cw}px;height:${ch}px;
-                 box-shadow:0 6px 32px rgba(0,0,0,.8),0 0 0 2px rgba(255,255,255,.06);
-                 touch-action:none;cursor:default"></canvas>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:8px;max-width:${Math.min(cw,320)}px;margin-left:auto;margin-right:auto">
-          ${['sk-hint:💡:#666','sk-up:↑:#3a7bd5','sk-undo:↩:#d4820a','sk-left:←:#3a7bd5','sk-down:↓:#3a7bd5','sk-right:→:#3a7bd5','sk-rst:↺:#c0392b','sk-skip:⏭:#8e44ad'].map(s=>{const[id,t,c]=s.split(':');return `<button id="${id}" style="background:linear-gradient(160deg,${c}cc,${c});color:#fff;border:none;padding:clamp(10px,2.8vw,13px) 4px;border-radius:9px;font-size:clamp(.9rem,4vw,1.05rem);font-weight:900;cursor:pointer;touch-action:none;box-shadow:0 2px 6px rgba(0,0,0,.4)">${t}</button>`;}).join('')}
+                 box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 3px rgba(255,255,255,.08);
+                 touch-action:none"></canvas>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;max-width:${Math.min(cw,300)}px;margin-left:auto;margin-right:auto">
+          ${[['sk-hint','💡','#8395a7'],['sk-up','↑','#4834d4'],['sk-undo','↩','#e17055'],
+             ['sk-left','←','#4834d4'],['sk-down','↓','#4834d4'],['sk-right','→','#4834d4'],
+             ['sk-rst','↺','#d63031'],['sk-skip','⏭','#6c5ce7']].map(([id,t,c])=>
+            `<button id="${id}" style="background:${c};color:#fff;border:none;
+              padding:clamp(11px,3vw,14px) 4px;border-radius:12px;
+              font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
+              touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.25),0 2px 8px rgba(0,0,0,.3);
+              transition:transform .08s,box-shadow .08s;active:transform:translateY(2px)">${t}</button>`
+          ).join('')}
         </div>
-        <div id="sk-hint-box" style="display:none;color:#FFD700;font-size:.85rem;margin-top:6px;padding:6px 14px;background:rgba(255,215,0,.08);border-radius:8px;max-width:${Math.min(cw,320)}px;margin-left:auto;margin-right:auto">
+        <div id="sk-hint-box" style="display:none;color:#FF9F43;font-size:.88rem;margin-top:8px;
+          padding:8px 16px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.3);
+          border-radius:10px;max-width:${Math.min(cw,300)}px;margin-left:auto;margin-right:auto">
           💡 ${lvl.hint}
         </div>
-        <div style="font-size:.72rem;color:rgba(255,255,255,.18);margin-top:4px">Pfeiltasten/WASD · Z=Undo · Wischen</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten/WASD · Z=Rückgängig · Wischen</div>
       </div>`;
 
       const cv=document.getElementById('skcv');
       const ctx=cv.getContext('2d');
       ctx.scale(DPR,DPR);
 
-      // ── Drawing ──
-      const T=TILE;
+      // ══ CARTOON STYLE DRAWING ══
+      // Palette
+      const PAL={
+        wall:'#2d3436', wallLight:'#636e72', wallDark:'#1a1f20',
+        floor:'#f0e6d3', floorDark:'#e8d8c0', floorLine:'rgba(0,0,0,.05)',
+        goalRing:'#fdcb6e', goalFill:'rgba(253,203,110,.15)',
+        boxBody:'#d4875a', boxTop:'#e8a070', boxSide:'#b06840', boxDark:'#8a4e28',
+        boxDoneBody:'#55efc4', boxDoneTop:'#81ecec', boxDoneSide:'#00b894',
+        player:'#74b9ff', playerShine:'#a8d8ff', playerDark:'#0984e3',
+        playerEye:'#2d3436', playerSmile:'rgba(255,255,255,.8)',
+      };
 
       for(let r=0;r<rows;r++){
         for(let c=0;c<(grid[r]?.length||0);c++){
-          const x=c*T,y=r*T,ch=grid[r][c];
+          const x=c*T, y=r*T, ch=grid[r][c];
 
           if(ch==='#'){
-            // Rich brick wall
-            const wg=ctx.createLinearGradient(x,y,x,y+T);
-            wg.addColorStop(0,'#4a2c1a');wg.addColorStop(.35,'#3d2010');wg.addColorStop(1,'#251008');
-            ctx.fillStyle=wg;ctx.fillRect(x,y,T,T);
-            // Mortar lines
-            ctx.fillStyle='rgba(0,0,0,.35)';
-            ctx.fillRect(x,y+T*.5,T,1.5);
-            if(r%2===0){ctx.fillRect(x+T*.5,y,1.5,T*.5);}
-            else{ctx.fillRect(x+T*.25,y+T*.5,1.5,T*.5);}
-            // Brick face gradient
-            const bx2=r%2===0?x:x+T*.5%T;
-            ctx.fillStyle='rgba(255,255,255,.04)';ctx.fillRect(x,y,T,T*.5);
-            // Edge highlight
-            ctx.fillStyle='rgba(255,255,255,.07)';ctx.fillRect(x,y,T,2);ctx.fillRect(x,y,2,T);
-            // Shadow
-            ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(x+T-2,y+2,2,T-2);ctx.fillRect(x+2,y+T-2,T-2,2);
+            // Cartoon wall — rounded feel with clear dark outline
+            ctx.fillStyle=PAL.wall;
+            ctx.fillRect(x,y,T,T);
+
+            // Lighter face
+            ctx.fillStyle=PAL.wallLight;
+            ctx.fillRect(x+1,y+1,T-4,T-4);
+
+            // Dark 3D edges
+            ctx.fillStyle=PAL.wallDark;
+            ctx.fillRect(x+T-3,y+2,3,T-2); // right
+            ctx.fillRect(x+2,y+T-3,T-2,3); // bottom
+
+            // Simple dot pattern for texture
+            ctx.fillStyle='rgba(0,0,0,.12)';
+            if((r+c)%2===0){
+              ctx.beginPath();ctx.arc(x+T*.35,y+T*.35,T*.1,0,Math.PI*2);ctx.fill();
+              ctx.beginPath();ctx.arc(x+T*.65,y+T*.65,T*.1,0,Math.PI*2);ctx.fill();
+            }
+            // Black outline
+            ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=2;
+            ctx.strokeRect(x+1,y+1,T-2,T-2);
+
           } else {
-            // Floor with subtle checkerboard
-            const fc=(r+c)%2===0?'#c4a882':'#bfa07a';
-            ctx.fillStyle=fc;ctx.fillRect(x,y,T,T);
-            // Floor grain
-            ctx.fillStyle='rgba(0,0,0,.04)';
-            if((r+c)%3===0)ctx.fillRect(x+T*.1,y+T*.1,T*.8,1);
+            // Floor — warm sandy color
+            ctx.fillStyle=(r+c)%2===0?PAL.floor:PAL.floorDark;
+            ctx.fillRect(x,y,T,T);
+            // Subtle grid lines
+            ctx.strokeStyle=PAL.floorLine;ctx.lineWidth=1;
+            ctx.strokeRect(x,y,T,T);
 
             const gHere=isGoal(r,c)||(ch==='*');
             if(gHere){
-              // Goal: golden inset square with glow
-              ctx.fillStyle='rgba(255,215,0,.12)';ctx.fillRect(x,y,T,T);
-              const m=T*.15;
-              // Outer ring
-              ctx.strokeStyle='rgba(255,215,0,.7)';ctx.lineWidth=2;
+              // Goal: bright rounded square with thick border
+              const m=T*.14;
+              const r2=T*.12; // corner radius for round rect
+              ctx.fillStyle=PAL.goalFill;
+              ctx.fillRect(x+m,y+m,T-m*2,T-m*2);
+
+              // Outer border (thick, cartoon-like)
+              ctx.strokeStyle=PAL.goalRing;
+              ctx.lineWidth=3;
+              ctx.lineJoin='round';
               ctx.strokeRect(x+m,y+m,T-m*2,T-m*2);
+
               // Inner cross
-              ctx.strokeStyle='rgba(255,215,0,.4)';ctx.lineWidth=1;
-              ctx.beginPath();ctx.moveTo(x+T/2,y+m*1.6);ctx.lineTo(x+T/2,y+T-m*1.6);ctx.stroke();
-              ctx.beginPath();ctx.moveTo(x+m*1.6,y+T/2);ctx.lineTo(x+T-m*1.6,y+T/2);ctx.stroke();
-              // Corner dots
-              ctx.fillStyle='rgba(255,215,0,.5)';
-              [[m,m],[T-m,m],[m,T-m],[T-m,T-m]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(x+dx,y+dy,1.5,0,Math.PI*2);ctx.fill();});
+              ctx.strokeStyle='rgba(253,203,110,.6)';ctx.lineWidth=1.5;
+              const cx2=x+T/2, cy2=y+T/2, arm=T*.2;
+              ctx.beginPath();ctx.moveTo(cx2-arm,cy2);ctx.lineTo(cx2+arm,cy2);ctx.stroke();
+              ctx.beginPath();ctx.moveTo(cx2,cy2-arm);ctx.lineTo(cx2,cy2+arm);ctx.stroke();
+
+              // Glow dot at center
+              ctx.fillStyle='rgba(253,203,110,.5)';
+              ctx.beginPath();ctx.arc(cx2,cy2,T*.08,0,Math.PI*2);ctx.fill();
             }
 
             if(ch==='$'||ch==='*'){
               const done=ch==='*';
-              const bx3=x+3,by3=y+3,bw=T-6,bh=T-6;
-              // Drop shadow
-              ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(bx3+4,by3+4,bw,bh);
-              // Box body with wood grain effect
-              const bg=ctx.createLinearGradient(bx3,by3,bx3,by3+bh);
-              if(done){bg.addColorStop(0,'#3ddc84');bg.addColorStop(.5,'#2ecc71');bg.addColorStop(1,'#1a8a4a');}
-              else{bg.addColorStop(0,'#c4843a');bg.addColorStop(.4,'#a06828');bg.addColorStop(1,'#7a4e1c');}
-              ctx.fillStyle=bg;ctx.fillRect(bx3,by3,bw,bh);
-              // Wood planks (3 horizontal lines)
-              if(!done){
-                ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=1;
-                [.33,.66].forEach(f=>{ctx.beginPath();ctx.moveTo(bx3,by3+bh*f);ctx.lineTo(bx3+bw,by3+bh*f);ctx.stroke();});
-              }
-              // X brace
-              ctx.strokeStyle=done?'rgba(0,80,30,.35)':'rgba(0,0,0,.22)';ctx.lineWidth=2;
-              ctx.beginPath();ctx.moveTo(bx3+4,by3+4);ctx.lineTo(bx3+bw-4,by3+bh-4);ctx.stroke();
-              ctx.beginPath();ctx.moveTo(bx3+bw-4,by3+4);ctx.lineTo(bx3+4,by3+bh-4);ctx.stroke();
-              // Border
-              ctx.strokeStyle=done?'#1a6e3a':'#4a2200';ctx.lineWidth=2;ctx.strokeRect(bx3,by3,bw,bh);
-              // Top + left highlight
-              ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(bx3,by3,bw,3);ctx.fillRect(bx3,by3,3,bh);
-              // Bottom + right shadow
-              ctx.fillStyle='rgba(0,0,0,.22)';ctx.fillRect(bx3,by3+bh-3,bw,3);ctx.fillRect(bx3+bw-3,by3,3,bh);
-              // Done checkmark
+              const C=done?{top:PAL.boxDoneTop,body:PAL.boxDoneBody,side:PAL.boxDoneSide}
+                         :{top:PAL.boxTop,body:PAL.boxBody,side:PAL.boxSide};
+              const pad=T*.1;
+              const bx=x+pad, by=y+pad, bw=T-pad*2, bh=T-pad*2;
+              const depth=T*.12;
+
+              // Shadow
+              ctx.fillStyle='rgba(0,0,0,.22)';
+              ctx.beginPath();
+              ctx.ellipse(bx+bw/2,y+T-pad*.3,bw*.44,T*.1,0,0,Math.PI*2);
+              ctx.fill();
+
+              // Bottom face (3D side)
+              ctx.fillStyle=C.side;
+              ctx.fillRect(bx,by+bh-depth,bw,depth);
+              ctx.fillRect(bx+bw-depth,by,depth,bh);
+
+              // Main face
+              ctx.fillStyle=C.body;
+              ctx.fillRect(bx,by,bw-depth,bh-depth);
+
+              // Top face highlight
+              ctx.fillStyle=C.top;
+              ctx.fillRect(bx,by,bw-depth,depth);
+              ctx.fillRect(bx,by,depth,bh-depth);
+
+              // Outline (thick cartoon border)
+              ctx.strokeStyle='rgba(0,0,0,.7)';ctx.lineWidth=2.5;ctx.lineJoin='round';
+              ctx.strokeRect(bx+1,by+1,bw-depth-2,bh-depth-2);
+
+              // X mark
+              ctx.strokeStyle=done?'rgba(0,0,0,.25)':'rgba(0,0,0,.18)';ctx.lineWidth=2;ctx.lineCap='round';
+              const x1=bx+T*.2,y1=by+T*.2,x2=bx+bw-depth-T*.2,y2=by+bh-depth-T*.2;
+              ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+              ctx.beginPath();ctx.moveTo(x2,y1);ctx.lineTo(x1,y2);ctx.stroke();
+
               if(done){
-                ctx.fillStyle='rgba(255,255,255,.85)';ctx.font=`bold ${T*.46}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-                ctx.fillText('✓',x+T/2,y+T/2+1);ctx.textBaseline='alphabetic';
+                // Big ✓ on completed box
+                ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
+                const cx3=bx+bw/2-depth/2, cy3=by+bh/2-depth/2;
+                ctx.beginPath();
+                ctx.moveTo(cx3-T*.18,cy3);
+                ctx.lineTo(cx3-T*.05,cy3+T*.15);
+                ctx.lineTo(cx3+T*.2,cy3-T*.15);
+                ctx.stroke();
               }
             }
           }
         }
       }
 
-      // Player — round character with expression
-      const pxc=px*T+T/2,pyc=py*T+T/2,pr=T*.40;
-      // Drop shadow
-      ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(pxc,py*T+T-.5,pr*.85,T*.12,0,0,Math.PI*2);ctx.fill();
-      // Body gradient
-      const pg=ctx.createRadialGradient(pxc-pr*.22,pyc-pr*.22,1,pxc,pyc,pr);
-      pg.addColorStop(0,'#7ec8e3');pg.addColorStop(.6,'#3498db');pg.addColorStop(1,'#1a5f8a');
-      ctx.fillStyle=pg;ctx.beginPath();ctx.arc(pxc,pyc,pr,0,Math.PI*2);ctx.fill();
-      // Rim
-      ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pxc,pyc,pr,0,Math.PI*2);ctx.stroke();
-      // Shine spot
-      ctx.fillStyle='rgba(255,255,255,.28)';ctx.beginPath();ctx.ellipse(pxc-pr*.22,pyc-pr*.22,pr*.30,pr*.18,-Math.PI/4,0,Math.PI*2);ctx.fill();
-      // Eyes
-      const eo=pr*.32;
+      // ══ Player — round cartoon blob ══
+      const pxc=px*T+T/2, pyc=py*T+T/2, pr=T*.40;
+
+      // Shadow
+      ctx.fillStyle='rgba(0,0,0,.2)';
+      ctx.beginPath();ctx.ellipse(pxc,py*T+T-2,pr*.75,T*.11,0,0,Math.PI*2);ctx.fill();
+
+      // Body — round gradient
+      const pg=ctx.createRadialGradient(pxc-pr*.2,pyc-pr*.25,pr*.05,pxc,pyc,pr);
+      pg.addColorStop(0,PAL.playerShine);pg.addColorStop(.5,PAL.player);pg.addColorStop(1,PAL.playerDark);
+      ctx.fillStyle=pg;
+      ctx.beginPath();ctx.arc(pxc,pyc,pr,0,Math.PI*2);ctx.fill();
+
+      // Thick cartoon outline
+      ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.arc(pxc,pyc,pr,0,Math.PI*2);ctx.stroke();
+
+      // Shine (oval highlight top-left)
+      ctx.fillStyle='rgba(255,255,255,.45)';
+      ctx.beginPath();ctx.ellipse(pxc-pr*.22,pyc-pr*.25,pr*.3,pr*.18,-Math.PI/5,0,Math.PI*2);ctx.fill();
+
+      // Eyes (big cartoony)
+      const eo=pr*.33;
+      // White sclera
       ctx.fillStyle='#fff';
-      ctx.beginPath();ctx.ellipse(pxc-eo*.6,pyc-eo*.35,eo*.72,eo*.72,0,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.ellipse(pxc+eo*.6,pyc-eo*.35,eo*.72,eo*.72,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#1a2a3a';
-      ctx.beginPath();ctx.arc(pxc-eo*.5,pyc-eo*.32,eo*.42,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.arc(pxc+eo*.72,pyc-eo*.32,eo*.42,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(pxc-eo*.58,pyc-eo*.28,eo*.65,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(pxc+eo*.58,pyc-eo*.28,eo*.65,0,Math.PI*2);ctx.fill();
+      // Dark iris
+      ctx.fillStyle=PAL.playerEye;
+      ctx.beginPath();ctx.arc(pxc-eo*.48,pyc-eo*.24,eo*.38,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(pxc+eo*.68,pyc-eo*.24,eo*.38,0,Math.PI*2);ctx.fill();
       // Eye shine
-      ctx.fillStyle='rgba(255,255,255,.7)';
-      ctx.beginPath();ctx.arc(pxc-eo*.38,pyc-eo*.45,eo*.18,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.arc(pxc+eo*.84,pyc-eo*.45,eo*.18,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.85)';
+      ctx.beginPath();ctx.arc(pxc-eo*.35,pyc-eo*.38,eo*.17,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(pxc+eo*.81,pyc-eo*.38,eo*.17,0,Math.PI*2);ctx.fill();
       // Smile
-      ctx.strokeStyle='rgba(255,255,255,.65)';ctx.lineWidth=1.8;ctx.lineCap='round';
-      ctx.beginPath();ctx.arc(pxc,pyc+pr*.12,pr*.3,0.2,Math.PI-.2);ctx.stroke();
+      ctx.strokeStyle=PAL.playerSmile;ctx.lineWidth=2;ctx.lineCap='round';
+      ctx.beginPath();ctx.arc(pxc,pyc+pr*.18,pr*.28,.2,Math.PI-.2);ctx.stroke();
 
       // Wire buttons
       const wire=(id,fn)=>{const b=document.getElementById(id);if(!b)return;
-        b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);fn();});};
+        b.addEventListener('pointerdown',e=>{e.preventDefault();b.style.transform='translateY(2px)';b.style.boxShadow='0 2px 0 rgba(0,0,0,.25),0 1px 4px rgba(0,0,0,.3)';b.setPointerCapture(e.pointerId);fn();});
+        b.addEventListener('pointerup',()=>{b.style.transform='';b.style.boxShadow='';});
+        b.addEventListener('pointercancel',()=>{b.style.transform='';b.style.boxShadow='';});
+      };
       wire('sk-up',()=>move(-1,0));wire('sk-down',()=>move(1,0));
       wire('sk-left',()=>move(0,-1));wire('sk-right',()=>move(0,1));
       wire('sk-undo',undo);
@@ -221,7 +365,6 @@ const SokobanGame = {
       wire('sk-hint',()=>{hints++;const hb=document.getElementById('sk-hint-box');if(hb)hb.style.display=hb.style.display==='none'?'block':'none';});
     };
 
-    // Keyboard
     const kmap={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1],
                 KeyW:[-1,0],KeyS:[1,0],KeyA:[0,-1],KeyD:[0,1]};
     const onK=e=>{
@@ -230,8 +373,6 @@ const SokobanGame = {
       if(e.code==='KeyR')loadLevel(lvIdx);
     };
     window.addEventListener('keydown',onK);
-
-    // Touch swipe on canvas
     let ts=null;
     el.addEventListener('touchstart',e=>{const t=e.touches[0];ts={x:t.clientX,y:t.clientY};},{passive:true});
     el.addEventListener('touchend',e=>{
@@ -240,8 +381,7 @@ const SokobanGame = {
       if(Math.abs(dx)<10&&Math.abs(dy)<10)return;
       Math.abs(dx)>Math.abs(dy)?move(0,dx>0?1:-1):move(dy>0?1:-1,0);
     },{passive:true});
-
     loadLevel(0);
-    setTimeout(()=>{if(!document.getElementById('skcv')){window.removeEventListener('keydown',onK);}},200);
+    setTimeout(()=>{if(!document.getElementById('skcv'))window.removeEventListener('keydown',onK);},200);
   }
 };

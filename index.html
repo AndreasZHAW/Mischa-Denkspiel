@@ -12,6 +12,32 @@
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
   <style>
+    /* ══ RESPONSIVE FONT SYSTEM ══
+       Approach: Dynamic root font-size via JS (see below) + clamp() everywhere.
+       On Android: screen.width gives physical pixels / DPR = CSS pixels.
+       We scale root 14px→18px based on viewport width.
+       All rem-based sizes auto-scale. Touch targets min 48px (Material Design).
+    */
+    :root {
+      --fs-xs:  clamp(.72rem,.72rem + .3vw,.82rem);
+      --fs-sm:  clamp(.82rem,.82rem + .4vw,.95rem);
+      --fs-md:  clamp(.92rem,.92rem + .5vw,1.05rem);
+      --fs-lg:  clamp(1rem,1rem + .6vw,1.2rem);
+      --fs-xl:  clamp(1.1rem,1.1rem + .8vw,1.4rem);
+      --fs-2xl: clamp(1.3rem,1.3rem + 1vw,1.7rem);
+      --touch-min: max(44px, 6.5vw); /* min touch target */
+    }
+    html { font-size: 16px; }
+    /* On narrow screens (<400px) scale up base font */
+    @media (max-width:399px) { html { font-size: 17px; } }
+    @media (max-width:359px) { html { font-size: 18px; } }
+    body { font-size: var(--fs-md); }
+    button { min-height: var(--touch-min); font-size: var(--fs-md) !important; }
+    input, select, textarea { font-size: var(--fs-md) !important; min-height: var(--touch-min); }
+    /* World map cards */
+    .card { font-size: var(--fs-md); }
+    /* HUD elements */
+    .wbtitle { font-size: var(--fs-sm) !important; }
     @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
     @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
     @keyframes starPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.4)}100%{transform:scale(1);opacity:1}}

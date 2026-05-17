@@ -26,8 +26,10 @@ const StuntGame = {
 </div>`;
 
     function BTN(c){return `background:linear-gradient(160deg,${c}cc,${c});color:#fff;border:none;
-      padding:12px 18px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;
-      touch-action:none;min-width:52px;box-shadow:0 3px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.15)`;}
+      padding:clamp(13px,4vw,18px) clamp(10px,4vw,22px);border-radius:12px;
+      font-size:clamp(1.1rem,5vw,1.3rem);font-weight:900;cursor:pointer;
+      touch-action:none;min-width:clamp(52px,14vw,70px);min-height:52px;
+      box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)`;}
 
     const cv = document.getElementById('stcv');
     const ctx = cv.getContext('2d');
