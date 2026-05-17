@@ -671,7 +671,7 @@ const ZG={
     _dbg.style.cssText='position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.85);color:#0f0;font:11px monospace;padding:4px 8px;z-index:9999;pointer-events:none;transition:opacity .5s;display:none';
     _dbg.textContent='⚙️ Lade Zoo...';
     document.body.appendChild(_dbg);
-    const _log = function(msg,col){console.log('[ZOO]',msg); // _dbg hidden};
+    const _log = function(msg,col){console.log('[ZOO]',msg);}; // _dbg hidden
     
     if(typeof THREE === 'undefined'){
       console.error('[ZOO] THREE.js not loaded');
@@ -796,13 +796,13 @@ const ZG={
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
 
-  zStop(){
+  zStop: function(){
     cancelAnimationFrame(this._raf);
     this._ivs.forEach(clearInterval); this._ivs=[];
     this.snowE.forEach(e=>e.remove()); this.snowE=[];
     this.beamE.forEach(e=>e.remove()); this.beamE=[];
-    try{this.renderer?.dispose();}catch(e){}
-    document.exitPointerLock?.();
+    try{if(this.renderer)this.renderer.dispose();}catch(e){}
+    if(document.exitPointerLock) document.exitPointerLock();
   },
 
   // ── Broadcast listeners ──
@@ -2378,7 +2378,7 @@ const ZG={
     G('gint').style.display='none';
     // Restore sky color and restart main loop
     if(this.renderer)this.renderer.setClearColor(0x87CEEB,1);
-    if(!this._raf)// Hide loading overlay
+    // Hide loading overlay
     const _loadOv = document.getElementById('zoo-loading');
     if(_loadOv) { _loadOv.style.opacity='0'; _loadOv.style.transition='opacity .5s'; setTimeout(()=>_loadOv.remove(),600); }
     // Hide loading overlay when loop starts
