@@ -160,7 +160,12 @@ const App = {
     const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
     const mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
     const cost = 10;
-    if (mt < cost) { alert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
+    // Once unlocked (visited before), gate stays open permanently
+    const _playerKey = p.name.toLowerCase();
+    const _hasUnlocked = localStorage.getItem('zoo_unlocked_' + _playerKey) === '1';
+    if (!_hasUnlocked && mt < cost) { alert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
+    // Remember unlock permanently
+    if (mt >= cost) localStorage.setItem('zoo_unlocked_' + _playerKey, '1');
     if (!confirm('🦁 In den Zoo teleportieren?')) return;
     // Zoo is FREE once unlocked - no MT deduction
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());

@@ -3621,11 +3621,15 @@ const ZChat = {
   },
   
   // Listen for incoming chat messages
-  _startListen(){
+  _startListen(attempt){
     if(this._msgUnsub) return;
     try{
-      if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
-      const cutoff = Date.now() - 30000;
+      if(typeof _db==='undefined'||!_db||!State._useCloud()){
+        // Retry up to 20x (4 seconds) until Firebase is ready
+        if((attempt||0)<20) setTimeout(()=>this._startListen((attempt||0)+1),200);
+        return;
+      }
+      const cutoff = Date.now() - 5000; // only last 5s to catch recent msgs
       this._msgUnsub = _db.collection('zoo_chat')
         .where('at', '>', cutoff)
         .onSnapshot(snap => {
@@ -3638,7 +3642,9 @@ const ZChat = {
             }
           });
         });
-    }catch(e){}
+    }catch(e){
+      if((attempt||0)<5) setTimeout(()=>this._startListen((attempt||0)+1),1000);
+    }
   },
   
   _stopListen(){
