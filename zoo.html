@@ -611,7 +611,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.stop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG._stop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -779,7 +779,7 @@ const ZG={
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
 
-  stop(){
+  _stop(){
     cancelAnimationFrame(this._raf);
     this._ivs.forEach(clearInterval); this._ivs=[];
     this.snowE.forEach(e=>e.remove()); this.snowE=[];
