@@ -348,6 +348,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 // ═══ CONSOLE CAPTURE ═══
 (function(){
   var _errs=[];
+  var _errCount=0;
+  var _panelTimer=null;
   var _orig={error:console.error,warn:console.warn,log:console.log};
   // On mobile: NEVER show error panel (too disruptive)
   var _isMobile=('ontouchstart' in window)||(window.innerWidth<600);
@@ -623,7 +625,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG._stop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -716,7 +718,7 @@ const ZG={
     canvas.style.height = H + 'px';
     console.log('🎮 Canvas init:', W, 'x', H);
     try{
-      this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, alpha:false, powerPreference:'default'});
+      this.renderer=new THREE.WebGLRenderer({canvas, antialias:false, alpha:false, powerPreference:'default', failIfMajorPerformanceCaveat:false});
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
       this.renderer.setSize(W, H, false);
       this.renderer.shadowMap.enabled=false;
@@ -794,7 +796,7 @@ const ZG={
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
 
-  _stop(){
+  zStop(){
     cancelAnimationFrame(this._raf);
     this._ivs.forEach(clearInterval); this._ivs=[];
     this.snowE.forEach(e=>e.remove()); this.snowE=[];
