@@ -711,6 +711,17 @@ const App = {
   async showWorldMap() {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
+    // Merge locally saved currentWorld in case Firebase was behind
+    if (player) {
+      try {
+        const _ls = JSON.parse(localStorage.getItem('mischa_players')||'{}');
+        const _lp = _ls[player.name];
+        if (_lp && (_lp.currentWorld||1) > (player.currentWorld||1)) {
+          player.currentWorld = _lp.currentWorld;
+          State._local.set(player.name, player);
+        }
+      } catch(e) {}
+    }
     if (!player) {
       // Clear bad backup if it points to non-existent player
       const backup = localStorage.getItem('mischa_current_backup');
@@ -1581,6 +1592,22 @@ const App = {
 
   _portalTransition(fromWorldId) {
     const next = WORLDS.find(w=>w.id===fromWorldId+1);
+    // ── Unlock next world immediately (local + saved) ──
+    const _p = State.currentPlayer;
+    if (_p) {
+      if ((_p.currentWorld||1) <= fromWorldId) {
+        _p.currentWorld = fromWorldId + 1;
+        State._local.set(_p.name, _p);
+        // Persist locally so it survives page refresh
+        try {
+          const _ls = JSON.parse(localStorage.getItem('mischa_players')||'{}');
+          if (!_ls[_p.name]) _ls[_p.name] = {};
+          _ls[_p.name].currentWorld = fromWorldId + 1;
+          localStorage.setItem('mischa_players', JSON.stringify(_ls));
+        } catch(e) {}
+        State.savePlayer(_p).catch(()=>{});
+      }
+    }
     this._html(`
       <div style="position:fixed;inset:0;background:linear-gradient(135deg,#1a0535,#0a2a5e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999">
         <div style="font-size:5rem;animation:spin 1s linear infinite">🌀</div>

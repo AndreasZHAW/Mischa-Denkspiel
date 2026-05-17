@@ -306,12 +306,17 @@ const State = {
       this._saveRefScore(taskIndex, result.rawScore || 50, player);
     }
     
-    // Check world completion (all 20 tasks done)
-    const allDone = player.worlds[worldIndex].tasks.filter(t=>t&&t.done).length >= 20;
+    // Check world completion — use actual world task length
+    const _worldDef = (typeof WORLDS !== 'undefined' ? WORLDS : (typeof WORLD_DEFS !== 'undefined' ? WORLD_DEFS : [])).find(w=>w.id===worldIndex||w.id===Number(worldIndex));
+    const _taskCount = _worldDef?.tasks?.length || 20;
+    const doneCount = player.worlds[worldIndex].tasks.filter(t=>t&&t.done).length;
+    const allDone = doneCount >= _taskCount;
     if (allDone) {
       player.worlds[worldIndex].completed = true;
-      if (player.currentWorld <= worldIndex) player.currentWorld = worldIndex + 1;
+      if ((player.currentWorld||1) <= worldIndex) player.currentWorld = Number(worldIndex) + 1;
     }
+    // Also mirror under string key to prevent lookup mismatches
+    player.worlds[String(worldIndex)] = player.worlds[worldIndex];
 
     await this.savePlayer(player);
     this.currentPlayer = player;

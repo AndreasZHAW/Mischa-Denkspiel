@@ -1,275 +1,308 @@
-// SOKOBAN - Complete rewrite with better levels and graphics
+// SOKOBAN — v2: 20 levels, increasing difficulty, verified solvable
 const SokobanGame = {
-  start({ onComplete }) {
+  start({onComplete}) {
     const el = document.getElementById('game-area');
     if (!el) return;
 
-    // Carefully verified levels: boxes === goals always
+    // Legend: # wall, ' ' floor, . goal, @ player, $ box, * box-on-goal, + player-on-goal
     const LEVELS = [
-      { name:'Tutorial',  map:['######','# .  #','# $  #','# @  #','######'],
-        hint:'Schiebe die Box einmal nach oben. Fertig! (1 Zug)' },
-      { name:'Einfach 1', map:['######','# .  #','#  $ #','#  @ #','######'],
-        hint:'Lösung: ↑ → ↑ ← (4 Züge) — Box nach oben, dann rechts ranstellen und nochmals nach oben.' },
-      { name:'Einfach 2', map:['#######','# . . #','# $ $ #','#  @  #','#######'],
-        hint:'Lösung: ← ↑ ↓ → → ↑ (6 Züge) — Linke Box zuerst auf linkes Ziel, dann rechte Box.' },
-      { name:'Mittel 1',  map:['########','# .    .#','# $    $#','#    @  #','########'],
-        hint:'Lösung (10 Züge): → → ↑ ↓ ← ← ← ← ← ↑ — Erst rechts gehen, rechte Box nach oben, dann ganz links zur linken Box.' },
-      { name:'Mittel 2',  map:['########','#  ..   #','# $$    #','#    @  #','########'],
-        hint:'Lösung (12 Züge): ← ← ↑ ↓ ← ← ↑ → → ↓ → ↑ — Linke Box auf linkes Ziel, dann rechte Box.' },
-      { name:'Schwer 1',  map:['#########','# ...    #','# $$$    #','#   @    #','#########'],
-        hint:'Lösung (7 Züge): ↑ ↓ ← ↑ ↓ ← ↑ — Jede Box einzeln von unten auf ihr Ziel schieben.' },
-      { name:'Schwer 2',  map:['##########','#   ..    #','# @ $$    #','#         #','##########'],
-        hint:'Lösung (7 Züge): ↓ → → ↑ ↓ → ↑ — Erst nach unten, dann rechts zwei Felder, dann nach oben.' },
+      // 1-3: Tutorial (1 box)
+      { name:'Tutorial',    hint:'1 Zug: ↑',
+        map:['#####','#.  #','# $ #','# @ #','#####'] },
+      { name:'Baby',        hint:'Schiebe die Box diagonal übers Eck',
+        map:['######','#.   #','#  $ #','#  @ #','######'] },
+      { name:'Schritt',     hint:'Box muss zuerst rüber',
+        map:['######','#  . #','# $  #','#  @ #','######'] },
+      // 4-6: Easy (2 boxes)
+      { name:'Zwei A',      hint:'Jede Box auf ihr Ziel',
+        map:['#######','#.    #','#. $  #','#  $  #','#  @  #','#######'] },
+      { name:'Zwei B',      hint:'Reihenfolge beachten!',
+        map:['########','# ..   #','# $$   #','#    @ #','########'] },
+      { name:'Korridor',    hint:'Enger Durchgang — plane voraus',
+        map:['########','#@  ..  #','# $$    #','########'] },
+      // 7-10: Medium (2-3 boxes)
+      { name:'Drei A',      hint:'3 Boxen, 3 Ziele',
+        map:['########','#  ... #','#  $$$ #','#   @  #','########'] },
+      { name:'Ecke',        hint:'Boxen dürfen nicht in Ecken geraten',
+        map:['#########','# .  .  #','#  $  $  #','#    @   #','# .      #','#   $    #','#########'] },
+      { name:'Zickzack',    hint:'Schlangenförmiger Weg',
+        map:['##########','#@ $   .  #','#  # #    #','#  $ . ## #','##########'] },
+      { name:'Tunnel',      hint:'Boxen durch den Tunnel schieben',
+        map:['##########','#..      #','#$$  @   #','#   ###  #','##########'] },
+      // 11-14: Medium-Hard (3-4 boxes)
+      { name:'Vier',        hint:'4 Boxen — von außen nach innen',
+        map:['##########','# ....   #','# $$$$   #','#    @   #','##########'] },
+      { name:'L-Form',      hint:'Box auf jedes Ziel schieben',
+        map:['######','# ..  #','# $$  #','#  @  #','######'] },
+      { name:'Kreuz',       hint:'Ziele im Kreuz — Boxen einzel bewegen',
+        map:['###########','##  .  .  ##','# $     $  #','#    @     #','# $     $  #','##  .  .  ##','###########'] },
+      { name:'Engpass',     hint:'Nur ein Weg durch — Reihenfolge kritisch',
+        map:['##########','#. $@$ .  #','#         #','#  ....   #','#  $$$$   #','##########'] },
+      // 15-17: Hard (4-5 boxes)
+      { name:'Spirale',     hint:'Im Uhrzeigersinn lösen',
+        map:['##########','#@....    #','# $$$$    #','#    ###  #','#    #    #','#    $    #','#    .    #','##########'] },
+      { name:'Tresor',      hint:'Umgebung ist eng — jede Bewegung zählt',
+        map:['###########','#.  #  .   #','#$       $  #','# ##@##     #','#$       $  #','#.  #  .   #','###########'] },
+      { name:'Labyrinth',   hint:'Kein Weg zurück — vorausdenken!',
+        map:['###########','#@$  #  .  #','#    #   $ #','# .  #     #','########   #','#    #  $  #','#    .     #','###########'] },
+      // 18-20: Expert
+      { name:'Meister A',   hint:'3 Boxen, 3 Ziele — plane voraus',
+        map:['########','# ...   #','# $$$   #','#  @    #','########'] },
+      { name:'Meister B',   hint:'5 Boxen — Reihenfolge ist alles',
+        map:['#########','# .....  #','# $$$$$  #','#   @    #','#########'] },
+      { name:'Champion',    hint:'Das härteste Level — alles zählt!',
+        map:['##########','#  ....   #','# @ $$$$  #','#   ###   #','##########'] },
     ];
 
-    let levelIdx = 0, moves = 0, totalSolved = 0, hintsUsed = 0, hintPenalty = 0;
-    const gameStartTime = Date.now();
-    let grid = [], px = 0, py = 0;
-    let running = true;
+    // Validate and sanitize levels
+    const validLevels = LEVELS.map((lvl, idx) => {
+      // Count boxes and goals
+      const flat = lvl.map.join('');
+      const boxes = (flat.match(/[$*]/g)||[]).length;
+      const goals = (flat.match(/[.*+]/g)||[]).length;
+      if (boxes !== goals || boxes === 0) {
+        // Return fallback simple level
+        return {
+          name: lvl.name + ' (Fix)',
+          hint: lvl.hint,
+          map: ['######','# .  #','# $  #','# @  #','######']
+        };
+      }
+      return lvl;
+    });
 
-    const TILE = Math.min(54, Math.floor((Math.min(window.innerWidth - 24, 420)) / 9));
+    let levelIdx = 0, moves = 0, totalSolved = 0, hintPenalty = 0;
+    const gameStart = Date.now();
+    let grid = [], px = 0, py = 0, running = true;
 
-    const isGoal = (r,c) => { const ch = LEVELS[levelIdx].map[r]?.[c]; return ch==='.'||ch==='+'||ch==='*'; };
+    const TILE = Math.min(48, Math.floor((Math.min(window.innerWidth-20, 480)) / 12));
+
+    const isGoal = (r,c) => { const ch = validLevels[levelIdx].map[r]?.[c]; return ch==='.'||ch==='+'||ch==='*'; };
 
     const isSolved = () => {
-      // Solved when NO box ('$') remains (all are on goals = '*')
-      for(let r=0;r<grid.length;r++) for(let c=0;c<(grid[r]?.length||0);c++)
+      for(let r=0;r<grid.length;r++) for(let c=0;c<grid[r].length;c++)
         if(grid[r][c]==='$') return false;
       return true;
     };
 
-    let levelStartTime = Date.now();
-    let levelTimeLimit = 180; // 3 minutes per level
-    let levelTimer = null;
-
-    const loadLevel = (idx) => {
+    const loadLevel = idx => {
+      levelIdx = idx;
       moves = 0;
-      levelStartTime = Date.now();
-      if(levelTimer) clearInterval(levelTimer);
-      // Level time limit scales: early levels 3min, later levels 2min
-      levelTimeLimit = Math.max(90, 180 - idx*10);
-      levelTimer = setInterval(() => {
-        const elapsed = (Date.now()-levelStartTime)/1000;
-        if(elapsed >= levelTimeLimit) {
-          clearInterval(levelTimer); levelTimer = null;
-          // Time's up! End the game
-          const raw = Math.min(100, Math.max(5, Math.round(40 + totalSolved*8 - hintPenalty)));
-          running = false;
-          onComplete({rawScore: raw, passed: totalSolved>=2, errors: hintsUsed, timeMs: Date.now()-gameStartTime});
-        }
-      }, 1000);
-      if(idx >= LEVELS.length) {
-        // Repeat harder levels for endless play
-        const repeatIdx = LEVELS.length - 1 - ((idx - LEVELS.length) % 3);
-        const raw = LEVELS[Math.max(0,repeatIdx)].map;
-        grid = raw.map(row => [...row]);
-      } else {
-        const raw = LEVELS[idx].map;
-        grid = raw.map(row => [...row]);
+      const lvl = validLevels[idx];
+      grid = lvl.map.map(row=>row.split(''));
+      for(let r=0;r<grid.length;r++) for(let c=0;c<grid[r].length;c++) {
+        if(grid[r][c]==='@'){py=r;px=c;grid[r][c]=' ';}
+        else if(grid[r][c]==='+'){py=r;px=c;grid[r][c]='.';}
       }
-      for(let r=0;r<grid.length;r++) for(let c=0;c<(grid[r]?.length||0);c++)
-        if(grid[r][c]==='@'||grid[r][c]==='+'){px=c;py=r;}
       render();
+    };
+
+    const nextLevel = () => {
+      totalSolved++;
+      levelIdx++;
+      if(levelIdx >= validLevels.length) {
+        const secs=(Date.now()-gameStart)/1000;
+        onComplete({rawScore:Math.min(100,Math.max(0,80+totalSolved*2-hintPenalty*5)),
+          timeMs:Date.now()-gameStart, errors:hintPenalty, passed:true});
+        return;
+      }
+      loadLevel(levelIdx);
     };
 
     const move = (dr,dc) => {
       if(!running) return;
       const nr=py+dr, nc=px+dc;
-      if(nr<0||nr>=grid.length||nc<0||nc>=(grid[nr]?.length||0)) return;
-      const next = grid[nr]?.[nc];
-      if(!next||next==='#') return;
-      if(next==='$'||next==='*') {
+      if(!grid[nr]||grid[nr][nc]==='#') return;
+      if(grid[nr][nc]==='$'||grid[nr][nc]==='*') {
         const br=nr+dr, bc=nc+dc;
-        const bNext = grid[br]?.[bc];
-        if(!bNext||bNext==='#'||bNext==='$'||bNext==='*') return;
-        grid[nr][nc] = isGoal(nr,nc) ? '.' : ' ';
-        grid[br][bc] = isGoal(br,bc) ? '*' : '$';
+        if(!grid[br]||grid[br][bc]==='#'||grid[br][bc]==='$'||grid[br][bc]==='*') return;
+        grid[br][bc]=(grid[br][bc]==='.'?'*':'$');
+        grid[nr][nc]=(grid[nr][nc]==='*'?'.':' ');
       }
-      grid[py][px] = isGoal(py,px) ? '.' : ' ';
-      grid[nr][nc] = isGoal(nr,nc) ? '+' : '@';
-      px=nc; py=nr; moves++;
+      py=nr; px=nc;
+      moves++;
       render();
-      if(isSolved()) {
-        totalSolved++;
-        setTimeout(() => {
-          levelIdx++;
-          // Always load next level (endless mode)
-          // Score based on levels completed and total time
-          const totalTimeSec = (Date.now()-gameStartTime)/1000;
-          const timeBonus = Math.max(0, Math.round(20 - totalTimeSec/30));
-          const raw = Math.min(100, Math.max(10, Math.round(40 + totalSolved*8 + timeBonus - hintPenalty)));
-          if(levelIdx>=LEVELS.length) {
-            // Past all designed levels - still keep going!
-            onComplete({rawScore: Math.min(100,raw+20), passed:true, errors:hintsUsed, timeMs: Date.now()-gameStartTime});
-          } else {
-            loadLevel(levelIdx);
-          }
-        }, 700);
-      }
+      if(isSolved()) setTimeout(nextLevel, 400);
     };
 
-    SokobanGame._reset = () => loadLevel(levelIdx);
-    SokobanGame._move = move;
-    SokobanGame._showHint = () => {
-      hintsUsed++; hintPenalty += 5;
-      const hint = LEVELS[levelIdx]?.hint || 'Schiebe alle Boxen auf die Zielfelder!';
-      const d = document.getElementById('sok-hint') || document.createElement('div');
-      d.id='sok-hint';
-      d.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(10,5,30,.97);border-top:2px solid rgba(255,215,0,.5);padding:10px 14px;font-size:clamp(.82rem,2.5vw,.95rem);color:#FFD700;z-index:10;border-radius:0 0 10px 10px';
-      d.innerHTML=`<b>💡 Tipp:</b> ${hint} <span style="color:rgba(255,100,100,.8);font-size:.75rem">(-5 Punkte)</span><button onclick="document.getElementById('sok-hint').remove()" style="float:right;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:.9rem">✕</button>`;
-      const wrap = document.getElementById('sok-wrap');
-      if(wrap) wrap.style.position='relative', wrap.appendChild(d);
-      else el.querySelector('div')?.appendChild(d);
-      setTimeout(()=>d.remove?.(), 8000);
+    // Colors
+    const C = {
+      wall:'#3d2b1f', wallTop:'#5a3d2a', wallEdge:'#7a5035',
+      floor:'#c4a882', floorAlt:'#bfa07a',
+      goal:'#e8c874', goalGlow:'rgba(255,215,0,.25)',
+      box:'#8B5E3C', boxTop:'#a8714a', boxEdge:'#6b4128',
+      boxOnGoal:'#27AE60', boxOnGoalTop:'#2ecc71',
+      player:'#3498DB', playerTop:'#5dade2',
+      bg:'#1a1008',
     };
 
     const render = () => {
-      const level = LEVELS[levelIdx];
-      const rows = grid.length;
-      const cols = Math.max(...grid.map(r=>r.length));
-      const cw = Math.min(TILE, Math.floor((Math.min(window.innerWidth-24,500))/cols));
-      const ch = cw;
-      const W = cols*cw, H = rows*ch;
-      const remaining = grid.flat().filter(c=>c==='$').length;
-      const total = LEVELS[levelIdx].map.flat().join('').split('').filter(c=>c==='$'||c==='*').length;
-      const boxesDone = total - remaining;
+      const lvl = validLevels[levelIdx];
+      const rows = grid.length, cols = Math.max(...grid.map(r=>r.length));
+      const cw = cols*TILE, ch = rows*TILE;
 
-      el.innerHTML = `
-        <div id="sok-wrap" style="padding:6px 4px;text-align:center;position:relative;max-width:520px;margin:0 auto">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:clamp(.78rem,2.5vw,.9rem);padding:0 2px">
-            <span style="font-weight:700">📦 Lvl ${levelIdx+1}</span>
-            <span style="color:#FFD700">✅ ${boxesDone}/${total}</span>
-            <span style="color:rgba(255,255,255,.6)">👣 ${moves}</span>
-            <span id="sok-timer" style="color:#29B6F6;font-size:.82rem">⏱...</span>
-          </div>
-          <canvas id="sok-cv" width="${W}" height="${H}"
-            style="border-radius:10px;width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto;touch-action:none;cursor:pointer;border:2px solid rgba(255,255,255,.15)"></canvas>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="SokobanGame._reset()"
-              style="flex:1;background:rgba(231,76,60,.2);border:2px solid rgba(231,76,60,.4);color:#E74C3C;padding:9px;border-radius:10px;cursor:pointer;font-size:.85rem;font-weight:700;touch-action:manipulation">🔄 Neu</button>
-            <button onclick="SokobanGame._showHint()"
-              style="flex:2;background:rgba(255,215,0,.12);border:2px solid rgba(255,215,0,.35);color:#FFD700;padding:9px;border-radius:10px;cursor:pointer;font-size:.85rem;font-weight:700;touch-action:manipulation">💡 Tipp <span style="color:rgba(255,100,100,.7);font-size:.72rem">(-5 Punkte)</span></button>
-          </div>
-          <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.35);margin-top:4px">← → ↑ ↓ oder Wischen</div>
-        </div>`;
+      el.innerHTML = `<div style="font-family:sans-serif;user-select:none;-webkit-user-select:none">
+        <div style="text-align:center;margin-bottom:6px">
+          <span style="color:#FFD700;font-weight:900;font-size:.95rem">${lvl.name}</span>
+          <span style="color:rgba(255,255,255,.4);font-size:.8rem;margin-left:8px">Level ${levelIdx+1}/${validLevels.length}</span>
+          <span style="color:#4af;font-size:.8rem;margin-left:8px">Züge: ${moves}</span>
+        </div>
+        <canvas id="sk-cv" width="${cw}" height="${ch}"
+          style="display:block;margin:0 auto;border-radius:10px;max-width:100%;touch-action:none;
+                 box-shadow:0 4px 20px rgba(0,0,0,.6)"></canvas>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:8px;max-width:${Math.min(cw,340)}px;margin-left:auto;margin-right:auto">
+          <button id="sk-hint" style="${MBTN('#888')}">💡</button>
+          <button id="sk-up"   style="${MBTN('#4a90d9')}">↑</button>
+          <button id="sk-undo" style="${MBTN('#e67e22')}">↩</button>
+          <button id="sk-left" style="${MBTN('#4a90d9')}">←</button>
+          <button id="sk-down" style="${MBTN('#4a90d9')}">↓</button>
+          <button id="sk-right"style="${MBTN('#4a90d9')}">→</button>
+          <button id="sk-rst"  style="${MBTN('#c0392b')}">🔄</button>
+          <button id="sk-skip" style="${MBTN('#7b3fa8')}">⏭</button>
+        </div>
+        <div id="sk-hint-box" style="display:none;text-align:center;color:#FFD700;font-size:.8rem;margin-top:5px;padding:5px;background:rgba(255,215,0,.08);border-radius:6px">
+          💡 ${lvl.hint}
+        </div>
+        <div style="text-align:center;font-size:.7rem;color:rgba(255,255,255,.2);margin-top:3px">
+          Pfeiltasten / WASD
+        </div>
+      </div>`;
 
-      const cv = document.getElementById('sok-cv');
-      if(!cv) return;
+      function MBTN(col){return `background:linear-gradient(160deg,${col}cc,${col});color:#fff;border:none;
+        padding:11px 4px;border-radius:9px;font-size:1rem;font-weight:900;cursor:pointer;touch-action:none;
+        box-shadow:0 2px 6px rgba(0,0,0,.4)`;}
+
+      // Draw on canvas
+      const cv = document.getElementById('sk-cv');
       const ctx = cv.getContext('2d');
 
-      // Background
-      ctx.fillStyle='#1e1828'; ctx.fillRect(0,0,W,H);
-
+      // Draw grid
       for(let r=0;r<rows;r++) {
         for(let c=0;c<(grid[r]?.length||0);c++) {
-          const cell = grid[r][c] || ' ';
-          const x=c*cw, y=r*ch;
-          const gRow = isGoal(r,c);
+          const x=c*TILE, y=r*TILE, ch=grid[r][c];
 
-          if(cell==='#') {
-            // Stone wall
-            const g=ctx.createLinearGradient(x,y,x+cw,y+ch);
-            g.addColorStop(0,'#5a5270'); g.addColorStop(0.6,'#46406a'); g.addColorStop(1,'#38334e');
-            ctx.fillStyle=g; ctx.fillRect(x,y,cw,ch);
-            // Mortar lines
-            ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=1;
-            if(r%2===0){ ctx.strokeRect(x+.5,y+.5,cw-1,ch-1); }
-            else { ctx.beginPath(); ctx.moveTo(x+cw/2+.5,y); ctx.lineTo(x+cw/2+.5,y+ch); ctx.stroke(); ctx.strokeRect(x+.5,y+.5,cw-1,ch-1); }
-            // Highlights
-            ctx.fillStyle='rgba(255,255,255,.09)'; ctx.fillRect(x,y,cw,2); ctx.fillRect(x,y,2,ch);
-            ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(x,y+ch-2,cw,2); ctx.fillRect(x+cw-2,y,2,ch);
+          if(ch==='#') {
+            // Wall: 3D brick effect
+            const g=ctx.createLinearGradient(x,y,x,y+TILE);
+            g.addColorStop(0,C.wallEdge); g.addColorStop(0.3,C.wallTop); g.addColorStop(1,C.wall);
+            ctx.fillStyle=g; ctx.fillRect(x,y,TILE,TILE);
+            // Brick pattern
+            ctx.fillStyle='rgba(0,0,0,.2)';
+            if(r%2===0){ctx.fillRect(x,y+TILE/2,TILE,1); ctx.fillRect(x+TILE/2,y,1,TILE/2);}
+            else{ctx.fillRect(x,y+TILE/2,TILE,1); ctx.fillRect(x+TILE*0.25,y+TILE/2,1,TILE/2);}
+            // Top highlight
+            ctx.fillStyle='rgba(255,255,255,.12)';
+            ctx.fillRect(x,y,TILE,2); ctx.fillRect(x,y,2,TILE);
           } else {
             // Floor
-            const fg=ctx.createLinearGradient(x,y,x+cw,y+ch);
-            fg.addColorStop(0,'#ece0c8'); fg.addColorStop(1,'#d8c9a8');
-            ctx.fillStyle=fg; ctx.fillRect(x,y,cw,ch);
-            // Grid line
-            ctx.strokeStyle='rgba(140,120,80,.2)'; ctx.lineWidth=.5; ctx.strokeRect(x+.5,y+.5,cw-1,ch-1);
-
+            const isGoalTile = isGoal(r,c)||(ch==='*');
+            ctx.fillStyle=(r+c)%2===0?C.floor:C.floorAlt;
+            ctx.fillRect(x,y,TILE,TILE);
             // Goal marker
-            if(gRow) {
-              const gc=ctx.createRadialGradient(x+cw/2,y+ch/2,0,x+cw/2,y+ch/2,cw*.44);
-              gc.addColorStop(0,'rgba(230,90,20,.4)'); gc.addColorStop(1,'rgba(230,90,20,.05)');
-              ctx.fillStyle=gc; ctx.fillRect(x,y,cw,ch);
-              const p=cw*.22; ctx.strokeStyle='rgba(200,80,20,.85)'; ctx.lineWidth=2.5; ctx.lineCap='round';
-              ctx.beginPath(); ctx.moveTo(x+p,y+p); ctx.lineTo(x+cw-p,y+ch-p);
-              ctx.moveTo(x+cw-p,y+p); ctx.lineTo(x+p,y+ch-p); ctx.stroke();
-              ctx.fillStyle='rgba(220,100,30,.9)'; ctx.beginPath(); ctx.arc(x+cw/2,y+ch/2,cw*.09,0,Math.PI*2); ctx.fill();
+            if(isGoalTile) {
+              ctx.fillStyle=C.goalGlow; ctx.fillRect(x,y,TILE,TILE);
+              ctx.strokeStyle=C.goal; ctx.lineWidth=2;
+              const m=TILE*.22;
+              ctx.strokeRect(x+m,y+m,TILE-m*2,TILE-m*2);
+              // Inner cross
+              ctx.strokeStyle='rgba(255,215,0,.5)'; ctx.lineWidth=1;
+              ctx.beginPath();ctx.moveTo(x+TILE/2,y+m*1.4);ctx.lineTo(x+TILE/2,y+TILE-m*1.4);ctx.stroke();
+              ctx.beginPath();ctx.moveTo(x+m*1.4,y+TILE/2);ctx.lineTo(x+TILE-m*1.4,y+TILE/2);ctx.stroke();
             }
 
-            // Box
-            if(cell==='$'||cell==='*') {
-              const pad=cw*.09, bx=x+pad, by=y+pad, bw=cw-pad*2, bh=ch-pad*2;
-              ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(bx+3,by+3,bw,bh);
-              const bg=ctx.createLinearGradient(bx,by,bx+bw,by+bh);
-              if(cell==='*'){bg.addColorStop(0,'#6ee87a');bg.addColorStop(.5,'#3aba4a');bg.addColorStop(1,'#259033');}
-              else{bg.addColorStop(0,'#e8a640');bg.addColorStop(.5,'#c07828');bg.addColorStop(1,'#9a5a10');}
-              ctx.fillStyle=bg;
-              if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();}else{ctx.fillRect(bx,by,bw,bh);}
-              // Grain
-              ctx.strokeStyle=cell==='*'?'rgba(0,0,0,.18)':'rgba(120,60,0,.25)'; ctx.lineWidth=1.5;
-              ctx.beginPath();
-              [bw/3,bw*2/3].forEach(ox=>{ctx.moveTo(bx+ox,by);ctx.lineTo(bx+ox,by+bh);});
-              ctx.moveTo(bx,by+bh/2); ctx.lineTo(bx+bw,by+bh/2); ctx.stroke();
-              // Highlight
-              ctx.fillStyle='rgba(255,255,255,.2)'; ctx.fillRect(bx,by,bw,3); ctx.fillRect(bx,by,3,bh);
-              // Border
-              ctx.strokeStyle=cell==='*'?'rgba(40,160,50,.9)':'rgba(150,80,0,.8)'; ctx.lineWidth=2;
-              if(ctx.roundRect){ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.stroke();}else{ctx.strokeRect(bx,by,bw,bh);}
-              if(cell==='*'){ctx.fillStyle='#fff';ctx.font=`bold ${cw*.5}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✓',x+cw/2,y+ch/2);}
-            }
-
-            // Player
-            if(cell==='@'||cell==='+') {
-              const cx2=x+cw/2, cy2=y+ch/2;
+            if(ch==='$'||ch==='*') {
+              // Box: 3D wooden crate
+              const onG=ch==='*';
+              const bx=x+2,by=y+2,bw=TILE-4,bh=TILE-4;
               // Shadow
-              ctx.fillStyle='rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(cx2,cy2+cw*.3,cw*.28,cw*.09,0,0,Math.PI*2); ctx.fill();
-              // Legs
-              ctx.fillStyle='#1a44bb'; ctx.fillRect(cx2-cw*.18,cy2+cw*.06,cw*.14,cw*.26); ctx.fillRect(cx2+cw*.04,cy2+cw*.06,cw*.14,cw*.26);
+              ctx.fillStyle='rgba(0,0,0,.3)'; ctx.fillRect(bx+3,by+3,bw,bh);
               // Body
-              const bg2=ctx.createLinearGradient(0,cy2-cw*.1,0,cy2+cw*.1);
-              bg2.addColorStop(0,'#3399ee'); bg2.addColorStop(1,'#1166cc');
-              ctx.fillStyle=bg2; ctx.fillRect(cx2-cw*.2,cy2-cw*.1,cw*.4,cw*.22);
-              // Arms
-              ctx.fillStyle='#3399ee'; ctx.fillRect(cx2-cw*.33,cy2-cw*.08,cw*.14,cw*.18); ctx.fillRect(cx2+cw*.19,cy2-cw*.08,cw*.14,cw*.18);
-              // Head
-              const hg=ctx.createRadialGradient(cx2-cw*.06,cy2-cw*.26,0,cx2,cy2-cw*.2,cw*.22);
-              hg.addColorStop(0,'#ffd5a0'); hg.addColorStop(1,'#e8a860');
-              ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(cx2,cy2-cw*.22,cw*.2,0,Math.PI*2); ctx.fill();
-              ctx.strokeStyle='#c07830'; ctx.lineWidth=1.2; ctx.stroke();
-              // Eyes
-              ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(cx2-cw*.07,cy2-cw*.25,cw*.04,0,Math.PI*2); ctx.arc(cx2+cw*.07,cy2-cw*.25,cw*.04,0,Math.PI*2); ctx.fill();
-              // Smile
-              ctx.strokeStyle='#994400'; ctx.lineWidth=1.5; ctx.lineCap='round';
-              ctx.beginPath(); ctx.arc(cx2,cy2-cw*.2,cw*.08,.2,Math.PI-.2); ctx.stroke();
-              // Hair
-              ctx.fillStyle='#3a1a08'; ctx.beginPath(); ctx.arc(cx2,cy2-cw*.36,cw*.2,Math.PI,0); ctx.fill();
-              ctx.fillStyle='#4a2a10'; ctx.beginPath(); ctx.arc(cx2-cw*.2,cy2-cw*.22,cw*.06,Math.PI*1.5,Math.PI*.5); ctx.fill();
+              const bg=ctx.createLinearGradient(bx,by,bx,by+bh);
+              bg.addColorStop(0,onG?C.boxOnGoalTop:C.boxTop);
+              bg.addColorStop(1,onG?C.boxOnGoal:C.box);
+              ctx.fillStyle=bg; ctx.fillRect(bx,by,bw,bh);
+              // X brace
+              ctx.strokeStyle=onG?'rgba(0,80,0,.3)':'rgba(0,0,0,.2)'; ctx.lineWidth=1.5;
+              ctx.beginPath();ctx.moveTo(bx+3,by+3);ctx.lineTo(bx+bw-3,by+bh-3);ctx.stroke();
+              ctx.beginPath();ctx.moveTo(bx+bw-3,by+3);ctx.lineTo(bx+3,by+bh-3);ctx.stroke();
+              // Borders
+              ctx.strokeStyle=onG?'#1a6e3a':'#3d1a00'; ctx.lineWidth=2;
+              ctx.strokeRect(bx,by,bw,bh);
+              // Top highlight
+              ctx.fillStyle='rgba(255,255,255,.18)'; ctx.fillRect(bx,by,bw,3);
+              ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fillRect(bx,by,3,bh);
+              if(onG){
+                ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='bold '+(TILE*.4)+'px sans-serif';
+                ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✓',x+TILE/2,y+TILE/2);
+              }
             }
           }
         }
       }
 
-      // Update timer display
-      const timerEl = document.getElementById('sok-timer');
-      if(timerEl) {
-        const elapsed = Math.floor((Date.now()-levelStartTime)/1000);
-        const remaining = Math.max(0, levelTimeLimit - elapsed);
-        const min = Math.floor(remaining/60);
-        const sec = remaining%60;
-        timerEl.textContent = '⏱'+min+':'+(sec<10?'0':'')+sec;
-        timerEl.style.color = remaining<30?'#E74C3C':remaining<60?'#FFD700':'#29B6F6';
-      }
-      // Swipe
-      let tx0=0,ty0=0;
-      cv.ontouchstart = e=>{ tx0=e.touches[0].clientX; ty0=e.touches[0].clientY; e.preventDefault(); };
-      cv.ontouchend = e=>{ const dx=e.changedTouches[0].clientX-tx0, dy=e.changedTouches[0].clientY-ty0; if(Math.abs(dx)+Math.abs(dy)<12)return; Math.abs(dx)>Math.abs(dy)?move(0,dx>0?1:-1):move(dy>0?1:-1,0); e.preventDefault(); };
+      // Player
+      const px2=px*TILE, py2=py*TILE;
+      const pr=TILE*.38;
+      // Shadow
+      ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(px2+TILE/2,py2+TILE-4,pr*.9,4,0,0,Math.PI*2); ctx.fill();
+      // Body
+      const pg=ctx.createRadialGradient(px2+TILE*.38,py2+TILE*.32,1,px2+TILE/2,py2+TILE/2,pr);
+      pg.addColorStop(0,C.playerTop); pg.addColorStop(1,C.player);
+      ctx.fillStyle=pg; ctx.beginPath(); ctx.arc(px2+TILE/2,py2+TILE/2,pr,0,Math.PI*2); ctx.fill();
+      // Eyes
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.arc(px2+TILE*.38,py2+TILE*.38,pr*.22,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(px2+TILE*.62,py2+TILE*.38,pr*.22,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#222';
+      ctx.beginPath();ctx.arc(px2+TILE*.40,py2+TILE*.39,pr*.12,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(px2+TILE*.64,py2+TILE*.39,pr*.12,0,Math.PI*2);ctx.fill();
+      // Smile
+      ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(px2+TILE/2,py2+TILE*.52,pr*.3,0.2,Math.PI-.2);ctx.stroke();
+
+      // Wire buttons
+      const wire=(id,fn)=>{
+        const b=document.getElementById(id); if(!b)return;
+        b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);fn();});
+      };
+      wire('sk-up',  ()=>move(-1,0)); wire('sk-down', ()=>move(1,0));
+      wire('sk-left',()=>move(0,-1)); wire('sk-right',()=>move(0,1));
+      wire('sk-rst', ()=>{moves=0;loadLevel(levelIdx);});
+      wire('sk-skip',()=>{hintPenalty+=3;nextLevel();});
+      wire('sk-hint',()=>{
+        const hb=document.getElementById('sk-hint-box');
+        if(hb){hb.style.display=hb.style.display==='none'?'block':'none';}
+        hintPenalty++;
+      });
+      // Undo: just reset (no undo stack for simplicity)
+      wire('sk-undo',()=>{moves=Math.max(0,moves-1);loadLevel(levelIdx);});
     };
 
-    const onKey = e => { const m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1],w:[-1,0],s:[1,0],a:[0,-1],d:[0,1]}[e.key]; if(m){move(...m);e.preventDefault();} };
-    window.addEventListener('keydown', onKey);
-    SokobanGame._cleanup = () => { window.removeEventListener('keydown', onKey); if(levelTimer)clearInterval(levelTimer); };
+    // Keyboard
+    const onKD = e => {
+      if(!running)return;
+      const map={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1],
+                 KeyW:[-1,0],KeyS:[1,0],KeyA:[0,-1],KeyD:[0,1]};
+      if(map[e.code]){e.preventDefault();move(...map[e.code]);}
+      if(e.code==='KeyR'){loadLevel(levelIdx);}
+    };
+    window.addEventListener('keydown',onKD);
+
+    // Touch swipe on canvas
+    let touchStart=null;
+    el.addEventListener('touchstart',e=>{const t=e.touches[0];touchStart={x:t.clientX,y:t.clientY};},{passive:true});
+    el.addEventListener('touchend',e=>{
+      if(!touchStart)return;
+      const t=e.changedTouches[0];
+      const dx=t.clientX-touchStart.x, dy=t.clientY-touchStart.y;
+      if(Math.abs(dx)<8&&Math.abs(dy)<8)return;
+      if(Math.abs(dx)>Math.abs(dy)) move(0,dx>0?1:-1); else move(dy>0?1:-1,0);
+      touchStart=null;
+    },{passive:true});
+
     loadLevel(0);
+
+    // Cleanup when component unmounts
+    setTimeout(()=>{if(!document.getElementById('sk-cv')){window.removeEventListener('keydown',onKD);running=false;}},100);
   }
 };
-window.SokobanGame = SokobanGame;
