@@ -247,7 +247,19 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-   
+    // Apply font size immediately — use detected system size default
+    try {
+      const dKey = screen.width+'x'+screen.height+'x'+(window.devicePixelRatio||1).toFixed(1);
+      const keys = Object.keys(localStorage).filter(k=>k.includes('fontscale')&&k.includes(dKey));
+      if(keys.length) {
+        const saved = parseInt(localStorage.getItem(keys[0]));
+        if(saved>=8&&saved<=120) { FontScale.apply(saved); }
+      } else {
+        const d = FontScale.detectSizes();
+        FontScale.apply(d.steps[3]||16); // step 3 ≈ 90% of system = good intro default
+      }
+    } catch(e) {}
+
     // Draw stars on canvas
     const wmc = document.getElementById('wm-stars');
     if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
@@ -957,13 +969,7 @@ const App = {
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">🌍 Rangliste</button>
             <button onclick="Shop.open(null,()=>App.showWorldMap())" style="background:rgba(255,215,0,0.3);border:2px solid #FFD700;color:#FFD700;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">🛒 Shop</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">⚑ Meldungen</button>` : ''}
-            <button onclick="App.showEyeTest()" 
-  style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);
-  color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);
-  border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);
-  min-height:40px;position:relative" title="Schriftgrösse anpassen">
-  🔤 Schrift${window._showEyeTestHint ? ' <span style="position:absolute;top:-6px;right:-6px;background:#E74C3C;color:#fff;font-size:.6rem;padding:1px 5px;border-radius:20px;font-weight:900">NEU</span>' : ''}
-</button>
+            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px" title="Schriftgrösse anpassen">🔤 Schrift</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">Abmelden</button>
           </div>
         </div>
@@ -1060,6 +1066,7 @@ const App = {
       const isFirst = s === 0;
       const isLast = s === SIZES.length - 1;
       const progress = Math.round((s / (SIZES.length-1)) * 100);
+      const pctOfSys = Math.round((size / (effectiveSys||16)) * 100);
 
       this._html(`
         <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
@@ -2601,7 +2608,7 @@ function worldPathSVG(worldId, doneCount, charEmoji, worldIcon) {
 function getTaskInstruction(type, worldId) {
   const ICONS = {
     math:'🔢', reaction:'⚡', memory:'🧠', train:'🚂', shutthebox:'🎲',
-    jenga:'🏎️', stunt:'🏎️', slider:'🧩', wordsearch:'🔤', typing:'⌨️', balloon:'🎈',
+    jenga:'🏎️', stunt:'🏎️', slider:'🧩', wordsearch:'🔤', typing:'⌨️', balloon:'🐍',
     simon:'🎨', truefalse:'❓', dart:'🎯', anagram:'🔤', colormix:'🎨',
     clock:'🕐', flags:'🌍', hangman:'🎯', tictactoe:'❌', weight:'⚖️',
     basketball:'🏀', emojistory:'📖', geo:'🗺️', french:'🇫🇷', riddle:'🧩',
@@ -2620,7 +2627,7 @@ function getTaskInstruction(type, worldId) {
     slider:      '🧩 <b>Schiebepuzzle!</b><br>Schiebe die Teile, bis das Bild vollständig ist. Tippe auf ein Teil neben dem Leerfeld, um es zu verschieben.',
     wordsearch:  '🔤 <b>Wortsuche!</b><br>Finde alle versteckten Wörter im Buchstabengitter. Wische über die Buchstaben.',
     typing:      '🟩 <b>Tetris!</b><br>Bewege und drehe fallende Blöcke, um vollständige Reihen zu bilden.<br>📱 Mobile: Buttons zum Steuern<br>🖥️ Desktop: ← → bewegen · ↑ oder Leertaste drehen · ↓ schneller fallen lassen.',
-    balloon:     '🎈 <b>Ballon!</b><br>Halte den Ballon in der Luft — tippe/klicke rhythmisch, damit er nicht fällt.',
+    balloon:     '🐍 <b>Snake!</b><br>Steuere die Schlange mit den Pfeiltasten oder Wischen. Friss Äpfel, werde länger — berühre nicht dich selbst!',
     simon:       '🎨 <b>Simon!</b><br>Merke dir die Farbfolge und wiederhole sie. Wird nach jeder Runde länger.',
     truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Beantworte Fragen mit Wahr oder Falsch. Tippe auf den richtigen Knopf.',
     anagram:     '🔤 <b>Anagramm!</b><br>Ordne die durcheinander gewürfelten Buchstaben zum richtigen Wort.',

@@ -5,18 +5,18 @@ const PongGame = {
     if (!el) { if(typeof GameLog!=='undefined')GameLog.error('pong2','game-area not found'); return; }
     if(typeof GameLog!=='undefined')GameLog.log('pong2','start()');
     // Responsive dimensions
-    const stripW = 64; // touch strip width on mobile
     const isMobile = 'ontouchstart' in window;
-    const maxW = Math.min(window.innerWidth - 8, 420);
-    // On mobile: canvas must be narrower to leave room for touch strip
-    const W = isMobile ? Math.min(maxW - stripW, maxW - stripW) : maxW;
-    const H = Math.round((isMobile ? maxW : W) * 0.78);
+    const STRIP_W = isMobile ? 64 : 0; // touch strip width on mobile
+    const maxW = Math.min(window.innerWidth - 8, 460);
+    // CRITICAL: W = canvas game width. On mobile, canvas gets screen minus strip.
+    const W = isMobile ? Math.max(200, maxW - STRIP_W) : maxW;
+    const H = Math.round(maxW * 0.78); // H based on full maxW for strip height too
     const PS = Math.round(W * 0.17); // paddle size scales with W
     const PW = 10;
 
-    el.innerHTML=`<div style="text-align:center;max-width:${W}px;margin:0 auto">
+    el.innerHTML=`<div style="text-align:center;max-width:${isMobile?maxW:W}px;margin:0 auto">
       <!-- HUD bar -->
-      <div style="background:#111;border-radius:8px 8px 0 0;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;gap:6px;max-width:${W}px;margin:0 auto;box-sizing:border-box">
+      <div style="background:#111;border-radius:8px 8px 0 0;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;gap:6px;max-width:${isMobile?maxW:W}px;margin:0 auto;box-sizing:border-box">
         <div id="pong-score" style="font-family:monospace;font-weight:900;font-size:1.2rem;color:#fff;min-width:60px">0 : 0</div>
         <div style="flex:1;text-align:center">
           <div id="pong-timer" style="font-size:.82rem;color:#27AE60;font-weight:700">⏱ 60s</div>
@@ -25,7 +25,7 @@ const PongGame = {
         <div id="pong-speed-level" style="font-size:.8rem;color:#FFD700;min-width:40px;text-align:right">⚡ Lv1</div>
       </div>
       <!-- Speed bar -->
-      <div style="background:#222;height:4px;max-width:${W}px;margin:0 auto;box-sizing:border-box;position:relative">
+      <div style="background:#222;height:4px;max-width:${isMobile?maxW:W}px;margin:0 auto;box-sizing:border-box;position:relative">
         <div id="pong-tbar" style="background:#27AE60;height:4px;width:100%;transition:width .1s"></div>
         <div id="pong-5bar" style="position:absolute;top:0;left:0;height:4px;background:rgba(255,165,0,.6);transition:width .1s"></div>
       </div>
@@ -33,7 +33,7 @@ const PongGame = {
       ${isMobile ? `<div style="display:flex;align-items:stretch;gap:0;touch-action:none">
         <!-- VERTICAL TOUCH STRIP — full height, drag finger up/down -->
         <div id="pong-touch-zone"
-          style="width:62px;flex-shrink:0;
+          style="width:70px;flex-shrink:0;
                  background:linear-gradient(180deg,rgba(39,174,96,.2),rgba(39,174,96,.08));
                  border:2px solid rgba(39,174,96,.5);border-right:none;
                  border-radius:0 0 0 8px;touch-action:none;user-select:none;
@@ -59,7 +59,7 @@ const PongGame = {
         <!-- Canvas fills remaining width -->
         <canvas id="pongcv" width="${W}" height="${H}"
           style="background:#000;flex:1;display:block;border-radius:0 0 8px 0;
-                 touch-action:none"></canvas>
+                 width:${W}px;height:${H}px;touch-action:none"></canvas>
       </div>`
       : `<canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%;margin:0 auto"></canvas>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:8px">

@@ -21,6 +21,7 @@ const StarWarsGame = {
     const _prevOnerr=window.onerror;
     window.onerror=function(m,s,l,c,e){_swOnErr(m,s,l);if(_prevOnerr)return _prevOnerr(m,s,l,c,e);};
 
+    function BTN(bg,b){return `background:${bg};border:2px solid ${b};color:#fff;padding:clamp(10px,3vw,14px) clamp(16px,5vw,28px);border-radius:10px;font-size:clamp(.9rem,3.5vw,1.05rem);font-weight:900;cursor:pointer;touch-action:none;box-shadow:0 0 12px ${b}55,0 4px 0 rgba(0,0,0,.5)`;}
     el.innerHTML=`<div style="text-align:center;touch-action:none;user-select:none;-webkit-user-select:none;font-family:sans-serif">
       <canvas id="swcv" width="${W*DPR}" height="${H*DPR}"
         style="background:#000;border-radius:10px;width:${W}px;height:${H}px;display:block;margin:0 auto;
@@ -35,7 +36,6 @@ const StarWarsGame = {
       </div>
     </div>`;
 
-    function BTN(bg,b){return `background:${bg};border:2px solid ${b};color:#fff;padding:clamp(10px,3vw,14px) clamp(16px,5vw,28px);border-radius:10px;font-size:clamp(.9rem,3.5vw,1.05rem);font-weight:900;cursor:pointer;touch-action:none;box-shadow:0 0 12px ${b}55,0 4px 0 rgba(0,0,0,.5)`;}
 
     const cv=document.getElementById('swcv'), ctx=cv.getContext('2d');
     ctx.scale(DPR,DPR);
@@ -63,6 +63,7 @@ const StarWarsGame = {
     spawnWave();
 
     let leftH=false, rightH=false, efTick=0;
+    const ptrUpHandler=()=>{leftH=false;rightH=false;}; // declared BEFORE use!
 
     const fire=()=>{
       if(fireMode==='triple'){
@@ -98,7 +99,6 @@ const StarWarsGame = {
       else window.addEventListener('deviceorientation',gyro);
     }
 
-    const ptrUpHandler=()=>{leftH=false;rightH=false;};
     const end=(won)=>{
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKU);

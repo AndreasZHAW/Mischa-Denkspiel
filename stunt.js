@@ -249,6 +249,8 @@ const StuntGame = {
           }
         } else { car.gasHeld=Math.max(0,car.gasHeld-dt*2); }
         if(inp.back){car.vx-=Math.cos(terrAng)*.65;car.gasHeld=0;}
+        // Rotation on ground gives slight air bounce
+        if((inp.rotup||inp.rotdn)&&Math.abs(car.spin)>0.1){car.vy=-1.5;car.wy-=2;}
         car.vx*=0.80;
       } else {
         car.onGround=false;car.airTime++;
@@ -263,10 +265,16 @@ const StuntGame = {
         }
       }
 
-      if(inp.rotup)car.spin=Math.min(0.22,car.spin+(car.spin<0?.055:.022));
-      if(inp.rotdn)car.spin=Math.max(-0.22,car.spin-(car.spin>0?.055:.022));
-      if(!inp.rotup&&!inp.rotdn&&!car.onGround)car.spin*=0.97;
+      // Rotation works both in air AND on ground (for flipping out of crashes)
+      if(inp.rotup)car.spin=Math.min(0.25,car.spin+(car.spin<0?.07:.035));
+      if(inp.rotdn)car.spin=Math.max(-0.25,car.spin-(car.spin>0?.07:.035));
+      if(!inp.rotup&&!inp.rotdn){
+        if(!car.onGround) car.spin*=0.97; // air: slow decay
+        else car.spin*=0.15; // ground: fast decay
+      }
 
+      // Apply spin to angle — THIS IS THE FIX (was missing!)
+      car.ang += car.spin;
       // Clamp speed
       car.vx=Math.max(-9,Math.min(car.speedCap,car.vx));
       car.wx+=car.vx;car.wy+=car.vy;
