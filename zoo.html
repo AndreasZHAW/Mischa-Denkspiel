@@ -172,6 +172,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
+<script>
+(function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
+</script>
 
 <!-- LOGIN -->
 <div id="s-login" class="scr">
@@ -213,6 +216,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   style="width:36px;height:36px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.6);font-size:.9rem;cursor:pointer;margin-bottom:4px;display:flex;align-items:center;justify-content:center;transition:all .2s"
   title="HUD minimieren/maximieren">⊟</button>
 <div class="hb" onclick="ZP.open('index')"><div class="hbb" style="background:rgba(52,152,219,.8)">📖</div><div class="hbl">Index</div></div>
+<div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl">Profil</div></div>
 
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
@@ -320,6 +324,40 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 </div></div>
 
 <div class="zp off" id="p-index"><div class="zpi"><button class="pcls" onclick="ZP.close('index')">✕</button><div class="pt">📖 Index</div><div id="pidx"></div></div></div>
+
+<!-- ══ PROFIL / PASSWORT ══ -->
+<div class="zp off" id="p-profile">
+  <div class="zpi">
+    <button class="pcls" onclick="ZP.close('profile')">✕</button>
+    <div class="pt">👤 Profil bearbeiten</div>
+    <div style="padding:10px 0">
+      <div style="margin-bottom:16px">
+        <div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:4px">Aktueller Name</div>
+        <div id="profile-cur-name" style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px"></div>
+        <div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:4px">Neuer Name (optional)</div>
+        <input id="profile-new-name" type="text" placeholder="Neuer Name..." maxlength="20"
+          style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:10px;font-size:.95rem;outline:none;box-sizing:border-box;margin-bottom:8px">
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:4px">Aktuelles Passwort</div>
+        <input id="profile-cur-pw" type="password" placeholder="Aktuelles Passwort..." maxlength="30"
+          style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:10px;font-size:.95rem;outline:none;box-sizing:border-box;margin-bottom:8px">
+        <div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:4px">Neues Passwort (optional)</div>
+        <input id="profile-new-pw" type="password" placeholder="Neues Passwort..." maxlength="30"
+          style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:10px;font-size:.95rem;outline:none;box-sizing:border-box">
+      </div>
+      <div id="profile-msg" style="color:#E74C3C;font-size:.85rem;margin-bottom:10px;min-height:20px"></div>
+      <button onclick="ZP._saveProfile()"
+        style="width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer;margin-bottom:8px">
+        ✅ Speichern
+      </button>
+      <button onclick="ZP.close('profile')"
+        style="width:100%;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer">
+        Abbrechen
+      </button>
+    </div>
+  </div>
+</div>
 <div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button></div><div id="scont"></div>
   <!-- Secret admin access field -->
   <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
@@ -522,18 +560,18 @@ const LUCK_UPS=[{m:1.5,cost:1500,l:'×1.5 🍀'},{m:2,cost:4000,l:'×2 🍀🍀'
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
-  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:800,  fly:false},
-  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:900,  fly:false},
-  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:1000, fly:false},
-  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:1100, fly:false},
-  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:1200, fly:false},
-  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:1300, fly:false},
-  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:5000, fly:false},
-  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:5000, fly:false,isGun:true},
-  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:3000, fly:true,  special:true},
+  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false},
+  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false},
+  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false},
+  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false},
+  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false},
+  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false},
+  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false},
+  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true},
+  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true},
   {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true},
-  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:1800, fly:true,  special:true},
-  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:1500, fly:true,  special:true},
+  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true},
+  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true},
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000},{e:3,l:2,u:1,g:0,m:0,s:0,mt:25000},{e:4,l:3,u:2,g:1,m:0,s:0,mt:120000},{e:5,l:4,u:3,g:2,m:1,s:0,mt:600000},{e:5,l:5,u:4,g:3,m:2,s:0,mt:3000000},{e:5,l:5,u:5,g:4,m:3,s:0,mt:15000000},{e:5,l:5,u:5,g:5,m:4,s:1,mt:100000000}];return R[Math.min(n,R.length-1)];}
@@ -940,20 +978,20 @@ const ZG={
     this.droppedAnimals.splice(idx,1);
     if(d.mesh&&this.scene) this.scene.remove(d.mesh);
     this._nearDropped = -1;
-    // Add to OWN zoo
+    // Picking up = start carrying again (must reach enclosure to place)
+    // Find a free enclosure slot
     const z = ZS.zoo;
-    const slot = z.enc.findIndex(e=>!e||!e.animal);
+    const slot = d.slot>=0 && (!z.enc[d.slot]||!z.enc[d.slot].animal) ? d.slot
+      : z.enc.findIndex(e=>!e||!e.animal);
     if(slot>=0){
-      z.enc[slot]={animal:{...d.animal},shiny:d.shiny,traits:d.traits||[],xm:1,addedAt:Date.now(),sl:0};
-      this._encs();
-      ZP.toast('✅ '+d.animal.e+' '+d.animal.n+' aufgehoben! Jetzt in Gehege '+(slot+1),2500);
+      this._startCarry({animal:{...d.animal},shiny:d.shiny,traits:d.traits||[],slot});
+      ZP.toast('🐾 '+d.animal.e+' '+d.animal.n+' aufgehoben! Bringe es zu Gehege '+(slot+1)+'!',3000);
     } else {
       ZP.toast('❌ Keine freien Gehege!',2000);
-      // Put it back
+      // Put it back on ground
       this.droppedAnimals.push(d);
       this._spawnDroppedMesh(d);
     }
-    this._updHUD();
   },
   _updCarryHUD(){
     // Show/hide carry indicator
@@ -1735,9 +1773,11 @@ const ZG={
     for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){
       if(Math.sqrt((this.pl.x-eps[i].x)**2+(this.pl.z-eps[i].z)**2)<5.5){
         this.nearEnc=i;
-        // Auto-place if carrying and this is the target enclosure
-        if(this.carrying && this.carrying.slot===i && ZS.zoo && !ZS.zoo.enc[i]?.animal){
-          this._placeCarried();
+        // Show place prompt when at target enclosure — place with [E] not auto
+        if(this.carrying && this.carrying.slot===i){
+          const ip=G('iprompt');
+          if(ip){ip.style.opacity='1';ip.style.color='#2ecc71';
+            ip.textContent='🏠 [E] '+this.carrying.animal.e+' '+this.carrying.animal.n+' in Gehege '+(i+1)+' ablegen!';}
         }
         break;
       }
@@ -1884,7 +1924,8 @@ const ZG={
   },
 
   _visitor(){
-    const z=ZS.zoo;const a=z.enc.filter(e=>e);if(!a.length)return;
+    const z=ZS.zoo;if(!z)return;
+    const a=z.enc.filter(e=>e);if(!a.length)return;
     z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>s+earn(enc,z,this.ev),0);z.mt+=tot;z.te=(z.te||0)+tot;if(Math.random()<0.3)ZSound.coin();
     const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);
   },
@@ -1955,7 +1996,8 @@ const ZG={
       const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
       if(wdist<6&&LW.spins>0){LW.open();return;}
       // Show gondola station menu (Gondel / Glücksrad / Verlassen)
-      ZP._showStationMenu(); return;
+      // Show Gondel station only — lucky wheel has its own proximity trigger
+      ZP.open('gond'); return;
     }
     // Lucky block interaction
     // Trapdoor check
@@ -1984,6 +2026,10 @@ const ZG={
     }
     // Pick up dropped animal
     if(this._nearDropped>=0){this._pickupDropped(this._nearDropped);return;}
+    // If carrying and at target enclosure — place it
+    if(this.carrying && this.nearEnc>=0 && this.nearEnc===this.carrying.slot){
+      this._placeCarried(); return;
+    }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
     if(this.nearLimo>=0){ZP.openLimo(this.nearLimo);return;}
   },
@@ -2604,7 +2650,25 @@ const ZG={
       const a=(window.ANIMALS||[]).find(x=>x.id===cmd.animalId);
       if(a){a.n=cmd.n;a.earn=cmd.earn;a.r=cmd.r;
         ZP.toast('✏️ Admin hat '+a.e+' '+a.n+' geändert',2000);}
-    } else if(cmd.type==='spawn_animal'){const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];const sh=cmd.shinyId?{id:cmd.shinyId,...SHINY[cmd.shinyId]}:null;const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);const slot=z.enc.findIndex(e=>!e);if(slot>=0){z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};this._encs();ZP.toast(`👑 Admin: ${a.e} ${a.n}!`,3000);}}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
+    } else if(cmd.type==='spawn_animal'){
+  const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];
+  const sh=cmd.shinyId?{id:cmd.shinyId,...(SHINY?.[cmd.shinyId]||{})}:null;
+  const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);
+  const slot=z.enc.findIndex(e=>!e);
+  if(slot>=0){
+    z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};
+    this._encs();
+    // Big toast with ⬇️ message
+    const msg=cmd.spawnMsg||('⬇️ Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt!');
+    ZP.toast(msg,5000);
+    // Floating announcement
+    const ann=document.createElement('div');
+    ann.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border:2px solid #27AE60;border-radius:20px;padding:20px 28px;text-align:center;font-weight:900;color:#fff;font-size:1.1rem;box-shadow:0 0 40px rgba(39,174,96,.5),0 8px 24px rgba(0,0,0,.7);animation:bounceIn .5s ease';
+    ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">⬇️</div><div>Mischa hat</div><div style="font-size:1.6rem;margin:4px 0">'+a.e+' '+a.n+'</div><div>in deinem Zoo gespawnt!</div>';
+    document.body.appendChild(ann);
+    setTimeout(()=>ann.remove(),5000);
+  }
+}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
       const pollDiv=document.createElement('div');
@@ -3246,6 +3310,70 @@ const ZP={
     if(z.mt<finalP){this.toast('❌ Zu wenig MT! Brauchst '+$mt(finalP));return;}
     z.mt-=finalP;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
+  _openProfile(){
+    const el=document.getElementById('profile-cur-name');
+    if(el)el.textContent=ZS.player||'?';
+    const ni=document.getElementById('profile-new-name');
+    const pi=document.getElementById('profile-cur-pw');
+    const npi=document.getElementById('profile-new-pw');
+    if(ni)ni.value='';if(pi)pi.value='';if(npi)npi.value='';
+    const msg=document.getElementById('profile-msg');if(msg)msg.textContent='';
+    this.open('profile');
+  },
+  async _saveProfile(){
+    const msg=document.getElementById('profile-msg');
+    const newName=(document.getElementById('profile-new-name')?.value||'').trim();
+    const curPw=(document.getElementById('profile-cur-pw')?.value||'');
+    const newPw=(document.getElementById('profile-new-pw')?.value||'').trim();
+    if(msg)msg.textContent='';
+    // Verify current password
+    const users=JSON.parse(localStorage.getItem('zoo_users')||'{}');
+    const key=ZS.player.toLowerCase();
+    const curUser=users[key];
+    if(!curUser){if(msg)msg.textContent='❌ Spieler nicht gefunden';return;}
+    if(curPw!==curUser.pw&&curPw!==curUser.password){
+      if(msg){msg.textContent='❌ Falsches Passwort';msg.style.color='#E74C3C';}return;
+    }
+    let changed=[];
+    // Change name
+    if(newName&&newName!==ZS.player){
+      if(newName.length<2){if(msg)msg.textContent='❌ Name zu kurz (min 2)';return;}
+      if(users[newName.toLowerCase()]&&newName.toLowerCase()!==key){
+        if(msg)msg.textContent='❌ Name bereits vergeben';return;
+      }
+      // Move user entry
+      const userData={...curUser,name:newName};
+      delete users[key];
+      users[newName.toLowerCase()]=userData;
+      // Update zoo save
+      const oldZooKey='zoo_'+key;
+      const newZooKey='zoo_'+newName.toLowerCase();
+      const zooData=localStorage.getItem(oldZooKey);
+      if(zooData){localStorage.setItem(newZooKey,zooData);localStorage.removeItem(oldZooKey);}
+      localStorage.setItem('zoo_users',JSON.stringify(users));
+      ZS.player=newName;
+      if(msg){msg.textContent='✅ Name geändert zu: '+newName;msg.style.color='#2ecc71';}
+      changed.push('name');
+    }
+    // Change password
+    if(newPw){
+      if(newPw.length<3){if(msg)msg.textContent='❌ Passwort zu kurz (min 3)';return;}
+      const uKey=newName?newName.toLowerCase():key;
+      if(!users[uKey])users[uKey]={...curUser};
+      users[uKey].pw=newPw;users[uKey].password=newPw;
+      localStorage.setItem('zoo_users',JSON.stringify(users));
+      if(msg){msg.textContent=(msg.textContent||'')+'  ✅ Passwort geändert';msg.style.color='#2ecc71';}
+      changed.push('pw');
+      // Also update Firebase if available
+      try{if(typeof _db!=='undefined'&&_db){
+        const pKey=(newName||ZS.player).toLowerCase();
+        await _db.collection('zoo_users').doc(pKey).update({pw:newPw,password:newPw});
+      }}catch(e){}
+    }
+    if(changed.length===0){if(msg){msg.textContent='ℹ️ Nichts geändert';msg.style.color='#F39C12';}return;}
+    this.toast('✅ Profil gespeichert!',2500);
+    setTimeout(()=>this.close('profile'),1500);
+  },
   _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
   _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:600,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${z.mt<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bst(id,p,dur){const z=ZS.zoo;if(z.mt<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();},
@@ -3444,7 +3572,26 @@ const ZP={
         '<button class="btn btnd" onclick="LuckyBlocks.spawn(&quot;secret&quot;)" style="font-size:.72rem;padding:6px;background:rgba(0,0,0,.5)">🖤 Geheim</button>'+
       '</div>';
   },
-  async _adSp(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),aid=G('as')?.value,shId=G('ash')?.value;const cmd={type:'spawn_animal',target:tgt,animalId:aid,shinyId:shId,traitIds:[],id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const a=ANIMALS.find(x=>x.id===aid)||ANIMALS[0];const sh=shId?{id:shId,...SHINY[shId]}:null;const slot=ZS.zoo.enc.findIndex(e=>!e);if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs();}}this.toast('✅ Spawn!');this.close('adm');},
+  async _adSp(){
+    const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();
+    let aid=G('as')?.value;
+    const shId=G('ash')?.value;
+    // Random spawn if no animal selected
+    if(!aid||aid==='random'){
+      aid=ANIMALS[Math.floor(Math.random()*ANIMALS.length)].id;
+    }
+    const a=ANIMALS.find(x=>x.id===aid)||ANIMALS[Math.floor(Math.random()*ANIMALS.length)];
+    const sh=shId?{id:shId,...(SHINY?.[shId]||{})}:null;
+    const cmd={type:'spawn_animal',target:tgt,animalId:a.id,shinyId:shId,traitIds:[],
+               spawnMsg:'Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt! 👇',
+               id:Date.now().toString(),exp:Date.now()+30000};
+    await this._cmd(cmd);
+    if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){
+      const slot=ZS.zoo.enc.findIndex(e=>!e);
+      if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs();}
+    }
+    this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
+  },
   async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');},
   async _adSl(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),sid=G('asl')?.value||'lucky';const cmd={type:'give_slap',target:tgt,slapId:sid,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const z=ZS.zoo;if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;ZG._updWBar();}this.toast(`✅ ${SLAPS.find(s=>s.id===sid)?.e} Slap!`);this.close('adm');},
   _setWheel(btn){
@@ -5638,7 +5785,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div style="flex:1;overflow-y:auto;padding:12px">
         <!-- TAB: TIERE -->
         <div class="padmin-tab" id="padmin-tab-tiere">
-          <div class="padmin-section-title">🐾 Tiere spawnen</div>
+          <div class="padmin-section-title">🐾 Zufälliges Tier spawnen</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px">Tier, Shiny und Traits werden zufällig gewählt. Die Empfänger sehen eine grosse Benachrichtigung!</div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px" id="padmin-animal-grid">
             <!-- Filled by JS -->
           </div>

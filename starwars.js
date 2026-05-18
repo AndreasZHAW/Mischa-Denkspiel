@@ -50,15 +50,19 @@ const StarWarsGame = {
       s:Math.random()*1.8+.3,spd:.3+Math.random()*.8,bright:Math.random()});
 
     const spawnWave=()=>{
-      const rows=Math.min(4,1+Math.floor(wave/2));
-      const cols=Math.min(8,4+wave);
-      const sp=Math.min(46,Math.floor((W-40)/cols));
-      const speed=0.7+wave*0.22; // gentle scaling
+      const rows=Math.min(5,1+Math.floor(wave/2));
+      const cols=Math.min(9,3+wave);
+      const sp=Math.min(44,Math.floor((W-40)/cols));
+      const speed=0.65+wave*0.18; // gentle: wave 8 = 0.65+1.44=2.09
+      const bossWave=wave>=6; // waves 6+ have boss enemies with 3 HP
       for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
-        enemies.push({x:20+c*sp,y:20+r*36,w:22,h:18,hp:1+(r>=2?1:0),
+        enemies.push({x:20+c*sp,y:20+r*32,w:22,h:18,
+          hp: bossWave&&r===0 ? 3 : 1+(r>=2?1:0),
           dx:speed,dy:0,type:r%4,phase:Math.random()*Math.PI*2});
-      if(wave>=2) powerups.push({x:60+Math.random()*(W-120),y:-20,dy:1.4,
-        type:wave>=4?'triple':wave>=3?'rapid':'shield'});
+      // Guaranteed powerup each wave from wave 2+
+      const pwType=wave>=6?'triple':wave>=4?'rapid':wave>=3?'rapid':'shield';
+      powerups.push({x:60+Math.random()*(W-120),y:-20,dy:1.4,type:pwType});
+      if(wave>=5) powerups.push({x:60+Math.random()*(W-120),y:-50,dy:1.2,type:'shield'});
     };
     spawnWave();
 
@@ -106,7 +110,7 @@ const StarWarsGame = {
       if(rfInt)clearInterval(rfInt);
       window.onerror=_prevOnerr; // restore
       _swLog('Game ended: wave='+wave+' score='+score+' won='+won);
-      onComplete({rawScore:Math.min(100,wave*14+Math.round(score/12)),timeMs:Date.now()-tStart,errors:0,passed:wave>=2||won});
+      onComplete({rawScore:Math.min(100,wave*14+Math.round(score/12)),timeMs:Date.now()-tStart,errors:0,passed:wave>=2||won||score>=100});
     };
 
     // ── DRAWING HELPERS ──
@@ -240,8 +244,8 @@ const StarWarsGame = {
 
       explosions=explosions.map(e=>({...e,t:e.t-1,r:e.r+1.5})).filter(e=>e.t>0);
       if(enemies.some(e=>e.y>H-60)){end(false);return;}
-      if(!enemies.length){wave++;if(wave>5){end(true);return;}spawnWave();}
-      if(Date.now()-tStart>480000)end(score>100); // 8 min max
+      if(!enemies.length){wave++;if(wave>8){end(true);return;}spawnWave();}
+      if(Date.now()-tStart>900000)end(score>100); // 15 min max for 8 waves
 
       // ── DRAW ──
       // Deep space
@@ -321,7 +325,7 @@ const StarWarsGame = {
       ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(11,W*.032)}px monospace`;ctx.textAlign='left';
       ctx.fillText('⭐ '+score,8,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';
-      ctx.fillText('WELLE '+wave+'/5',W/2,19);
+      ctx.fillText('WELLE '+wave+'/8',W/2,19);
       ctx.textAlign='right';
       for(let i=0;i<Math.min(lives,5);i++){
         const hx=W-8-i*20,hy=13;
