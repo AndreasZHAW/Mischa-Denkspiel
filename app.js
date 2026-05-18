@@ -75,8 +75,50 @@ const STICKMAN_COLORS = [
 // Device fingerprint: screenW x screenH x DPR
 // Font scale stored per player+device in localStorage + Firebase admin_logs
 const FontScale = {
-  SIZES: [22, 20, 18, 16, 15, 14, 13, 12, 11, 10], // 10 steps, px values
+  SIZES: [22, 20, 18, 16, 15, 14, 13, 12, 11, 10], // fallback (overridden by detectSizes)
   DEFAULT: 15,
+
+  // Detect system font size and generate 10 steps from 2× to 0.3× system size
+  detectSizes() {
+    // Method 1: Read computed font-size from a fresh element (most reliable)
+    let sysSize = 16; // browser default
+    try {
+      const probe = document.createElement('div');
+      // No inline styles — inherits system/browser default
+      probe.style.cssText = 'position:fixed;visibility:hidden;font-size:1em;left:-9999px';
+      document.body.appendChild(probe);
+      const computed = parseFloat(window.getComputedStyle(probe).fontSize);
+      probe.remove();
+      if (computed >= 8 && computed <= 40) sysSize = computed;
+    } catch(e) {}
+
+    // Method 2: Also check window.devicePixelRatio to scale up on high-DPI
+    const dpr = window.devicePixelRatio || 1;
+    // On high-DPI, effective minimum readable size is larger
+    // e.g. DPR=3: system might report 16px but visually it's tiny
+    // Scale system size by DPR factor (capped to avoid extreme values)
+    const dprFactor = Math.min(dpr, 2.5) / 1.0;
+    // Only apply DPR factor if system size seems small (< 18px means system isn't compensating)
+    const effectiveSys = sysSize < 18 ? Math.round(sysSize * Math.min(dprFactor, 1.8)) : sysSize;
+
+    // Generate 10 steps: from 2× effectiveSys down to 0.3× effectiveSys
+    const maxPx = Math.round(effectiveSys * 2.0);   // top step
+    const minPx = Math.max(8, Math.round(effectiveSys * 0.30)); // bottom step
+    const steps = [];
+    for (let i = 0; i < 10; i++) {
+      // Logarithmic spacing (feels more natural than linear)
+      const t = i / 9;
+      const logMax = Math.log(maxPx);
+      const logMin = Math.log(minPx);
+      const px = Math.round(Math.exp(logMax + t * (logMin - logMax)));
+      if (steps.length === 0 || px !== steps[steps.length - 1]) steps.push(px);
+    }
+    // Ensure we have exactly 10 steps (pad with linear if needed)
+    while (steps.length < 10) steps.push(steps[steps.length - 1] - 1);
+    steps.length = 10;
+
+    return { steps, sysSize, effectiveSys, maxPx, minPx };
+  },
 
   // Device key: unique per screen dimensions + pixel ratio
   deviceKey() {
@@ -94,8 +136,15 @@ const FontScale = {
       const saved = localStorage.getItem(this.storageKey(playerName));
       if (saved) {
         const size = parseInt(saved);
-        if (size >= 10 && size <= 22) return size;
+        if (size >= 8 && size <= 120) return size; // wider range for detected sizes
       }
+    } catch(e) {}
+    // No saved size: auto-detect effective default
+    try {
+      const d = this.detectSizes();
+      // Use middle step (step 4 out of 10 = ~80% of system size) as default
+      // This ensures first-time users get a reasonable size
+      return d.steps[4] || this.DEFAULT;
     } catch(e) {}
     return this.DEFAULT;
   },
@@ -126,6 +175,8 @@ const FontScale = {
 
   // Apply scale — sets root font + CSS vars + dynamic style injection
   apply(sizePx) {
+    // Clamp to reasonable range (detectSizes gives 8-120px range)
+    sizePx = Math.max(8, Math.min(120, parseInt(sizePx) || 15));
     const scale = sizePx / 15; // 15px is the base
     document.documentElement.style.setProperty('--user-font-size', sizePx + 'px');
     document.documentElement.style.setProperty('--user-font-scale', scale.toFixed(3));
@@ -911,7 +962,7 @@ const App = {
   color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);
   border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);
   min-height:40px;position:relative" title="Schriftgrösse anpassen">
-  👁 Sehtest${window._showEyeTestHint ? ' <span style="position:absolute;top:-6px;right:-6px;background:#E74C3C;color:#fff;font-size:.6rem;padding:1px 5px;border-radius:20px;font-weight:900">NEU</span>' : ''}
+  🔤 Schrift${window._showEyeTestHint ? ' <span style="position:absolute;top:-6px;right:-6px;background:#E74C3C;color:#fff;font-size:.6rem;padding:1px 5px;border-radius:20px;font-weight:900">NEU</span>' : ''}
 </button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">Abmelden</button>
           </div>
@@ -984,9 +1035,12 @@ const App = {
   showEyeTest() {
     const player = State.currentPlayer;
     const playerName = player?.name || '';
-    const SIZES = FontScale.SIZES; // [22,20,18,16,15,14,13,12,11,10]
+    // Detect system font size and compute 10 steps dynamically
+    const detected = FontScale.detectSizes();
+    const SIZES = detected.steps;
+    const { sysSize, effectiveSys, maxPx, minPx } = detected;
     let step = 0;
-    let lastReadable = 0; // index of last readable step (0 = biggest)
+    let lastReadable = 0;
 
     const SAMPLE_TEXTS = [
       'Mischa Denkspiel — Willkommen!',
@@ -1015,9 +1069,12 @@ const App = {
           <!-- Header -->
           <div style="text-align:center;margin-bottom:28px">
             <div style="font-size:3rem;margin-bottom:8px">👁</div>
-            <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Sehtest</h2>
+            <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Schriftgrösse optimieren</h2>
             <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
-              Schritt ${s+1} von ${SIZES.length} — ${size}px Schriftgrösse
+              Schritt ${s+1} von ${SIZES.length} — ${size}px
+            </p>
+            <p style="color:rgba(255,255,255,.3);font-size:clamp(11px,3vw,14px);margin:3px 0 0">
+              Systemschrift: ${sysSize}px · DPR: ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
             </p>
           </div>
 
@@ -1040,7 +1097,7 @@ const App = {
               ${SAMPLE_TEXTS[s]}
             </div>
             <div style="margin-top:14px;color:rgba(255,255,255,.3);font-size:.7rem">
-              ${size}px · ${isFirst?'Grösste Stufe':isLast?'Kleinste Stufe':'Stufe '+(s+1)}
+              ${size}px · ${pctOfSys}% der Systemgrösse · ${isFirst?'▲ Grösste':isLast?'▼ Kleinste':'Stufe '+(s+1)}
             </div>
           </div>
 
@@ -1067,8 +1124,8 @@ const App = {
             </button>` : ''}
             <button onclick="App.showWorldMap()"
               style="background:none;color:rgba(255,255,255,.3);border:none;
-                     padding:10px;font-size:.82rem;cursor:pointer;margin-top:4px">
-              Überspringen (Standardgrösse)
+                     padding:10px;font-size:clamp(13px,3.5vw,16px);cursor:pointer;margin-top:4px">
+              Überspringen (Standardgrösse beibehalten)
             </button>
           </div>
         </div>`);
@@ -1077,35 +1134,57 @@ const App = {
     // Store test state on App
     this._eyeStep = 0;
     this._eyeLastReadable = 0;
+    this._eyeHadYes = false; // track if user ever clicked 'Yes'
     render(0);
   },
 
   _eyeTestYes(step) {
-    const SIZES = FontScale.SIZES;
-    this._eyeLastReadable = step;
-    // Preview the font size live as test progresses
+    const detected = FontScale.detectSizes();
+    const SIZES = detected.steps;
+    this._eyeLastReadable = step; // remember: this step WAS readable
+    this._eyeHadYes = true;
+    // Preview live
     FontScale.apply(SIZES[step]);
     if (step >= SIZES.length - 1) {
-      this._eyeTestFinish(step);
+      // Reached smallest — save it as the minimum readable
+      this._eyeTestFinish(step, detected);
     } else {
       this.showEyeTestStep(step + 1);
     }
   },
 
   _eyeTestNo(step) {
-    // This step is too small — save previous step as the minimum
-    const saveStep = Math.max(0, step - 1);
-    // But if step 0 (biggest) is already unreadable, use step 0 anyway
-    const finalStep = step === 0 ? 0 : saveStep;
-    this._eyeTestFinish(finalStep);
+    const detected = FontScale.detectSizes();
+    const SIZES = detected.steps;
+    
+    if (step === 0) {
+      // "Cannot read" already at BIGGEST size → save biggest (step 0) anyway
+      // This is the maximum we have — better than nothing
+      this._eyeTestFinish(0, detected);
+    } else if (this._eyeHadYes) {
+      // We had at least one "Yes" — save the last readable step
+      this._eyeTestFinish(this._eyeLastReadable, detected);
+    } else {
+      // Never clicked "Yes" before — save previous step (one bigger)
+      this._eyeTestFinish(step - 1, detected);
+    }
   },
 
   _eyeTestBack(step) {
-    if (step > 0) this.showEyeTestStep(step - 1);
+    if (step > 0) {
+      // If going back to step before last readable, reset tracker
+      if (step - 1 < this._eyeLastReadable) {
+        this._eyeLastReadable = step - 1;
+        this._eyeHadYes = step > 1;
+      }
+      this.showEyeTestStep(step - 1);
+    }
   },
 
   showEyeTestStep(step) {
-    const SIZES = FontScale.SIZES;
+    const detected = FontScale.detectSizes();
+    const SIZES = detected.steps;
+    const { sysSize, effectiveSys, maxPx, minPx } = detected;
     if (step < 0 || step >= SIZES.length) { this.showWorldMap(); return; }
     const size = SIZES[step];
     const SAMPLE_TEXTS = [
@@ -1123,15 +1202,19 @@ const App = {
     const progress = Math.round((step / (SIZES.length-1)) * 100);
     const isFirst = step === 0;
     const isLast = step === SIZES.length - 1;
+    const pctOfSys = Math.round((size / effectiveSys) * 100);
     this._html(`
       <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
            display:flex;flex-direction:column;align-items:center;justify-content:center;
            padding:20px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif">
         <div style="text-align:center;margin-bottom:28px">
           <div style="font-size:3rem;margin-bottom:8px">👁</div>
-          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Sehtest</h2>
-          <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
-            Schritt ${step+1} von ${SIZES.length} — ${size}px Schriftgrösse
+          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Schriftgrösse optimieren</h2>
+          <p style="color:rgba(255,255,255,.5);font-size:clamp(13px,3.5vw,16px);margin:0">
+            Schritt ${step+1} von ${SIZES.length} — ${size}px
+          </p>
+          <p style="color:rgba(255,255,255,.3);font-size:clamp(11px,3vw,13px);margin:3px 0 0">
+            System: ${sysSize}px · DPR ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
           </p>
         </div>
         <div style="width:100%;max-width:400px;background:rgba(255,255,255,.1);
@@ -1150,7 +1233,7 @@ const App = {
             ${SAMPLE_TEXTS[step]}
           </div>
           <div style="margin-top:14px;color:rgba(255,255,255,.3);font-size:.7rem">
-            ${size}px · ${isFirst?'Grösste Stufe':isLast?'Kleinste Stufe':'Stufe '+(step+1)}
+            ${size}px · ${isFirst?'▲ Grösste (2× System)':isLast?'▼ Kleinste (0.3× System)':'Stufe '+(step+1)+'/10'}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px">
@@ -1181,10 +1264,16 @@ const App = {
       </div>`);
   },
 
-  _eyeTestFinish(stepIdx) {
+  _eyeTestFinish(stepIdx, detected) {
     const player = State.currentPlayer;
     const playerName = player?.name || '';
-    const size = FontScale.SIZES[stepIdx];
+    // Use passed detected object or re-detect
+    if (!detected) detected = FontScale.detectSizes();
+    const size = detected.steps[stepIdx] ?? detected.steps[0] ?? 32;
+    // Store the detected system size alongside for diagnostics
+    const detectedInfo = { sysSize: detected.sysSize, effectiveSys: detected.effectiveSys, 
+                           stepIdx, sizePx: size, steps: detected.steps };
+    try { localStorage.setItem('mischa_eyetest_detected_'+FontScale.deviceKey(), JSON.stringify(detectedInfo)); } catch(e) {}
     // Save
     FontScale.save(playerName, size);
     FontScale.markTested(playerName);
@@ -1196,9 +1285,9 @@ const App = {
            padding:24px;text-align:center;font-family:'Segoe UI',system-ui,sans-serif">
         <div style="font-size:4rem;margin-bottom:16px">✅</div>
         <h2 style="color:#fff;font-size:1.3rem;font-weight:900;margin:0 0 8px">Schriftgrösse gespeichert!</h2>
-        <p style="color:rgba(255,255,255,.6);font-size:${size}px;margin:0 0 24px;max-width:340px;line-height:1.5">
-          Deine optimale Grösse: <b style="color:#4af">${size}px</b><br>
-          Diese Grösse wird ab jetzt auf diesem Gerät verwendet.
+        <p style="color:rgba(255,255,255,.6);font-size:${Math.max(16,size)}px;margin:0 0 8px;max-width:340px;line-height:1.5">
+          Optimale Grösse: <b style="color:#4af">${size}px</b>
+          ${stepIdx===0&&!this._eyeHadYes?'<br><span style="color:#f39c12;font-size:.85em">⚠️ Grösste verfügbare Stufe gespeichert — du hast bei keiner Grösse ✅ geklickt.</span>':''}
         </p>
         <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
              border-radius:14px;padding:16px 20px;margin-bottom:24px;max-width:360px">
@@ -1501,7 +1590,7 @@ const App = {
             <span style="font-size:1.4rem">👁</span>
             <div style="flex:1">
               <div style="font-weight:900;color:rgba(180,240,255,1)">Schrift zu klein?</div>
-              <div style="color:rgba(255,255,255,.5);font-size:.82rem">Sehtest — 10 Stufen, ~30 Sek.</div>
+              <div style="color:rgba(255,255,255,.5);font-size:.82rem">Schrift optimieren — 10 Stufen, ~30 Sek.</div>
             </div>
             <span style="color:rgba(100,200,255,.7)">›</span>
           </div>` : ''}
@@ -1615,6 +1704,34 @@ const App = {
           </div>
         </div>
       </div>`);
+
+    // ── AUTO-ZOOM: fit game to screen width on mobile ──
+    setTimeout(() => {
+      const ga = document.getElementById('game-area');
+      const btn = document.getElementById('zoom-btn');
+      if (!ga || window.innerWidth >= 700) return; // desktop: no auto-zoom
+      // Find the first canvas or inner div to measure actual game width
+      const inner = ga.querySelector('canvas') || ga.querySelector('div');
+      const gameW = inner ? (inner.offsetWidth || inner.scrollWidth) : ga.scrollWidth;
+      const screenW = window.innerWidth;
+      if (gameW > 10 && screenW > gameW * 1.05) {
+        const idealZoom = Math.min(screenW / gameW, 2.5);
+        // Snap to nearest step
+        const steps = [0.85, 1, 1.1, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
+        const snapped = steps.reduce((a,b) => Math.abs(b-idealZoom)<Math.abs(a-idealZoom)?b:a);
+        if (snapped > 1.05) {
+          this._zoomLevel = snapped;
+          ga.style.transform = `scale(${snapped})`;
+          ga.style.transformOrigin = 'top left';
+          ga.style.marginBottom = Math.round((snapped-1)*ga.offsetHeight*0.5)+'px';
+          ga.style.marginRight = Math.round((snapped-1)*ga.offsetWidth*0.5)+'px';
+          if (btn) {
+            btn.textContent = `🔍 ${Math.round(snapped*100)}%`;
+            btn.style.background = 'rgba(41,182,246,.25)';
+          }
+        }
+      }
+    }, 400);
 
     const onComplete = async (result) => {
       GameLog.log(task.type||task.id, 'onComplete: rawScore='+result.rawScore+' passed='+result.passed+' errors='+result.errors);

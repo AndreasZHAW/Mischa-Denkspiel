@@ -7,6 +7,20 @@ const StarWarsGame = {
     const maxW = Math.min((el.offsetWidth||380)-8, 420);
     const W = maxW, H = Math.round(W*1.22);
 
+    // Game-level crash logging
+    const _swLog=(msg,lvl='I')=>{
+      try{
+        const raw=localStorage.getItem('_mischa_crash_log')||'[]';
+        const arr=JSON.parse(raw);
+        arr.push({ts:Date.now(),level:lvl,src:'starwars',msg:String(msg).slice(0,200)});
+        if(arr.length>500)arr.splice(0,arr.length-400);
+        localStorage.setItem('_mischa_crash_log',JSON.stringify(arr));
+      }catch(e){}
+    };
+    const _swOnErr=(msg,src,line)=>{_swLog('ERROR: '+msg+' (L'+line+')', 'E');};
+    const _prevOnerr=window.onerror;
+    window.onerror=function(m,s,l,c,e){_swOnErr(m,s,l);if(_prevOnerr)return _prevOnerr(m,s,l,c,e);};
+
     el.innerHTML=`<div style="text-align:center;touch-action:none;user-select:none;-webkit-user-select:none;font-family:sans-serif">
       <canvas id="swcv" width="${W*DPR}" height="${H*DPR}"
         style="background:#000;border-radius:10px;width:${W}px;height:${H}px;display:block;margin:0 auto;
@@ -63,7 +77,7 @@ const StarWarsGame = {
     // Buttons
     document.getElementById('sw-left').addEventListener('pointerdown',e=>{e.preventDefault();leftH=true;});
     document.getElementById('sw-right').addEventListener('pointerdown',e=>{e.preventDefault();rightH=true;});
-    document.addEventListener('pointerup',()=>{leftH=false;rightH=false;});
+    document.addEventListener('pointerup',ptrUpHandler);
     let rfInt=null;
     const fb=document.getElementById('sw-fire');
     fb.addEventListener('pointerdown',e=>{e.preventDefault();fire();rfInt=setInterval(fire,fireMode==='rapid'?75:175);});
@@ -84,9 +98,14 @@ const StarWarsGame = {
       else window.addEventListener('deviceorientation',gyro);
     }
 
+    const ptrUpHandler=()=>{leftH=false;rightH=false;};
     const end=(won)=>{
       running=false;cancelAnimationFrame(animId);
       window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKU);
+      document.removeEventListener('pointerup',ptrUpHandler);
+      if(rfInt)clearInterval(rfInt);
+      window.onerror=_prevOnerr; // restore
+      _swLog('Game ended: wave='+wave+' score='+score+' won='+won);
       onComplete({rawScore:Math.min(100,wave*14+Math.round(score/12)),timeMs:Date.now()-tStart,errors:0,passed:wave>=2||won});
     };
 
@@ -154,6 +173,10 @@ const StarWarsGame = {
       if(!running)return;
       animId=requestAnimationFrame(loop);
       tick++;
+      // Safety: check for runaway state
+      if(tick>1&&tick%3000===0){
+        console.log('[SW] frame='+tick+' enemies='+enemies.length+' bullets='+bullets.length+' score='+score+' wave='+wave+' lives='+lives);
+      }
 
       // Move ship
       if(leftH) ship.x=Math.max(20,ship.x-5);
@@ -218,7 +241,7 @@ const StarWarsGame = {
       explosions=explosions.map(e=>({...e,t:e.t-1,r:e.r+1.5})).filter(e=>e.t>0);
       if(enemies.some(e=>e.y>H-60)){end(false);return;}
       if(!enemies.length){wave++;if(wave>5){end(true);return;}spawnWave();}
-      if(Date.now()-tStart>150000)end(score>100);
+      if(Date.now()-tStart>480000)end(score>100); // 8 min max
 
       // ── DRAW ──
       // Deep space
@@ -267,19 +290,22 @@ const StarWarsGame = {
 
       // Explosions
       explosions.forEach(e=>{
-        const prog=1-e.t/25;
-        const eg=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r);
-        eg.addColorStop(0,`rgba(255,255,200,${(1-prog)*.9})`);
-        eg.addColorStop(.4,e.col.replace('#','rgba(').replace(/(..)(..)(..)$/,(_,r2,g2,b2)=>`${parseInt(r2,16)},${parseInt(g2,16)},${parseInt(b2,16)},${(1-prog)*.6})`));
-        eg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=eg;ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
-        // Sparks
-        for(let s=0;s<6;s++){
-          const a=s/6*Math.PI*2+prog*5;
-          const sr=e.r*.7;
-          ctx.fillStyle=`rgba(255,200,0,${(1-prog)*.7})`;
-          ctx.beginPath();ctx.arc(e.x+Math.cos(a)*sr,e.y+Math.sin(a)*sr,1.5,0,Math.PI*2);ctx.fill();
-        }
+        try{
+          if(!e.col||isNaN(e.x)||isNaN(e.y)||e.r<=0)return;
+          const prog=Math.max(0,Math.min(1,1-e.t/25));
+          const eg=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,Math.max(1,e.r));
+          eg.addColorStop(0,`rgba(255,255,200,${(1-prog)*.9})`);
+          const hexCol=e.col.startsWith('#')?e.col:'#ff8800';
+          eg.addColorStop(.4,hexCol.replace('#','rgba(').replace(/(..)(..)(..)$/,(_,r2,g2,b2)=>`${parseInt(r2,16)||0},${parseInt(g2,16)||0},${parseInt(b2,16)||0},${(1-prog)*.6})`));
+          eg.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=eg;ctx.beginPath();ctx.arc(e.x,e.y,Math.max(1,e.r),0,Math.PI*2);ctx.fill();
+          for(let s=0;s<6;s++){
+            const a=s/6*Math.PI*2+prog*5;
+            const sr=e.r*.7;
+            ctx.fillStyle=`rgba(255,200,0,${(1-prog)*.7})`;
+            ctx.beginPath();ctx.arc(e.x+Math.cos(a)*sr,e.y+Math.sin(a)*sr,1.5,0,Math.PI*2);ctx.fill();
+          }
+        }catch(ex){console.warn('explosion draw error:',ex.message);}
       });
 
       // Fire mode indicator

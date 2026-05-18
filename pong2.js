@@ -5,12 +5,14 @@ const PongGame = {
     if (!el) { if(typeof GameLog!=='undefined')GameLog.error('pong2','game-area not found'); return; }
     if(typeof GameLog!=='undefined')GameLog.log('pong2','start()');
     // Responsive dimensions
+    const stripW = 64; // touch strip width on mobile
+    const isMobile = 'ontouchstart' in window;
     const maxW = Math.min(window.innerWidth - 8, 420);
-    const W = maxW;
-    const H = Math.round(W * 0.78);  // aspect ratio
+    // On mobile: canvas must be narrower to leave room for touch strip
+    const W = isMobile ? Math.min(maxW - stripW, maxW - stripW) : maxW;
+    const H = Math.round((isMobile ? maxW : W) * 0.78);
     const PS = Math.round(W * 0.17); // paddle size scales with W
     const PW = 10;
-    const isMobile = 'ontouchstart' in window;
 
     el.innerHTML=`<div style="text-align:center;max-width:${W}px;margin:0 auto">
       <!-- HUD bar -->
@@ -57,12 +59,12 @@ const PongGame = {
         <!-- Canvas fills remaining width -->
         <canvas id="pongcv" width="${W}" height="${H}"
           style="background:#000;flex:1;display:block;border-radius:0 0 8px 0;
-                 max-width:calc(100vw - 66px);touch-action:none"></canvas>
+                 touch-action:none"></canvas>
       </div>`
       : `<canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%;margin:0 auto"></canvas>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
-        <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▲</button>
-        <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▼</button>
+        <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:clamp(16px,5vw,20px) clamp(32px,10vw,48px);border-radius:12px;font-size:clamp(1.4rem,6vw,1.8rem);cursor:pointer;user-select:none;min-height:60px">▲</button>
+        <button id="pd" style="background:#3a1a1a;color:#E74C3C;border:2px solid #E74C3C;padding:clamp(16px,5vw,20px) clamp(32px,10vw,48px);border-radius:12px;font-size:clamp(1.4rem,6vw,1.8rem);cursor:pointer;user-select:none;min-height:60px">▼</button>
       </div>
       <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.35);margin-top:4px">Du = Links · Computer = Rechts · Pfeiltasten ↑↓</div>`}
     </div>`;

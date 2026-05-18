@@ -102,9 +102,15 @@ const SokobanGame = {
     }
 
     const DPR = Math.min(window.devicePixelRatio||1, 3);
-    const maxW = Math.min((el.offsetWidth||360)-8, 480);
+    const elW = el.offsetWidth || window.innerWidth || 360;
+    const maxW = Math.min(elW-8, 560); // wider on desktop
     const allCols = LEVELS.map(l=>Math.max(...l.map.map(r=>r.length)));
-    const TILE = Math.max(24, Math.floor(maxW / Math.max(...allCols)));
+    const maxLvlCols = Math.max(...allCols);
+    // Bigger tiles on desktop, smaller on mobile
+    const isMob = window.innerWidth < 500;
+    const TILE = isMob
+      ? Math.max(22, Math.floor(maxW / (maxLvlCols+1)))
+      : Math.max(40, Math.min(64, Math.floor(maxW / maxLvlCols))); // 40-64px on desktop
 
     let lvIdx=0, moves=0, solved=0, hints=0;
     let grid=[], px=0, py=0, history=[];
@@ -184,7 +190,8 @@ const SokobanGame = {
 
       const cv=document.getElementById('skcv');
       const ctx=cv.getContext('2d');
-      ctx.scale(DPR,DPR);
+      // CRITICAL: reset transform before scaling, otherwise scale compounds!
+      ctx.setTransform(DPR,0,0,DPR,0,0);
 
       // ══ CARTOON STYLE DRAWING ══
       // Palette
