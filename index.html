@@ -19,20 +19,22 @@
        All rem-based sizes auto-scale. Touch targets min 48px (Material Design).
     */
     :root {
-      --fs-xs:  clamp(.72rem,.72rem + .3vw,.82rem);
-      --fs-sm:  clamp(.82rem,.82rem + .4vw,.95rem);
-      --fs-md:  clamp(.92rem,.92rem + .5vw,1.05rem);
-      --fs-lg:  clamp(1rem,1rem + .6vw,1.2rem);
-      --fs-xl:  clamp(1.1rem,1.1rem + .8vw,1.4rem);
-      --fs-2xl: clamp(1.3rem,1.3rem + 1vw,1.7rem);
-      --touch-min: max(44px, 6.5vw); /* min touch target */
+      --user-font-size: 15px;  /* set by FontScale.apply() */
+      --user-font-scale: 1.0;  /* multiplier relative to 15px */
+      --fs-xs:  calc(var(--user-font-size) * 0.80);
+      --fs-sm:  calc(var(--user-font-size) * 0.90);
+      --fs-md:  var(--user-font-size);
+      --fs-lg:  calc(var(--user-font-size) * 1.10);
+      --fs-xl:  calc(var(--user-font-size) * 1.22);
+      --fs-2xl: calc(var(--user-font-size) * 1.45);
+      --touch-min: max(44px, 6.5vw);
     }
     html { font-size: 16px; }
     /* On narrow screens (<400px) scale up base font */
     @media (max-width:399px) { html { font-size: 17px; } }
     @media (max-width:359px) { html { font-size: 18px; } }
-    body { font-size: var(--fs-md); }
-    button { min-height: var(--touch-min); font-size: var(--fs-md) !important; }
+    body { font-size: var(--user-font-size); }
+    button { min-height: var(--touch-min); font-size: var(--user-font-size) !important; }
     input, select, textarea { font-size: var(--fs-md) !important; min-height: var(--touch-min); }
     /* World map cards */
     .card { font-size: var(--fs-md); }
@@ -82,18 +84,36 @@
 (function(){
   var vw = window.innerWidth || document.documentElement.clientWidth;
   var dpr = window.devicePixelRatio || 1;
-  // Base size: 15px at 360px viewport, scales up for wider screens
-  // On very small screens (< 340px), use 16px to ensure legibility
   var base;
   if(vw < 340) base = 17;
   else if(vw < 380) base = 16;
   else if(vw < 420) base = 15.5;
   else if(vw < 500) base = 15;
-  else base = 15; // desktop: keep at 15, let clamp() handle max
+  else base = 15;
   document.documentElement.style.fontSize = base + 'px';
-  // Store for games to use
   window._mobileFontBase = base;
   window._isMobileDevice = dpr >= 1.5 || vw <= 600;
+  
+  // Check if player has a saved font size (applied before FontScale object loads)
+  // This prevents flash of wrong font size on load
+  try {
+    var deviceKey = screen.width+'x'+screen.height+'x'+(dpr).toFixed(1);
+    // Try to find any saved font for current device
+    var keys = Object.keys(localStorage);
+    for(var i=0; i<keys.length; i++) {
+      if(keys[i].indexOf('mischa_fontscale_') === 0 && keys[i].indexOf(deviceKey) > 0) {
+        var saved = parseInt(localStorage.getItem(keys[i]));
+        if(saved >= 10 && saved <= 22) {
+          document.documentElement.style.fontSize = saved + 'px';
+          // Also set body early
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.fontSize = saved + 'px';
+          });
+          break;
+        }
+      }
+    }
+  } catch(e) {}
 })();
 </script>
 </head>

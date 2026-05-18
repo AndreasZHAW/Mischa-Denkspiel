@@ -7,56 +7,56 @@ const SokobanGame = {
     // 20 BFS-verified levels — creative, increasing difficulty
     // Principle: boxes must be pushed from accessible sides, no wall corners
     const LEVELS = [
-      // Tier 1: Learn mechanics
-      { map:['#######','#     #','#  $  #','#  @  #','#  .  #','#######'],
-        name:'Hallo!', hint:'↑ um die Kiste aufs Ziel zu schieben' },
-      { map:['########','# @ $. #','########'],
-        name:'Rutsch', hint:'Direkt nach rechts schieben' },
-      { map:['#########','#   .   #','# $ @ $ #','#   .   #','#########'],
-        name:'Zwei', hint:'Erst links, dann rechts' },
-      { map:['########','# @    #','# $    #','# #.   #','########'],
-        name:'Ecke', hint:'Wand umgehen — schiebe von oben' },
+      // Tier 1: Mechanics
+      { map:['#######','#     #','#. $@ #','#     #','#######'],
+        name:'Einführung', hint:'Schiebe die Kiste nach links aufs Ziel' },
+      { map:['#########','#   .   #','#   #   #','# $ # @ #','#   #   #','#########'],
+        name:'Hindernis', hint:'Wand im Weg — geh drum herum' },
+      { map:['##########','## . .  ##','#  $ $  ##','#   @    #','##########'],
+        name:'Engpass', hint:'Zwei Boxen durch den Engpass' },
+      { map:['########','#  .   #','#  $## #','#@ .   #','#  $   #','#      #','########'],
+        name:'L-Knick', hint:'Box um die Ecke dirigieren' },
 
-      // Tier 2: Planning required
-      { map:['##########','#   @    #','# $ $ $  #','# . . .  #','##########'],
-        name:'Trio', hint:'Drei Kisten, gleiche Richtung' },
-      { map:['#########','# .  $@$  . #','#########'],
-        name:'Auseinander', hint:'Beide Kisten nach außen schieben' },
-      { map:['##########','# @       #','# $    .  #','#    $    #','#    .    #','##########'],
-        name:'Diagonal', hint:'Zwei Wege zum Ziel' },
-      { map:['##########','# ....   #','# $$$$   #','#  @     #','##########'],
-        name:'Vierer', hint:'Vier Kisten in Formation' },
+      // Tier 2: Order matters
+      { map:['##########','#.  #    #','#   # $  #','# . $ @  #','#        #','##########'],
+        name:'Blockade', hint:'Keine Box darf die andere sperren' },
+      { map:['##########','#    #   #','# $  .   #','#  ##    #','#  .@$   #','#        #','##########'],
+        name:'Umrunden', hint:'Boxen müssen die Wände umrunden' },
+      { map:['###########','#   .  .  #','#  #$# $  #','#   . $@  #','###########'],
+        name:'Gitter', hint:'3 Boxen zwischen Wänden' },
+      { map:['##########','#  .     #','#  $  .  #','#     $  #','#  @     #','##########'],
+        name:'Gabelung', hint:'Zwei Boxen, zwei Ziele — plan die Route' },
 
-      // Tier 3: Multi-step thinking
-      { map:['##########','# @  .   #','# $  $   #','#    .   #','##########'],
-        name:'Säule', hint:'Beide Kisten nach rechts' },
-      { map:['#########','#  ...  #','#  $$$  #','# @     #','#########'],
-        name:'Dreier+', hint:'Von links heranarbeiten' },
-      { map:['###########','# .....   #','# $$$$$   #','#  @      #','###########'],
-        name:'Fünfer', hint:'Fünf Kisten — ruhig bleiben!' },
-      { map:['##########','#   ....  #','#   $$$$  #','#    @    #','##########'],
-        name:'Quadrat', hint:'Vier Kisten nebeneinander' },
+      // Tier 3: Requires repositioning
+      { map:['########','#   .  #','#   $  #','#      #','#   @  #','########'],
+        name:'Rückwärts', hint:'Zuerst positionieren, dann schieben' },
+      { map:['##########','#  .  .  #','#  $  $  #','#    @   #','#  .  $  #','##########'],
+        name:'Verschränkt', hint:'3 Boxen — Reihenfolge kritisch' },
+      { map:['##########','#  .  .  #','#  $  $  #','# #    # #','#   @@   #','#  $  $  #','#  .  .  #','##########'],
+        name:'Spalten', hint:'4 Boxen, 4 Richtungen' },
+      { map:['##########','#   .    #','# $    . #','#  ##$## #','#  .  $  #','#     @  #','##########'],
+        name:'Original', hint:'Klassisches Sokoban-Muster' },
 
-      // Tier 4: Maze-like
-      { map:['##########','# @  .    #','# $       #','#    .  $ #','##########'],
-        name:'Labyrinth', hint:'Zwei Kisten, zwei getrennte Ziele' },
-      { map:['###########','#  ......  #','#  $$$$$$  #','#    @     #','###########'],
-        name:'Sechser', hint:'Sechs Kisten gleichzeitig' },
-      { map:['###########','# .     . #','#  $   $  #','#   @@@   #','#  $   $  #','# .     . #','###########'],
-        name:'Diamant', hint:'Diamant-Form — nach außen' },
-      { map:['#############','#   .......  #','#   $$$$$$$  #','#    @       #','#############'],
-        name:'Sieben', hint:'Sieben auf einen Streich!' },
+      // Tier 4: Maze navigation
+      { map:['############','#    #     #','# $. # .$  #','#  @ #     #','# $.   .$ ##','#     #    #','############'],
+        name:'Labyrinth', hint:'4 Boxen im Labyrinth' },
+      { map:['############','#   .   .  #','#  $ # $   #','#    #  @  #','#  . # .   #','#  $ # $   #','#    #     #','############'],
+        name:'Schiene', hint:'Kettenreaktion — plan mehrere Züge voraus' },
+      { map:['###########','#  .   .  #','#  $ # $  #','#  # #  @ #','## . # .  #','#  $ # $  #','#    #    #','###########'],
+        name:'Spiegel', hint:'Gespiegelte Wände — Vorsicht bei Deadlocks' },
 
       // Tier 5: Expert
-      { map:['##########','#  @      #','# $ $ $   #','# . . .   #','# $ $ $   #','# . . .   #','##########'],
-        name:'Gitter', hint:'6 Kisten — Muster erkennen' },
-      { map:['##############','#  ........  #','#  $$$$$$$$  #','#    @       #','##############'],
-        name:'Achter', hint:'Acht Kisten — Geduld!' },
-      { map:['###########','# ..  ..   #','# $$  $$   #','#    @     #','###########'],
-        name:'Doppelkreuz', hint:'Vier Kisten in zwei Gruppen' },
-      { map:['#############','#  .......  #','#  $$$$$$$  #','##   @    ##','#############'],
-        name:'Finale', hint:'Sieben — du schaffst das!' },
-    ];
+      { map:['###########','#  .   .  #','#  $ # $  #','#    @    #','#  $ # $  #','#  .   .  #','###########'],
+        name:'Kreuz', hint:'4 Ecken-Boxen ins Kreuz schieben' },
+      { map:['############','#   .  .   #','#   $  $   #','# ##@##    #','#   $  $   #','#   .  .   #','############'],
+        name:'Wand', hint:'Wand in der Mitte — jede Seite einzeln' },
+      { map:['#############','#     .     #','#  . $$$ .  #','#  $     $  #','#  . . . .  #','#    $ $    #','#     @     #','#############'],
+        name:'Kreis', hint:'7 Boxen im Kreis-Muster' },
+      { map:['###########','#  .   .  #','#  $   $  #','#    @    #','#  $   $  #','#  .   .  #','###########'],
+        name:'Meister', hint:'Symmetrisch — aber jede Box braucht eigenen Weg' },
+      { map:['###########','#  .   .  #','# $##  #$ #','#    @    #','# $##  #$ #','#  .   .  #','###########'],
+        name:'Champion', hint:'Wände blockieren den direkten Weg — Umwege nötig' },
+    ];;
 
     // BFS verify — skip broken levels
     function bfsOk(rows) {

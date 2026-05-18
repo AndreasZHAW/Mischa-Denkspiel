@@ -71,6 +71,111 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
+// ══ FONT SCALE SYSTEM ══
+// Device fingerprint: screenW x screenH x DPR
+// Font scale stored per player+device in localStorage + Firebase admin_logs
+const FontScale = {
+  SIZES: [22, 20, 18, 16, 15, 14, 13, 12, 11, 10], // 10 steps, px values
+  DEFAULT: 15,
+
+  // Device key: unique per screen dimensions + pixel ratio
+  deviceKey() {
+    return `${screen.width}x${screen.height}x${(window.devicePixelRatio||1).toFixed(1)}`;
+  },
+
+  // Storage key: per player + device
+  storageKey(playerName) {
+    return `mischa_fontscale_${(playerName||'guest').toLowerCase()}_${this.deviceKey()}`;
+  },
+
+  // Load saved scale for current player+device
+  load(playerName) {
+    try {
+      const saved = localStorage.getItem(this.storageKey(playerName));
+      if (saved) {
+        const size = parseInt(saved);
+        if (size >= 10 && size <= 22) return size;
+      }
+    } catch(e) {}
+    return this.DEFAULT;
+  },
+
+  // Save scale locally and to Firebase
+  save(playerName, sizePx) {
+    try {
+      localStorage.setItem(this.storageKey(playerName), String(sizePx));
+    } catch(e) {}
+    // Save to Firebase admin_logs for visibility
+    try {
+      if (typeof _db !== 'undefined' && _db) {
+        _db.collection('player_device_fonts').doc(
+          (playerName||'guest').toLowerCase() + '_' + this.deviceKey().replace(/[.]/g,'_')
+        ).set({
+          player: playerName,
+          deviceKey: this.deviceKey(),
+          screenW: screen.width, screenH: screen.height,
+          dpr: window.devicePixelRatio||1,
+          fontSizePx: sizePx,
+          userAgent: navigator.userAgent.slice(0,120),
+          updatedAt: Date.now(),
+          updatedStr: new Date().toLocaleString('de-CH'),
+        }).catch(() => {});
+      }
+    } catch(e) {}
+  },
+
+  // Apply scale — sets root font + CSS vars + dynamic style injection
+  apply(sizePx) {
+    const scale = sizePx / 15; // 15px is the base
+    document.documentElement.style.setProperty('--user-font-size', sizePx + 'px');
+    document.documentElement.style.setProperty('--user-font-scale', scale.toFixed(3));
+    // Set root font-size so rem units scale everywhere
+    document.documentElement.style.fontSize = sizePx + 'px';
+    document.body.style.fontSize = sizePx + 'px';
+    window._userFontSize = sizePx;
+    window._userFontScale = scale;
+    // Inject/update a persistent <style> that scales all UI text
+    // This works even for hardcoded px values via zoom-like scaling
+    let styleEl = document.getElementById('mischa-font-override');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'mischa-font-override';
+      document.head.appendChild(styleEl);
+    }
+    // Scale factor: if user needs 20px (scale=1.33), make everything 33% bigger
+    // We do this by setting html font-size and making all rem-based text scale
+    // For hardcoded sizes in the app HTML, we use a zoom approach on #app
+    const zoom = sizePx / 15;
+    styleEl.textContent = [
+      `:root { --ufs: ${sizePx}px; --ufz: ${zoom.toFixed(3)}; font-size: ${sizePx}px; }`,
+      `body { font-size: ${sizePx}px; }`,
+      // Scale the app container so all text inside scales proportionally
+      `#app { font-size: ${sizePx}px; }`,
+      // Override specific common patterns
+      `.card, .btn, button, input, select, textarea, p, div, span, label { font-size: inherit; }`,
+      // World map task items
+      `.world-item { font-size: ${sizePx}px !important; }`,
+    ].join('\n');
+  },
+
+  // Apply for player (load + apply)
+  applyForPlayer(playerName) {
+    const size = this.load(playerName);
+    this.apply(size);
+    return size;
+  },
+
+  // Check if test was done on this device for this player
+  testDone(playerName) {
+    return localStorage.getItem(this.storageKey(playerName) + '_tested') === '1';
+  },
+
+  markTested(playerName) {
+    localStorage.setItem(this.storageKey(playerName) + '_tested', '1');
+  },
+};
+window.FontScale = FontScale;
+
 const App = {
   selectedChar: null,
   selectedColor: null,
@@ -524,6 +629,7 @@ const App = {
     }
     if (!player) { this.showProfile(); setTimeout(()=>{ const e=document.getElementById('p-err'); if(e){e.textContent=`Name "${name}" bereits vergeben!`;e.style.display='block';}},50); return; }
     State.setCurrentPlayer(player);
+    FontScale.applyForPlayer(player?.name||'');
     this.showWorldMap();
   },
 
@@ -598,6 +704,7 @@ const App = {
         }
       }
     } catch(e) {} // ban check failed silently, allow login
+    FontScale.applyForPlayer(State.currentPlayer?.name||'');
     this.showWorldMap();
   },
 
@@ -713,6 +820,13 @@ const App = {
     const player = await State.refreshCurrentPlayer();
     // Merge locally saved currentWorld in case Firebase was behind
     if (player) {
+      const _appliedSize = FontScale.applyForPlayer(player.name);
+      // If test was never done on this device, remember to show hint
+      if (!FontScale.testDone(player.name)) {
+        window._showEyeTestHint = true;
+      } else {
+        window._showEyeTestHint = false;
+      }
       try {
         const _ls = JSON.parse(localStorage.getItem('mischa_players')||'{}');
         const _lp = _ls[player.name];
@@ -792,6 +906,13 @@ const App = {
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">🌍 Rangliste</button>
             <button onclick="Shop.open(null,()=>App.showWorldMap())" style="background:rgba(255,215,0,0.3);border:2px solid #FFD700;color:#FFD700;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">🛒 Shop</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">⚑ Meldungen</button>` : ''}
+            <button onclick="App.showEyeTest()" 
+  style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);
+  color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);
+  border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);
+  min-height:40px;position:relative" title="Schriftgrösse anpassen">
+  👁 Sehtest${window._showEyeTestHint ? ' <span style="position:absolute;top:-6px;right:-6px;background:#E74C3C;color:#fff;font-size:.6rem;padding:1px 5px;border-radius:20px;font-weight:900">NEU</span>' : ''}
+</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.85rem,3.5vw,1rem);min-height:40px">Abmelden</button>
           </div>
         </div>
@@ -857,6 +978,246 @@ const App = {
   _logout() {
     State.logout();
     this.showWelcome();
+  },
+
+  // ══ SEHTEST — Augen-Test für optimale Schriftgrösse ══
+  showEyeTest() {
+    const player = State.currentPlayer;
+    const playerName = player?.name || '';
+    const SIZES = FontScale.SIZES; // [22,20,18,16,15,14,13,12,11,10]
+    let step = 0;
+    let lastReadable = 0; // index of last readable step (0 = biggest)
+
+    const SAMPLE_TEXTS = [
+      'Mischa Denkspiel — Willkommen!',
+      'Du hast 20 Aufgaben geschafft.',
+      'Jetzt kannst du den Zoo besuchen.',
+      '14/20 Spiele · 11.5 MT verdient',
+      'Rangliste · Shop · Kontoauszug',
+      'Tippe auf die nächste Aufgabe:',
+      'Dart · Rechnen · Sokoban · Race',
+      '🌀 Mischa Taler: 11.5 MT',
+      'Welt 1 abgeschlossen! Weiter →',
+      '🦁 Zoo · 🎡 Glücksrad · Slaps',
+    ];
+
+    const render = (s) => {
+      const size = SIZES[s];
+      const isFirst = s === 0;
+      const isLast = s === SIZES.length - 1;
+      const progress = Math.round((s / (SIZES.length-1)) * 100);
+
+      this._html(`
+        <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
+             display:flex;flex-direction:column;align-items:center;justify-content:center;
+             padding:20px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif">
+
+          <!-- Header -->
+          <div style="text-align:center;margin-bottom:28px">
+            <div style="font-size:3rem;margin-bottom:8px">👁</div>
+            <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Sehtest</h2>
+            <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
+              Schritt ${s+1} von ${SIZES.length} — ${size}px Schriftgrösse
+            </p>
+          </div>
+
+          <!-- Progress bar -->
+          <div style="width:100%;max-width:400px;background:rgba(255,255,255,.1);
+               border-radius:20px;height:6px;margin-bottom:32px;overflow:hidden">
+            <div style="width:${progress}%;background:linear-gradient(90deg,#4af,#27AE60);
+                 height:100%;border-radius:20px;transition:width .3s"></div>
+          </div>
+
+          <!-- Text sample card -->
+          <div style="width:100%;max-width:440px;background:rgba(255,255,255,.06);
+               border:1.5px solid rgba(255,255,255,.12);border-radius:20px;
+               padding:28px 24px;margin-bottom:28px;text-align:center">
+            <div style="color:rgba(255,255,255,.35);font-size:.75rem;
+                 font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">
+              Kannst du diesen Text lesen?
+            </div>
+            <div style="color:#fff;font-size:${size}px;line-height:1.55;font-weight:500">
+              ${SAMPLE_TEXTS[s]}
+            </div>
+            <div style="margin-top:14px;color:rgba(255,255,255,.3);font-size:.7rem">
+              ${size}px · ${isFirst?'Grösste Stufe':isLast?'Kleinste Stufe':'Stufe '+(s+1)}
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px">
+            <button onclick="App._eyeTestYes(${s})"
+              style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;
+                     padding:18px;border-radius:14px;font-size:1.1rem;font-weight:900;
+                     cursor:pointer;min-height:56px;
+                     box-shadow:0 4px 16px rgba(39,174,96,.4)">
+              ✅ Ja, ich kann das lesen
+            </button>
+            <button onclick="App._eyeTestNo(${s})"
+              style="background:rgba(231,76,60,.15);color:#E74C3C;
+                     border:2px solid rgba(231,76,60,.4);
+                     padding:16px;border-radius:14px;font-size:1rem;font-weight:700;
+                     cursor:pointer;min-height:52px">
+              ❌ Zu klein — nicht lesbar
+            </button>
+            ${!isFirst ? `<button onclick="App._eyeTestBack(${s})"
+              style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:none;
+                     padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer">
+              ← Vorherige Stufe
+            </button>` : ''}
+            <button onclick="App.showWorldMap()"
+              style="background:none;color:rgba(255,255,255,.3);border:none;
+                     padding:10px;font-size:.82rem;cursor:pointer;margin-top:4px">
+              Überspringen (Standardgrösse)
+            </button>
+          </div>
+        </div>`);
+    };
+
+    // Store test state on App
+    this._eyeStep = 0;
+    this._eyeLastReadable = 0;
+    render(0);
+  },
+
+  _eyeTestYes(step) {
+    const SIZES = FontScale.SIZES;
+    this._eyeLastReadable = step;
+    // Preview the font size live as test progresses
+    FontScale.apply(SIZES[step]);
+    if (step >= SIZES.length - 1) {
+      this._eyeTestFinish(step);
+    } else {
+      this.showEyeTestStep(step + 1);
+    }
+  },
+
+  _eyeTestNo(step) {
+    // This step is too small — save previous step as the minimum
+    const saveStep = Math.max(0, step - 1);
+    // But if step 0 (biggest) is already unreadable, use step 0 anyway
+    const finalStep = step === 0 ? 0 : saveStep;
+    this._eyeTestFinish(finalStep);
+  },
+
+  _eyeTestBack(step) {
+    if (step > 0) this.showEyeTestStep(step - 1);
+  },
+
+  showEyeTestStep(step) {
+    const SIZES = FontScale.SIZES;
+    if (step < 0 || step >= SIZES.length) { this.showWorldMap(); return; }
+    const size = SIZES[step];
+    const SAMPLE_TEXTS = [
+      'Mischa Denkspiel — Willkommen!',
+      'Du hast 20 Aufgaben geschafft.',
+      'Jetzt kannst du den Zoo besuchen.',
+      '14/20 Spiele · 11.5 MT verdient',
+      'Rangliste · Shop · Kontoauszug',
+      'Tippe auf die nächste Aufgabe:',
+      'Dart · Rechnen · Sokoban · Race',
+      '🌀 Mischa Taler: 11.5 MT',
+      'Welt 1 abgeschlossen! Weiter →',
+      '🦁 Zoo · 🎡 Glücksrad · Slaps',
+    ];
+    const progress = Math.round((step / (SIZES.length-1)) * 100);
+    const isFirst = step === 0;
+    const isLast = step === SIZES.length - 1;
+    this._html(`
+      <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
+           display:flex;flex-direction:column;align-items:center;justify-content:center;
+           padding:20px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:3rem;margin-bottom:8px">👁</div>
+          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Sehtest</h2>
+          <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
+            Schritt ${step+1} von ${SIZES.length} — ${size}px Schriftgrösse
+          </p>
+        </div>
+        <div style="width:100%;max-width:400px;background:rgba(255,255,255,.1);
+             border-radius:20px;height:6px;margin-bottom:32px;overflow:hidden">
+          <div style="width:${progress}%;background:linear-gradient(90deg,#4af,#27AE60);
+               height:100%;border-radius:20px;transition:width .3s"></div>
+        </div>
+        <div style="width:100%;max-width:440px;background:rgba(255,255,255,.06);
+             border:1.5px solid rgba(255,255,255,.12);border-radius:20px;
+             padding:28px 24px;margin-bottom:28px;text-align:center">
+          <div style="color:rgba(255,255,255,.35);font-size:.75rem;
+               font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">
+            Kannst du diesen Text lesen?
+          </div>
+          <div style="color:#fff;font-size:${size}px;line-height:1.55;font-weight:500">
+            ${SAMPLE_TEXTS[step]}
+          </div>
+          <div style="margin-top:14px;color:rgba(255,255,255,.3);font-size:.7rem">
+            ${size}px · ${isFirst?'Grösste Stufe':isLast?'Kleinste Stufe':'Stufe '+(step+1)}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px">
+          <button onclick="App._eyeTestYes(${step})"
+            style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;
+                   padding:18px;border-radius:14px;font-size:1.1rem;font-weight:900;
+                   cursor:pointer;min-height:56px;box-shadow:0 4px 16px rgba(39,174,96,.4)">
+            ✅ Ja, ich kann das lesen
+          </button>
+          <button onclick="App._eyeTestNo(${step})"
+            style="background:rgba(231,76,60,.15);color:#E74C3C;
+                   border:2px solid rgba(231,76,60,.4);
+                   padding:16px;border-radius:14px;font-size:1rem;font-weight:700;
+                   cursor:pointer;min-height:52px">
+            ❌ Zu klein — nicht lesbar
+          </button>
+          ${!isFirst ? `<button onclick="App._eyeTestBack(${step})"
+            style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:none;
+                   padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer">
+            ← Vorherige Stufe
+          </button>` : ''}
+          <button onclick="App.showWorldMap()"
+            style="background:none;color:rgba(255,255,255,.3);border:none;
+                   padding:10px;font-size:.82rem;cursor:pointer;margin-top:4px">
+            Überspringen (Standardgrösse)
+          </button>
+        </div>
+      </div>`);
+  },
+
+  _eyeTestFinish(stepIdx) {
+    const player = State.currentPlayer;
+    const playerName = player?.name || '';
+    const size = FontScale.SIZES[stepIdx];
+    // Save
+    FontScale.save(playerName, size);
+    FontScale.markTested(playerName);
+    FontScale.apply(size);
+
+    this._html(`
+      <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
+           display:flex;flex-direction:column;align-items:center;justify-content:center;
+           padding:24px;text-align:center;font-family:'Segoe UI',system-ui,sans-serif">
+        <div style="font-size:4rem;margin-bottom:16px">✅</div>
+        <h2 style="color:#fff;font-size:1.3rem;font-weight:900;margin:0 0 8px">Schriftgrösse gespeichert!</h2>
+        <p style="color:rgba(255,255,255,.6);font-size:${size}px;margin:0 0 24px;max-width:340px;line-height:1.5">
+          Deine optimale Grösse: <b style="color:#4af">${size}px</b><br>
+          Diese Grösse wird ab jetzt auf diesem Gerät verwendet.
+        </p>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+             border-radius:14px;padding:16px 20px;margin-bottom:24px;max-width:360px">
+          <div style="color:rgba(255,255,255,.4);font-size:.72rem;margin-bottom:6px">VORSCHAU bei ${size}px:</div>
+          <div style="color:#fff;font-size:${size}px;line-height:1.6">
+            14/20 Spiele · 🌀 11.5 MT<br>
+            Tippe auf die nächste Aufgabe
+          </div>
+        </div>
+        <button onclick="App.showWorldMap()"
+          style="background:linear-gradient(135deg,#2980B9,#1a5a8a);color:#fff;border:none;
+                 padding:16px 40px;border-radius:14px;font-size:${size}px;font-weight:900;
+                 cursor:pointer;min-height:52px;box-shadow:0 4px 16px rgba(41,128,185,.4)">
+          ← Zurück zu den Welten
+        </button>
+        <p style="color:rgba(255,255,255,.25);font-size:.72rem;margin-top:16px">
+          Gerät: ${FontScale.deviceKey()} · Spieler: ${playerName}
+        </p>
+      </div>`);
   },
 
   // ---- GLOBAL LEADERBOARD ----
@@ -1136,6 +1497,14 @@ const App = {
             </div>
           </div>
 
+          ${window._showEyeTestHint ? `<div onclick="App.showEyeTest()" style="background:linear-gradient(135deg,rgba(100,200,255,.14),rgba(41,182,246,.08));border:1.5px solid rgba(100,200,255,.4);border-radius:12px;padding:10px 14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.4rem">👁</span>
+            <div style="flex:1">
+              <div style="font-weight:900;color:rgba(180,240,255,1)">Schrift zu klein?</div>
+              <div style="color:rgba(255,255,255,.5);font-size:.82rem">Sehtest — 10 Stufen, ~30 Sek.</div>
+            </div>
+            <span style="color:rgba(100,200,255,.7)">›</span>
+          </div>` : ''}
           <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:var(--text-mid);margin-bottom:8px">Tippe auf die nächste Aufgabe:</div>
 
           ${_isRefW ? '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:clamp(0.9rem,3.7vw,1rem);color:#fff"><b style="color:#E74C3C">&#128302; Kalibrierung:</b> '+calCount+'/20 Spiele &middot; '+runsCount+' Durchgang'+(runsCount>=3?' &middot; ✅ Vollständig':runsCount>0?' &middot; '+Math.round(calCount/20*100)+'%':'')+'</div>' : ''}

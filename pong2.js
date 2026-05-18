@@ -27,16 +27,38 @@ const PongGame = {
         <div id="pong-tbar" style="background:#27AE60;height:4px;width:100%;transition:width .1s"></div>
         <div id="pong-5bar" style="position:absolute;top:0;left:0;height:4px;background:rgba(255,165,0,.6);transition:width .1s"></div>
       </div>
-      <!-- Mobile: touch zone LEFT + canvas RIGHT side by side -->
-      ${isMobile ? `<div style="display:flex;align-items:stretch;gap:0;justify-content:center">
-        <!-- Left touch zone -->
-        <div id="pong-touch-zone" style="width:100%;height:60px;background:linear-gradient(180deg,rgba(39,174,96,.15),rgba(39,174,96,.08));border:2px solid rgba(39,174,96,.5);border-top:none;border-radius:0 0 8px 8px;touch-action:none;user-select:none;display:flex;align-items:center;justify-content:center;cursor:ns-resize;position:relative" title="Hier ziehen um Schläger zu bewegen">
-        <div style="writing-mode:horizontal-tb;font-size:.75rem;color:rgba(255,255,255,.5);pointer-events:none">◀ Schläger ziehen ▶</div>
-        <div id="pong-touch-indicator" style="width:50px;height:50px;border-radius:50%;background:rgba(39,174,96,.35);border:2px solid rgba(39,174,96,.8);position:absolute;top:5px;left:50%;transform:translateX(-50%);pointer-events:none;transition:left .05s"></div>
-      </div>
-        <!-- Canvas -->
-        <canvas id="pongcv" width="${W}" height="${H}" style="background:#000;width:100%;max-width:${W}px;height:auto;display:block;border-radius:0 0 8px 0;max-width:calc(100vw - 80px)"></canvas>
-      </div>` 
+      <!-- Mobile: vertical LEFT strip + canvas -->
+      ${isMobile ? `<div style="display:flex;align-items:stretch;gap:0;touch-action:none">
+        <!-- VERTICAL TOUCH STRIP — full height, drag finger up/down -->
+        <div id="pong-touch-zone"
+          style="width:62px;flex-shrink:0;
+                 background:linear-gradient(180deg,rgba(39,174,96,.2),rgba(39,174,96,.08));
+                 border:2px solid rgba(39,174,96,.5);border-right:none;
+                 border-radius:0 0 0 8px;touch-action:none;user-select:none;
+                 cursor:ns-resize;position:relative;overflow:hidden">
+          <!-- Arrow hints -->
+          <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);
+                      color:rgba(39,174,96,.6);font-size:1.3rem;pointer-events:none">▲</div>
+          <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+                      color:rgba(39,174,96,.6);font-size:1.3rem;pointer-events:none">▼</div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                      writing-mode:vertical-rl;font-size:.65rem;color:rgba(255,255,255,.3);
+                      pointer-events:none;letter-spacing:.08em">SCHLÄGER</div>
+          <!-- Thumb dot indicator -->
+          <div id="pong-touch-indicator"
+            style="width:48px;height:48px;border-radius:50%;
+                   background:radial-gradient(circle at 35% 35%,rgba(39,220,96,.8),rgba(39,174,96,.3));
+                   border:3px solid rgba(39,220,96,.9);
+                   position:absolute;left:50%;top:50%;
+                   transform:translate(-50%,-50%);
+                   pointer-events:none;
+                   box-shadow:0 0 16px rgba(39,220,96,.5)"></div>
+        </div>
+        <!-- Canvas fills remaining width -->
+        <canvas id="pongcv" width="${W}" height="${H}"
+          style="background:#000;flex:1;display:block;border-radius:0 0 8px 0;
+                 max-width:calc(100vw - 66px);touch-action:none"></canvas>
+      </div>`
       : `<canvas id="pongcv" width="${W}" height="${H}" style="background:#000;display:block;border-radius:0 0 8px 8px;max-width:100%;margin:0 auto"></canvas>
       <div style="display:flex;justify-content:center;gap:10px;margin-top:8px">
         <button id="pu" style="background:#1a3a2a;color:#27AE60;border:2px solid #27AE60;padding:14px 36px;border-radius:10px;font-size:1.3rem;cursor:pointer;user-select:none">▲</button>
@@ -65,36 +87,33 @@ const PongGame = {
       const tind=document.getElementById('pong-touch-indicator');
       let lastTX=null, isDragging=false;
       if(tz){
-        const updateIndicator = (x) => {
-          if(tind) {
-            const tzRect = tz.getBoundingClientRect();
-            const pct = Math.max(0, Math.min(1, (x - tzRect.left) / tzRect.width));
-            tind.style.left = (pct * 100) + '%';
-          }
+        // Vertical strip: finger Y controls paddle Y
+        const updatePaddle = (clientY) => {
+          const tzRect = tz.getBoundingClientRect();
+          const pct = Math.max(0, Math.min(1, (clientY - tzRect.top) / tzRect.height));
+          py = Math.round(pct * (H - PS));
+          // Move indicator dot to finger position
+          if(tind) tind.style.top = (pct * 100) + '%';
         };
-        tz.addEventListener('touchstart',e=>{
-          e.preventDefault();
-          isDragging=true;
-          const tx=e.touches[0].clientX;
-          lastTX=tx;
-          updateIndicator(tx);
-          // Set paddle position from touch X
-          const tzRect=tz.getBoundingClientRect();
-          const pct=Math.max(0,Math.min(1,(tx-tzRect.left)/tzRect.width));
-          py=Math.round(pct*(H-PS));
+        tz.addEventListener('touchstart', e=>{
+          e.preventDefault(); isDragging=true;
+          updatePaddle(e.touches[0].clientY);
         },{passive:false});
-        tz.addEventListener('touchmove',e=>{
-          if(!isDragging)return;
-          e.preventDefault();
-          const tx=e.touches[0].clientX;
-          updateIndicator(tx);
-          const tzRect=tz.getBoundingClientRect();
-          const pct=Math.max(0,Math.min(1,(tx-tzRect.left)/tzRect.width));
-          py=Math.round(pct*(H-PS));
-          lastTX=tx;
+        tz.addEventListener('touchmove', e=>{
+          if(!isDragging)return; e.preventDefault();
+          updatePaddle(e.touches[0].clientY);
         },{passive:false});
-        tz.addEventListener('touchend',()=>{isDragging=false;});
-        tz.addEventListener('touchcancel',()=>{isDragging=false;});
+        tz.addEventListener('touchend', ()=>isDragging=false);
+        tz.addEventListener('touchcancel', ()=>isDragging=false);
+        // Also support pointer events for better compatibility
+        tz.addEventListener('pointerdown', e=>{
+          e.preventDefault(); isDragging=true; tz.setPointerCapture(e.pointerId);
+          updatePaddle(e.clientY);
+        });
+        tz.addEventListener('pointermove', e=>{
+          if(!isDragging)return; updatePaddle(e.clientY);
+        });
+        ['pointerup','pointercancel'].forEach(ev=>tz.addEventListener(ev,()=>isDragging=false));
       }
     } else {
       const pu=document.getElementById('pu'),pd=document.getElementById('pd');

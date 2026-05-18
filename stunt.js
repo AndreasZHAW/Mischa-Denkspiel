@@ -76,8 +76,10 @@ const StuntGame = {
       onGround:false, airTime:0,
       saltoRot:0, saltos:0, saltoFlash:0,
       roofLandings:0, _roofLanded:false, penaltyFlash:0, roofToast:0,
-      gasTime:0, wheelAng:0,
-      dustParts:[]
+      gasTime:0, wheelAng:0, dustParts:[],
+      // Progressive speed: cleanTime = seconds without crash
+      cleanTime:0, _lastCleanTick:0, speedBoost:1.0, speedFlash:0,
+      bigAirDone:false
     };
     const inp = {fwd:false,back:false,rotup:false,rotdn:false};
     let running=true, tStart=Date.now(), raf, frames=0;
@@ -265,20 +267,35 @@ const StuntGame = {
 
       if(onGround){
         car.wy=terrY-CAR_H; car.vy=0; car.onGround=true; car.airTime=0; car.saltoRot=0;
+        // Track clean driving time (no roof landings) → speed bonus
+        const nowSec=(Date.now()-tStart)/1000;
+        if(car.roofLandings===0||(nowSec-car._lastCleanTick)<0.5){
+          car.cleanTime=Math.min(120,car.cleanTime+0.016);
+        }
+        car._lastCleanTick=nowSec;
+        // Speed boost: +10% every 10s clean, max +80% at 80s
+        const prevBoost=car.speedBoost;
+        car.speedBoost=1.0+Math.min(0.8,car.cleanTime*0.01);
+        if(car.speedBoost>prevBoost+0.05){car.speedFlash=40;}
         // Smooth angle firmly to slope on landing
         const dAng=((terrAng-car.ang+Math.PI*3)%(Math.PI*2))-Math.PI;
-        car.ang+=dAng*0.45; // stronger angle correction
-        car.spin*=0.08; // strongly damp spin on ground contact
+        car.ang+=dAng*0.45;
+        car.spin*=0.08;
         if(inp.fwd){
           car.gasTime=Math.min(car.gasTime+1,180);
-          const boost=0.85+Math.min(3.8,car.gasTime*.022);
+          const baseBoost=0.85+Math.min(3.8,car.gasTime*.022);
+          const boost=baseBoost*car.speedBoost; // progressive streak bonus
           car.vx+=Math.cos(terrAng)*boost;
           if(frames%3===0) spawnDust(car.wx-12,terrY);
         } else { car.gasTime=Math.max(0,car.gasTime-4); }
         if(inp.back){ car.vx-=Math.cos(terrAng)*.7; car.gasTime=0; }
         car.vx*=0.79;
       } else {
-        car.onGround=false; car.airTime++; car.vy+=0.16; car.spin*=0.993;
+        car.onGround=false; car.airTime++; 
+        // Big air: after 10s clean driving, get floaty jumps
+        const gravMult = car.cleanTime>10 ? Math.max(0.4, 1.0-(car.cleanTime-10)*0.025) : 1.0;
+        car.vy+=0.16*gravMult;
+        car.spin*=0.993;
         car.saltoRot+=Math.abs(car.spin);
         if(car.saltoRot>=Math.PI*1.8){ car.saltoRot-=Math.PI*1.8; car.saltos++; car.saltoFlash=45; beep([440,550,660,880]); }
       }
@@ -286,7 +303,7 @@ const StuntGame = {
       if(inp.rotdn) car.spin=Math.max(-0.22,car.spin-(car.spin>0?.055:.025));
       if(!inp.rotup&&!inp.rotdn&&!onGround) car.spin*=0.97;
       car.ang+=car.spin;
-      car.vx=Math.max(-9,Math.min(22,car.vx));
+      const maxSpd=Math.round(22*car.speedBoost); car.vx=Math.max(-9,Math.min(maxSpd,car.vx));
       car.wx+=car.vx; car.wy+=car.vy;
       car.wheelAng+=car.vx*0.09;
 
@@ -311,10 +328,13 @@ const StuntGame = {
         if(!car._roofLanded){
           car._roofLanded=true;
           car.roofLandings++;
-          car.vy=-4.0; // gentle bounce
+          car.vy=-4.0;
           car.spin=(car.spin>0?.08:-.08);
           car.penaltyFlash=35;
           car.roofToast=100;
+          // Reset speed boost on crash
+          car.cleanTime=Math.max(0,car.cleanTime*0.5);
+          car.speedBoost=1.0+Math.min(0.8,car.cleanTime*0.01);
         }
         // Never end game from roof - just bounce
       } else car._roofLanded=false;
@@ -457,11 +477,26 @@ const StuntGame = {
       ctx.textAlign='center'; ctx.fillStyle='#FFD700'; ctx.font='bold 14px sans-serif';
       ctx.fillText(pct+'%', W/2, 19);
 
-      // Speed
+      // Speed + boost indicator
       if(spd>1.5){
         ctx.textAlign='right'; ctx.font='bold 11px monospace';
         ctx.fillStyle=spd>14?'#ff6b35':spd>8?'#FFD700':'#7ae62a';
-        ctx.fillText('⚡'+spd.toFixed(0), W-8, 19);
+        const boostPct=Math.round((car.speedBoost-1)*100);
+        const boostStr=boostPct>0?` +${boostPct}%`:'';
+        ctx.fillText('⚡'+spd.toFixed(0)+boostStr, W-8, 19);
+      }
+      // Speed boost flash
+      if(car.speedFlash>0){
+        car.speedFlash--;
+        ctx.globalAlpha=car.speedFlash/40;
+        ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.font='bold 16px sans-serif';
+        ctx.fillText('🔥 SPEED BOOST!',W/2,H*.35);
+        ctx.globalAlpha=1;
+      }
+      // Big air indicator
+      if(car.cleanTime>10&&!car.onGround&&car.airTime>20){
+        ctx.fillStyle='rgba(0,200,255,.7)';ctx.textAlign='center';ctx.font='bold 14px sans-serif';
+        ctx.fillText('🌊 BIG AIR!',W/2,H*.45);
       }
 
       // Saltos
