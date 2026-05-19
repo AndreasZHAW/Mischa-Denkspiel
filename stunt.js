@@ -24,13 +24,14 @@ const StuntGame = {
 </div>`;
 
     function B(c){
-      const pad = isMob ? 'clamp(14px,4vw,18px) clamp(14px,5vw,24px)' : '11px 18px';
-      const fs  = isMob ? 'clamp(1.1rem,5.5vw,1.4rem)' : '1rem';
-      const mh  = isMob ? '58px' : '44px';
+      const pad = isMob ? 'clamp(18px,5.5vw,26px) clamp(20px,6vw,32px)' : '11px 18px';
+      const fs  = isMob ? 'clamp(1.5rem,7.5vw,2rem)' : '1rem';
+      const mh  = isMob ? 'clamp(70px,20vw,88px)' : '44px';
+      const mw  = isMob ? 'clamp(76px,20vw,92px)' : '48px';
       return `background:linear-gradient(160deg,${c}cc,${c});color:#fff;border:none;
-        padding:${pad};border-radius:12px;font-size:${fs};font-weight:900;cursor:pointer;
-        touch-action:none;min-height:${mh};min-width:${isMob?'58px':'48px'};
-        box-shadow:0 4px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18)`;
+        padding:${pad};border-radius:16px;font-size:${fs};font-weight:900;cursor:pointer;
+        touch-action:none;min-height:${mh};min-width:${mw};
+        box-shadow:0 6px 14px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.2)`;
     }
 
     const cv = document.getElementById('stcv');

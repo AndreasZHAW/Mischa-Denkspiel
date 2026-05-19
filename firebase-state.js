@@ -553,7 +553,11 @@ const State = {
   },
 
   // ---- HELPERS ----
-  getAge(player) { return new Date().getFullYear() - player.birthYear; },
+  getAge(player) {
+    const by = parseInt(player?.birthYear);
+    if(!by||isNaN(by)||by<1900) return 25; // default: adult if unknown
+    return new Date().getFullYear() - by;
+  },
 
   getAgeGroup(player) {
     const age = this.getAge(player);

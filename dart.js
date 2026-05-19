@@ -26,7 +26,7 @@ const DartGame = {
       // Breathing: gentle oval offset on top of mouse aim
       breath: { phase: 0, ox: 0, oy: 0 },
       // Aim: actual mouse/touch position on canvas (canvas coords)
-      aimCx: 135, aimCy: 135,
+      aimCx: 135, aimCy: 135, // recalculated on first render
       // Whether player has moved the mouse yet
       playerAiming: false,
     };
@@ -133,8 +133,16 @@ const DartGame = {
   _render() {
     const c = this.current;
     const isP = c.turn === 'player';
+    const el2 = document.getElementById('game-area');
+    const avW = Math.min(el2 ? (el2.offsetWidth||window.innerWidth) : window.innerWidth, window.innerWidth) - 16;
+    const isMob2 = 'ontouchstart' in window;
+    const isPortrait = window.innerHeight > window.innerWidth;
+    // Board size: big on portrait mobile, standard elsewhere
+    const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.90 : 0.65)), 340) : 270;
+    const CX = Math.round(BS/2), CY = Math.round(BS/2);
+    if(this.current) this.current._BS = BS;
     document.getElementById('game-area').innerHTML = `
-<div style="max-width:440px;margin:0 auto;padding:0 4px">
+<div style="max-width:${isMob2&&isPortrait?BS+16:440}px;margin:0 auto;padding:0 4px">
   <!-- Score board -->
   <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:8px">
     <div style="background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
@@ -192,11 +200,11 @@ const DartGame = {
   <!-- Dartboard + joystick flex container -->
   <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap">
   <!-- Dartboard + crosshair overlay -->
-  <div style="position:relative;display:inline-block;width:270px;height:270px;margin-bottom:6px;cursor:crosshair" id="dart-wrap">
-    <canvas id="dart-canvas" width="270" height="270"
-      style="border-radius:50%;display:block;box-shadow:0 6px 20px rgba(0,0,0,.25);touch-action:none"></canvas>
+  <div style="position:relative;display:inline-block;width:${BS}px;height:${BS}px;margin-bottom:6px;cursor:crosshair" id="dart-wrap">
+    <canvas id="dart-canvas" width="${BS}" height="${BS}"
+      style="border-radius:50%;display:block;width:${BS}px;height:${BS}px;box-shadow:0 6px 20px rgba(0,0,0,.25);touch-action:none"></canvas>
     <!-- SVG crosshair overlay — follows mouse + breath -->
-    <svg id="dart-overlay" width="270" height="270"
+    <svg id="dart-overlay" width="${BS}" height="${BS}"
       style="position:absolute;top:0;left:0;pointer-events:none;border-radius:50%;overflow:hidden">
       <g id="dart-xhair">
         <!-- Outer rings for aiming context -->
@@ -294,8 +302,8 @@ const DartGame = {
     const getPos = (clientX, clientY) => {
       const rect = canvas.getBoundingClientRect();
       return {
-        cx: (clientX - rect.left) * (270 / rect.width),
-        cy: (clientY - rect.top) * (270 / rect.height),
+        cx: (clientX - rect.left) * ((DartGame.current?._BS||270) / rect.width),
+        cy: (clientY - rect.top) * ((DartGame.current?._BS||270) / rect.height),
       };
     };
 
@@ -553,7 +561,7 @@ const DartGame = {
     const canvas = document.getElementById('dart-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const W = 270, cx0 = 135, cy0 = 135, R = 130;
+    const W = BS||270, cx0 = DartGame.current?._BS?Math.round(DartGame.current._BS/2):135, cy0 = DartGame.current?._BS?Math.round(DartGame.current._BS/2):135, R = Math.round((DartGame.current?._BS||270)/2 - 5);
     ctx.clearRect(0, 0, W, W);
     const sectors = this.SECTORS, n = 20;
     const step = (2*Math.PI)/n, off = -Math.PI/2 - step/2;

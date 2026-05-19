@@ -1713,30 +1713,30 @@ const App = {
       </div>`);
 
     // ── AUTO-ZOOM: fit game to screen width on mobile ──
+    const _taskType = task?.type || task?.id || '';
     setTimeout(() => {
       const ga = document.getElementById('game-area');
       const btn = document.getElementById('zoom-btn');
       if (!ga || window.innerWidth >= 700) return; // desktop: no auto-zoom
-      // Find the first canvas or inner div to measure actual game width
+      const setZoom = (z) => {
+        this._zoomLevel = z;
+        ga.style.transform = `scale(${z})`;
+        ga.style.transformOrigin = 'top left';
+        ga.style.marginBottom = Math.round((z-1)*ga.offsetHeight*0.5)+'px';
+        ga.style.marginRight = Math.round((z-1)*ga.offsetWidth*0.5)+'px';
+        if (btn) { btn.textContent = `🔍 ${Math.round(z*100)}%`; btn.style.background = 'rgba(41,182,246,.25)'; }
+      };
+      // Tennis/Pong: always start at 200% on mobile
+      if (_taskType === 'pong' || _taskType === 'dart2') { setZoom(2.0); return; }
+      // Other games: auto-fill screen
       const inner = ga.querySelector('canvas') || ga.querySelector('div');
       const gameW = inner ? (inner.offsetWidth || inner.scrollWidth) : ga.scrollWidth;
       const screenW = window.innerWidth;
       if (gameW > 10 && screenW > gameW * 1.05) {
         const idealZoom = Math.min(screenW / gameW, 2.5);
-        // Snap to nearest step
         const steps = [0.85, 1, 1.1, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
         const snapped = steps.reduce((a,b) => Math.abs(b-idealZoom)<Math.abs(a-idealZoom)?b:a);
-        if (snapped > 1.05) {
-          this._zoomLevel = snapped;
-          ga.style.transform = `scale(${snapped})`;
-          ga.style.transformOrigin = 'top left';
-          ga.style.marginBottom = Math.round((snapped-1)*ga.offsetHeight*0.5)+'px';
-          ga.style.marginRight = Math.round((snapped-1)*ga.offsetWidth*0.5)+'px';
-          if (btn) {
-            btn.textContent = `🔍 ${Math.round(snapped*100)}%`;
-            btn.style.background = 'rgba(41,182,246,.25)';
-          }
-        }
+        if (snapped > 1.05) setZoom(snapped);
       }
     }, 400);
 

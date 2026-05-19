@@ -19,7 +19,12 @@ const BalloonGame = {
         style="display:block;margin:0 auto;border-radius:12px;width:${CW}px;height:${CH}px;
                box-shadow:0 6px 28px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.06);touch-action:none"></canvas>
       ${isMob?`
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:200px;margin:10px auto 0">
+      <div style="display:flex;justify-content:center;gap:8px;margin:8px auto 4px">
+        <button id="sn-mode" style="background:#8e44ad;color:#fff;border:none;padding:10px 16px;border-radius:12px;font-size:clamp(.9rem,4vw,1rem);font-weight:900;cursor:pointer;touch-action:none">🎮 Tasten</button>
+        <button id="sn-rev"  style="display:none;background:#444;color:#fff;border:none;padding:10px 14px;border-radius:12px;font-size:clamp(.85rem,3.5vw,.95rem);font-weight:700;cursor:pointer;touch-action:none">↔ Umkehren</button>
+      </div>
+      <div id="sn-hint" style="display:none;color:rgba(255,255,255,.4);font-size:.78rem;margin-bottom:4px">📱 Gerät neigen zum Steuern</div>
+      <div id="sn-btns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:clamp(200px,55vw,260px);margin:0 auto">
         <div></div>
         <button id="sn-up"   style="${B('#4834d4')}">↑</button>
         <div></div>
@@ -27,9 +32,9 @@ const BalloonGame = {
         <button id="sn-down" style="${B('#4834d4')}">↓</button>
         <button id="sn-right"style="${B('#4834d4')}">→</button>
       </div>`:''}
-      <div style="font-size:.72rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten / Wischen</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten / Wischen / Neigen</div>
     </div>`;
-    function B(c){return `background:${c};color:#fff;border:none;padding:${isMob?'14px 12px':'10px 8px'};border-radius:10px;font-size:${isMob?'1.2rem':'1rem'};font-weight:900;cursor:pointer;touch-action:none;min-height:${isMob?'50px':'40px'};box-shadow:0 3px 0 rgba(0,0,0,.4)`;}
+    function B(c){return `background:${c};color:#fff;border:none;padding:${isMob?'clamp(16px,5vw,22px) clamp(14px,5vw,20px)':'10px 8px'};border-radius:12px;font-size:${isMob?'clamp(1.5rem,8vw,2rem)':'1rem'};font-weight:900;cursor:pointer;touch-action:none;min-height:${isMob?'clamp(65px,18vw,80px)':'40px'};min-width:${isMob?'clamp(65px,18vw,80px)':'40px'};box-shadow:0 4px 0 rgba(0,0,0,.4)`;}
 
     const cv=document.getElementById('sncv'),ctx=cv.getContext('2d');
     ctx.scale(DPR,DPR);
@@ -165,7 +170,48 @@ const BalloonGame = {
     };
 
     // Controls
+    let useTilt=false, tiltReversed=false;
     const setDir=(nx,ny)=>{if(nx===0&&ny===0)return;if(nx===-dir.x&&ny===-dir.y)return;nextDir={x:nx,y:ny};};
+
+    if(isMob){
+      // Sensor toggle
+      const modeBtn=document.getElementById('sn-mode');
+      const btnsDiv=document.getElementById('sn-btns');
+      const hint=document.getElementById('sn-hint');
+      const revBtn=document.getElementById('sn-rev');
+      if(modeBtn) modeBtn.addEventListener('click',()=>{
+        useTilt=!useTilt;
+        modeBtn.textContent=useTilt?'📱 Neigen':'🎮 Tasten';
+        modeBtn.style.background=useTilt?'#8e44ad':'#2c3e50';
+        if(btnsDiv)btnsDiv.style.display=useTilt?'none':'grid';
+        if(hint)hint.style.display=useTilt?'block':'none';
+        if(revBtn)revBtn.style.display=useTilt?'inline-block':'none';
+        if(useTilt&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+          DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent='🎮 Tasten';}}).catch(()=>{useTilt=false;});
+        }
+      });
+      if(revBtn) revBtn.addEventListener('click',()=>{
+        tiltReversed=!tiltReversed;
+        revBtn.style.background=tiltReversed?'#e74c3c':'#444';
+        revBtn.textContent=tiltReversed?'↔ Umgekehrt':'↔ Umkehren';
+      });
+      // Accelerometer
+      const onMotion=(e)=>{
+        if(!useTilt)return;
+        const g=e.accelerationIncludingGravity||e.acceleration||{};
+        let tx=g.x||0, ty=g.y||0;
+        if(tiltReversed){tx=-tx;ty=-ty;}
+        const THRESH=3.5;
+        if(Math.abs(tx)>Math.abs(ty)){
+          if(tx<-THRESH)setDir(1,0);
+          else if(tx>THRESH)setDir(-1,0);
+        }else{
+          if(ty>THRESH)setDir(0,-1);
+          else if(ty<-THRESH)setDir(0,1);
+        }
+      };
+      window.addEventListener('devicemotion',onMotion);
+    }
     const km={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],KeyW:[0,-1],KeyS:[0,1],KeyA:[-1,0],KeyD:[1,0]};
     const onK=e=>{if(km[e.code]){e.preventDefault();setDir(...km[e.code]);}};
     window.addEventListener('keydown',onK);

@@ -1,6 +1,6 @@
 // FRANZÖSISCH - Age-based difficulty
 const FrenchGame = {
-  start({ ageGroup='einfach', onComplete }) {
+  start({ ageGroup='schwer', onComplete }) {  // default: adult level
     const el = document.getElementById('game-area');
     if (!el) return;
 
@@ -69,7 +69,9 @@ const FrenchGame = {
       ]
     };
 
-    const questions = (QUESTIONS[ageGroup] || QUESTIONS['einfach']).sort(()=>Math.random()-0.5).slice(0,8);
+    // Defensive: if ageGroup not found, use schwer for adults (better than einfach)
+    const grp = QUESTIONS[ageGroup] ? ageGroup : (ageGroup==='sehr_einfach'?'sehr_einfach':'schwer');
+    const questions = QUESTIONS[grp].sort(()=>Math.random()-0.5).slice(0,8);
     let qi=0, correct=0, wrong=0;
 
     const show = () => {
