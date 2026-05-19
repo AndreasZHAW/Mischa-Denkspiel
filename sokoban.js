@@ -30,8 +30,8 @@ const SokobanGame = {
       // Tier 3: Requires repositioning
       { map:['#########','#       #','#  @    #','#  ###  #','#  $ .  #','#       #','#########'],
         name:'U-Kurve', hint:'Box um die U-Kurve — player muss Umweg nehmen' },
-      { map:['##########','#  ...   #','#  $$$   #','#  # @   #','##########'],
-        name:'Reihenfolge', hint:'3 Boxen — Wand erzwingt die Reihenfolge' },
+      { map:['###########','#  .  .  . #','#  $  $  $ #','#    @     #','###########'],
+        name:'Drei Räume', hint:'3 Boxen nebeneinander — plan die Reihenfolge!' },
       { map:['###########','#   .     #','#  $ $    #','#  .@.    #','#  $ $    #','#   .     #','###########'],
         name:'Diamant', hint:'4 Boxen im Diamant — Mitte ist die Falle' },
       { map:['##########','#   .    #','# $    . #','#  ##$## #','#  .  $  #','#     @  #','##########'],
@@ -48,8 +48,8 @@ const SokobanGame = {
       // Tier 5: Expert
       { map:['############','#   .   .  #','#   $   $  #','#  ### ##  #','#   $   $  #','#   .@  .  #','############'],
         name:'Doppelwand', hint:'Zwei Wände trennen — beide Seiten separat lösen' },
-      { map:['############','#   .   .  #','#   $   $  #','#  ### ##  #','#   $   $  #','#   .@  .  #','############'],
-        name:'Wand', hint:'Dickere Wände — Umwege auf beiden Seiten' },
+      { map:['###########','#  .    .  #','#  $    $  #','#  @####   #','#  $    $  #','#  .    .  #','###########'],
+        name:'Vier Tore', hint:'4 Boxen durch enge Tor-Wände' },
       { map:['#############','#     .     #','#  . $$$ .  #','#  $     $  #','#  . . . .  #','#    $ $    #','#     @     #','#############'],
         name:'Kreis', hint:'7 Boxen im Kreis-Muster' },
       { map:['############','#   .  .   #','#  $    $  #','#  @  ##   #','#  $    $  #','#   .  .   #','############'],

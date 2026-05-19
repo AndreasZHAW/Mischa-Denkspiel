@@ -76,7 +76,7 @@ const PongGame = {
     let upHeld=false, dnHeld=false;
     const GAME_TIME=60, SPD=6;
     const SPEED_INTERVAL=5; // speed up every 5 seconds
-    let vx=2.5, vy=1.8;
+    let vx=2.8, vy=0.2; // nearly horizontal start
     let speedLevel=1;
     let lastSpeedUp=0;
 
@@ -129,8 +129,8 @@ const PongGame = {
     const reset=(server)=>{
       bx=W/2;by=H/2;
       const sm=speedMult();
-      vx=(server==='p'?1:-1)*2.5;
-      vy=1.8*(Math.random()>0.5?1:-1);
+      vx=(server==='p'?1:-1)*2.8;
+      vy=0.0; // always horizontal at start
     };
     const end=()=>{
       running=false;cancelAnimationFrame(animId);

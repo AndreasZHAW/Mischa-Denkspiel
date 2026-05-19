@@ -131,11 +131,57 @@ const TrueFalseGame = {
     ],
   },
 
+  _hardQuestions: {
+    1: [ // Anreise — schwerer
+      { q:'Die Autobahn A1 in der Schweiz verbindet Genf mit Zürich.', a:true },
+      { q:'Frankreich hat mehr als 60 Millionen Einwohner.', a:true },
+      { q:'Der Mont Blanc liegt in den Pyrenäen.', a:false },
+      { q:'Die Schweiz ist Mitglied der Europäischen Union.', a:false },
+      { q:'Das Tempolimit auf Schweizer Autobahnen beträgt 120 km/h.', a:true },
+      { q:'Frankreich hat mehr als 10 Departements.', a:true },
+      { q:'Lyon ist die Hauptstadt von Frankreich.', a:false },
+      { q:'Die Rhone fliesst durch Genf.', a:true },
+      { q:'Der Ärmelkanal trennt Frankreich von Grossbritannien.', a:true },
+      { q:'In Frankreich gilt Linksverkehr.', a:false },
+    ],
+    2: [
+      { q:'Das Heilige Römische Reich endete im Jahr 1806.', a:true },
+      { q:'Die Kreuzritter kämpften im 15. Jahrhundert.', a:false },
+      { q:'Ein Donjon ist der Hauptturm einer Burg.', a:true },
+      { q:'Feudalismus bedeutet, dass der König kein Land besitzt.', a:false },
+      { q:'Die Pest tötete im 14. Jahrhundert einen Drittel der europäischen Bevölkerung.', a:true },
+      { q:'Ritter mussten ihrem Lehnsherrn Treue schwören.', a:true },
+      { q:'Das Mittelalter begann vor etwa 2000 Jahren.', a:false },
+      { q:'In der Gotik waren Spitzbögen typisch.', a:true },
+      { q:'Kathedrale von Notre-Dame steht in Köln.', a:false },
+      { q:'Der Hundred Years War war zwischen Frankreich und England.', a:true },
+    ],
+    3: [
+      { q:'Chlor tötet Bakterien im Schwimmbad ab.', a:true },
+      { q:'Schwimmen nach dem Essen erhöht das Herzinfarkt-Risiko — ein Mythos.', a:true },
+      { q:'Ein Olympisches Schwimmbecken ist 50m lang.', a:true },
+      { q:'Der menschliche Körper besteht zu etwa 60% aus Wasser.', a:true },
+      { q:'Im Schwarzen Meer kann man besser schwimmen als im Süsswasser.', a:true },
+      { q:'Delfine sind Fische.', a:false },
+      { q:'Beim Brustschwimmen bewegen sich die Arme gleichzeitig.', a:true },
+      { q:'UV-Strahlen können durch Wasser nicht hindurch.', a:false },
+    ],
+  },
+
   start(config) {
-    const { worldId = 1, onComplete } = config;
+    const { worldId = 1, ageGroup = 'einfach', onComplete } = config;
     TrueFalseGame._lastConfig = config;
     const pool = this._questions[worldId] || this._questions[1];
-    const questions = [...pool].sort(()=>Math.random()-0.5).slice(0,10);
+    // Age-based difficulty: adults get harder questions mixed in
+    let questions;
+    if(ageGroup === 'schwer' || ageGroup === 'mittel') {
+      // Mix in hard questions if available
+      const hard = this._hardQuestions?.[worldId] || [];
+      const combined = [...pool, ...hard];
+      questions = [...combined].sort(()=>Math.random()-0.5).slice(0,10);
+    } else {
+      questions = [...pool].sort(()=>Math.random()-0.5).slice(0,10);
+    }
     this.current = {
       questions, index:0,
       results:[], errors:0,

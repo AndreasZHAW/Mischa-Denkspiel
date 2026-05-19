@@ -26,7 +26,7 @@ const DartGame = {
       // Breathing: gentle oval offset on top of mouse aim
       breath: { phase: 0, ox: 0, oy: 0 },
       // Aim: actual mouse/touch position on canvas (canvas coords)
-      aimCx: 135, aimCy: 135, // recalculated on first render
+      aimCx: 135, aimCy: 135, _BS: 270, // will be updated on first render
       // Whether player has moved the mouse yet
       playerAiming: false,
     };
@@ -140,7 +140,12 @@ const DartGame = {
     // Board size: big on portrait mobile, standard elsewhere
     const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.90 : 0.65)), 340) : 270;
     const CX = Math.round(BS/2), CY = Math.round(BS/2);
-    if(this.current) this.current._BS = BS;
+    if(this.current) {
+      this.current._BS = BS;
+      // Update aim center if it's still at default 135
+      if(this.current.aimCx === 135 || this.current.aimCx === CX-2) this.current.aimCx = CX;
+      if(this.current.aimCy === 135 || this.current.aimCy === CY-2) this.current.aimCy = CY;
+    }
     document.getElementById('game-area').innerHTML = `
 <div style="max-width:${isMob2&&isPortrait?BS+16:440}px;margin:0 auto;padding:0 4px">
   <!-- Score board -->
@@ -561,7 +566,8 @@ const DartGame = {
     const canvas = document.getElementById('dart-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const W = BS||270, cx0 = DartGame.current?._BS?Math.round(DartGame.current._BS/2):135, cy0 = DartGame.current?._BS?Math.round(DartGame.current._BS/2):135, R = Math.round((DartGame.current?._BS||270)/2 - 5);
+    const _bs = (c && c._BS) ? c._BS : 270;
+    const W = _bs, cx0 = Math.round(_bs/2), cy0 = Math.round(_bs/2), R = Math.round(_bs/2 - 5);
     ctx.clearRect(0, 0, W, W);
     const sectors = this.SECTORS, n = 20;
     const step = (2*Math.PI)/n, off = -Math.PI/2 - step/2;

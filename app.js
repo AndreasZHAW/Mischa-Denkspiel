@@ -1803,7 +1803,7 @@ const App = {
         case 'typing':      TypingGame.start({ ageGroup, worldId, onComplete }); break;
         case 'balloon':     BalloonGame.start({ ageGroup, worldId, onComplete }); break;
         case 'simon':       SimonGame.start({ worldId, onComplete }); break;
-        case 'truefalse':   TrueFalseGame.start({ worldId, onComplete }); break;
+        case 'truefalse':   TrueFalseGame.start({ worldId, ageGroup, onComplete }); break;
         case 'dart':        DartGame.start({ onComplete }); break;
         case 'pacman':      PacmanGame.start({ onComplete }); break;
         case 'starwars':    StarWarsGame.start({ onComplete }); break;

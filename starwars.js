@@ -50,19 +50,42 @@ const StarWarsGame = {
       s:Math.random()*1.8+.3,spd:.3+Math.random()*.8,bright:Math.random()});
 
     const spawnWave=()=>{
-      const rows=Math.min(5,1+Math.floor(wave/2));
-      const cols=Math.min(9,3+wave);
-      const sp=Math.min(44,Math.floor((W-40)/cols));
-      const speed=0.65+wave*0.18; // gentle: wave 8 = 0.65+1.44=2.09
-      const bossWave=wave>=6; // waves 6+ have boss enemies with 3 HP
-      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
-        enemies.push({x:20+c*sp,y:20+r*32,w:22,h:18,
-          hp: bossWave&&r===0 ? 3 : 1+(r>=2?1:0),
-          dx:speed,dy:0,type:r%4,phase:Math.random()*Math.PI*2});
-      // Guaranteed powerup each wave from wave 2+
+      const speed=0.55+wave*0.15; // gentle: wave 8 = 0.55+1.2=1.75
+      // Wave-specific formations for variety
+      if(wave<=3){
+        // Classic grid
+        const rows=1+wave, cols=4+wave, sp=Math.min(46,Math.floor((W-40)/cols));
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
+          enemies.push({x:20+c*sp,y:25+r*34,w:22,h:18,hp:1,dx:speed,dy:0,type:r%4,phase:Math.random()*Math.PI*2});
+      } else if(wave===4){
+        // V-formation
+        const cols=9, sp=Math.min(42,Math.floor((W-40)/cols));
+        for(let c=0;c<cols;c++){
+          const row=Math.abs(c-4);
+          enemies.push({x:20+c*sp,y:15+row*28,w:22,h:18,hp:1+(c===4?1:0),dx:speed,dy:0,type:c%4,phase:Math.random()*Math.PI*2});
+        }
+      } else if(wave===5){
+        // Two flanking groups
+        for(let c=0;c<4;c++) enemies.push({x:10+c*38,y:25+c*20,w:22,h:18,hp:2,dx:speed,dy:0,type:0,phase:Math.random()*Math.PI*2});
+        for(let c=0;c<4;c++) enemies.push({x:W-170+c*38,y:25+(3-c)*20,w:22,h:18,hp:2,dx:-speed,dy:0,type:1,phase:Math.random()*Math.PI*2});
+      } else if(wave===6){
+        // Boss row + normal grid
+        for(let c=0;c<5;c++) enemies.push({x:30+c*50,y:20,w:28,h:22,hp:3,dx:speed,dy:0,type:2,phase:0,isBoss:true});
+        for(let c=0;c<8;c++) enemies.push({x:15+c*44,y:70,w:22,h:18,hp:1,dx:speed*.8,dy:0,type:3,phase:Math.random()*Math.PI*2});
+      } else if(wave===7){
+        // Diamond formation
+        const pattern=[[4,0],[3,1],[5,1],[2,2],[4,2],[6,2],[3,3],[5,3],[4,4]];
+        pattern.forEach(([c,r])=>enemies.push({x:20+c*42,y:15+r*30,w:22,h:18,hp:1+(r===0?2:r<2?1:0),dx:speed,dy:0,type:r%4,phase:Math.random()*Math.PI*2}));
+      } else {
+        // Wave 8: Full assault — all types, mixed HP
+        const rows=4, cols=9, sp=Math.min(42,Math.floor((W-40)/cols));
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
+          enemies.push({x:20+c*sp,y:15+r*28,w:22,h:18,hp:1+(r===0?2:r===1?1:0),dx:speed,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
+      }
+      // Powerups
       const pwType=wave>=6?'triple':wave>=4?'rapid':wave>=3?'rapid':'shield';
       powerups.push({x:60+Math.random()*(W-120),y:-20,dy:1.4,type:pwType});
-      if(wave>=5) powerups.push({x:60+Math.random()*(W-120),y:-50,dy:1.2,type:'shield'});
+      if(wave>=4) powerups.push({x:60+Math.random()*(W-120),y:-60,dy:1.2,type:wave>=6?'rapid':'shield'});
     };
     spawnWave();
 
