@@ -46,12 +46,12 @@ const AnagramGame = {
         </div>
         <div style="font-size:0.85rem;color:var(--text-mid);margin-bottom:14px">Tippe die Buchstaben in der richtigen Reihenfolge!</div>
         <!-- Answer slots -->
-        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:18px;min-height:52px;flex-wrap:wrap">
+        <div style="display:flex;gap:clamp(5px,2vw,8px);justify-content:center;margin-bottom:14px;min-height:clamp(52px,14vw,68px);flex-wrap:wrap">
           ${Array.from({length:word.length},(_,i)=>`
-            <div style="width:44px;height:44px;border-radius:10px;
+            <div style="width:clamp(50px,13vw,62px);height:clamp(50px,13vw,62px);border-radius:10px;
               background:${selected[i]?'linear-gradient(135deg,#27AE60,#1E8449)':'#F0F4F8'};
               border:2px solid ${selected[i]?'#1E8449':'#D0D8E4'};
-              color:white;font-family:'Fredoka One',cursive;font-size:1.3rem;
+              color:white;font-size:clamp(1.3rem,5.5vw,1.6rem);font-weight:900;
               display:flex;align-items:center;justify-content:center">
               ${selected[i]||''}
             </div>`).join('')}
@@ -60,13 +60,13 @@ const AnagramGame = {
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
           ${remaining.map((ch,i)=>ch?`
             <button onclick="AnagramGame._pick(${i})"
-              style="width:46px;height:46px;border-radius:12px;
+              style="width:clamp(54px,14vw,66px);height:clamp(54px,14vw,66px);border-radius:12px;
                 background:linear-gradient(135deg,#4A90D9,#2C75C0);
-                color:white;font-family:'Fredoka One',cursive;font-size:1.4rem;border:none;cursor:pointer;
+                color:white;font-size:clamp(1.4rem,6vw,1.7rem);font-weight:900;border:none;cursor:pointer;
                 box-shadow:0 4px 10px rgba(74,144,217,0.35);transition:transform 0.15s"
               onmousedown="this.style.transform='scale(0.9)'" onmouseup="this.style.transform=''">
               ${ch}
-            </button>`:`<div style="width:46px;height:46px;background:#F0F4F8;border-radius:12px;opacity:0.3"></div>`
+            </button>`:`<div style="width:clamp(54px,14vw,66px);height:clamp(54px,14vw,66px);background:#F0F4F8;border-radius:12px;opacity:0.3"></div>`
           ).join('')}
         </div>
         <button onclick="AnagramGame._clear()" style="background:rgba(231,76,60,0.1);border:2px solid #E74C3C;

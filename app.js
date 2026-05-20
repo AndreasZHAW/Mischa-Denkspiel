@@ -1420,14 +1420,19 @@ const App = {
       const plays = task?.plays || (task?.done ? 1 : 0);
       const done = task?.done || false;
       
-      const mtColor = mt >= 1.5 ? '#27AE60' : mt >= 1.0 ? '#FFD700' : mt > 0 ? '#E67E22' : '#555';
-      const mtDisplay = done ? `<span style="color:${mtColor};font-weight:700">${mt.toFixed(1)} MT</span>` : '—';
+      const mtColor = mt >= 1.3 ? '#27AE60' : mt >= 0.8 ? '#FFD700' : mt > 0 ? '#E67E22' : '#555';
+      const mtDisplay = done ? `<span style="color:${mtColor};font-weight:700">${mt.toFixed(1)}</span>` : '—';
+      // MT thresholds: passed=max, failed=0.2×base
+      const base = game.baseReward || 1.0;
+      const maxMT = (base * 1.5).toFixed(1);
+      const minMT = (base * 0.2).toFixed(1);
+      const bar = done ? Math.round((mt/(base*1.5))*100) : 0;
 
       return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
-        <td style="padding:5px 8px;font-size:clamp(0.88rem,3.6vw,0.98rem)">${game.icon} ${game.name}</td>
-        <td style="padding:5px 8px;text-align:center">${mtDisplay}</td>
-        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.75);font-size:clamp(0.85rem,3.5vw,0.95rem)">${rawScore > 0 ? rawScore : '—'}</td>
-        <td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.7);font-size:.72rem">${plays || '—'}</td>
+        <td style="padding:5px 6px;font-size:clamp(0.82rem,3.4vw,0.92rem)">${game.icon} ${game.name}</td>
+        <td style="padding:5px 6px;text-align:center">${mtDisplay}</td>
+        <td style="padding:5px 6px;text-align:center;font-size:clamp(0.72rem,2.8vw,0.82rem);color:rgba(255,255,255,.5)">${minMT}–${maxMT}</td>
+        <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.75);font-size:clamp(0.82rem,3.2vw,0.9rem)">${rawScore > 0 ? rawScore : '—'}</td>
       </tr>`;
     }).join('');
 
@@ -1458,10 +1463,10 @@ const App = {
             <table style="width:100%;border-collapse:collapse;font-size:clamp(0.88rem,3.6vw,0.98rem)">
               <thead>
                 <tr style="border-bottom:1px solid rgba(41,182,246,.2);color:rgba(255,255,255,.75)">
-                  <th style="padding:5px 8px;text-align:left">Spiel</th>
-                  <th style="padding:5px 8px;text-align:center">MT</th>
-                  <th style="padding:5px 8px;text-align:center">Punkte</th>
-                  <th style="padding:5px 8px;text-align:center">Spiele</th>
+                  <th style="padding:5px 6px;text-align:left;font-size:clamp(0.82rem,3.2vw,0.9rem)">Spiel</th>
+                  <th style="padding:5px 6px;text-align:center;font-size:clamp(0.82rem,3.2vw,0.9rem)">MT</th>
+                  <th style="padding:5px 6px;text-align:center;font-size:clamp(0.72rem,2.8vw,0.82rem);color:rgba(255,255,255,.5)">Bereich</th>
+                  <th style="padding:5px 6px;text-align:center;font-size:clamp(0.82rem,3.2vw,0.9rem)">Score</th>
                 </tr>
               </thead>
               <tbody>${tableRows}</tbody>

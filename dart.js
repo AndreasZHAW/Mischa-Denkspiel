@@ -138,7 +138,12 @@ const DartGame = {
     const isMob2 = 'ontouchstart' in window;
     const isPortrait = window.innerHeight > window.innerWidth;
     // Board size: big on portrait mobile, standard elsewhere
-    const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.90 : 0.65)), 340) : 270;
+    // Portrait: board fills screen width; Landscape: board fills screen height
+    const BS = isMob2
+      ? (isPortrait
+          ? Math.min(avW - 4, Math.round(window.innerHeight * 0.44))  // portrait: near full width
+          : Math.min(Math.round(window.innerHeight - 80), Math.round(avW * 0.55)))  // landscape: height-based
+      : 320; // desktop
     const CX = Math.round(BS/2), CY = Math.round(BS/2);
     if(this.current) {
       this.current._BS = BS;
@@ -148,18 +153,16 @@ const DartGame = {
     }
     document.getElementById('game-area').innerHTML = `
 <div style="max-width:${isMob2&&isPortrait?BS+16:440}px;margin:0 auto;padding:0 4px">
-  <!-- Score board -->
-  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:8px">
-    <div style="background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
-      <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:${isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">👤 Du</div>
-      <div style="font-size:clamp(1.4rem,6vw,1.9rem);font-weight:900;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
-      <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">${isP?`Pfeil ${c.dartsThisRound+1}/3`:'warte...'}</div>
+  <!-- Score board: compact 1-line on mobile -->
+  <div style="display:flex;align-items:stretch;gap:5px;margin-bottom:5px">
+    <div style="flex:1;background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px">
+      <div style="font-size:clamp(0.76rem,3vw,0.86rem);color:${isP?'rgba(255,255,255,.8)':'var(--text-mid)'};line-height:1.2">👤 Du<br><span style="font-size:.72rem">${isP?'Pfeil '+(c.dartsThisRound+1)+'/3':'warte...'}</span></div>
+      <div style="font-size:clamp(1.5rem,6.5vw,2rem);font-weight:900;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
     </div>
-    <div style="font-family:'Fredoka One',cursive;font-size:.85rem;color:var(--text-mid);align-self:center">VS</div>
-    <div style="background:${!isP?'linear-gradient(135deg,#c0392b,#7b0000)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
-      <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:${!isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">🤖 CPU</div>
-      <div style="font-size:clamp(1.4rem,6vw,1.9rem);font-weight:900;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
-      <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:${!isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">301 Double-Out</div>
+    <div style="align-self:center;font-weight:700;font-size:.78rem;color:#999;flex-shrink:0">VS</div>
+    <div style="flex:1;background:${!isP?'linear-gradient(135deg,#c0392b,#7b0000)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px">
+      <div style="font-size:clamp(0.76rem,3vw,0.86rem);color:${!isP?'rgba(255,255,255,.8)':'var(--text-mid)'};line-height:1.2">🤖 CPU<br><span style="font-size:.72rem">301 DOut</span></div>
+      <div style="font-size:clamp(1.5rem,6.5vw,2rem);font-weight:900;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
     </div>
   </div>
 
@@ -174,8 +177,8 @@ const DartGame = {
     <span style="font-size:clamp(0.75rem,3.2vw,0.85rem);color:var(--text-mid)">${Math.round(c.wind.angle)}°</span>
   </div>
 
-  <!-- Dartboard + joystick flex container -->
-  <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap">
+  <!-- Board + joy: portrait=column, landscape=row -->
+  <div style="display:flex;flex-direction:${isPortrait?'column':'row'};align-items:${isPortrait?'center':'flex-start'};justify-content:center;gap:${isPortrait?'8px':'12px'}">
   <!-- Dartboard + crosshair overlay -->
   <div style="position:relative;display:inline-block;width:${BS}px;height:${BS}px;margin-bottom:6px;cursor:crosshair" id="dart-wrap">
     <canvas id="dart-canvas" width="${BS}" height="${BS}"
@@ -205,9 +208,9 @@ const DartGame = {
   </div><!-- end dart-wrap -->
 
   <!-- Mobile joystick (shown only on touch devices) -->
-  <div id="dart-joy" style="display:none;flex-direction:column;align-items:center;gap:6px;margin-left:8px;touch-action:none;user-select:none">
+  <div id="dart-joy" style="display:${isMob2?'flex':'none'};flex-direction:column;align-items:center;gap:6px;margin-top:${isPortrait?'4px':'0'};touch-action:none;user-select:none">
     <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#FFD700;text-align:center;font-weight:700;line-height:1.3">🎯 Zielen<br><span style="color:rgba(255,255,255,.5);font-size:clamp(0.76rem,3.2vw,0.86rem);font-weight:400">Schieben → Ziel<br>Loslassen = Wurf</span></div>
-    <div id="dart-joy-pad" style="position:relative;width:100px;height:100px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 12px rgba(255,215,0,.2)">
+    <div id="dart-joy-pad" style="position:relative;width:${isPortrait?120:100}px;height:${isPortrait?120:100}px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 12px rgba(255,215,0,.2)">
       <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:36px;height:36px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);transition:none;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
     </div>
     <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:rgba(255,255,255,.4);text-align:center">⬆️ Mitte = Bullseye</div>
