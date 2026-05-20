@@ -151,6 +151,14 @@ const SokobanGame = {
 
     const undo=()=>{if(!history.length)return;const s=history.pop();grid=s.grid;py=s.py;px=s.px;moves=s.moves;render();};
 
+    // Button style helper — defined OUTSIDE render so template literal can access it
+    const BS=(col,wide=false)=>`background:${col};color:#fff;border:none;
+      padding:clamp(13px,4vw,17px) ${wide?'8px':'4px'};border-radius:12px;
+      font-size:clamp(1.05rem,5vw,1.3rem);font-weight:900;cursor:pointer;
+      touch-action:none;min-height:clamp(54px,14vw,64px);
+      ${wide?'flex:1;':'width:100%;'}
+      box-shadow:0 4px 0 rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.25)`;
+
     const render=()=>{
       const lvl=LEVELS[lvIdx];
       const rows=grid.length, cols=Math.max(...grid.map(r=>r.length));
@@ -192,13 +200,6 @@ const SokobanGame = {
         <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten/WASD · Z=Rückgängig · Wischen</div>
       </div>`;
 
-      // Button style helper
-      const BS=(col,wide=false)=>`background:${col};color:#fff;border:none;
-        padding:clamp(13px,4vw,17px) ${wide?'8px':'4px'};border-radius:12px;
-        font-size:clamp(1.05rem,5vw,1.3rem);font-weight:900;cursor:pointer;
-        touch-action:none;min-height:clamp(54px,14vw,64px);
-        ${wide?'flex:1;':'width:100%;'}
-        box-shadow:0 4px 0 rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.25)`;
       const cv=document.getElementById('skcv');
       const ctx=cv.getContext('2d');
       // CRITICAL: reset transform before scaling, otherwise scale compounds!

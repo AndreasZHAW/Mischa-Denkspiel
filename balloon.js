@@ -19,9 +19,12 @@ const BalloonGame = {
         style="display:block;margin:0 auto;border-radius:12px;width:${CW}px;height:${CH}px;
                box-shadow:0 6px 28px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.06);touch-action:none"></canvas>
       ${isMob?`
-      <div style="display:flex;justify-content:center;gap:8px;margin:8px auto 4px">
-        <button id="sn-mode" style="background:#8e44ad;color:#fff;border:none;padding:10px 16px;border-radius:12px;font-size:clamp(.9rem,4vw,1rem);font-weight:900;cursor:pointer;touch-action:none">🎮 Tasten</button>
-        <button id="sn-rev"  style="display:none;background:#444;color:#fff;border:none;padding:10px 14px;border-radius:12px;font-size:clamp(.85rem,3.5vw,.95rem);font-weight:700;cursor:pointer;touch-action:none">↔ Umkehren</button>
+      <!-- Sensor controls row -->
+      <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px auto 4px;max-width:300px">
+        <button id="sn-mode" style="background:#8e44ad;color:#fff;border:none;padding:9px 14px;border-radius:12px;font-size:clamp(.88rem,4vw,1rem);font-weight:900;cursor:pointer;touch-action:none">🎮 Tasten</button>
+        <button id="sn-sens" style="display:none;background:#2980b9;color:#fff;border:none;padding:9px 12px;border-radius:12px;font-size:clamp(.78rem,3.5vw,.9rem);font-weight:700;cursor:pointer;touch-action:none">📶 Grob</button>
+        <button id="sn-rev-x" style="display:none;background:#444;color:#fff;border:none;padding:9px 10px;border-radius:12px;font-size:clamp(.78rem,3.5vw,.88rem);font-weight:700;cursor:pointer;touch-action:none">Reverse ↔X</button>
+        <button id="sn-rev-y" style="display:none;background:#444;color:#fff;border:none;padding:9px 10px;border-radius:12px;font-size:clamp(.78rem,3.5vw,.88rem);font-weight:700;cursor:pointer;touch-action:none">Reverse ↕Y</button>
       </div>
       <div id="sn-hint" style="display:none;color:rgba(255,255,255,.4);font-size:.78rem;margin-bottom:4px">📱 Gerät neigen zum Steuern</div>
       <div id="sn-rev-btns" style="display:none;gap:5px;justify-content:center;margin-bottom:4px">
@@ -178,27 +181,46 @@ const BalloonGame = {
     const setDir=(nx,ny)=>{if(nx===0&&ny===0)return;if(nx===-dir.x&&ny===-dir.y)return;nextDir={x:nx,y:ny};};
 
     if(isMob){
-      // Sensor toggle
+      let sensorSensitive=true; // true=fine, false=coarse
       const modeBtn=document.getElementById('sn-mode');
+      const sensBtn=document.getElementById('sn-sens');
       const btnsDiv=document.getElementById('sn-btns');
       const hint=document.getElementById('sn-hint');
-      const revBtn=document.getElementById('sn-rev');
+      const revBtnsDiv=document.getElementById('sn-rev-btns');
+      const showSensorBtns=(show)=>{
+        if(sensBtn)sensBtn.style.display=show?'inline-block':'none';
+        const rx=document.getElementById('sn-rev-x'),ry=document.getElementById('sn-rev-y');
+        if(rx)rx.style.display=show?'inline-block':'none';
+        if(ry)ry.style.display=show?'inline-block':'none';
+        if(btnsDiv)btnsDiv.style.display=show?'none':'grid';
+        if(hint)hint.style.display=show?'block':'none';
+        if(revBtnsDiv)revBtnsDiv.style.display=show?'flex':'none';
+      };
       if(modeBtn) modeBtn.addEventListener('click',()=>{
         useTilt=!useTilt;
         modeBtn.textContent=useTilt?'📱 Neigen':'🎮 Tasten';
         modeBtn.style.background=useTilt?'#8e44ad':'#2c3e50';
-        if(btnsDiv)btnsDiv.style.display=useTilt?'none':'grid';
-        if(hint)hint.style.display=useTilt?'block':'none';
-        if(revBtn)revBtn.style.display=useTilt?'inline-block':'none';
-        const revBtnsDiv=document.getElementById('sn-rev-btns');
-        if(revBtnsDiv)revBtnsDiv.style.display=useTilt?'flex':'none';
+        showSensorBtns(useTilt);
         if(useTilt&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
-          DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent='🎮 Tasten';}}).catch(()=>{useTilt=false;});
+          DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent='🎮 Tasten';showSensorBtns(false);}}).catch(()=>{useTilt=false;});
         }
+      });
+      if(sensBtn) sensBtn.addEventListener('click',()=>{
+        sensorSensitive=!sensorSensitive;
+        sensBtn.textContent=sensorSensitive?'📶 Fein':'📶 Grob';
+        sensBtn.style.background=sensorSensitive?'#27ae60':'#2980b9';
       });
       // X/Y reverse handled below in sensor block
       // Sigmoid sensor curve — smooth dead zone then accelerating
-      const sc=(v)=>{const s=v<0?-1:1,a=Math.abs(v),dz=3;if(a<dz)return 0;const x=(a-dz)/8;return s/(1+Math.exp(-2.5*(x-1)));};
+      // Sigmoid sensor: sensitive mode (low threshold) vs grob (higher threshold)
+      const sc=(v)=>{
+        const s=v<0?-1:1,a=Math.abs(v);
+        const dz=sensorSensitive?1.5:3.5; // sensitive=1.5°, grob=3.5°
+        const slope=sensorSensitive?3.5:2.0; // how fast it ramps up
+        if(a<dz)return 0;
+        const x=(a-dz)/6;
+        return s/(1+Math.exp(-slope*(x-0.8)));
+      };
       let revX=false, revY=false;
 
       // Reverse buttons for X and Y

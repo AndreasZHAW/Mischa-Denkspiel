@@ -1015,8 +1015,8 @@ const App = {
                 <span class="world-icon">${world.icon}</span>
                 <div class="world-info">
                   <div class="world-name" style="font-size:clamp(1rem,4.5vw,1.25rem);font-weight:900">${world.name}</div>
-                  <div class="world-desc">${world.difficulty}</div>
-                  <div class="world-progress" style="font-size:clamp(0.85rem,3.5vw,0.95rem)">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1)} MT</div>
+                  <div class="world-desc" style="font-size:clamp(0.82rem,3.8vw,0.92rem)">${world.difficulty}</div>
+                  <div class="world-progress" style="font-size:clamp(0.85rem,3.8vw,0.97rem);font-weight:600">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1)} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;

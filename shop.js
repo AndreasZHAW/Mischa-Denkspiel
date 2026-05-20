@@ -31,25 +31,25 @@ const ALL_CHARACTERS = [
   { id:'scientist',  emoji:'🧪', name:'Wissenschaftler',  free:true },
   { id:'explorer',   emoji:'🧭', name:'Entdecker',        free:true },
   // Familie (Shop)
-  { id:'oma',    emoji:'👵', name:'Oma',    free:false, price:200,    shopItem:'skin_oma' },
-  { id:'opa',    emoji:'👴', name:'Opa',    free:false, price:200,    shopItem:'skin_opa' },
-  { id:'steffi', emoji:'💁', name:'Steffi', free:false, price:300,    shopItem:'skin_steffi' },
-  { id:'tom',    emoji:'🧑', name:'Tom',    free:false, price:300,    shopItem:'skin_tom' },
-  { id:'benni',  emoji:'😎', name:'Benni',  free:false, price:300,    shopItem:'skin_benni' },
-  { id:'jonas',  emoji:'🙃', name:'Jonas',  free:false, price:300,    shopItem:'skin_jonas' },
-  { id:'hanes',  emoji:'🤙', name:'Hanes',  free:false, price:300,    shopItem:'skin_hanes' },
-  { id:'nina',   emoji:'💃', name:'Nina',   free:false, price:300,    shopItem:'skin_nina' },
-  { id:'michi',  emoji:'🏃', name:'Michi',  free:false, price:300,    shopItem:'skin_michi' },
-  { id:'trixi',  emoji:'🌸', name:'Trixi',  free:false, price:300,    shopItem:'skin_trixi' },
-  { id:'raffi',  emoji:'🦊', name:'Raffi',  free:false, price:300,    shopItem:'skin_raffi' },
-  { id:'andi',   emoji:'🤓', name:'Andi',   free:false, price:300,    shopItem:'skin_andi' },
-  { id:'janosch',emoji:'🎭', name:'Janosch',free:false, price:300,    shopItem:'skin_janosch' },
-  { id:'mischa', emoji:'🦁', name:'Mischa', free:false, price:500,    shopItem:'skin_mischa' },
+  { id:'oma',    emoji:'👵', name:'Oma',    free:false, price:4,    shopItem:'skin_oma' },
+  { id:'opa',    emoji:'👴', name:'Opa',    free:false, price:4,    shopItem:'skin_opa' },
+  { id:'steffi', emoji:'💁', name:'Steffi', free:false, price:6,    shopItem:'skin_steffi' },
+  { id:'tom',    emoji:'🧑', name:'Tom',    free:false, price:6,    shopItem:'skin_tom' },
+  { id:'benni',  emoji:'😎', name:'Benni',  free:false, price:6,    shopItem:'skin_benni' },
+  { id:'jonas',  emoji:'🙃', name:'Jonas',  free:false, price:6,    shopItem:'skin_jonas' },
+  { id:'hanes',  emoji:'🤙', name:'Hanes',  free:false, price:6,    shopItem:'skin_hanes' },
+  { id:'nina',   emoji:'💃', name:'Nina',   free:false, price:6,    shopItem:'skin_nina' },
+  { id:'michi',  emoji:'🏃', name:'Michi',  free:false, price:6,    shopItem:'skin_michi' },
+  { id:'trixi',  emoji:'🌸', name:'Trixi',  free:false, price:6,    shopItem:'skin_trixi' },
+  { id:'raffi',  emoji:'🦊', name:'Raffi',  free:false, price:6,    shopItem:'skin_raffi' },
+  { id:'andi',   emoji:'🤓', name:'Andi',   free:false, price:6,    shopItem:'skin_andi' },
+  { id:'janosch',emoji:'🎭', name:'Janosch',free:false, price:6,    shopItem:'skin_janosch' },
+  { id:'mischa', emoji:'🦁', name:'Mischa', free:false, price:10,    shopItem:'skin_mischa' },
   // Special
-  { id:'swimmer',    emoji:'🏊', name:'Schwimmer',    free:false, price:1000,       shopItem:'skin_swimmer' },
-  { id:'kniffler',   emoji:'🎲', name:'Kniffler',     free:false, price:100,        shopItem:'skin_kniffler', starterPack:true },
-  { id:'og_mann',    emoji:'🧓', name:'OG-Mann',      free:false, price:100000,     shopItem:'skin_og', limitedDays:7 },
-  { id:'developer',  emoji:'💻', name:'Entwickler',   free:false, price:1000000000, shopItem:'skin_dev', limitedDays:7, ultraRare:true },
+  { id:'swimmer',    emoji:'🏊', name:'Schwimmer',    free:false, price:20,       shopItem:'skin_swimmer' },
+  { id:'kniffler',   emoji:'🎲', name:'Kniffler',     free:false, price:2,        shopItem:'skin_kniffler', starterPack:true },
+  { id:'og_mann',    emoji:'🧓', name:'OG-Mann',      free:false, price:9999,     shopItem:'skin_og', limitedDays:7 },
+  { id:'developer',  emoji:'💻', name:'Entwickler',   free:false, price:99990000, shopItem:'skin_dev', limitedDays:7, ultraRare:true },
   { id:'test_char',  emoji:'🧪', name:'TEST',         free:false, price:1,          shopItem:'skin_test', limitedMinutes:20, testOnly:true },
 ];
 
@@ -100,15 +100,15 @@ function getShopItems(player) {
   const boostItems = [];
   if (!has2x && !has4x && !has10x15 && !has10x30 && !has10x60) {
     // Show 2x first
-    boostItems.push({id:'boost_2x_15', name:'2× Sterne (15 Min)', icon:'⭐×2', price:50, desc:'Doppelte Punkte für 15 Minuten!', duration:15*60*1000, mult:2});
+    boostItems.push({id:'boost_2x_15', name:'2× Sterne (15 Min)', icon:'⭐×2', price:1, desc:'Doppelte 🌀 MT für 15 Minuten!', duration:15*60*1000, mult:2});
   } else if (has2x && !has4x) {
-    boostItems.push({id:'boost_4x_15', name:'4× Sterne (15 Min)', icon:'⭐×4', price:300, desc:'Vierfache Punkte für 15 Minuten!', duration:15*60*1000, mult:4});
+    boostItems.push({id:'boost_4x_15', name:'4× Sterne (15 Min)', icon:'⭐×4', price:6, desc:'Vierfache 🌀 MT für 15 Minuten!', duration:15*60*1000, mult:4});
   } else if (has4x && !has10x15) {
-    boostItems.push({id:'boost_10x_15', name:'10× Sterne (15 Min)', icon:'🌟×10', price:1000, desc:'Zehnfache Punkte für 15 Minuten!', duration:15*60*1000, mult:10});
+    boostItems.push({id:'boost_10x_15', name:'10× Sterne (15 Min)', icon:'🌟×10', price:20, desc:'Zehnfache 🌀 MT für 15 Minuten!', duration:15*60*1000, mult:10});
   } else if (has10x15 && !has10x30) {
-    boostItems.push({id:'boost_10x_30', name:'10× Sterne (30 Min)', icon:'🌟×10 ⏱30', price:2000, desc:'Zehnfache Punkte für 30 Minuten!', duration:30*60*1000, mult:10});
+    boostItems.push({id:'boost_10x_30', name:'10× Sterne (30 Min)', icon:'🌟×10 ⏱30', price:40, desc:'Zehnfache 🌀 MT für 30 Minuten!', duration:30*60*1000, mult:10});
   } else if (has10x30 && !has10x60) {
-    boostItems.push({id:'boost_10x_60', name:'🌟 MAX GLÜCK — 10× Sterne (1h)', icon:'👑🌟', price:5000, desc:'Eine Stunde zehnfache Punkte — MAX GLÜCK!', duration:60*60*1000, mult:10, maxLuck:true});
+    boostItems.push({id:'boost_10x_60', name:'🌟 MAX GLÜCK — 10× Sterne (1h)', icon:'👑🌟', price:2, desc:'Eine Stunde zehnfache 🌀 MT — MAX GLÜCK!', duration:60*60*1000, mult:10, maxLuck:true});
   } else if (has10x60) {
     boostItems.push({id:'boost_max', name:'✅ MAX GLÜCK aktiv!', icon:'👑', price:0, desc:'Du hast bereits den höchsten Boost!', owned:true});
   }
@@ -123,7 +123,7 @@ function getShopItems(player) {
   if (!purchases['starter_pack']) {
     items.push({
       id:'starter_pack', category:'special',
-      name:'🎁 Starterpaket', icon:'🎁', price:100,
+      name:'🎁 Starterpaket', icon:'🎁', price:2,
       desc:'Einmalig! 2× Sterne (15 Min) + Charakter Kniffler',
       oneTime:true,
     });
@@ -131,8 +131,8 @@ function getShopItems(player) {
 
   // ---- JOKER ----
   const maxJokers = player?.maxJokersPerWorld || 1;
-  if (maxJokers < 2) items.push({id:'joker_x2', category:'joker', name:'2× Joker pro Welt', icon:'🃏🃏', price:1000, desc:'2 Joker statt 1 in jeder Welt!', permanent:true});
-  if (maxJokers === 2) items.push({id:'joker_x3', category:'joker', name:'3× Joker pro Welt', icon:'🃏🃏🃏', price:200000, desc:'3 Joker pro Welt — maximaler Schutz!', permanent:true});
+  if (maxJokers < 2) items.push({id:'joker_x2', category:'joker', name:'2× Joker pro Welt', icon:'🃏🃏', price:20, desc:'2 Joker statt 1 in jeder Welt!', permanent:true});
+  if (maxJokers === 2) items.push({id:'joker_x3', category:'joker', name:'3× Joker pro Welt', icon:'🃏🃏🃏', price:4000, desc:'3 Joker pro Welt — maximaler Schutz!', permanent:true});
 
   // ---- BOOSTS ----
   boostItems.forEach(b => items.push({...b, category:'boost'}));
@@ -154,19 +154,19 @@ function getShopItems(player) {
   });
 
   // ---- SPECIAL SKINS ----
-  items.push({id:'skin_swimmer', category:'skin', name:'🏊 Schwimmer', icon:'🏊', price:1000, desc:'Schwimmer-Skin! <span style="color:#FFD700">🌟 +1.1× Bonus</span>', owned:unlockedSkins.includes('swimmer'), skinId:'swimmer'});
-  items.push({id:'skin_kniffler', category:'skin', name:'🎲 Kniffler', icon:'🎲', price:100, desc:'Kniffler-Skin! <span style="color:#FFD700">+1.1× Bonus</span>', owned:unlockedSkins.includes('kniffler'), skinId:'kniffler'});
+  items.push({id:'skin_swimmer', category:'skin', name:'🏊 Schwimmer', icon:'🏊', price:20, desc:'Schwimmer-Skin! <span style="color:#FFD700">🌟 +1.1× Bonus</span>', owned:unlockedSkins.includes('swimmer'), skinId:'swimmer'});
+  items.push({id:'skin_kniffler', category:'skin', name:'🎲 Kniffler', icon:'🎲', price:2, desc:'Kniffler-Skin! <span style="color:#FFD700">+1.1× Bonus</span>', owned:unlockedSkins.includes('kniffler'), skinId:'kniffler'});
 
   // OG-Mann — nur 1 Woche ab Account-Erstellung
   const ogExpires = base + 7*24*60*60*1000;
   if (now < ogExpires || unlockedSkins.includes('og_mann')) {
-    items.push({id:'skin_og', category:'skin', name:'🧓 OG-Mann', icon:'🧓', price:100000, desc:'Legendärer OG-Mann! Limitiert. <span style="color:#FFD700">💎 +1.1× Bonus</span>', limited:true, limitExpires:ogExpires, owned:unlockedSkins.includes('og_mann'), skinId:'og_mann'});
+    items.push({id:'skin_og', category:'skin', name:'🧓 OG-Mann', icon:'🧓', price:9999, desc:'Legendärer OG-Mann! Limitiert. <span style="color:#FFD700">💎 +1.1× Bonus</span>', limited:true, limitExpires:ogExpires, owned:unlockedSkins.includes('og_mann'), skinId:'og_mann'});
   }
 
   // Developer — ultra rare 1 Woche
   const devExpires = base + 7*24*60*60*1000;
   if (now < devExpires || unlockedSkins.includes('developer')) {
-    items.push({id:'skin_dev', category:'skin', name:'💻 Entwickler', icon:'💻', price:1000000000, desc:'Ultra-Rare! Einer von wenigen! <span style="background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">⚡ +1.1× Bonus</span>', limited:true, limitExpires:devExpires, owned:unlockedSkins.includes('developer'), skinId:'developer', ultraRare:true});
+    items.push({id:'skin_dev', category:'skin', name:'💻 Entwickler', icon:'💻', price:99990000, desc:'Ultra-Rare! Einer von wenigen! <span style="background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">⚡ +1.1× Bonus</span>', limited:true, limitExpires:devExpires, owned:unlockedSkins.includes('developer'), skinId:'developer', ultraRare:true});
   }
 
   // TEST char — nur 20 Minuten
@@ -178,13 +178,13 @@ function getShopItems(player) {
   }
 
   // ---- EXTRAS ----
-  items.push({id:'extra_world_unlock', category:'extra', name:'🔓 Welt freischalten', icon:'🔓', price:500, desc:'Schalte die nächste gesperrte Welt sofort frei!'});
-  items.push({id:'extra_score_shield', category:'extra', name:'🛡️ Punkte-Schutz (24h)', icon:'🛡️', price:800, desc:'Die nächsten 3 Fehler kosten keine Punkte!',
+  items.push({id:'extra_world_unlock', category:'extra', name:'🔓 Welt freischalten', icon:'🔓', price:10, desc:'Schalte die nächste gesperrte Welt sofort frei!'});
+  items.push({id:'extra_score_shield', category:'extra', name:'🛡️ 🌀 MT-Schutz (24h)', icon:'🛡️', price:800, desc:'Die nächsten 3 Fehler kosten keine 🌀 MT!',
     owned: !!(purchases['extra_score_shield']?.expiresAt > now),
     activeUntil: purchases['extra_score_shield']?.expiresAt > now ? purchases['extra_score_shield'].expiresAt : null });
   // Hinweis-Paket: jetzt mit echtem Nutzen!
   const hints = player?.hints || 0;
-  items.push({id:'extra_hint', category:'extra', name:`💡 Hinweis-Paket (5×) ${hints>0?`| Du hast: ${hints}💡`:''}`, icon:'💡', price:300, desc:'5 Hinweise! In Mathe/Quiz-Spielen erscheint ein Hinweis-Knopf der dir die richtige Antwort einkreist — aber kostet 10s Zeitstrafe.'});
+  items.push({id:'extra_hint', category:'extra', name:`💡 Hinweis-Paket (5×) ${hints>0?`| Du hast: ${hints}💡`:''}`, icon:'💡', price:6, desc:'5 Hinweise! In Mathe/Quiz-Spielen erscheint ein Hinweis-Knopf der dir die richtige Antwort einkreist — aber kostet 10s Zeitstrafe.'});
   items.push({id:'extra_xp_boost', category:'extra', name:'📈 XP-Multiplikator (1h)', icon:'📈', price:1500, desc:'1 Stunde lang zählst du doppelt im Gesamt-Ranking!',
     activeUntil: purchases['extra_xp_boost']?.expiresAt > now ? purchases['extra_xp_boost'].expiresAt : null });
 
@@ -192,7 +192,7 @@ function getShopItems(player) {
   const adminOwned = !!(purchases['admin_week']?.expiresAt > now);
   const adminExpires = purchases['admin_week']?.expiresAt;
   if (!adminOwned || now < adminExpires) {
-    items.push({id:'admin_week', category:'special', name:'🔐 Admin-Zugang (1 Woche)', icon:'🔐', price:1000000, desc:'Einmalig! 7 Tage Zugang zum Admin-Panel.', limited:true, limitExpires:base+weekMs, oneTime:true, owned:adminOwned, activeUntil:adminExpires>now?adminExpires:null});
+    items.push({id:'admin_week', category:'special', name:'🔐 Admin-Zugang (1 Woche)', icon:'🔐', price:99990, desc:'Einmalig! 7 Tage Zugang zum Admin-Panel.', limited:true, limitExpires:base+weekMs, oneTime:true, owned:adminOwned, activeUntil:adminExpires>now?adminExpires:null});
   }
 
   return items;
@@ -313,6 +313,8 @@ const Shop = {
   _card(item, player, isGift) {
     const now = Date.now();
     const _playerMT = (()=>{const ws=player.worlds?.['1']||player.worlds?.[1]||{};return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0);})();
+    // Debug: log MT for shop
+    if(typeof GameLog!=='undefined') GameLog.log('shop','_playerMT='+_playerMT.toFixed(2));
     const canAfford = _playerMT >= getDiscountedPrice(item.price, item.id);
     const disc = getDiscount(item.id);
     const dp = getDiscountedPrice(item.price, item.id);
@@ -348,7 +350,7 @@ const Shop = {
                 background:${canAfford?'linear-gradient(135deg,#FFD700,#FFA500)':'rgba(255,255,255,0.08)'};
                 color:${canAfford?'#2C3E50':'rgba(255,255,255,0.25)'};
                 ${!canAfford?'cursor:not-allowed':''}">
-              ${canAfford?'Kaufen':'Zu wenig'}
+              ${canAfford?'Kaufen':'Zu wenig MT'}
             </button>`:cantBuy&&!item.activeUntil?'<div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:#27AE60;margin-top:4px">✅</div>':''}
         </div>
       </div>

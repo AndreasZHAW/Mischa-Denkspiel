@@ -43,13 +43,13 @@ const ColorMixGame = {
           box-shadow:0 4px 12px rgba(0,0,0,0.2)"></div>
         <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--mountain-dark);margin-bottom:16px">${q.result}?</div>
         <!-- Color options -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:280px;margin:0 auto 12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:min(340px,95vw);margin:0 auto 12px">
           ${opts.map((o,i)=>`
             <div id="copt-${i}" onclick="ColorMixGame._pick(${i})"
-              style="height:70px;border-radius:14px;background:${o.color};cursor:pointer;
-                display:flex;align-items:center;justify-content:center;
-                font-family:'Fredoka One',cursive;font-size:0.9rem;color:${o.color==='#ECF0F1'||o.color==='#F9E79F'||o.color==='#F1C40F'?'#333':'white'};
-                border:4px solid transparent;box-shadow:0 4px 10px rgba(0,0,0,0.15);transition:all 0.15s;
+              style="height:clamp(72px,18vw,90px);border-radius:14px;background:${o.color};cursor:pointer;
+                display:flex;align-items:center;justify-content:center;padding:6px;
+                font-size:clamp(0.82rem,3.8vw,1rem);font-weight:700;color:${o.color==='#ECF0F1'||o.color==='#F9E79F'||o.color==='#F1C40F'?'#333':'white'};
+                border:4px solid transparent;box-shadow:0 4px 10px rgba(0,0,0,0.15);transition:all 0.15s;text-align:center;
                 text-shadow:${o.color==='#ECF0F1'||o.color==='#F9E79F'?'none':'0 1px 3px rgba(0,0,0,0.3)'}">
               ${o.label}
             </div>`).join('')}

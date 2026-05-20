@@ -78,14 +78,46 @@ const StarWarsGame = {
         // Diamond formation
         const pattern=[[4,0],[3,1],[5,1],[2,2],[4,2],[6,2],[3,3],[5,3],[4,4]];
         pattern.forEach(([c,r])=>enemies.push({x:20+c*42,y:15+r*30,w:22,h:18,hp:1+(r===0?2:r<2?1:0),dx:speed,dy:0,type:r%4,phase:Math.random()*Math.PI*2}));
-      } else {
-        // Wave 8: Full assault — all types, mixed HP
+      } else if(wave===8){
+        // Wave 8: Full assault rows
         const rows=4, cols=9, sp=Math.min(42,Math.floor((W-40)/cols));
         for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
           enemies.push({x:20+c*sp,y:15+r*28,w:22,h:18,hp:1+(r===0?2:r===1?1:0),dx:speed,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
+      } else if(wave===9){
+        // Wave 9: Zigzag columns — move down with alternating horizontal drift
+        for(let c=0;c<8;c++) for(let r=0;r<3;r++)
+          enemies.push({x:15+c*44,y:10+r*32,w:22,h:18,hp:2,dx:speed*(c%2===0?0.6:-0.6),dy:0.12,type:c%4,phase:Math.random()*Math.PI*2});
+      } else if(wave===10){
+        // Wave 10: Two boss columns + swarm
+        for(let r=0;r<4;r++){
+          enemies.push({x:80, y:15+r*30,w:30,h:24,hp:4,dx:speed*0.5,dy:0,type:2,phase:0,isBoss:true});
+          enemies.push({x:W-80,y:15+r*30,w:30,h:24,hp:4,dx:-speed*0.5,dy:0,type:3,phase:0,isBoss:true});
+        }
+        for(let c=0;c<7;c++) enemies.push({x:20+c*50,y:15,w:20,h:16,hp:1,dx:speed*0.8,dy:0,type:0,phase:Math.random()*Math.PI*2});
+      } else if(wave===11){
+        // Wave 11: Spiral — enemies enter from center and expand
+        const cx2=W/2;
+        for(let i=0;i<14;i++){
+          const a=i/14*Math.PI*2, r2=50+i*8;
+          enemies.push({x:cx2+Math.cos(a)*r2,y:-20-i*10,w:22,h:18,hp:2+(i>8?1:0),
+            dx:speed*(Math.sin(a)*0.5),dy:0.3+i*0.02,type:i%4,phase:a});
+        }
+      } else if(wave===12){
+        // Wave 12: Three massive formations converging
+        const cols3=6,sp3=Math.min(38,Math.floor((W-20)/cols3));
+        for(let c=0;c<cols3;c++){
+          enemies.push({x:10+c*sp3,y:20,w:22,h:18,hp:2,dx:speed,dy:0,type:0,phase:c*.3});
+          enemies.push({x:10+c*sp3,y:55,w:22,h:18,hp:2,dx:speed*.8,dy:0,type:1,phase:c*.3+1});
+          enemies.push({x:10+c*sp3,y:-30,w:22,h:18,hp:1,dx:speed*.9,dy:0.15,type:2,phase:c*.3+2});
+        }
+      } else {
+        // Wave 13: FINAL — everything at once, max difficulty
+        const sp4=Math.min(38,Math.floor((W-20)/10));
+        for(let r=0;r<5;r++) for(let c=0;c<10;c++)
+          enemies.push({x:10+c*sp4,y:10+r*26,w:20,h:16,hp:1+(r<2?2:r<4?1:0),dx:speed*(r%2===0?1:-1)*.8,dy:r===4?0.12:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
       }
       // Powerups
-      const pwType=wave>=7?'penta':wave>=4?'triple':wave>=3?'rapid':'shield';
+      const pwType=wave>=10?'penta':wave>=6?'triple':wave>=4?'rapid':'shield';
       powerups.push({x:60+Math.random()*(W-120),y:-20,dy:1.4,type:pwType});
       if(wave>=4) powerups.push({x:60+Math.random()*(W-120),y:-60,dy:1.2,type:wave>=7?'triple':wave>=5?'rapid':'shield'});
     };
@@ -161,7 +193,7 @@ const StarWarsGame = {
       if(rfInt)clearInterval(rfInt);
       window.onerror=_prevOnerr; // restore
       _swLog('Game ended: wave='+wave+' score='+score+' won='+won);
-      onComplete({rawScore:Math.min(100,wave*14+Math.round(score/12)),timeMs:Date.now()-tStart,errors:0,passed:wave>=2||won||score>=100});
+      onComplete({rawScore:Math.min(100,wave*14+Math.round(score/12)),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
     };
 
     // ── DRAWING HELPERS ──
@@ -307,8 +339,8 @@ const StarWarsGame = {
 
       explosions=explosions.map(e=>({...e,t:e.t-1,r:e.r+1.5})).filter(e=>e.t>0);
       if(enemies.some(e=>e.y>H-60)){end(false);return;}
-      if(!enemies.length){wave++;if(wave>8){end(true);return;}spawnWave();}
-      if(Date.now()-tStart>900000)end(score>100); // 15 min max for 8 waves
+      if(!enemies.length){wave++;if(wave>13){end(true);return;}spawnWave();}
+      if(Date.now()-tStart>1200000)end(score>100); // 20 min max for 13 waves
 
       // ── DRAW ──
       // Deep space
@@ -391,7 +423,7 @@ const StarWarsGame = {
       ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(11,W*.032)}px monospace`;ctx.textAlign='left';
       ctx.fillText('⭐ '+score,8,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';
-      ctx.fillText('WELLE '+wave+'/8',W/2,19);
+      ctx.fillText('WELLE '+wave+'/13',W/2,19);
       ctx.textAlign='right';
       for(let i=0;i<Math.min(lives,5);i++){
         const hx=W-8-i*20,hy=13;

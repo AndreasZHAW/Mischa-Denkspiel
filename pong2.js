@@ -6,7 +6,7 @@ const PongGame = {
     if(typeof GameLog!=='undefined')GameLog.log('pong2','start()');
     // Responsive dimensions
     const isMobile = 'ontouchstart' in window;
-    const STRIP_W = isMobile ? 64 : 0; // touch strip width on mobile
+    const STRIP_W = isMobile ? 88 : 0; // wider touch strip (more finger room)
     const maxW = Math.min(window.innerWidth - 8, 460);
     // CRITICAL: W = canvas game width. On mobile, canvas gets screen minus strip.
     const W = isMobile ? Math.max(200, maxW - STRIP_W) : maxW;
@@ -33,7 +33,7 @@ const PongGame = {
       ${isMobile ? `<div style="display:flex;align-items:stretch;gap:0;touch-action:none">
         <!-- VERTICAL TOUCH STRIP — full height, drag finger up/down -->
         <div id="pong-touch-zone"
-          style="width:70px;flex-shrink:0;
+          style="width:88px;flex-shrink:0;
                  background:linear-gradient(180deg,rgba(39,174,96,.2),rgba(39,174,96,.08));
                  border:2px solid rgba(39,174,96,.5);border-right:none;
                  border-radius:0 0 0 8px;touch-action:none;user-select:none;

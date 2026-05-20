@@ -138,7 +138,7 @@ const DartGame = {
     const isMob2 = 'ontouchstart' in window;
     const isPortrait = window.innerHeight > window.innerWidth;
     // Board size: big on portrait mobile, standard elsewhere
-    const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.90 : 0.65)), 340) : 270;
+    const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.96 : 0.70)), 360) : 300;
     const CX = Math.round(BS/2), CY = Math.round(BS/2);
     if(this.current) {
       this.current._BS = BS;
