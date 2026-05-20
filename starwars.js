@@ -65,9 +65,10 @@ const StarWarsGame = {
           enemies.push({x:20+c*sp,y:15+row*28,w:22,h:18,hp:1+(c===4?1:0),dx:speed,dy:0,type:c%4,phase:Math.random()*Math.PI*2});
         }
       } else if(wave===5){
-        // Two flanking groups
-        for(let c=0;c<4;c++) enemies.push({x:10+c*38,y:25+c*20,w:22,h:18,hp:2,dx:speed,dy:0,type:0,phase:Math.random()*Math.PI*2});
-        for(let c=0;c<4;c++) enemies.push({x:W-170+c*38,y:25+(3-c)*20,w:22,h:18,hp:2,dx:-speed,dy:0,type:1,phase:Math.random()*Math.PI*2});
+        // Two flanking groups — slower than base speed
+        const w5spd=speed*0.6; // significantly slower
+        for(let c=0;c<4;c++) enemies.push({x:10+c*38,y:25+c*20,w:22,h:18,hp:2,dx:w5spd,dy:0,type:0,phase:Math.random()*Math.PI*2});
+        for(let c=0;c<4;c++) enemies.push({x:W-170+c*38,y:25+(3-c)*20,w:22,h:18,hp:2,dx:-w5spd,dy:0,type:1,phase:Math.random()*Math.PI*2});
       } else if(wave===6){
         // Boss row + normal grid
         for(let c=0;c<5;c++) enemies.push({x:30+c*50,y:20,w:28,h:22,hp:3,dx:speed,dy:0,type:2,phase:0,isBoss:true});
@@ -83,9 +84,9 @@ const StarWarsGame = {
           enemies.push({x:20+c*sp,y:15+r*28,w:22,h:18,hp:1+(r===0?2:r===1?1:0),dx:speed,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
       }
       // Powerups
-      const pwType=wave>=6?'triple':wave>=4?'rapid':wave>=3?'rapid':'shield';
+      const pwType=wave>=7?'penta':wave>=5?'triple':wave>=4?'rapid':wave>=3?'rapid':'shield';
       powerups.push({x:60+Math.random()*(W-120),y:-20,dy:1.4,type:pwType});
-      if(wave>=4) powerups.push({x:60+Math.random()*(W-120),y:-60,dy:1.2,type:wave>=6?'rapid':'shield'});
+      if(wave>=4) powerups.push({x:60+Math.random()*(W-120),y:-60,dy:1.2,type:wave>=7?'triple':wave>=5?'rapid':'shield'});
     };
     spawnWave();
 
@@ -93,10 +94,16 @@ const StarWarsGame = {
     const ptrUpHandler=()=>{leftH=false;rightH=false;}; // declared BEFORE use!
 
     const fire=()=>{
-      if(fireMode==='triple'){
-        bullets.push({x:ship.x,y:ship.y-10,dy:-11,dx:0});
-        bullets.push({x:ship.x-10,y:ship.y-2,dy:-10,dx:-1.8});
-        bullets.push({x:ship.x+10,y:ship.y-2,dy:-10,dx:1.8});
+      if(fireMode==='penta'){
+        bullets.push({x:ship.x,    y:ship.y-10,dy:-11,dx:0});
+        bullets.push({x:ship.x-10, y:ship.y-4, dy:-10,dx:-1.8});
+        bullets.push({x:ship.x+10, y:ship.y-4, dy:-10,dx:1.8});
+        bullets.push({x:ship.x-18, y:ship.y+2, dy:-8, dx:-3.2});
+        bullets.push({x:ship.x+18, y:ship.y+2, dy:-8, dx:3.2});
+      } else if(fireMode==='triple'){
+        bullets.push({x:ship.x,    y:ship.y-10,dy:-11,dx:0});
+        bullets.push({x:ship.x-10, y:ship.y-2, dy:-10,dx:-1.8});
+        bullets.push({x:ship.x+10, y:ship.y-2, dy:-10,dx:1.8});
       } else {
         bullets.push({x:ship.x,y:ship.y-10,dy:-11,dx:0});
       }
@@ -226,6 +233,7 @@ const StarWarsGame = {
         if(Math.abs(p.x-ship.x)<22&&Math.abs(p.y-ship.y)<22){
           if(p.type==='rapid'){fireMode='rapid';fireModeTimer=360;}
           else if(p.type==='triple'){fireMode='triple';fireModeTimer=480;}
+          else if(p.type==='penta'){fireMode='penta';fireModeTimer=600;}
           else{lives=Math.min(5,lives+1);}
           explosions.push({x:p.x,y:p.y,t:25,r:30,col:'#00ff88'});
           return false;
@@ -287,8 +295,8 @@ const StarWarsGame = {
       });
 
       // Powerups
-      const PICONS={shield:'🛡',rapid:'⚡',triple:'🔱'};
-      const PCOLS={shield:'#00ff88',rapid:'#ff69b4',triple:'#ffd700'};
+      const PICONS={shield:'🛡',rapid:'⚡',triple:'🔱',penta:'⭐'};
+      const PCOLS={shield:'#00ff88',rapid:'#ff69b4',triple:'#ffd700',penta:'#ff4500'};
       powerups.forEach(p=>{
         glow(p.x,p.y,20,`rgb(0,255,150)`,.6+.3*Math.sin(tick*.15));
         ctx.fillStyle=PCOLS[p.type]||'#fff';ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fill();
@@ -337,9 +345,12 @@ const StarWarsGame = {
 
       // Fire mode indicator
       if(fireMode!=='single'){
-        ctx.fillStyle=fireMode==='triple'?'rgba(255,215,0,.18)':'rgba(255,105,180,.18)';ctx.fillRect(0,H-22,W,22);
-        ctx.fillStyle=fireMode==='triple'?'#FFD700':'#ff69b4';ctx.font='bold 11px monospace';ctx.textAlign='center';
-        ctx.fillText((fireMode==='triple'?'🔱 TRIPLE':'⚡ RAPID')+' — '+Math.ceil(fireModeTimer/60)+'s',W/2,H-6);
+        const modeCol=fireMode==='penta'?'rgba(255,69,0,.25)':fireMode==='triple'?'rgba(255,215,0,.18)':'rgba(255,105,180,.18)';
+        const modeTextCol=fireMode==='penta'?'#ff6600':fireMode==='triple'?'#FFD700':'#ff69b4';
+        const modeLabel=fireMode==='penta'?'⭐ PENTA SHOT':fireMode==='triple'?'🔱 TRIPLE':'⚡ RAPID';
+        ctx.fillStyle=modeCol;ctx.fillRect(0,H-22,W,22);
+        ctx.fillStyle=modeTextCol;ctx.font='bold 11px monospace';ctx.textAlign='center';
+        ctx.fillText(modeLabel+' — '+Math.ceil(fireModeTimer/60)+'s',W/2,H-6);
       }
 
       // HUD

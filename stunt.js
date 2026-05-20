@@ -236,7 +236,8 @@ const StuntGame = {
         car.wy=terrY-CAR_H;car.vy=0;car.onGround=true;car.airTime=0;car.saltoRot=0;
         car.crashed=false;
         const dAng=((terrAng-car.ang+Math.PI*3)%(Math.PI*2))-Math.PI;
-        car.ang+=dAng*0.42;car.spin*=0.08;
+        car.ang+=dAng*0.55; // stronger angle snap to slope
+        car.spin*=0.06; // quicker spin kill on landing
 
         if(inp.fwd){
           // Speed builds with gas: 0→max over ACCEL_TIME seconds
@@ -255,8 +256,8 @@ const StuntGame = {
         car.vx*=0.80;
       } else {
         car.onGround=false;car.airTime++;
-        // Big air: gravity reduces as cleanTime increases (more floaty)
-        const airFactor=Math.max(0.35, 1-car.cleanTime*0.015);
+        // Big air: much lower gravity = longer, farther flights
+        const airFactor=Math.max(0.22, 1-car.cleanTime*0.028);
         car.vy+=GRAVITY*airFactor;
         car.spin*=0.993;
         car.saltoRot+=Math.abs(car.spin);
@@ -267,11 +268,11 @@ const StuntGame = {
       }
 
       // Rotation works both in air AND on ground (for flipping out of crashes)
-      if(inp.rotup)car.spin=Math.min(0.25,car.spin+(car.spin<0?.07:.035));
-      if(inp.rotdn)car.spin=Math.max(-0.25,car.spin-(car.spin>0?.07:.035));
+      if(inp.rotup)car.spin=Math.min(0.30,car.spin+(car.spin<0?.08:.04));
+      if(inp.rotdn)car.spin=Math.max(-0.30,car.spin-(car.spin>0?.08:.04));
       if(!inp.rotup&&!inp.rotdn){
-        if(!car.onGround) car.spin*=0.97; // air: slow decay
-        else car.spin*=0.15; // ground: fast decay
+        if(!car.onGround) car.spin*=0.988; // gentler air decay → easier landing
+        else car.spin*=0.15;
       }
 
       // Apply spin to angle — THIS IS THE FIX (was missing!)
@@ -294,11 +295,12 @@ const StuntGame = {
       if(car.onGround)car._tiltBonus=false;
 
       // CRASH DETECTION: landing on roof
-      const upside=norm>Math.PI*.55&&norm<Math.PI*1.45;
+      // Crash only when clearly upside-down: >135° from upright (was 99°)
+      const upside=norm>Math.PI*.75&&norm<Math.PI*1.25;
       if(car.onGround&&upside){
         if(!car._roofLanded){
           car._roofLanded=true;car.roofCount++;
-          car.vy=-4;car.spin=(car.spin>0?.1:-.1);
+          car.vy=-2.0;car.spin=(car.spin>0?.06:-.06); // gentler bounce
           car.crashFlash=60;car.crashMsg='💥 CRASH! Neu anfahren...';
           // PENALTY: reset gas build-up and speed, need to re-accelerate
           car.gasHeld=0;
