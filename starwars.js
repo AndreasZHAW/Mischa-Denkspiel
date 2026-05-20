@@ -86,7 +86,7 @@ const StarWarsGame = {
       } else if(wave===9){
         // Wave 9: Zigzag columns — move down with alternating horizontal drift
         for(let c=0;c<8;c++) for(let r=0;r<3;r++)
-          enemies.push({x:15+c*44,y:10+r*32,w:22,h:18,hp:2,dx:speed*(c%2===0?0.6:-0.6),dy:0.12,type:c%4,phase:Math.random()*Math.PI*2});
+          enemies.push({x:15+c*44,y:10+r*32,w:22,h:18,hp:2,dx:speed*(c%2===0?0.6:-0.6),dy:0.05,type:c%4,phase:Math.random()*Math.PI*2});
       } else if(wave===10){
         // Wave 10: Two boss columns + swarm
         for(let r=0;r<4;r++){
@@ -100,7 +100,7 @@ const StarWarsGame = {
         for(let i=0;i<14;i++){
           const a=i/14*Math.PI*2, r2=50+i*8;
           enemies.push({x:cx2+Math.cos(a)*r2,y:-20-i*10,w:22,h:18,hp:2+(i>8?1:0),
-            dx:speed*(Math.sin(a)*0.5),dy:0.3+i*0.02,type:i%4,phase:a});
+            dx:speed*(Math.sin(a)*0.5),dy:0.10+i*0.005,type:i%4,phase:a});
         }
       } else if(wave===12){
         // Wave 12: Three massive formations converging
@@ -108,13 +108,13 @@ const StarWarsGame = {
         for(let c=0;c<cols3;c++){
           enemies.push({x:10+c*sp3,y:20,w:22,h:18,hp:2,dx:speed,dy:0,type:0,phase:c*.3});
           enemies.push({x:10+c*sp3,y:55,w:22,h:18,hp:2,dx:speed*.8,dy:0,type:1,phase:c*.3+1});
-          enemies.push({x:10+c*sp3,y:-30,w:22,h:18,hp:1,dx:speed*.9,dy:0.15,type:2,phase:c*.3+2});
+          enemies.push({x:10+c*sp3,y:-30,w:22,h:18,hp:1,dx:speed*.9,dy:0.06,type:2,phase:c*.3+2});
         }
       } else {
         // Wave 13: FINAL — everything at once, max difficulty
         const sp4=Math.min(38,Math.floor((W-20)/10));
         for(let r=0;r<5;r++) for(let c=0;c<10;c++)
-          enemies.push({x:10+c*sp4,y:10+r*26,w:20,h:16,hp:1+(r<2?2:r<4?1:0),dx:speed*(r%2===0?1:-1)*.8,dy:r===4?0.12:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
+          enemies.push({x:10+c*sp4,y:10+r*26,w:20,h:16,hp:1+(r<2?2:r<4?1:0),dx:speed*(r%2===0?1:-1)*.8,dy:r===4?0.05:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
       }
       // Powerups
       const pwType=wave>=10?'penta':wave>=6?'triple':wave>=4?'rapid':'shield';

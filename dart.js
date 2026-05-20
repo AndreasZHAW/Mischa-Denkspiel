@@ -138,7 +138,7 @@ const DartGame = {
     const isMob2 = 'ontouchstart' in window;
     const isPortrait = window.innerHeight > window.innerWidth;
     // Board size: big on portrait mobile, standard elsewhere
-    const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.96 : 0.70)), 360) : 300;
+    const BS = isMob2 ? Math.min(Math.round(avW * (isPortrait ? 0.90 : 0.65)), 340) : 270;
     const CX = Math.round(BS/2), CY = Math.round(BS/2);
     if(this.current) {
       this.current._BS = BS;
@@ -152,54 +152,26 @@ const DartGame = {
   <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:8px">
     <div style="background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
       <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:${isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">👤 Du</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:2rem;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
+      <div style="font-size:clamp(1.4rem,6vw,1.9rem);font-weight:900;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
       <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">${isP?`Pfeil ${c.dartsThisRound+1}/3`:'warte...'}</div>
     </div>
     <div style="font-family:'Fredoka One',cursive;font-size:.85rem;color:var(--text-mid);align-self:center">VS</div>
     <div style="background:${!isP?'linear-gradient(135deg,#c0392b,#7b0000)':'rgba(255,255,255,.5)'};border-radius:12px;padding:8px;text-align:center">
       <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:${!isP?'rgba(255,255,255,.7)':'var(--text-mid)'}">🤖 CPU</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:2rem;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
+      <div style="font-size:clamp(1.4rem,6vw,1.9rem);font-weight:900;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
       <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:${!isP?'rgba(255,255,255,.6)':'var(--text-mid)'}">301 Double-Out</div>
     </div>
   </div>
 
   ${c.player.score<=40||c.cpu.score<=40?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:4px 10px;margin-bottom:6px;font-size:.72rem;color:#E74C3C;font-weight:700;text-align:center">⚠️ Double-Out! Letzter Pfeil muss Double oder Bull treffen!</div>`:''}
 
-  <!-- WIND PANEL -->
-  <div id="dart-wind-panel" style="background:#EBF5FB;border-radius:12px;padding:8px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-    <!-- Compass rose -->
-    <svg id="dart-compass" width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0">
-      <circle cx="26" cy="26" r="24" fill="white" stroke="#BDC3C7" stroke-width="1.5"/>
-      <!-- Cardinal marks -->
-      <text x="26" y="9" text-anchor="middle" font-size="7" font-weight="700" fill="#2C3E50">N</text>
-      <text x="45" y="30" text-anchor="middle" font-size="6" fill="#95A5A6">O</text>
-      <text x="26" y="47" text-anchor="middle" font-size="6" fill="#95A5A6">S</text>
-      <text x="7" y="30" text-anchor="middle" font-size="6" fill="#95A5A6">W</text>
-      <!-- Tick marks at 45° -->
-      ${[45,135,225,315].map(a=>`<line x1="${26+20*Math.cos((a-90)*Math.PI/180)}" y1="${26+20*Math.sin((a-90)*Math.PI/180)}" x2="${26+23*Math.cos((a-90)*Math.PI/180)}" y2="${26+23*Math.sin((a-90)*Math.PI/180)}" stroke="#BDC3C7" stroke-width="1"/>`).join('')}
-      <!-- Wind arrow -->
-      <g id="dart-arrow" transform="rotate(${c.wind.angle},26,26)">
-        <polygon points="26,6 23,22 26,19 29,22" fill="#E74C3C"/>
-        <polygon points="26,46 23,30 26,33 29,30" fill="#95A5A6"/>
-      </g>
-      <circle cx="26" cy="26" r="3" fill="#2C3E50"/>
-    </svg>
-
-    <!-- Windsock -->
-    <svg id="dart-windsock" width="62" height="38" viewBox="0 0 62 38" style="flex-shrink:0">
+  <!-- Wind: compact chip -->
+  <div id="dart-wind-panel" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 0;margin-bottom:4px">
+    <svg id="dart-windsock" width="40" height="22" viewBox="0 0 62 38" style="flex-shrink:0">
       ${this._windsockSVG(c.wind.strength)}
     </svg>
-
-    <!-- Wind info text -->
-    <div style="flex:1;min-width:0">
-      <div style="font-size:.82rem;font-weight:700;color:var(--text-dark)">${c.wind.name}</div>
-      <div style="font-size:clamp(0.8rem,3.4vw,0.9rem);color:var(--text-mid)">Richtung: ${Math.round(c.wind.angle)}°</div>
-      <!-- Strength bar -->
-      <div style="background:#ddd;border-radius:50px;height:5px;margin-top:3px;overflow:hidden">
-        <div style="background:${c.wind.strength<1.2?'#27AE60':c.wind.strength<2.5?'#F39C12':'#E74C3C'};height:100%;border-radius:50px;transition:width .5s;width:${Math.min(100,c.wind.strength/3.5*100)}%"></div>
-      </div>
-      <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:var(--text-mid);margin-top:1px">Stärke: ${c.wind.strength.toFixed(1)}/3.5 — ändert sich alle 3-4s</div>
-    </div>
+    <span style="font-size:clamp(0.8rem,3.5vw,0.92rem);font-weight:700;color:var(--text-dark)">${c.wind.name}</span>
+    <span style="font-size:clamp(0.75rem,3.2vw,0.85rem);color:var(--text-mid)">${Math.round(c.wind.angle)}°</span>
   </div>
 
   <!-- Dartboard + joystick flex container -->
@@ -248,10 +220,8 @@ const DartGame = {
     ${c.cpu.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:rgba(231,76,60,.25);color:var(--text-dark);font-size:clamp(0.8rem,3.4vw,0.9rem)">🤖 ${d.label}</div>`).join('')}
   </div>
 
-  <!-- Instruction -->
-  <div style="text-align:center;font-size:.75rem;color:var(--text-mid);padding:0 8px">
-    ${isP?'🖱️ Bewege Maus/Finger zum Zielen — Klick/Tippe zum Werfen!<br><span style="font-size:clamp(0.78rem,3.3vw,0.9rem);color:#E74C3C">Atmung verschiebt Fadenkreuz — ziele aktiv gegen!</span>':'<span style="font-family:\'Fredoka One\',cursive;color:#E74C3C">🤖 CPU wirft...</span>'}
-  </div>
+  <!-- CPU turn indicator only -->
+  ${!isP?'<div style="text-align:center;color:#E74C3C;font-weight:700;font-size:clamp(0.88rem,3.8vw,1rem);padding:4px 0">🤖 CPU wirft...</div>':''}
 </div>`;
 
     this._drawBoard();

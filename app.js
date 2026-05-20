@@ -955,7 +955,7 @@ const App = {
         ${mountainSVG(true)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,10,.65) 100%)"></div>
       </div>
-      <div class="page" style="padding-top:16px;padding-left:4px;padding-right:4px;width:100%;box-sizing:border-box">
+      <div class="page" style="padding-top:16px;padding-left:4px;padding-right:4px;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden">
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:100%;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px">

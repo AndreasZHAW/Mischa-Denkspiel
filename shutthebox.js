@@ -1,222 +1,150 @@
 /**
- * games/shutthebox.js — Shut the Box
- * Würfle und schliesse die Zahlen 1-9 die die Würfelsumme ergeben.
- * Max 10 Runden / so wenig offene Felder wie möglich.
+ * games/shutthebox.js — Shut the Box (mobile-optimized)
  */
-
 const ShutTheBoxGame = {
   current: null,
 
   start(config) {
     const { onComplete } = config;
     this.current = {
-      boxes: Array.from({length: 9}, (_, i) => ({ num: i+1, closed: false })),
-      dice: [0, 0],
-      diceSum: 0,
-      rolls: 0,
-      maxRolls: 10,
-      selected: [],
-      phase: 'roll', // 'roll' | 'select' | 'done'
-      startTime: Date.now(),
-      errors: 0,
-      onComplete,
+      boxes:Array.from({length:9},(_,i)=>({num:i+1,closed:false})),
+      dice:[0,0], diceSum:0, rolls:0, maxRolls:10,
+      selected:[], phase:'roll', startTime:Date.now(), errors:0, onComplete,
     };
     this._render();
   },
 
   _render() {
-    const c = this.current;
-    const openBoxes = c.boxes.filter(b => !b.closed);
-    const openSum = openBoxes.reduce((s, b) => s + b.num, 0);
-    const allClosed = openBoxes.length === 0;
+    const c=this.current;
+    const openBoxes=c.boxes.filter(b=>!b.closed);
+    const openSum=openBoxes.reduce((s,b)=>s+b.num,0);
+    const allClosed=openBoxes.length===0;
+    const isMob='ontouchstart' in window;
 
-    document.getElementById('game-area').innerHTML = `
-      <div style="text-align:center">
-        <!-- Info row -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:0.85rem;color:var(--text-mid)">
+    // Check if any valid selection possible
+    const canClose=c.phase==='select'&&openBoxes.some(b=>{
+      return openBoxes.some(b2=>b2!==b&&b.num+b2.num===c.diceSum)||b.num===c.diceSum;
+    });
+
+    document.getElementById('game-area').innerHTML=`
+      <div style="max-width:420px;margin:0 auto;padding:${isMob?'6px 4px':'10px 8px'};text-align:center">
+
+        <!-- Top bar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:clamp(0.82rem,3.8vw,0.95rem);font-weight:600;color:var(--text-mid)">
           <span>🎲 Wurf ${c.rolls}/${c.maxRolls}</span>
           <span>❌ ${c.errors} Fehler</span>
-          <span>Offen: <b>${openSum}</b></span>
+          <span>Offen: <b style="color:${openSum>20?'#E74C3C':openSum>10?'#F39C12':'#27AE60'}">${openSum}</b></span>
         </div>
 
-        <!-- Box grid -->
-        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:20px;flex-wrap:wrap">
-          ${c.boxes.map((box, i) => `
-            <div id="box-${i}"
-              onclick="${!box.closed && c.phase === 'select' ? `ShutTheBoxGame._toggleBox(${i})` : ''}"
-              style="
-                width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
-                justify-content: center; font-family: 'Fredoka One', cursive; font-size: 1.2rem;
-                cursor: ${!box.closed && c.phase === 'select' ? 'pointer' : 'default'};
-                background: ${box.closed ? '#27AE60' : (c.selected.includes(i) ? '#3498DB' : 'white')};
-                color: ${box.closed ? 'white' : (c.selected.includes(i) ? 'white' : 'var(--text-dark)')};
-                border: 3px solid ${box.closed ? '#1E8449' : (c.selected.includes(i) ? '#2980B9' : '#E0E6EE')};
-                transition: all 0.2s;
-                transform: ${box.closed ? 'scale(0.9)' : 'scale(1)'};
-                opacity: ${box.closed ? '0.5' : '1'};
-              ">
-              ${box.closed ? '✓' : box.num}
-            </div>
-          `).join('')}
+        <!-- Number boxes - big touch targets -->
+        <div style="display:flex;gap:clamp(4px,2vw,8px);justify-content:center;margin-bottom:14px;flex-wrap:wrap;padding:0 2px">
+          ${c.boxes.map((box,i)=>`
+            <div id="box-${i}" onclick="${!box.closed&&c.phase==='select'?`ShutTheBoxGame._toggleBox(${i})`:''}"
+              style="width:clamp(36px,9vw,50px);height:clamp(36px,9vw,50px);border-radius:10px;
+                display:flex;align-items:center;justify-content:center;
+                font-size:clamp(1rem,4.5vw,1.3rem);font-weight:900;
+                cursor:${!box.closed&&c.phase==='select'?'pointer':'default'};
+                background:${box.closed?'#27AE60':c.selected.includes(i)?'#3498DB':'white'};
+                color:${box.closed?'white':c.selected.includes(i)?'white':'var(--text-dark)'};
+                border:3px solid ${box.closed?'#1E8449':c.selected.includes(i)?'#2980B9':'#E0E6EE'};
+                transition:all 0.18s;box-shadow:${c.selected.includes(i)?'0 0 0 3px rgba(52,152,219,.3)':'0 2px 4px rgba(0,0,0,.08)'};
+                opacity:${box.closed?'0.45':'1'};transform:${box.closed?'scale(0.88)':'scale(1)'}">
+              ${box.closed?'✓':box.num}
+            </div>`).join('')}
         </div>
 
         <!-- Dice display -->
-        <div style="display:flex;justify-content:center;gap:16px;margin-bottom:16px">
-          ${c.dice.map(d => `
-            <div style="width:56px;height:56px;background:white;border-radius:12px;border:3px solid #E0E6EE;
-              display:flex;align-items:center;justify-content:center;font-size:2rem;
-              box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-              ${this._diceEmoji(d)}
-            </div>
-          `).join('')}
-          ${c.diceSum > 0 ? `<div style="display:flex;align-items:center;font-family:'Fredoka One',cursive;font-size:1.5rem;color:var(--mountain-dark)"> = ${c.diceSum}</div>` : ''}
+        <div style="display:flex;justify-content:center;align-items:center;gap:clamp(10px,4vw,16px);margin-bottom:12px">
+          ${c.dice[0]>0?c.dice.map(d=>`
+            <div style="width:clamp(52px,15vw,68px);height:clamp(52px,15vw,68px);background:white;
+              border-radius:14px;display:flex;align-items:center;justify-content:center;
+              font-size:clamp(1.6rem,7vw,2.2rem);border:3px solid #E0E6EE;
+              box-shadow:0 3px 10px rgba(0,0,0,.12)">
+              ${['','⚀','⚁','⚂','⚃','⚄','⚅'][d]}
+            </div>`).join('')+'<div style="font-size:clamp(1.2rem,5vw,1.5rem);font-weight:900;color:var(--text-dark)">= '+c.diceSum+'</div>':''}
         </div>
 
-        <!-- Status & hint -->
-        ${c.phase === 'select' ? `
-          <div style="background:#EBF5FB;border-radius:12px;padding:10px;margin-bottom:12px;font-size:0.9rem;color:var(--text-dark)">
-            Wähle Zahlen die zusammen <b>${c.diceSum}</b> ergeben!
-            ${c.selected.length > 0 ? `<br>Ausgewählt: <b>${c.selected.map(i => c.boxes[i].num).join(' + ')} = ${c.selected.reduce((s,i)=>s+c.boxes[i].num,0)}</b>` : ''}
-          </div>
-        ` : ''}
+        <!-- Instruction -->
+        <div style="margin-bottom:14px;font-size:clamp(0.85rem,4vw,1rem);color:var(--text-dark);font-weight:${c.phase==='select'?700:400}">
+          ${c.phase==='roll'?'Würfeln!':c.phase==='select'?`Wähle Zahlen die zusammen <b>${c.diceSum}</b> ergeben!`:''}
+        </div>
 
         <!-- Buttons -->
-        ${allClosed ? `
-          <div style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:#27AE60;margin-bottom:12px">🎉 Box geschlossen!</div>
-          <button class="btn btn-primary btn-full" onclick="ShutTheBoxGame._finish()">Weiter ➜</button>
-        ` : c.phase === 'done' ? `
-          <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--mountain-dark);margin-bottom:8px">
-            Noch offen: ${openSum} Punkte
-          </div>
-          <button class="btn btn-primary btn-full" onclick="ShutTheBoxGame._finish()">Weiter ➜</button>
-        ` : c.phase === 'roll' ? `
-          <button class="btn btn-gold btn-full btn-big" onclick="ShutTheBoxGame._roll()">
-            🎲 Würfeln!
-          </button>
-        ` : `
-          <div style="display:flex;gap:10px">
-            <button class="btn btn-secondary" style="flex:1" onclick="ShutTheBoxGame._confirmSelection()" 
-              ${c.selected.length === 0 ? 'disabled style="opacity:0.5"' : ''}>
+        <div style="display:flex;gap:8px;justify-content:center">
+          ${c.phase==='roll'?`
+            <button onclick="ShutTheBoxGame._roll()"
+              style="background:linear-gradient(135deg,#3498DB,#2980B9);color:white;border:none;
+                padding:clamp(14px,4vw,18px) clamp(28px,8vw,40px);border-radius:14px;
+                font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
+                min-height:54px;touch-action:manipulation;box-shadow:0 4px 12px rgba(52,152,219,.4)">
+              🎲 Würfeln
+            </button>`:''}
+          ${c.phase==='select'&&c.selected.length>0?`
+            <button onclick="ShutTheBoxGame._confirm()"
+              style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;
+                padding:clamp(14px,4vw,18px) clamp(28px,8vw,40px);border-radius:14px;
+                font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
+                min-height:54px;touch-action:manipulation;box-shadow:0 4px 12px rgba(39,174,96,.4)">
               ✅ Schliessen
             </button>
-            <button class="btn" style="flex:1;background:#F5F5F5;color:var(--text-mid)" onclick="ShutTheBoxGame._clearSelection()">
+            <button onclick="ShutTheBoxGame._cancel()"
+              style="background:rgba(255,255,255,.6);color:var(--text-mid);border:2px solid #E0E6EE;
+                padding:clamp(14px,4vw,18px) clamp(16px,5vw,24px);border-radius:14px;
+                font-size:clamp(0.88rem,4vw,1rem);cursor:pointer;min-height:54px;touch-action:manipulation">
               ✕ Abbrechen
-            </button>
-          </div>
-        `}
-      </div>
-    `;
-  },
-
-  _diceEmoji(n) {
-    return ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][n] || '🎲';
+            </button>`:''}
+        </div>
+      </div>`;
   },
 
   _roll() {
-    const c = this.current;
-    const openBoxes = c.boxes.filter(b => !b.closed);
-    // Use 1 die if remaining sum <= 6
-    const openSum = openBoxes.reduce((s, b) => s + b.num, 0);
-    const oneDie = openSum <= 6;
-
-    c.dice[0] = Math.ceil(Math.random() * 6);
-    c.dice[1] = oneDie ? 0 : Math.ceil(Math.random() * 6);
-    c.diceSum = c.dice[0] + c.dice[1];
-    c.rolls++;
-    c.selected = [];
-    c.phase = 'select';
-
-    // Check if any combination possible
-    const possible = this._hasPossibleMove(openBoxes, c.diceSum);
-    if (!possible) {
-      c.phase = 'done';
-    }
-
+    const c=this.current;
+    if(c.phase!=='roll')return;
+    c.dice=[Math.ceil(Math.random()*6),Math.ceil(Math.random()*6)];
+    c.diceSum=c.dice[0]+c.dice[1];
+    c.rolls++;c.selected=[];
+    const openBoxes=c.boxes.filter(b=>!b.closed);
+    const openSum=openBoxes.reduce((s,b)=>s+b.num,0);
+    if(openBoxes.length===0){this._finish(true);return;}
+    // Check if any valid move exists
+    const vals=openBoxes.map(b=>b.num);
+    const hasMove=vals.some(v=>v===c.diceSum)||vals.some((v,i)=>vals.some((v2,j)=>j>i&&v+v2===c.diceSum));
+    if(!hasMove){c.errors++;c.phase='roll';this._render();if(c.rolls>=c.maxRolls)this._finish(false);return;}
+    c.phase='select';
     this._render();
   },
 
-  _hasPossibleMove(openBoxes, target) {
-    const nums = openBoxes.map(b => b.num);
-    // Check all subsets
-    for (let mask = 1; mask < (1 << nums.length); mask++) {
-      let sum = 0;
-      for (let i = 0; i < nums.length; i++) {
-        if (mask & (1 << i)) sum += nums[i];
-      }
-      if (sum === target) return true;
-    }
-    return false;
-  },
-
-  _toggleBox(index) {
-    const c = this.current;
-    if (c.boxes[index].closed) return;
-    const pos = c.selected.indexOf(index);
-    if (pos >= 0) {
-      c.selected.splice(pos, 1);
-    } else {
-      c.selected.push(index);
-    }
+  _toggleBox(i) {
+    const c=this.current;if(c.phase!=='select')return;
+    const box=c.boxes[i];if(box.closed)return;
+    const idx=c.selected.indexOf(i);
+    if(idx>=0)c.selected.splice(idx,1);
+    else if(c.selected.length<3)c.selected.push(i);
     this._render();
   },
 
-  _clearSelection() {
-    this.current.selected = [];
+  _confirm() {
+    const c=this.current;
+    const sum=c.selected.reduce((s,i)=>s+c.boxes[i].num,0);
+    if(sum!==c.diceSum){c.errors++;const el=document.getElementById('reaction-rt');this._render();return;}
+    c.selected.forEach(i=>c.boxes[i].closed=true);
+    c.selected=[];c.phase='roll';
+    const openBoxes=c.boxes.filter(b=>!b.closed);
+    if(openBoxes.length===0){this._finish(true);return;}
+    if(c.rolls>=c.maxRolls){this._finish(false);return;}
     this._render();
   },
 
-  _confirmSelection() {
-    const c = this.current;
-    const selSum = c.selected.reduce((s, i) => s + c.boxes[i].num, 0);
+  _cancel(){const c=this.current;c.selected=[];this._render();},
 
-    if (selSum !== c.diceSum) {
-      c.errors++;
-      // Flash error
-      document.querySelectorAll('[id^="box-"]').forEach(el => {
-        if (c.selected.some(i => el.id === `box-${i}`)) {
-          el.style.background = '#E74C3C';
-          el.style.color = 'white';
-        }
-      });
-      setTimeout(() => {
-        c.selected = [];
-        this._render();
-      }, 700);
-      return;
-    }
-
-    // Close selected boxes
-    c.selected.forEach(i => { c.boxes[i].closed = true; });
-    c.selected = [];
-
-    const openBoxes = c.boxes.filter(b => !b.closed);
-    if (openBoxes.length === 0) {
-      c.phase = 'done';
-      this._render();
-      return;
-    }
-
-    if (c.rolls >= c.maxRolls) {
-      c.phase = 'done';
-    } else {
-      c.phase = 'roll';
-    }
-    this._render();
-  },
-
-  _finish() {
-    const c = this.current;
-    const openSum = c.boxes.filter(b => !b.closed).reduce((s, b) => 0, 0);
-    // Wait — actually count closed boxes for score
-    const closedCount = c.boxes.filter(b => b.closed).length;
-    const allClosed = closedCount === 9;
-    const rawScore = allClosed ? 100 : Math.round((closedCount / 9) * 80);
-    const timeMs = Date.now() - c.startTime;
-
-    if (c.onComplete) {
-      c.onComplete({ rawScore, timeMs, errors: c.errors, passed: closedCount >= 5 });
-    }
-  },
+  _finish(allClosed) {
+    const c=this.current;
+    const openBoxes=c.boxes.filter(b=>!b.closed);
+    const openSum=openBoxes.reduce((s,b)=>s+b.num,0);
+    const timeMs=Date.now()-c.startTime;
+    const rawScore=allClosed?100:Math.max(0,Math.round(100-openSum*3));
+    const finalScore=State.calcFinalScore({rawScore,timeMs,errors:c.errors,passed:allClosed||openSum<=10});
+    if(c.onComplete)c.onComplete({rawScore:finalScore,timeMs,errors:c.errors,passed:allClosed||openSum<=10});
+  }
 };
-
-window.ShutTheBoxGame = ShutTheBoxGame;
+window.ShutTheBoxGame=ShutTheBoxGame;
