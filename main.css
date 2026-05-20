@@ -1,5 +1,15 @@
 
 
+/* ===== GLOBAL FONT: Arial/Aptos everywhere ===== */
+* {
+  font-family: 'Aptos', Arial, 'Helvetica Neue', Helvetica, sans-serif !important;
+}
+/* Emoji and icon fonts should still work */
+.task-icon, [style*="font-size:3"], [style*="font-size: 3"],
+[style*="font-size:2"], [style*="font-size: 2"] {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
+}
+
 /* ===== STRONG MOBILE TYPOGRAPHY (Android + iPhone) ===== */
 @media screen and (max-width: 768px) {
   /* BASE FONT: legible on all mobile screens */
@@ -297,10 +307,10 @@ canvas { display: block; max-width: 100%; }
 }
 
 /* MISCHA DENKSPIEL v3 */
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+/* Google Fonts removed */
 :root{--sky:#87CEEB;--sky-deep:#4A90D9;--mountain:#6B7F5E;--mountain-dark:#3D4F2E;--meadow:#7BC47F;--meadow-dark:#4A9E4E;--gold:#FFD700;--text-dark:#2C3E50;--text-mid:#5D6D7E;--radius:20px;--shadow:0 8px 32px rgba(0,0,0,0.15);--shadow-big:0 16px 48px rgba(0,0,0,0.2)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background:var(--sky);color:var(--text-dark);overflow-x:hidden}
+html,body{width:100%;min-height:100vh;font-family:Arial, 'Helvetica Neue', sans-serif;background:var(--sky);color:var(--text-dark);overflow-x:hidden}
 .mountain-bg{position:fixed;bottom:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .sky-gradient{position:absolute;inset:0;background:linear-gradient(180deg,#5DADE2 0%,#AED6F1 45%,#D5EFF5 70%,#C8F0D8 100%)}
 .mountain-svg{position:absolute;bottom:0;width:100%}
@@ -318,9 +328,9 @@ html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background
 @keyframes floatCloud{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 200px))}}
 .page{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px}
 .card{background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-radius:var(--radius);padding:24px 20px;box-shadow:var(--shadow-big);width:100%;max-width:480px;border:3px solid rgba(255,255,255,0.6)}
-.card-title{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--mountain-dark);text-align:center;margin-bottom:8px}
+.card-title{font-family:Arial,cursive;font-size:1.8rem;color:var(--mountain-dark);text-align:center;margin-bottom:8px}
 .card-subtitle{font-size:0.95rem;color:var(--text-mid);text-align:center;margin-bottom:18px;line-height:1.5}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Fredoka One',cursive;font-size:1.1rem;padding:13px 26px;border-radius:50px;border:none;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;text-decoration:none;user-select:none;-webkit-user-select:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:Arial,cursive;font-size:1.1rem;padding:13px 26px;border-radius:50px;border:none;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;text-decoration:none;user-select:none;-webkit-user-select:none}
 .btn:active{transform:scale(0.95)}
 .btn-primary{background:linear-gradient(135deg,var(--meadow),var(--meadow-dark));color:white;box-shadow:0 6px 20px rgba(75,158,78,0.4)}
 .btn-secondary{background:linear-gradient(135deg,var(--sky-deep),#2980B9);color:white;box-shadow:0 6px 20px rgba(41,128,185,0.4)}
@@ -329,11 +339,11 @@ html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background
 .btn-big{font-size:1.3rem;padding:16px 32px}
 .input-group{margin-bottom:14px}
 .input-group label{display:block;font-weight:700;font-size:0.85rem;color:var(--text-mid);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
-.input-group input,.input-group select{width:100%;padding:11px 15px;border:2px solid #E0E6EE;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;background:white;transition:border-color 0.2s;-webkit-appearance:none}
+.input-group input,.input-group select{width:100%;padding:11px 15px;border:2px solid #E0E6EE;border-radius:12px;font-family:Arial, 'Helvetica Neue', sans-serif;font-size:1rem;background:white;transition:border-color 0.2s;-webkit-appearance:none}
 .input-group input:focus,.input-group select:focus{outline:none;border-color:var(--meadow)}
 .game-logo{text-align:center;margin-bottom:22px}
 .game-logo .logo-emoji{font-size:3.5rem;display:block;animation:bounce 2s ease-in-out infinite}
-.game-logo h1{font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--mountain-dark);text-shadow:3px 3px 0 rgba(255,255,255,0.8);line-height:1.1}
+.game-logo h1{font-family:Arial,cursive;font-size:2.2rem;color:var(--mountain-dark);text-shadow:3px 3px 0 rgba(255,255,255,0.8);line-height:1.1}
 .game-logo .subtitle{font-size:0.95rem;color:var(--text-mid);margin-top:4px}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
@@ -354,11 +364,11 @@ html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background
 .world-item:hover:not(.locked){transform:translateX(5px)}
 .world-icon{font-size:2rem}
 .world-info{flex:1}
-.world-name{font-family:'Fredoka One',cursive;font-size:0.95rem;color:var(--mountain-dark)}
+.world-name{font-family:Arial,cursive;font-size:0.95rem;color:var(--mountain-dark)}
 .world-desc{font-size:0.7rem;color:var(--text-mid);margin-top:1px}
 .world-progress{font-size:0.75rem;font-weight:700;color:var(--meadow-dark)}
 .task-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,1.5vw,7px);margin:10px 0}
-.task-btn{aspect-ratio:1;border-radius:12px;border:3px solid #DDD;background:white;font-family:'Fredoka One',cursive;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px}
+.task-btn{aspect-ratio:1;border-radius:12px;border:3px solid #DDD;background:white;font-family:Arial,cursive;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px}
 .task-btn.done{background:linear-gradient(135deg,var(--meadow),var(--meadow-dark));border-color:var(--meadow-dark);color:white}
 .task-btn.active{background:linear-gradient(135deg,var(--sky-deep),#2980B9);border-color:#2980B9;color:white;animation:pulse 1.5s ease-in-out infinite}
 .task-btn.locked{opacity:0.3;cursor:not-allowed}
@@ -366,20 +376,20 @@ html,body{width:100%;min-height:100vh;font-family:'Nunito',sans-serif;background
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,144,217,0.5)}50%{box-shadow:0 0 0 8px rgba(74,144,217,0)}}
 .game-container{background:rgba(255,255,255,0.95);border-radius:var(--radius);padding:10px;width:100%;max-width:100%;box-shadow:var(--shadow-big);box-sizing:border-box}
 .game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.game-title{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--mountain-dark)}
+.game-title{font-family:Arial,cursive;font-size:1.15rem;color:var(--mountain-dark)}
 .joker-badge{background:linear-gradient(135deg,#FFD700,#FFA500);color:#5D3A00;padding:5px 12px;border-radius:50px;font-weight:800;font-size:0.8rem;cursor:pointer;transition:transform 0.15s}
 .joker-badge.used{background:#DDD;color:#999;cursor:not-allowed}
 .progress-bar-wrap{background:#E8F5E9;border-radius:50px;height:11px;overflow:hidden;margin:8px 0}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--meadow),#27AE60);border-radius:50px;transition:width 0.5s ease}
-.score-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold),#FFA500);color:var(--text-dark);padding:5px 14px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:0.95rem;box-shadow:0 4px 12px rgba(255,165,0,0.3)}
+.score-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold),#FFA500);color:var(--text-dark);padding:5px 14px;border-radius:50px;font-family:Arial,cursive;font-size:0.95rem;box-shadow:0 4px 12px rgba(255,165,0,0.3)}
 .overlay-box{background:white;border-radius:24px;padding:30px 22px;text-align:center;max-width:340px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.3);animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275)}
 .overlay-emoji{font-size:3.5rem;margin-bottom:10px}
-.overlay-title{font-family:'Fredoka One',cursive;font-size:1.7rem;margin-bottom:8px}
+.overlay-title{font-family:Arial,cursive;font-size:1.7rem;margin-bottom:8px}
 .overlay-msg{color:var(--text-mid);margin-bottom:18px;font-size:0.88rem}
 @keyframes popIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
 .world-banner{width:100%;max-width:480px;border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:12px;box-shadow:var(--shadow);color:white}
 .world-banner .banner-icon{font-size:2.2rem;display:block;margin-bottom:2px}
-.world-banner .banner-title{font-family:'Fredoka One',cursive;font-size:1.2rem}
+.world-banner .banner-title{font-family:Arial,cursive;font-size:1.2rem}
 .world-banner .banner-sub{font-size:0.78rem;opacity:0.85;margin-top:2px}
 .world-banner.w1{background:linear-gradient(135deg,#2980B9,#1A5276)}
 .world-banner.w2{background:linear-gradient(135deg,#8E44AD,#4A235A)}

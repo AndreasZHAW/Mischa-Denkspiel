@@ -241,7 +241,7 @@ const App = {
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
       <div class="page"><div style="text-align:center;color:white">
         <div style="font-size:3rem;animation:bounce 1s infinite">⏳</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;margin-top:10px">${msg}</div>
+        <div style="font-family:Arial,sans-serif;font-size:1.3rem;margin-top:10px">${msg}</div>
       </div></div>`);
   },
 
@@ -353,7 +353,7 @@ const App = {
     const ov = document.createElement('div');
     ov.id = 'teleport-cinema';
     document.body.style.background='#000';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Fredoka One,cursive';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Arial,sans-serif';
     document.body.appendChild(ov);
     const W = window.innerWidth, H = window.innerHeight;
     const cv = document.createElement('canvas');
@@ -581,7 +581,7 @@ const App = {
     modal.onclick = () => modal.remove();
     modal.innerHTML = `
       <div style="background:white;border-radius:20px;padding:24px;text-align:center;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
-        <div style="font-family:'Fredoka One',cursive;color:#2980B9;font-size:1.1rem;margin-bottom:10px">📱 Neuer Spieler beitreten</div>
+        <div style="font-family:Arial,sans-serif;color:#2980B9;font-size:1.1rem;margin-bottom:10px">📱 Neuer Spieler beitreten</div>
         <img src="${qrUrl}" style="width:200px;height:200px;border-radius:8px;display:block;margin:0 auto" alt="QR Code"/>
         <div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:#666;margin-top:10px;word-break:break-all">${url}</div>
         <button onclick="navigator.clipboard?.writeText('${url}').then(()=>this.textContent='✅ Kopiert!').catch(()=>{})" style="margin-top:10px;background:#2980B9;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem">📋 Link kopieren</button>
@@ -927,7 +927,7 @@ const App = {
       document.getElementById('ref-banner')?.remove();
       const b = document.createElement('div');
       b.id='ref-banner';
-      b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;padding:8px 16px;text-align:center;font-family:"Fredoka One",cursive;font-size:.88rem;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+      b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;padding:8px 16px;text-align:center;font-family:Arial,sans-serif;font-size:.88rem;box-shadow:0 2px 8px rgba(0,0,0,.3)';
       b.innerHTML='🔬 KALIBRIERUNGS-MODUS — Spieler: Janoschtest · '+_deviceIcon+' '+_deviceType+' · Nicht in Rangliste <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:white;padding:1px 7px;border-radius:4px;cursor:pointer;margin-left:8px">✕</button>';
       document.body.prepend(b);
     }, 600);
@@ -961,7 +961,7 @@ const App = {
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:clamp(2rem,8vw,2.4rem)">${ch?.emoji||'🧭'}</span>
             <div>
-              <div style="font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,4.5vw,1.3rem);color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">
+              <div style="font-family:Arial,sans-serif;font-size:clamp(1.1rem,4.5vw,1.3rem);color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">
                 ${displayName}
                 ${(()=>{ const _age=State.getAge(player); return (_age>4&&_age<130)?`<span style="font-size:clamp(0.75rem,3vw,0.85rem);color:rgba(255,255,255,.45);font-weight:400;margin-left:4px">${_age}J</span>`:''; })()}
               </div>
@@ -988,7 +988,7 @@ const App = {
         <!-- Teleport Button -->
         ${mt>=10 ? `
         <div style="margin-bottom:12px">
-          <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
+          <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
             🚀 In den Zoo teleportieren! (10 🌀 MT)
           </button>
         </div>` : `
@@ -1000,7 +1000,7 @@ const App = {
           </div>
         </div>`}
 
-        <div style="font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,5vw,1.35rem);color:white;text-align:center;margin-bottom:10px">🎮 Deine 20 Spiele</div>
+        <div style="font-family:Arial,sans-serif;font-size:clamp(1.1rem,5vw,1.35rem);color:white;text-align:center;margin-bottom:10px">🎮 Deine 20 Spiele</div>
 
         <div class="world-map">
           ${WORLDS.map(world => {
@@ -1388,7 +1388,7 @@ const App = {
         <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:clamp(0.9rem,3.7vw,1rem)">← Zurück</button>
-            <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
+            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
             ${player ? `<div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#FFD700">Du: 🌀${myMT.toFixed(1)} MT</div>` : ''}
           </div>
           ${rows || '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>'}
@@ -1437,7 +1437,7 @@ const App = {
         <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:12px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:clamp(0.9rem,3.7vw,1rem)">← Zurück</button>
-            <h2 style="flex:1;font-family:'Fredoka One',cursive;color:#29B6F6;font-size:1rem;margin:0">📊 Kontoauszug</h2>
+            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1rem;margin:0">📊 Kontoauszug</h2>
           </div>
           <!-- Summary -->
           <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1513,7 +1513,7 @@ const App = {
     const unplayedRows = allRows.filter(r => !r.done);
     const totalMT = rows.reduce((s,r)=>s+r.mt,0);
     const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:clamp(0.9rem,3.7vw,1rem)">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:clamp(0.9rem,3.7vw,1rem)">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:clamp(0.85rem,3.5vw,0.95rem)">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
-    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:'Fredoka One',cursive;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:clamp(0.9rem,3.7vw,1rem)"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
+    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:Arial,sans-serif;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:clamp(0.9rem,3.7vw,1rem)"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
   },
 
   // ---- WORLD VIEW ----
@@ -2442,13 +2442,13 @@ Grund: ${reason}`)) return;
             Du hast das gesamte Spiel ${resets > 0 ? `zum ${resets+1}. Mal ` : ''}abgeschlossen!
           </div>
           <div style="background:linear-gradient(135deg,#EBF5FB,#D6EAF8);border-radius:14px;padding:16px;margin-bottom:16px">
-            <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--mountain-dark);margin-bottom:6px">
+            <div style="font-family:Arial,sans-serif;font-size:1.2rem;color:var(--mountain-dark);margin-bottom:6px">
               🔄 Neu starten mit Bonus
             </div>
             <div style="font-size:0.9rem;color:var(--text-mid);margin-bottom:8px">
               Wenn du zurücksetzt bekommst du einen permanenten Punkte-Multiplikator:
             </div>
-            <div style="font-family:'Fredoka One',cursive;font-size:2rem;background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60);
+            <div style="font-family:Arial,sans-serif;font-size:2rem;background:linear-gradient(90deg,#FF6B6B,#FFD700,#27AE60);
               -webkit-background-clip:text;-webkit-text-fill-color:transparent">
               ×${newMult.toFixed(1)} Multiplikator!
             </div>
@@ -2507,7 +2507,7 @@ Grund: ${reason}`)) return;
     this._html(`
       <div style="position:fixed;inset:0;background:linear-gradient(135deg,#1a0535,#0a2a5e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999">
         <div style="font-size:5rem;animation:spin 1s linear infinite">🌀</div>
-        <div style="font-family:'Fredoka One',cursive;color:white;font-size:1.6rem;margin:18px 0;text-align:center">Teleportation...</div>
+        <div style="font-family:Arial,sans-serif;color:white;font-size:1.6rem;margin:18px 0;text-align:center">Teleportation...</div>
         <div style="color:rgba(255,255,255,0.6);font-size:1rem">${next?.icon||''} ${next?.name||''}</div>
         <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
           ${Array.from({length:25},(_,i)=>`<div style="position:absolute;color:white;font-size:${8+Math.random()*18}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation:twinkle ${1+Math.random()*2}s ease-in-out infinite ${Math.random()}s;opacity:0.7">⭐</div>`).join('')}

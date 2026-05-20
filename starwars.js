@@ -50,7 +50,7 @@ const StarWarsGame = {
       s:Math.random()*1.8+.3,spd:.3+Math.random()*.8,bright:Math.random()});
 
     const spawnWave=()=>{
-      const speed=0.55+wave*0.15; // gentle: wave 8 = 0.55+1.2=1.75
+      const speed=0.45+wave*0.12; // wave 8 = 0.45+0.96=1.41 (was 1.75)
       // Wave-specific formations for variety
       if(wave<=3){
         // Classic grid
@@ -65,10 +65,11 @@ const StarWarsGame = {
           enemies.push({x:20+c*sp,y:15+row*28,w:22,h:18,hp:1+(c===4?1:0),dx:speed,dy:0,type:c%4,phase:Math.random()*Math.PI*2});
         }
       } else if(wave===5){
-        // Two flanking groups — slower than base speed
-        const w5spd=speed*0.6; // significantly slower
-        for(let c=0;c<4;c++) enemies.push({x:10+c*38,y:25+c*20,w:22,h:18,hp:2,dx:w5spd,dy:0,type:0,phase:Math.random()*Math.PI*2});
-        for(let c=0;c<4;c++) enemies.push({x:W-170+c*38,y:25+(3-c)*20,w:22,h:18,hp:2,dx:-w5spd,dy:0,type:1,phase:Math.random()*Math.PI*2});
+        // Two diagonal wings — move DOWN+sideways slowly, giving time to react
+        const w5spd=0.35; // very slow horizontal
+        const w5dy=0.18;  // slow downward drift
+        for(let c=0;c<5;c++) enemies.push({x:15+c*36,y:20+c*18,w:22,h:18,hp:2,dx:w5spd,dy:w5dy,type:0,phase:Math.random()*Math.PI*2});
+        for(let c=0;c<5;c++) enemies.push({x:W-15-c*36,y:20+c*18,w:22,h:18,hp:2,dx:-w5spd,dy:w5dy,type:1,phase:Math.random()*Math.PI*2});
       } else if(wave===6){
         // Boss row + normal grid
         for(let c=0;c<5;c++) enemies.push({x:30+c*50,y:20,w:28,h:22,hp:3,dx:speed,dy:0,type:2,phase:0,isBoss:true});
@@ -84,7 +85,7 @@ const StarWarsGame = {
           enemies.push({x:20+c*sp,y:15+r*28,w:22,h:18,hp:1+(r===0?2:r===1?1:0),dx:speed,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
       }
       // Powerups
-      const pwType=wave>=7?'penta':wave>=5?'triple':wave>=4?'rapid':wave>=3?'rapid':'shield';
+      const pwType=wave>=7?'penta':wave>=4?'triple':wave>=3?'rapid':'shield';
       powerups.push({x:60+Math.random()*(W-120),y:-20,dy:1.4,type:pwType});
       if(wave>=4) powerups.push({x:60+Math.random()*(W-120),y:-60,dy:1.2,type:wave>=7?'triple':wave>=5?'rapid':'shield'});
     };
@@ -268,8 +269,14 @@ const StarWarsGame = {
 
       // Enemies
       let edgeHit=false;
-      enemies.forEach(e=>{e.x+=e.dx;if(e.x<18||e.x>W-18)edgeHit=true;});
-      if(edgeHit){enemies.forEach(e=>{e.dx*=-1;e.y+=10;});}
+      enemies.forEach(e=>{
+        e.x+=e.dx; e.y+=(e.dy||0);
+        // Only bounce horizontal enemies (dy===0) off walls
+        if(e.dy===0&&(e.x<18||e.x>W-18)) edgeHit=true;
+        // For diagonal enemies, just clamp x
+        if(e.dy!==0&&(e.x<10||e.x>W-10)) e.dx*=-1;
+      });
+      if(edgeHit){enemies.forEach(e=>{if(e.dy===0){e.dx*=-1;e.y+=10;}});}
 
       // Enemy fire
       efTick++;

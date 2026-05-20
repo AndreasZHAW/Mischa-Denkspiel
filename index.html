@@ -151,7 +151,7 @@
     <div id="loading-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(180deg,#0a0a1a,#0d1a2e)">
       <div style="text-align:center">
         <div style="font-size:3rem;animation:bounce 1s infinite">✈️</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#3D4F2E;margin-top:10px">Mischa Denkspiel lädt...</div>
+        <div style="font-family:'Arial',cursive;font-size:1.2rem;color:#3D4F2E;margin-top:10px">Mischa Denkspiel lädt...</div>
         <div id="load-status" style="font-size:.8rem;color:#555;margin-top:8px"></div>
       </div>
       <div id="error-box" style="display:none;margin-top:20px;background:rgba(231,76,60,.9);color:white;padding:16px 20px;border-radius:12px;max-width:350px;font-size:.85rem;text-align:left;word-break:break-word"></div>
@@ -271,7 +271,7 @@
       b.id = 'bc-banner';
       b.style.cssText = `position:fixed;top:0;left:0;right:0;z-index:9999;
         color:white;padding:8px 16px;text-align:center;
-        font-family:'Fredoka One',cursive;font-size:0.95rem;
+        font-family:'Arial',cursive;font-size:0.95rem;
         text-shadow:0 1px 4px rgba(0,0,0,0.8);
         animation:slideDown 0.4s ease;pointer-events:auto`;
       b.innerHTML = `📢 <span style="font-size:0.88rem">${text}</span>
@@ -295,7 +295,7 @@
       let timeLeft = 20;
       s.innerHTML = `
         <div style="color:white;text-align:center;margin-bottom:10px">
-          <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;text-shadow:0 1px 4px rgba(0,0,0,0.8)">
+          <div style="font-family:'Arial',cursive;font-size:1.1rem;text-shadow:0 1px 4px rgba(0,0,0,0.8)">
             📊 ${data.text}
           </div>
           <div id="survey-timer" style="font-size:0.8rem;opacity:0.7;margin-top:2px">⏱ ${timeLeft}s</div>
@@ -303,13 +303,13 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <button onclick="SurveyUI.vote('${surveyId}','a',this)"
             style="padding:16px 8px;border-radius:14px;border:none;cursor:pointer;
-              background:rgba(39,174,96,0.85);color:white;font-family:'Fredoka One',cursive;
+              background:rgba(39,174,96,0.85);color:white;font-family:'Arial',cursive;
               font-size:0.95rem;backdrop-filter:blur(4px);text-shadow:0 1px 3px rgba(0,0,0,0.3)">
             ✅ ${extra.optA||'Ja'}
           </button>
           <button onclick="SurveyUI.vote('${surveyId}','b',this)"
             style="padding:16px 8px;border-radius:14px;border:none;cursor:pointer;
-              background:rgba(231,76,60,0.85);color:white;font-family:'Fredoka One',cursive;
+              background:rgba(231,76,60,0.85);color:white;font-family:'Arial',cursive;
               font-size:0.95rem;backdrop-filter:blur(4px);text-shadow:0 1px 3px rgba(0,0,0,0.3)">
             ❌ ${extra.optB||'Nein'}
           </button>
@@ -328,7 +328,7 @@
         await State.voteSurvey(surveyId, choice);
         const s = document.getElementById('bc-survey');
         if (s) {
-          s.innerHTML = `<div style="color:white;text-align:center;font-family:'Fredoka One',cursive;
+          s.innerHTML = `<div style="color:white;text-align:center;font-family:'Arial',cursive;
             font-size:1rem;text-shadow:0 1px 4px rgba(0,0,0,0.8)">
             ✅ Danke für deine Stimme!</div>`;
           setTimeout(() => s.remove(), 2000);

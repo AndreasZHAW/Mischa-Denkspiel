@@ -295,8 +295,12 @@ const StuntGame = {
       if(car.onGround)car._tiltBonus=false;
 
       // CRASH DETECTION: landing on roof
-      // Crash only when clearly upside-down: >135° from upright (was 99°)
-      const upside=norm>Math.PI*.75&&norm<Math.PI*1.25;
+      // Crash when upside-down RELATIVE TO TERRAIN SLOPE
+      // This prevents false crashes on steep hills
+      const normRelative=((norm-terrAng+Math.PI*3)%(Math.PI*2))-Math.PI; // angle diff from slope
+      // normRelative=0 means aligned with slope (normal), =PI means inverted relative to slope
+      const relFromInverted=Math.abs(Math.abs(normRelative)-Math.PI);
+      const upside=relFromInverted<Math.PI*0.28; // within ~50° of inverted relative to slope
       if(car.onGround&&upside){
         if(!car._roofLanded){
           car._roofLanded=true;car.roofCount++;
