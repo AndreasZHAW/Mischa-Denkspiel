@@ -169,16 +169,20 @@ const SokobanGame = {
                  width:${cw}px;height:${ch}px;
                  box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 3px rgba(255,255,255,.08);
                  touch-action:none"></canvas>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;max-width:${Math.min(cw,300)}px;margin-left:auto;margin-right:auto">
-          ${[['sk-hint','💡','#8395a7'],['sk-up','↑','#4834d4'],['sk-undo','↩','#e17055'],
-             ['sk-left','←','#4834d4'],['sk-down','↓','#4834d4'],['sk-right','→','#4834d4'],
-             ['sk-rst','↺','#d63031'],['sk-skip','⏭','#6c5ce7']].map(([id,t,c])=>
-            `<button id="${id}" style="background:${c};color:#fff;border:none;
-              padding:clamp(11px,3vw,14px) 4px;border-radius:12px;
-              font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
-              touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.25),0 2px 8px rgba(0,0,0,.3);
-              transition:transform .08s,box-shadow .08s;active:transform:translateY(2px)">${t}</button>`
-          ).join('')}
+        <!-- Ergonomic D-Pad: 3x3 grid + action row -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:10px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:${Math.min(cw,216)}px">
+            <button id="sk-hint"  style="${BS('#8395a7')}">💡</button>
+            <button id="sk-up"    style="${BS('#4834d4')}">↑</button>
+            <button id="sk-undo"  style="${BS('#e17055')}">↩</button>
+            <button id="sk-left"  style="${BS('#4834d4')}">←</button>
+            <button id="sk-down"  style="${BS('#4834d4')}">↓</button>
+            <button id="sk-right" style="${BS('#4834d4')}">→</button>
+          </div>
+          <div style="display:flex;gap:5px;width:${Math.min(cw,216)}px">
+            <button id="sk-rst"  style="${BS('#d63031',true)}">↺ Reset</button>
+            <button id="sk-skip" style="${BS('#6c5ce7',true)}">⏭ Skip</button>
+          </div>
         </div>
         <div id="sk-hint-box" style="display:none;color:#FF9F43;font-size:.88rem;margin-top:8px;
           padding:8px 16px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.3);
@@ -188,6 +192,13 @@ const SokobanGame = {
         <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten/WASD · Z=Rückgängig · Wischen</div>
       </div>`;
 
+      // Button style helper
+      const BS=(col,wide=false)=>`background:${col};color:#fff;border:none;
+        padding:clamp(13px,4vw,17px) ${wide?'8px':'4px'};border-radius:12px;
+        font-size:clamp(1.05rem,5vw,1.3rem);font-weight:900;cursor:pointer;
+        touch-action:none;min-height:clamp(54px,14vw,64px);
+        ${wide?'flex:1;':'width:100%;'}
+        box-shadow:0 4px 0 rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.25)`;
       const cv=document.getElementById('skcv');
       const ctx=cv.getContext('2d');
       // CRITICAL: reset transform before scaling, otherwise scale compounds!

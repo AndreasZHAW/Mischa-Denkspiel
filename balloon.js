@@ -24,6 +24,10 @@ const BalloonGame = {
         <button id="sn-rev"  style="display:none;background:#444;color:#fff;border:none;padding:10px 14px;border-radius:12px;font-size:clamp(.85rem,3.5vw,.95rem);font-weight:700;cursor:pointer;touch-action:none">↔ Umkehren</button>
       </div>
       <div id="sn-hint" style="display:none;color:rgba(255,255,255,.4);font-size:.78rem;margin-bottom:4px">📱 Gerät neigen zum Steuern</div>
+      <div id="sn-rev-btns" style="display:none;gap:5px;justify-content:center;margin-bottom:4px">
+        <button id="sn-rev-x" style="background:#444;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:.82rem;cursor:pointer;touch-action:none">↔X</button>
+        <button id="sn-rev-y" style="background:#444;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:.82rem;cursor:pointer;touch-action:none">↕Y</button>
+      </div>
       <div id="sn-btns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:clamp(200px,55vw,260px);margin:0 auto">
         <div></div>
         <button id="sn-up"   style="${B('#4834d4')}">↑</button>
@@ -186,28 +190,36 @@ const BalloonGame = {
         if(btnsDiv)btnsDiv.style.display=useTilt?'none':'grid';
         if(hint)hint.style.display=useTilt?'block':'none';
         if(revBtn)revBtn.style.display=useTilt?'inline-block':'none';
+        const revBtnsDiv=document.getElementById('sn-rev-btns');
+        if(revBtnsDiv)revBtnsDiv.style.display=useTilt?'flex':'none';
         if(useTilt&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
           DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent='🎮 Tasten';}}).catch(()=>{useTilt=false;});
         }
       });
-      if(revBtn) revBtn.addEventListener('click',()=>{
-        tiltReversed=!tiltReversed;
-        revBtn.style.background=tiltReversed?'#e74c3c':'#444';
-        revBtn.textContent=tiltReversed?'↔ Umgekehrt':'↔ Umkehren';
-      });
-      // Accelerometer
+      // X/Y reverse handled below in sensor block
+      // Sigmoid sensor curve — smooth dead zone then accelerating
+      const sc=(v)=>{const s=v<0?-1:1,a=Math.abs(v),dz=3;if(a<dz)return 0;const x=(a-dz)/8;return s/(1+Math.exp(-2.5*(x-1)));};
+      let revX=false, revY=false;
+
+      // Reverse buttons for X and Y
+      const revXBtn=document.getElementById('sn-rev-x');
+      const revYBtn=document.getElementById('sn-rev-y');
+      if(revXBtn) revXBtn.addEventListener('click',()=>{revX=!revX;revXBtn.style.background=revX?'#e74c3c':'#444';revXBtn.textContent=revX?'↔X ✓':'↔X';});
+      if(revYBtn) revYBtn.addEventListener('click',()=>{revY=!revY;revYBtn.style.background=revY?'#e74c3c':'#444';revYBtn.textContent=revY?'↕Y ✓':'↕Y';});
+
       const onMotion=(e)=>{
         if(!useTilt)return;
         const g=e.accelerationIncludingGravity||e.acceleration||{};
-        let tx=g.x||0, ty=g.y||0;
-        if(tiltReversed){tx=-tx;ty=-ty;}
-        const THRESH=3.5;
-        if(Math.abs(tx)>Math.abs(ty)){
-          if(tx<-THRESH)setDir(1,0);
-          else if(tx>THRESH)setDir(-1,0);
+        let tx=(g.x||0)*(revX?-1:1);
+        let ty=(g.y||0)*(revY?-1:1);
+        const cx=sc(tx), cy=sc(ty);
+        const THRESH=0.3;
+        if(Math.abs(cx)>Math.abs(cy)){
+          if(cx<-THRESH)setDir(1,0);
+          else if(cx>THRESH)setDir(-1,0);
         }else{
-          if(ty>THRESH)setDir(0,-1);
-          else if(ty<-THRESH)setDir(0,1);
+          if(cy>THRESH)setDir(0,-1);
+          else if(cy<-THRESH)setDir(0,1);
         }
       };
       window.addEventListener('devicemotion',onMotion);

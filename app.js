@@ -961,7 +961,10 @@ const App = {
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:clamp(2rem,8vw,2.4rem)">${ch?.emoji||'🧭'}</span>
             <div>
-              <div style="font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,4.5vw,1.3rem);color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${displayName}</div>
+              <div style="font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,4.5vw,1.3rem);color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3)">
+                ${displayName}
+                ${(()=>{ const _age=State.getAge(player); return (_age>4&&_age<130)?`<span style="font-size:clamp(0.75rem,3vw,0.85rem);color:rgba(255,255,255,.45);font-weight:400;margin-left:4px">${_age}J</span>`:''; })()}
+              </div>
               <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:clamp(0.9rem,3.8vw,1rem);padding:4px 12px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
             </div>
           </div>
@@ -997,7 +1000,7 @@ const App = {
           </div>
         </div>`}
 
-        <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:white;text-align:center;margin-bottom:10px">🎮 Deine 20 Spiele</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,5vw,1.35rem);color:white;text-align:center;margin-bottom:10px">🎮 Deine 20 Spiele</div>
 
         <div class="world-map">
           ${WORLDS.map(world => {
@@ -1375,7 +1378,7 @@ const App = {
           <div style="font-size:1rem;font-weight:900;color:${parseFloat(mt)>=10?'#27AE60':parseFloat(mt)>=5?'#FFD700':'#E67E22'}">🌀${mt} MT</div>
         </div>
         ${p.name?.toLowerCase() !== player?.name?.toLowerCase() ? 
-          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:clamp(1rem,4.5vw,1.12rem);touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
+          `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:clamp(1.05rem,5vw,1.18rem);touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
       </div>`;
     }).join('');
 
@@ -1618,8 +1621,8 @@ const App = {
                   onclick="App.startTask(${worldId},${i})"
                   style="touch-action:manipulation"
                   title="${task.name||task.title||'Spiel '+(i+1)}">
-                  <span class="task-icon" style="font-size:clamp(1.4rem,6vw,1.8rem);display:block;margin-bottom:2px;line-height:1">${task.icon||'🎮'}</span>
-                  <span class="task-name" style="font-size:clamp(0.82rem,3.8vw,1rem);font-weight:700;line-height:1.2;display:block">${task.name||('Spiel '+(i+1))}</span>
+                  <span class="task-icon" style="font-size:clamp(1.7rem,7.5vw,2.1rem);display:block;margin-bottom:3px;line-height:1">${task.icon||'🎮'}</span>
+                  <span class="task-name" style="font-size:clamp(0.9rem,4.2vw,1.05rem);font-weight:700;line-height:1.2;display:block">${task.name||('Spiel '+(i+1))}</span>
                   ${mtEarned?`<span style="font-size:clamp(0.88rem,3.8vw,0.97rem);color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:clamp(0.85rem,3.5vw,0.95rem);opacity:0.8">⭐${score}</span>`:''}
                 </button>`;
             }).join('')}

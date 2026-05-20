@@ -126,7 +126,27 @@ const StarWarsGame = {
     window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKU);
 
     // Gyro
-    const gyro=e=>{if(!running)return;const t=e.gamma||0;leftH=t<-8;rightH=t>8;};
+    // Sigmoid sensor curve — smooth response with dead zone
+    const sensorCurve=(raw)=>{
+      const sign=raw<0?-1:1;
+      const abs=Math.abs(raw);
+      const deadZone=3;
+      if(abs<deadZone)return 0;
+      // Sigmoid: smooth start, fast middle, plateaus at ~35°
+      const x=(abs-deadZone)/10; // normalize
+      const sig=1/(1+Math.exp(-2.5*(x-1.2))); // S-curve
+      return sign*Math.min(1,sig*1.8); // 0..1 output
+    };
+    const gyro=e=>{
+      if(!running)return;
+      const raw=e.gamma||0; // gamma = left/right tilt
+      const curved=sensorCurve(raw);
+      // Convert 0..1 to speed (ship moves 0..8 px/frame)
+      const spd=curved*7;
+      leftH=spd<-0.3; rightH=spd>0.3;
+      // Also store for smooth movement
+      ship._tiltSpd=spd;
+    };
     if(window.DeviceOrientationEvent){
       if(typeof DeviceOrientationEvent.requestPermission==='function')
         fb.addEventListener('click',()=>DeviceOrientationEvent.requestPermission().then(p=>{if(p==='granted')window.addEventListener('deviceorientation',gyro);}).catch(()=>{}),{once:true});
@@ -213,8 +233,13 @@ const StarWarsGame = {
       }
 
       // Move ship
-      if(leftH) ship.x=Math.max(20,ship.x-5);
-      if(rightH) ship.x=Math.min(W-20,ship.x+5);
+      if(ship._tiltSpd!==undefined&&Math.abs(ship._tiltSpd)>0.3){
+        // Smooth sensor movement
+        ship.x=Math.max(20,Math.min(W-20,ship.x+ship._tiltSpd));
+      } else {
+        if(leftH) ship.x=Math.max(20,ship.x-5);
+        if(rightH) ship.x=Math.min(W-20,ship.x+5);
+      }
 
       // Fire mode timer
       fireModeTimer=Math.max(0,fireModeTimer-1);

@@ -7,18 +7,18 @@
   
   /* Task buttons: emoji + name clearly visible */
   .task-btn {
-    min-height: 68px !important;
-    min-width: 68px !important;
-    border-radius: 12px !important;
-    padding: 4px 2px !important;
+    min-height: 82px !important;
+    min-width: 82px !important;
+    border-radius: 14px !important;
+    padding: 6px 4px !important;
   }
   .task-btn .task-icon { 
-    font-size: 28px !important; 
+    font-size: 34px !important; 
     display: block !important; 
-    margin-bottom: 3px !important;
+    margin-bottom: 4px !important;
   }
   .task-btn .task-name { 
-    font-size: 13px !important; 
+    font-size: 15px !important; 
     line-height: 1.2 !important;
     font-weight: 700 !important;
   }
@@ -80,14 +80,15 @@ html, body {
     font-size: clamp(0.88rem, 3.8vw, 1rem) !important;
   }
   .task-btn {
-    min-height: 62px !important;
-    min-width: 62px !important;
-    font-size: clamp(0.73rem, 3.2vw, 0.88rem) !important;
+    min-height: 78px !important;
+    min-width: 78px !important;
+    font-size: clamp(0.85rem, 3.8vw, 1rem) !important;
+    padding: 6px 3px !important;
   }
   .task-btn span:first-child {
-    font-size: clamp(1.3rem, 5.5vw, 1.7rem) !important;
+    font-size: clamp(1.6rem, 7vw, 2rem) !important;
     display: block;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
   /* Task grid: 4 columns on iPhone */
   .task-grid {
@@ -131,9 +132,10 @@ html, body {
     padding: 2px !important;
   }
   .task-btn {
-    min-height: 58px !important;
-    min-width: 58px !important;
-    font-size: clamp(0.68rem, 3vw, 0.8rem) !important;
+    min-height: 72px !important;
+    min-width: 72px !important;
+    font-size: clamp(0.82rem, 3.5vw, 0.95rem) !important;
+    padding: 5px 3px !important;
   }
   .card { padding: 8px 6px !important; }
   h2 { font-size: clamp(1.1rem, 5vw, 1.3rem) !important; }

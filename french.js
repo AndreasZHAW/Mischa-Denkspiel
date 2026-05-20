@@ -69,10 +69,16 @@ const FrenchGame = {
       ]
     };
 
-    // Defensive: if ageGroup not found, use schwer for adults (better than einfach)
-    const grp = QUESTIONS[ageGroup] ? ageGroup : (ageGroup==='sehr_einfach'?'sehr_einfach':'schwer');
+    // Adults (mittel/schwer) get harder questions
+    let grp = QUESTIONS[ageGroup] ? ageGroup : 'schwer';
+    if(!QUESTIONS[grp]) grp = 'schwer'; // ultimate fallback
+    // Debug: log age group
+    console.log('[French] ageGroup='+ageGroup+' -> grp='+grp);
     const questions = QUESTIONS[grp].sort(()=>Math.random()-0.5).slice(0,8);
     let qi=0, correct=0, wrong=0;
+
+    // Show which difficulty is active (helps debug)
+    const grpLabel={'sehr_einfach':'Stufe: Anfänger','einfach':'Stufe: Grundkenntnisse','mittel':'Stufe: Mittelstufe','schwer':'Stufe: Fortgeschritten'};
 
     const show = () => {
       if(qi >= questions.length){ finish(); return; }
@@ -82,6 +88,7 @@ const FrenchGame = {
         <div style="padding:10px 8px;max-width:min(520px,100vw);margin:0 auto;overflow-x:hidden">
           <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:.82rem;color:rgba(255,255,255,.5)">
             <span>🇫🇷 Frage ${qi+1}/${questions.length}</span>
+            <span style="font-size:0.78rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.08);padding:2px 8px;border-radius:10px">${grpLabel[grp]||grp}</span>
             <span>✅ ${correct} ❌ ${wrong}</span>
           </div>
           <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:12px;font-size:clamp(.9rem,3vw,1.05rem);font-weight:600;line-height:1.4">${q.q}</div>
