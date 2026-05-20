@@ -50,7 +50,7 @@ const StarWarsGame = {
       s:Math.random()*1.8+.3,spd:.3+Math.random()*.8,bright:Math.random()});
 
     const spawnWave=()=>{
-      const speed=0.45+wave*0.12; // wave 8 = 0.45+0.96=1.41 (was 1.75)
+      const speed=0.35+wave*0.08; // wave 8=0.99, wave 13=1.39 (very gentle)
       // Wave-specific formations for variety
       if(wave<=3){
         // Classic grid
@@ -308,7 +308,7 @@ const StarWarsGame = {
         // For diagonal enemies, just clamp x
         if(e.dy!==0&&(e.x<10||e.x>W-10)) e.dx*=-1;
       });
-      if(edgeHit){enemies.forEach(e=>{if(e.dy===0){e.dx*=-1;e.y+=10;}});}
+      if(edgeHit){enemies.forEach(e=>{if(e.dy===0){e.dx*=-1;e.y+=3;}});} // 3px drop (was 10)
 
       // Enemy fire
       efTick++;

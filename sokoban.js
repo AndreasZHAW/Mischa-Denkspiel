@@ -46,8 +46,8 @@ const SokobanGame = {
         name:'Kreuzwand', hint:'4 Boxen im Kreuz — Reihenfolge ist alles!' },
 
       // Tier 5: Expert
-      { map:['###########','#  .   .   #','#  $   $   #','#  @   ##  #','#  . $ .   #','#    #     #','#    $     #','###########'],
-        name:'Falle', hint:'4 Boxen — eine ist in der Falle!' },
+      { map:['###########','#  .    .  #','#  $    $  #','#  @####   #','#  $    $  #','#  .    .  #','###########'],
+        name:'Vier Tore', hint:'4 Boxen durch enge Tore — Reihenfolge entscheidend!' },
       { map:['############','#   .   .  #','#   $   $  #','# ### ###  #','#   $   $  #','#   .@  .  #','############'],
         name:'Doppel-Tor', hint:'4 Boxen durch zwei enge Tore' },
       { map:['#############','#     .     #','#  . $$$ .  #','#  $     $  #','#  . . . .  #','#    $ $    #','#     @     #','#############'],

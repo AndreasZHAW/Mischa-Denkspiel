@@ -1683,6 +1683,7 @@ const App = {
     const world  = WORLDS.find(w=>w.id===worldId);
     const task   = world.tasks[taskIndex];
     const ageGroup = State.getAgeGroup(player);
+    console.log('[showTask] player='+player.name+' birthYear='+player.birthYear+' age='+State.getAge(player)+' ageGroup='+ageGroup);
     const ws = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {}) || {};
 
     this._html(`

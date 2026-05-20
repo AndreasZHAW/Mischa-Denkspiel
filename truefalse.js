@@ -172,16 +172,30 @@ const TrueFalseGame = {
     const { worldId = 1, ageGroup = 'einfach', onComplete } = config;
     TrueFalseGame._lastConfig = config;
     const pool = this._questions[worldId] || this._questions[1];
-    // Age-based difficulty: adults get harder questions mixed in
+    // Age-based difficulty: strictly separate question pools
     let questions;
-    if(ageGroup === 'schwer' || ageGroup === 'mittel') {
-      // Mix in hard questions if available
-      const hard = this._hardQuestions?.[worldId] || [];
-      const combined = [...pool, ...hard];
-      questions = [...combined].sort(()=>Math.random()-0.5).slice(0,10);
+    const hard = this._hardQuestions?.[worldId] || [];
+    if(ageGroup === 'schwer') {
+      // Adults 18+: use ONLY hard questions (if enough), else fill with pool
+      if(hard.length >= 10) {
+        questions = [...hard].sort(()=>Math.random()-0.5).slice(0,10);
+      } else {
+        // Not enough hard → filter pool to medium+ difficulty + add hard
+        const medPool = pool.filter((_,i)=>i>=pool.length*0.6); // last 40% = harder ones
+        questions = [...medPool,...hard].sort(()=>Math.random()-0.5).slice(0,10);
+      }
+    } else if(ageGroup === 'mittel') {
+      // Teens 14-18: mix medium from pool + some hard
+      const medPool = pool.filter((_,i)=>i>=pool.length*0.4);
+      questions = [...medPool,...hard.slice(0,5)].sort(()=>Math.random()-0.5).slice(0,10);
+    } else if(ageGroup === 'einfach') {
+      // Kids 10-14: first 60% of pool
+      questions = [...pool.slice(0,Math.ceil(pool.length*0.6))].sort(()=>Math.random()-0.5).slice(0,10);
     } else {
-      questions = [...pool].sort(()=>Math.random()-0.5).slice(0,10);
+      // sehr_einfach: first 30% of pool
+      questions = [...pool.slice(0,Math.ceil(pool.length*0.3))].sort(()=>Math.random()-0.5).slice(0,10);
     }
+    console.log('[TF] worldId='+worldId+' ageGroup='+ageGroup+' pool='+questions.length);
     this.current = {
       questions, index:0,
       results:[], errors:0,
