@@ -152,79 +152,105 @@ const DartGame = {
       if(this.current.aimCy === 135 || this.current.aimCy === CY-2) this.current.aimCy = CY;
     }
     document.getElementById('game-area').innerHTML = `
-<div style="max-width:${isMob2&&isPortrait?BS+16:440}px;margin:0 auto;padding:0 4px">
-  <!-- Score board: compact 1-line on mobile -->
-  <div style="display:flex;align-items:stretch;gap:5px;margin-bottom:5px">
-    <div style="flex:1;background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px">
-      <div style="font-size:clamp(0.76rem,3vw,0.86rem);color:${isP?'rgba(255,255,255,.8)':'var(--text-mid)'};line-height:1.2">👤 Du<br><span style="font-size:.72rem">${isP?'Pfeil '+(c.dartsThisRound+1)+'/3':'warte...'}</span></div>
-      <div style="font-size:clamp(1.5rem,6.5vw,2rem);font-weight:900;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
+<div style="padding:0 2px;width:100%;box-sizing:border-box;overflow:hidden">
+
+${(isMob2&&!isPortrait)?`
+<div style="display:flex;gap:8px;align-items:flex-start;width:100%">
+  <div style="display:flex;flex-direction:column;gap:4px;width:88px;flex-shrink:0">
+    <div style="background:${isP?'linear-gradient(160deg,#2980B9,#1a5a8a)':'rgba(0,0,0,.06)'};border-radius:10px;padding:6px;text-align:center">
+      <div style="font-size:.7rem;color:${isP?'rgba(255,255,255,.8)':'var(--text-mid)'}">👤 Du</div>
+      <div style="font-size:1.5rem;font-weight:900;line-height:1;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
+      <div style="font-size:.62rem;color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'};margin-top:2px">${isP?'Pfeil '+(c.dartsThisRound+1)+'/3':'...'}</div>
     </div>
-    <div style="align-self:center;font-weight:700;font-size:.78rem;color:#999;flex-shrink:0">VS</div>
-    <div style="flex:1;background:${!isP?'linear-gradient(135deg,#c0392b,#7b0000)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px">
-      <div style="font-size:clamp(0.76rem,3vw,0.86rem);color:${!isP?'rgba(255,255,255,.8)':'var(--text-mid)'};line-height:1.2">🤖 CPU<br><span style="font-size:.72rem">301 DOut</span></div>
-      <div style="font-size:clamp(1.5rem,6.5vw,2rem);font-weight:900;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
+    <div style="text-align:center;font-size:.7rem;color:#999;font-weight:700">VS</div>
+    <div style="background:${!isP?'linear-gradient(160deg,#c0392b,#7b0000)':'rgba(0,0,0,.06)'};border-radius:10px;padding:6px;text-align:center">
+      <div style="font-size:.7rem;color:${!isP?'rgba(255,255,255,.8)':'var(--text-mid)'}">🤖 CPU</div>
+      <div style="font-size:1.5rem;font-weight:900;line-height:1;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
+      <div style="font-size:.62rem;color:rgba(255,255,255,.35)">301 DOut</div>
+    </div>
+    <div id="dart-wind-panel" style="background:rgba(255,255,255,.07);border-radius:8px;padding:4px;text-align:center;font-size:.65rem;color:rgba(255,255,255,.5)">
+      <svg id="dart-windsock" width="30" height="18" viewBox="0 0 62 38" style="display:block;margin:0 auto 2px">${this._windsockSVG(c.wind.strength)}</svg>
+      <b>${c.wind.name}</b>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      ${c.player.roundDarts.map(d=>`<div style="padding:2px 4px;border-radius:5px;background:${d.pts>0?'#3498DB':'#E74C3C'};color:white;font-size:.68rem;font-weight:700;text-align:center">${d.label}</div>`).join('')}
     </div>
   </div>
-
-  ${c.player.score<=40||c.cpu.score<=40?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:4px 10px;margin-bottom:6px;font-size:.72rem;color:#E74C3C;font-weight:700;text-align:center">⚠️ Double-Out! Letzter Pfeil muss Double oder Bull treffen!</div>`:''}
-
-  <!-- Wind: compact chip -->
-  <div id="dart-wind-panel" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 0;margin-bottom:4px">
-    <svg id="dart-windsock" width="40" height="22" viewBox="0 0 62 38" style="flex-shrink:0">
-      ${this._windsockSVG(c.wind.strength)}
-    </svg>
-    <span style="font-size:clamp(0.8rem,3.5vw,0.92rem);font-weight:700;color:var(--text-dark)">${c.wind.name}</span>
-    <span style="font-size:clamp(0.75rem,3.2vw,0.85rem);color:var(--text-mid)">${Math.round(c.wind.angle)}°</span>
+  <div style="flex:1;display:flex;justify-content:center">
+    <div style="position:relative;width:${BS}px;height:${BS}px;cursor:crosshair" id="dart-wrap">
+      <canvas id="dart-canvas" width="${BS}" height="${BS}" style="border-radius:50%;display:block;width:${BS}px;height:${BS}px;box-shadow:0 6px 20px rgba(0,0,0,.3);touch-action:none"></canvas>
+      <svg id="dart-overlay" width="${BS}" height="${BS}" style="position:absolute;top:0;left:0;pointer-events:none;border-radius:50%;overflow:hidden">
+        <g id="dart-xhair">
+          <circle id="xhair-ring" cx="${CX}" cy="${CY}" r="22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line id="xl1" x1="${CX-20}" y1="${CY}" x2="${CX-9}" y2="${CY}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
+          <line id="xl2" x1="${CX+9}" y1="${CY}" x2="${CX+20}" y2="${CY}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
+          <line id="xl3" x1="${CX}" y1="${CY-20}" x2="${CX}" y2="${CY-9}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
+          <line id="xl4" x1="${CX}" y1="${CY+9}" x2="${CX}" y2="${CY+20}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
+          <circle id="xdot" cx="${CX}" cy="${CY}" r="2.5" fill="rgba(255,60,60,.95)"/>
+          <line id="xwind" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY}" stroke="rgba(100,200,255,.7)" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
+        </g>
+        <defs><marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="rgba(100,200,255,.8)"/></marker></defs>
+      </svg>
+    </div>
   </div>
-
-  <!-- Board + joy: portrait=column, landscape=row -->
-  <div style="display:flex;flex-direction:${isPortrait?'column':'row'};align-items:${isPortrait?'center':'flex-start'};justify-content:center;gap:${isPortrait?'8px':'12px'}">
-  <!-- Dartboard + crosshair overlay -->
-  <div style="position:relative;display:inline-block;width:${BS}px;height:${BS}px;margin-bottom:6px;cursor:crosshair" id="dart-wrap">
-    <canvas id="dart-canvas" width="${BS}" height="${BS}"
-      style="border-radius:50%;display:block;width:${BS}px;height:${BS}px;box-shadow:0 6px 20px rgba(0,0,0,.25);touch-action:none"></canvas>
-    <!-- SVG crosshair overlay — follows mouse + breath -->
-    <svg id="dart-overlay" width="${BS}" height="${BS}"
-      style="position:absolute;top:0;left:0;pointer-events:none;border-radius:50%;overflow:hidden">
+  <div id="dart-joy" style="display:flex;flex-direction:column;align-items:center;gap:6px;width:110px;flex-shrink:0;touch-action:none;user-select:none;padding-top:${Math.max(0,Math.round(BS/2-55))}px">
+    <div style="font-size:.78rem;color:#FFD700;font-weight:700;text-align:center">🎯 Zielen</div>
+    <div id="dart-joy-pad" style="position:relative;width:100px;height:100px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 14px rgba(255,215,0,.2)">
+      <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:38px;height:38px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
+    </div>
+    <div style="font-size:.65rem;color:rgba(255,255,255,.3);text-align:center">⬆️ Bull<br>los=Wurf</div>
+    ${!isP?'<div style="color:#E74C3C;font-weight:700;font-size:.78rem;text-align:center">🤖 CPU...</div>':''}
+  </div>
+</div>
+`:`
+<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+  <div style="display:flex;align-items:stretch;gap:5px;width:100%;margin-bottom:2px">
+    <div style="flex:1;background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px">
+      <div style="font-size:clamp(0.7rem,3vw,0.8rem);color:${isP?'rgba(255,255,255,.85)':'var(--text-mid)'};line-height:1.2">👤 Du<br><span style="font-size:.65rem;opacity:.8">${isP?'Pfeil '+(c.dartsThisRound+1)+'/3':'warte'}</span></div>
+      <div style="font-size:clamp(1.6rem,7vw,2rem);font-weight:900;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
+    </div>
+    <div style="align-self:center;font-weight:700;font-size:.72rem;color:#aaa">VS</div>
+    <div style="flex:1;background:${!isP?'linear-gradient(135deg,#c0392b,#7b0000)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px">
+      <div style="font-size:clamp(0.7rem,3vw,0.8rem);color:${!isP?'rgba(255,255,255,.85)':'var(--text-mid)'};line-height:1.2">🤖 CPU<br><span style="font-size:.65rem;opacity:.8">301 DOut</span></div>
+      <div style="font-size:clamp(1.6rem,7vw,2rem);font-weight:900;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
+    </div>
+  </div>
+  ${c.player.score<=40||c.cpu.score<=40?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:2px 8px;font-size:.7rem;color:#E74C3C;font-weight:700;text-align:center;width:100%;box-sizing:border-box">⚠️ Double-Out! Letzter Pfeil muss Double oder Bull treffen!</div>`:''}
+  <div id="dart-wind-panel" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:2px">
+    <svg id="dart-windsock" width="36" height="20" viewBox="0 0 62 38" style="flex-shrink:0">${this._windsockSVG(c.wind.strength)}</svg>
+    <span style="font-size:clamp(0.76rem,3.2vw,0.88rem);font-weight:700;color:var(--text-dark)">${c.wind.name}</span>
+    <span style="font-size:clamp(0.7rem,3vw,0.82rem);color:var(--text-mid)">${Math.round(c.wind.angle)}°</span>
+  </div>
+  <div id="dart-wrap" style="position:relative;width:${BS}px;height:${BS}px;cursor:crosshair;flex-shrink:0">
+    <canvas id="dart-canvas" width="${BS}" height="${BS}" style="border-radius:50%;display:block;width:${BS}px;height:${BS}px;box-shadow:0 6px 24px rgba(0,0,0,.3);touch-action:none"></canvas>
+    <svg id="dart-overlay" width="${BS}" height="${BS}" style="position:absolute;top:0;left:0;pointer-events:none;border-radius:50%;overflow:hidden">
       <g id="dart-xhair">
-        <!-- Outer rings for aiming context -->
-        <circle id="xhair-ring" cx="135" cy="135" r="22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" stroke-dasharray="4,4"/>
-        <!-- Cross lines -->
-        <line id="xl1" x1="115" y1="135" x2="124" y2="135" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
-        <line id="xl2" x1="146" y1="135" x2="155" y2="135" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
-        <line id="xl3" x1="135" y1="115" x2="135" y2="124" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
-        <line id="xl4" x1="135" y1="146" x2="135" y2="155" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
-        <!-- Center dot -->
-        <circle id="xdot" cx="135" cy="135" r="2.5" fill="rgba(255,60,60,.95)"/>
-        <!-- Wind indicator arrow on crosshair -->
-        <line id="xwind" x1="135" y1="135" x2="135" y2="135" stroke="rgba(100,200,255,.7)" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
+        <circle id="xhair-ring" cx="${CX}" cy="${CY}" r="22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" stroke-dasharray="4,4"/>
+        <line id="xl1" x1="${CX-32}" y1="${CY}" x2="${CX-13}" y2="${CY}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
+        <line id="xl2" x1="${CX+13}" y1="${CY}" x2="${CX+32}" y2="${CY}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
+        <line id="xl3" x1="${CX}" y1="${CY-32}" x2="${CX}" y2="${CY-13}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
+        <line id="xl4" x1="${CX}" y1="${CY+13}" x2="${CX}" y2="${CY+32}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
+        <circle id="xdot" cx="${CX}" cy="${CY}" r="2.5" fill="rgba(255,60,60,.95)"/>
+        <line id="xwind" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY}" stroke="rgba(100,200,255,.7)" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
       </g>
-      <defs>
-        <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto">
-          <polygon points="0 0, 6 2, 0 4" fill="rgba(100,200,255,.8)"/>
-        </marker>
-      </defs>
+      <defs><marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="rgba(100,200,255,.8)"/></marker></defs>
     </svg>
-  </div><!-- end dart-wrap -->
-
-  <!-- Mobile joystick (shown only on touch devices) -->
-  <div id="dart-joy" style="display:${isMob2?'flex':'none'};flex-direction:column;align-items:center;gap:6px;margin-top:${isPortrait?'4px':'0'};touch-action:none;user-select:none">
-    <div style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#FFD700;text-align:center;font-weight:700;line-height:1.3">🎯 Zielen<br><span style="color:rgba(255,255,255,.5);font-size:clamp(0.76rem,3.2vw,0.86rem);font-weight:400">Schieben → Ziel<br>Loslassen = Wurf</span></div>
-    <div id="dart-joy-pad" style="position:relative;width:${isPortrait?120:100}px;height:${isPortrait?120:100}px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 12px rgba(255,215,0,.2)">
-      <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:36px;height:36px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);transition:none;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
-    </div>
-    <div style="font-size:clamp(0.76rem,3.2vw,0.86rem);color:rgba(255,255,255,.4);text-align:center">⬆️ Mitte = Bullseye</div>
-  </div><!-- end dart-joy -->
-  </div><!-- end flex container -->
-
-  <!-- Last throws row -->
-  <div style="display:flex;gap:3px;justify-content:center;min-height:24px;margin-bottom:6px;flex-wrap:wrap">
-    ${c.player.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:${d.pts>0?'#3498DB':'#E74C3C'};color:white;font-size:clamp(0.8rem,3.4vw,0.9rem);font-weight:700">${d.label}</div>`).join('')}
-    ${c.cpu.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:6px;background:rgba(231,76,60,.25);color:var(--text-dark);font-size:clamp(0.8rem,3.4vw,0.9rem)">🤖 ${d.label}</div>`).join('')}
   </div>
+  <div style="display:flex;gap:3px;justify-content:center;min-height:18px;flex-wrap:wrap">
+    ${c.player.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:5px;background:${d.pts>0?'#3498DB':'#E74C3C'};color:white;font-size:clamp(0.76rem,3vw,0.86rem);font-weight:700">${d.label}</div>`).join('')}
+    ${c.cpu.roundDarts.map(d=>`<div style="padding:2px 6px;border-radius:5px;background:rgba(231,76,60,.18);color:var(--text-dark);font-size:clamp(0.76rem,3vw,0.86rem)">🤖 ${d.label}</div>`).join('')}
+  </div>
+  <div id="dart-joy" style="display:${isMob2?'flex':'none'};flex-direction:column;align-items:center;gap:6px;padding:4px 0;touch-action:none;user-select:none">
+    <div style="font-size:clamp(0.78rem,3.2vw,0.9rem);color:#FFD700;font-weight:700">🎯 Zielen — Loslassen = Wurf</div>
+    <div id="dart-joy-pad" style="position:relative;width:${Math.min(160,Math.round(avW*0.42))}px;height:${Math.min(160,Math.round(avW*0.42))}px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 16px rgba(255,215,0,.2)">
+      <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:42px;height:42px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 3px 10px rgba(0,0,0,.4)"></div>
+    </div>
+    <div style="font-size:clamp(0.7rem,3vw,0.8rem);color:rgba(255,255,255,.3)">⬆️ Mitte = Bullseye</div>
+  </div>
+  ${!isP?'<div style="text-align:center;color:#E74C3C;font-weight:700;font-size:clamp(0.86rem,3.8vw,1rem);padding:3px 0">🤖 CPU wirft...</div>':''}
+</div>
+`}
 
-  <!-- CPU turn indicator only -->
-  ${!isP?'<div style="text-align:center;color:#E74C3C;font-weight:700;font-size:clamp(0.88rem,3.8vw,1rem);padding:4px 0">🤖 CPU wirft...</div>':''}
 </div>`;
 
     this._drawBoard();
@@ -440,7 +466,9 @@ const DartGame = {
 
   _throwAt(finalCx, finalCy) {
     const c = this.current;
-    const R = 135, cx0 = 135, cy0 = 135;
+    // Use actual board size (not hardcoded 135!)
+    const _bs2 = this.current?._BS || 270;
+    const R = Math.round(_bs2/2 - 5), cx0 = Math.round(_bs2/2), cy0 = Math.round(_bs2/2);
     // Add wind displacement to final position
     const wr = (c.wind.angle * Math.PI) / 180;
     const wp = c.wind.strength * 0.05;
@@ -625,7 +653,8 @@ const DartGame = {
     if (c.turn !== 'cpu' || c.gameOver) return;
     const cpu = c.cpu;
     const score = cpu.score;
-    const R = 130, cx0 = 135, cy0 = 135;
+    const _bs3 = c._BS || 270;
+    const R = Math.round(_bs3/2 - 5), cx0 = Math.round(_bs3/2), cy0 = Math.round(_bs3/2);
     const step = (2*Math.PI)/20, off = -Math.PI/2-step/2;
     let aimDx=0, aimDy=0;
     // Target strategy

@@ -118,3 +118,44 @@ const FrenchGame = {
   }
 };
 window.FrenchGame = FrenchGame;
+// Expose for admin question panel
+FrenchGame._getQuestions = function(level){
+  const Q=window.FrenchGame._allQ||(()=>{
+    const q={sehr_einfach:[
+      {q:"Wie sagt man 'Hallo' auf Französisch?",a:"bonjour",choices:["bonjour","bonsoir","merci","au revoir"]},
+      {q:"Was bedeutet 'chat'?",a:"Katze",choices:["Katze","Hund","Haus","Schule"]},
+      {q:"Wie sagt man 'Danke'?",a:"merci",choices:["merci","oui","non","bonjour"]},
+      {q:"Was bedeutet 'maison'?",a:"Haus",choices:["Haus","Auto","Schule","Katze"]},
+      {q:"Wie sagt man 'Ja'?",a:"oui",choices:["oui","non","merci","si"]},
+      {q:"Was bedeutet 'école'?",a:"Schule",choices:["Schule","Haus","Auto","Park"]},
+      {q:"Wie sagt man 'Nein'?",a:"non",choices:["non","oui","peut-être","jamais"]},
+      {q:"Was bedeutet 'soleil'?",a:"Sonne",choices:["Sonne","Mond","Regen","Wind"]},
+      {q:"Wie sagt man 'Gute Nacht'?",a:"bonne nuit",choices:["bonne nuit","bonsoir","bonjour","bonne journée"]},
+      {q:"Was bedeutet 'chien'?",a:"Hund",choices:["Hund","Katze","Vogel","Fisch"]},
+    ],einfach:[
+      {q:"Konjugiere 'être' – Ich bin:",a:"je suis",choices:["je suis","je ai","je est","je être"]},
+      {q:"Was bedeutet 'Je m'appelle Marie'?",a:"Ich heiße Marie",choices:["Ich heiße Marie","Ich bin Marie","Ich kenne Marie","Ich sehe Marie"]},
+      {q:"Welcher Artikel hat 'livre' (Buch)?",a:"le",choices:["le","la","les","un"]},
+      {q:"Was ist die Verneinung von 'Je parle'?",a:"Je ne parle pas",choices:["Je ne parle pas","Je parle non","Je pas parle","Je parle jamais"]},
+      {q:"'avoir' bedeutet:",a:"haben",choices:["haben","sein","gehen","kommen"]},
+      {q:"Wie heißt 'wir spielen'?",a:"nous jouons",choices:["nous jouons","nous jouez","vous jouons","ils jouons"]},
+      {q:"Was bedeutet 'Quel âge as-tu?'",a:"Wie alt bist du?",choices:["Wie alt bist du?","Wie heißt du?","Woher kommst du?","Was machst du?"]},
+      {q:"'La famille' bedeutet:",a:"die Familie",choices:["die Familie","der Vater","die Mutter","das Kind"]},
+      {q:"Wie sagt man 'Ich gehe in die Schule'?",a:"Je vais à l'école",choices:["Je vais à l'école","Je suis à l'école","J'ai l'école","Je faire l'école"]},
+      {q:"Was ist der Plural von 'un chien'?",a:"des chiens",choices:["des chiens","les chien","un chiens","des chien"]},
+    ],mittel:[
+      {q:"Was ist der Subjonctif von 'aller' (que je)?",a:"que j'aille",choices:["que j'aille","que je vais","que j'ai allé","que je soit"]},
+      {q:"Imparfait von 'je suis'?",a:"j'étais",choices:["j'étais","je fus","j'ai été","je serais"]},
+      {q:"Konditionalis: 'si j'avais le temps, je ... réfléchir'",a:"voudrais",choices:["voudrais","veux","voulais","voudrai"]},
+      {q:"'Bien que' + welcher Modus?",a:"Subjonctif",choices:["Subjonctif","Indicatif","Conditionnel","Infinitif"]},
+      {q:"Passé composé von 'partir' (je)?",a:"je suis parti(e)",choices:["je suis parti(e)","j'ai parti","je partais","je partirai"]},
+      {q:"Was bedeutet 'néanmoins'?",a:"dennoch",choices:["dennoch","niemals","immerhin","sowieso"]},
+      {q:"'Y' ersetzt in 'J'y pense':",a:"à cela / an diesen Ort",choices:["à cela / an diesen Ort","ihn / sie","davon","damit"]},
+      {q:"Futur simple 'avoir' (nous)?",a:"nous aurons",choices:["nous aurons","nous avons","nous aurions","nous avions"]},
+      {q:"'Se rendre compte de qch':",a:"sich etw. bewusst werden",choices:["sich etw. bewusst werden","zurückgehen","sich beeilen","abrechnen"]},
+      {q:"'Le développement durable' bedeutet:",a:"nachhaltige Entwicklung",choices:["nachhaltige Entwicklung","dauerhafte Planung","wirtschaftliches Wachstum","technischer Fortschritt"]},
+    ]};
+    window.FrenchGame._allQ=q; return q;
+  })();
+  return Q[level]||[];
+};

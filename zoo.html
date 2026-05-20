@@ -3374,6 +3374,265 @@ const ZP={
     this.toast('✅ Profil gespeichert!',2500);
     setTimeout(()=>this.close('profile'),1500);
   },
+
+  // ══════════════════════════════════════
+  // SCORES TAB
+  // ══════════════════════════════════════
+  _loadScores(){
+    const el=document.getElementById('padmin-scores-table');
+    if(!el)return;
+    el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.4);padding:10px">⏳ Lädt...</div>';
+
+    // Game list with estimated max scores
+    const GAMES=[
+      {id:'dart',      name:'🎯 Dart',         estMax:95,  baseR:1.0},
+      {id:'french',    name:'🇫🇷 Französisch', estMax:90,  baseR:1.0},
+      {id:'math',      name:'🔢 Rechnen',       estMax:100, baseR:1.0},
+      {id:'sokoban',   name:'📦 Sokoban',       estMax:85,  baseR:1.0},
+      {id:'shutthebox',name:'🎲 Shut the Box',  estMax:100, baseR:1.0},
+      {id:'memory',    name:'🧠 Memory',        estMax:95,  baseR:1.0},
+      {id:'anagram',   name:'🔤 Anagramm',      estMax:100, baseR:1.0},
+      {id:'simon',     name:'🟢 Simon',         estMax:95,  baseR:1.0},
+      {id:'wordsearch',name:'🔍 Wortsuche',     estMax:90,  baseR:1.0},
+      {id:'reaction',  name:'⚡ Reaktion',      estMax:80,  baseR:1.0},
+      {id:'colormix',  name:'🎨 Farben',        estMax:100, baseR:1.0},
+      {id:'slider',    name:'🧩 Schiebepuzzle', estMax:90,  baseR:1.0},
+      {id:'tetris',    name:'🟩 Tetris',        estMax:85,  baseR:1.0},
+      {id:'balloon',   name:'🐍 Snake',         estMax:80,  baseR:1.0},
+      {id:'stunt',     name:'🏎️ Race',          estMax:90,  baseR:1.0},
+      {id:'pacman',    name:'🟡 Pac-Man',       estMax:95,  baseR:1.5},
+      {id:'math2',     name:'➕ Rechnen II',    estMax:100, baseR:1.0},
+      {id:'starwars',  name:'🚀 Star Wars',     estMax:100, baseR:1.5},
+      {id:'truefalse', name:'✅ Wahr/Falsch',   estMax:100, baseR:1.0},
+      {id:'pong',      name:'🏓 Pong/Tennis',   estMax:95,  baseR:1.0},
+    ];
+
+    // Load override values from localStorage
+    const overrides=JSON.parse(localStorage.getItem('admin_score_overrides')||'{}');
+    // Load records from localStorage
+    const records=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+
+    // Load all player scores
+    let allPlayers=[];
+    try{
+      const mp=JSON.parse(localStorage.getItem('mischa_players')||'{}');
+      allPlayers=Object.values(mp).filter(p=>p&&p.worlds);
+    }catch(e){}
+
+    // Build stats per game
+    const stats=GAMES.map((g,idx)=>{
+      const ov=overrides[g.id]||{};
+      const recs=records[g.id]||[];
+      // Collect scores from all players
+      let scores=[];
+      allPlayers.forEach(p=>{
+        const ws=p.worlds?.['1']||p.worlds?.[1]||{};
+        const task=(ws.tasks||[])[idx];
+        if(task&&task.done&&task.rawScore>0) scores.push({score:task.rawScore,player:p.name,mt:task.mt||0});
+      });
+      // Also include saved records
+      recs.forEach(r=>{ if(!scores.find(s=>s.player===r.player&&s.score===r.score)) scores.push(r); });
+      
+      const vals=scores.map(s=>s.score);
+      const minV=vals.length?Math.min(...vals):(ov.min||0);
+      const maxV=vals.length?Math.max(...vals):(ov.max||g.estMax);
+      const avgV=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
+      const best=scores.find(s=>s.score===maxV);
+      return {g,minV,maxV,avgV,best,scores,ov,plays:vals.length};
+    });
+
+    const rows=stats.map(({g,minV,maxV,avgV,best,scores,ov,plays},i)=>`
+      <tr style="border-bottom:1px solid rgba(255,255,255,.06);${i%2===0?'background:rgba(255,255,255,.02)':''}">
+        <td style="padding:5px 6px;font-size:.78rem;white-space:nowrap">${g.name}</td>
+        <td style="padding:5px 6px;text-align:center">
+          <input type="number" value="${ov.min!==undefined?ov.min:minV}" min="0" max="100" 
+            style="width:44px;background:#1a1a2e;color:${minV>0?'#E74C3C':'rgba(255,255,255,.3)'};border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 4px;font-size:.75rem;text-align:center"
+            onchange="ZAdmin._saveScoreOverride('${g.id}','min',this.value)">
+        </td>
+        <td style="padding:5px 6px;text-align:center;color:${avgV>0?'#F39C12':'rgba(255,255,255,.3)'};font-weight:${avgV>0?'700':'400'};font-size:.8rem">${avgV>0?avgV:'—'}</td>
+        <td style="padding:5px 6px;text-align:center">
+          <input type="number" value="${ov.max!==undefined?ov.max:maxV}" min="0" max="100"
+            style="width:44px;background:#1a1a2e;color:#27AE60;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 4px;font-size:.75rem;text-align:center"
+            onchange="ZAdmin._saveScoreOverride('${g.id}','max',this.value)">
+        </td>
+        <td style="padding:5px 6px;font-size:.75rem;color:rgba(255,255,255,.7)">${best?best.player+' ('+best.score+')':'—'}</td>
+        <td style="padding:5px 6px;text-align:center">
+          <button onclick="ZAdmin._showScoreDetail('${g.id}','${g.name.replace(/'/g,"\'")}',${JSON.stringify(scores).replace(/'/g,"\'")})"
+            style="background:rgba(52,152,219,.3);border:1px solid #3498DB;color:#3498DB;padding:3px 8px;border-radius:6px;font-size:.72rem;cursor:pointer">
+            🔍 ${plays}
+          </button>
+        </td>
+      </tr>`).join('');
+
+    el.innerHTML=`
+      <table style="width:100%;border-collapse:collapse;min-width:400px">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6)">
+            <th style="padding:5px 6px;text-align:left;font-size:.75rem">Spiel</th>
+            <th style="padding:5px 6px;text-align:center;font-size:.75rem">Min</th>
+            <th style="padding:5px 6px;text-align:center;font-size:.75rem">Ø</th>
+            <th style="padding:5px 6px;text-align:center;font-size:.75rem">Max</th>
+            <th style="padding:5px 6px;text-align:left;font-size:.75rem">Bester</th>
+            <th style="padding:5px 6px;text-align:center;font-size:.75rem">Partien</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  },
+
+  _saveScoreOverride(gameId,field,val){
+    const ov=JSON.parse(localStorage.getItem('admin_score_overrides')||'{}');
+    if(!ov[gameId])ov[gameId]={};
+    ov[gameId][field]=parseInt(val)||0;
+    localStorage.setItem('admin_score_overrides',JSON.stringify(ov));
+  },
+
+  _showScoreDetail(gameId,gameName,scores){
+    const el=document.getElementById('padmin-score-detail');
+    const title=document.getElementById('padmin-score-detail-title');
+    const body=document.getElementById('padmin-score-detail-body');
+    if(!el||!title||!body)return;
+    title.textContent=gameName+' — Partien';
+    el.style.display='block';
+    
+    // Load saved records
+    const records=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+    const saved=records[gameId]||[];
+    const all=[...scores,...saved.filter(r=>!scores.find(s=>s.player===r.player&&s.score===r.score))];
+    
+    if(!all.length){body.innerHTML='<div style="color:rgba(255,255,255,.4);padding:10px;text-align:center">Keine Partien gespeichert</div>';return;}
+    
+    const rows=all.sort((a,b)=>(b.score||0)-(a.score||0)).map((r,i)=>`
+      <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+        <td style="padding:3px 6px">${r.date||'—'}</td>
+        <td style="padding:3px 6px;color:#4af">${r.player||'?'}</td>
+        <td style="padding:3px 6px;text-align:center">${r.device||'?'}</td>
+        <td style="padding:3px 6px;text-align:center;color:#FFD700;font-weight:700">${r.score||0}</td>
+        <td style="padding:3px 6px;text-align:center;color:#27AE60">${r.mt?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'—'}</td>
+      </tr>`).join('');
+    
+    body.innerHTML=`
+      <table style="width:100%;border-collapse:collapse;min-width:300px">
+        <thead><tr style="color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.1)">
+          <th style="padding:3px 6px;text-align:left;font-size:.72rem">Datum</th>
+          <th style="padding:3px 6px;text-align:left;font-size:.72rem">Spieler</th>
+          <th style="padding:3px 6px;text-align:center;font-size:.72rem">Gerät</th>
+          <th style="padding:3px 6px;text-align:center;font-size:.72rem">Score</th>
+          <th style="padding:3px 6px;text-align:center;font-size:.72rem">MT</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    el.scrollIntoView({behavior:'smooth'});
+  },
+
+  // ══════════════════════════════════════
+  // QUESTIONS TAB
+  // ══════════════════════════════════════
+  _loadQuestions(){
+    const game=document.getElementById('padmin-q-game')?.value||'french';
+    const level=document.getElementById('padmin-q-level')?.value||'schwer';
+    const el=document.getElementById('padmin-q-list');
+    if(!el)return;
+    
+    // Get questions from the game
+    let questions=[];
+    try{
+      if(game==='french'&&window.FrenchGame){
+        // Access via iframe or direct
+        const qs=this._getFrenchQuestions(level);
+        questions=qs;
+      } else if(game==='truefalse'&&window.TrueFalseGame){
+        const qs=this._getTrueFalseQuestions(level);
+        questions=qs;
+      }
+    }catch(e){console.warn('Q load error:',e);}
+    
+    // Load overrides (deleted/custom questions)
+    const overrides=JSON.parse(localStorage.getItem('admin_q_overrides_'+game+'_'+level)||'[]');
+    const deleted=JSON.parse(localStorage.getItem('admin_q_deleted_'+game+'_'+level)||'[]');
+    const allQ=[...questions.filter((_,i)=>!deleted.includes(i)),...overrides];
+    
+    if(!allQ.length){
+      el.innerHTML=`<div style="color:rgba(255,255,255,.4);text-align:center;padding:16px">
+        Keine Fragen gefunden. Spiel muss zuerst geladen sein (Spiele starten).</div>`;
+      return;
+    }
+    
+    const isMC=game==='french';
+    const rows=allQ.map((q,i)=>`
+      <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;margin-bottom:6px;border-left:3px solid ${level==='schwer'?'#E74C3C':level==='mittel'?'#F39C12':level==='einfach'?'#3498DB':'#27AE60'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1">
+            <div style="font-size:.8rem;color:rgba(255,255,255,.9);font-weight:600;margin-bottom:3px">
+              <span style="color:rgba(255,255,255,.4);font-size:.72rem">F${i+1}</span> ${q.q||q.question||'?'}
+            </div>
+            <div style="font-size:.75rem;color:#27AE60;font-weight:700">→ ${isMC?(q.a||q.answer||'?'):(q.a===true?'WAHR':'FALSCH')}</div>
+            ${isMC&&q.choices?`<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px">${q.choices.join(' · ')}</div>`:''}
+          </div>
+          <button onclick="ZAdmin._deleteQuestion('${game}','${level}',${i})" 
+            style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:3px 8px;border-radius:5px;font-size:.72rem;cursor:pointer;flex-shrink:0">
+            🗑️
+          </button>
+        </div>
+      </div>`).join('');
+    
+    el.innerHTML=`
+      <div style="margin-bottom:8px;font-size:.75rem;color:rgba(255,255,255,.5)">
+        ${allQ.length} Fragen · Stufe: <b style="color:${level==='schwer'?'#E74C3C':level==='mittel'?'#F39C12':'#27AE60'}">${level}</b>
+      </div>
+      ${rows}`;
+  },
+
+  _getFrenchQuestions(level){
+    // Access FrenchGame questions directly
+    if(!window.FrenchGame)return[];
+    try{
+      // Create a temporary instance to access QUESTIONS
+      const q=window.FrenchGame._getQuestions?window.FrenchGame._getQuestions(level):[];
+      return q;
+    }catch(e){return[];}
+  },
+
+  _getTrueFalseQuestions(level){
+    if(!window.TrueFalseGame)return[];
+    try{
+      const pool=TrueFalseGame._questions?.[1]||[];
+      const hard=TrueFalseGame._hardQuestions?.[1]||[];
+      if(level==='schwer')return hard;
+      if(level==='einfach')return pool.slice(0,30);
+      if(level==='sehr_einfach')return pool.slice(0,15);
+      return pool;
+    }catch(e){return[];}
+  },
+
+  _deleteQuestion(game,level,idx){
+    if(!confirm('Frage '+idx+' löschen?'))return;
+    const key='admin_q_deleted_'+game+'_'+level;
+    const deleted=JSON.parse(localStorage.getItem(key)||'[]');
+    if(!deleted.includes(idx))deleted.push(idx);
+    localStorage.setItem(key,JSON.stringify(deleted));
+    this._loadQuestions();
+  },
+
+  _addQuestion(){
+    const game=document.getElementById('padmin-q-game')?.value||'french';
+    const level=document.getElementById('padmin-q-level')?.value||'schwer';
+    const isMC=game==='french';
+    const q=prompt('Frage:');
+    if(!q)return;
+    const a=prompt(isMC?'Antwort (korrekte):':'Antwort (true/false):');
+    if(a===null)return;
+    const key='admin_q_overrides_'+game+'_'+level;
+    const overrides=JSON.parse(localStorage.getItem(key)||'[]');
+    if(isMC){
+      overrides.push({q,a,choices:[a,prompt('Falschantwort 1:')||'—',prompt('Falschantwort 2:')||'—',prompt('Falschantwort 3:')||'—']});
+    }else{
+      overrides.push({q,a:a==='true'||a==='wahr'||a==='ja'});
+    }
+    localStorage.setItem(key,JSON.stringify(overrides));
+    this._loadQuestions();
+  },
+
   _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
   _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:600,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${z.mt<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bst(id,p,dur){const z=ZS.zoo;if(z.mt<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();},
@@ -5778,6 +6037,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="padmin-tab-btn" data-tab="server" onclick="ZAdmin.switchTab('server')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🌐 Server</div>
           <div class="padmin-tab-btn" data-tab="einst" onclick="ZAdmin.switchTab('einst')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚙️ Einstellungen</div>
           <div class="padmin-tab-btn" data-tab="cal" onclick="ZAdmin.switchTab('cal')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📊 Kalibrierung</div>
+          <div class="padmin-tab-btn" data-tab="scores" onclick="ZAdmin.switchTab('scores')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏆 Scores</div>
+          <div class="padmin-tab-btn" data-tab="fragen" onclick="ZAdmin.switchTab('fragen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">❓ Fragen</div>
           <div class="padmin-tab-btn" data-tab="meldungen" onclick="ZAdmin.switchTab('meldungen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🚨 Meldungen</div>
         </div>
       </div>
@@ -5957,6 +6218,46 @@ document.addEventListener('DOMContentLoaded',()=>{
         <!-- TAB: KALIBRIERUNG -->
         <div class="padmin-tab" id="padmin-tab-cal" style="display:none">
           <div class="padmin-section-title">📊 Kalibrierungsdaten (cal_data_v3)</div>
+
+        <!-- ══ SCORES TAB ══ -->
+        <div class="padmin-tab" id="padmin-tab-scores" style="display:none">
+          <div class="padmin-section-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>🏆 Spiele-Statistiken Welt 1</span>
+            <button class="padmin-btn" style="background:#3498DB;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._loadScores()">🔄 Laden</button>
+          </div>
+          <div id="padmin-scores-table" style="font-size:.78rem;overflow-x:auto">
+            <div style="color:rgba(255,255,255,.4);text-align:center;padding:16px">Klicke "Laden"</div>
+          </div>
+          <!-- Detail modal -->
+          <div id="padmin-score-detail" style="display:none;margin-top:12px;background:rgba(0,0,0,.5);border-radius:10px;padding:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <b id="padmin-score-detail-title" style="color:#FFD700;font-size:.85rem"></b>
+              <button onclick="document.getElementById('padmin-score-detail').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button>
+            </div>
+            <div id="padmin-score-detail-body" style="font-size:.75rem;overflow-x:auto"></div>
+          </div>
+        </div>
+
+        <!-- ══ FRAGEN TAB ══ -->
+        <div class="padmin-tab" id="padmin-tab-fragen" style="display:none">
+          <div class="padmin-section-title">❓ Fragen-Verwaltung</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+            <select id="padmin-q-game" onchange="ZAdmin._loadQuestions()" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:5px 8px;border-radius:6px;font-size:.78rem">
+              <option value="french">🇫🇷 Französisch</option>
+              <option value="truefalse">✅ Wahr/Falsch</option>
+            </select>
+            <select id="padmin-q-level" onchange="ZAdmin._loadQuestions()" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:5px 8px;border-radius:6px;font-size:.78rem">
+              <option value="sehr_einfach">Sehr einfach (&lt;10J)</option>
+              <option value="einfach">Einfach (10-14J)</option>
+              <option value="mittel">Mittel (14-18J)</option>
+              <option value="schwer" selected>Schwer (18+J)</option>
+            </select>
+            <button class="padmin-btn" style="background:#27AE60;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._addQuestion()">➕ Frage hinzufügen</button>
+          </div>
+          <div id="padmin-q-list" style="font-size:.78rem">
+            <div style="color:rgba(255,255,255,.4);text-align:center;padding:16px">Wähle Spiel und Schwierigkeit</div>
+          </div>
+        </div>
         <!-- TAB: MELDUNGEN -->
         <div class="padmin-tab" id="padmin-tab-meldungen" style="display:none">
           <div class="padmin-section-title">🚨 Spieler-Meldungen</div>

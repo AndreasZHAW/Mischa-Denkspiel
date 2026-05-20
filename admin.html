@@ -110,6 +110,8 @@ textarea.inp { resize:vertical; min-height:80px; }
     <button class="tab" onclick="tab('ban')">🚫 Sperren</button>
     <button class="tab" onclick="tab('reports')">🚨 Meldungen</button>
     <button class="tab" onclick="tab('reset')">⚠️ Reset</button>
+    <button class="tab" onclick="tab('scores')">🏆 Scores</button>
+    <button class="tab" onclick="tab('fragen')">❓ Fragen</button>
   </div>
 
   <!-- ═══ SPIELER ═══ -->
@@ -237,6 +239,45 @@ textarea.inp { resize:vertical; min-height:80px; }
   </div>
 </div>
 
+
+  <!-- ═══ SCORES ═══ -->
+  <div id="scores-section" class="tab-section" style="display:none">
+    <div class="card">
+      <div class="card-title">🏆 Spiele-Statistiken Welt 1 <button class="btn btn-blue" onclick="loadScoresAdmin()" style="padding:4px 10px;font-size:.8rem;margin-left:10px">🔄 Laden</button></div>
+      <div id="scores-table-cont">
+        <div style="color:#888;text-align:center;padding:20px">Klicke "Laden"</div>
+      </div>
+      <div id="score-detail-panel" style="display:none;margin-top:16px;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <b id="score-detail-name" style="color:#FFD700"></b>
+          <button onclick="document.getElementById('score-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button>
+        </div>
+        <div id="score-detail-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FRAGEN ═══ -->
+  <div id="fragen-section" class="tab-section" style="display:none">
+    <div class="card">
+      <div class="card-title">❓ Fragen-Verwaltung</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <select id="q-game" onchange="loadQAdmin()" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:6px">
+          <option value="french">🇫🇷 Französisch</option>
+          <option value="truefalse">✅ Wahr/Falsch</option>
+        </select>
+        <select id="q-level" onchange="loadQAdmin()" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:6px">
+          <option value="sehr_einfach">Sehr einfach (&lt;10J)</option>
+          <option value="einfach">Einfach (10-14J)</option>
+          <option value="mittel">Mittel (14-18J)</option>
+          <option value="schwer" selected>Schwer (18+J)</option>
+        </select>
+      </div>
+      <div id="q-list-cont">
+        <div style="color:#888;text-align:center;padding:20px">Wähle Spiel und Schwierigkeit</div>
+      </div>
+    </div>
+  </div>
 <script>
 // ═══ FIREBASE SETUP ═══
 // Load Firebase v8 compatible (same as index.html approach)
@@ -739,6 +780,64 @@ async function doResetCal() {
     loadCal();
   } catch(e) { alert('Fehler (localStorage gelöscht, Firebase: '+e.message+')'); }
 }
+// ═══ SCORES ADMIN ═══
+const GAME_LIST=[
+  {id:'dart',name:'Dart',est:95},{id:'french',name:'Französisch',est:90},
+  {id:'math',name:'Rechnen',est:100},{id:'sokoban',name:'Sokoban',est:85},
+  {id:'shutthebox',name:'Shut the Box',est:100},{id:'memory',name:'Memory',est:95},
+  {id:'anagram',name:'Anagramm',est:100},{id:'simon',name:'Simon',est:95},
+  {id:'wordsearch',name:'Wortsuche',est:90},{id:'reaction',name:'Reaktion',est:80},
+  {id:'colormix',name:'Farben',est:100},{id:'slider',name:'Slider',est:90},
+  {id:'tetris',name:'Tetris',est:85},{id:'balloon',name:'Snake',est:80},
+  {id:'stunt',name:'Race',est:90},{id:'pacman',name:'Pac-Man',est:95},
+  {id:'math2',name:'Rechnen II',est:100},{id:'starwars',name:'Star Wars',est:100},
+  {id:'truefalse',name:'Wahr/Falsch',est:100},{id:'pong',name:'Tennis',est:95},
+];
+async function loadScoresAdmin(){
+  const el=document.getElementById('scores-table-cont');if(!el)return;
+  el.innerHTML='<div style="color:#888;text-align:center;padding:12px">Laden...</div>';
+  let players=[];
+  try{const snap=await db.collection('mischa_players').get();snap.forEach(d=>players.push(d.data()));}
+  catch(e){const mp=JSON.parse(localStorage.getItem('mischa_players')||'{}');players=Object.values(mp).filter(p=>p&&p.worlds);}
+  const overrides=JSON.parse(localStorage.getItem('admin_score_overrides')||'{}');
+  const records=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+  const stats=GAME_LIST.map((g,idx)=>{
+    const ov=overrides[g.id]||{}, recs=records[g.id]||[];
+    let scores=[];
+    players.forEach(p=>{const ws=p.worlds?.['1']||p.worlds?.[1]||{};const task=(ws.tasks||[])[idx];if(task&&task.done&&task.rawScore>0)scores.push({score:task.rawScore,player:p.name,mt:task.mt||0,date:'gespeichert',device:'?'});});
+    recs.forEach(r=>{if(!scores.find(s=>s.player===r.player&&s.score===r.score))scores.push(r);});
+    const vals=scores.map(s=>s.score);
+    const minV=vals.length?Math.min(...vals):(ov.min||0);
+    const maxV=vals.length?Math.max(...vals):(ov.max||g.est);
+    const avgV=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
+    const best=scores.sort((a,b)=>b.score-a.score)[0];
+    return{g,minV,maxV,avgV,best,scores,ov,plays:vals.length};
+  });
+  const rows=stats.map(({g,minV,maxV,avgV,best,scores,ov,plays},i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.06);${i%2===0?'background:rgba(255,255,255,.02)':''}"><td style="padding:5px 8px;font-size:.82rem">${g.name}</td><td style="padding:5px 8px;text-align:center"><input type="number" value="${ov.min!==undefined?ov.min:minV}" min="0" max="100" onchange="saveScOv('${g.id}','min',this.value)" style="width:44px;background:#1a1a2e;color:#E74C3C;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 4px;font-size:.75rem;text-align:center"></td><td style="padding:5px 8px;text-align:center;color:${avgV>0?'#F39C12':'#555'};font-weight:700">${avgV||'—'}</td><td style="padding:5px 8px;text-align:center"><input type="number" value="${ov.max!==undefined?ov.max:maxV}" min="0" max="100" onchange="saveScOv('${g.id}','max',this.value)" style="width:44px;background:#1a1a2e;color:#27AE60;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 4px;font-size:.75rem;text-align:center"></td><td style="padding:5px 8px;font-size:.78rem;color:rgba(255,255,255,.7)">${best?best.player+' ('+best.score+')':'—'}</td><td style="padding:5px 8px;text-align:center"><button onclick="showScDetail('${g.id}','${g.name}',${JSON.stringify(scores).replace(/"/g,"'")})" style="background:rgba(52,152,219,.2);border:1px solid #3498DB;color:#3498DB;padding:3px 8px;border-radius:5px;font-size:.72rem;cursor:pointer">🔍 ${plays}</button></td></tr>`).join('');
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:500px"><thead><tr style="color:rgba(255,255,255,.6);border-bottom:1px solid rgba(255,255,255,.15)"><th style="padding:5px 8px;text-align:left;font-size:.78rem">Spiel</th><th style="padding:5px 8px;text-align:center;font-size:.78rem">Min</th><th style="padding:5px 8px;text-align:center;font-size:.78rem">Ø</th><th style="padding:5px 8px;text-align:center;font-size:.78rem">Max</th><th style="padding:5px 8px;text-align:left;font-size:.78rem">Bester</th><th style="padding:5px 8px;text-align:center;font-size:.78rem">Partien</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function saveScOv(gId,field,val){const ov=JSON.parse(localStorage.getItem('admin_score_overrides')||'{}');if(!ov[gId])ov[gId]={};ov[gId][field]=parseInt(val)||0;localStorage.setItem('admin_score_overrides',JSON.stringify(ov));}
+function showScDetail(gId,name,scores){
+  const el=document.getElementById('score-detail-panel'),nm=document.getElementById('score-detail-name'),rows=document.getElementById('score-detail-rows');
+  if(!el||!nm||!rows)return;nm.textContent=name+' — Partien';el.style.display='block';
+  const sorted=(scores||[]).sort((a,b)=>(b.score||0)-(a.score||0));
+  if(!sorted.length){rows.innerHTML='<div style="color:#888;padding:10px;text-align:center">Keine Partien</div>';return;}
+  rows.innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr style="color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:3px 8px;font-size:.75rem">Datum</th><th style="padding:3px 8px;font-size:.75rem">Spieler</th><th style="padding:3px 8px;font-size:.75rem">Gerät</th><th style="padding:3px 8px;font-size:.75rem">Score</th><th style="padding:3px 8px;font-size:.75rem">MT</th></tr></thead><tbody>'+sorted.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)"><td style="padding:3px 8px;font-size:.75rem">${r.date||'—'}</td><td style="padding:3px 8px;color:#4af;font-size:.75rem">${r.player||'?'}</td><td style="padding:3px 8px;font-size:.75rem">${r.device||'?'}</td><td style="padding:3px 8px;color:#FFD700;font-weight:700;font-size:.75rem">${r.score||0}</td><td style="padding:3px 8px;color:#27AE60;font-size:.75rem">${r.mt?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'—'}</td></tr>`).join('')+'</tbody></table>';
+}
+function loadQAdmin(){
+  const game=document.getElementById('q-game')?.value||'french';
+  const level=document.getElementById('q-level')?.value||'schwer';
+  const el=document.getElementById('q-list-cont');if(!el)return;
+  const deleted=JSON.parse(localStorage.getItem('admin_q_deleted_'+game+'_'+level)||'[]');
+  const overrides=JSON.parse(localStorage.getItem('admin_q_overrides_'+game+'_'+level)||'[]');
+  if(!overrides.length&&!deleted.length){el.innerHTML='<div style="color:#888;padding:16px;text-align:center">Keine lokalen Fragen. Fragen aus Spielcode nur im Zoo-Admin sichtbar.</div>';return;}
+  const col={schwer:'#E74C3C',mittel:'#F39C12',einfach:'#3498DB',sehr_einfach:'#27AE60'};
+  el.innerHTML=overrides.map((q,i)=>`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;margin-bottom:6px;border-left:3px solid ${col[level]||'#4af'}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><span style="color:rgba(255,255,255,.4);font-size:.72rem">F${i+1}</span> <b style="font-size:.82rem">${q.q||'?'}</b><div style="color:#27AE60;font-size:.75rem;margin-top:2px">Antwort: ${q.a===true?'WAHR':q.a===false?'FALSCH':(q.a||'?')}</div></div><button onclick="delQAdmin('${game}','${level}',${i})" style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:2px 7px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️</button></div></div>`).join('');
+  if(deleted.length) el.innerHTML+=`<div style="color:#888;font-size:.78rem;margin-top:8px;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px">🗑️ ${deleted.length} Spielcode-Fragen gelöscht <button onclick="restoreQAdmin('${game}','${level}')" style="margin-left:8px;background:rgba(39,174,96,.2);border:1px solid #27AE60;color:#27AE60;padding:2px 7px;border-radius:5px;font-size:.72rem;cursor:pointer">↩️ Wiederherstellen</button></div>`;
+}
+function delQAdmin(game,level,idx){if(!confirm('Löschen?'))return;const k='admin_q_overrides_'+game+'_'+level;const a=JSON.parse(localStorage.getItem(k)||'[]');a.splice(idx,1);localStorage.setItem(k,JSON.stringify(a));loadQAdmin();}
+function restoreQAdmin(game,level){localStorage.removeItem('admin_q_deleted_'+game+'_'+level);loadQAdmin();}
+
 </script>
 </body>
 </html>

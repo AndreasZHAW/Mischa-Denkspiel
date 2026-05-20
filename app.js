@@ -1749,8 +1749,36 @@ const App = {
       }
     }, 400);
 
+    // Device detection helper
+    const _getDevice=()=>{
+      const ua=navigator.userAgent;
+      if(/iPad/.test(ua))return'iPad';
+      if(/iPhone/.test(ua))return'iPhone';
+      if(/Android/.test(ua)&&/Mobile/.test(ua))return'Android';
+      if(/Android/.test(ua))return'Android-Tablet';
+      if(window.innerWidth>1200)return'Desktop';
+      return'Sonstiges';
+    };
+
     const onComplete = async (result) => {
       GameLog.log(task.type||task.id, 'onComplete: rawScore='+result.rawScore+' passed='+result.passed+' errors='+result.errors);
+      // Save score record for admin panel
+      try {
+        const recKey='admin_score_records';
+        const recs=JSON.parse(localStorage.getItem(recKey)||'{}');
+        const gId=task.type||task.id||'unknown';
+        if(!recs[gId])recs[gId]=[];
+        recs[gId].push({
+          date:new Date().toLocaleString('de-CH'),
+          player:State.currentPlayer?.name||'?',
+          device:_getDevice(),
+          score:result.rawScore||0,
+          mt:0, // will be updated after calcMT
+          passed:result.passed||false,
+        });
+        if(recs[gId].length>200)recs[gId]=recs[gId].slice(-200); // keep last 200
+        localStorage.setItem(recKey,JSON.stringify(recs));
+      }catch(e){}
       // Save task result to player immediately (localStorage)
       try {
         const mt = State.calcMT ? State.calcMT(taskIndex, result) : 1.0;

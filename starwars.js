@@ -71,9 +71,9 @@ const StarWarsGame = {
         for(let c=0;c<5;c++) enemies.push({x:15+c*36,y:20+c*18,w:22,h:18,hp:2,dx:w5spd,dy:w5dy,type:0,phase:Math.random()*Math.PI*2});
         for(let c=0;c<5;c++) enemies.push({x:W-15-c*36,y:20+c*18,w:22,h:18,hp:2,dx:-w5spd,dy:w5dy,type:1,phase:Math.random()*Math.PI*2});
       } else if(wave===6){
-        // Boss row + normal grid
-        for(let c=0;c<5;c++) enemies.push({x:30+c*50,y:20,w:28,h:22,hp:3,dx:speed,dy:0,type:2,phase:0,isBoss:true});
-        for(let c=0;c<8;c++) enemies.push({x:15+c*44,y:70,w:22,h:18,hp:1,dx:speed*.8,dy:0,type:3,phase:Math.random()*Math.PI*2});
+        // Boss row + normal grid - start farther apart to reduce wall hits
+        for(let c=0;c<5;c++) enemies.push({x:40+c*60,y:20,w:28,h:22,hp:2,dx:speed*0.7,dy:0,type:2,phase:c*0.5,isBoss:true});
+        for(let c=0;c<6;c++) enemies.push({x:25+c*60,y:70,w:22,h:18,hp:1,dx:speed*0.6,dy:0,type:3,phase:Math.random()*Math.PI*2});
       } else if(wave===7){
         // Diamond formation
         const pattern=[[4,0],[3,1],[5,1],[2,2],[4,2],[6,2],[3,3],[5,3],[4,4]];
@@ -89,9 +89,9 @@ const StarWarsGame = {
           enemies.push({x:15+c*44,y:10+r*32,w:22,h:18,hp:2,dx:speed*(c%2===0?0.6:-0.6),dy:0.05,type:c%4,phase:Math.random()*Math.PI*2});
       } else if(wave===10){
         // Wave 10: Two boss columns + swarm
-        for(let r=0;r<4;r++){
-          enemies.push({x:80, y:15+r*30,w:30,h:24,hp:4,dx:speed*0.5,dy:0,type:2,phase:0,isBoss:true});
-          enemies.push({x:W-80,y:15+r*30,w:30,h:24,hp:4,dx:-speed*0.5,dy:0,type:3,phase:0,isBoss:true});
+        for(let r=0;r<3;r++){
+          enemies.push({x:60+r*20, y:15+r*35,w:28,h:22,hp:3,dx:speed*0.55,dy:0,type:2,phase:r*0.4,isBoss:true});
+          enemies.push({x:W-60-r*20,y:15+r*35,w:28,h:22,hp:3,dx:-speed*0.55,dy:0,type:3,phase:r*0.4,isBoss:true});
         }
         for(let c=0;c<7;c++) enemies.push({x:20+c*50,y:15,w:20,h:16,hp:1,dx:speed*0.8,dy:0,type:0,phase:Math.random()*Math.PI*2});
       } else if(wave===11){
@@ -258,6 +258,8 @@ const StarWarsGame = {
 
     const loop=()=>{
       if(!running)return;
+      // Guard: if canvas no longer in DOM, stop
+      if(!document.getElementById('swcv')){running=false;return;}
       animId=requestAnimationFrame(loop);
       tick++;
       // Safety: check for runaway state
@@ -338,7 +340,14 @@ const StarWarsGame = {
       });
 
       explosions=explosions.map(e=>({...e,t:e.t-1,r:e.r+1.5})).filter(e=>e.t>0);
-      if(enemies.some(e=>e.y>H-60)){end(false);return;}
+      // Enemy reaches player line: lose a life, remove enemy
+      const reachedBottom=enemies.filter(e=>e.y>H-60);
+      if(reachedBottom.length>0){
+        lives-=reachedBottom.length;
+        enemies=enemies.filter(e=>e.y<=H-60);
+        explosions.push(...reachedBottom.map(e=>({x:e.x,y:H-60,t:18,r:22,col:'#ff4400'})));
+        if(lives<=0){end(false);return;}
+      }
       if(!enemies.length){wave++;if(wave>13){end(true);return;}spawnWave();}
       if(Date.now()-tStart>1200000)end(score>100); // 20 min max for 13 waves
 
