@@ -26,7 +26,7 @@ const DartGame = {
       // Breathing: gentle oval offset on top of mouse aim
       breath: { phase: 0, ox: 0, oy: 0 },
       // Aim: actual mouse/touch position on canvas (canvas coords)
-      aimCx: 135, aimCy: 135, _BS: 270, // will be updated on first render
+      aimCx: 135, aimCy: 135, _BS: 270, // updated on first render (will become BS/2)
       // Whether player has moved the mouse yet
       playerAiming: false,
     };
@@ -147,9 +147,9 @@ const DartGame = {
     const CX = Math.round(BS/2), CY = Math.round(BS/2);
     if(this.current) {
       this.current._BS = BS;
-      // Update aim center if it's still at default 135
-      if(this.current.aimCx === 135 || this.current.aimCx === CX-2) this.current.aimCx = CX;
-      if(this.current.aimCy === 135 || this.current.aimCy === CY-2) this.current.aimCy = CY;
+      // Always update aim center to match actual board center
+      this.current.aimCx = CX;
+      this.current.aimCy = CY;
     }
     document.getElementById('game-area').innerHTML = `
 <div style="padding:0 2px;width:100%;box-sizing:border-box;overflow:hidden">
@@ -346,15 +346,16 @@ ${(isMob2&&!isPortrait)?`
     if (joyEl && 'ontouchstart' in window) {
       joyEl.style.display = 'flex';
       let joyOrigin = null, joyActive = false;
-      const JR = 45; // joystick range in px
+      const JR = 60; // joystick physical range in px (bigger = finer control)
       
       joyTarget.addEventListener('touchstart', e => {
         e.preventDefault(); e.stopPropagation();
         joyActive = true;
         const t = e.touches[0];
         joyOrigin = { x: t.clientX, y: t.clientY };
-        // Set initial aim to board center
-        if (c && !c.aimCx) { c.aimCx = 135; c.aimCy = 135; }
+        // Ensure aim is at board center using actual _BS
+        const _cx = c._BS ? Math.round(c._BS/2) : 190;
+        if (c) { c.aimCx = _cx; c.aimCy = _cx; }
       }, { passive: false });
       
       joyTarget.addEventListener('touchmove', e => {
@@ -367,12 +368,18 @@ ${(isMob2&&!isPortrait)?`
         const clamped = Math.min(dist, JR);
         const nx = dist > 0 ? dx/dist*clamped : 0;
         const ny = dist > 0 ? dy/dist*clamped : 0;
-        // Move the joystick knob
+        // Move the joystick knob visually
         const knob = document.getElementById('dart-joy-knob');
         if (knob) { knob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`; }
-        // Map joystick position to board aim (board center = 135,135)
-        c.aimCx = 135 + (nx/JR)*100;
-        c.aimCy = 135 + (ny/JR)*100;
+        // Map joystick → board coordinates using actual board size
+        // _BS is full board diameter; R (playable radius) ≈ _BS/2 - 5
+        const _bs = c._BS || 270;
+        const boardR = Math.round(_bs/2 - 5); // actual board radius in px
+        const boardCx = Math.round(_bs/2);
+        const boardCy = Math.round(_bs/2);
+        // Joystick full deflection (JR px) maps to full board radius (boardR px)
+        c.aimCx = boardCx + (nx/JR) * boardR * 0.95; // 0.95 = slight margin from edge
+        c.aimCy = boardCy + (ny/JR) * boardR * 0.95;
         c.playerAiming = true;
         this._updateCrosshair();
       }, { passive: false });
@@ -387,7 +394,8 @@ ${(isMob2&&!isPortrait)?`
         // Throw on release
         if (c && !c.gameOver && c.turn === 'player') {
           const bx = c.breath.ox; const by = c.breath.oy;
-          this._throwAt((c.aimCx||135)+bx, (c.aimCy||135)+by);
+          const _defaultC=c._BS?Math.round(c._BS/2):190;
+          this._throwAt((c.aimCx||_defaultC)+bx, (c.aimCy||_defaultC)+by);
         }
       };
       joyTarget.addEventListener('touchend', joyEnd, { passive: false });
@@ -593,7 +601,7 @@ ${(isMob2&&!isPortrait)?`
       // Number
       const na = off+(i+.5)*step;
       ctx.save(); ctx.translate(cx0+Math.cos(na)*R*.92, cy0+Math.sin(na)*R*.92);
-      ctx.font = 'bold 10px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font = `bold ${Math.max(12,Math.round(R*0.13))}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillStyle = even ? 'white' : '#111'; ctx.fillText(sectors[i],0,0); ctx.restore();
     }
     // Bullseye

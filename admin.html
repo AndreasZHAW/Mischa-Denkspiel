@@ -139,7 +139,7 @@ textarea.inp { resize:vertical; min-height:80px; }
   <div id="p-cal" class="panel">
     <div class="card">
       <div class="card-title">📊 Kalibrierungsdaten <span id="cal-spin" class="spin" style="margin-left:8px"></span></div>
-      <div id="cal-table"></div>
+      <div id="cal-output"></div><div id="cal-table"></div>
       <div class="sep"></div>
       <div class="row">
         <button class="btn btn-blue btn-sm" onclick="exportCal()">📥 Export JSON</button>
@@ -241,7 +241,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 
 
   <!-- ═══ SCORES ═══ -->
-  <div id="scores-section" class="tab-section" style="display:none">
+  <div id="p-scores" class="panel">
     <div class="card">
       <div class="card-title">🏆 Spiele-Statistiken Welt 1 <button class="btn btn-blue" onclick="loadScoresAdmin()" style="padding:4px 10px;font-size:.8rem;margin-left:10px">🔄 Laden</button></div>
       <div id="scores-table-cont">
@@ -258,7 +258,7 @@ textarea.inp { resize:vertical; min-height:80px; }
   </div>
 
   <!-- ═══ FRAGEN ═══ -->
-  <div id="fragen-section" class="tab-section" style="display:none">
+  <div id="p-fragen" class="panel">
     <div class="card">
       <div class="card-title">❓ Fragen-Verwaltung</div>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
@@ -324,7 +324,8 @@ function setStatus(txt) {
   if(el) el.textContent = txt;
 }
 function tab(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['players','cal','msg','ban','reports','reset'][i]===name));
+  const allTabs=['players','cal','msg','ban','reports','reset','scores','fragen'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', allTabs[i]===name));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('p-'+name);
   if(el) el.classList.add('active');
@@ -334,6 +335,8 @@ function tab(name) {
   if(name==='msg') loadMsgs();
   if(name==='ban') loadBans();
   if(name==='reports') loadReports();
+  if(name==='scores') loadScoresAdmin();
+  if(name==='fragen') loadQAdmin();
 }
 function showResult(elId, ok, msg) {
   const el = document.getElementById(elId);

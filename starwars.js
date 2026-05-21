@@ -95,20 +95,21 @@ const StarWarsGame = {
         }
         for(let c=0;c<7;c++) enemies.push({x:20+c*50,y:15,w:20,h:16,hp:1,dx:speed*0.8,dy:0,type:0,phase:Math.random()*Math.PI*2});
       } else if(wave===11){
-        // Wave 11: Spiral — enemies enter from center and expand
-        const cx2=W/2;
-        for(let i=0;i<14;i++){
-          const a=i/14*Math.PI*2, r2=50+i*8;
-          enemies.push({x:cx2+Math.cos(a)*r2,y:-20-i*10,w:22,h:18,hp:2+(i>8?1:0),
-            dx:speed*(Math.sin(a)*0.5),dy:0.10+i*0.005,type:i%4,phase:a});
+        // Wave 11: Two diagonal squads converging from top corners
+        const cols=5, sp=50;
+        for(let r=0;r<3;r++) for(let c2=0;c2<cols;c2++){
+          // Left squad: enters top-left, moves right+down
+          enemies.push({x:10+c2*36,y:-10-r*28,w:22,h:18,hp:2,dx:speed*0.6,dy:0.04,type:0,phase:c2*.2+r*.3});
+          // Right squad: enters top-right, moves left+down
+          enemies.push({x:W-10-c2*36,y:-10-r*28,w:22,h:18,hp:2,dx:-speed*0.6,dy:0.04,type:1,phase:c2*.2+r*.3});
         }
       } else if(wave===12){
-        // Wave 12: Three massive formations converging
-        const cols3=6,sp3=Math.min(38,Math.floor((W-20)/cols3));
+        // Wave 12: Three rows at different speeds — like classic Galaga
+        const cols3=7,sp3=Math.min(50,Math.floor((W-30)/cols3));
         for(let c=0;c<cols3;c++){
-          enemies.push({x:10+c*sp3,y:20,w:22,h:18,hp:2,dx:speed,dy:0,type:0,phase:c*.3});
-          enemies.push({x:10+c*sp3,y:55,w:22,h:18,hp:2,dx:speed*.8,dy:0,type:1,phase:c*.3+1});
-          enemies.push({x:10+c*sp3,y:-30,w:22,h:18,hp:1,dx:speed*.9,dy:0.06,type:2,phase:c*.3+2});
+          enemies.push({x:15+c*sp3,y:15,w:22,h:18,hp:2,dx:speed*0.7,dy:0,type:0,phase:c*.25});
+          enemies.push({x:15+c*sp3,y:52,w:22,h:18,hp:2,dx:speed*0.55,dy:0,type:1,phase:c*.25+0.8});
+          enemies.push({x:15+c*sp3,y:88,w:22,h:18,hp:1,dx:speed*0.65,dy:0,type:2,phase:c*.25+1.6});
         }
       } else {
         // Wave 13: FINAL — everything at once, max difficulty

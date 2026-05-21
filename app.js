@@ -1735,8 +1735,15 @@ const App = {
         ga.style.marginRight = Math.round((z-1)*ga.offsetWidth*0.5)+'px';
         if (btn) { btn.textContent = `🔍 ${Math.round(z*100)}%`; btn.style.background = 'rgba(41,182,246,.25)'; }
       };
-      // Tennis/Pong: always start at 200% on mobile
-      if (_taskType === 'pong' || _taskType === 'dart2') { setZoom(2.0); return; }
+      // Tennis/Pong: measure actual game content and fit to screen
+      if (_taskType === 'pong') {
+        const pongCanvas = ga.querySelector('canvas');
+        const pongW = pongCanvas ? pongCanvas.offsetWidth : ga.scrollWidth;
+        const idealZoomP = Math.min(screenW / (pongW + 80), 2.5); // +80 for touch strip
+        const snappedP = [1.5, 1.75, 2.0, 2.25, 2.5].reduce((a,b)=>Math.abs(b-idealZoomP)<Math.abs(a-idealZoomP)?b:a);
+        setZoom(Math.max(1.75, snappedP)); // min 175%
+        return;
+      }
       // Other games: auto-fill screen
       const inner = ga.querySelector('canvas') || ga.querySelector('div');
       const gameW = inner ? (inner.offsetWidth || inner.scrollWidth) : ga.scrollWidth;
@@ -2445,10 +2452,7 @@ Grund: ${reason}`)) return;
             ${wasJoker?'Aufgabe geschafft.':finalScore>0?`✅ Geschafft! +${mtEarned||1} 🌀 MT verdient!`:'Weiter geht\'s! +0.2 🌀 MT'}
             ${allDone?`<br><br>🎉 <b>Welt "${world.name}"</b> komplett!`:''}
           </div>
-          ${allDone && worldId < 10 ? `
-            <button class="btn btn-gold btn-full" style="margin-bottom:10px" onclick="App._portalTransition(${worldId})">
-              🌀 Nächste Welt!
-            </button>` : ''}
+
           ${allDone && worldId === 10 ? `
             <button class="btn btn-gold btn-full" style="margin-bottom:10px" onclick="App.showResetOffer()">
               🏆 Alle Welten geschafft! Reset?
