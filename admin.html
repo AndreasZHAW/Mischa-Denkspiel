@@ -488,7 +488,7 @@ function renderCalTable() {
   const DEV_ICONS = {desktop:'🖥',ipad:'📱iPad',iphone:'📱Phone',android:'🤖'};
   
   const devHeaders = DEVS.map(d => `<th colspan="3" style="text-align:center;padding:5px 8px;border-left:1px solid rgba(255,255,255,.08)">${DEV_ICONS[d]}</th>`).join('');
-  const devSubHeaders = DEVS.map(() => `<th style="padding:3px 5px;color:#E74C3C;font-size:.7rem">Min</th><th style="padding:3px 5px;color:#FFD700;font-size:.7rem">Ø</th><th style="padding:3px 5px;color:#27AE60;font-size:.7rem">Max</th>`).join('');
+  const devSubHeaders = DEVS.map(() => `<th style="padding:3px 5px;color:#E74C3C;font-size:.7rem">Min</th><th style="padding:3px 5px;color:#FFD700;font-size:.7rem">Ø</th><th style="padding:3px 5px;color:#27AE60;font-size:.7rem">Max</th><th style="padding:3px 5px;color:rgba(255,255,255,.4);font-size:.7rem">Detail</th>`).join('');
   
   const rows = GAMES.map((game, i) => {
     const devCells = DEVS.map(dev => {
@@ -499,7 +499,8 @@ function renderCalTable() {
       const avgS = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
       return `<td style="text-align:center;padding:4px 5px;color:#E74C3C">${minS}</td>
         <td style="text-align:center;padding:4px 5px;color:#FFD700">${avgS}<br><span style="font-size:.65rem;color:rgba(255,255,255,.3)">${scores.length}×</span></td>
-        <td style="text-align:center;padding:4px 5px;color:#27AE60">${maxS} <button onclick="editCal(${i},'${dev}')" style="background:none;border:none;cursor:pointer;opacity:.4;font-size:.65rem" title="Bearbeiten">✏️</button></td>`;
+        <td style="text-align:center;padding:4px 5px;color:#27AE60">${maxS}</td>
+        <td style="text-align:center;padding:4px 3px"><button onclick="showCalDetail(${i},'${dev}','${game.n}')" style="background:rgba(52,152,219,.2);border:1px solid #3498DB;color:#3498DB;padding:2px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">🔍</button> <button onclick="editCal(${i},'${dev}')" style="background:none;border:1px solid rgba(255,255,255,.2);padding:2px 5px;border-radius:4px;cursor:pointer;color:rgba(255,255,255,.4);font-size:.68rem">✏️</button></td>`;
     }).join('');
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
       <td style="padding:5px 8px;font-size:.82rem">${game.i} ${game.n}</td>
@@ -517,6 +518,46 @@ function renderCalTable() {
   <div style="margin-top:10px;font-size:.72rem;color:rgba(255,255,255,.3)">
     ${Object.keys(calStore).length} Einträge · Zuletzt aktualisiert: ${new Date().toLocaleTimeString('de-CH')}
   </div>`;
+}
+
+function showCalDetail(gameIdx, dev, gameName) {
+  let calStore = {};
+  try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+  const key = gameIdx+'_'+dev;
+  const scores = calStore[key] || [];
+  
+  // Also load rich records from admin_score_records
+  const records = JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+  // Find matching game records
+  const GAME_IDS = ['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+  const gId = GAME_IDS[gameIdx] || 'unknown';
+  const richRecs = (records[gId]||[]).filter(r=>r.device&&r.device.toLowerCase()===dev||dev==='all');
+  
+  let detailHTML = '';
+  if(richRecs.length) {
+    // Show rich records with date/player/device
+    detailHTML = '<table style="width:100%;border-collapse:collapse;font-size:.75rem"><thead><tr style="color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:3px 6px;text-align:left">Datum</th><th style="padding:3px 6px">Spieler</th><th style="padding:3px 6px">Gerät</th><th style="padding:3px 6px">Score</th><th style="padding:3px 6px">MT</th></tr></thead><tbody>'+
+      richRecs.sort((a,b)=>b.score-a.score).map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:3px 6px;color:rgba(255,255,255,.6)">${r.date||'?'}</td><td style="padding:3px 6px;color:#4af">${r.player||'?'}</td><td style="padding:3px 6px">${r.device||'?'}</td><td style="padding:3px 6px;color:#FFD700;font-weight:700">${r.score||0}</td><td style="padding:3px 6px;color:#27AE60">${r.mt?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'—'}</td></tr>`).join('')+
+      '</tbody></table>';
+  } else if(scores.length) {
+    // Show raw scores from calibration
+    detailHTML = '<div style="color:rgba(255,255,255,.6);font-size:.78rem;padding:8px">Rohscores (ohne Datum/Spieler): '+
+      scores.map((s,i)=>`<span style="display:inline-block;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;margin:2px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'}">${s}</span>`).join('')+
+      '</div>';
+  } else {
+    detailHTML = '<div style="color:#888;padding:10px;text-align:center">Keine Daten verfügbar</div>';
+  }
+  
+  // Show in modal-like panel
+  let panel = document.getElementById('cal-detail-panel');
+  if(!panel) {
+    panel = document.createElement('div');
+    panel.id = 'cal-detail-panel';
+    panel.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:1000;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;max-width:700px;width:90%;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.6)';
+    document.body.appendChild(panel);
+  }
+  panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (${scores.length} Spiele)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div>${detailHTML}`;
+  panel.style.display = 'block';
 }
 
 function editCal(gameIdx, dev) {
@@ -827,16 +868,118 @@ function showScDetail(gId,name,scores){
   if(!sorted.length){rows.innerHTML='<div style="color:#888;padding:10px;text-align:center">Keine Partien</div>';return;}
   rows.innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr style="color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:3px 8px;font-size:.75rem">Datum</th><th style="padding:3px 8px;font-size:.75rem">Spieler</th><th style="padding:3px 8px;font-size:.75rem">Gerät</th><th style="padding:3px 8px;font-size:.75rem">Score</th><th style="padding:3px 8px;font-size:.75rem">MT</th></tr></thead><tbody>'+sorted.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)"><td style="padding:3px 8px;font-size:.75rem">${r.date||'—'}</td><td style="padding:3px 8px;color:#4af;font-size:.75rem">${r.player||'?'}</td><td style="padding:3px 8px;font-size:.75rem">${r.device||'?'}</td><td style="padding:3px 8px;color:#FFD700;font-weight:700;font-size:.75rem">${r.score||0}</td><td style="padding:3px 8px;color:#27AE60;font-size:.75rem">${r.mt?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'—'}</td></tr>`).join('')+'</tbody></table>';
 }
+// All questions embedded directly — no need for Zoo-Admin
+const ALL_QUESTIONS={
+  french:{
+    sehr_einfach:[
+      {q:"Wie sagt man 'Hallo'?",a:"bonjour"},{q:"Was bedeutet 'chat'?",a:"Katze"},
+      {q:"Wie sagt man 'Danke'?",a:"merci"},{q:"Was bedeutet 'maison'?",a:"Haus"},
+      {q:"Wie sagt man 'Ja'?",a:"oui"},{q:"Was bedeutet 'école'?",a:"Schule"},
+      {q:"Wie sagt man 'Nein'?",a:"non"},{q:"Was bedeutet 'soleil'?",a:"Sonne"},
+      {q:"Wie sagt man 'Gute Nacht'?",a:"bonne nuit"},{q:"Was bedeutet 'chien'?",a:"Hund"},
+      {q:"Was bedeutet 'rouge'?",a:"rot"},{q:"Was bedeutet 'bleu'?",a:"blau"},
+      {q:"Wie sagt man 'Bitte'?",a:"s'il vous plaît"},{q:"Was bedeutet 'ami'?",a:"Freund"},
+      {q:"Wie sagt man 'Auf Wiedersehen'?",a:"au revoir"},{q:"Was bedeutet 'chat'?",a:"Katze"},
+    ],
+    einfach:[
+      {q:"Ich bin = ?",a:"je suis"},{q:"Was bedeutet 'Je m'appelle'?",a:"Ich heiße"},
+      {q:"Artikel von 'livre' (Buch)?",a:"le"},{q:"Verneinung von 'Je parle'?",a:"Je ne parle pas"},
+      {q:"'avoir' bedeutet?",a:"haben"},{q:"Wir spielen = ?",a:"nous jouons"},
+      {q:"Was bedeutet 'Quel âge as-tu?'",a:"Wie alt bist du?"},{q:"'La famille' bedeutet?",a:"die Familie"},
+      {q:"Ich gehe zur Schule = ?",a:"Je vais à l'école"},{q:"Plural von 'un chien'?",a:"des chiens"},
+      {q:"'Faire' bedeutet?",a:"machen/tun"},{q:"Wie sagt man 'heute'?",a:"aujourd'hui"},
+      {q:"'Grand/grande' bedeutet?",a:"groß"},{q:"Wie sagt man 'ich liebe'?",a:"j'aime"},
+    ],
+    mittel:[
+      {q:"Subjonctif von 'aller' (que je)?",a:"que j'aille"},{q:"Imparfait von 'je suis'?",a:"j'étais"},
+      {q:"'Bien que' + welcher Modus?",a:"Subjonctif"},{q:"Passé composé von 'partir' (je)?",a:"je suis parti(e)"},
+      {q:"Was bedeutet 'néanmoins'?",a:"dennoch"},{q:"'Y' in 'J'y pense' ersetzt?",a:"den Ort / à + Sache"},
+      {q:"Futur simple 'avoir' (nous)?",a:"nous aurons"},{q:"'Se rendre compte de' bedeutet?",a:"sich bewusst werden"},
+      {q:"'Le développement durable' = ?",a:"nachhaltige Entwicklung"},{q:"'Bien que tu sois' → Modus?",a:"Subjonctif"},
+    ],
+    schwer:[
+      {q:"Konjugiere 'vouloir' Subjonctif: 'il faut que tu'?",a:"veuilles"},
+      {q:"Futur antérieur von 'partir' (il)?",a:"il sera parti"},
+      {q:"'Elle ___ partie.' (Passé composé)?",a:"est"},
+      {q:"Konditionalis von 'pouvoir' (je)?",a:"je pourrais"},
+      {q:"'Néanmoins' bedeutet?",a:"dennoch / trotzdem"},
+      {q:"'Par conséquent' bedeutet?",a:"folglich / daher"},
+      {q:"Gérondif von 'faire'?",a:"en faisant"},
+      {q:"'En revanche' bedeutet?",a:"dagegen / im Gegensatz dazu"},
+      {q:"Discours indirect: 'il voulait' kommt von?",a:"il veut → il voulait (ind. passé)"},
+      {q:"'Quoique' + welcher Modus?",a:"Subjonctif"},
+      {q:"Conditionnel passé: 'je n'___ pas venu' (venir)?",a:"serais"},
+      {q:"'Il s'agit de' bedeutet?",a:"Es handelt sich um"},
+      {q:"Futur simple von 'envoyer' (je)?",a:"j'enverrai"},
+      {q:"'Or' als Konnektor bedeutet?",a:"Nun / Aber nun (Übergang)"},
+      {q:"Subjonctif von 'être' (nous)?",a:"soyons"},
+      {q:"'Toutefois' bedeutet?",a:"jedoch / gleichwohl"},
+      {q:"Passé simple von 'venir' (il)?",a:"il vint"},
+      {q:"'Davantage' bedeutet?",a:"mehr / stärker"},
+      {q:"'Bien que' verlangt?",a:"Subjonctif"},
+      {q:"'Il vaut mieux que tu...' + Modus?",a:"Subjonctif"},
+    ]
+  },
+  truefalse:{
+    schwer:[
+      {q:"Die Schweiz ist Mitglied der Europäischen Union.",a:false},
+      {q:"Das Tempolimit auf Schweizer Autobahnen beträgt 120 km/h.",a:true},
+      {q:"Der Mont Blanc liegt in den Pyrenäen.",a:false},
+      {q:"Frankreich hat mehr als 60 Millionen Einwohner.",a:true},
+      {q:"In Frankreich gilt Linksverkehr.",a:false},
+      {q:"Das Heilige Römische Reich endete im Jahr 1806.",a:true},
+      {q:"Die Kreuzritter kämpften im 15. Jahrhundert.",a:false},
+      {q:"Ein Donjon ist der Hauptturm einer Burg.",a:true},
+      {q:"Die Pest tötete im 14. Jahrhundert ca. 1/3 der Europäer.",a:true},
+      {q:"Chlor tötet Bakterien im Schwimmbad ab.",a:true},
+      {q:"Ein Olympisches Schwimmbecken ist 50m lang.",a:true},
+      {q:"Delfine sind Fische.",a:false},
+      {q:"UV-Strahlen können durch Wasser nicht hindurch.",a:false},
+      {q:"Der Ärmelkanal trennt Frankreich von Grossbritannien.",a:true},
+      {q:"Lyon ist die Hauptstadt von Frankreich.",a:false},
+      {q:"Die Rhone fliesst durch Genf.",a:true},
+    ],
+    einfach:[
+      {q:"Paris ist die Hauptstadt von Frankreich.",a:true},
+      {q:"Ein Elefant ist kleiner als eine Maus.",a:false},
+      {q:"Die Sonne ist ein Stern.",a:true},
+      {q:"Ein Dreieck hat 4 Ecken.",a:false},
+      {q:"Wasser friert bei 0°C.",a:true},
+      {q:"Ein Jahr hat 365 Tage (Normaljahr).",a:true},
+      {q:"Der Mond ist weiter weg als die Sonne.",a:false},
+      {q:"Zürich ist die Hauptstadt der Schweiz.",a:false},
+      {q:"Spinnen sind Insekten.",a:false},
+      {q:"Der Nil ist der längste Fluss der Welt.",a:true},
+    ]
+  }
+};
+
 function loadQAdmin(){
   const game=document.getElementById('q-game')?.value||'french';
   const level=document.getElementById('q-level')?.value||'schwer';
   const el=document.getElementById('q-list-cont');if(!el)return;
+  
+  const questions=(ALL_QUESTIONS[game]&&ALL_QUESTIONS[game][level])||[];
   const deleted=JSON.parse(localStorage.getItem('admin_q_deleted_'+game+'_'+level)||'[]');
   const overrides=JSON.parse(localStorage.getItem('admin_q_overrides_'+game+'_'+level)||'[]');
-  if(!overrides.length&&!deleted.length){el.innerHTML='<div style="color:#888;padding:16px;text-align:center">Keine lokalen Fragen. Fragen aus Spielcode nur im Zoo-Admin sichtbar.</div>';return;}
+  const allQ=[...questions.filter((_,i)=>!deleted.includes(i)),...overrides];
+  const isMC=game==='french';
   const col={schwer:'#E74C3C',mittel:'#F39C12',einfach:'#3498DB',sehr_einfach:'#27AE60'};
-  el.innerHTML=overrides.map((q,i)=>`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;margin-bottom:6px;border-left:3px solid ${col[level]||'#4af'}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><span style="color:rgba(255,255,255,.4);font-size:.72rem">F${i+1}</span> <b style="font-size:.82rem">${q.q||'?'}</b><div style="color:#27AE60;font-size:.75rem;margin-top:2px">Antwort: ${q.a===true?'WAHR':q.a===false?'FALSCH':(q.a||'?')}</div></div><button onclick="delQAdmin('${game}','${level}',${i})" style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:2px 7px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️</button></div></div>`).join('');
-  if(deleted.length) el.innerHTML+=`<div style="color:#888;font-size:.78rem;margin-top:8px;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px">🗑️ ${deleted.length} Spielcode-Fragen gelöscht <button onclick="restoreQAdmin('${game}','${level}')" style="margin-left:8px;background:rgba(39,174,96,.2);border:1px solid #27AE60;color:#27AE60;padding:2px 7px;border-radius:5px;font-size:.72rem;cursor:pointer">↩️ Wiederherstellen</button></div>`;
+  
+  if(!allQ.length){el.innerHTML='<div style="color:#888;padding:16px;text-align:center">Keine Fragen für diese Kombination.</div>';return;}
+  
+  el.innerHTML=`<div style="margin-bottom:8px;font-size:.78rem;color:rgba(255,255,255,.5)">${allQ.length} Fragen · <span style="color:${col[level]||'#4af'}">${level}</span>${deleted.length?` · 🗑️ ${deleted.length} gelöscht`:''}</div>`+
+  allQ.map((q,i)=>`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;margin-bottom:5px;border-left:3px solid ${col[level]||'#4af'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="flex:1"><span style="color:rgba(255,255,255,.35);font-size:.7rem">F${i+1}</span>
+        <span style="font-size:.82rem;font-weight:600;margin-left:4px">${q.q||q.question||'?'}</span>
+        <div style="color:#27AE60;font-size:.75rem;margin-top:2px">→ ${isMC?(q.a||'?'):(q.a===true?'✅ WAHR':'❌ FALSCH')}</div>
+        ${isMC&&q.choices?`<div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-top:1px">${q.choices.join(' · ')}</div>`:''}
+      </div>
+      ${i<questions.length-deleted.length?`<button onclick="delQAdmin('${game}','${level}',${i})" style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:2px 7px;border-radius:5px;font-size:.72rem;cursor:pointer;flex-shrink:0">🗑️</button>`:''}
+    </div>
+  </div>`).join('')+
+  (deleted.length?`<div style="margin-top:8px;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:.75rem;color:#888">🗑️ ${deleted.length} Fragen ausgeblendet <button onclick="restoreQAdmin('${game}','${level}')" style="margin-left:8px;background:rgba(39,174,96,.2);border:1px solid #27AE60;color:#27AE60;padding:2px 7px;border-radius:5px;font-size:.72rem;cursor:pointer">↩️ Alle wiederherstellen</button></div>`:'');
 }
 function delQAdmin(game,level,idx){if(!confirm('Löschen?'))return;const k='admin_q_overrides_'+game+'_'+level;const a=JSON.parse(localStorage.getItem(k)||'[]');a.splice(idx,1);localStorage.setItem(k,JSON.stringify(a));loadQAdmin();}
 function restoreQAdmin(game,level){localStorage.removeItem('admin_q_deleted_'+game+'_'+level);loadQAdmin();}

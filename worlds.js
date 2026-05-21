@@ -102,7 +102,7 @@ const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
 const WORLD_DEFS = [
   {id:1, name:'Mischa Denkspiel', icon:'🎮', color:'#2980B9',
    description:'Verdiene Mischa Taler — baue dein Zoo-Empire!',
-   difficulty:'20 Spiele · bis 1.5 🌀 MT pro Spiel',
+   difficulty:'20 Spiele · bis 2 🌀 MT pro Spiel',
    memoryEmojis:['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🦒','🐘','🦓'],
    tasks:[
     {id:'dart',       type:'dart',       name:'Dart',          icon:'🎯', title:'Dart spielen'},
