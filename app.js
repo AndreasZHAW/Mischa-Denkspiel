@@ -1016,7 +1016,7 @@ const App = {
                 <div class="world-info">
                   <div class="world-name" style="font-size:clamp(1rem,4.5vw,1.25rem);font-weight:900">${world.name}</div>
                   <div class="world-desc" style="font-size:clamp(0.9rem,4.2vw,1rem);font-weight:500">${world.difficulty}</div>
-                  <div class="world-progress" style="font-size:clamp(0.85rem,3.8vw,0.97rem);font-weight:600">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0).toFixed(1)} MT</div>
+                  <div class="world-progress" style="font-size:clamp(0.85rem,3.8vw,0.97rem);font-weight:600">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0).toFixed(1)} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
@@ -2449,7 +2449,7 @@ Grund: ${reason}`)) return;
           <div class="overlay-emoji">${wasJoker?'🃏':allDone?'🏆':'⭐'}</div>
           <div class="overlay-title">${wasJoker?'Joker!':'Super!'}</div>
           <div class="overlay-msg">
-            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`✅ Geschafft! +${mtEarned||1} 🌀 MT verdient!`:'Weiter geht\'s! +0.2 🌀 MT'}
+            ${wasJoker?'Aufgabe geschafft.':finalScore>0?`✅ Geschafft! +${(isNaN(mtEarned)||!isFinite(mtEarned))?'1.0':(mtEarned||1).toFixed(1)} 🌀 MT verdient!`:'Weiter geht\'s! +0.2 🌀 MT'}
             ${allDone?`<br><br>🎉 <b>Welt "${world.name}"</b> komplett!`:''}
           </div>
 

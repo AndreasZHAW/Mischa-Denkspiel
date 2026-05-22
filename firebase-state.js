@@ -209,7 +209,7 @@ const State = {
     if (result.passed === false) {
       mtEarned = 0.2;
     } else {
-      const raw = result.rawScore || 50;
+      const raw = (result.rawScore !== undefined && result.rawScore !== null && !isNaN(result.rawScore)) ? Math.max(0, result.rawScore) : 50;
       const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
       const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
       const hasTouchscreen = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0;
@@ -224,41 +224,56 @@ const State = {
       let overrides = {};
       try { overrides = JSON.parse(localStorage.getItem('cal_overrides_local')||'{}'); } catch(e){}
 
-      const scores = calStore[key] || []; // Clean array - only previous scores (app.js no longer adds here)
+      // Filter out any NaN/invalid values from stored scores
+      const rawScores = (calStore[key] || []).filter(s => typeof s==='number' && !isNaN(s) && s>=0);
 
       // Effective min/avg/max: use override if set, else compute from previous scores
       let minS, avgS, maxS;
-      if (scores.length === 0 && !overrides[key+'_avg']) {
+      if (rawScores.length === 0 && !overrides[key+'_avg']) {
         mtEarned = 1.0; // First play ever → always exactly 1 MT
       } else {
-        minS = overrides[key+'_min'] ?? (scores.length ? Math.min(...scores) : raw);
-        maxS = overrides[key+'_max'] ?? (scores.length ? Math.max(...scores) : raw);
-        avgS = overrides[key+'_avg'] ?? (scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : raw);
+        const _ov_min = overrides[key+'_min'];
+        const _ov_max = overrides[key+'_max'];
+        const _ov_avg = overrides[key+'_avg'];
+        minS = (_ov_min !== undefined && !isNaN(_ov_min)) ? _ov_min : (rawScores.length ? Math.min(...rawScores) : raw);
+        maxS = (_ov_max !== undefined && !isNaN(_ov_max)) ? _ov_max : (rawScores.length ? Math.max(...rawScores) : raw);
+        avgS = (_ov_avg !== undefined && !isNaN(_ov_avg)) ? _ov_avg : (rawScores.length ? rawScores.reduce((a,b)=>a+b,0)/rawScores.length : raw);
 
-        if (maxS === minS) {
-          // Same score as all previous → 1.0 exactly; better → 1.2; worse → 0.8
-          mtEarned = raw === avgS ? 1.0 : raw > avgS ? 1.2 : 0.8;
+        // Guard against division by zero and NaN — robust MT calculation
+        if (isNaN(minS)||isNaN(maxS)||isNaN(avgS)||isNaN(raw)) {
+          mtEarned = 1.0;
+        } else if (maxS <= minS || maxS === minS) {
+          // All scores identical: compare to average (or just give 1.0)
+          mtEarned = raw >= (avgS||maxS) ? 1.0 : 0.8;
         } else if (raw <= minS) {
-          mtEarned = 0.0;
+          mtEarned = 0.2;
         } else if (raw >= maxS) {
           mtEarned = 2.0;
+        } else if (avgS <= minS || avgS >= maxS) {
+          // avgS outside valid range (e.g. only _avg override set): linear min→max
+          const range = maxS - minS;
+          mtEarned = 0.2 + (raw - minS) / range * 1.8;
         } else if (raw < avgS) {
-          mtEarned = (raw - minS) / (avgS - minS);
+          const rangeBelow = avgS - minS;
+          mtEarned = rangeBelow > 0 ? 0.2 + (raw - minS) / rangeBelow * 0.8 : 0.6;
         } else {
-          mtEarned = 1 + (raw - avgS) / (maxS - avgS);
+          const rangeAbove = maxS - avgS;
+          mtEarned = rangeAbove > 0 ? 1.0 + (raw - avgS) / rangeAbove : 1.0;
         }
-        mtEarned = Math.round(Math.min(2.0, Math.max(0.0, mtEarned)) * 10) / 10;
+        mtEarned = Math.round(Math.min(2.0, Math.max(0.2, mtEarned)) * 10) / 10;
+        // Final NaN guard (belt-and-suspenders)
+        if (isNaN(mtEarned) || !isFinite(mtEarned)) mtEarned = 1.0;
       }
 
       // Save current score to cal store
-      scores.push(raw);
-      calStore[key] = scores;
+      rawScores.push(raw);
+      calStore[key] = rawScores;
       try { localStorage.setItem('cal_data_v3', JSON.stringify(calStore)); } catch(e){}
 
       // Sync aggregated + individual record to Firebase
       if (typeof _db !== 'undefined' && _db) {
         try {
-          const upd = {}; upd[key] = scores;
+          const upd = {}; upd[key] = rawScores; // was 'scores' (undefined) — bug fixed
           _db.collection('calibration').doc('scores').set(upd, {merge:true}).catch(()=>{});
           // Save record with dedup key to prevent duplicates
           const dedupKey = playerName+'_'+taskIndex+'_'+dev+'_'+Math.floor(Date.now()/5000);
@@ -280,6 +295,9 @@ const State = {
     }
     
     const prevPlays = player.worlds[worldIndex].tasks[taskIndex]?.plays || 0;
+    // Read OLD mt BEFORE overwriting (critical: prevent NaN from self-reference)
+    const oldMt = (player.worlds[worldIndex].tasks[taskIndex]?.mt) || 0;
+
     player.worlds[worldIndex].tasks[taskIndex] = {
       done: true, score: finalScore, mt: mtEarned,
       rawScore: result.rawScore || 0,
@@ -289,16 +307,19 @@ const State = {
       lastPlayed: Date.now(),
     };
 
-    // Update total score: subtract old MT for this task, add new
-    const oldMt = (player.worlds[worldIndex].tasks[taskIndex]?.mt) || 0;
-    // Note: we already set the new mt above, so we need to use mtEarned
-    // For re-plays: adjust totalScore by difference
+    // Update total score safely
+    const prevTotal = isNaN(player.totalScore) ? 0 : (player.totalScore || 0);
     if (prevPlays > 0) {
-      // Replace old score with new one
-      player.totalScore = Math.max(0, (player.totalScore || 0) - oldMt + mtEarned);
+      // Re-play: subtract old MT, add new (both validated)
+      const safeOld = isNaN(oldMt) ? 0 : oldMt;
+      player.totalScore = Math.max(0, Math.round((prevTotal - safeOld + mtEarned) * 10) / 10);
     } else {
       // First play: just add
-      player.totalScore = (player.totalScore || 0) + mtEarned;
+      player.totalScore = Math.round((prevTotal + mtEarned) * 10) / 10;
+    }
+    // Final NaN guard on totalScore
+    if (isNaN(player.totalScore) || !isFinite(player.totalScore)) {
+      player.totalScore = prevTotal; // revert to last known good value
     }
     
     // If Janoschtest: save their raw scores as calibration data
