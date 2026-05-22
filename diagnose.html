@@ -35,6 +35,7 @@ button.sec{background:#2a6;color:#fff}button.info{background:#2a6ab5;color:#fff}
   <div class="tab" onclick="switchTab('zoo')">🦁 Zoo / WebGL</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
+  <div class="tab" onclick="switchTab('admin')">🔑 Admin</div>
 </div>
 
 <!-- ══ TAB: CRASH LOG ══ -->
@@ -133,7 +134,16 @@ button.sec{background:#2a6;color:#fff}button.info{background:#2a6ab5;color:#fff}
 
 <!-- ══ IMMER SICHTBAR: FULL LOG ══ -->
 <div class="box" style="margin-top:10px">
-  <h2>📋 Diagnose-Log</h2>
+  <!-- ADMIN TAB -->
+<div id="tab-admin" class="tab-content" style="display:none">
+  <h2>🔑 Admin-Diagnose</h2>
+  <p>Prüft ob admin.html korrekt lädt und der Login funktioniert.</p>
+  <button onclick="runAdminDiag()" class="sec">🔍 Admin-Test starten</button>
+  <button onclick="window.open('admin.html','_blank')" class="info">🔑 Admin öffnen</button>
+  <pre id="admin-out" style="background:#111;color:#aaa;padding:10px;border-radius:6px;margin-top:10px;font-size:.78rem;white-space:pre-wrap;max-height:400px;overflow-y:auto">Klicke "Admin-Test starten"</pre>
+</div>
+
+<h2>📋 Diagnose-Log</h2>
   <button onclick="copyLog()">📋 Kopieren</button>
   <button onclick="dlLog()">💾 Download</button>
   <button onclick="runAll()" class="sec">🔄 Alle Tests neu</button>
@@ -143,6 +153,85 @@ button.sec{background:#2a6;color:#fff}button.info{background:#2a6ab5;color:#fff}
 
 <script>
 // ══ TAB SWITCH ══
+async function runAdminDiag() {
+  const out = document.getElementById('admin-out');
+  const lines = [];
+  const L2 = msg => { lines.push(msg); out.textContent = lines.join('\n'); };
+  
+  L2('=== Admin-Diagnose ===');
+  L2('Zeit: ' + new Date().toLocaleString('de-CH'));
+  
+  // 1. Fetch admin.html and check for syntax errors
+  try {
+    const resp = await fetch('admin.html?v='+Date.now());
+    L2('admin.html HTTP: ' + resp.status + ' ' + (resp.ok?'✅':'❌'));
+    const txt = await resp.text();
+    L2('admin.html Größe: ' + txt.length + ' Bytes');
+    
+    // Check for key elements
+    L2('login-wrap: ' + (txt.includes('id="login-wrap"')?'✅':'❌ FEHLT'));
+    L2('admin-wrap: ' + (txt.includes('id="admin-wrap"')?'✅':'❌ FEHLT'));
+    L2('doLogin: ' + (txt.includes('function doLogin()')?'✅':'❌ FEHLT'));
+    L2('ADMIN_PW: ' + (txt.includes('ADMIN_PW')?'✅':'❌ FEHLT'));
+    L2('pw input: ' + (txt.includes('id="pw"')?'✅':'❌ FEHLT'));
+    
+    // Count script tags
+    const scripts = (txt.match(/<script/g)||[]).length;
+    L2('Script-Tags: ' + scripts);
+    
+    // Check password value
+    const pwMatch = txt.match(/ADMIN_PW\s*=\s*'([^']+)'/);
+    if(pwMatch) L2('Passwort hinterlegt: "' + pwMatch[1] + '" (korrekt?)');
+    else L2('❌ ADMIN_PW Wert nicht gefunden');
+    
+    // Check for unclosed strings (simple heuristic)
+    const singleQ = (txt.match(/'/g)||[]).length;
+    const doubleQ = (txt.match(/"/g)||[]).length;
+    L2('Anführungszeichen: ' + singleQ + ' einfache ('+( singleQ%2===0?'GERADE':'UNGERADE!')+ '), ' + doubleQ + ' doppelte');
+    
+  } catch(e) {
+    L2('❌ Fetch-Fehler: ' + e.message);
+  }
+  
+  // 2. Try loading admin.html in iframe
+  L2('\nIframe-Test...');
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = 'admin.html';
+    document.body.appendChild(iframe);
+    await new Promise(r => setTimeout(r, 2000));
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if(iframeDoc) {
+      const loginVisible = iframeDoc.getElementById('login-wrap')?.style.display !== 'none';
+      L2('Login-Formular sichtbar: ' + (loginVisible?'✅ JA':'❌ NEIN'));
+      const pwEl = iframeDoc.getElementById('pw');
+      L2('Passwort-Input: ' + (pwEl?'✅ gefunden':'❌ FEHLT'));
+      if(pwEl) {
+        // Try simulating login
+        pwEl.value = 'mischa2026';
+        try {
+          iframe.contentWindow.doLogin();
+          await new Promise(r => setTimeout(r, 500));
+          const adminVisible = iframeDoc.getElementById('admin-wrap')?.style.display !== 'none';
+          L2('Login erfolgreich: ' + (adminVisible?'✅ JA - admin-wrap sichtbar':'❌ NEIN - admin-wrap noch versteckt'));
+          const statusTxt = iframeDoc.getElementById('status-txt')?.textContent;
+          L2('Status nach Login: "' + statusTxt + '"');
+        } catch(e2) {
+          L2('❌ doLogin() Fehler: ' + e2.message);
+        }
+      }
+    } else {
+      L2('❌ Iframe-Dokument nicht zugänglich');
+    }
+    iframe.remove();
+  } catch(e) {
+    L2('❌ Iframe-Test Fehler: ' + e.message);
+  }
+  
+  L2('\n=== Ende Admin-Diagnose ===');
+}
+
 function switchTab(id){
   document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',t.onclick.toString().includes("'"+id+"'"));});
   document.querySelectorAll('.tab-content').forEach(c=>{c.classList.remove('active');});
@@ -219,9 +308,13 @@ async function runWelt1(){
     pr.push('Aktueller Spieler: '+(ss||ls||'(keiner)'));
     const mp=JSON.parse(localStorage.getItem('mischa_players')||'{}');
     Object.entries(mp).forEach(([n,p])=>{
-      const mt=(p.mt||0).toFixed(1);
+      const mt=p.totalScore||p.mt||0;
+      // Also sum from worlds as cross-check
+      let worldsMT=0;
+      try{Object.values(p.worlds||{}).forEach(ws=>{(ws.tasks||[]).forEach(t=>{if(t&&t.mt&&!isNaN(t.mt))worldsMT+=t.mt;});});}catch(e){}
       const cw=p.currentWorld||1;
-      pr.push(`  👤 ${n}: ${mt} MT · Welt ${cw}`);
+      const tasksCount=Object.values(p.worlds||{}).reduce((s,ws)=>s+((ws.tasks||[]).filter(t=>t&&t.done).length),0);
+      pr.push(`  👤 ${n}: totalScore=${mt.toFixed?mt.toFixed(1):mt} MT · worldsMT=${worldsMT.toFixed(1)} MT · Welt ${cw} · ${tasksCount} Tasks`);
     });
     const zk=Object.keys(localStorage).filter(k=>k.startsWith('zoo_unlocked_'));
     if(zk.length)pr.push('Zoo freigeschaltet: '+zk.map(k=>k.replace('zoo_unlocked_','')).join(', '));

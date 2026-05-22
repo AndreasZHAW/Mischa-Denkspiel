@@ -330,9 +330,15 @@ function stopSpin(id) {
 }
 function getMT(p) {
   try {
-    const ws = p.worlds?.['1'] || p.worlds?.[1] || {};
-    return (ws.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
-  } catch(e) { return 0; }
+    // Sum MT across all worlds
+    let total = 0;
+    Object.values(p.worlds||{}).forEach(ws => {
+      (ws.tasks||[]).forEach(t => { if(t&&t.mt&&!isNaN(t.mt)) total += t.mt; });
+    });
+    // Fallback to totalScore if worlds have no MT data
+    if(total === 0 && p.totalScore > 0) return p.totalScore;
+    return total;
+  } catch(e) { return p.totalScore || 0; }
 }
 function fmt(ts) {
   if(!ts) return '–';
@@ -346,18 +352,35 @@ function fmtDate(ts) {
 // ═══ LOGIN ═══
 function doLogin() {
   const pw = document.getElementById('pw').value;
-  if(pw === ADMIN_PW || pw === 'mischa2024' || pw === 'admin') {
-    document.getElementById('login-wrap').style.display = 'none';
-    document.getElementById('admin-wrap').style.display = 'block';
-    loadFirebase(() => {
-      setStatus('Firebase verbunden');
-      loadPlayers();
-      loadMsgs();
-      loadBans();
-      loadReports();
-    });
-  } else {
-    document.getElementById('pw-err').textContent = '❌ Falsches Passwort';
+  const errEl = document.getElementById('pw-err');
+  errEl.textContent = '⏳ Prüfe...';
+  console.log('[Admin] doLogin called, pw length:', pw.length);
+  try {
+    if(pw === ADMIN_PW || pw === 'mischa2024' || pw === 'admin') {
+      console.log('[Admin] Password correct, showing admin panel');
+      const lw = document.getElementById('login-wrap');
+      const aw = document.getElementById('admin-wrap');
+      if(!lw) { errEl.textContent = '❌ login-wrap nicht gefunden!'; return; }
+      if(!aw) { errEl.textContent = '❌ admin-wrap nicht gefunden!'; return; }
+      lw.style.display = 'none';
+      aw.style.display = 'block';
+      errEl.textContent = '';
+      setStatus('⏳ Firebase lädt...');
+      loadFirebase(() => {
+        console.log('[Admin] Firebase loaded, calling loadPlayers etc.');
+        setStatus('Firebase verbunden');
+        try { loadPlayers(); } catch(e) { console.error('[Admin] loadPlayers error:', e); setStatus('❌ loadPlayers: '+e.message); }
+        try { loadMsgs(); } catch(e) { console.error('[Admin] loadMsgs error:', e); }
+        try { loadBans(); } catch(e) { console.error('[Admin] loadBans error:', e); }
+        try { loadReports(); } catch(e) { console.error('[Admin] loadReports error:', e); }
+      });
+    } else {
+      console.log('[Admin] Wrong password');
+      errEl.textContent = '❌ Falsches Passwort (mischa2026)';
+    }
+  } catch(e) {
+    console.error('[Admin] doLogin exception:', e);
+    errEl.textContent = '❌ Fehler: ' + e.message;
   }
 }
 document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
@@ -427,7 +450,8 @@ async function loadPlayers() {
     const srcBadge = p._src==='cloud' ? '<span class="badge badge-blue">☁️</span>' : p._src==='both' ? '<span class="badge badge-green">✓</span>' : '<span class="badge badge-gray">📱</span>';
     // Calculate age from birthYear
     const _by=parseInt(p.birthYear)||0;
-    const _age=_by>1900&&_by<2030?new Date().getFullYear()-_by:null;
+    const _year=new Date().getFullYear();
+    const _age=_by>1900&&_by<_year?_year-_by:null;
     const _ageTxt=_age?_age+'J':'?';
     return `<tr>
       <td><b>${name}</b> ${srcBadge}</td>
@@ -532,8 +556,7 @@ function showCalDetail(gameIdx, dev, gameName) {
       +'<div style="margin-bottom:6px;color:rgba(255,255,255,.4)">Rohscores — klicke ✕ zum Löschen einzelner Werte:</div>'
       +'<div style="display:flex;flex-wrap:wrap;gap:4px">'
       +scores.map((s,i)=>`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;margin:1px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'}">${s}<button onclick="deleteCalScore('${gameIdx}','${dev}',${i})" style="background:none;border:none;color:rgba(255,100,100,.7);cursor:pointer;font-size:.75rem;padding:0 1px;line-height:1">✕</button></span>`).join('')
-      +'</div>'
-      +'<button onclick="deleteAllCalScores(''+gameIdx+'',''+dev+'')" style="margin-top:8px;background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:3px 10px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️ Alle löschen</button>'
+      +'<button data-gi="'+gameIdx+'" data-dv="'+dev+'" class="cal-del-all" style="margin-top:8px;background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:3px 10px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️ Alle löschen</button>'
       +'</div>';
   } else {
     detailHTML = '<div style="color:#888;padding:10px;text-align:center">Keine Daten verfügbar</div>';
@@ -1005,6 +1028,14 @@ function loadQAdmin(){
 function delQAdmin(game,level,idx){if(!confirm('Löschen?'))return;const k='admin_q_overrides_'+game+'_'+level;const a=JSON.parse(localStorage.getItem(k)||'[]');a.splice(idx,1);localStorage.setItem(k,JSON.stringify(a));loadQAdmin();}
 function restoreQAdmin(game,level){localStorage.removeItem('admin_q_deleted_'+game+'_'+level);loadQAdmin();}
 
+// Event delegation for cal delete buttons (avoids quote escaping in onclick)
+document.addEventListener('click', e => {
+  const one = e.target.closest('.cal-del-one');
+  const all = e.target.closest('.cal-del-all');
+  if(one) deleteCalScore(one.dataset.gi, one.dataset.dv, parseInt(one.dataset.si));
+  if(all && confirm('Alle Scores löschen?')) deleteAllCalScores(all.dataset.gi, all.dataset.dv);
+});
+
 function deleteCalScore(gameIdx, dev, scoreIdx) {
   let calStore = {};
   try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
@@ -1023,7 +1054,6 @@ function deleteCalScore(gameIdx, dev, scoreIdx) {
 }
 
 function deleteAllCalScores(gameIdx, dev) {
-  if(!confirm('Alle Scores für diesen Eintrag löschen?')) return;
   let calStore = {};
   try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
   const key = gameIdx+'_'+dev;
