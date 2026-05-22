@@ -366,8 +366,15 @@ const App = {
     const charData = (window.CHARACTERS||CHARACTERS||[]).find(c=>c.id===p.character);
     const zooUsers = JSON.parse(localStorage.getItem('zoo_users')||'{}');
     const zKey = p.name.toLowerCase();
-    if(!zooUsers[zKey]) zooUsers[zKey] = {pw:'auto',ch:{e:charData?.emoji||'🧭',id:p.character}};
-    else zooUsers[zKey].ch = {e:charData?.emoji||'🧭',id:p.character};
+    const _charEmoji = charData?.emoji || (p.characterColor ? '🎮' : '🐾');
+    const _charId = p.character || 'runner'; // always have a valid ID
+    if(!zooUsers[zKey]) {
+      zooUsers[zKey] = {n:p.name, pw:'auto', ch:{e:_charEmoji, id:_charId}};
+    } else {
+      // Always update character so it stays in sync
+      zooUsers[zKey].ch = {e:_charEmoji, id:_charId};
+      // Keep existing password (don't reset to 'auto' if user changed it)
+    }
     localStorage.setItem('zoo_users', JSON.stringify(zooUsers));
     sessionStorage.setItem('mischa_birthyear', p.birthYear||2000);
     // ── CINEMATIC TELEPORT SCREEN ──
