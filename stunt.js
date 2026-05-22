@@ -76,7 +76,7 @@ const StuntGame = {
     const MAX_SPEED_CLEAN=22;   // top speed when no crash for 5s
     const MAX_SPEED_CRASH=8;    // top speed right after crash
     const ACCEL_TIME=5;         // seconds of gas to reach max speed
-    const GRAVITY=0.18;
+    const GRAVITY=0.10; // reduced gravity → longer, more floaty jumps
     const CRASH_PENALTY=5;      // seconds penalty on crash
 
     // ── CAR STATE ──
@@ -257,9 +257,9 @@ const StuntGame = {
       } else {
         car.onGround=false;car.airTime++;
         // Big air: much lower gravity = longer, farther flights
-        const airFactor=Math.max(0.22, 1-car.cleanTime*0.028);
+        const airFactor=Math.max(0.15, 1-car.cleanTime*0.035); // very floaty at speed
         car.vy+=GRAVITY*airFactor;
-        car.spin*=0.993;
+        car.spin*=0.998; // very slow decay = car keeps rotating naturally in air
         car.saltoRot+=Math.abs(car.spin);
         if(car.saltoRot>=Math.PI*1.8){
           car.saltoRot-=Math.PI*1.8;car.saltos++;car.saltoFlash=45;
@@ -268,8 +268,8 @@ const StuntGame = {
       }
 
       // Rotation works both in air AND on ground (for flipping out of crashes)
-      if(inp.rotup)car.spin=Math.min(0.30,car.spin+(car.spin<0?.08:.04));
-      if(inp.rotdn)car.spin=Math.max(-0.30,car.spin-(car.spin>0?.08:.04));
+      if(inp.rotup)car.spin=Math.min(0.20,car.spin+(car.spin<0?.04:.02));
+      if(inp.rotdn)car.spin=Math.max(-0.20,car.spin-(car.spin>0?.04:.02));
       if(!inp.rotup&&!inp.rotdn){
         if(!car.onGround) car.spin*=0.988; // gentler air decay → easier landing
         else car.spin*=0.15;

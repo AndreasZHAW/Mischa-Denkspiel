@@ -181,15 +181,15 @@ ${(isMob2&&!isPortrait)?`
       <canvas id="dart-canvas" width="${BS}" height="${BS}" style="border-radius:50%;display:block;width:${BS}px;height:${BS}px;box-shadow:0 6px 20px rgba(0,0,0,.3);touch-action:none"></canvas>
       <svg id="dart-overlay" width="${BS}" height="${BS}" style="position:absolute;top:0;left:0;pointer-events:none;border-radius:50%;overflow:hidden">
         <g id="dart-xhair">
-          <circle id="xhair-ring" cx="${CX}" cy="${CY}" r="22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" stroke-dasharray="4,4"/>
+          <circle id="xhair-ring" cx="${CX}" cy="${CY}" r="30" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-dasharray="5,5"/>
           <line id="xl1" x1="${CX-20}" y1="${CY}" x2="${CX-9}" y2="${CY}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
           <line id="xl2" x1="${CX+9}" y1="${CY}" x2="${CX+20}" y2="${CY}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
           <line id="xl3" x1="${CX}" y1="${CY-20}" x2="${CX}" y2="${CY-9}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
           <line id="xl4" x1="${CX}" y1="${CY+9}" x2="${CX}" y2="${CY+20}" stroke="rgba(255,255,255,.85)" stroke-width="1.8"/>
-          <circle id="xdot" cx="${CX}" cy="${CY}" r="2.5" fill="rgba(255,60,60,.95)"/>
-          <line id="xwind" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY}" stroke="rgba(100,200,255,.7)" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
+          <circle id="xdot" cx="${CX}" cy="${CY}" r="5" fill="rgba(255,60,60,.98)"/>
+          <line id="xwind" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY}" stroke="rgba(100,220,255,.9)" stroke-width="4" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
         </g>
-        <defs><marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="rgba(100,200,255,.8)"/></marker></defs>
+        <defs><marker id="arrowhead" markerWidth="12" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0, 12 4, 0 8" fill="rgba(100,200,255,.8)"/></marker></defs>
       </svg>
     </div>
   </div>
@@ -225,15 +225,15 @@ ${(isMob2&&!isPortrait)?`
     <canvas id="dart-canvas" width="${BS}" height="${BS}" style="border-radius:50%;display:block;width:${BS}px;height:${BS}px;box-shadow:0 6px 24px rgba(0,0,0,.3);touch-action:none"></canvas>
     <svg id="dart-overlay" width="${BS}" height="${BS}" style="position:absolute;top:0;left:0;pointer-events:none;border-radius:50%;overflow:hidden">
       <g id="dart-xhair">
-        <circle id="xhair-ring" cx="${CX}" cy="${CY}" r="22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" stroke-dasharray="4,4"/>
+        <circle id="xhair-ring" cx="${CX}" cy="${CY}" r="30" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-dasharray="5,5"/>
         <line id="xl1" x1="${CX-32}" y1="${CY}" x2="${CX-13}" y2="${CY}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
         <line id="xl2" x1="${CX+13}" y1="${CY}" x2="${CX+32}" y2="${CY}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
         <line id="xl3" x1="${CX}" y1="${CY-32}" x2="${CX}" y2="${CY-13}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
         <line id="xl4" x1="${CX}" y1="${CY+13}" x2="${CX}" y2="${CY+32}" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
-        <circle id="xdot" cx="${CX}" cy="${CY}" r="2.5" fill="rgba(255,60,60,.95)"/>
-        <line id="xwind" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY}" stroke="rgba(100,200,255,.7)" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
+        <circle id="xdot" cx="${CX}" cy="${CY}" r="5" fill="rgba(255,60,60,.98)"/>
+        <line id="xwind" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY}" stroke="rgba(100,220,255,.9)" stroke-width="4" marker-end="url(#arrowhead)" stroke-dasharray="3,2"/>
       </g>
-      <defs><marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="rgba(100,200,255,.8)"/></marker></defs>
+      <defs><marker id="arrowhead" markerWidth="12" markerHeight="8" refX="6" refY="4" orient="auto"><polygon points="0 0, 12 4, 0 8" fill="rgba(100,200,255,.8)"/></marker></defs>
     </svg>
   </div>
   <div style="display:flex;gap:3px;justify-content:center;min-height:18px;flex-wrap:wrap">
@@ -436,7 +436,7 @@ ${(isMob2&&!isPortrait)?`
     // Wind arrow on crosshair — shows where wind pushes dart
     const w = c.wind;
     const wr = (w.angle * Math.PI) / 180;
-    const windLen = w.strength * 8;
+    const windLen = w.strength * 22; // much bigger wind arrow
     const wxEnd = cx + Math.sin(wr) * windLen;
     const wyEnd = cy + Math.cos(wr) * windLen;
     const xwind = document.getElementById('xwind');

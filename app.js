@@ -1741,7 +1741,7 @@ const App = {
         const pongW = pongCanvas ? pongCanvas.offsetWidth : ga.scrollWidth;
         const idealZoomP = Math.min(screenW / (pongW + 80), 2.5); // +80 for touch strip
         const snappedP = [1.5, 1.75, 2.0, 2.25, 2.5].reduce((a,b)=>Math.abs(b-idealZoomP)<Math.abs(a-idealZoomP)?b:a);
-        setZoom(Math.max(1.75, snappedP)); // min 175%
+        setZoom(Math.max(2.0, snappedP)); // min 200%
         return;
       }
       // Other games: auto-fill screen

@@ -40,9 +40,9 @@ const ShutTheBoxGame = {
         <div style="display:flex;gap:clamp(4px,2vw,8px);justify-content:center;margin-bottom:14px;flex-wrap:wrap;padding:0 2px">
           ${c.boxes.map((box,i)=>`
             <div id="box-${i}" onclick="${!box.closed&&c.phase==='select'?`ShutTheBoxGame._toggleBox(${i})`:''}"
-              style="width:clamp(36px,9vw,50px);height:clamp(36px,9vw,50px);border-radius:10px;
+              style="width:clamp(44px,11vw,58px);height:clamp(44px,11vw,58px);border-radius:10px;
                 display:flex;align-items:center;justify-content:center;
-                font-size:clamp(1rem,4.5vw,1.3rem);font-weight:900;
+                font-size:clamp(1.1rem,5vw,1.45rem);font-weight:900;
                 cursor:${!box.closed&&c.phase==='select'?'pointer':'default'};
                 background:${box.closed?'#27AE60':c.selected.includes(i)?'#3498DB':'white'};
                 color:${box.closed?'white':c.selected.includes(i)?'white':'var(--text-dark)'};
@@ -74,15 +74,17 @@ const ShutTheBoxGame = {
           ${c.phase==='roll'?`
             <button onclick="ShutTheBoxGame._roll()"
               style="background:linear-gradient(135deg,#3498DB,#2980B9);color:white;border:none;
-                padding:clamp(14px,4vw,18px) clamp(28px,8vw,40px);border-radius:14px;
-                font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
-                min-height:54px;touch-action:manipulation;box-shadow:0 4px 12px rgba(52,152,219,.4)">
-              🎲 Würfeln
-            </button>`:''}
+                padding:clamp(16px,4.5vw,20px) clamp(36px,10vw,52px);border-radius:16px;
+                font-size:clamp(1.1rem,5vw,1.4rem);font-weight:900;cursor:pointer;
+                min-height:clamp(60px,16vw,72px);touch-action:manipulation;
+                box-shadow:0 4px 12px rgba(52,152,219,.4);animation:pulse .8s ease-in-out infinite">
+              🎲 Würfeln!
+            </button>
+            <style>@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}</style>`:''}
           ${c.phase==='select'&&c.selected.length>0?`
             <button onclick="ShutTheBoxGame._confirm()"
               style="background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;
-                padding:clamp(14px,4vw,18px) clamp(28px,8vw,40px);border-radius:14px;
+                padding:clamp(16px,4.5vw,20px) clamp(32px,9vw,44px);border-radius:16px;
                 font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
                 min-height:54px;touch-action:manipulation;box-shadow:0 4px 12px rgba(39,174,96,.4)">
               ✅ Schliessen
@@ -128,11 +130,14 @@ const ShutTheBoxGame = {
     const sum=c.selected.reduce((s,i)=>s+c.boxes[i].num,0);
     if(sum!==c.diceSum){c.errors++;const el=document.getElementById('reaction-rt');this._render();return;}
     c.selected.forEach(i=>c.boxes[i].closed=true);
-    c.selected=[];c.phase='roll';
+    c.selected=[];
     const openBoxes=c.boxes.filter(b=>!b.closed);
     if(openBoxes.length===0){this._finish(true);return;}
     if(c.rolls>=c.maxRolls){this._finish(false);return;}
+    // Auto-roll after short delay
+    c.phase='roll';
     this._render();
+    setTimeout(()=>{ if(this.current&&this.current.phase==='roll') this._roll(); }, 600);
   },
 
   _cancel(){const c=this.current;c.selected=[];this._render();},

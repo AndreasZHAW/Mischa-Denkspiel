@@ -95,13 +95,15 @@ const StarWarsGame = {
         }
         for(let c=0;c<7;c++) enemies.push({x:20+c*50,y:15,w:20,h:16,hp:1,dx:speed*0.8,dy:0,type:0,phase:Math.random()*Math.PI*2});
       } else if(wave===11){
-        // Wave 11: Two diagonal squads converging from top corners
-        const cols=5, sp=50;
-        for(let r=0;r<3;r++) for(let c2=0;c2<cols;c2++){
-          // Left squad: enters top-left, moves right+down
-          enemies.push({x:10+c2*36,y:-10-r*28,w:22,h:18,hp:2,dx:speed*0.6,dy:0.04,type:0,phase:c2*.2+r*.3});
-          // Right squad: enters top-right, moves left+down
-          enemies.push({x:W-10-c2*36,y:-10-r*28,w:22,h:18,hp:2,dx:-speed*0.6,dy:0.04,type:1,phase:c2*.2+r*.3});
+        // Wave 11: V-shape on screen (no off-screen start), converging inward
+        const arms=6;
+        for(let i=0;i<arms;i++){
+          const frac=i/(arms-1); // 0..1
+          const yPos=10+i*28; // staggered rows on screen
+          // Left arm: moves right
+          enemies.push({x:10+i*30,y:yPos,w:22,h:18,hp:2,dx:speed*0.65,dy:0,type:0,phase:i*.3});
+          // Right arm: moves left
+          enemies.push({x:W-10-i*30,y:yPos,w:22,h:18,hp:2,dx:-speed*0.65,dy:0,type:1,phase:i*.3});
         }
       } else if(wave===12){
         // Wave 12: Three rows at different speeds — like classic Galaga
@@ -111,11 +113,40 @@ const StarWarsGame = {
           enemies.push({x:15+c*sp3,y:52,w:22,h:18,hp:2,dx:speed*0.55,dy:0,type:1,phase:c*.25+0.8});
           enemies.push({x:15+c*sp3,y:88,w:22,h:18,hp:1,dx:speed*0.65,dy:0,type:2,phase:c*.25+1.6});
         }
-      } else {
-        // Wave 13: FINAL — everything at once, max difficulty
+      } else if(wave===13){
+        // Wave 13: classic full grid
         const sp4=Math.min(38,Math.floor((W-20)/10));
         for(let r=0;r<5;r++) for(let c=0;c<10;c++)
-          enemies.push({x:10+c*sp4,y:10+r*26,w:20,h:16,hp:1+(r<2?2:r<4?1:0),dx:speed*(r%2===0?1:-1)*.8,dy:r===4?0.05:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
+          enemies.push({x:10+c*sp4,y:10+r*26,w:20,h:16,hp:1+(r<2?2:r<4?1:0),dx:speed*(r%2===0?1:-1)*.8,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
+      } else if(wave===14){
+        // Wave 14: staggered grid, enemies alternate direction per column
+        const sp5=Math.min(44,Math.floor((W-20)/9));
+        for(let r=0;r<4;r++) for(let c=0;c<9;c++)
+          enemies.push({x:10+c*sp5,y:10+r*30,w:22,h:18,hp:2+(r<2?1:0),dx:speed*(c%2===0?1:-1),dy:0,type:(r+c)%4,phase:c*.2+r*.4});
+      } else if(wave===15){
+        // Wave 15: two separate fleets colliding
+        const sp6=Math.min(46,Math.floor(W/2/5));
+        for(let r=0;r<4;r++) for(let c=0;c<5;c++){
+          enemies.push({x:10+c*sp6,y:15+r*28,w:22,h:18,hp:2,dx:speed*1.1,dy:0,type:0,phase:c*.2});
+          enemies.push({x:W/2+10+c*sp6,y:15+r*28,w:22,h:18,hp:2,dx:-speed*1.1,dy:0,type:2,phase:c*.2+1});
+        }
+      } else if(wave===16){
+        // Wave 16: boss grid + swarm below
+        for(let c=0;c<4;c++) enemies.push({x:50+c*80,y:15,w:34,h:28,hp:5,dx:speed*0.7,dy:0,type:2,phase:c*.5,isBoss:true});
+        for(let r=0;r<3;r++) for(let c=0;c<9;c++)
+          enemies.push({x:10+c*44,y:65+r*28,w:20,h:16,hp:1,dx:speed*(r%2===0?1.1:-1.1),dy:0,type:r%4,phase:c*.15+r*.3});
+      } else if(wave===17){
+        // Wave 17: diamond formation ×2
+        const CX2=W/4, CX3=3*W/4;
+        [[CX2],[CX3]].forEach((cx2,side)=>{
+          const pattern2=[[0,0],[1,1],[-1,1],[2,2],[0,2],[-2,2],[1,3],[-1,3]];
+          pattern2.forEach(([dc,dr])=>enemies.push({x:cx2[0]+dc*38,y:15+dr*28,w:22,h:18,hp:2+(Math.abs(dc)<=1?1:0),dx:speed*(side===0?1:-1)*0.9,dy:0,type:(dc+dr+side)%4,phase:Math.random()*Math.PI*2}));
+        });
+      } else {
+        // Wave 18: FINAL ASSAULT — max everything
+        const sp4=Math.min(36,Math.floor((W-20)/10));
+        for(let r=0;r<6;r++) for(let c=0;c<10;c++)
+          enemies.push({x:10+c*sp4,y:8+r*24,w:20,h:16,hp:1+(r<3?2:1),dx:speed*(r%2===0?1:-1)*(0.8+r*0.06),dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
       }
       // Powerups
       const pwType=wave>=10?'penta':wave>=6?'triple':wave>=4?'rapid':'shield';
@@ -349,8 +380,8 @@ const StarWarsGame = {
         explosions.push(...reachedBottom.map(e=>({x:e.x,y:H-60,t:18,r:22,col:'#ff4400'})));
         if(lives<=0){end(false);return;}
       }
-      if(!enemies.length){wave++;if(wave>13){end(true);return;}spawnWave();}
-      if(Date.now()-tStart>1200000)end(score>100); // 20 min max for 13 waves
+      if(!enemies.length){wave++;if(wave>18){end(true);return;}spawnWave();}
+      if(Date.now()-tStart>1500000)end(score>100); // 25 min max for 18 waves
 
       // ── DRAW ──
       // Deep space
@@ -433,7 +464,7 @@ const StarWarsGame = {
       ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(11,W*.032)}px monospace`;ctx.textAlign='left';
       ctx.fillText('⭐ '+score,8,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';
-      ctx.fillText('WELLE '+wave+'/13',W/2,19);
+      ctx.fillText('WELLE '+wave+'/18',W/2,19);
       ctx.textAlign='right';
       for(let i=0;i<Math.min(lives,5);i++){
         const hx=W-8-i*20,hy=13;
