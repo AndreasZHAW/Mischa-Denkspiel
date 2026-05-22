@@ -346,7 +346,7 @@ function fmt(ts) {
 }
 function fmtDate(ts) {
   if(!ts) return '–';
-  return new Date(ts).toLocaleDateString('de-CH');
+  return new Date(ts).toLocaleDateString('de-CH',{timeZone:'Europe/Zurich'});
 }
 
 // ═══ LOGIN ═══
@@ -387,7 +387,7 @@ document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Ent
 
 function reloadAll() {
   loadPlayers(); loadMsgs(); loadBans(); loadReports(); loadCal();
-  setStatus('Geladen: '+new Date().toLocaleTimeString('de-CH'));
+  setStatus('Geladen: '+new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'}));
 }
 
 // ═══ SPIELER ═══
@@ -527,22 +527,38 @@ function renderCalTable() {
     <tbody>${rows}</tbody>
   </table>
   <div style="margin-top:10px;font-size:.72rem;color:rgba(255,255,255,.3)">
-    ${Object.keys(calStore).length} Einträge · Zuletzt aktualisiert: ${new Date().toLocaleTimeString('de-CH')}
+    ${Object.keys(calStore).length} Einträge · Zuletzt aktualisiert: ${new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'})}
   </div>`;
 }
 
-function showCalDetail(gameIdx, dev, gameName) {
-  let calStore = {};
-  try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
-  const key = gameIdx+'_'+dev;
-  const scores = calStore[key] || [];
+async function showCalDetail(gameIdx, dev, gameName) {
+  const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+  const gId=GAME_IDS[gameIdx]||'unknown';
+  let calStore={};
+  try{calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
+  const key=gameIdx+'_'+dev;
+  const scores=calStore[key]||[];
   
-  // Also load rich records from admin_score_records
-  const records = JSON.parse(localStorage.getItem('admin_score_records')||'{}');
-  // Find matching game records
-  const GAME_IDS = ['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
-  const gId = GAME_IDS[gameIdx] || 'unknown';
-  const richRecs = (records[gId]||[]).filter(r=>r.device&&r.device.toLowerCase()===dev||dev==='all');
+  // Get local records
+  const records=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+  let richRecs=(records[gId]||[]).filter(r=>dev==='all'||!r.device||(r.device&&r.device.toLowerCase().includes(dev)));
+
+  // Also load from Firebase (catches Android/iPhone games)
+  let panel=document.getElementById('cal-detail-panel');
+  if(!panel){panel=document.createElement('div');panel.id='cal-detail-panel';panel.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:1000;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;max-width:700px;width:90%;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.6)';document.body.appendChild(panel);}
+  panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (lädt...)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div><div style="color:#888;text-align:center;padding:12px">⏳ Lade Firebase-Daten...</div>`;
+  panel.style.display='block';
+  
+  if(_db){
+    try{
+      const fbSnap=await _db.collection('score_records').limit(300).get();
+      fbSnap.forEach(d=>{
+        const dd=d.data();
+        if(dd.game===gId&&!richRecs.find(r=>r.ts&&r.ts===dd.ts&&r.player===dd.player))
+          richRecs.push(dd);
+      });
+    }catch(e){console.warn('score_records fetch:',e.message);}
+  }
   
   let detailHTML = '';
   if(richRecs.length) {
@@ -562,16 +578,9 @@ function showCalDetail(gameIdx, dev, gameName) {
     detailHTML = '<div style="color:#888;padding:10px;text-align:center">Keine Daten verfügbar</div>';
   }
   
-  // Show in modal-like panel
-  let panel = document.getElementById('cal-detail-panel');
-  if(!panel) {
-    panel = document.createElement('div');
-    panel.id = 'cal-detail-panel';
-    panel.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:1000;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;max-width:700px;width:90%;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.6)';
-    document.body.appendChild(panel);
-  }
-  panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (${scores.length} Spiele)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div>${detailHTML}`;
-  panel.style.display = 'block';
+  // Update panel with loaded data
+  const totalPlays=scores.length+(richRecs.length?' ('+richRecs.length+' Einzel)':'');
+  panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (${totalPlays} Spiele)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div>${detailHTML}`;
 }
 
 function editCal(gameIdx, dev) {
@@ -710,7 +719,7 @@ async function doBan() {
   };
   
   // Human-readable duration
-  const durText = perm ? 'permanent' : new Date(expiresAt).toLocaleString('de-CH');
+  const durText = perm ? 'permanent' : new Date(expiresAt).toLocaleString('de-CH',{timeZone:'Europe/Zurich'});
   
   try {
     if(!_db) throw new Error('Firebase nicht verbunden');

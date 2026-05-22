@@ -66,7 +66,7 @@ const ShutTheBoxGame = {
 
         <!-- Instruction -->
         <div style="margin-bottom:14px;font-size:clamp(0.85rem,4vw,1rem);color:var(--text-dark);font-weight:${c.phase==='select'?700:400}">
-          ${c.phase==='roll'?'Würfeln!':c.phase==='select'?`Wähle Zahlen die zusammen <b>${c.diceSum}</b> ergeben!`:''}
+          ${c.phase==='roll'?'Würfeln!':c.phase==='bust'?'<span style="color:#E74C3C;font-weight:900">❌ Kein Zug möglich! Spiel endet.</span>':c.phase==='select'?`Wähle Zahlen die zusammen <b>${c.diceSum}</b> ergeben!`:''}
         </div>
 
         <!-- Buttons -->
@@ -108,10 +108,18 @@ const ShutTheBoxGame = {
     const openBoxes=c.boxes.filter(b=>!b.closed);
     const openSum=openBoxes.reduce((s,b)=>s+b.num,0);
     if(openBoxes.length===0){this._finish(true);return;}
-    // Check if any valid move exists
+    // Check if any valid move exists (single number OR sum of two)
     const vals=openBoxes.map(b=>b.num);
-    const hasMove=vals.some(v=>v===c.diceSum)||vals.some((v,i)=>vals.some((v2,j)=>j>i&&v+v2===c.diceSum));
-    if(!hasMove){c.errors++;c.phase='roll';this._render();if(c.rolls>=c.maxRolls)this._finish(false);return;}
+    const hasMove=vals.some(v=>v===c.diceSum)
+      ||vals.some((v,i)=>vals.some((v2,j)=>j>i&&v+v2===c.diceSum))
+      ||vals.some((v,i)=>vals.some((v2,j)=>j>i&&vals.some((v3,k)=>k>j&&v+v2+v3===c.diceSum)));
+    if(!hasMove){
+      // No valid move → bust! Game ends with remaining open sum
+      c.phase='bust';
+      this._render();
+      setTimeout(()=>this._finish(false), 800);
+      return;
+    }
     c.phase='select';
     this._render();
   },

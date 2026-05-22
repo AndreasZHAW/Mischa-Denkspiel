@@ -3,7 +3,7 @@ const GameLog = {
   _log: [],
   log(game, msg, level='info') {
     const ts=Date.now();
-    const timeStr=new Date(ts).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
+    const timeStr=new Date(ts).toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich',hour:'2-digit',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
     const entry = {ts, timeStr, game, msg, level};
     this._log.push(entry);
     if(this._log.length > 500) this._log.shift();
@@ -20,7 +20,7 @@ const GameLog = {
     this.log(game, 'ERROR: '+msg, 'err');
     try {
       const el = JSON.parse(localStorage.getItem('mischa_error_log')||'[]');
-      const timeStr=new Date().toLocaleString('de-CH');
+      const timeStr=new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'});
       el.push(timeStr+' ['+game+']: '+msg);
       localStorage.setItem('mischa_error_log', JSON.stringify(el.slice(-100)));
     } catch(e) {}
@@ -192,7 +192,7 @@ const FontScale = {
           fontSizePx: sizePx,
           userAgent: navigator.userAgent.slice(0,120),
           updatedAt: Date.now(),
-          updatedStr: new Date().toLocaleString('de-CH'),
+          updatedStr: new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
         }).catch(() => {});
       }
     } catch(e) {}
@@ -777,7 +777,7 @@ const App = {
           if(ban.permanent || !ban.expiresAt || ban.expiresAt > now) {
             State.currentPlayer = null;
             sessionStorage.removeItem('mischa_current');
-            const until = ban.permanent ? 'permanent' : new Date(ban.expiresAt).toLocaleString('de-CH');
+            const until = ban.permanent ? 'permanent' : new Date(ban.expiresAt).toLocaleString('de-CH',{timeZone:'Europe/Zurich'});
             this.showLogin();
             setTimeout(()=>{
               const e=document.getElementById('l-err');
@@ -1807,16 +1807,23 @@ const App = {
         const recs=JSON.parse(localStorage.getItem(recKey)||'{}');
         const gId=task.type||task.id||'unknown';
         if(!recs[gId])recs[gId]=[];
-        recs[gId].push({
-          date:new Date().toLocaleString('de-CH'),
+        const _rec = {
+          date:new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
           player:State.currentPlayer?.name||'?',
           device:_getDevice(),
           score:result.rawScore||0,
-          mt:0, // will be updated after calcMT
+          mt:0,
           passed:result.passed||false,
-        });
-        if(recs[gId].length>200)recs[gId]=recs[gId].slice(-200); // keep last 200
+          ts:Date.now(),
+        };
+        recs[gId].push(_rec);
+        if(recs[gId].length>200)recs[gId]=recs[gId].slice(-200);
         localStorage.setItem(recKey,JSON.stringify(recs));
+        // Also save to Firebase so admin can see records from ALL devices
+        if(typeof _db !== 'undefined' && _db) {
+          const dedupKey = (_rec.player+'_'+gId+'_'+Math.floor(Date.now()/5000)).replace(/[^a-zA-Z0-9_-]/g,'_');
+          _db.collection('score_records').doc(dedupKey).set(_rec).catch(()=>{});
+        }
       }catch(e){}
       // Save task result to player immediately (localStorage)
       try {
@@ -1903,7 +1910,7 @@ const App = {
           // Log unknown game type
           try {
             const el = JSON.parse(localStorage.getItem('mischa_error_log')||'[]');
-            el.push(new Date().toLocaleString('de-CH')+': Unbekannter Spieltyp: '+task.type);
+            el.push(new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'})+': Unbekannter Spieltyp: '+task.type);
             localStorage.setItem('mischa_error_log', JSON.stringify(el.slice(-20)));
           } catch(e2) {}
       }
@@ -2088,7 +2095,7 @@ const App = {
           reporterDisplay: reporter,
           reason, desc,
           ts: Date.now(),
-          tsStr: new Date().toLocaleString('de-CH'),
+          tsStr: new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
           status: 'open',
           imageDocId,  // reference to separate image doc
           hasImage: !!this._reportImageB64,

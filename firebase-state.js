@@ -182,7 +182,28 @@ const State = {
   },
 
   // ---- TASK COMPLETION ----
+  _cleanPoisonedCal() {
+    try {
+      let cal = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
+      let changed = false;
+      Object.keys(cal).forEach(key => {
+        if(!key.startsWith('17_')) return; // only starwars (index 17)
+        const scores = cal[key] || [];
+        if(scores.length < 2) return;
+        const hundreds = scores.filter(s => s === 100).length;
+        if(hundreds / scores.length > 0.6) {
+          console.log('[Cal] Reset poisoned key:', key, hundreds+'/'+scores.length+' were 100');
+          cal[key] = [];
+          changed = true;
+        }
+      });
+      if(changed) localStorage.setItem('cal_data_v3', JSON.stringify(cal));
+    } catch(e) {}
+  },
+
   async completeTask(playerName, worldIndex, taskIndex, result) {
+    // First-run: clean up poisoned cal data from old broken formula
+    if(!this._calCleanDone) { this._cleanPoisonedCal(); this._calCleanDone=true; }
     // Use LOCAL player data (instant) - no Firebase fetch that could block
     let player = this._local.get(playerName);
     if (!player) {
@@ -287,7 +308,7 @@ const State = {
           _db.collection('calibration_records').doc(dedupKey).set({
             gameIdx: taskIndex, device: dev, player: playerName,
             rawScore: raw, ts: Date.now(),
-            tsStr: typeof window !== 'undefined' ? new Date().toLocaleString('de-CH') : new Date().toISOString()
+            tsStr: typeof window !== 'undefined' ? new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'}) : new Date().toISOString()
           }).then(()=>{ if(typeof console!=='undefined') console.log('✅ Cal record saved:', dedupKey); })
             .catch(e=>{ if(typeof console!=='undefined') console.warn('Cal record failed:', e.message); });
         } catch(e){}
