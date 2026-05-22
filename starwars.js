@@ -235,9 +235,9 @@ const StarWarsGame = {
       document.removeEventListener('pointerup',ptrUpHandler);
       if(rfInt)clearInterval(rfInt);
       window.onerror=_prevOnerr; // restore
-      const _finalRaw=Math.min(100,Math.max(5,Math.round(wave*4+score/200)));
+      const _finalRaw=Math.min(100,Math.max(5,Math.round(wave/18*70+score/30000*30)));
       _swLog('Game ended: wave='+wave+'/18 lives='+lives+' score='+score+' rawScore='+_finalRaw+' won='+won);
-      onComplete({rawScore:Math.min(100,Math.max(5,Math.round(wave*4+score/200))),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
+      onComplete({rawScore:Math.min(100,Math.max(5,Math.round(wave/18*70+score/30000*30))),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
     };
 
     // ── DRAWING HELPERS ──

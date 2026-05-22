@@ -225,7 +225,14 @@ const State = {
       try { overrides = JSON.parse(localStorage.getItem('cal_overrides_local')||'{}'); } catch(e){}
 
       // Filter out any NaN/invalid values from stored scores
-      const rawScores = (calStore[key] || []).filter(s => typeof s==='number' && !isNaN(s) && s>=0);
+      let rawScores = (calStore[key] || []).filter(s => typeof s==='number' && !isNaN(s) && s>=0);
+      // One-time fix: if ALL stored scores are identical (e.g. all 100 from a broken formula),
+      // reset so new calibration can work properly
+      if(rawScores.length>=3 && rawScores.every(s=>s===rawScores[0])) {
+        rawScores = []; // Reset poisoned cal data
+        calStore[key] = [];
+        if(typeof console!=='undefined') console.log('[Cal] Reset poisoned scores for key:',key,'(all were',rawScores[0],')');
+      }
 
       // Effective min/avg/max: use override if set, else compute from previous scores
       let minS, avgS, maxS;

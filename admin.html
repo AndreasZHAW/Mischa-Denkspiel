@@ -110,7 +110,7 @@ textarea.inp { resize:vertical; min-height:80px; }
     <button class="tab" onclick="tab('ban')">🚫 Sperren</button>
     <button class="tab" onclick="tab('reports')">🚨 Meldungen</button>
     <button class="tab" onclick="tab('reset')">⚠️ Reset</button>
-    <button class="tab" onclick="tab('scores')">🏆 Scores</button>
+
     <button class="tab" onclick="tab('fragen')">❓ Fragen</button>
   </div>
 
@@ -240,23 +240,6 @@ textarea.inp { resize:vertical; min-height:80px; }
 </div>
 
 
-  <!-- ═══ SCORES ═══ -->
-  <div id="p-scores" class="panel">
-    <div class="card">
-      <div class="card-title">🏆 Spiele-Statistiken Welt 1 <button class="btn btn-blue" onclick="loadScoresAdmin()" style="padding:4px 10px;font-size:.8rem;margin-left:10px">🔄 Laden</button></div>
-      <div id="scores-table-cont">
-        <div style="color:#888;text-align:center;padding:20px">Klicke "Laden"</div>
-      </div>
-      <div id="score-detail-panel" style="display:none;margin-top:16px;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <b id="score-detail-name" style="color:#FFD700"></b>
-          <button onclick="document.getElementById('score-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button>
-        </div>
-        <div id="score-detail-rows"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- ═══ FRAGEN ═══ -->
   <div id="p-fragen" class="panel">
     <div class="card">
@@ -324,7 +307,7 @@ function setStatus(txt) {
   if(el) el.textContent = txt;
 }
 function tab(name) {
-  const allTabs=['players','cal','msg','ban','reports','reset','scores','fragen'];
+  const allTabs=['players','cal','msg','ban','reports','reset','fragen'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', allTabs[i]===name));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('p-'+name);
@@ -335,7 +318,6 @@ function tab(name) {
   if(name==='msg') loadMsgs();
   if(name==='ban') loadBans();
   if(name==='reports') loadReports();
-  if(name==='scores') loadScoresAdmin();
   if(name==='fragen') loadQAdmin();
 }
 function showResult(elId, ok, msg) {
@@ -389,7 +371,7 @@ function reloadAll() {
 async function loadPlayers() {
   const tbody = document.getElementById('players-tbody');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px"><span class="spin"></span></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px"><span class="spin"></span></td></tr>';
   
   _players = [];
   
@@ -443,8 +425,13 @@ async function loadPlayers() {
     const world = p.currentWorld || 1;
     const lastSeen = fmtDate(p.updatedAt);
     const srcBadge = p._src==='cloud' ? '<span class="badge badge-blue">☁️</span>' : p._src==='both' ? '<span class="badge badge-green">✓</span>' : '<span class="badge badge-gray">📱</span>';
+    // Calculate age from birthYear
+    const _by=parseInt(p.birthYear)||0;
+    const _age=_by>1900&&_by<2030?new Date().getFullYear()-_by:null;
+    const _ageTxt=_age?_age+'J':'?';
     return `<tr>
       <td><b>${name}</b> ${srcBadge}</td>
+      <td style="text-align:center;color:rgba(255,255,255,.7)">${_ageTxt}</td>
       <td><b style="color:#FFD700">🌀${mt.toFixed(1)}</b></td>
       <td>${done}/20</td>
       <td>${world}</td>
@@ -540,10 +527,14 @@ function showCalDetail(gameIdx, dev, gameName) {
       richRecs.sort((a,b)=>b.score-a.score).map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:3px 6px;color:rgba(255,255,255,.6)">${r.date||'?'}</td><td style="padding:3px 6px;color:#4af">${r.player||'?'}</td><td style="padding:3px 6px">${r.device||'?'}</td><td style="padding:3px 6px;color:#FFD700;font-weight:700">${r.score||0}</td><td style="padding:3px 6px;color:#27AE60">${r.mt?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'—'}</td></tr>`).join('')+
       '</tbody></table>';
   } else if(scores.length) {
-    // Show raw scores from calibration
-    detailHTML = '<div style="color:rgba(255,255,255,.6);font-size:.78rem;padding:8px">Rohscores (ohne Datum/Spieler): '+
-      scores.map((s,i)=>`<span style="display:inline-block;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;margin:2px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'}">${s}</span>`).join('')+
-      '</div>';
+    // Show raw scores from calibration with delete buttons
+    detailHTML = '<div style="color:rgba(255,255,255,.6);font-size:.78rem;padding:8px">'
+      +'<div style="margin-bottom:6px;color:rgba(255,255,255,.4)">Rohscores — klicke ✕ zum Löschen einzelner Werte:</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:4px">'
+      +scores.map((s,i)=>`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;margin:1px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'}">${s}<button onclick="deleteCalScore('${gameIdx}','${dev}',${i})" style="background:none;border:none;color:rgba(255,100,100,.7);cursor:pointer;font-size:.75rem;padding:0 1px;line-height:1">✕</button></span>`).join('')
+      +'</div>'
+      +'<button onclick="deleteAllCalScores(''+gameIdx+'',''+dev+'')" style="margin-top:8px;background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:3px 10px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️ Alle löschen</button>'
+      +'</div>';
   } else {
     detailHTML = '<div style="color:#888;padding:10px;text-align:center">Keine Daten verfügbar</div>';
   }
@@ -1013,6 +1004,35 @@ function loadQAdmin(){
 }
 function delQAdmin(game,level,idx){if(!confirm('Löschen?'))return;const k='admin_q_overrides_'+game+'_'+level;const a=JSON.parse(localStorage.getItem(k)||'[]');a.splice(idx,1);localStorage.setItem(k,JSON.stringify(a));loadQAdmin();}
 function restoreQAdmin(game,level){localStorage.removeItem('admin_q_deleted_'+game+'_'+level);loadQAdmin();}
+
+function deleteCalScore(gameIdx, dev, scoreIdx) {
+  let calStore = {};
+  try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+  const key = gameIdx+'_'+dev;
+  const scores = (calStore[key]||[]);
+  if(scoreIdx>=0&&scoreIdx<scores.length){
+    scores.splice(scoreIdx,1);
+    calStore[key]=scores;
+    try { localStorage.setItem('cal_data_v3',JSON.stringify(calStore)); } catch(e) {}
+    // Update Firebase
+    if(_db){ _db.collection('calibration').doc('scores').set({[key]:scores},{merge:true}).catch(()=>{}); }
+    // Refresh detail panel
+    showCalDetail(gameIdx,dev,document.getElementById('score-detail-name')?.textContent?.split(' — ')[0]||'',scores);
+    renderCalTable();
+  }
+}
+
+function deleteAllCalScores(gameIdx, dev) {
+  if(!confirm('Alle Scores für diesen Eintrag löschen?')) return;
+  let calStore = {};
+  try { calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+  const key = gameIdx+'_'+dev;
+  calStore[key] = [];
+  try { localStorage.setItem('cal_data_v3',JSON.stringify(calStore)); } catch(e) {}
+  if(_db){ _db.collection('calibration').doc('scores').set({[key]:[]},{merge:true}).catch(()=>{}); }
+  document.getElementById('cal-detail-panel').style.display='none';
+  renderCalTable();
+}
 
 </script>
 </body>
