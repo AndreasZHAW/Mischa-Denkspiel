@@ -9,12 +9,23 @@ const StarWarsGame = {
 
     // Game-level crash logging
     const _swLog=(msg,lvl='I')=>{
+      // Feed into unified GameLog
+      if(window.GameLog){
+        if(lvl==='E') GameLog.error('starwars',msg);
+        else GameLog.log('starwars',msg);
+      }
       try{
+        const ts=Date.now();
+        const timeStr=new Date(ts).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
         const raw=localStorage.getItem('_mischa_crash_log')||'[]';
         const arr=JSON.parse(raw);
-        arr.push({ts:Date.now(),level:lvl,src:'starwars',msg:String(msg).slice(0,200)});
+        arr.push({ts,timeStr,level:lvl,src:'starwars',msg:String(msg).slice(0,300)});
         if(arr.length>500)arr.splice(0,arr.length-400);
         localStorage.setItem('_mischa_crash_log',JSON.stringify(arr));
+        // Human-readable format for copy-paste
+        const readable=localStorage.getItem('_mischa_crash_readable')||'';
+        const newLine='['+timeStr+'] ['+lvl+'|starwars] '+msg;
+        localStorage.setItem('_mischa_crash_readable',(readable+'\n'+newLine).slice(-20000));
       }catch(e){}
     };
     const _swOnErr=(msg,src,line)=>{_swLog('ERROR: '+msg+' (L'+line+')', 'E');};
@@ -114,10 +125,10 @@ const StarWarsGame = {
           enemies.push({x:15+c*sp3,y:88,w:22,h:18,hp:1,dx:speed*0.65,dy:0,type:2,phase:c*.25+1.6});
         }
       } else if(wave===13){
-        // Wave 13: classic full grid
-        const sp4=Math.min(38,Math.floor((W-20)/10));
-        for(let r=0;r<5;r++) for(let c=0;c<10;c++)
-          enemies.push({x:10+c*sp4,y:10+r*26,w:20,h:16,hp:1+(r<2?2:r<4?1:0),dx:speed*(r%2===0?1:-1)*.8,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
+        // Wave 13: 4×8 grid (smaller than 5×10 to avoid overwhelming)
+        const sp4=Math.min(46,Math.floor((W-20)/8));
+        for(let r=0;r<4;r++) for(let c=0;c<8;c++)
+          enemies.push({x:10+c*sp4,y:12+r*28,w:22,h:18,hp:1+(r<2?2:1),dx:speed*(r%2===0?1:-1)*.7,dy:0,type:(r+c)%4,phase:Math.random()*Math.PI*2});
       } else if(wave===14){
         // Wave 14: staggered grid, enemies alternate direction per column
         const sp5=Math.min(44,Math.floor((W-20)/9));
@@ -224,8 +235,9 @@ const StarWarsGame = {
       document.removeEventListener('pointerup',ptrUpHandler);
       if(rfInt)clearInterval(rfInt);
       window.onerror=_prevOnerr; // restore
-      _swLog('Game ended: wave='+wave+' score='+score+' won='+won);
-      onComplete({rawScore:Math.min(100,Math.round(wave*5+score/8)),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
+      const _finalRaw=Math.min(100,Math.max(5,Math.round(wave*4+score/200)));
+      _swLog('Game ended: wave='+wave+'/18 lives='+lives+' score='+score+' rawScore='+_finalRaw+' won='+won);
+      onComplete({rawScore:Math.min(100,Math.max(5,Math.round(wave*4+score/200))),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
     };
 
     // ── DRAWING HELPERS ──
@@ -295,6 +307,9 @@ const StarWarsGame = {
       animId=requestAnimationFrame(loop);
       tick++;
       // Safety: check for runaway state
+      if(tick%300===0&&tick>0){ // Every 5 seconds: log game state
+        _swLog('tick='+tick+' wave='+wave+'/18 enemies='+enemies.length+' lives='+lives+' score='+score+' powerup='+fireMode);
+      }
       if(tick>1&&tick%3000===0){
         console.log('[SW] frame='+tick+' enemies='+enemies.length+' bullets='+bullets.length+' score='+score+' wave='+wave+' lives='+lives);
       }
@@ -375,7 +390,7 @@ const StarWarsGame = {
       // Enemy reaches player line: lose a life, remove enemy
       const reachedBottom=enemies.filter(e=>e.y>H-60);
       if(reachedBottom.length>0){
-        lives-=reachedBottom.length;
+        lives=Math.max(0,lives-1); // max 1 life per frame, not N enemies at once
         enemies=enemies.filter(e=>e.y<=H-60);
         explosions.push(...reachedBottom.map(e=>({x:e.x,y:H-60,t:18,r:22,col:'#ff4400'})));
         if(lives<=0){end(false);return;}

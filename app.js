@@ -2,27 +2,52 @@
 const GameLog = {
   _log: [],
   log(game, msg, level='info') {
-    const entry = {ts: Date.now(), game, msg, level};
+    const ts=Date.now();
+    const timeStr=new Date(ts).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3});
+    const entry = {ts, timeStr, game, msg, level};
     this._log.push(entry);
-    // Keep last 200 entries in memory
-    if(this._log.length > 200) this._log.shift();
-    // Save to localStorage (keep last 100)
+    if(this._log.length > 500) this._log.shift();
     try {
       const stored = JSON.parse(localStorage.getItem('mischa_game_log')||'[]');
       stored.push(entry);
-      localStorage.setItem('mischa_game_log', JSON.stringify(stored.slice(-100)));
+      localStorage.setItem('mischa_game_log', JSON.stringify(stored.slice(-200)));
     } catch(e) {}
-    console.log('[GAME:'+game+']', msg);
+    const prefix = level==='err'?'[E|'+game+']':'[I|'+game+']';
+    if(level==='err') console.error(prefix, msg);
+    else console.log(prefix, msg);
   },
   error(game, msg) {
-    this.log(game, msg, 'err');
+    this.log(game, 'ERROR: '+msg, 'err');
     try {
       const el = JSON.parse(localStorage.getItem('mischa_error_log')||'[]');
-      el.push(new Date().toLocaleString('de-CH')+' ['+game+']: '+msg);
-      localStorage.setItem('mischa_error_log', JSON.stringify(el.slice(-50)));
+      const timeStr=new Date().toLocaleString('de-CH');
+      el.push(timeStr+' ['+game+']: '+msg);
+      localStorage.setItem('mischa_error_log', JSON.stringify(el.slice(-100)));
     } catch(e) {}
   },
-  clear() { this._log=[]; localStorage.removeItem('mischa_game_log'); localStorage.removeItem('mischa_error_log'); }
+  warn(game, msg) { this.log(game, 'WARN: '+msg, 'warn'); },
+  clear() { this._log=[]; localStorage.removeItem('mischa_game_log'); localStorage.removeItem('mischa_error_log'); },
+  // Show log viewer overlay
+  showViewer() {
+    const stored=JSON.parse(localStorage.getItem('mischa_game_log')||'[]');
+    const errors=JSON.parse(localStorage.getItem('mischa_error_log')||'[]');
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;overflow-y:auto;padding:16px;font-family:monospace;font-size:12px;color:#aaa';
+    const lines=[...stored].reverse().slice(0,150).map(e=>{
+      const col=e.level==='err'?'#ff6b6b':e.level==='warn'?'#ffd700':'#7ec8e3';
+      return`<div style="color:${col};margin-bottom:2px">[${e.timeStr||'?'}] [${e.level||'I'}|${e.game}] ${e.msg}</div>`;
+    }).join('');
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="color:#FFD700;font-size:14px">📋 Game Log (${stored.length} Einträge)</b>
+      <div style="display:flex;gap:8px">
+        <button onclick="GameLog.clear();this.closest('div[style]').remove()" style="background:#E74C3C;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">🗑️ Löschen</button>
+        <button onclick="navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(stored).replace(/'/g,"\'")}));alert('Kopiert!')" style="background:#3498DB;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">📋 Kopieren</button>
+        <button onclick="this.closest('div[style]').remove()" style="background:#555;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">✕ Schliessen</button>
+      </div>
+    </div>
+    <div>${lines||'<div style="color:#555">Keine Einträge</div>'}</div>`;
+    document.body.appendChild(el);
+  }
 };
 window.GameLog = GameLog;
 
@@ -973,6 +998,7 @@ const App = {
             <button onclick="Shop.open(null,()=>App.showWorldMap())" style="background:rgba(255,215,0,0.3);border:2px solid #FFD700;color:#FFD700;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🛒 Shop</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">⚑ Meldungen</button>` : ''}
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">🔤 Schrift</button>
+            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Spielprotokoll anzeigen">📋 Log</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">Abmelden</button>
           </div>
         </div>
@@ -1768,7 +1794,13 @@ const App = {
     };
 
     const onComplete = async (result) => {
-      GameLog.log(task.type||task.id, 'onComplete: rawScore='+result.rawScore+' passed='+result.passed+' errors='+result.errors);
+      const _player=State.currentPlayer?.name||'?';
+      const _age=State.getAge?State.getAge(State.currentPlayer):'?';
+      const _ageGrp=State.getAgeGroup?State.getAgeGroup(State.currentPlayer):'?';
+      GameLog.log(task.type||task.id,
+        'onComplete: player='+_player+' age='+_age+' ageGroup='+_ageGrp+
+        ' rawScore='+result.rawScore+' passed='+result.passed+
+        ' errors='+(result.errors||0)+' timeMs='+(result.timeMs||0));
       // Save score record for admin panel
       try {
         const recKey='admin_score_records';
