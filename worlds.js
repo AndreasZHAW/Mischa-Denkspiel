@@ -19,7 +19,7 @@ const SPECIAL_PLAYERS = {
 // ══════════════════════════════════════════
 const GAME_LIST = [
   { id:'dart',       name:'Dart',           icon:'🎯', type:'dart',       baseReward:1.0, desc:'Wirf auf die Dartscheibe!' },
-  { id:'french',     name:'Französisch',    icon:'🇫🇷', type:'truefalse',  baseReward:1.0, desc:'Wahr oder Falsch auf Französisch' },
+  { id:'french',     name:'Französisch',    icon:'🇫🇷', type:'french',     baseReward:1.0, desc:'Französische Grammatik & Vokabeln' },
   { id:'math',       name:'Rechnen',        icon:'🔢', type:'math',       baseReward:1.0, desc:'Löse Rechenaufgaben' },
   { id:'sokoban',    name:'Sokoban',        icon:'📦', type:'sokoban',    baseReward:1.0, desc:'Schieberätsel' },
   { id:'shutthebox', name:'Shut the Box',   icon:'🎲', type:'shutthebox', baseReward:1.0, desc:'Würfelspiel' },
@@ -100,13 +100,13 @@ const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
 // WORLDS (legacy — kept for compatibility)
 // ══════════════════════════════════════════
 const WORLD_DEFS = [
-  {id:1, name:'Mischa Denkspiel', icon:'🎮', color:'#2980B9',
+  {id:1, name:'Welt 1', subtitle:'Reise nach Frankreich', icon:'🇫🇷', color:'#2980B9',
    description:'Verdiene Mischa Taler — baue dein Zoo-Empire!',
    difficulty:'20 Spiele · bis 2 🌀 MT pro Spiel',
    memoryEmojis:['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🦒','🐘','🦓'],
    tasks:[
     {id:'dart',       type:'dart',       name:'Dart',          icon:'🎯', title:'Dart spielen'},
-    {id:'french',     type:'truefalse',  name:'Französisch',   icon:'🇫🇷', title:'Französische Wörter'},
+    {id:'french',     type:'french',     name:'Französisch',   icon:'🇫🇷', title:'Vokabeln & Grammatik'},
     {id:'math',       type:'math',       name:'Rechnen',       icon:'🔢', title:'Mathematik'},
     {id:'sokoban',    type:'sokoban',    name:'Sokoban',       icon:'📦', title:'Sokoban'},
     {id:'shutthebox', type:'shutthebox', name:'Shut the Box',  icon:'🎲', title:'Shut the Box'},

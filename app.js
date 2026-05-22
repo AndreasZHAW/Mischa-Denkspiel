@@ -1014,7 +1014,7 @@ const App = {
               <div class="world-item ${cls}" onclick="${unlocked?`App.showWorld(${world.id})`:'void(0)'}">
                 <span class="world-icon">${world.icon}</span>
                 <div class="world-info">
-                  <div class="world-name" style="font-size:clamp(1rem,4.5vw,1.25rem);font-weight:900">${world.name}</div>
+                  <div class="world-name" style="font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;color:#1a3a6e">${world.name}${world.subtitle?` <span style="font-size:clamp(0.82rem,3.5vw,0.92rem);font-weight:500;color:#555">· ${world.subtitle}</span>`:''}</div>
                   <div class="world-desc" style="font-size:clamp(0.9rem,4.2vw,1rem);font-weight:500">${world.difficulty}</div>
                   <div class="world-progress" style="font-size:clamp(0.85rem,3.8vw,0.97rem);font-weight:600">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0).toFixed(1)} MT</div>
                 </div>

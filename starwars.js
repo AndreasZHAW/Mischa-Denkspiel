@@ -41,7 +41,7 @@ const StarWarsGame = {
     ctx.scale(DPR,DPR);
 
     let ship={x:W/2,y:H-70,w:28,h:22};
-    let bullets=[], enemies=[], explosions=[], powerups=[], stars=[];
+    let bullets=[], enemies=[], explosions=[], powerups=[], stars=[], popups=[];
     let score=0, lives=3, wave=1, running=true, tStart=Date.now(), animId, tick=0;
     let fireMode='single', fireModeTimer=0;
 
@@ -225,7 +225,7 @@ const StarWarsGame = {
       if(rfInt)clearInterval(rfInt);
       window.onerror=_prevOnerr; // restore
       _swLog('Game ended: wave='+wave+' score='+score+' won='+won);
-      onComplete({rawScore:Math.min(100,wave*14+Math.round(score/12)),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
+      onComplete({rawScore:Math.min(100,Math.round(wave*5+score/8)),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
     };
 
     // ── DRAWING HELPERS ──
@@ -359,7 +359,7 @@ const StarWarsGame = {
           enemies=enemies.filter(e=>{
             if(!hit&&Math.abs(b.x-e.x)<16&&Math.abs(b.y-e.y)<16){
               e.hp--;hit=true;
-              if(e.hp<=0){score+=10*(e.type+1)+(wave-1)*5;explosions.push({x:e.x,y:e.y,t:18,r:20,col:'#ff8800'});return false;}
+              if(e.hp<=0){const pts=10*(e.type+1)+(wave-1)*5+(e.isBoss?30:0);score+=pts;popups.push({x:e.x,y:e.y,t:40,txt:'+'+pts,col:'#FFD700'});explosions.push({x:e.x,y:e.y,t:18,r:20,col:'#ff8800'});return false;}
             }return true;
           });
           return !hit;
@@ -462,7 +462,7 @@ const StarWarsGame = {
       ctx.fillStyle='rgba(0,0,20,.7)';ctx.fillRect(0,0,W,28);
       ctx.fillStyle='rgba(0,120,255,.3)';ctx.fillRect(0,26,W,2);
       ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(11,W*.032)}px monospace`;ctx.textAlign='left';
-      ctx.fillText('⭐ '+score,8,19);
+      ctx.fillStyle='#FFD700';ctx.font='bold 15px Arial';ctx.fillText('⭐ '+score,8,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';
       ctx.fillText('WELLE '+wave+'/18',W/2,19);
       ctx.textAlign='right';
@@ -477,4 +477,9 @@ const StarWarsGame = {
     loop();
   }
 };
-window.StarWarsGame=StarWarsGame;
+window.StarWarsGame=StarWarsGame;// Draw floating score popups
+      popups = popups.filter(p => { p.t--; if(p.t<0) return false; p.y-=0.55;
+        ctx.save(); ctx.globalAlpha=Math.min(1,p.t/12); ctx.font='bold 14px Arial';
+        ctx.fillStyle=p.col||'#FFD700'; ctx.textAlign='center';
+        ctx.fillText(p.txt, p.x, p.y); ctx.restore(); return true; });
+      
