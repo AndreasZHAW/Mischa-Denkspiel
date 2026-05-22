@@ -575,7 +575,7 @@ const SLAPS=[
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000},{e:3,l:2,u:1,g:0,m:0,s:0,mt:25000},{e:4,l:3,u:2,g:1,m:0,s:0,mt:120000},{e:5,l:4,u:3,g:2,m:1,s:0,mt:600000},{e:5,l:5,u:4,g:3,m:2,s:0,mt:3000000},{e:5,l:5,u:5,g:4,m:3,s:0,mt:15000000},{e:5,l:5,u:5,g:5,m:4,s:1,mt:100000000}];return R[Math.min(n,R.length-1)];}
-function $mt(n){if(n>=1e15)return'🌀'+(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return'🌀'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'🌀'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'🌀'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
+function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e15)return'🌀'+(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return'🌀'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'🌀'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'🌀'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
@@ -583,7 +583,7 @@ function rA(luck,night){const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){if(!ev)return[];if(ev==='mega')return TRAITS.filter(t=>Math.random()*100<t.p*1.5);return TRAITS.filter(t=>t.ev===ev&&Math.random()*100<t.p);}
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||_earn<=0)return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(isNaN(e))return 0; // NaN guard for goldUpgrades; if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return isNaN(e)?0:e;}
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn)||_earn<=0)return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(isNaN(e))return 0; // NaN guard for goldUpgrades; if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return isNaN(e)?0:e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
 function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).join('');}
 
@@ -688,7 +688,8 @@ const ZA={
     }if(ZS.isAdmin)show('admbtn');},
   logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
-</script>
+
+}</script>
 <script>
 // ═══ 3D ENGINE ═══
 const ZG={
@@ -1306,7 +1307,6 @@ const ZG={
       const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
     });
     this._station();
-    this._buildCraftMachine();
     this._encs();
     this._trees();
     this._hiddenTrapdoor();
@@ -1505,44 +1505,6 @@ const ZG={
     for(let i=0;i<14;i++){const g=new THREE.Group();for(let j=0;j<5;j++){const s=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*3,7,5),m);s.position.set(j*3.5-7+Math.random()*3,Math.random()*2,Math.random()*3);g.add(s);}g.position.set((Math.random()-.5)*180,36+Math.random()*14,(Math.random()-.5)*180);g.userData.spd=.013+Math.random()*.02;this.scene.add(g);}
   },
 
-  _buildCraftMachine(){
-    // Remove old if exists
-    if(this._craftMesh){this.scene.remove(this._craftMesh);this._craftMesh=null;}
-    const g=new THREE.Group();
-    // Position: near zone A (x:0, z:55), offset to side
-    const cx=16, cz=55;
-    CraftMachine._pos={x:cx,z:cz};
-    g.position.set(cx,0,cz);
-    
-    // Base platform
-    const base=new THREE.Mesh(new THREE.CylinderGeometry(3,3.2,.4,8),new THREE.MeshBasicMaterial({color:0x2c3e50}));
-    base.position.y=.2;g.add(base);
-    // Main body (hexagonal column)
-    const body=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2,3.5,6),new THREE.MeshBasicMaterial({color:0x8e44ad}));
-    body.position.y=2.1;g.add(body);
-    // Glowing core (inner sphere)
-    const core=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:.8}));
-    core.position.y=2.2;g.add(core);core.userData.coreAnim=true;
-    // Top pyramid
-    const top=new THREE.Mesh(new THREE.ConeGeometry(1.5,1.5,6),new THREE.MeshBasicMaterial({color:0x9b59b6}));
-    top.position.y=4.6;g.add(top);
-    // Floating rings
-    for(let i=0;i<3;i++){
-      const ring=new THREE.Mesh(new THREE.TorusGeometry(1.4+i*.3,.08,6,16),new THREE.MeshBasicMaterial({color:[0xFFD700,0x9b59b6,0x00CFFF][i],transparent:true,opacity:.7}));
-      ring.position.y=1.8+i*.5;ring.userData.ringAnim=i;g.add(ring);
-    }
-    // Emoji label
-    const lbl=this._txt('✨ Gold Maschine',1,'#FFD700');lbl.position.set(0,5.8,0);lbl.scale.set(9,1.5,1);g.add(lbl);
-    // Collect zone ring on ground
-    const zone=new THREE.Mesh(new THREE.TorusGeometry(4.5,.15,5,24),new THREE.MeshBasicMaterial({color:0x9b59b6,transparent:true,opacity:.5}));
-    zone.rotation.x=Math.PI/2;zone.position.y=.05;g.add(zone);
-    
-    this._craftMesh=g;this.scene.add(g);
-    
-    // Animate craft machine in loop
-    const origLoop=this._loop.bind(this);
-    this._craftAnimPhase=0;
-  },
 
   _anSp(animal,shiny){
     const g=new THREE.Group();
@@ -1915,22 +1877,25 @@ const ZG={
       ZSteal._nearStealTarget=foundSteal;
     }
     
-    // Detect craft machine proximity → auto-open
-    if(window.CraftMachine&&CraftMachine._pos){
-      const cm=CraftMachine._pos;
-      const dx=this.pl.x-cm.x,dz=this.pl.z-cm.z;
-      if(dx*dx+dz*dz<25&&!document.getElementById('craft-panel')){
-        CraftMachine.open();
-      }
+    // Detect Gold Machine proximity (x=16, z=55)
+    const _gmDx=this.pl.x-16, _gmDz=this.pl.z-55;
+    const _gmDist=Math.sqrt(_gmDx*_gmDx+_gmDz*_gmDz);
+    this._nearGoldMachine = _gmDist < 5;
+    if(this._nearGoldMachine && !this._gmHinted){
+      this._gmHinted=true;
+      ZP.toast('⚗️ [E] — Gold-Maschine öffnen',2500);
+    } else if(!this._nearGoldMachine){
+      this._gmHinted=false;
     }
   },
 
   _visitor(){
     const z=ZS.zoo;if(!z)return;
     const a=z.enc.filter(e=>e);if(!a.length)return;
-    z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>s+earn(enc,z,this.ev),0);if(isNaN(z.mt)||z.mt==null)z.mt=8; // recover from NaN
-if(!isNaN(tot)&&tot>0){z.mt+=tot;z.te=(z.te||0)+tot;}if(Math.random()<0.3)ZSound.coin();
-    const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);
+    z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>s+(isNaN(earn(enc,z,this.ev))?0:earn(enc,z,this.ev)),0);if(isNaN(z.mt)||z.mt==null||!isFinite(z.mt))z.mt=0;
+const _safeTot=isNaN(tot)||!isFinite(tot)?0:tot;
+if(_safeTot>0){z.mt+=_safeTot;z.te=(z.te||0)+_safeTot;}if(Math.random()<0.3)ZSound.coin();
+    const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;if(_safeTot>0){el.textContent='+'+$mt(_safeTot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);}
   },
 
   _hudCompact: false,
@@ -2035,6 +2000,8 @@ if(!isNaN(tot)&&tot>0){z.mt+=tot;z.te=(z.te||0)+tot;}if(Math.random()<0.3)ZSound
     }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
     if(this.nearLimo>=0){ZP.openLimo(this.nearLimo);return;}
+    // Gold Machine
+    if(this._nearGoldMachine){GoldMachine.open();return;}
   },
 
   // ═══ SLAP SYSTEM ═══
@@ -4498,7 +4465,6 @@ const ZAdmin = {
     const nm=document.getElementById('padmin-edit-name');if(nm)nm.value=a.n;
     const earn=document.getElementById('padmin-edit-earn');if(earn)earn.value=a.earn||10;
     const rar=document.getElementById('padmin-edit-rarity');if(rar)rar.value=a.r||'normal';
-    ZAdmin._selectedCraftAnimal=id;
     document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
   },
   _spawnSelected(){
@@ -4544,7 +4510,6 @@ const ZAdmin = {
       ${a.e||'?'}</div>`).join('');
   },
   _selectCraftAnimal(id){
-    this._selectedCraftAnimal=id;
     document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
   },
   _populateEvents(){
@@ -5129,7 +5094,6 @@ function _handleAdminEvent(d){
     const r=d.recipe;
     if(!window._adminCraftRecipes.find(x=>x.id===r.id)){
       window._adminCraftRecipes.push(r);
-      CraftMachine._shown=[];CraftMachine._lastRotate=0;
       ZP.toast('⚗️ Admin hat '+r.result.e+' '+r.result.n+' in die Craft-Maschine hinzugefügt!',4000);
     }
   }
@@ -5691,390 +5655,14 @@ window.ZSteal = ZSteal;
 
 
 // ══════════════════════════════════════════════════════════
-// CRAFT MACHINE — Combine animals to get rarer ones
-// ══════════════════════════════════════════════════════════
-const CRAFT_RECIPES = [
-  // BASIC
-  {id:'cr1', inputs:[{r:'normal',count:3}], result:{id:'craftfish',n:'Schimmer-Fisch',e:'🐠',r:'rare',earn:8}, chance:1.0},
-  {id:'cr2', inputs:[{r:'normal',count:4}], result:{id:'craftfrog',n:'Kristall-Frosch',e:'🐸',r:'rare',earn:10}, chance:1.0},
-  {id:'cr3', inputs:[{r:'rare',count:3}],   result:{id:'craftbear',n:'Smaragd-Bär',e:'🐻',r:'epic',earn:40}, chance:1.0},
-  {id:'cr4', inputs:[{r:'rare',count:4}],   result:{id:'craftowl',n:'Saphir-Eule',e:'🦉',r:'epic',earn:50}, chance:1.0},
-  {id:'cr5', inputs:[{r:'epic',count:3}],   result:{id:'craftlion',n:'Goldener Löwe',e:'🦁',r:'legendary',earn:180}, chance:1.0},
-  {id:'cr6', inputs:[{r:'epic',count:4}],   result:{id:'craftphoenix',n:'Phönix',e:'🔥',r:'legendary',earn:220}, chance:1.0},
-  {id:'cr7', inputs:[{r:'legendary',count:2}], result:{id:'craftorca',n:'Neon-Orca',e:'🐋',r:'god',earn:450}, chance:1.0},
-  {id:'cr8', inputs:[{r:'legendary',count:3}], result:{id:'craftdragon',n:'Kristall-Drache',e:'🐲',r:'god',earn:600}, chance:1.0},
-  // SPECIAL COMBOS
-  {id:'cr9',  inputs:[{r:'god',count:2}],  result:{id:'celestial',n:'Himmels-Wesen',e:'✨',r:'mythic',earn:1200}, chance:1.0},
-  {id:'cr10', inputs:[{r:'mythic',count:2}], result:{id:'timedragon',n:'Zeit-Drache',e:'⏳',r:'ultralegendary',earn:3000,craftOnly:true}, chance:0.3},
-  {id:'cr11', inputs:[{r:'epic',count:2},{r:'legendary',count:1}], result:{id:'chimera',n:'Chimera',e:'🐉',r:'mythic',earn:1500,craftOnly:true}, chance:0.15},
-  {id:'cr12', inputs:[{r:'legendary',count:4}], result:{id:'cosmicbeing',n:'Kosmisches Wesen',e:'🌌',r:'ultralegendary',earn:5000,craftOnly:true}, chance:0.2},
-  // TIER-DOWNS (ultra-rare → rare)
-  // cr13 removed (ultralegendary tier-down not useful)
-  // MORE
-  {id:'cr14', inputs:[{r:'normal',count:4},{r:'rare',count:2}], result:{id:'crystalcat',n:'Kristall-Katze',e:'🐈',r:'epic',earn:45}, chance:0.9},
-  {id:'cr15', inputs:[{r:'rare',count:2},{r:'epic',count:1}], result:{id:'starfox',n:'Stern-Fuchs',e:'🦊',r:'legendary',earn:200}, chance:0.8},
-  {id:'cr16', inputs:[{r:'epic',count:3},{r:'legendary',count:1}], result:{id:'dragontiger',n:'Drachen-Tiger',e:'🐯',r:'god',earn:500}, chance:0.7},
-  {id:'cr17', inputs:[{r:'god',count:1},{r:'mythic',count:1}], result:{id:'voidbeast',n:'Leeres Wesen',e:'🌑',r:'ultralegendary',earn:4000,craftOnly:true}, chance:0.25},
-  // ELEMENT RECIPES
-  {id:'cr18', inputs:[{r:'normal',count:2},{r:'rare',count:2}], result:{id:'waterdrake',n:'Wasser-Drache',e:'💧',r:'legendary',earn:190}, chance:0.9},
-  {id:'cr19', inputs:[{r:'rare',count:2},{r:'epic',count:2}], result:{id:'firelion',n:'Feuer-Löwe',e:'🔆',r:'god',earn:520}, chance:0.8},
-  {id:'cr20', inputs:[{r:'epic',count:2},{r:'god',count:1}], result:{id:'thunderbird',n:'Donner-Vogel',e:'⚡',r:'mythic',earn:1100}, chance:0.6},
-  // TRADE-DOWNS (rare downgrade recipes for fun)
-  // cr21 removed (was too OP: 1 ultralegendary → legendary)
-  // SEASON RECIPES  
-  {id:'cr22', inputs:[{r:'rare',count:3},{r:'normal',count:2}], result:{id:'snowleopard',n:'Schnee-Leopard',e:'🐆',r:'epic',earn:55}, chance:1.0},
-  {id:'cr23', inputs:[{r:'epic',count:2},{r:'rare',count:3}], result:{id:'arcticfox',n:'Arktis-Fuchs',e:'🦊',r:'legendary',earn:210}, chance:0.85},
-  // FUSION RECIPES
-  {id:'cr24', inputs:[{r:'legendary',count:1},{r:'epic',count:2}], result:{id:'griffon',n:'Greif',e:'🦅',r:'god',earn:480}, chance:0.8},
-  {id:'cr25', inputs:[{r:'god',count:2},{r:'legendary',count:1}], result:{id:'seraph',n:'Seraph',e:'😇',r:'mythic',earn:1300}, chance:0.5},
-  // ULTRA CRAFT
-  {id:'cr26', inputs:[{r:'mythic',count:1},{r:'ultralegendary',count:1}], result:{id:'omegabeast',n:'Omega-Wesen',e:'🌀',r:'ultralegendary',earn:6000,craftOnly:true}, chance:0.1},
-  {id:'cr27', inputs:[{r:'normal',count:5}], result:{id:'prismatic',n:'Prisma-Tier',e:'🌈',r:'epic',earn:48}, chance:1.0},
-  {id:'cr28', inputs:[{r:'rare',count:5}], result:{id:'starbeast',n:'Stern-Tier',e:'⭐',r:'god',earn:550}, chance:0.9},
-  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold Maschine', p:5,currency:'mt',
-   fn(z){z.tokens=(z.tokens||0)+1;ZP.toast('🥇 +1 Gold-Token! Du hast '+(z.tokens||0)+' Tokens.',2500);}},
-  {id:'token_5',n:'🥇 5 Gold-Tokens',d:'5 Tokens zum Vorteilspreis', p:20,currency:'mt',
-   fn(z){z.tokens=(z.tokens||0)+5;ZP.toast('🥇 +5 Gold-Tokens! Du hast '+(z.tokens||0)+' Tokens.',2500);}},
-];
-window.CRAFT_RECIPES=CRAFT_RECIPES;
+// ══════════════════════════════════════════
+// GOLD MACHINE RECIPES (handled by GoldMachine object)
+// ══════════════════════════════════════════
 
 const RARITY_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#e67e22',god:'#e74c3c',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
 const RARITY_NAME={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',god:'Gott',mythic:'Mythisch',ultralegendary:'Ultra Legendär',secret:'Geheim'};
 
-const CraftMachine = {
-  _pos: null,
-  _cooldown: false,
-  _TIERS: [
-    {n:'Normal', emoji:'⬜', tokens:0,  waitMin:0,   color:'#ccc',      mult:1.0},
-    {n:'Gold',   emoji:'🥇', tokens:1,  waitMin:15,  color:'#FFD700',   mult:1.5},
-    {n:'Platin', emoji:'🥈', tokens:2,  waitMin:30,  color:'#B0C4DE',   mult:2.0},
-    {n:'Diamant',emoji:'💎', tokens:4,  waitMin:60,  color:'#00CFFF',   mult:3.0},
-    {n:'Void',   emoji:'🌌', tokens:8,  waitMin:120, color:'#9B59B6',   mult:5.0},
-  ],
-
-  open(){ if(this._cooldown)return; this._render(); },
-
-  _tier(animal){
-    const z=ZS.zoo; if(!z)return 0;
-    return (z.goldTiers||{})[animal.id]||0;
-  },
-
-  _upgrading(animal){
-    const z=ZS.zoo; if(!z)return null;
-    const upg=(z.goldUpgrades||{})[animal.id];
-    if(!upg||upg.finishAt<=Date.now())return null;
-    return upg;
-  },
-
-  _render(){
-    const old=document.getElementById('craft-panel');if(old)old.remove();
-    const z=ZS.zoo; if(!z)return;
-    const tokens=z.tokens||0;
-    const animals=z.enc.filter(e=>e&&e.animal).map(e=>e.animal);
-    if(!animals.length){
-      ZP.toast('Keine Tiere im Zoo!',2000);return;
-    }
-
-    // Build animal grid
-    const cards=animals.map(a=>{
-      const curTier=this._tier(a);
-      const nextTier=curTier+1;
-      const upg=this._upgrading(a);
-      const tierDef=this._TIERS[curTier]||this._TIERS[0];
-      const nextDef=this._TIERS[nextTier];
-      const remaining=upg?Math.max(0,Math.ceil((upg.finishAt-Date.now())/60000)):0;
-      const isMaxed=curTier>=this._TIERS.length-1;
-
-      return `<div onclick="CraftMachine._select('${a.id}')" id="cm-card-${a.id}"
-        style="background:rgba(255,255,255,.07);border:2px solid ${upg?'#F39C12':tierDef.color};border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s;min-width:90px">
-        <div style="font-size:2rem">${a.emoji||'🐾'}</div>
-        <div style="font-size:.78rem;color:#fff;font-weight:700;margin:3px 0">${a.name||a.id}</div>
-        <div style="font-size:.7rem;color:${tierDef.color}">${tierDef.emoji} ${tierDef.n}</div>
-        ${upg?`<div style="font-size:.65rem;color:#F39C12;margin-top:3px">⏳ ${remaining}min</div>`:''}
-        ${isMaxed?`<div style="font-size:.65rem;color:#9B59B6;margin-top:2px">MAX ✨</div>`:''}
-      </div>`;
-    }).join('');
-
-    const panel=document.createElement('div');
-    panel.id='craft-panel';
-    panel.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;display:flex;align-items:center;justify-content:center;';
-    panel.innerHTML=`
-      <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,215,0,.3);border-radius:16px;padding:20px;max-width:520px;width:95%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div>
-            <div style="font-size:1.2rem;font-weight:900;color:#FFD700">⚗️ Gold-Maschine</div>
-            <div style="font-size:.78rem;color:rgba(255,255,255,.5)">🎫 ${tokens} Tokens</div>
-          </div>
-          <button onclick="document.getElementById('craft-panel').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
-        </div>
-        <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px">Wähle ein Tier zum Upgraden:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${cards}</div>
-        <div id="cm-action" style="margin-top:6px"></div>
-      </div>`;
-    document.body.appendChild(panel);
-  },
-
-  _select(animalId){
-    const z=ZS.zoo; if(!z)return;
-    const enc=z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
-    if(!enc)return;
-    const a=enc.animal;
-    const curTier=this._tier(a);
-    const nextTierIdx=curTier+1;
-    const nextDef=this._TIERS[nextTierIdx];
-    const upg=this._upgrading(a);
-    const tokens=z.tokens||0;
-    const el=document.getElementById('cm-action');
-    if(!el)return;
-
-    // Highlight selected
-    document.querySelectorAll('[id^=cm-card-]').forEach(c=>c.style.outline='none');
-    const selCard=document.getElementById('cm-card-'+animalId);
-    if(selCard)selCard.style.outline='2px solid #FFD700';
-
-    if(upg){
-      const remaining=Math.max(0,Math.ceil((upg.finishAt-Date.now())/60000));
-      el.innerHTML=`<div style="background:rgba(243,156,18,.15);border:1px solid #F39C12;border-radius:10px;padding:10px;text-align:center;color:#F39C12">
-        ⏳ Upgrade läuft noch <b>${remaining} Minuten</b>...
-        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:4px">Tier verdient während dem Upgrade kein Geld</div>
-        <button onclick="CraftMachine._collect('${animalId}')" ${upg.finishAt<=Date.now()?'':'disabled'}
-          style="margin-top:8px;background:${upg.finishAt<=Date.now()?'#27AE60':'rgba(255,255,255,.1)'};border:none;color:${upg.finishAt<=Date.now()?'white':'rgba(255,255,255,.3)'};padding:6px 18px;border-radius:8px;cursor:${upg.finishAt<=Date.now()?'pointer':'not-allowed'};font-weight:700;font-size:.85rem">
-          ${upg.finishAt<=Date.now()?'✅ Abholen!':'Noch nicht fertig'}
-        </button>
-      </div>`;
-    } else if(!nextDef){
-      el.innerHTML=`<div style="text-align:center;color:#9B59B6;font-weight:700;font-size:1rem;padding:10px">🌌 ${a.name||a.id} ist auf MAX-Stufe! ✨</div>`;
-    } else {
-      const canAfford=tokens>=nextDef.tokens;
-      el.innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px">
-        <div style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:8px">⬆️ Upgrade zu ${nextDef.emoji} ${nextDef.n}</div>
-        <div style="display:flex;gap:12px;font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:10px">
-          <span>🎫 Kostet: <b style="color:${canAfford?'#FFD700':'#E74C3C'}">${nextDef.tokens} Token${nextDef.tokens!==1?'s':''}</b></span>
-          <span>⏱️ Wartezeit: <b>${nextDef.waitMin} Min</b></span>
-          <span>📈 Einkommen: <b style="color:#27AE60">×${this._TIERS[nextTierIdx].mult}×</b></span>
-        </div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px">⚠️ Während dem Upgrade verdient das Tier kein Geld</div>
-        ${canAfford?`
-        <button onclick="CraftMachine._startUpgrade('${animalId}')"
-          style="width:100%;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;border:none;padding:10px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">
-          🚀 Upgrade starten!
-        </button>`:`
-        <div style="text-align:center;color:#E74C3C;font-size:.82rem">❌ Zu wenig Tokens! Du hast ${tokens}, brauchst ${nextDef.tokens}.<br>
-          <span style="font-size:.7rem;color:rgba(255,255,255,.4)">Tokens im Shop kaufen</span>
-        </div>`}
-      </div>`;
-    }
-  },
-
-  _startUpgrade(animalId){
-    const z=ZS.zoo; if(!z)return;
-    const enc=z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
-    if(!enc)return;
-    const a=enc.animal;
-    const curTier=this._tier(a);
-    const nextTierIdx=curTier+1;
-    const nextDef=this._TIERS[nextTierIdx];
-    if(!nextDef)return;
-    const tokens=z.tokens||0;
-    if(tokens<nextDef.tokens){ZP.toast('Zu wenig Tokens!',2000);return;}
-    z.tokens=(tokens-nextDef.tokens);
-    if(!z.goldUpgrades)z.goldUpgrades={};
-    z.goldUpgrades[animalId]={finishAt:Date.now()+nextDef.waitMin*60000,tier:nextTierIdx};
-    ZS.save&&ZS.save();
-    ZP.toast('⚗️ Upgrade gestartet! '+nextDef.waitMin+' Min warten...',3000);
-    this._render();
-  },
-
-  _collect(animalId){
-    const z=ZS.zoo; if(!z)return;
-    const upg=(z.goldUpgrades||{})[animalId];
-    if(!upg||upg.finishAt>Date.now()){ZP.toast('Noch nicht fertig!',2000);return;}
-    if(!z.goldTiers)z.goldTiers={};
-    const newTier=upg.tier;
-    z.goldTiers[animalId]=newTier;
-    delete z.goldUpgrades[animalId];
-    // Apply multiplier to animal
-    const enc=z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
-    if(enc){enc.xm=(enc.xm||1)*(this._TIERS[newTier].mult/this._TIERS[newTier-1].mult);}
-    ZS.save&&ZS.save();
-    const tierDef=this._TIERS[newTier];
-    ZP.toast('✨ '+tierDef.emoji+' '+tierDef.n+'-Upgrade abgeschlossen! Einnahmen ×'+tierDef.mult,4000);
-    this._render();
-  },
-};
-window.CraftMachine = CraftMachine;;
-window.CraftMachine = CraftMachine;
-<!-- ZOO v17.1 -->
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Mischa Zoo 3D</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;background:#000;color:#fff;touch-action:none;user-select:none}
-.scr{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
-.scr.off{display:none!important}
-#s-login,#s-char,#s-mode{background:radial-gradient(ellipse at 50% 0%,#1a3a6b,#060c18)}
-.ztitle{font-size:clamp(1.6rem,3vw,2.3rem);color:#FFD700;text-align:center;font-weight:900;margin-bottom:4px}
-.zsub{color:rgba(255,255,255,.6);font-size:.92rem;text-align:center;margin-bottom:18px}
-.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:22px 18px;width:100%;max-width:360px}
-.inp{width:100%;padding:11px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:.92rem;margin-bottom:9px}
-.inp:focus{outline:none;border-color:#FFD700}.inp::placeholder{color:rgba(255,255,255,.3)}
-.btn{width:100%;padding:12px;border-radius:50px;border:none;cursor:pointer;font-size:1rem;font-weight:900;transition:transform .15s;margin-top:5px}
-.btn:active{transform:scale(.95)}
-.btng{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800}
-.btnd{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.14)}
-.err{color:#ff6b6b;font-size:.8rem;text-align:center;min-height:16px;margin-bottom:4px}
-.cgr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:360px;width:100%;margin:10px 0}
-.co{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:13px;padding:9px 4px;text-align:center;cursor:pointer;transition:all .2s}
-.co.sel{border-color:#FFD700;background:rgba(255,215,0,.12)}
-.mc{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 16px;width:100%;max-width:320px;cursor:pointer;text-align:center;margin-bottom:10px;transition:all .22s}
-.mc:hover{border-color:#FFD700;transform:translateY(-2px)}
-/* ZOO */
-#s-zoo{overflow:hidden;padding:0;background:#000;position:fixed;inset:0}
-#zc{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:crosshair;z-index:1}
-/* HUD */
-#hud{position:fixed;inset:0;pointer-events:none;z-index:110}
-/* Money - above joystick bottom-left */
-#hm{position:absolute;bottom:140px;left:14px;pointer-events:none}
-.mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
-.ms{font-size:.72rem;color:rgba(255,255,255,.8);text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
-/* LEFT sidebar */
-#hleft{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;padding:5px 6px;pointer-events:auto;z-index:120}
-.hb{width:62px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.hb:active .hbb{transform:scale(.88)}
-.hbb{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.55rem;border:2.5px solid rgba(255,255,255,.35);background:rgba(0,0,0,.65);backdrop-filter:blur(8px);transition:transform .12s}
-.hbl{font-size:.6rem;font-weight:900;color:#fff;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
-/* WEAPON BAR - bottom center like screenshot */
-#wbar{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);pointer-events:auto;background:rgba(10,10,10,.85);border:2px solid rgba(255,255,255,.25);border-radius:16px;padding:7px 10px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;z-index:120;min-width:180px}
-.wbtitle{font-size:.72rem;font-weight:900;color:#fff;letter-spacing:.06em}
-.wbrow{display:flex;gap:6px;align-items:flex-end}
-.ss{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.ss:active .si{transform:scale(.85)}
-.si{width:52px;height:52px;border-radius:12px;background:#111;border:2.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.7rem;position:relative;transition:border-color .2s,box-shadow .2s,transform .1s}
-.si.eq{border-color:#FFD700!important;box-shadow:0 0 14px rgba(255,215,0,.7)}
-.si.lk{opacity:.3;filter:grayscale(1)}
-.scd{position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:900;color:#FFD700}
-.sn{font-size:.52rem;font-weight:900;color:rgba(255,255,255,.85);text-align:center;max-width:52px;line-height:1.1;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
-/* Joystick BOTTOM LEFT */
-#jzone{position:absolute;bottom:14px;left:12px;width:114px;height:114px;pointer-events:auto;z-index:120}
-#jbase{width:114px;height:114px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
-#jthumb{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.6);border:2px solid rgba(255,255,255,.9);top:35px;left:35px;pointer-events:none;transition:none}
-/* Minimap TR */
-#mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
-/* Event timer */
-#evt{position:absolute;bottom:14px;right:10px;background:rgba(0,0,0,.72);border-radius:10px;padding:6px 10px;border:2px solid rgba(255,255,255,.18);font-size:.76rem;text-align:center;display:none;pointer-events:none;font-weight:900}
-/* Crosshair */
-#xhair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.7}
-/* Interact prompt */
-#iprompt{position:absolute;bottom:27%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;font-size:.85rem;font-weight:900;color:#FFD700;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:115}
-/* Event banner */
-#evb{position:absolute;top:0;left:0;right:0;text-align:center;padding:8px;font-size:.98rem;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);opacity:0;transition:opacity .5s;pointer-events:none}
-#bflash{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0;transition:opacity .08s}
-/* KO fly */
-.kofly{position:fixed;font-size:2.8rem;pointer-events:none;z-index:350;animation:kof 1.5s ease-out forwards}
-@keyframes kof{0%{transform:translateY(0) scale(1);opacity:1}70%{transform:translateY(-200px) scale(1.3);opacity:1}100%{transform:translateY(-360px) scale(.7);opacity:0}}
-/* Float money */
-.flt{position:fixed;pointer-events:none;z-index:400;font-size:.93rem;font-weight:900;color:#00FF88;text-shadow:-1px -1px 0 #000,1px 1px 0 #000;animation:fup 1.6s ease forwards}
-.awalk{position:fixed;pointer-events:none;z-index:450;font-size:2.5rem;animation:none;transition:all 3s cubic-bezier(.25,.46,.45,.94)}
-@keyframes walkBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes fup{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-70px)}}
-/* Weather */
-.zsn{position:fixed;pointer-events:none;z-index:185;top:-24px;animation:snf linear infinite;opacity:.8}
-@keyframes snf{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(110vh) rotate(720deg)}}
-.zbm{position:fixed;bottom:0;z-index:183;border-radius:3px;opacity:.5;transform-origin:bottom;animation:bma 2s ease-in-out infinite;width:5px}
-@keyframes bma{0%,100%{height:55px;opacity:.45}50%{height:145px;opacity:.8}}
-/* Glitch interior */
-#gint{position:fixed;inset:0;z-index:500;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center}
-.gisc{width:min(370px,95vw);height:250px;background:#0e0e0e;border-radius:16px;border:2px solid #00ff88;position:relative;overflow:hidden;margin-bottom:12px;box-shadow:0 0 30px rgba(0,255,136,.2)}
-.gicb{position:absolute;top:16px;left:50%;width:4px;background:repeating-linear-gradient(180deg,#888 0px,#888 8px,#444 8px,#444 16px);height:76px;transform:translateX(-50%)}
-.gigo{position:absolute;top:86px;left:50%;transform:translateX(-50%);width:58px;height:38px;background:#c8a050;border-radius:8px;border:2px solid #FFD700;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:top 2.5s ease-in-out}
-.girb{position:absolute;bottom:26px;left:26%;font-size:2.4rem;animation:rob 2s ease-in-out infinite alternate}
-@keyframes rob{0%{transform:translateX(0) rotate(-5deg)}100%{transform:translateX(38px) rotate(5deg)}}
-.gitm{font-size:2.4rem;font-weight:900;color:#00ff88;text-shadow:0 0 20px rgba(0,255,136,.6)}
-/* Toast */
-#zt{position:fixed;top:54px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-size:.87rem;font-weight:900;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:280px;line-height:1.3;background:rgba(0,0,0,.7);padding:6px 14px;border-radius:50px}
-/* Tutorial */
-#tut{position:fixed;inset:0;z-index:600;pointer-events:auto;display:none}
-.tbox{position:absolute;background:rgba(0,0,0,.92);border:2px solid #FFD700;border-radius:14px;padding:12px 16px;font-size:.84rem;font-weight:900;max-width:205px;text-align:center;animation:pop .4s ease;color:#FFD700;line-height:1.4}
-.tbox p{color:rgba(255,255,255,.85);font-size:.75rem;font-weight:400;margin-top:4px}
-.tskip{position:absolute;bottom:14px;right:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-size:.78rem;padding:5px 13px;border-radius:50px;cursor:pointer}
-/* Lucky Wheel */
-#lwrap{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(8px)}
-.lwtit{font-size:1.45rem;font-weight:900;color:#FFD700;margin-bottom:9px}
-.lwbtn{font-size:1.05rem;font-weight:900;padding:11px 28px;border-radius:50px;border:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;cursor:pointer;margin-top:11px}
-.lwbtn:disabled{background:rgba(255,255,255,.2);color:rgba(255,255,255,.35);cursor:not-allowed}
-/* Panels */
-.zp{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
-.zp.off{display:none!important}
-.zpi{background:linear-gradient(160deg,#0a1628,#0d1f3c);width:100%;max-width:450px;border-radius:22px 22px 0 0;padding:16px 14px 30px;max-height:88vh;overflow-y:auto;position:relative}
-.pcls{position:sticky;top:0;float:right;background:rgba(255,255,255,.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:.9rem;cursor:pointer;z-index:5;margin-bottom:-28px}
-.pt{font-weight:900;color:#FFD700;font-size:1.2rem;text-align:center;margin-bottom:10px;clear:both}
-.ac{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:9px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.ab{padding:4px 10px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-size:.7rem;font-weight:900;margin-top:2px}
-.ab:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
-.rn{color:#9e9e9e}.rr{color:#4fc3f7}.re{color:#ce93d8}.rl{color:#ffb74d}.ru{color:#ef5350}.rg{color:#FFD700}.rm{color:#ff6ec7}
-.rs{background:linear-gradient(90deg,#ff6b6b,#FFD700,#27AE60,#4A90D9,#cc00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
-.tb{display:inline-block;padding:1px 4px;border-radius:4px;font-size:.55rem;font-weight:700;margin:1px}
-.tg{background:#FFD700;color:#333}.td{background:#00CFFF;color:#000}.tr2{background:linear-gradient(90deg,#ff6b6b,#27AE60);color:#fff}.tv{background:#9B59B6;color:#fff}
-.tf{background:linear-gradient(135deg,#FF4500,#FFD700);color:#fff}.te{background:#F4D03F;color:#333}.tc{background:linear-gradient(135deg,#9B59B6,#1a1a2e);color:#fff}.tk{background:linear-gradient(135deg,#AED6F1,#fff);color:#333}
-.tgl{background:linear-gradient(90deg,#00ff88,#00ccff,#ff00ff);color:#000}
-.tab{padding:6px 10px;border-radius:9px;border:none;cursor:pointer;font-size:.72rem;font-weight:900;flex:1}
-.ta{background:rgba(255,215,0,.25);color:#FFD700}.ti{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55)}
-.rboard{background:rgba(0,0,0,.5);border:2px solid rgba(255,215,0,.3);border-radius:12px;padding:10px;margin-top:10px}
-.rrow{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.65rem}
-.ex{background:rgba(0,207,255,.07);border:1px solid rgba(0,207,255,.22);border-radius:11px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:7px}
-.gcars{display:flex;gap:10px;justify-content:center;padding:8px;background:rgba(0,0,0,.4);border-radius:11px;margin-bottom:8px;min-height:78px;align-items:flex-end}
-@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes rb{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
-
-/* Smart HUD compact mode */
-#hleft.compact .hb { min-width:36px !important; padding:3px !important; }
-#hleft.compact .hbb { width:32px !important; height:32px !important; font-size:.9rem !important; }
-#hleft.compact .hbl { display:none !important; }
-#hleft.compact { gap:3px !important; }
-#hleft { transition:all .3s ease; }
-.hb { transition:all .2s ease; }
-
-@media(max-width:500px){
-  .hb{min-width:52px !important;padding:4px 6px !important}
-  .hbb{width:38px !important;height:38px !important;font-size:1.1rem !important}
-  .hbl{font-size:.52rem !important}
-  .ss{min-width:44px !important;padding:2px !important}
-  .si{width:40px !important;height:40px !important}
-  .si span{font-size:1.3rem !important}
-  .sn{font-size:.5rem !important}
-  #wbar{max-width:calc(100vw - 80px) !important}
-  #jump-fixed-btn{width:60px !important;height:60px !important;font-size:1.4rem !important}
-  #chat-toggle-btn{font-size:.68rem !important;padding:4px 7px !important}
-}
-@media(max-width:380px){
-  .hb{min-width:44px !important}
-  .hbb{width:32px !important;height:32px !important;font-size:.9rem !important}
-  .hbl{font-size:.48rem !important}
-}
-
-@media(max-width:600px){
-  .zpi{padding:10px 12px !important}
-  .pt{font-size:1.05rem !important}
-  button,select,input,textarea{font-size:1rem !important;min-height:44px}
-  .wbtitle{font-size:.85rem !important}
-  #hm .mv,.ms{font-size:1rem !important}
-  #hleft button{min-width:44px;min-height:44px;font-size:1rem !important}
-  #wbar{padding:10px 14px !important}
-  #zt{font-size:1rem !important;padding:8px 18px !important}
-}
-</style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script>
-  let lastTap=0;
-  document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
-  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
-  </script>
-</head>
+</script>
 <body>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
@@ -6479,7 +6067,7 @@ const SLAPS=[
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000},{e:3,l:2,u:1,g:0,m:0,s:0,mt:25000},{e:4,l:3,u:2,g:1,m:0,s:0,mt:120000},{e:5,l:4,u:3,g:2,m:1,s:0,mt:600000},{e:5,l:5,u:4,g:3,m:2,s:0,mt:3000000},{e:5,l:5,u:5,g:4,m:3,s:0,mt:15000000},{e:5,l:5,u:5,g:5,m:4,s:1,mt:100000000}];return R[Math.min(n,R.length-1)];}
-function $mt(n){if(n>=1e15)return'🌀'+(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return'🌀'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'🌀'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'🌀'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
+function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e15)return'🌀'+(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return'🌀'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'🌀'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'🌀'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
@@ -6487,7 +6075,7 @@ function rA(luck,night){const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){if(!ev)return[];if(ev==='mega')return TRAITS.filter(t=>Math.random()*100<t.p*1.5);return TRAITS.filter(t=>t.ev===ev&&Math.random()*100<t.p);}
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return e;}
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
 function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).join('');}
 
@@ -7210,7 +6798,6 @@ const ZG={
       const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
     });
     this._station();
-    this._buildCraftMachine();
     this._encs();
     this._trees();
     this._hiddenTrapdoor();
@@ -7409,44 +6996,6 @@ const ZG={
     for(let i=0;i<14;i++){const g=new THREE.Group();for(let j=0;j<5;j++){const s=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*3,7,5),m);s.position.set(j*3.5-7+Math.random()*3,Math.random()*2,Math.random()*3);g.add(s);}g.position.set((Math.random()-.5)*180,36+Math.random()*14,(Math.random()-.5)*180);g.userData.spd=.013+Math.random()*.02;this.scene.add(g);}
   },
 
-  _buildCraftMachine(){
-    // Remove old if exists
-    if(this._craftMesh){this.scene.remove(this._craftMesh);this._craftMesh=null;}
-    const g=new THREE.Group();
-    // Position: near zone A (x:0, z:55), offset to side
-    const cx=16, cz=55;
-    CraftMachine._pos={x:cx,z:cz};
-    g.position.set(cx,0,cz);
-    
-    // Base platform
-    const base=new THREE.Mesh(new THREE.CylinderGeometry(3,3.2,.4,8),new THREE.MeshBasicMaterial({color:0x2c3e50}));
-    base.position.y=.2;g.add(base);
-    // Main body (hexagonal column)
-    const body=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2,3.5,6),new THREE.MeshBasicMaterial({color:0x8e44ad}));
-    body.position.y=2.1;g.add(body);
-    // Glowing core (inner sphere)
-    const core=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:.8}));
-    core.position.y=2.2;g.add(core);core.userData.coreAnim=true;
-    // Top pyramid
-    const top=new THREE.Mesh(new THREE.ConeGeometry(1.5,1.5,6),new THREE.MeshBasicMaterial({color:0x9b59b6}));
-    top.position.y=4.6;g.add(top);
-    // Floating rings
-    for(let i=0;i<3;i++){
-      const ring=new THREE.Mesh(new THREE.TorusGeometry(1.4+i*.3,.08,6,16),new THREE.MeshBasicMaterial({color:[0xFFD700,0x9b59b6,0x00CFFF][i],transparent:true,opacity:.7}));
-      ring.position.y=1.8+i*.5;ring.userData.ringAnim=i;g.add(ring);
-    }
-    // Emoji label
-    const lbl=this._txt('✨ Gold Maschine',1,'#FFD700');lbl.position.set(0,5.8,0);lbl.scale.set(9,1.5,1);g.add(lbl);
-    // Collect zone ring on ground
-    const zone=new THREE.Mesh(new THREE.TorusGeometry(4.5,.15,5,24),new THREE.MeshBasicMaterial({color:0x9b59b6,transparent:true,opacity:.5}));
-    zone.rotation.x=Math.PI/2;zone.position.y=.05;g.add(zone);
-    
-    this._craftMesh=g;this.scene.add(g);
-    
-    // Animate craft machine in loop
-    const origLoop=this._loop.bind(this);
-    this._craftAnimPhase=0;
-  },
 
   _anSp(animal,shiny){
     const g=new THREE.Group();
@@ -7819,21 +7368,23 @@ const ZG={
       ZSteal._nearStealTarget=foundSteal;
     }
     
-    // Detect craft machine proximity → auto-open
-    if(window.CraftMachine&&CraftMachine._pos){
-      const cm=CraftMachine._pos;
-      const dx=this.pl.x-cm.x,dz=this.pl.z-cm.z;
-      if(dx*dx+dz*dz<25&&!document.getElementById('craft-panel')){
-        CraftMachine.open();
-      }
+    // Detect Gold Machine proximity (x=16, z=55)
+    const _gmDx=this.pl.x-16, _gmDz=this.pl.z-55;
+    const _gmDist=Math.sqrt(_gmDx*_gmDx+_gmDz*_gmDz);
+    this._nearGoldMachine = _gmDist < 5;
+    if(this._nearGoldMachine && !this._gmHinted){
+      this._gmHinted=true;
+      ZP.toast('⚗️ [E] — Gold-Maschine öffnen',2500);
+    } else if(!this._nearGoldMachine){
+      this._gmHinted=false;
     }
   },
 
   _visitor(){
     const z=ZS.zoo;if(!z)return;
     const a=z.enc.filter(e=>e);if(!a.length)return;
-    z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>s+earn(enc,z,this.ev),0);z.mt+=tot;z.te=(z.te||0)+tot;if(Math.random()<0.3)ZSound.coin();
-    const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);
+    z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>{const ev2=earn(enc,z,this.ev);return s+(isNaN(ev2)||!isFinite(ev2)?0:ev2);},0);if(isNaN(z.mt)||!isFinite(z.mt))z.mt=0;if(tot>0){z.mt+=tot;z.te=(z.te||0)+tot;}if(Math.random()<0.3)ZSound.coin();
+    const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;if(_safeTot>0){el.textContent='+'+$mt(_safeTot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);}
   },
 
   _hudCompact: false,
@@ -7938,6 +7489,8 @@ const ZG={
     }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
     if(this.nearLimo>=0){ZP.openLimo(this.nearLimo);return;}
+    // Gold Machine
+    if(this._nearGoldMachine){GoldMachine.open();return;}
   },
 
   // ═══ SLAP SYSTEM ═══
@@ -10393,7 +9946,6 @@ const ZAdmin = {
     const nm=document.getElementById('padmin-edit-name');if(nm)nm.value=a.n;
     const earn=document.getElementById('padmin-edit-earn');if(earn)earn.value=a.earn||10;
     const rar=document.getElementById('padmin-edit-rarity');if(rar)rar.value=a.r||'normal';
-    ZAdmin._selectedCraftAnimal=id;
     document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
   },
   _spawnSelected(){
@@ -10439,7 +9991,6 @@ const ZAdmin = {
       ${a.e||'?'}</div>`).join('');
   },
   _selectCraftAnimal(id){
-    this._selectedCraftAnimal=id;
     document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
   },
   _populateEvents(){
@@ -11024,7 +10575,6 @@ function _handleAdminEvent(d){
     const r=d.recipe;
     if(!window._adminCraftRecipes.find(x=>x.id===r.id)){
       window._adminCraftRecipes.push(r);
-      CraftMachine._shown=[];CraftMachine._lastRotate=0;
       ZP.toast('⚗️ Admin hat '+r.result.e+' '+r.result.n+' in die Craft-Maschine hinzugefügt!',4000);
     }
   }
@@ -11636,217 +11186,6 @@ window.CRAFT_RECIPES=CRAFT_RECIPES;
 const RARITY_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#e67e22',god:'#e74c3c',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
 const RARITY_NAME={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',god:'Gott',mythic:'Mythisch',ultralegendary:'Ultra Legendär',secret:'Geheim'};
 
-const CraftMachine = {
-  _shown: [], // current 4 recipes
-  _lastRotate: 0,
-  _ROTATE_MS: 20*60*1000, // 20 min
-  _cooldown: false, // prevent immediate reopen after close
-  _pos: null,
-
-  open(){
-    if(this._cooldown) return;
-    const z=ZS.zoo;if(!z)return;
-    // Rotate recipes every 20 min
-    const now=Date.now();
-    if(!this._shown.length || now-this._lastRotate > this._ROTATE_MS){
-      this._shown = this._pick4();
-      this._lastRotate = now;
-    }
-    this._render(this._shown, z);
-  },
-
-  _pick4(){
-    // Always show: 2 doable (if any) + 2 random others
-    const z=ZS.zoo||{enc:[]};
-    const all = [...CRAFT_RECIPES];
-    // Also add any admin-added recipes
-    const adminR = (window._adminCraftRecipes||[]);
-    adminR.forEach(r=>{ if(!all.find(x=>x.id===r.id)) all.push(r); });
-    const doable = all.filter(r=>this._canDo(r,z));
-    const rest = all.filter(r=>!this._canDo(r,z)).sort(()=>Math.random()-.5);
-    const result = [];
-    // Add up to 2 doable
-    doable.sort(()=>Math.random()-.5).slice(0,2).forEach(r=>result.push(r));
-    // Fill to 4 from rest
-    while(result.length<4 && rest.length) result.push(rest.shift());
-    // If still less than 4, add more doable
-    while(result.length<4 && doable.length>result.length) result.push(doable[result.length]);
-    return result.slice(0,4);
-  },
-
-  forceRotate(){
-    // Disabled: recipes rotate automatically every 20 min
-    ZP.toast('⏰ Neue Rezepte kommen automatisch alle 20 Min',2000);
-  },
-
-  _canDo(recipe, z){
-    const enc=(z.enc||[]).filter(e=>e&&e.animal&&e.animal.id);
-    // Must check ALL inputs together (animals can't be used twice)
-    const available=[...enc];
-    for(const req of recipe.inputs){
-      let needed=req.count||1;
-      for(let i=0;i<available.length&&needed>0;i++){
-        if(!available[i])continue;
-        const a=available[i].animal;
-        const ar=a.r||'normal'; // default to normal if missing
-        const matches=req.id ? a.id===req.id : ar===req.r;
-        if(matches){ available[i]=null; needed--; }
-      }
-      if(needed>0) return false;
-    }
-    return true;
-  },
-
-  _render(recipes, z){
-    const old=document.getElementById('craft-panel');if(old)old.remove();
-    const canDoCount=recipes.filter(r=>this._canDo(r,z)).length;
-    const nextMs=Math.max(0,this._ROTATE_MS-(Date.now()-this._lastRotate));
-    const nextMin=Math.ceil(nextMs/60000);
-
-    const panel=document.createElement('div');
-    panel.id='craft-panel';
-    panel.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;touch-action:none';
-
-    const inner=document.createElement('div');
-    inner.style.cssText='background:linear-gradient(135deg,#0d0d20,#1a1a35);border:2px solid rgba(180,100,255,.4);border-radius:18px;width:min(480px,96vw);max-height:90vh;overflow-y:auto;padding:16px';
-
-    // Header
-    const hdr=document.createElement('div');
-    hdr.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:10px';
-    hdr.innerHTML='<span style="font-size:2rem">⚗️</span>';
-    const hdrInfo=document.createElement('div');hdrInfo.style.flex='1';
-    const hdrT=document.createElement('div');hdrT.style.cssText='font-size:1.1rem;font-weight:900;color:#d4aaff';hdrT.textContent='Craft-Maschine';
-    const hdrS=document.createElement('div');hdrS.style.cssText='font-size:.7rem;color:rgba(255,255,255,.4)';
-    hdrS.textContent=canDoCount+' machbar · Neue Rezepte in '+nextMin+' Min';
-    hdrInfo.appendChild(hdrT);hdrInfo.appendChild(hdrS);hdr.appendChild(hdrInfo);
-    const closeBtn=document.createElement('button');
-    closeBtn.textContent='✕';
-    closeBtn.style.cssText='background:rgba(231,76,60,.6);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer;font-size:1rem';
-    closeBtn.onclick=()=>{ panel.remove(); CraftMachine._cooldown=true; setTimeout(()=>CraftMachine._cooldown=false,3000); };
-    hdr.appendChild(closeBtn);inner.appendChild(hdr);
-
-    if(!recipes.length){
-      const empty=document.createElement('div');
-      empty.style.cssText='text-align:center;padding:30px;color:rgba(255,255,255,.4)';
-      empty.textContent='Keine Rezepte verfügbar';
-      inner.appendChild(empty);
-    }
-
-    recipes.forEach(recipe=>{
-      const canDo=this._canDo(recipe,z);
-      const col=RARITY_COL[recipe.result.r]||'#ccc';
-      const card=document.createElement('div');
-      card.style.cssText='background:rgba(255,255,255,'+(canDo?'.07':'.03')+');border:1px solid '+(canDo?col:'rgba(255,255,255,.07)')+';border-radius:12px;padding:12px;margin-bottom:10px';
-
-      // Inputs row
-      const inputsDiv=document.createElement('div');
-      inputsDiv.style.cssText='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px';
-      recipe.inputs.forEach((req,i)=>{
-        if(i>0){const plus=document.createElement('span');plus.style.color='rgba(255,255,255,.5)';plus.textContent='+';inputsDiv.appendChild(plus);}
-        const chip=document.createElement('div');
-        const rc=RARITY_COL[req.r]||'#888';
-        chip.style.cssText='background:rgba(255,255,255,.08);border:1px solid '+rc+';border-radius:8px;padding:4px 10px;font-size:.75rem;color:'+rc+';font-weight:700';
-        chip.textContent=(req.count||1)+'× '+(req.id ? (ANIMALS||[]).find(a=>a.id===req.id)?.n||req.id : (RARITY_NAME[req.r]||req.r));
-        inputsDiv.appendChild(chip);
-      });
-      const arrow=document.createElement('span');arrow.style.cssText='color:rgba(255,255,255,.4);font-size:1.2rem;margin:0 4px';arrow.textContent='→';
-      inputsDiv.appendChild(arrow);
-      // Result chip
-      const resChip=document.createElement('div');
-      resChip.style.cssText='background:rgba(255,255,255,.1);border:1px solid '+col+';border-radius:8px;padding:4px 10px;font-size:.75rem;color:'+col+';font-weight:700';
-      resChip.textContent=recipe.result.e+' '+recipe.result.n;
-      inputsDiv.appendChild(resChip);
-      card.appendChild(inputsDiv);
-
-      // Bottom row: rarity + chance + craft button
-      const bottom=document.createElement('div');
-      bottom.style.cssText='display:flex;align-items:center;gap:8px';
-      const rar=document.createElement('div');
-      rar.style.cssText='font-size:.7rem;padding:2px 8px;border-radius:6px;background:'+col+'22;color:'+col+';border:1px solid '+col+'55';
-      rar.textContent=RARITY_NAME[recipe.result.r]||recipe.result.r;
-      const chance=document.createElement('div');
-      const cp=Math.round(recipe.chance*100);
-      chance.style.cssText='font-size:.7rem;color:'+(cp>=80?'#27AE60':cp>=50?'#F39C12':'#E74C3C');
-      chance.textContent=cp+'% Chance';
-      if(recipe.result.craftOnly){
-        const co=document.createElement('span');co.style.cssText='font-size:.65rem;color:#ff69b4;font-weight:700';
-        co.textContent='✨ Exklusiv';bottom.appendChild(co);
-      }
-      bottom.appendChild(rar);bottom.appendChild(chance);
-      bottom.style.flex='1';
-
-      if(canDo){
-        const btn=document.createElement('button');
-        btn.style.cssText='margin-left:auto;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:.8rem;cursor:pointer;font-weight:700;white-space:nowrap';
-        btn.textContent='⚗️ Craften!';
-        const rid=recipe.id;
-        btn.onclick=()=>CraftMachine.craft(rid);
-        bottom.appendChild(btn);
-      } else {
-        const need=document.createElement('div');
-        need.style.cssText='margin-left:auto;font-size:.68rem;color:rgba(255,255,255,.3)';
-        need.textContent='Tiere fehlen';
-        bottom.appendChild(need);
-      }
-      card.appendChild(bottom);
-      inner.appendChild(card);
-    });
-
-    // Rotate button
-    const rotBtn=document.createElement('button');
-    rotBtn.style.cssText='width:100%;margin-top:6px;background:rgba(180,100,255,.1);border:1px solid rgba(180,100,255,.3);color:rgba(180,100,255,.8);padding:8px;border-radius:8px;cursor:pointer;font-size:.75rem';
-    rotBtn.textContent='🔄 Neue Rezepte sofort anzeigen (manuell)';
-    rotBtn.onclick=()=>CraftMachine.forceRotate();
-    inner.appendChild(rotBtn);
-
-    panel.appendChild(inner);
-    document.body.appendChild(panel);
-  },
-
-  craft(recipeId){
-    const all=[...CRAFT_RECIPES,...(window._adminCraftRecipes||[])];
-    const recipe=all.find(r=>r.id===recipeId);
-    const z=ZS.zoo;
-    if(!recipe||!z)return;
-    if(!this._canDo(recipe,z)){ZP.toast('❌ Tiere fehlen!',1500);return;}
-    // Remove input animals
-    for(const req of recipe.inputs){
-      let needed=req.count||1;
-      for(let i=0;i<z.enc.length&&needed>0;i++){
-        const e=z.enc[i];if(!e||!e.animal)continue;
-        const ok=req.id?e.animal.id===req.id:e.animal.r===req.r;
-        if(ok){z.enc[i]=null;needed--;}
-      }
-    }
-    // Check admin limit
-    if(recipe._adminLimit!==undefined){
-      recipe._adminLimit--;
-      if(recipe._adminLimit<0){ZP.toast('❌ Limit erreicht!',1500);return;}
-      // Sync to Firebase
-      try{ ZS._fbSet&&ZS._fbSet('craft_recipes/'+recipeId,{limit:recipe._adminLimit}); }catch(e){}
-    }
-    // Roll chance
-    if(Math.random()>recipe.chance){
-      ZP.toast('💨 Fehlgeschlagen! ('+Math.round(recipe.chance*100)+'%)',2500);
-      ZG._encs&&ZG._encs();document.getElementById('craft-panel')?.remove();ZS.save&&ZS.save();
-      return;
-    }
-    // Add result animal
-    const slot=z.enc.findIndex(e=>!e||!e.animal);
-    if(slot>=0){
-      z.enc[slot]={animal:{...recipe.result,p:recipe.result.earn||0},shiny:null,traits:[],xm:1,addedAt:Date.now(),crafted:true};
-      ZP.toast('⚗️ '+recipe.result.e+' '+recipe.result.n+' gecraftet! 🎉',3500);
-      ZG._showStars&&ZG._showStars(ZG.pl.x,ZG.pl.z,0xD4AAFF,10);
-    } else {
-      ZP.toast('❌ Kein Gehege frei!',2000);
-    }
-    ZG._encs&&ZG._encs();ZS.save&&ZS.save();
-    document.getElementById('craft-panel')?.remove();
-    this._cooldown=true;setTimeout(()=>this._cooldown=false,3000);
-  },
-};
-window.CraftMachine=CraftMachine;
-window._adminCraftRecipes=[];;
 
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
@@ -11857,6 +11196,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   }catch(e){}
   const main=sessionStorage.getItem('mischa_current') || localStorage.getItem('mischa_current_backup');
   if(main){
+    // Hide login screen immediately - auto-login in progress
+    hide('s-login');
     // Restore session if needed
     if(!sessionStorage.getItem('mischa_current')) sessionStorage.setItem('mischa_current',main);
     let us=JSON.parse(localStorage.getItem('zoo_users')||'{}');
@@ -11905,6 +11246,182 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   history.pushState(null,'','');
 });
+
+// ══════════════════════════════════════════════
+// GOLD MACHINE — Upgrade animals through tiers
+// ══════════════════════════════════════════════
+const GoldMachine = {
+  _TIERS: [
+    {n:'Normal',    emoji:'⚪', mult:1,    tokens:0, waitMin:0,   color:'#95a5a6'},
+    {n:'Gold',      emoji:'🥇', mult:2,    tokens:1, waitMin:15,  color:'#FFD700'},
+    {n:'Diamant',   emoji:'💎', mult:4,    tokens:2, waitMin:30,  color:'#00CFFF'},
+    {n:'Regenbogen',emoji:'🌈', mult:8,    tokens:4, waitMin:60,  color:'#FF69B4'},
+    {n:'Void',      emoji:'🌌', mult:16,   tokens:8, waitMin:120, color:'#9B59B6'},
+  ],
+
+  _tier(animal) {
+    const upg = (ZS.zoo?.upgrades||{})[animal.id];
+    return upg?.tier||0;
+  },
+  _upgrading(animal) {
+    return (ZS.zoo?.upgrading||{})[animal.id]||null;
+  },
+
+  open() {
+    const z = ZS.zoo; if(!z) return;
+    const tokens = z.tokens||0;
+    const animals = z.enc.filter(e=>e&&e.animal).map(e=>e.animal);
+    if(!animals.length) { ZP.toast('❌ Keine Tiere im Zoo!',2000); return; }
+
+    const cards = animals.map(a => {
+      const tier = this._tier(a);
+      const upg = this._upgrading(a);
+      const tierDef = this._TIERS[tier]||this._TIERS[0];
+      const remaining = upg ? Math.max(0,Math.ceil((upg.finishAt-Date.now())/60000)) : 0;
+      const isMax = tier >= this._TIERS.length-1;
+      return `<div onclick="GoldMachine._select('${a.id}')" id="gm-card-${a.id}"
+        style="background:rgba(255,255,255,.07);border:2px solid ${upg?'#F39C12':tierDef.color};
+          border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;
+          transition:all .15s;min-width:85px">
+        <div style="font-size:2rem">${a.e||a.emoji||'🐾'}</div>
+        <div style="font-size:.75rem;color:#fff;font-weight:700;margin:3px 0">${a.n||a.name||a.id}</div>
+        <div style="font-size:.68rem;color:${tierDef.color}">${tierDef.emoji} ${tierDef.n}</div>
+        ${upg?`<div style="font-size:.62rem;color:#F39C12;margin-top:2px">⏳ ${remaining}min</div>`:''}
+        ${isMax?`<div style="font-size:.62rem;color:#9B59B6;margin-top:1px">MAX ✨</div>`:''}
+      </div>`;
+    }).join('');
+
+    const panel = document.createElement('div');
+    panel.id = 'gm-panel';
+    panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    panel.innerHTML = `
+      <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,215,0,.3);
+        border-radius:16px;padding:20px;max-width:520px;width:95%;max-height:85vh;overflow-y:auto;
+        box-shadow:0 8px 32px rgba(0,0,0,.8)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div>
+            <div style="font-size:1.2rem;font-weight:900;color:#FFD700">⚗️ Gold-Maschine</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5)">🎫 ${tokens} Tokens verfügbar</div>
+          </div>
+          <button onclick="document.getElementById('gm-panel').remove()"
+            style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;
+              border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+        </div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px">
+          Wähle ein Tier zum Upgraden — Tokens im Shop kaufen:
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${cards}</div>
+        <div id="gm-action" style="margin-top:6px"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);
+          font-size:.72rem;color:rgba(255,255,255,.35)">
+          Upgrade-Pfad: ⚪→🥇(1T/15min)→💎(2T/30min)→🌈(4T/60min)→🌌(8T/120min)
+        </div>
+      </div>`;
+    document.body.appendChild(panel);
+  },
+
+  _select(animalId) {
+    const z = ZS.zoo; if(!z) return;
+    const enc = z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
+    if(!enc) return;
+    const a = enc.animal;
+    const tier = this._tier(a);
+    const nextTierIdx = tier+1;
+    const nextDef = this._TIERS[nextTierIdx];
+    const upg = this._upgrading(a);
+    const tokens = z.tokens||0;
+    const el = document.getElementById('gm-action');
+    if(!el) return;
+
+    document.querySelectorAll('[id^=gm-card-]').forEach(c=>c.style.outline='none');
+    const card = document.getElementById('gm-card-'+animalId);
+    if(card) card.style.outline='2px solid #FFD700';
+
+    if(upg) {
+      const remaining = Math.max(0,Math.ceil((upg.finishAt-Date.now())/60000));
+      const done = upg.finishAt <= Date.now();
+      el.innerHTML=`<div style="background:rgba(243,156,18,.15);border:1px solid #F39C12;border-radius:10px;padding:10px;text-align:center;color:#F39C12">
+        ${done ? '✅ Upgrade fertig! Jetzt abholen:' : '⏳ Upgrade läuft noch <b>'+remaining+' Minuten</b>...'}
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:4px">⚠️ Tier verdient während Upgrade kein Geld</div>
+        <button onclick="GoldMachine._collect('${animalId}')" ${done?'':'disabled'}
+          style="margin-top:8px;background:${done?'#27AE60':'rgba(255,255,255,.1)'};border:none;color:${done?'white':'rgba(255,255,255,.3)'};
+            padding:8px 20px;border-radius:8px;cursor:${done?'pointer':'not-allowed'};font-weight:700;font-size:.88rem">
+          ${done?'🎁 Abholen!':'Noch nicht fertig'}
+        </button>
+      </div>`;
+    } else if(!nextDef) {
+      el.innerHTML=`<div style="text-align:center;color:#9B59B6;font-weight:700;font-size:1rem;padding:10px">
+        🌌 ${a.n||a.id} ist auf MAX-Stufe! ✨</div>`;
+    } else {
+      const canAfford = tokens >= nextDef.tokens;
+      el.innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px">
+        <div style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:8px">
+          ⬆️ Upgrade zu ${nextDef.emoji} ${nextDef.n}</div>
+        <div style="display:flex;gap:12px;font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:10px;flex-wrap:wrap">
+          <span>🎫 <b style="color:${canAfford?'#FFD700':'#E74C3C'}">${nextDef.tokens} Token${nextDef.tokens!==1?'s':''}</b></span>
+          <span>⏱️ <b>${nextDef.waitMin} Minuten</b></span>
+          <span>📈 Einkommen: <b style="color:#27AE60">×${nextDef.mult}</b></span>
+        </div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px">
+          ⚠️ Während Upgrade verdient das Tier kein Geld</div>
+        ${canAfford ? `<button onclick="GoldMachine._startUpgrade('${animalId}')"
+          style="width:100%;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;
+            border:none;padding:10px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">
+          🚀 Upgrade starten!
+        </button>` : `<div style="text-align:center;color:#E74C3C;font-size:.82rem">
+          ❌ Zu wenig Tokens! Du hast ${tokens}, brauchst ${nextDef.tokens}.<br>
+          <span style="font-size:.7rem;color:rgba(255,255,255,.4)">Tokens im Shop → Boost kaufen</span>
+        </div>`}
+      </div>`;
+    }
+  },
+
+  _startUpgrade(animalId) {
+    const z = ZS.zoo; if(!z) return;
+    const enc = z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
+    if(!enc) return;
+    const a = enc.animal;
+    const tier = this._tier(a);
+    const nextDef = this._TIERS[tier+1];
+    if(!nextDef) return;
+    if((z.tokens||0) < nextDef.tokens) { ZP.toast('❌ Zu wenig Tokens!',2000); return; }
+    // Check no other upgrade running
+    if(z.upgrading && Object.keys(z.upgrading).length > 0) {
+      ZP.toast('⚠️ Nur 1 Upgrade gleichzeitig!',2000); return;
+    }
+    z.tokens = (z.tokens||0) - nextDef.tokens;
+    if(!z.upgrades) z.upgrades = {};
+    if(!z.upgrading) z.upgrading = {};
+    z.upgrading[animalId] = {tier:tier+1, finishAt:Date.now()+nextDef.waitMin*60*1000};
+    // Animal earns nothing during upgrade
+    enc.animal._upgrading = true;
+    ZS.save && ZS.save();
+    ZP.toast('⚗️ Upgrade gestartet! '+nextDef.waitMin+' Minuten...',3000);
+    document.getElementById('gm-panel')?.remove();
+  },
+
+  _collect(animalId) {
+    const z = ZS.zoo; if(!z||!z.upgrading) return;
+    const upg = z.upgrading[animalId];
+    if(!upg||upg.finishAt>Date.now()) { ZP.toast('⏳ Noch nicht fertig!',2000); return; }
+    const enc = z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
+    if(!enc) return;
+    // Apply tier
+    if(!z.upgrades) z.upgrades = {};
+    z.upgrades[animalId] = {tier:upg.tier};
+    const tierDef = this._TIERS[upg.tier]||this._TIERS[0];
+    // Boost animal earnings
+    enc.animal.earn = Math.round((enc.animal._baseEarn||enc.animal.earn||1) * tierDef.mult);
+    enc.animal._baseEarn = enc.animal._baseEarn || (enc.animal.earn / tierDef.mult);
+    enc.animal._upgrading = false;
+    delete z.upgrading[animalId];
+    ZS.save && ZS.save();
+    ZP.toast(`🎁 ${enc.animal.e} ist jetzt ${tierDef.emoji} ${tierDef.n}! Einkommen ×${tierDef.mult}`,4000);
+    document.getElementById('gm-panel')?.remove();
+  },
+};
+window.GoldMachine = GoldMachine;
+
 </script>
 
 <!-- ══ VOICE + TEXT CHAT ══ -->
