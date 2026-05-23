@@ -315,7 +315,7 @@ const TrueFalseGame = {
             <br><span style="color:var(--text-mid)">Fehler</span>
           </div>
           <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b>
+            <div style="font-size:1.2rem">⭐</div><b>${rawScore}</b>
             <br><span style="color:var(--text-mid)">Punkte</span>
           </div>
         </div>
