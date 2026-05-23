@@ -480,7 +480,69 @@ function quickMsg(name) { tab('msg'); document.getElementById('msg-target').valu
 function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=name; }
 
 // ═══ KALIBRIERUNG ═══
-function loadCal() {
+async function loadCal() {
+  const statusEl = document.getElementById('cal-status');
+  if(statusEl) statusEl.textContent = '⏳ Lade Firebase-Daten...';
+
+  // Merge Firebase calibration/scores (all devices) into local cal_data_v3
+  if(_db) {
+    try {
+      const doc = await _db.collection('calibration').doc('scores').get();
+      if(doc.exists) {
+        const fbCal = doc.data() || {};
+        let localCal = {};
+        try { localCal = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+        // Merge: Firebase is source of truth for aggregated scores
+        Object.keys(fbCal).forEach(key => {
+          if(Array.isArray(fbCal[key])) {
+            // Use the longer array (more complete data)
+            const fbArr = fbCal[key], localArr = localCal[key]||[];
+            localCal[key] = fbArr.length >= localArr.length ? fbArr : localArr;
+          }
+        });
+        localStorage.setItem('cal_data_v3', JSON.stringify(localCal));
+      }
+    } catch(e) { console.warn('[loadCal] Firebase fetch failed:', e.message); }
+
+    // Load individual play records from BOTH collections → merge into admin_score_records
+    const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+    const recs = JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+    // 1) score_records (ALL plays, has game field directly)
+    try {
+      const snap = await _db.collection('score_records').orderBy('ts','desc').limit(500).get();
+      snap.forEach(d => {
+        const r = d.data();
+        const gId = r.game || GAME_IDS[r.gameIdx] || 'unknown';
+        if(!recs[gId]) recs[gId] = [];
+        if(!recs[gId].find(x => x.ts===r.ts && x.player===r.player)) {
+          recs[gId].push({
+            date: r.date || new Date(r.ts).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
+            player: r.player, device: r.device, game: gId, gameIdx: r.gameIdx,
+            score: r.score, mt: r.mt||0, ts: r.ts
+          });
+        }
+      });
+    } catch(e) { console.warn('[loadCal] score_records fetch:', e.message); }
+    // 2) calibration_records (passing plays, has gameIdx)
+    try {
+      const snap = await _db.collection('calibration_records').orderBy('ts','desc').limit(500).get();
+      snap.forEach(d => {
+        const r = d.data();
+        const gId = GAME_IDS[r.gameIdx] || 'unknown';
+        if(!recs[gId]) recs[gId] = [];
+        if(!recs[gId].find(x => x.ts===r.ts && x.player===r.player)) {
+          recs[gId].push({
+            date: r.tsStr || new Date(r.ts).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
+            player: r.player, device: r.device, game: gId, gameIdx: r.gameIdx,
+            score: r.rawScore, mt: 0, ts: r.ts
+          });
+        }
+      });
+    } catch(e) { console.warn('[loadCal] cal_records fetch:', e.message); }
+    localStorage.setItem('admin_score_records', JSON.stringify(recs));
+  }
+
+  if(statusEl) statusEl.textContent = '✓ Geladen ' + new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'});
   stopSpin('cal-spin');
   renderCalTable();
 }
