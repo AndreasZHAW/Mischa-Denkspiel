@@ -574,22 +574,63 @@ async function showCalDetail(gameIdx, dev, gameName) {
   }
   
   let detailHTML = '';
+  // Always show BOTH: records table + cal raw scores
+  let detailParts = [];
+
+  // === Section 1: Individual play records with delete per row ===
   if(richRecs.length) {
-    // Show rich records with date/player/device
-    detailHTML = '<table style="width:100%;border-collapse:collapse;font-size:.75rem"><thead><tr style="color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:3px 6px;text-align:left">Datum</th><th style="padding:3px 6px">Spieler</th><th style="padding:3px 6px">Gerät</th><th style="padding:3px 6px">Score</th><th style="padding:3px 6px">MT</th></tr></thead><tbody>'+
-      richRecs.sort((a,b)=>b.score-a.score).map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:3px 6px;color:rgba(255,255,255,.6)">${r.date||'?'}</td><td style="padding:3px 6px;color:#4af">${r.player||'?'}</td><td style="padding:3px 6px">${r.device||'?'}</td><td style="padding:3px 6px;color:#FFD700;font-weight:700">${r.score||0}</td><td style="padding:3px 6px;color:#27AE60">${r.mt&&r.mt>0?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'<span style="color:rgba(255,255,255,.3)">—</span>'}</td></tr>`).join('')+
-      '</tbody></table>';
-  } else if(scores.length) {
-    // Show raw scores from calibration with delete buttons
-    detailHTML = '<div style="color:rgba(255,255,255,.6);font-size:.78rem;padding:8px">'
-      +'<div style="margin-bottom:6px;color:rgba(255,255,255,.4)">Rohscores — klicke ✕ zum Löschen einzelner Werte:</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:4px">'
-      +scores.map((s,i)=>`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;margin:1px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'}">${s}<button onclick="deleteCalScore('${gameIdx}','${dev}',${i})" style="background:none;border:none;color:rgba(255,100,100,.7);cursor:pointer;font-size:.75rem;padding:0 1px;line-height:1">✕</button></span>`).join('')
-      +'<button data-gi="'+gameIdx+'" data-dv="'+dev+'" class="cal-del-all" style="margin-top:8px;background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:3px 10px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️ Alle löschen</button>'
-      +'</div>';
-  } else {
-    detailHTML = '<div style="color:#888;padding:10px;text-align:center">Keine Daten verfügbar</div>';
+    const rows = richRecs.sort((a,b)=>(b.ts||0)-(a.ts||0)).map((r,ri)=>
+      `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+        <td style="padding:4px 6px;color:rgba(255,255,255,.65);font-size:.72rem">${r.date||'?'}</td>
+        <td style="padding:4px 6px;color:#4af;font-size:.78rem">${r.player||'?'}</td>
+        <td style="padding:4px 6px;font-size:.72rem">${r.device||'?'}</td>
+        <td style="padding:4px 6px;color:#FFD700;font-weight:700">${r.score||0}</td>
+        <td style="padding:4px 6px;color:#27AE60">${r.mt&&r.mt>0?(+r.mt).toFixed(1)+' MT':'—'}</td>
+        <td style="padding:2px 4px">
+          <button data-gi="${gameIdx}" data-dv="${dev}" data-ri="${ri}" class="cal-del-rec"
+            style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.5);color:#E74C3C;
+              padding:1px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">✕</button>
+        </td>
+      </tr>`).join('');
+    detailParts.push(
+      `<div style="margin-bottom:10px">
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:5px">📋 ${richRecs.length} Einzelspiele</div>
+        <table style="width:100%;border-collapse:collapse;font-size:.75rem">
+          <thead><tr style="color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.1)">
+            <th style="padding:3px 6px;text-align:left;font-weight:500">Datum</th>
+            <th style="padding:3px 6px;font-weight:500">Spieler</th>
+            <th style="padding:3px 6px;font-weight:500">Gerät</th>
+            <th style="padding:3px 6px;font-weight:500">Score</th>
+            <th style="padding:3px 6px;font-weight:500">MT</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`);
   }
+
+  // === Section 2: Cal raw scores with individual delete ===
+  if(scores.length) {
+    const scoresHtml = scores.map((s,scoreI)=>
+      `<span style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);
+        padding:3px 7px;border-radius:5px;margin:2px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'};font-size:.82rem">
+        ${s}<button data-gi="${gameIdx}" data-dv="${dev}" data-si="${scoreI}" class="cal-del-one"
+          style="background:none;border:none;color:rgba(255,100,100,.8);cursor:pointer;
+            font-size:.8rem;padding:0 0 0 3px;line-height:1">✕</button></span>`
+    ).join('');
+    detailParts.push(
+      `<div style="border-top:1px solid rgba(255,255,255,.08);padding-top:8px;margin-top:2px">
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:5px">📊 ${scores.length} Kalibrierungswerte</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${scoresHtml}</div>
+        <button data-gi="${gameIdx}" data-dv="${dev}" class="cal-del-all"
+          style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;
+            padding:3px 10px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️ Alle Cal-Werte löschen</button>
+      </div>`);
+  }
+
+  detailHTML = detailParts.length
+    ? detailParts.join('')
+    : '<div style="color:#888;padding:12px;text-align:center">Keine Daten verfügbar</div>';
   
   // Update panel with loaded data
   const totalPlays=scores.length+(richRecs.length?' ('+richRecs.length+' Einzel)':'');
@@ -1052,12 +1093,14 @@ function restoreQAdmin(game,level){localStorage.removeItem('admin_q_deleted_'+ga
 
 // Event delegation for cal delete buttons (avoids quote escaping in onclick)
 document.addEventListener('click', e => {
-  const one = e.target.closest('.cal-del-one');
-  const all = e.target.closest('.cal-del-all');
+  const one  = e.target.closest('.cal-del-one');
+  const all  = e.target.closest('.cal-del-all');
   const game = e.target.closest('.cal-del-game');
-  if(one) deleteCalScore(one.dataset.gi, one.dataset.dv, parseInt(one.dataset.si));
-  if(all && confirm('Alle Scores löschen?')) deleteAllCalScores(all.dataset.gi, all.dataset.dv);
+  const rec  = e.target.closest('.cal-del-rec');
+  if(one)  deleteCalScore(one.dataset.gi, one.dataset.dv, parseInt(one.dataset.si));
+  if(all && confirm('Alle Cal-Werte für diesen Eintrag löschen?')) deleteAllCalScores(all.dataset.gi, all.dataset.dv);
   if(game && confirm('ALLE Scores für dieses Spiel löschen (alle Geräte)?')) deleteGameCal(game.dataset.gi);
+  if(rec)  deletePlayRecord(rec.dataset.gi, rec.dataset.dv, parseInt(rec.dataset.ri));
 });
 
 function deleteGameCal(gameIdx) {
@@ -1091,6 +1134,23 @@ function deleteCalScore(gameIdx, dev, scoreIdx) {
     showCalDetail(gameIdx,dev,document.getElementById('score-detail-name')?.textContent?.split(' — ')[0]||'',scores);
     renderCalTable();
   }
+}
+
+function deletePlayRecord(gameIdx, dev, recordIdx) {
+  // Delete from localStorage admin_score_records
+  const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+  const gId = GAME_IDS[gameIdx] || 'unknown';
+  try {
+    const recs = JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+    if(recs[gId] && recs[gId][recordIdx] !== undefined) {
+      recs[gId].splice(recordIdx, 1);
+      localStorage.setItem('admin_score_records', JSON.stringify(recs));
+    }
+  } catch(e) {}
+  // Refresh (re-open detail panel)
+  const title = document.getElementById('score-detail-name');
+  const gName = title ? title.textContent.split(' — ')[0] : '';
+  showCalDetail(gameIdx, dev, gName);
 }
 
 function deleteAllCalScores(gameIdx, dev) {

@@ -5,15 +5,15 @@ const TetrisGame = {
     if (!el) return;
     const COLS=10, ROWS=20;
     const DPR = Math.min(window.devicePixelRatio||1,2);
-    const avW = Math.min((el.offsetWidth||320)-8, 320);
-    let CS = Math.max(18, Math.floor(avW/(COLS+0.5)));
-    // BW/BH: use full available width for mobile
-    const maxW=Math.min(window.innerWidth-16,400);
-    const BWFULL=Math.floor(maxW/COLS)*COLS;
-    const BW=BWFULL, BH=ROWS*(BWFULL/COLS);
-    // Override CS to match full-width
-    CS = BWFULL/COLS; // all draw calls now use full-width cell size
-    const SBW=Math.max(80,CS*4); // sidebar
+    const isMobile = window.innerWidth < 750;
+    // Cell size: fit both width AND height of available space
+    const elW = Math.max(el.offsetWidth||320, window.innerWidth * 0.5);
+    const elH = window.innerHeight - 200; // space for header/buttons
+    const csFromW = Math.floor((Math.min(elW, isMobile ? 420 : 340)) / COLS);
+    const csFromH = Math.floor(elH / ROWS);
+    const CS = Math.max(18, Math.min(csFromW, csFromH));
+    const BW = COLS * CS, BH = ROWS * CS;
+    const SBW = Math.max(80, CS*4); // sidebar for desktop
 
     const PIECES=[
       {cells:[[1,1,1,1]],           col:'#00f0f0',dark:'#009999',name:'I'},
@@ -25,11 +25,8 @@ const TetrisGame = {
       {cells:[[0,1,1],[1,1,0]],      col:'#f00000',dark:'#990000',name:'Z'},
     ];
 
-    // Layout: stats row on top, canvas in middle, big buttons below
-    const CS2 = CS; // CS now = BWFULL/COLS (set above)
-    const BH2 = BH;
-    // Rebuild canvas at new size
-    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${maxW+12}px;margin:0 auto">
+    // Layout: responsive for mobile/desktop
+    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${BW+SBW+24}px;margin:0 auto">
       <!-- Stats row above canvas -->
       <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;margin-bottom:4px">
         <div style="text-align:center">
@@ -51,8 +48,8 @@ const TetrisGame = {
         </div>
       </div>
       <!-- Full-width canvas -->
-      <canvas id="trcv" width="${BWFULL*DPR}" height="${BH2*DPR}"
-        style="width:${BWFULL}px;height:${BH2}px;display:block;border:2px solid #444;background:#000014;margin:0 auto"></canvas>
+      <canvas id="trcv" width="${BW*DPR}" height="${BH*DPR}"
+        style="width:${BW}px;height:${BH}px;display:block;border:2px solid #444;background:#000014;margin:0 auto"></canvas>
       <!-- Ergonomic buttons BELOW — full width, 4 big buttons -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-top:6px">
         <button id="tr-left"  style="${BTN('#1a40c0')}">◀<br><span style="font-size:.58rem;opacity:.75">Links</span></button>
