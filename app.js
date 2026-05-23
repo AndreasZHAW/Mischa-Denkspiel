@@ -1790,13 +1790,17 @@ const App = {
 
     // Device detection helper
     const _getDevice=()=>{
-      const ua=navigator.userAgent;
-      if(/iPad/.test(ua))return'iPad';
-      if(/iPhone/.test(ua))return'iPhone';
-      if(/Android/.test(ua)&&/Mobile/.test(ua))return'Android';
-      if(/Android/.test(ua))return'Android-Tablet';
-      if(window.innerWidth>1200)return'Desktop';
-      return'Sonstiges';
+      // Use unified detection from State (matches calibration detection)
+      if(State._detectDevice) return State._detectDevice();
+      const ua=navigator.userAgent||'';
+      const touch=(navigator.maxTouchPoints||0)>0;
+      const minDim=Math.min(window.innerWidth,window.innerHeight);
+      const maxDim=Math.max(window.innerWidth,window.innerHeight);
+      if(/iPad/.test(ua)||(navigator.platform==='MacIntel'&&touch))return'ipad';
+      if(/iPhone|iPod/.test(ua))return'iphone';
+      if(/Android/.test(ua))return(/Mobile/.test(ua)||minDim<600)?'android':'android-tablet';
+      if(touch&&minDim<820&&maxDim<1400)return minDim<600?'android':'tablet';
+      return'desktop';
     };
 
     const onComplete = async (result) => {

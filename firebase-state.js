@@ -182,6 +182,21 @@ const State = {
   },
 
   // ---- TASK COMPLETION ----
+  _detectDevice() {
+    if(typeof navigator==='undefined') return 'desktop';
+    const ua = navigator.userAgent || '';
+    const touch = (navigator.maxTouchPoints||0) > 0;
+    const w = typeof window!=='undefined'?window.innerWidth:1920;
+    const h = typeof window!=='undefined'?window.innerHeight:1080;
+    const minDim = Math.min(w,h), maxDim = Math.max(w,h);
+    if(/iPad/.test(ua) || (navigator.platform==='MacIntel' && touch)) return 'ipad';
+    if(/iPhone|iPod/.test(ua)) return 'iphone';
+    if(/Android/.test(ua)) return (/Mobile/.test(ua)||minDim<600) ? 'android' : 'android-tablet';
+    // Desktop-mode browsers: touch + small screen = actually mobile
+    if(touch && minDim < 820 && maxDim < 1400) return minDim < 600 ? 'android' : 'tablet';
+    return 'desktop';
+  },
+
   _cleanPoisonedCal() {
     try {
       let cal = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
@@ -232,12 +247,7 @@ const State = {
       mtEarned = 0.2;
     } else {
       const raw = (result.rawScore !== undefined && result.rawScore !== null && !isNaN(result.rawScore)) ? Math.max(0, result.rawScore) : 50;
-      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-      const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      const hasTouchscreen = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0;
-      const isAndroid = /Android/.test(ua);
-      const isSmallScreen = typeof window !== 'undefined' && Math.min(window.innerWidth, window.innerHeight) < 600;
-      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':(isAndroid||(hasTouchscreen&&isSmallScreen))?'android':'desktop';
+      const dev = this._detectDevice();
       const key = taskIndex + '_' + dev;
 
       // Load scores and overrides
@@ -411,11 +421,7 @@ const State = {
   _getCalibration(taskIndex) {
     try {
       const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-      const isIPad = /iPad/.test(ua)||(typeof navigator !== 'undefined'&&navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      const hasTouchscreen = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0;
-      const isAndroid = /Android/.test(ua);
-      const isSmallScreen = typeof window !== 'undefined' && Math.min(window.innerWidth, window.innerHeight) < 600;
-      const dev = isIPad?'ipad':/iPhone/.test(ua)?'iphone':(isAndroid||(hasTouchscreen&&isSmallScreen))?'android':'desktop';
+      const dev = this._detectDevice();
       const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
       const scores = calStore[taskIndex+'_'+dev] || [];
       let overrides = {};
