@@ -6,8 +6,13 @@ const TetrisGame = {
     const COLS=10, ROWS=20;
     const DPR = Math.min(window.devicePixelRatio||1,2);
     const avW = Math.min((el.offsetWidth||320)-8, 320);
-    const CS = Math.max(18, Math.floor(avW/(COLS+0.5)));
-    const BW=COLS*CS, BH=ROWS*CS;
+    let CS = Math.max(18, Math.floor(avW/(COLS+0.5)));
+    // BW/BH: use full available width for mobile
+    const maxW=Math.min(window.innerWidth-16,400);
+    const BWFULL=Math.floor(maxW/COLS)*COLS;
+    const BW=BWFULL, BH=ROWS*(BWFULL/COLS);
+    // Override CS to match full-width
+    CS = BWFULL/COLS; // all draw calls now use full-width cell size
     const SBW=Math.max(80,CS*4); // sidebar
 
     const PIECES=[
@@ -20,41 +25,49 @@ const TetrisGame = {
       {cells:[[0,1,1],[1,1,0]],      col:'#f00000',dark:'#990000',name:'Z'},
     ];
 
-    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;display:inline-block;background:#000;border:3px solid #888;border-radius:4px;padding:6px;touch-action:none">
-      <div style="display:flex;gap:6px;align-items:flex-start">
-        <!-- Spielfeld -->
-        <canvas id="trcv" width="${BW*DPR}" height="${BH*DPR}"
-          style="width:${BW}px;height:${BH}px;display:block;border:2px solid #444;background:#000014"></canvas>
-        <!-- Sidebar -->
-        <div style="width:${SBW}px;display:flex;flex-direction:column;gap:6px">
-          <div style="color:#f0f000;font-size:clamp(.7rem,2.5vw,.85rem);font-weight:900;text-shadow:0 0 6px #f0f000">SCORE</div>
-          <div id="tr-score" style="color:#fff;font-size:clamp(.85rem,3vw,1.1rem);font-weight:900;min-height:20px">0</div>
-          <div style="color:#f0f000;font-size:clamp(.7rem,2.5vw,.85rem);font-weight:900">LINES</div>
-          <div id="tr-lines" style="color:#fff;font-size:clamp(.85rem,3vw,1rem)">0</div>
-          <div style="color:#f0f000;font-size:clamp(.7rem,2.5vw,.85rem);font-weight:900">LEVEL</div>
-          <div id="tr-level" style="color:#00f0f0;font-size:clamp(.85rem,3vw,1rem)">1</div>
-          <div style="color:#aaa;font-size:clamp(.6rem,2vw,.75rem);margin-top:4px">NEXT</div>
+    // Layout: stats row on top, canvas in middle, big buttons below
+    const CS2 = CS; // CS now = BWFULL/COLS (set above)
+    const BH2 = BH;
+    // Rebuild canvas at new size
+    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${maxW+12}px;margin:0 auto">
+      <!-- Stats row above canvas -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;margin-bottom:4px">
+        <div style="text-align:center">
+          <div style="color:#f0f000;font-size:.65rem;font-weight:900">SCORE</div>
+          <div id="tr-score" style="color:#fff;font-size:.95rem;font-weight:900">0</div>
+        </div>
+        <div style="text-align:center">
+          <div style="color:#f0f000;font-size:.65rem;font-weight:900">LINES</div>
+          <div id="tr-lines" style="color:#fff;font-size:.95rem">0</div>
+        </div>
+        <div style="text-align:center">
+          <div style="color:#f0f000;font-size:.65rem;font-weight:900">LEVEL</div>
+          <div id="tr-level" style="color:#00f0f0;font-size:.95rem">1</div>
+        </div>
+        <div style="text-align:center">
+          <div style="color:#aaa;font-size:.65rem">NEXT</div>
           <canvas id="tr-next" width="${CS*4*DPR}" height="${CS*4*DPR}"
-            style="width:${CS*4}px;height:${CS*4}px;background:#000014;border:1px solid #333"></canvas>
-          <!-- Mobile buttons -->
-          <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
-            <button id="tr-rot" style="${BTN('#a000f0')}">↻</button>
-            <div style="display:flex;gap:4px">
-              <button id="tr-left"  style="${BTN('#0000f0')}">◀</button>
-              <button id="tr-right" style="${BTN('#0000f0')}">▶</button>
-            </div>
-            <button id="tr-down" style="${BTN('#f00000')}">▼</button>
-          </div>
+            style="width:${CS2*3.2}px;height:${CS2*3.2}px;background:#000014;border:1px solid #333;display:block"></canvas>
         </div>
       </div>
-      <div style="color:rgba(255,255,255,.3);font-size:clamp(.6rem,2vw,.7rem);margin-top:4px;text-align:center">← → Bewegen · ↑ Drehen · ↓ Schnell</div>
+      <!-- Full-width canvas -->
+      <canvas id="trcv" width="${BWFULL*DPR}" height="${BH2*DPR}"
+        style="width:${BWFULL}px;height:${BH2}px;display:block;border:2px solid #444;background:#000014;margin:0 auto"></canvas>
+      <!-- Ergonomic buttons BELOW — full width, 4 big buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-top:6px">
+        <button id="tr-left"  style="${BTN('#1a40c0')}">◀<br><span style="font-size:.58rem;opacity:.75">Links</span></button>
+        <button id="tr-rot"   style="${BTN('#8800aa')}">↻<br><span style="font-size:.58rem;opacity:.75">Drehen</span></button>
+        <button id="tr-down"  style="${BTN('#bb0000')}">▼<br><span style="font-size:.58rem;opacity:.75">Schnell</span></button>
+        <button id="tr-right" style="${BTN('#1a40c0')}">▶<br><span style="font-size:.58rem;opacity:.75">Rechts</span></button>
+      </div>
     </div>`;
 
-    function BTN(c){return `background:${c};color:#fff;border:2px solid rgba(255,255,255,.3);padding:clamp(8px,2.5vw,12px) 4px;border-radius:6px;font-size:clamp(.9rem,3vw,1.1rem);font-weight:900;cursor:pointer;width:100%;touch-action:none;box-shadow:0 3px 0 rgba(0,0,0,.5)`;}
+    function BTN(c){return `background:${c};color:#fff;border:2px solid rgba(255,255,255,.2);padding:12px 4px 10px;border-radius:12px;font-size:1.7rem;font-weight:900;cursor:pointer;width:100%;touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.7);-webkit-tap-highlight-color:transparent;line-height:1.2;text-align:center`;}
 
     const cv=document.getElementById('trcv'), ctx=cv.getContext('2d');
     const nxCv=document.getElementById('tr-next'), nxCtx=nxCv.getContext('2d');
     ctx.scale(DPR,DPR); nxCtx.scale(DPR,DPR);
+    // Override CS with full-width cell size (reassign, not redeclare)
 
     let board=Array(ROWS).fill(null).map(()=>Array(COLS).fill(null));
     const pickPiece=()=>PIECES[Math.floor(Math.random()*PIECES.length)];

@@ -296,8 +296,8 @@ const TrueFalseGame = {
     const c = this.current;
     const correct = c.results.filter(Boolean).length;
     const timeMs = Date.now()-c.startTime;
-    const rawScore = Math.round((correct/10)*100);
-    const finalScore = State.calcFinalScore({rawScore,timeMs,errors:c.errors,passed:correct>=6});
+    const totalQ = c.results?.length || 10;
+    const rawScore = Math.round((correct/Math.max(totalQ,1))*100); // true raw score 0-100
 
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center;padding:20px 0">
@@ -321,7 +321,7 @@ const TrueFalseGame = {
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           ${correct<6?`<button class="btn btn-secondary btn-full" onclick="TrueFalseGame.start(TrueFalseGame._lastConfig)">🔄 Nochmal</button>`:''}
-          <button class="btn btn-primary btn-full" onclick="TrueFalseGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+          <button class="btn btn-primary btn-full" onclick="TrueFalseGame._finish(${rawScore},${timeMs},${c.errors})">Weiter ➜</button>
         </div>
       </div>`;
   },

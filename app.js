@@ -1818,6 +1818,9 @@ const App = {
           date:new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
           player:State.currentPlayer?.name||'?',
           device:_getDevice(),
+          game:task.type||task.id||'unknown',  // CRITICAL: needed for Firebase query
+          gameIdx:taskIndex,
+          worldId:worldIndex,
           score:result.rawScore||0,
           mt:0,
           passed:result.passed||false,

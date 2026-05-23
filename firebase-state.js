@@ -187,7 +187,7 @@ const State = {
       let cal = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
       let changed = false;
       Object.keys(cal).forEach(key => {
-        if(!key.startsWith('17_')) return; // only starwars (index 17)
+        // Check all game keys, not just specific ones
         const scores = cal[key] || [];
         if(scores.length < 2) return;
         const hundreds = scores.filter(s => s === 100).length;

@@ -139,6 +139,12 @@ textarea.inp { resize:vertical; min-height:80px; }
   <div id="p-cal" class="panel">
     <div class="card">
       <div class="card-title">📊 Kalibrierungsdaten <span id="cal-spin" class="spin" style="margin-left:8px"></span></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <button onclick="loadCal()" style="background:rgba(52,152,219,.25);border:1px solid #3498DB;color:#3498DB;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;font-weight:700">🔄 Neu laden</button>
+        <button onclick="exportCal()" style="background:rgba(39,174,96,.2);border:1px solid #27AE60;color:#27AE60;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">📤 Exportieren</button>
+        <button onclick="if(confirm('ALLE Kalibrierungsdaten löschen?')){localStorage.removeItem('cal_data_v3');if(_db)_db.collection('calibration').doc('scores').set({}).catch(()=>{});renderCalTable();}" style="background:rgba(231,76,60,.15);border:1px solid #E74C3C;color:#E74C3C;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">🗑️ Alles löschen</button>
+        <span id="cal-status" style="font-size:.75rem;color:rgba(255,255,255,.4)"></span>
+      </div>
       <div id="cal-output"></div><div id="cal-table"></div>
       <div class="sep"></div>
       <div class="row">
@@ -514,7 +520,14 @@ function renderCalTable() {
         <td style="text-align:center;padding:4px 3px"><button onclick="showCalDetail(${i},'${dev}','${game.n}')" style="background:rgba(52,152,219,.2);border:1px solid #3498DB;color:#3498DB;padding:2px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">🔍</button> <button onclick="editCal(${i},'${dev}')" style="background:none;border:1px solid rgba(255,255,255,.2);padding:2px 5px;border-radius:4px;cursor:pointer;color:rgba(255,255,255,.4);font-size:.68rem">✏️</button></td>`;
     }).join('');
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-      <td style="padding:5px 8px;font-size:.82rem">${game.i} ${game.n}</td>
+      <td style="padding:5px 8px;font-size:.82rem">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span>${game.i} ${game.n}</span>
+          <button data-gi="${i}" class="cal-del-game" title="Alle Scores für ${game.n} löschen"
+            style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;
+              padding:3px 8px;border-radius:5px;font-size:.72rem;cursor:pointer;flex-shrink:0;font-weight:700">🗑️ Löschen</button>
+        </div>
+      </td>
       ${devCells}
     </tr>`;
   }).join('');
@@ -564,7 +577,7 @@ async function showCalDetail(gameIdx, dev, gameName) {
   if(richRecs.length) {
     // Show rich records with date/player/device
     detailHTML = '<table style="width:100%;border-collapse:collapse;font-size:.75rem"><thead><tr style="color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:3px 6px;text-align:left">Datum</th><th style="padding:3px 6px">Spieler</th><th style="padding:3px 6px">Gerät</th><th style="padding:3px 6px">Score</th><th style="padding:3px 6px">MT</th></tr></thead><tbody>'+
-      richRecs.sort((a,b)=>b.score-a.score).map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:3px 6px;color:rgba(255,255,255,.6)">${r.date||'?'}</td><td style="padding:3px 6px;color:#4af">${r.player||'?'}</td><td style="padding:3px 6px">${r.device||'?'}</td><td style="padding:3px 6px;color:#FFD700;font-weight:700">${r.score||0}</td><td style="padding:3px 6px;color:#27AE60">${r.mt?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'—'}</td></tr>`).join('')+
+      richRecs.sort((a,b)=>b.score-a.score).map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:3px 6px;color:rgba(255,255,255,.6)">${r.date||'?'}</td><td style="padding:3px 6px;color:#4af">${r.player||'?'}</td><td style="padding:3px 6px">${r.device||'?'}</td><td style="padding:3px 6px;color:#FFD700;font-weight:700">${r.score||0}</td><td style="padding:3px 6px;color:#27AE60">${r.mt&&r.mt>0?(r.mt.toFixed?r.mt.toFixed(1):r.mt)+' MT':'<span style="color:rgba(255,255,255,.3)">—</span>'}</td></tr>`).join('')+
       '</tbody></table>';
   } else if(scores.length) {
     // Show raw scores from calibration with delete buttons
@@ -1041,9 +1054,27 @@ function restoreQAdmin(game,level){localStorage.removeItem('admin_q_deleted_'+ga
 document.addEventListener('click', e => {
   const one = e.target.closest('.cal-del-one');
   const all = e.target.closest('.cal-del-all');
+  const game = e.target.closest('.cal-del-game');
   if(one) deleteCalScore(one.dataset.gi, one.dataset.dv, parseInt(one.dataset.si));
   if(all && confirm('Alle Scores löschen?')) deleteAllCalScores(all.dataset.gi, all.dataset.dv);
+  if(game && confirm('ALLE Scores für dieses Spiel löschen (alle Geräte)?')) deleteGameCal(game.dataset.gi);
 });
+
+function deleteGameCal(gameIdx) {
+  let cal = {};
+  try { cal = JSON.parse(localStorage.getItem('cal_data_v3')||'{}'); } catch(e) {}
+  const keysToDelete = Object.keys(cal).filter(k => k.startsWith(gameIdx+'_'));
+  keysToDelete.forEach(k => { cal[k] = []; });
+  try { localStorage.setItem('cal_data_v3', JSON.stringify(cal)); } catch(e) {}
+  if(_db) {
+    const updates = {};
+    keysToDelete.forEach(k => { updates[k] = []; });
+    _db.collection('calibration').doc('scores').set(updates, {merge:true}).catch(()=>{});
+  }
+  renderCalTable();
+  const panel = document.getElementById('cal-detail-panel');
+  if(panel) panel.style.display='none';
+}
 
 function deleteCalScore(gameIdx, dev, scoreIdx) {
   let calStore = {};

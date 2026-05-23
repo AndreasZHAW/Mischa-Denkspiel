@@ -55,7 +55,7 @@ const SliderGame = {
           display:grid;grid-template-columns:repeat(3,${CELL}px);
           gap:${GAP}px;margin:0 auto;width:${BOARD}px;
           background:${t.empty};padding:${GAP}px;border-radius:16px;
-          box-shadow:0 4px 16px rgba(0,0,0,0.12)">
+          box-shadow:0 4px 16px rgba(0,0,0,0.12);overflow:hidden;position:relative">
           ${c.tiles.map((tile,i)=>this._tileHTML(tile,i,c,CELL,FONT)).join('')}
         </div>
         <div style="font-size:clamp(0.76rem,3vw,0.84rem);color:var(--text-mid);margin-top:8px">
@@ -70,16 +70,16 @@ const SliderGame = {
 
   _tileHTML(tile,i,c,CELL,FONT){
     const t=c.theme;
-    if(tile===0)return`<div style="width:${CELL}px;height:${CELL}px;background:${t.empty};border-radius:10px"></div>`;
+    if(tile===0)return`<div data-idx="${i}" style="width:${CELL}px;height:${CELL}px;background:${t.empty};border-radius:10px"></div>`;
     const correct=tile===i+1;
     const emoji=c.emojis[(tile-1)%c.emojis.length]||'❓';
     const num=tile;
-    return`<div data-idx="${i}" onclick="SliderGame._tap(${i})"
+    return`<div data-idx="${i}"
       style="width:${CELL}px;height:${CELL}px;background:${correct?t.tileGood:t.tile};
         border-radius:10px;display:flex;flex-direction:column;align-items:center;
-        justify-content:center;cursor:pointer;touch-action:manipulation;
+        justify-content:center;cursor:pointer;touch-action:none;
         box-shadow:${correct?'inset 0 2px 4px rgba(0,0,0,.2)':'0 4px 8px rgba(0,0,0,.2)'};
-        transition:all .12s;user-select:none">
+        user-select:none;-webkit-tap-highlight-color:transparent">
       <span style="font-size:${FONT}px;line-height:1">${emoji}</span>
       <span style="font-size:${Math.round(FONT*0.38)}px;color:rgba(255,255,255,.85);font-weight:700;margin-top:2px">${num}</span>
     </div>`;
@@ -88,22 +88,56 @@ const SliderGame = {
   _attachHandlers(){
     const board=document.getElementById('sl-board');
     if(!board)return;
-    // Swipe support
-    let sx,sy;
-    board.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+    // Prevent ALL page scroll while touching board
+    const stopScroll=e=>{e.preventDefault();e.stopPropagation();};
+    board.addEventListener('touchstart',stopScroll,{passive:false});
+    board.addEventListener('touchmove',stopScroll,{passive:false});
+
+    // Event delegation — handle tap by grid position from bounding rect
+    const getTileIdx=(clientX,clientY)=>{
+      const rect=board.getBoundingClientRect();
+      const x=clientX-rect.left, y=clientY-rect.top;
+      const GAP=5, PAD=5;
+      const c=this.current;if(!c)return-1;
+      const CELL=(rect.width-PAD*2-GAP*2)/3;
+      const col=Math.floor((x-PAD)/(CELL+GAP));
+      const row=Math.floor((y-PAD)/(CELL+GAP));
+      if(col<0||col>2||row<0||row>2)return-1;
+      return row*3+col;
+    };
+
+    let tx=-1,ty=-1;
+    board.addEventListener('touchstart',e=>{
+      if(e.touches.length!==1)return;
+      tx=e.touches[0].clientX; ty=e.touches[0].clientY;
+    },{passive:false});
+
     board.addEventListener('touchend',e=>{
-      if(sx===undefined)return;
-      const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+      if(tx<0)return;
+      const ex=e.changedTouches[0].clientX, ey=e.changedTouches[0].clientY;
+      const dx=ex-tx, dy=ey-ty;
       const absDx=Math.abs(dx), absDy=Math.abs(dy);
-      if(Math.max(absDx,absDy)<15)return;
-      // Find tile under start point (approximate)
-      const target=document.elementFromPoint(sx,sy);
-      const idx=target?.dataset?.idx!=null?parseInt(target.dataset.idx):(target?.closest('[data-idx]')?.dataset?.idx!=null?parseInt(target.closest('[data-idx]').dataset.idx):-1);
+      const idx=getTileIdx(tx,ty);
+      tx=-1;ty=-1;
       if(idx<0)return;
-      // Swipe direction → move that tile
-      if(absDx>absDy){if(dx>0)this._moveTile(idx,-1);else this._moveTile(idx,1);}
-      else{if(dy>0)this._moveTile(idx,-3);else this._moveTile(idx,3);}
-    },{passive:true});
+      if(Math.max(absDx,absDy)<20){
+        // Tap: move if adjacent to empty
+        this._tap(idx);
+      } else {
+        // Swipe: try to move in swipe direction
+        if(absDx>absDy){
+          this._moveTile(idx,dx>0?-1:1);
+        } else {
+          this._moveTile(idx,dy>0?-3:3);
+        }
+      }
+    },{passive:false});
+
+    // Mouse fallback for desktop
+    board.addEventListener('click',e=>{
+      const idx=getTileIdx(e.clientX,e.clientY);
+      if(idx>=0)this._tap(idx);
+    });
   },
 
   _tap(i){
