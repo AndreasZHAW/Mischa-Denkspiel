@@ -187,12 +187,13 @@ const State = {
       let cal = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
       let changed = false;
       Object.keys(cal).forEach(key => {
-        // Check all game keys, not just specific ones
+        // ONLY clean starwars (17_*) — other games CAN legitimately have 100 scores
+        if(!key.startsWith('17_')) return;
         const scores = cal[key] || [];
-        if(scores.length < 2) return;
+        if(scores.length < 3) return;
         const hundreds = scores.filter(s => s === 100).length;
-        if(hundreds / scores.length > 0.6) {
-          console.log('[Cal] Reset poisoned key:', key, hundreds+'/'+scores.length+' were 100');
+        if(hundreds / scores.length > 0.8) { // 80% threshold for starwars only
+          console.log('[Cal] Reset poisoned starwars key:', key);
           cal[key] = [];
           changed = true;
         }
@@ -247,12 +248,11 @@ const State = {
 
       // Filter out any NaN/invalid values from stored scores
       let rawScores = (calStore[key] || []).filter(s => typeof s==='number' && !isNaN(s) && s>=0);
-      // One-time fix: if ALL stored scores are identical (e.g. all 100 from a broken formula),
-      // reset so new calibration can work properly
-      if(rawScores.length>=3 && rawScores.every(s=>s===rawScores[0])) {
-        rawScores = []; // Reset poisoned cal data
-        calStore[key] = [];
-        if(typeof console!=='undefined') console.log('[Cal] Reset poisoned scores for key:',key,'(all were',rawScores[0],')');
+      // Only reset for starwars (key 17_*) where formula was historically broken
+      // Do NOT reset for other games where identical scores are legitimate
+      if(key.startsWith('17_') && rawScores.length>=3 && rawScores.every(s=>s===rawScores[0])) {
+        rawScores = []; calStore[key] = [];
+        console.log('[Cal] Reset poisoned starwars key:', key);
       }
 
       // Effective min/avg/max: use override if set, else compute from previous scores
@@ -293,6 +293,8 @@ const State = {
         if (isNaN(mtEarned) || !isFinite(mtEarned)) mtEarned = 1.0;
       }
 
+      // Log MT calculation
+      if(typeof GameLog !== 'undefined') GameLog.log('mt','key='+key+' raw='+raw+' mt='+mtEarned+' scores='+rawScores.length+(rawScores.length?(' min='+Math.min(...rawScores)+' max='+Math.max(...rawScores)):''));
       // Save current score to cal store
       rawScores.push(raw);
       calStore[key] = rawScores;

@@ -33,7 +33,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 #s-zoo{overflow:hidden;padding:0;background:#000;position:fixed;inset:0}
 #zc{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:crosshair;z-index:1}
 /* HUD */
-#hud{position:fixed;inset:0;pointer-events:none;z-index:110}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:110;display:none}
 /* Money - above joystick bottom-left */
 #hm{position:absolute;bottom:140px;left:14px;pointer-events:none}
 .mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
@@ -651,7 +651,13 @@ const ZS={
 // ═══ AUTH ═══
 const ZA={
   _c:null,
-  login(){const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,''),p=G('zpw')?.value.trim(),e=G('zerr');if(!n||n.length<2){e.textContent='Name zu kurz!';return;}if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
+  login(){
+    const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,'');
+    const p=G('zpw')?.value.trim();
+    const e=G('zerr');
+    console.log('[ZA.login] name='+n+' pw_len='+(p?p.length:0));
+    if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
+    if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
         // If pw was 'auto' (from teleport), update to user's chosen password
         if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
@@ -663,7 +669,7 @@ const ZA={
     if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
     await ZS.load();
     if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
-  async startZoo(m){hide('s-mode');show('s-zoo');
+  async startZoo(m){hide('s-mode');show('s-zoo');show('hud');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     await ZS.load();
@@ -686,7 +692,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 
 }</script>
@@ -6143,7 +6149,13 @@ const ZS={
 // ═══ AUTH ═══
 const ZA={
   _c:null,
-  login(){const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,''),p=G('zpw')?.value.trim(),e=G('zerr');if(!n||n.length<2){e.textContent='Name zu kurz!';return;}if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
+  login(){
+    const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,'');
+    const p=G('zpw')?.value.trim();
+    const e=G('zerr');
+    console.log('[ZA.login] name='+n+' pw_len='+(p?p.length:0));
+    if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
+    if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
         // If pw was 'auto' (from teleport), update to user's chosen password
         if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
@@ -6155,7 +6167,7 @@ const ZA={
     if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
     await ZS.load();
     if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
-  async startZoo(m){hide('s-mode');show('s-zoo');
+  async startZoo(m){hide('s-mode');show('s-zoo');show('hud');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     await ZS.load();
@@ -6178,7 +6190,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>

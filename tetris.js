@@ -44,7 +44,7 @@ const TetrisGame = {
         <div style="text-align:center">
           <div style="color:#aaa;font-size:.65rem">NEXT</div>
           <canvas id="tr-next" width="${CS*4*DPR}" height="${CS*4*DPR}"
-            style="width:${CS2*3.2}px;height:${CS2*3.2}px;background:#000014;border:1px solid #333;display:block"></canvas>
+            style="width:${CS*3.2}px;height:${CS*3.2}px;background:#000014;border:1px solid #333;display:block"></canvas>
         </div>
       </div>
       <!-- Full-width canvas -->
@@ -61,10 +61,15 @@ const TetrisGame = {
 
     function BTN(c){return `background:${c};color:#fff;border:2px solid rgba(255,255,255,.2);padding:12px 4px 10px;border-radius:12px;font-size:1.7rem;font-weight:900;cursor:pointer;width:100%;touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.7);-webkit-tap-highlight-color:transparent;line-height:1.2;text-align:center`;}
 
-    const cv=document.getElementById('trcv'), ctx=cv.getContext('2d');
-    const nxCv=document.getElementById('tr-next'), nxCtx=nxCv.getContext('2d');
+    const cv=document.getElementById('trcv');
+    const nxCv=document.getElementById('tr-next');
+    if(!cv||!nxCv){
+      // Canvas not found - retry after short delay
+      setTimeout(()=>TetrisGame.start({onComplete}),100);
+      return;
+    }
+    const ctx=cv.getContext('2d'), nxCtx=nxCv.getContext('2d');
     ctx.scale(DPR,DPR); nxCtx.scale(DPR,DPR);
-    // Override CS with full-width cell size (reassign, not redeclare)
 
     let board=Array(ROWS).fill(null).map(()=>Array(COLS).fill(null));
     const pickPiece=()=>PIECES[Math.floor(Math.random()*PIECES.length)];
