@@ -1834,7 +1834,7 @@ const App = {
         localStorage.setItem(recKey,JSON.stringify(recs));
         // Also save to Firebase so admin can see records from ALL devices
         if(typeof _db !== 'undefined' && _db) {
-          const dedupKey = (_rec.player+'_'+gId+'_'+Math.floor(Date.now()/5000)).replace(/[^a-zA-Z0-9_-]/g,'_');
+          const dedupKey = (_rec.player+'_'+gId+'_'+_rec.ts+'_'+Math.floor(Math.random()*1000)).replace(/[^a-zA-Z0-9_-]/g,'_');
           _db.collection('score_records').doc(dedupKey).set(_rec).catch(()=>{});
         }
       }catch(e){}

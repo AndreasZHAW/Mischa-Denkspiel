@@ -141,6 +141,7 @@ textarea.inp { resize:vertical; min-height:80px; }
       <div class="card-title">📊 Kalibrierungsdaten <span id="cal-spin" class="spin" style="margin-left:8px"></span></div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
         <button onclick="loadCal()" style="background:rgba(52,152,219,.25);border:1px solid #3498DB;color:#3498DB;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;font-weight:700">🔄 Neu laden</button>
+        <button onclick="debugFirebase()" style="background:rgba(155,89,182,.25);border:1px solid #9B59B6;color:#c39bd3;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">🔬 Firebase prüfen</button>
         <button onclick="exportCal()" style="background:rgba(39,174,96,.2);border:1px solid #27AE60;color:#27AE60;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">📤 Exportieren</button>
         <button onclick="if(confirm('ALLE Kalibrierungsdaten löschen?')){localStorage.removeItem('cal_data_v3');if(_db)_db.collection('calibration').doc('scores').set({}).catch(()=>{});renderCalTable();}" style="background:rgba(231,76,60,.15);border:1px solid #E74C3C;color:#E74C3C;padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">🗑️ Alles löschen</button>
         <span id="cal-status" style="font-size:.75rem;color:rgba(255,255,255,.4)"></span>
@@ -480,6 +481,31 @@ function quickMsg(name) { tab('msg'); document.getElementById('msg-target').valu
 function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=name; }
 
 // ═══ KALIBRIERUNG ═══
+async function debugFirebase() {
+  const statusEl = document.getElementById('cal-status');
+  if(!_db) { alert('Firebase nicht verbunden!'); return; }
+  let report = '=== Firebase Debug ===\n';
+  try {
+    const sr = await _db.collection('score_records').limit(1000).get();
+    report += 'score_records: '+sr.size+' Einträge\n';
+    const players = {};
+    sr.forEach(d=>{ const r=d.data(); const k=(r.player||'?')+' ('+(r.device||'?')+')'; players[k]=(players[k]||0)+1; });
+    Object.entries(players).forEach(([k,v])=>report+='  '+k+': '+v+'\n');
+  } catch(e) { report += 'score_records FEHLER: '+e.message+'\n'; }
+  try {
+    const cr = await _db.collection('calibration_records').limit(1000).get();
+    report += 'calibration_records: '+cr.size+' Einträge\n';
+  } catch(e) { report += 'cal_records FEHLER: '+e.message+'\n'; }
+  try {
+    const cs = await _db.collection('calibration').doc('scores').get();
+    const keys = cs.exists ? Object.keys(cs.data()||{}) : [];
+    report += 'calibration/scores keys: '+keys.length+'\n';
+    report += '  '+keys.join(', ')+'\n';
+  } catch(e) { report += 'calibration/scores FEHLER: '+e.message+'\n'; }
+  alert(report);
+  console.log(report);
+}
+
 async function loadCal() {
   const statusEl = document.getElementById('cal-status');
   if(statusEl) statusEl.textContent = '⏳ Lade Firebase-Daten...';
@@ -507,42 +533,52 @@ async function loadCal() {
     // Load individual play records from BOTH collections → merge into admin_score_records
     const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
     const recs = JSON.parse(localStorage.getItem('admin_score_records')||'{}');
-    // 1) score_records (ALL plays, has game field directly)
+    let loadedCount = 0, errMsgs = [];
+    // 1) score_records (ALL plays, has game field) — NO orderBy (avoids index requirement)
     try {
-      const snap = await _db.collection('score_records').orderBy('ts','desc').limit(500).get();
+      const snap = await _db.collection('score_records').limit(800).get();
       snap.forEach(d => {
         const r = d.data();
         const gId = r.game || GAME_IDS[r.gameIdx] || 'unknown';
         if(!recs[gId]) recs[gId] = [];
         if(!recs[gId].find(x => x.ts===r.ts && x.player===r.player)) {
           recs[gId].push({
-            date: r.date || new Date(r.ts).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
+            date: r.date || new Date(r.ts||Date.now()).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
             player: r.player, device: r.device, game: gId, gameIdx: r.gameIdx,
-            score: r.score, mt: r.mt||0, ts: r.ts
+            score: r.score, mt: r.mt||0, ts: r.ts||0
           });
+          loadedCount++;
         }
       });
-    } catch(e) { console.warn('[loadCal] score_records fetch:', e.message); }
-    // 2) calibration_records (passing plays, has gameIdx)
+    } catch(e) { errMsgs.push('score_records: '+e.message); }
+    // 2) calibration_records (passing plays, has gameIdx) — NO orderBy
     try {
-      const snap = await _db.collection('calibration_records').orderBy('ts','desc').limit(500).get();
+      const snap = await _db.collection('calibration_records').limit(800).get();
       snap.forEach(d => {
         const r = d.data();
         const gId = GAME_IDS[r.gameIdx] || 'unknown';
         if(!recs[gId]) recs[gId] = [];
         if(!recs[gId].find(x => x.ts===r.ts && x.player===r.player)) {
           recs[gId].push({
-            date: r.tsStr || new Date(r.ts).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
+            date: r.tsStr || new Date(r.ts||Date.now()).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
             player: r.player, device: r.device, game: gId, gameIdx: r.gameIdx,
-            score: r.rawScore, mt: 0, ts: r.ts
+            score: r.rawScore, mt: 0, ts: r.ts||0
           });
+          loadedCount++;
         }
       });
-    } catch(e) { console.warn('[loadCal] cal_records fetch:', e.message); }
+    } catch(e) { errMsgs.push('cal_records: '+e.message); }
+    // Sort each game's records by ts desc (client-side, no index needed)
+    Object.keys(recs).forEach(g => recs[g].sort((a,b)=>(b.ts||0)-(a.ts||0)));
     localStorage.setItem('admin_score_records', JSON.stringify(recs));
+    if(statusEl) {
+      statusEl.textContent = errMsgs.length
+        ? '⚠️ '+errMsgs.join(' | ')
+        : '✓ '+loadedCount+' neue Einträge geladen · '+new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'});
+    }
   }
 
-  if(statusEl) statusEl.textContent = '✓ Geladen ' + new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'});
+  if(statusEl && !_db) statusEl.textContent = '⚠️ Firebase nicht verbunden — nur lokale Daten';
   stopSpin('cal-spin');
   renderCalTable();
 }
