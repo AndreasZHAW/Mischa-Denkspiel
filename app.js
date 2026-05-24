@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v88-isActive-fix';
+const APP_VERSION = 'v203';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v2026.05.21-0648</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v203 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -1799,7 +1799,10 @@ const App = {
       if(/iPad/.test(ua)||(navigator.platform==='MacIntel'&&touch))return'ipad';
       if(/iPhone|iPod/.test(ua))return'iphone';
       if(/Android/.test(ua))return(/Mobile/.test(ua)||minDim<600)?'android':'android-tablet';
+      const dpr=window.devicePixelRatio||1;
+      if(touch&&dpr>=2.4)return'android';
       if(touch&&minDim<820&&maxDim<1400)return minDim<600?'android':'tablet';
+      if(touch&&maxDim<1100)return minDim<600?'android':'tablet';
       return'desktop';
     };
 
@@ -1817,10 +1820,19 @@ const App = {
         const recs=JSON.parse(localStorage.getItem(recKey)||'{}');
         const gId=task.type||task.id||'unknown';
         if(!recs[gId])recs[gId]=[];
+        // Capture raw device signals for debugging detection
+        const _dbg = {
+          ua: (navigator.userAgent||'').slice(0,120),
+          touch: navigator.maxTouchPoints||0,
+          w: window.innerWidth, h: window.innerHeight,
+          dpr: window.devicePixelRatio||1,
+          plat: navigator.platform||'',
+        };
+        const _dev = _getDevice();
         const _rec = {
           date:new Date().toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
           player:State.currentPlayer?.name||'?',
-          device:_getDevice(),
+          device:_dev,
           game:task.type||task.id||'unknown',  // CRITICAL: needed for Firebase query
           gameIdx:taskIndex,
           worldId:worldIndex,
@@ -1828,7 +1840,9 @@ const App = {
           mt:0,
           passed:result.passed||false,
           ts:Date.now(),
+          dbg:_dbg, // raw signals for device-detection debugging
         };
+        if(typeof GameLog!=='undefined') GameLog.log('device','detected='+_dev+' ua='+_dbg.ua.slice(0,40)+' touch='+_dbg.touch+' '+_dbg.w+'x'+_dbg.h+' dpr='+_dbg.dpr+' plat='+_dbg.plat);
         recs[gId].push(_rec);
         if(recs[gId].length>200)recs[gId]=recs[gId].slice(-200);
         localStorage.setItem(recKey,JSON.stringify(recs));

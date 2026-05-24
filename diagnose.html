@@ -22,11 +22,31 @@ button.sec{background:#2a6;color:#fff}button.info{background:#2a6ab5;color:#fff}
 .crash-entry{font-size:10px;padding:2px 0;border-bottom:1px solid #151515}
 .badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:.7rem;font-weight:bold}
 </style>
+<!-- Firebase SDK + init for player diagnostics -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyBECgS_DLTmLTXABeyFQ2rNKISFyf6jwlE",
+    authDomain: "mischa-denkspiel.firebaseapp.com",
+    projectId: "mischa-denkspiel",
+    storageBucket: "mischa-denkspiel.firebasestorage.app",
+    messagingSenderId: "272799969679",
+    appId: "1:272799969679:web:930490bc929b3b2747dbfa"
+  });
+  console.log('[Diagnose] Firebase initialisiert');
+} catch(e) { console.warn('[Diagnose] Firebase init Fehler:', e); }
+</script>
 </head>
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
+<div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v203</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v203 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+</div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
-  ✅ <b>Dies ist die einzige Diagnose-Seite.</b> Für Welt 1 (Spiele) UND Zoo (Welt 2).
+  ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
 </div>
 
 <div class="tabs">
@@ -299,7 +319,7 @@ setInterval(renderCrash,1500);
 
 // ══ WELT 1 ══
 async function runWelt1(){
-  L('=== Welt 1 Tests ===');
+  L('=== Welt 1 Tests (v203) ===');
   // Players
   const pr=[];
   try{
@@ -319,6 +339,42 @@ async function runWelt1(){
     const zk=Object.keys(localStorage).filter(k=>k.startsWith('zoo_unlocked_'));
     if(zk.length)pr.push('Zoo freigeschaltet: '+zk.map(k=>k.replace('zoo_unlocked_','')).join(', '));
   }catch(e){pr.push('❌ '+e.message);}
+  // Fetch players from Firebase (catches players who played on OTHER devices like Opa on Android)
+  const localNames = Object.keys(JSON.parse(localStorage.getItem('mischa_players')||'{}')).map(n=>n.toLowerCase());
+  try {
+    if(typeof firebase!=='undefined' && firebase.apps && firebase.apps.length) {
+      const db=firebase.firestore();
+      pr.push('');
+      pr.push('━━━ FIREBASE (alle Geräte) ━━━');
+      const snap=await db.collection('mischa_players').get();
+      pr.push('🔥 mischa_players: '+snap.size+' Spieler');
+      const fbNames=[];
+      snap.forEach(doc=>{
+        const p=doc.data();
+        const mt=p.totalScore||0;
+        const cw=p.currentWorld||1;
+        const tasksCount=Object.values(p.worlds||{}).reduce((s,ws)=>s+((ws.tasks||[]).filter(t=>t&&t.done).length),0);
+        const onlyFB = !localNames.includes(doc.id.toLowerCase());
+        fbNames.push(doc.id.toLowerCase());
+        pr.push(`  ${onlyFB?'🆕':'🌐'} ${doc.id}: ${(mt.toFixed?mt.toFixed(1):mt)} MT · Welt ${cw} · ${tasksCount} Tasks${onlyFB?' (nur Firebase!)':''}`);
+      });
+      // Check 'players' collection (old name) for orphaned records — THESE are missing in Admin!
+      const snapOld=await db.collection('players').get();
+      if(snapOld.size>0){
+        pr.push('');
+        pr.push('⚠️⚠️ ALTE players-Collection: '+snapOld.size+' Spieler');
+        pr.push('   Diese fehlen im Admin! → Admin: "🔄 Spieler migrieren" drücken');
+        snapOld.forEach(doc=>{
+          const inNew = fbNames.includes(doc.id.toLowerCase());
+          pr.push(`   📦 ${doc.id}${inNew?' (bereits migriert ✓)':' ← MUSS MIGRIERT WERDEN'}`);
+        });
+      } else {
+        pr.push('✅ Keine Spieler in alter players-Collection');
+      }
+    } else {
+      pr.push('❌ Firebase SDK nicht geladen — kann Firebase-Spieler nicht zeigen!');
+    }
+  } catch(e) { pr.push('❌ Firebase Player-Fetch: '+e.message); }
   document.getElementById('player-out').textContent=pr.join('\n');
   pr.forEach(l=>L(l));
 
@@ -517,7 +573,7 @@ async function runNet(){
 
 // ══ INIT ══
 async function runAll(){
-  L('=== Diagnose gestartet === '+new Date().toLocaleString('de-CH'));
+  L('=== Diagnose v203 gestartet === '+new Date().toLocaleString('de-CH'));
   L('Browser: '+navigator.userAgent.slice(0,80));
   L('Viewport: '+window.innerWidth+'×'+window.innerHeight+' DPR='+window.devicePixelRatio);
   renderCrash();

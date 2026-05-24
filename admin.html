@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel</h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v203</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -123,7 +123,8 @@ textarea.inp { resize:vertical; min-height:80px; }
       <div class="stat-box"><div class="stat-val" id="s-topmt">–</div><div class="stat-lbl">Top MT</div></div>
     </div>
     <div class="card">
-      <div class="card-title">👥 Alle Spieler <span id="pl-spin" class="spin" style="margin-left:8px"></span></div>
+      <div class="card-title">👥 Alle Spieler <span id="pl-spin" class="spin" style="margin-left:8px"></span>
+        <button onclick="migratePlayers()" style="float:right;background:rgba(243,156,18,.2);border:1px solid #F39C12;color:#F39C12;padding:4px 10px;border-radius:6px;font-size:.72rem;cursor:pointer;font-weight:600">🔄 Spieler migrieren</button></div>
       <div style="overflow-x:auto">
         <table class="data-table">
           <thead><tr>
@@ -481,6 +482,31 @@ function quickMsg(name) { tab('msg'); document.getElementById('msg-target').valu
 function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=name; }
 
 // ═══ KALIBRIERUNG ═══
+async function migratePlayers() {
+  if(!_db) { alert('Firebase nicht verbunden!'); return; }
+  if(!confirm('Spieler aus alter players-Collection nach mischa_players kopieren?')) return;
+  let migrated = 0, report = '';
+  try {
+    const oldSnap = await _db.collection('players').get();
+    const newSnap = await _db.collection('mischa_players').get();
+    const existing = {}; newSnap.forEach(d => existing[d.id] = true);
+    for(const doc of oldSnap.docs) {
+      const data = doc.data();
+      if(existing[doc.id]) {
+        report += '⏭️ '+doc.id+' existiert bereits\n';
+        continue;
+      }
+      await _db.collection('mischa_players').doc(doc.id).set(data);
+      migrated++;
+      report += '✅ '+doc.id+' migriert ('+(data.totalScore||0)+' MT)\n';
+    }
+    report = 'Migriert: '+migrated+' Spieler\n\n'+report;
+  } catch(e) { report = '❌ Fehler: '+e.message; }
+  alert(report);
+  console.log(report);
+  if(migrated>0) location.reload();
+}
+
 async function debugFirebase() {
   const statusEl = document.getElementById('cal-status');
   if(!_db) { alert('Firebase nicht verbunden!'); return; }
@@ -545,7 +571,7 @@ async function loadCal() {
           recs[gId].push({
             date: r.date || new Date(r.ts||Date.now()).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),
             player: r.player, device: r.device, game: gId, gameIdx: r.gameIdx,
-            score: r.score, mt: r.mt||0, ts: r.ts||0
+            score: r.score, mt: r.mt||0, ts: r.ts||0, dbg: r.dbg||null
           });
           loadedCount++;
         }
@@ -602,20 +628,23 @@ function renderCalTable() {
   const DEVS = devFilter === 'all' ? ['desktop','ipad','iphone','android'] : [devFilter];
   const DEV_ICONS = {desktop:'🖥',ipad:'📱iPad',iphone:'📱Phone',android:'🤖'};
   
-  const devHeaders = DEVS.map(d => `<th colspan="3" style="text-align:center;padding:5px 8px;border-left:1px solid rgba(255,255,255,.08)">${DEV_ICONS[d]}</th>`).join('');
-  const devSubHeaders = DEVS.map(() => `<th style="padding:3px 5px;color:#E74C3C;font-size:.7rem">Min</th><th style="padding:3px 5px;color:#FFD700;font-size:.7rem">Ø</th><th style="padding:3px 5px;color:#27AE60;font-size:.7rem">Max</th><th style="padding:3px 5px;color:rgba(255,255,255,.4);font-size:.7rem">Detail</th>`).join('');
+  const DEV_BG = {desktop:'rgba(52,152,219,.07)',ipad:'rgba(155,89,182,.07)',iphone:'rgba(46,204,113,.07)',android:'rgba(243,156,18,.07)'};
+  const devHeaders = DEVS.map((d,di) => `<th colspan="4" style="text-align:center;padding:7px 8px;border-left:3px solid rgba(255,255,255,.25);background:${DEV_BG[d]||'transparent'};font-size:.95rem;font-weight:800">${DEV_ICONS[d]}</th>`).join('');
+  const devSubHeaders = DEVS.map((d) => `<th style="padding:3px 5px;color:#E74C3C;font-size:.7rem;border-left:3px solid rgba(255,255,255,.25);background:${DEV_BG[d]||'transparent'}">Min</th><th style="padding:3px 5px;color:#FFD700;font-size:.7rem;background:${DEV_BG[d]||'transparent'}">Ø</th><th style="padding:3px 5px;color:#27AE60;font-size:.7rem;background:${DEV_BG[d]||'transparent'}">Max</th><th style="padding:3px 5px;color:rgba(255,255,255,.4);font-size:.7rem;background:${DEV_BG[d]||'transparent'}">Detail</th>`).join('');
   
   const rows = GAMES.map((game, i) => {
     const devCells = DEVS.map(dev => {
       const key = i + '_' + dev;
       const scores = calStore[key] || [];
-      if(!scores.length) return `<td colspan="3" style="text-align:center;color:rgba(255,255,255,.2);padding:5px">—</td>`;
+      const bg = DEV_BG[dev]||'transparent';
+      const bl = 'border-left:3px solid rgba(255,255,255,.25)';
+      if(!scores.length) return `<td colspan="4" style="text-align:center;color:rgba(255,255,255,.2);padding:5px;${bl};background:${bg}">—</td>`;
       const minS = Math.min(...scores), maxS = Math.max(...scores);
       const avgS = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
-      return `<td style="text-align:center;padding:4px 5px;color:#E74C3C">${minS}</td>
-        <td style="text-align:center;padding:4px 5px;color:#FFD700">${avgS}<br><span style="font-size:.65rem;color:rgba(255,255,255,.3)">${scores.length}×</span></td>
-        <td style="text-align:center;padding:4px 5px;color:#27AE60">${maxS}</td>
-        <td style="text-align:center;padding:4px 3px"><button onclick="showCalDetail(${i},'${dev}','${game.n}')" style="background:rgba(52,152,219,.2);border:1px solid #3498DB;color:#3498DB;padding:2px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">🔍</button> <button onclick="editCal(${i},'${dev}')" style="background:none;border:1px solid rgba(255,255,255,.2);padding:2px 5px;border-radius:4px;cursor:pointer;color:rgba(255,255,255,.4);font-size:.68rem">✏️</button></td>`;
+      return `<td style="text-align:center;padding:4px 5px;color:#E74C3C;${bl};background:${bg}">${minS}</td>
+        <td style="text-align:center;padding:4px 5px;color:#FFD700;background:${bg}">${avgS}<br><span style="font-size:.65rem;color:rgba(255,255,255,.3)">${scores.length}×</span></td>
+        <td style="text-align:center;padding:4px 5px;color:#27AE60;background:${bg}">${maxS}</td>
+        <td style="text-align:center;padding:4px 3px;background:${bg}"><button onclick="showCalDetail(${i},'${dev}','${game.n}')" style="background:rgba(52,152,219,.2);border:1px solid #3498DB;color:#3498DB;padding:2px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">🔍</button> <button onclick="editCal(${i},'${dev}')" style="background:none;border:1px solid rgba(255,255,255,.2);padding:2px 5px;border-radius:4px;cursor:pointer;color:rgba(255,255,255,.4);font-size:.68rem">✏️</button></td>`;
     }).join('');
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
       <td style="padding:5px 8px;font-size:.82rem">
@@ -681,7 +710,7 @@ async function showCalDetail(gameIdx, dev, gameName) {
       `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
         <td style="padding:4px 6px;color:rgba(255,255,255,.65);font-size:.72rem">${r.date||'?'}</td>
         <td style="padding:4px 6px;color:#4af;font-size:.78rem">${r.player||'?'}</td>
-        <td style="padding:4px 6px;font-size:.72rem">${r.device||'?'}</td>
+        <td style="padding:4px 6px;font-size:.72rem">${r.device||'?'}${r.dbg?` <span title="${(r.dbg.ua||'').replace(/"/g,'')}\ntouch=${r.dbg.touch} ${r.dbg.w}x${r.dbg.h} dpr=${r.dbg.dpr} plat=${r.dbg.plat}" style="cursor:help;color:#9B59B6">🔍</span>`:''}</td>
         <td style="padding:4px 6px;color:#FFD700;font-weight:700">${r.score||0}</td>
         <td style="padding:4px 6px;color:#27AE60">${r.mt&&r.mt>0?(+r.mt).toFixed(1)+' MT':'—'}</td>
         <td style="padding:2px 4px">
@@ -689,7 +718,7 @@ async function showCalDetail(gameIdx, dev, gameName) {
             style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.5);color:#E74C3C;
               padding:1px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">✕</button>
         </td>
-      </tr>`).join('');
+      </tr>${r.dbg?`<tr><td colspan="6" style="padding:2px 6px 6px 14px;font-size:.62rem;color:rgba(255,255,255,.35);font-family:monospace">📱 ${(r.dbg.ua||'').slice(0,70)} · touch=${r.dbg.touch} · ${r.dbg.w}×${r.dbg.h} · dpr=${r.dbg.dpr} · ${r.dbg.plat}</td></tr>`:''}`).join('');
     detailParts.push(
       `<div style="margin-bottom:10px">
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:5px">📋 ${richRecs.length} Einzelspiele</div>

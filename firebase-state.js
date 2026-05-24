@@ -53,7 +53,7 @@ const ADMIN_KEY = 'mischa_admin_pw';
 const State = {
 
   // ---- FIREBASE HELPERS ----
-  _col() { return _db ? _db.collection('players') : null; },
+  _col() { return _db ? _db.collection('mischa_players') : null; },
 
   _useCloud() { return _firebaseReady && _db !== null; },
 
@@ -192,8 +192,15 @@ const State = {
     if(/iPad/.test(ua) || (navigator.platform==='MacIntel' && touch)) return 'ipad';
     if(/iPhone|iPod/.test(ua)) return 'iphone';
     if(/Android/.test(ua)) return (/Mobile/.test(ua)||minDim<600) ? 'android' : 'android-tablet';
-    // Desktop-mode browsers: touch + small screen = actually mobile
+    // Desktop-mode browsers (Android/iOS "Request Desktop Site"):
+    // These strip the mobile UA but keep hardware signals.
+    const dpr = typeof window!=='undefined' ? (window.devicePixelRatio||1) : 1;
+    // Strong mobile signal: touchscreen + high pixel density (phones are 2.5-4, desktops 1-2)
+    if(touch && dpr >= 2.4) return 'android'; // high DPR + touch = phone (even in desktop mode)
+    // Touch + small viewport = mobile in desktop mode
     if(touch && minDim < 820 && maxDim < 1400) return minDim < 600 ? 'android' : 'tablet';
+    // Touch + medium viewport but portrait-ish aspect = likely tablet/phone
+    if(touch && maxDim < 1100) return minDim < 600 ? 'android' : 'tablet';
     return 'desktop';
   },
 
