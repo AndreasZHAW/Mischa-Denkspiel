@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v204 -->
+<!-- ZOO v205 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -172,7 +172,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v204','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v205','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -1451,6 +1451,31 @@ const ZG={
     // Wheel label
     const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(8,8.5,16); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
     const wlbl2=this._txt('Näher kommen!',0.55,'#fff'); wlbl2.position.set(8,7.5,16); wlbl2.scale.set(6,1.5,1); sc.add(wlbl2);
+
+    // ═══ GOLD MACHINE 3D building at x=16, z=55 ═══
+    const gmBase=new THREE.Mesh(new THREE.BoxGeometry(4,0.6,4),new THREE.MeshBasicMaterial({color:0x4a3520}));
+    gmBase.position.set(16,0.3,55); sc.add(gmBase);
+    // Main body — golden cabinet
+    const gmBody=new THREE.Mesh(new THREE.BoxGeometry(3,4,2.5),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    gmBody.position.set(16,2.5,55); sc.add(gmBody);
+    // Darker front panel
+    const gmPanel=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,0.2),new THREE.MeshBasicMaterial({color:0x2a2a3a}));
+    gmPanel.position.set(16,2.8,56.3); sc.add(gmPanel);
+    // Glowing slot (where animals go in)
+    const gmSlot=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,0.1),new THREE.MeshBasicMaterial({color:0x00FFCC}));
+    gmSlot.position.set(16,3.4,56.45); sc.add(gmSlot);
+    // Knobs / lights on front
+    [-0.7,0,0.7].forEach((dx,ci)=>{
+      const knob=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8),new THREE.MeshBasicMaterial({color:[0xE74C3C,0x27AE60,0x3498DB][ci]}));
+      knob.position.set(16+dx,2.1,56.45); sc.add(knob);
+    });
+    // Top crown — diamond shape
+    const gmCrown=new THREE.Mesh(new THREE.ConeGeometry(1,1.2,4),new THREE.MeshBasicMaterial({color:0x00CFFF}));
+    gmCrown.position.set(16,5.2,55); gmCrown.rotation.y=Math.PI/4; sc.add(gmCrown);
+    // Labels above
+    const gmLbl=this._txt('⚗️ GOLD-MASCHINE',0.7,'#FFD700'); gmLbl.position.set(16,7.5,55); gmLbl.scale.set(8,2,1); sc.add(gmLbl);
+    const gmLbl2=this._txt('Tiere aufwerten! [E]',0.5,'#00FFCC'); gmLbl2.position.set(16,6.4,55); gmLbl2.scale.set(7,1.4,1); sc.add(gmLbl2);
+    this._goldMachineMesh = gmBody; // reference for glow animation
   },
 
   _encs(){
@@ -1899,7 +1924,7 @@ const ZG={
     const z=ZS.zoo;if(!z)return;
     const a=z.enc.filter(e=>e);if(!a.length)return;
     z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>{const ev2=earn(enc,z,this.ev);return s+(isNaN(ev2)||!isFinite(ev2)?0:ev2);},0);if(isNaN(z.mt)||!isFinite(z.mt))z.mt=0;if(tot>0){z.mt+=tot;z.te=(z.te||0)+tot;}if(Math.random()<0.3)ZSound.coin();
-    const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;if(_safeTot>0){el.textContent='+'+$mt(_safeTot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);}
+    const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;if(tot>0){el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);}
   },
 
   _hudCompact: false,
@@ -3256,7 +3281,7 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:300,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:1200,token:5},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){
     const z=ZS.zoo;
     // Apply active discount
@@ -3264,7 +3289,12 @@ const ZP={
     const finalP=(disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='spin'||disc.item==='enc'||disc.item==='boost'))
       ? Math.max(0, Math.round(p*(1-disc.pct/100))) : p;
     if(z.mt<finalP){this.toast('❌ Zu wenig MT! Brauchst '+$mt(finalP));return;}
-    z.mt-=finalP;if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');this._sZ(G('scont'));ZG._updHUD();},
+    z.mt-=finalP;
+    // Token items: repeatable, grant tokens (not marked as owned)
+    if(id==='token_1'){z.tokens=(z.tokens||0)+1;this.toast('🥇 +1 Gold-Token! Total: '+z.tokens);}
+    else if(id==='token_5'){z.tokens=(z.tokens||0)+5;this.toast('🥇 +5 Gold-Tokens! Total: '+z.tokens);}
+    else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
+    ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
   _openProfile(){
     const el=document.getElementById('profile-cur-name');
