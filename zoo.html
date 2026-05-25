@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v206 -->
+<!-- ZOO v207 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -172,7 +172,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v206','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v207','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -1474,7 +1474,7 @@ const ZG={
     gmCrown.position.set(16,5.2,55); gmCrown.rotation.y=Math.PI/4; sc.add(gmCrown);
     // Labels above
     const gmLbl=this._txt('⚗️ GOLD-MASCHINE',0.7,'#FFD700'); gmLbl.position.set(16,7.5,55); gmLbl.scale.set(8,2,1); sc.add(gmLbl);
-    const gmLbl2=this._txt('Tiere aufwerten! [E]',0.5,'#00FFCC'); gmLbl2.position.set(16,6.4,55); gmLbl2.scale.set(7,1.4,1); sc.add(gmLbl2);
+    const gmLbl2=this._txt('Tiere aufwerten! Antippen ⚗️',0.5,'#00FFCC'); gmLbl2.position.set(16,6.4,55); gmLbl2.scale.set(7,1.4,1); sc.add(gmLbl2);
     this._goldMachineMesh = gmBody; // reference for glow animation
   },
 
@@ -1631,6 +1631,8 @@ const ZG={
       const onJoy=e.clientX<150&&e.clientY>window.innerHeight-145;
       const onWbar=e.clientY>window.innerHeight-95;
       if(onHL||onJoy||onWbar)return;
+      // Gold Machine: open directly on tap/click when near (works on iPad/touch — no [E] key needed)
+      if(this._nearGoldMachine){GoldMachine.open();return;}
       if(this.nearSt||this.nearEnc>=0||this.nearLimo>=0)this._interact();
       else this.slap();
     });
@@ -1663,11 +1665,14 @@ const ZG={
         const onJ=t.clientX<160&&t.clientY>window.innerHeight-150;
         const onHL=t.clientX<80;
         const onWB=t.clientY>window.innerHeight-95;
-        if(!onJ&&!onHL&&!onWB)this.slap();
+        if(onJ||onHL||onWB)continue;
+        // Gold Machine: tap to open when near (iPad/touch — no [E] key)
+        if(this._nearGoldMachine){GoldMachine.open();return;}
+        this.slap();
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._nearGoldMachine){GoldMachine.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -1918,10 +1923,11 @@ const ZG={
     // Detect Gold Machine proximity (x=16, z=55)
     const _gmDx=this.pl.x-16, _gmDz=this.pl.z-55;
     const _gmDist=Math.sqrt(_gmDx*_gmDx+_gmDz*_gmDz);
-    this._nearGoldMachine = _gmDist < 5;
+    this._nearGoldMachine = _gmDist < 6;
     if(this._nearGoldMachine && !this._gmHinted){
       this._gmHinted=true;
-      ZP.toast('⚗️ [E] — Gold-Maschine öffnen',2500);
+      const isTouch=('ontouchstart' in window);
+      ZP.toast(isTouch?'⚗️ Tippe die Maschine an zum Öffnen':'⚗️ [E] oder klicken — Gold-Maschine',2800);
     } else if(!this._nearGoldMachine){
       this._gmHinted=false;
     }
