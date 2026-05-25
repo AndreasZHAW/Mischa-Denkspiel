@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v207 -->
+<!-- ZOO v208 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -172,7 +172,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v207','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v208','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -218,14 +218,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   title="HUD minimieren/maximieren">⊟</button>
 <div class="hb" onclick="ZP.open('index')"><div class="hbb" style="background:rgba(52,152,219,.8)">📖</div><div class="hbl">Index</div></div>
 <div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl">Profil</div></div>
-
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
-<div class="hbl">Trading</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
-
-<div class="hbl">Admin</div></div>
+<div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
@@ -5837,15 +5834,19 @@ const GoldMachine = {
       const tierDef = this._TIERS[tier]||this._TIERS[0];
       const remaining = upg ? Math.max(0,Math.ceil((upg.finishAt-Date.now())/60000)) : 0;
       const isMax = tier >= this._TIERS.length-1;
+      const cardBg = upg ? 'rgba(243,156,18,.18)' : (isMax ? 'rgba(155,89,182,.18)' : 'rgba(255,215,0,.13)');
+      const statusLabel = upg ? `<div style="font-size:.62rem;color:#F39C12;margin-top:2px">⏳ ${remaining}min</div>`
+        : (isMax ? `<div style="font-size:.62rem;color:#9B59B6;margin-top:1px">MAX ✨</div>`
+        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">👆 Tippen</div>`);
       return `<div onclick="GoldMachine._select('${a.id}')" id="gm-card-${a.id}"
-        style="background:rgba(255,255,255,.07);border:2px solid ${upg?'#F39C12':tierDef.color};
+        onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"
+        style="background:${cardBg};border:2px solid ${upg?'#F39C12':(isMax?'#9B59B6':'#FFD700')};
           border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;
-          transition:all .15s;min-width:85px">
+          transition:transform .12s;min-width:85px">
         <div style="font-size:2rem">${a.e||a.emoji||'🐾'}</div>
         <div style="font-size:.75rem;color:#fff;font-weight:700;margin:3px 0">${a.n||a.name||a.id}</div>
         <div style="font-size:.68rem;color:${tierDef.color}">${tierDef.emoji} ${tierDef.n}</div>
-        ${upg?`<div style="font-size:.62rem;color:#F39C12;margin-top:2px">⏳ ${remaining}min</div>`:''}
-        ${isMax?`<div style="font-size:.62rem;color:#9B59B6;margin-top:1px">MAX ✨</div>`:''}
+        ${statusLabel}
       </div>`;
     }).join('');
 
@@ -5866,7 +5867,7 @@ const GoldMachine = {
               border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
         </div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px">
-          Wähle ein Tier zum Upgraden — Tokens im Shop kaufen:
+          Deine Tiere im Gehege — tippe eines zum Aufwerten (Tokens im Shop kaufen):
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${cards}</div>
         <div id="gm-action" style="margin-top:6px"></div>
