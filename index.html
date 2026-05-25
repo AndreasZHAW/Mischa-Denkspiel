@@ -239,35 +239,76 @@
     }
 
     function showMaintenanceScreen(msg, until) {
-      const updateCountdown = () => {
-        const left = Math.max(0, until - Date.now());
-        const mins = Math.floor(left/60000), secs = Math.floor((left%60000)/1000);
-        const cdEl = document.getElementById('maint-countdown');
-        if(left <= 0) { location.reload(); return; }
-        if(cdEl) cdEl.textContent = mins+':'+String(secs).padStart(2,'0');
-      };
+      let liveUntil = until;
+      let checking = false;
+
       document.body.innerHTML = `
         <div style="position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e);
           display:flex;flex-direction:column;align-items:center;justify-content:center;
           color:#fff;font-family:Arial,sans-serif;text-align:center;padding:20px;z-index:99999">
           <div style="font-size:4rem;margin-bottom:16px;animation:spin 2s linear infinite">🔧</div>
           <h1 style="color:#FFD700;font-size:1.6rem;margin-bottom:12px">Wartungsmodus</h1>
-          <p style="font-size:1.1rem;max-width:400px;line-height:1.5;margin-bottom:20px;color:rgba(255,255,255,.85)">${msg||'Ein Update wird eingespielt.'}</p>
+          <p id="maint-msg" style="font-size:1.1rem;max-width:400px;line-height:1.5;margin-bottom:20px;color:rgba(255,255,255,.85)">${msg||'Ein Update wird eingespielt.'}</p>
           <div style="background:rgba(255,215,0,.15);border:2px solid #FFD700;border-radius:16px;padding:14px 28px">
             <div style="font-size:.85rem;color:rgba(255,255,255,.6);margin-bottom:4px">Noch ungefähr</div>
             <div id="maint-countdown" style="font-size:2.2rem;font-weight:900;color:#FFD700">--:--</div>
           </div>
-          <p style="font-size:.8rem;color:rgba(255,255,255,.4);margin-top:20px">Die Seite lädt automatisch neu, wenn die Wartung vorbei ist.</p>
+          <button id="maint-refresh" style="margin-top:22px;background:linear-gradient(135deg,#FFD700,#F39C12);
+            color:#1a1a2e;border:none;padding:13px 30px;border-radius:12px;font-size:1rem;font-weight:900;
+            cursor:pointer;box-shadow:0 4px 16px rgba(255,215,0,.3)">🔄 Jetzt aktualisieren</button>
+          <p style="font-size:.8rem;color:rgba(255,255,255,.4);margin-top:16px">Das Spiel aktualisiert sich automatisch, sobald die Wartung vorbei ist — du musst nichts tun.</p>
+          <p id="maint-checkinfo" style="font-size:.72rem;color:rgba(255,255,255,.25);margin-top:6px">Prüfe Status…</p>
         </div>
         <style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>`;
+
+      const updateCountdown = () => {
+        const left = Math.max(0, liveUntil - Date.now());
+        const mins = Math.floor(left/60000), secs = Math.floor((left%60000)/1000);
+        const cdEl = document.getElementById('maint-countdown');
+        if(cdEl) cdEl.textContent = mins+':'+String(secs).padStart(2,'0');
+      };
+
+      // Poll Firebase live so we recover the moment the admin ends maintenance
+      // (no manual reload needed — the whole point of this feature)
+      const recover = () => { location.reload(); };
+      const poll = async () => {
+        if(checking) return; checking = true;
+        const info = document.getElementById('maint-checkinfo');
+        try {
+          if(typeof firebase!=='undefined' && firebase.apps && firebase.apps.length) {
+            const db = firebase.firestore();
+            const doc = await db.collection('config').doc('maintenance').get();
+            const d = doc.exists ? doc.data() : null;
+            if(!d || !d.active || d.until <= Date.now()) {
+              if(info) info.textContent = '✅ Wartung beendet — lädt…';
+              recover(); return;
+            }
+            // Update live values (admin may have changed time/message)
+            liveUntil = d.until;
+            const msgEl = document.getElementById('maint-msg');
+            if(msgEl && d.msg) msgEl.textContent = d.msg;
+            if(info) info.textContent = 'Zuletzt geprüft: '+new Date().toLocaleTimeString('de-CH');
+          }
+        } catch(e) { if(info) info.textContent = 'Prüfung fehlgeschlagen, versuche erneut…'; }
+        checking = false;
+      };
+
+      document.getElementById('maint-refresh').onclick = () => {
+        const info = document.getElementById('maint-checkinfo');
+        if(info) info.textContent = 'Prüfe…';
+        poll();
+      };
+
       updateCountdown();
       setInterval(updateCountdown, 1000);
+      setInterval(poll, 4000); // check live status every 4s
+      poll(); // immediate first check
     }
 
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v208 wird geladen...';
+      if(vEl) vEl.textContent = 'v209 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)

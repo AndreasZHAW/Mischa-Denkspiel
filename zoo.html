@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v208 -->
+<!-- ZOO v209 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -33,7 +33,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 #s-zoo{overflow:hidden;padding:0;background:#000;position:fixed;inset:0}
 #zc{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;cursor:crosshair;z-index:1}
 /* HUD */
-#hud{position:fixed;inset:0;pointer-events:none;z-index:110;display:none}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:110}
+#hud.off{display:none!important}
 /* Money - above joystick bottom-left */
 #hm{position:absolute;bottom:140px;left:14px;pointer-events:none}
 .mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
@@ -172,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v208','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v209','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -208,7 +209,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <!-- ZOO -->
 <div id="s-zoo" class="scr off">
 <canvas id="zc"></canvas>
-<div id="hud">
+<div id="hud" class="off">
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
 <div id="hleft">
@@ -5862,9 +5863,15 @@ const GoldMachine = {
             <div style="font-size:1.2rem;font-weight:900;color:#FFD700">⚗️ Gold-Maschine</div>
             <div style="font-size:.78rem;color:rgba(255,255,255,.5)">🎫 ${tokens} Tokens verfügbar</div>
           </div>
-          <button onclick="document.getElementById('gm-panel').remove()"
-            style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;
-              border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="GoldMachine._goToShop()"
+              style="background:linear-gradient(135deg,#FFD700,#F39C12);border:none;color:#1a1a2e;
+                padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:900;white-space:nowrap">
+              🛒 Token kaufen</button>
+            <button onclick="document.getElementById('gm-panel').remove()"
+              style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;
+                border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+          </div>
         </div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px">
           Deine Tiere im Gehege — tippe eines zum Aufwerten (Tokens im Shop kaufen):
@@ -5877,6 +5884,18 @@ const GoldMachine = {
         </div>
       </div>`;
     document.body.appendChild(panel);
+  },
+
+  _goToShop() {
+    // Close Gold Machine, open Shop on the Zoo tab (where tokens are sold)
+    const panel = document.getElementById('gm-panel');
+    if(panel) panel.remove();
+    if(typeof ZP!=='undefined' && ZP.open) {
+      ZP.open('shop');
+      // Switch to Zoo tab where the Gold-Tokens are
+      if(ZP.shopTab) ZP.shopTab('z');
+      ZP.toast && ZP.toast('🛒 Hier findest du die Gold-Tokens!',2500);
+    }
   },
 
   _select(animalId) {
