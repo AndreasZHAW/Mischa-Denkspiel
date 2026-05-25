@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v205</span></h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v206</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -110,7 +110,7 @@ textarea.inp { resize:vertical; min-height:80px; }
     <button class="tab" onclick="tab('ban')">🚫 Sperren</button>
     <button class="tab" onclick="tab('reports')">🚨 Meldungen</button>
     <button class="tab" onclick="tab('reset')">⚠️ Reset</button>
-
+    <button class="tab" onclick="tab('wartung')">🔧 Wartung</button>
     <button class="tab" onclick="tab('fragen')">❓ Fragen</button>
   </div>
 
@@ -245,6 +245,27 @@ textarea.inp { resize:vertical; min-height:80px; }
       </p>
     </div>
   </div>
+
+  <!-- ═══ WARTUNG ═══ -->
+  <div id="p-wartung" class="panel">
+    <div class="card" style="border-color:rgba(243,156,18,.4)">
+      <div class="card-title" style="color:#F39C12">🔧 Wartungsmodus</div>
+      <p style="font-size:.83rem;color:rgba(255,255,255,.6);margin-bottom:12px">
+        Sperrt das Denkspiel für alle Spieler. Sie sehen eine Update-Meldung und einen Countdown.
+      </p>
+      <div id="wartung-status" style="background:rgba(0,0,0,.3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:.85rem">⏳ Lade Status...</div>
+      <label style="display:block;font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:4px">Dauer (Minuten):</label>
+      <input type="number" id="wartung-min" value="5" min="1" max="120"
+        style="width:100px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.9rem;margin-bottom:10px">
+      <label style="display:block;font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:4px">Nachricht:</label>
+      <input type="text" id="wartung-msg" value="Ein Update wird eingespielt. Bitte warte einen Moment."
+        style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.9rem;margin-bottom:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" style="background:#F39C12;color:#000" onclick="startWartung()">🔒 Wartung starten</button>
+        <button class="btn" style="background:#27AE60;color:#fff" onclick="endWartung()">🔓 Wartung beenden</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -315,7 +336,7 @@ function setStatus(txt) {
   if(el) el.textContent = txt;
 }
 function tab(name) {
-  const allTabs=['players','cal','msg','ban','reports','reset','fragen'];
+  const allTabs=['players','cal','msg','ban','reports','reset','wartung','fragen'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', allTabs[i]===name));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('p-'+name);
@@ -327,6 +348,45 @@ function tab(name) {
   if(name==='ban') loadBans();
   if(name==='reports') loadReports();
   if(name==='fragen') loadQAdmin();
+  if(name==='wartung') loadWartung();
+}
+
+// ═══ WARTUNGSMODUS ═══
+async function loadWartung() {
+  const el = document.getElementById('wartung-status');
+  if(!el) return;
+  if(!_db) { el.textContent = '❌ Firebase nicht verbunden'; return; }
+  try {
+    const doc = await _db.collection('config').doc('maintenance').get();
+    const d = doc.exists ? doc.data() : null;
+    if(d && d.active && d.until > Date.now()) {
+      const minsLeft = Math.ceil((d.until - Date.now())/60000);
+      el.innerHTML = `<span style="color:#F39C12;font-weight:700">🔒 AKTIV</span> — noch ${minsLeft} Min<br><span style="color:rgba(255,255,255,.5);font-size:.78rem">"${d.msg||''}"</span>`;
+    } else {
+      el.innerHTML = '<span style="color:#27AE60;font-weight:700">🔓 Spiel ist offen</span> — keine Wartung aktiv';
+    }
+  } catch(e) { el.textContent = '❌ Fehler: '+e.message; }
+}
+
+async function startWartung() {
+  if(!_db) { alert('Firebase nicht verbunden!'); return; }
+  const mins = parseInt(document.getElementById('wartung-min').value) || 5;
+  const msg = document.getElementById('wartung-msg').value || 'Update wird eingespielt.';
+  const until = Date.now() + mins*60*1000;
+  try {
+    await _db.collection('config').doc('maintenance').set({ active:true, until, msg, startedAt:Date.now() });
+    alert('🔒 Wartung gestartet für '+mins+' Minuten.');
+    loadWartung();
+  } catch(e) { alert('Fehler: '+e.message); }
+}
+
+async function endWartung() {
+  if(!_db) { alert('Firebase nicht verbunden!'); return; }
+  try {
+    await _db.collection('config').doc('maintenance').set({ active:false, until:0, msg:'' });
+    alert('🔓 Wartung beendet — Spiel ist wieder offen.');
+    loadWartung();
+  } catch(e) { alert('Fehler: '+e.message); }
 }
 function showResult(elId, ok, msg) {
   const el = document.getElementById(elId);

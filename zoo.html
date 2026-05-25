@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v205 -->
+<!-- ZOO v206 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -172,7 +172,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v205','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v206','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -1526,6 +1526,10 @@ const ZG={
     for(let i=0;i<24;i++){
       const a=i/24*Math.PI*2;const r=this.WR*.62+Math.random()*10;
       const x=Math.cos(a)*r,z=Math.sin(a)*r;
+      // Skip trees too close to Gold Machine (16,55), Lucky Wheel (8,16) or station (0,0)
+      const nearGold=Math.sqrt((x-16)**2+(z-55)**2)<10;
+      const nearWheel=Math.sqrt((x-8)**2+(z-16)**2)<8;
+      if(nearGold||nearWheel)continue;
       const tr=new THREE.Mesh(new THREE.CylinderGeometry(.45,.65,4,8),tM);tr.position.set(x,2,z);this.scene.add(tr);
       const le=new THREE.Mesh(new THREE.SphereGeometry(3.5+Math.random()*1.5,9,7),lM);le.position.set(x,7.5,z);this.scene.add(le);
     }
@@ -1752,6 +1756,9 @@ const ZG={
     if(this.joy.on){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
     const l=Math.sqrt(mx*mx+mz*mz);
     if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
+    // Gold Machine collision (16,55) — push player out of 2.6 radius
+    const gmdx=this.pl.x-16, gmdz=this.pl.z-55, gmd=Math.sqrt(gmdx*gmdx+gmdz*gmdz);
+    if(gmd<2.6 && gmd>0){this.pl.x=16+gmdx/gmd*2.6;this.pl.z=55+gmdz/gmd*2.6;}
     // Circular boundary
     const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
     if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
