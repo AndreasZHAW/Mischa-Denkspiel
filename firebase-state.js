@@ -92,6 +92,41 @@ const State = {
     return this._local.getAll();
   },
 
+  // Repair: any task marked done but with mt<=0 or NaN gets minimum 0.2 MT.
+  // Fixes legacy saves where the MT calc failed (showed raw score with ⭐ instead of MT).
+  _repairPlayerMT(player) {
+    if(!player || !player.worlds) return player;
+    let changed = false;
+    for(const wk of Object.keys(player.worlds)) {
+      const w = player.worlds[wk];
+      if(!w || !Array.isArray(w.tasks)) continue;
+      for(const t of w.tasks) {
+        if(t && t.done) {
+          const m = t.mt;
+          if(typeof m !== 'number' || isNaN(m) || !isFinite(m) || m <= 0) {
+            t.mt = 0.2; changed = true;
+          }
+        }
+      }
+    }
+    if(changed) {
+      // Recompute totalScore — worlds are mirrored under number+string keys, so dedup by world id
+      const seen = {}; let total = 0;
+      for(const wk of Object.keys(player.worlds)) {
+        const wid = String(parseInt(wk));
+        if(seen[wid]) continue; seen[wid] = true;
+        const w = player.worlds[wk];
+        if(w && Array.isArray(w.tasks)) {
+          for(const t of w.tasks) if(t && t.done && typeof t.mt==='number' && !isNaN(t.mt)) total += t.mt;
+        }
+      }
+      if(!isNaN(total) && isFinite(total)) player.totalScore = Math.round(total*10)/10;
+      if(typeof console!=='undefined') console.log('[Repair] Fixed MT for', player.name, '→ total', player.totalScore);
+      player._needsSave = true; // mark for persistence
+    }
+    return player;
+  },
+
   async getPlayer(name) {
     const key = name.toLowerCase();
     if (this._useCloud()) {
@@ -100,13 +135,20 @@ const State = {
           this._col().doc(key).get(),
           new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000))
         ]);
-        return doc.exists ? doc.data() : null;
+        if(!doc.exists) return null;
+        const _p = this._repairPlayerMT(doc.data());
+        if(_p && _p._needsSave){ delete _p._needsSave; this._col().doc(key).set(_p).catch(()=>{}); this._local.save(_p); }
+        return _p;
       } catch(e) {
         console.warn('getPlayer cloud timeout, using local fallback');
-        return this._local.get(key);
+        const _pl = this._repairPlayerMT(this._local.get(key));
+        if(_pl && _pl._needsSave){ delete _pl._needsSave; this._local.save(_pl); }
+        return _pl;
       }
     }
-    return this._local.get(key);
+    const _pl2 = this._repairPlayerMT(this._local.get(key));
+    if(_pl2 && _pl2._needsSave){ delete _pl2._needsSave; this._local.save(_pl2); }
+    return _pl2;
   },
 
   async savePlayer(player) {
@@ -222,6 +264,29 @@ const State = {
       });
       if(changed) localStorage.setItem('cal_data_v3', JSON.stringify(cal));
     } catch(e) {}
+  },
+
+  // Repair tasks that are done but have mt<=0 / NaN (legacy data showed raw score with a star)
+  _repairZeroMt(player) {
+    if(!player || !player.worlds) return false;
+    let fixed = false;
+    Object.keys(player.worlds).forEach(wid => {
+      const ws = player.worlds[wid];
+      if(!ws || !Array.isArray(ws.tasks)) return;
+      ws.tasks.forEach(t => {
+        if(t && t.done) {
+          const m = t.mt;
+          if(typeof m !== 'number' || isNaN(m) || !isFinite(m) || m <= 0) {
+            t.mt = 0.2; // minimum MT for a completed game
+            fixed = true;
+          }
+        }
+      });
+    });
+    // Note: we only fix per-task mt (fixes the star-instead-of-MT display).
+    // totalScore is left untouched — worlds are mirrored under number+string keys,
+    // so recomputing here would risk double-counting.
+    return fixed;
   },
 
   async completeTask(playerName, worldIndex, taskIndex, result) {
@@ -776,6 +841,13 @@ const State = {
           this.currentPlayer = cloud;
         }
         // else: keep local data (it has the freshest task/MT data)
+      }
+    } catch(e) {}
+    // Repair legacy tasks that show a raw-score star instead of MT
+    try {
+      if(this._repairZeroMt(this.currentPlayer)) {
+        this._local.save(this.currentPlayer);
+        if(typeof this.savePlayer==='function') this.savePlayer(this.currentPlayer).catch(()=>{});
       }
     } catch(e) {}
     return this.currentPlayer;

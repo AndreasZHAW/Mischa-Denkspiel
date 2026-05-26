@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v209';
+const APP_VERSION = 'v210';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v209 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v210 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -1652,7 +1652,12 @@ const App = {
               let cls = tdone ? (tjok?'joker':'done') : 'active';
               const score = ws.tasks[i]?.score || '';
               const playCount = ws.tasks[i]?.plays || (tdone?1:0);
-              const mtEarned = tdone&&ws.tasks[i]?.mt ? ws.tasks[i].mt : '';
+              // A done task ALWAYS has MT (min 0.2). Never show raw score with a star.
+              let mtEarned = '';
+              if(tdone){
+                const _m = ws.tasks[i]?.mt;
+                mtEarned = (typeof _m==='number' && !isNaN(_m) && _m>0) ? _m : 0.2;
+              }
               return `
                 <button class="task-btn ${cls}"
                   onclick="App.startTask(${worldId},${i})"
@@ -1660,7 +1665,7 @@ const App = {
                   title="${task.name||task.title||'Spiel '+(i+1)}">
                   <span class="task-icon" style="font-size:clamp(1.7rem,7.5vw,2.1rem);display:block;margin-bottom:3px;line-height:1">${task.icon||'🎮'}</span>
                   <span class="task-name" style="font-size:clamp(0.9rem,4.2vw,1.05rem);font-weight:700;line-height:1.2;display:block">${task.name||('Spiel '+(i+1))}</span>
-                  ${mtEarned?`<span style="font-size:clamp(0.88rem,3.8vw,0.97rem);color:#FFD700">🌀${mtEarned}</span>`:score?`<span style="font-size:clamp(0.85rem,3.5vw,0.95rem);opacity:0.8">⭐${score}</span>`:''}
+                  ${mtEarned!==''?`<span style="font-size:clamp(0.88rem,3.8vw,0.97rem);color:#FFD700">🌀${mtEarned}</span>`:''}
                 </button>`;
             }).join('')}
           </div>
