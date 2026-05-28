@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v212 -->
+<!-- ZOO v213 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v212','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v213','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -535,6 +535,7 @@ const ANIMALS=[
   {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
   {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
 ];
+window.ANIMALS = ANIMALS;
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:2},diamond:{n:'DIAMOND',c:'td',m:2,p:1},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:.5},void:{n:'VOID',c:'tv',m:5,p:.5}};
 const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'}];
@@ -4537,10 +4538,29 @@ const ZAdmin = {
     const shiny=document.getElementById('padmin-spawn-shiny')?.checked||false;
     const targetSel=document.getElementById('padmin-spawn-target')?.value||'_all';
     const target=this.target?.name?.toLowerCase()||targetSel;
-    const cmd={type:'spawn_animal',animalId:id,shiny,target,id:Date.now().toString(),exp:Date.now()+10000};
+    const cmd={type:'spawn_animal',animalId:id,shinyId:shiny?'rainbow':null,traitIds:[],target,id:Date.now().toString(),exp:Date.now()+30000};
+    // Write to config/zoo_admin_cmd (where _adminCmd reads) AND localStorage
     try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
-    try{if(typeof _db!=='undefined'&&_db)_db.collection('zoo_events').add({...cmd,from:ZS.player,at:Date.now()}).catch(()=>{});}catch(e){}
-    ZP.toast('🐾 '+(a.e||'')+' '+a.n+' gespawnt!',2000);
+    try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
+    // If target is a specific player, also write directly into their zoo doc (most reliable)
+    if(this.target?.name){
+      this._giveAnimalDirect(this.target.name, a);
+    }
+    ZP.toast('🐾 '+(a.e||'')+' '+a.n+' gespawnt!',2500);
+  },
+  async _giveAnimalDirect(playerName, animal){
+    try{
+      if(typeof _db==='undefined'||!_db)return;
+      const zk='zoo_'+playerName.toLowerCase();
+      const s=await _db.collection('zoos').doc(zk).get();
+      if(!s.exists)return;
+      const zoo=s.data();
+      if(!Array.isArray(zoo.enc))zoo.enc=[];
+      let slot=zoo.enc.findIndex(e=>!e||!e.animal);
+      const entry={animal:{...animal},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
+      if(slot>=0)zoo.enc[slot]=entry; else zoo.enc.push(entry);
+      await _db.collection('zoos').doc(zk).set(zoo);
+    }catch(e){}
   },
   _saveAnimalEdit(){
     const id=this._selectedAnimal;

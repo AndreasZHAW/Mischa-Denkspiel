@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v212</span></h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v213</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -542,32 +542,132 @@ async function loadPlayers() {
 function quickMsg(name) { tab('msg'); document.getElementById('msg-target').value=name; }
 function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=name; }
 
+const ADMIN_ANIMALS=[
+  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:5,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:6,earn:.7},
+  {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,p:8,earn:.9},{id:'dormouse',n:'Sieben.',e:'🐭',r:'normal',w:15,p:10,earn:1.1},
+  {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,p:9,earn:.85},{id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,p:11,earn:1},
+  {id:'chicken',n:'Huhn',e:'🐔',r:'normal',w:8,p:12,earn:1.1},{id:'turtle',n:'Schildkröte',e:'🐢',r:'normal',w:6,p:15,earn:1.3},
+  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,p:30,earn:3.5},{id:'sister',n:'Schwester',e:'👧',r:'rare',w:5,p:45,earn:5.5},
+  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,p:45,earn:5.5},{id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,p:70,earn:8.5},
+  {id:'deer',n:'Reh',e:'🦌',r:'rare',w:4,p:55,earn:7},{id:'penguin',n:'Pinguin',e:'🐧',r:'rare',w:3.5,p:65,earn:7.8},
+  {id:'koala',n:'Koala',e:'🐨',r:'rare',w:2.5,p:80,earn:10},{id:'zebra',n:'Zebra',e:'🦓',r:'rare',w:2,p:90,earn:11.5},
+  {id:'parrot',n:'Papagei',e:'🦜',r:'rare',w:1.5,p:100,earn:13},{id:'otter',n:'Otter',e:'🦦',r:'rare',w:1,p:120,earn:16},
+  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,p:200,earn:28},{id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,p:350,earn:48},
+  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:.5,p:600,earn:80},{id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:.25,p:900,earn:120},
+  {id:'panda',n:'Panda',e:'🐼',r:'epic',w:.3,p:750,earn:100},{id:'bear',n:'Bär',e:'🐻',r:'epic',w:.2,p:1000,earn:135},
+  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:.15,p:1200,earn:162},{id:'capybara',n:'Capybara',e:'🦫',r:'epic',w:.06,p:2200,earn:300},
+  {id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:.2,p:2500,earn:340},{id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:.2,p:3500,earn:475},
+  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:.1,p:7000,earn:950},{id:'elephant',n:'Elefant',e:'🐘',r:'legendary',w:.08,p:9000,earn:1220},
+  {id:'gorilla',n:'Gorilla',e:'🦍',r:'legendary',w:.06,p:12000,earn:1630},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:.04,p:18000,earn:2450},
+  {id:'narwhal',n:'Narwal',e:'🐋',r:'legendary',w:.03,p:25000,earn:3400},
+  {id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:.09,p:22000,earn:3000},{id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',w:.003,p:150000,earn:20400},
+  {id:'phoenix',n:'Phönix',e:'🔥',r:'ultralegendary',w:.002,p:200000,earn:27200},{id:'nessie',n:'Nessie',e:'🦕',r:'ultralegendary',w:.001,p:350000,earn:47600},
+  {id:'lion',n:'Löwe',e:'🦁',r:'god',w:.001,p:450000,earn:61200},{id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:.0009,p:900000,earn:122400},
+  {id:'kraken',n:'Kraken',e:'🦑',r:'god',w:.0005,p:2000000,earn:272000},{id:'anubis',n:'Anubis',e:'🏺',r:'god',w:.0002,p:5000000,earn:680000},
+  {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,p:15000000,earn:2040000},{id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,p:40000000,earn:5440000},
+  {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,p:100000000,earn:13600000},{id:'thor',n:'Thor',e:'🔨',r:'mythic',w:.00001,p:300000000,earn:40800000},
+  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:500000000,earn:68000000},{id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:5000000000,earn:680000000},
+  // === 50 NEW ANIMALS ===
+  // Normal
+  {id:'goat',n:'Ziege',e:'🐐',r:'normal',w:8,p:11,earn:1.0},{id:'sheep',n:'Schaf',e:'🐑',r:'normal',w:9,p:10,earn:.95},
+  {id:'pig',n:'Schwein',e:'🐷',r:'normal',w:7,p:13,earn:1.15},{id:'cow',n:'Kuh',e:'🐄',r:'normal',w:6,p:14,earn:1.25},
+  {id:'rooster',n:'Hahn',e:'🐓',r:'normal',w:7,p:12,earn:1.1},{id:'chick',n:'Küken',e:'🐤',r:'normal',w:10,p:9,earn:.8},
+  {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:8,earn:.75},{id:'snail',n:'Schnecke',e:'🐌',r:'normal',w:5,p:16,earn:1.4},
+  {id:'ladybug',n:'Marienkäfer',e:'🐞',r:'normal',w:6,p:14,earn:1.2},{id:'butterfly',n:'Schmetterling',e:'🦋',r:'normal',w:5,p:16,earn:1.35},
+  // Rare
+  {id:'fox',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
+  {id:'bear',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
+  {id:'lion',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
+  {id:'elephant',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
+  {id:'rhino',n:'Nashorn',e:'🦏',r:'rare',w:0.5,p:215,earn:29},{id:'giraffe',n:'Giraffe',e:'🦒',r:'rare',w:0.6,p:190,earn:26},
+  {id:'camel',n:'Kamel',e:'🐪',r:'rare',w:0.8,p:155,earn:20},{id:'horse',n:'Pferd',e:'🐴',r:'rare',w:1.1,p:115,earn:15},
+  {id:'donkey',n:'Esel',e:'🫏',r:'rare',w:1.0,p:120,earn:15.5},{id:'bison',n:'Bison',e:'🦬',r:'rare',w:0.7,p:170,earn:22},
+  {id:'moose',n:'Elch',e:'🫎',r:'rare',w:0.8,p:150,earn:19},
+  // Epic
+  {id:'gorilla',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
+  {id:'whale',n:'Wal',e:'🐋',r:'epic',w:0.4,p:500,earn:70},{id:'shark',n:'Hai',e:'🦈',r:'epic',w:0.5,p:420,earn:58},
+  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
+  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
+  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
+  // Legendary
+  {id:'dragon',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
+  {id:'phoenix',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
+  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
+  {id:'dodo',n:'Dodo',e:'🦤',r:'legendary',w:0.15,p:2100,earn:315},{id:'yeti',n:'Yeti',e:'🏔️',r:'legendary',w:0.09,p:3000,earn:450},
+  // Ultra-Legendary
+  {id:'alien_pet',n:'Alien-Tier',e:'👽',r:'ultralegendary',w:0.02,p:15000,earn:2500},{id:'robot_pet',n:'Roboter-Hund',e:'🤖',r:'ultralegendary',w:0.02,p:14000,earn:2300},
+  {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:16000,earn:2700},{id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:20000,earn:3500},
+  {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
+  {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
+];
+window.ADMIN_ANIMALS = ADMIN_ANIMALS;
+
 async function giftPlayer(name) {
   if(!_db) { alert('Firebase nicht verbunden!'); return; }
-  const what = prompt(`🎁 Was an "${name}" vergeben?\n\nGib ein:\n  MT 50     → 50 Mischa Taler\n  TOKEN 5   → 5 Gold-Tokens\n\n(Format: TYP ANZAHL)`, 'TOKEN 5');
+  const what = prompt('🎁 Was an "'+name+'" vergeben?\n\nGib ein:\n  MT 50      → 50 Mischa Taler\n  TOKEN 5    → 5 Gold-Tokens\n  TIER frog  → ein Tier (Tier-ID, siehe unten)\n\nTier-IDs z.B.: cat, dog, hamster, fish, frog, fox, lion, dragon, phoenix\n\n(Format: TYP WERT)', 'TOKEN 5');
   if(!what) return;
   const parts = what.trim().split(/\s+/);
   const type = (parts[0]||'').toUpperCase();
-  const amount = parseFloat(parts[1]||'0');
-  if(isNaN(amount) || amount===0) { alert('Ungültige Anzahl.'); return; }
   try {
-    const ref = _db.collection('mischa_players').doc(name);
-    const doc = await ref.get();
-    if(!doc.exists) { alert('Spieler nicht gefunden: '+name); return; }
-    const data = doc.data();
+    // MT goes to mischa_players (totalScore)
     if(type==='MT') {
-      // Add MT to world 1, task 0 bonus OR a dedicated adminBonus field
+      const amount = parseFloat(parts[1]||'0');
+      if(isNaN(amount) || amount===0) { alert('Ungültige Anzahl.'); return; }
+      const ref = _db.collection('mischa_players').doc(name);
+      const doc = await ref.get();
+      if(!doc.exists) { alert('Spieler nicht gefunden: '+name); return; }
+      const data = doc.data();
       data.adminBonusMt = (data.adminBonusMt||0) + amount;
       data.totalScore = (data.totalScore||0) + amount;
       await ref.set(data, {merge:true});
-      alert(`✅ ${amount} MT an ${name} vergeben.\nNeuer Stand: ${(data.totalScore||0).toFixed(1)} MT`);
-    } else if(type==='TOKEN' || type==='TOKENS') {
-      // Tokens live in the zoo state — store as pendingTokens the client picks up
-      data.pendingTokens = (data.pendingTokens||0) + amount;
-      await ref.set(data, {merge:true});
-      alert(`✅ ${amount} Gold-Tokens an ${name} vergeben.\nWerden beim nächsten Zoo-Besuch gutgeschrieben.`);
+      alert('✅ '+amount+' MT an '+name+' vergeben.\nNeuer Stand: '+(data.totalScore||0).toFixed(1)+' MT');
+      loadPlayers();
+      return;
+    }
+    // TOKEN and TIER go DIRECTLY into the zoo document (collection 'zoos', key zoo_<name>)
+    const zooKey = 'zoo_' + name.toLowerCase();
+    const zref = _db.collection('zoos').doc(zooKey);
+    const zdoc = await zref.get();
+    const zooExists = zdoc.exists;
+    const zoo = zooExists ? zdoc.data() : null;
+    if(type==='TOKEN' || type==='TOKENS') {
+      const amount = parseFloat(parts[1]||'0');
+      if(isNaN(amount) || amount===0) { alert('Ungültige Anzahl.'); return; }
+      if(zooExists) {
+        // Write directly to zoo (instant)
+        zoo.tokens = (zoo.tokens||0) + amount;
+        await zref.set(zoo);
+        alert('✅ '+amount+' Gold-Tokens an '+name+' vergeben.\nNeuer Token-Stand: '+zoo.tokens);
+      } else {
+        // No zoo yet → store as pendingTokens, credited on first zoo visit
+        const pref = _db.collection('mischa_players').doc(name);
+        const pdoc = await pref.get();
+        if(!pdoc.exists) { alert('Spieler nicht gefunden: '+name); return; }
+        const pdata = pdoc.data();
+        pdata.pendingTokens = (pdata.pendingTokens||0) + amount;
+        await pref.set(pdata, {merge:true});
+        alert('✅ '+amount+' Tokens für '+name+' vorgemerkt.\n(Spieler war noch nie im Zoo — werden beim ersten Besuch gutgeschrieben.)');
+      }
+    } else if(type==='TIER' || type==='ANIMAL') {
+      if(!zooExists) { alert('⚠️ '+name+' hat noch keinen Zoo. Tier kann erst vergeben werden, wenn der Spieler den Zoo einmal besucht hat.'); return; }
+      const animalId = (parts[1]||'').toLowerCase();
+      if(!animalId) { alert('Bitte Tier-ID angeben, z.B.: TIER frog'); return; }
+      // Look up the real animal data
+      const found = (window.ADMIN_ANIMALS||[]).find(a => a.id.toLowerCase() === animalId);
+      if(!found) {
+        const ids = (window.ADMIN_ANIMALS||[]).map(a=>a.id).join(', ');
+        alert('❌ Tier-ID "'+animalId+'" nicht gefunden.\n\nVerfügbare IDs:\n'+ids);
+        return;
+      }
+      if(!Array.isArray(zoo.enc)) zoo.enc = [];
+      let slot = zoo.enc.findIndex(e => !e || !e.animal);
+      const encEntry = { animal: {...found}, shiny:null, traits:[], xm:1, addedAt:Date.now(), sl:0 };
+      if(slot >= 0) { zoo.enc[slot] = encEntry; }
+      else { zoo.enc.push(encEntry); slot = zoo.enc.length-1; }
+      await zref.set(zoo);
+      alert('✅ '+found.e+' '+found.n+' ('+found.r+') an '+name+' vergeben — Gehege '+(slot+1)+'!');
     } else {
-      alert('Unbekannter Typ. Nutze MT oder TOKEN.');
+      alert('Unbekannter Typ. Nutze: MT, TOKEN oder TIER.');
       return;
     }
     loadPlayers();
