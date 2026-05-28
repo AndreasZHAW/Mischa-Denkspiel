@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v210</span></h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v212</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -531,6 +531,7 @@ async function loadPlayers() {
       <td>
         <div style="display:flex;gap:5px">
           <button class="btn btn-sm btn-blue" onclick="quickMsg('${name}')">💬</button>
+          <button class="btn btn-sm" style="background:rgba(255,215,0,.2);border:1px solid #FFD700;color:#FFD700" onclick="giftPlayer('${name}')" title="MT / Tokens vergeben">🎁</button>
           <button class="btn btn-sm btn-red" onclick="quickBan('${name}')">🚫</button>
         </div>
       </td>
@@ -540,6 +541,38 @@ async function loadPlayers() {
 
 function quickMsg(name) { tab('msg'); document.getElementById('msg-target').value=name; }
 function quickBan(name) { tab('ban'); document.getElementById('ban-name').value=name; }
+
+async function giftPlayer(name) {
+  if(!_db) { alert('Firebase nicht verbunden!'); return; }
+  const what = prompt(`🎁 Was an "${name}" vergeben?\n\nGib ein:\n  MT 50     → 50 Mischa Taler\n  TOKEN 5   → 5 Gold-Tokens\n\n(Format: TYP ANZAHL)`, 'TOKEN 5');
+  if(!what) return;
+  const parts = what.trim().split(/\s+/);
+  const type = (parts[0]||'').toUpperCase();
+  const amount = parseFloat(parts[1]||'0');
+  if(isNaN(amount) || amount===0) { alert('Ungültige Anzahl.'); return; }
+  try {
+    const ref = _db.collection('mischa_players').doc(name);
+    const doc = await ref.get();
+    if(!doc.exists) { alert('Spieler nicht gefunden: '+name); return; }
+    const data = doc.data();
+    if(type==='MT') {
+      // Add MT to world 1, task 0 bonus OR a dedicated adminBonus field
+      data.adminBonusMt = (data.adminBonusMt||0) + amount;
+      data.totalScore = (data.totalScore||0) + amount;
+      await ref.set(data, {merge:true});
+      alert(`✅ ${amount} MT an ${name} vergeben.\nNeuer Stand: ${(data.totalScore||0).toFixed(1)} MT`);
+    } else if(type==='TOKEN' || type==='TOKENS') {
+      // Tokens live in the zoo state — store as pendingTokens the client picks up
+      data.pendingTokens = (data.pendingTokens||0) + amount;
+      await ref.set(data, {merge:true});
+      alert(`✅ ${amount} Gold-Tokens an ${name} vergeben.\nWerden beim nächsten Zoo-Besuch gutgeschrieben.`);
+    } else {
+      alert('Unbekannter Typ. Nutze MT oder TOKEN.');
+      return;
+    }
+    loadPlayers();
+  } catch(e) { alert('Fehler: '+e.message); }
+}
 
 // ═══ KALIBRIERUNG ═══
 async function migratePlayers() {

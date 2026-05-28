@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v210 -->
+<!-- ZOO v212 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v210','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v212','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -607,6 +607,23 @@ const ZS={
       sessionStorage.removeItem('zoo_teleport_mt');
     }
     this._fix();
+    // Pick up admin-granted tokens/MT from mischa_players (giftPlayer)
+    try {
+      if(State._useCloud && State._useCloud()) {
+        const pdoc = await _db.collection('mischa_players').doc(this.player).get();
+        if(pdoc.exists) {
+          const pd = pdoc.data();
+          let credited = false;
+          if(pd.pendingTokens && pd.pendingTokens>0) {
+            this.zoo.tokens = (this.zoo.tokens||0) + pd.pendingTokens;
+            ZP && ZP.toast && ZP.toast('🎁 Admin-Geschenk: +'+pd.pendingTokens+' Gold-Tokens!',4000);
+            await _db.collection('mischa_players').doc(this.player).set({pendingTokens:0},{merge:true});
+            credited = true;
+          }
+          if(credited) this.save && this.save();
+        }
+      }
+    } catch(e) {}
   },
   _fix(){
     const z=this.zoo;
@@ -1631,6 +1648,8 @@ const ZG={
       if(onHL||onJoy||onWbar)return;
       // Gold Machine: open directly on tap/click when near (works on iPad/touch — no [E] key needed)
       if(this._nearGoldMachine){GoldMachine.open();return;}
+      // Lucky Wheel: open on tap/click when near
+      if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0||this.nearLimo>=0)this._interact();
       else this.slap();
     });
@@ -1666,11 +1685,13 @@ const ZG={
         if(onJ||onHL||onWB)continue;
         // Gold Machine: tap to open when near (iPad/touch — no [E] key)
         if(this._nearGoldMachine){GoldMachine.open();return;}
+        // Lucky Wheel: tap to open when near
+        if(this._nearWheel){LW.open();return;}
         this.slap();
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._nearGoldMachine){GoldMachine.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -1791,7 +1812,12 @@ const ZG={
     this.LIMOPOS().forEach((lp,i)=>{if(Math.sqrt((this.pl.x-lp.x)**2+(this.pl.z-lp.z)**2)<7)this.nearLimo=i;});
     // Lucky wheel proximity - show prompt
     const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
-    this._nearWheel=(wdist<5);
+    this._nearWheel=(wdist<6);
+    if(this._nearWheel && !this._wheelHinted){
+      this._wheelHinted=true;
+      const isTouch=('ontouchstart' in window);
+      G('iprompt') && (G('iprompt').style.opacity='1', G('iprompt').textContent=isTouch?'🍀 Glücksrad antippen!':'🍀 [E] oder klicken — Glücksrad');
+    } else if(!this._nearWheel){ this._wheelHinted=false; }
     // Prompt
     const ip=G('iprompt');
     if(this.nearSt){
@@ -1984,8 +2010,7 @@ const ZG={
 
   _interact(){
     if(this._nearWheel){
-      if(LW.spins>0){LW.open();}
-      else{ZP.toast('🍀 Kein Spin verfügbar — komm in 20 Min wieder!',3000);}
+      LW.open();
       return;
     }
     if(this.nearSt){
@@ -2002,7 +2027,7 @@ const ZG={
       }
       // Check lucky wheel
       const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
-      if(wdist<6&&LW.spins>0){LW.open();return;}
+      if(wdist<6){LW.open();return;}
       // Show gondola station menu (Gondel / Glücksrad / Verlassen)
       // Show Gondel station only — lucky wheel has its own proximity trigger
       ZP.open('gond'); return;
@@ -3292,7 +3317,7 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:300,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:1200,token:5},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){
     const z=ZS.zoo;
     // Apply active discount
@@ -3304,6 +3329,7 @@ const ZP={
     // Token items: repeatable, grant tokens (not marked as owned)
     if(id==='token_1'){z.tokens=(z.tokens||0)+1;this.toast('🥇 +1 Gold-Token! Total: '+z.tokens);}
     else if(id==='token_5'){z.tokens=(z.tokens||0)+5;this.toast('🥇 +5 Gold-Tokens! Total: '+z.tokens);}
+    else if(id==='token_10'){z.tokens=(z.tokens||0)+10;this.toast('🥇 +10 Gold-Tokens! Total: '+z.tokens);}
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
     ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
@@ -5732,10 +5758,6 @@ const CRAFT_RECIPES = [
   {id:'cr26', inputs:[{r:'mythic',count:1},{r:'ultralegendary',count:1}], result:{id:'omegabeast',n:'Omega-Wesen',e:'🌀',r:'ultralegendary',earn:6000,craftOnly:true}, chance:0.1},
   {id:'cr27', inputs:[{r:'normal',count:5}], result:{id:'prismatic',n:'Prisma-Tier',e:'🌈',r:'epic',earn:48}, chance:1.0},
   {id:'cr28', inputs:[{r:'rare',count:5}], result:{id:'starbeast',n:'Stern-Tier',e:'⭐',r:'god',earn:550}, chance:0.9},
-  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold Maschine', p:5,currency:'mt',
-   fn(z){z.tokens=(z.tokens||0)+1;ZP.toast('🥇 +1 Gold-Token! Du hast '+(z.tokens||0)+' Tokens.',2500);}},
-  {id:'token_5',n:'🥇 5 Gold-Tokens',d:'5 Tokens zum Vorteilspreis', p:20,currency:'mt',
-   fn(z){z.tokens=(z.tokens||0)+5;ZP.toast('🥇 +5 Gold-Tokens! Du hast '+(z.tokens||0)+' Tokens.',2500);}},
 ];
 window.CRAFT_RECIPES=CRAFT_RECIPES;
 
@@ -5815,6 +5837,20 @@ const GoldMachine = {
     {n:'Void',      emoji:'🌌', mult:16,   tokens:8, waitMin:120, color:'#9B59B6'},
   ],
 
+  // Token cost to GOLD an animal depends on its rarity
+  _RARITY_COST: {
+    normal:1, rare:3, epic:10, legendary:20,
+    ultralegendary:40, god:75, mythic:100, secret:200
+  },
+  _RARITY_NAMES: {
+    normal:'Gewöhnlich', rare:'Selten', epic:'Episch', legendary:'Legendär',
+    ultralegendary:'Ultra Legendär', god:'Gott', mythic:'Mythisch', secret:'Geheim'
+  },
+  _costFor(animal) {
+    const r = (animal && animal.r) || 'normal';
+    return this._RARITY_COST[r] !== undefined ? this._RARITY_COST[r] : 1;
+  },
+
   _tier(animal) {
     const upg = (ZS.zoo?.upgrades||{})[animal.id];
     return upg?.tier||0;
@@ -5831,22 +5867,20 @@ const GoldMachine = {
 
     const cards = animals.map(a => {
       const tier = this._tier(a);
-      const upg = this._upgrading(a);
-      const tierDef = this._TIERS[tier]||this._TIERS[0];
-      const remaining = upg ? Math.max(0,Math.ceil((upg.finishAt-Date.now())/60000)) : 0;
-      const isMax = tier >= this._TIERS.length-1;
-      const cardBg = upg ? 'rgba(243,156,18,.18)' : (isMax ? 'rgba(155,89,182,.18)' : 'rgba(255,215,0,.13)');
-      const statusLabel = upg ? `<div style="font-size:.62rem;color:#F39C12;margin-top:2px">⏳ ${remaining}min</div>`
-        : (isMax ? `<div style="font-size:.62rem;color:#9B59B6;margin-top:1px">MAX ✨</div>`
-        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">👆 Tippen</div>`);
+      const isGold = tier >= 1;
+      const cost = this._costFor(a);
+      const cardBg = isGold ? 'rgba(255,215,0,.22)' : 'rgba(255,215,0,.10)';
+      const statusLabel = isGold
+        ? `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🥇 Vergoldet</div>`
+        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🎫 ${cost} · 👆 Tippen</div>`;
       return `<div onclick="GoldMachine._select('${a.id}')" id="gm-card-${a.id}"
         onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"
-        style="background:${cardBg};border:2px solid ${upg?'#F39C12':(isMax?'#9B59B6':'#FFD700')};
+        style="background:${cardBg};border:2px solid #FFD700;
           border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;
           transition:transform .12s;min-width:85px">
-        <div style="font-size:2rem">${a.e||a.emoji||'🐾'}</div>
+        <div style="font-size:2rem">${a.e||a.emoji||'🐾'}${isGold?' ✨':''}</div>
         <div style="font-size:.75rem;color:#fff;font-weight:700;margin:3px 0">${a.n||a.name||a.id}</div>
-        <div style="font-size:.68rem;color:${tierDef.color}">${tierDef.emoji} ${tierDef.n}</div>
+        <div style="font-size:.62rem;color:rgba(255,255,255,.5)">${this._RARITY_NAMES[a.r||'normal']||''}</div>
         ${statusLabel}
       </div>`;
     }).join('');
@@ -5879,8 +5913,10 @@ const GoldMachine = {
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${cards}</div>
         <div id="gm-action" style="margin-top:6px"></div>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);
-          font-size:.72rem;color:rgba(255,255,255,.35)">
-          Upgrade-Pfad: ⚪→🥇(1T/15min)→💎(2T/30min)→🌈(4T/60min)→🌌(8T/120min)
+          font-size:.7rem;color:rgba(255,255,255,.4);line-height:1.6">
+          <b style="color:#FFD700">Token-Kosten nach Seltenheit:</b><br>
+          Gewöhnlich 1 · Selten 3 · Episch 10 · Legendär 20 · Ultra 40 · Gott 75 · Mythisch 100 · Geheim 200<br>
+          <span style="color:rgba(255,255,255,.3)">1 Token = 1000 MT · Vergolden = Einkommen ×2 (sofort)</span>
         </div>
       </div>`;
     document.body.appendChild(panel);
@@ -5927,28 +5963,30 @@ const GoldMachine = {
           ${done?'🎁 Abholen!':'Noch nicht fertig'}
         </button>
       </div>`;
-    } else if(!nextDef) {
-      el.innerHTML=`<div style="text-align:center;color:#9B59B6;font-weight:700;font-size:1rem;padding:10px">
-        🌌 ${a.n||a.id} ist auf MAX-Stufe! ✨</div>`;
+    } else if(tier >= 1) {
+      // Already golden — max for this simple model
+      el.innerHTML=`<div style="text-align:center;color:#FFD700;font-weight:700;font-size:1rem;padding:10px">
+        🥇 ${a.n||a.id} ist bereits vergoldet! ✨<br>
+        <span style="font-size:.72rem;color:rgba(255,255,255,.5)">Einkommen ×2</span></div>`;
     } else {
-      const canAfford = tokens >= nextDef.tokens;
+      const cost = this._costFor(a);
+      const rName = this._RARITY_NAMES[a.r||'normal']||'Gewöhnlich';
+      const canAfford = tokens >= cost;
       el.innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px">
         <div style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:8px">
-          ⬆️ Upgrade zu ${nextDef.emoji} ${nextDef.n}</div>
+          🥇 ${a.e||''} ${a.n||a.id} vergolden</div>
         <div style="display:flex;gap:12px;font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:10px;flex-wrap:wrap">
-          <span>🎫 <b style="color:${canAfford?'#FFD700':'#E74C3C'}">${nextDef.tokens} Token${nextDef.tokens!==1?'s':''}</b></span>
-          <span>⏱️ <b>${nextDef.waitMin} Minuten</b></span>
-          <span>📈 Einkommen: <b style="color:#27AE60">×${nextDef.mult}</b></span>
+          <span>Seltenheit: <b style="color:#FFD700">${rName}</b></span>
+          <span>🎫 Kosten: <b style="color:${canAfford?'#FFD700':'#E74C3C'}">${cost} Token${cost!==1?'s':''}</b></span>
+          <span>📈 Einkommen: <b style="color:#27AE60">×2</b></span>
         </div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-bottom:8px">
-          ⚠️ Während Upgrade verdient das Tier kein Geld</div>
         ${canAfford ? `<button onclick="GoldMachine._startUpgrade('${animalId}')"
           style="width:100%;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;
             border:none;padding:10px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">
-          🚀 Upgrade starten!
+          🥇 Jetzt vergolden! (${cost} Token${cost!==1?'s':''})
         </button>` : `<div style="text-align:center;color:#E74C3C;font-size:.82rem">
-          ❌ Zu wenig Tokens! Du hast ${tokens}, brauchst ${nextDef.tokens}.<br>
-          <span style="font-size:.7rem;color:rgba(255,255,255,.4)">Tokens im Shop → Boost kaufen</span>
+          ❌ Zu wenig Tokens! Du hast ${tokens}, brauchst ${cost}.<br>
+          <span style="font-size:.7rem;color:rgba(255,255,255,.4)">Tokens im Shop kaufen (1 Token = 1000 MT)</span>
         </div>`}
       </div>`;
     }
@@ -5959,23 +5997,23 @@ const GoldMachine = {
     const enc = z.enc.find(e=>e&&e.animal&&e.animal.id===animalId);
     if(!enc) return;
     const a = enc.animal;
-    const tier = this._tier(a);
-    const nextDef = this._TIERS[tier+1];
-    if(!nextDef) return;
-    if((z.tokens||0) < nextDef.tokens) { ZP.toast('❌ Zu wenig Tokens!',2000); return; }
-    // Check no other upgrade running
-    if(z.upgrading && Object.keys(z.upgrading).length > 0) {
-      ZP.toast('⚠️ Nur 1 Upgrade gleichzeitig!',2000); return;
-    }
-    z.tokens = (z.tokens||0) - nextDef.tokens;
+    if(this._tier(a) >= 1) { ZP.toast('🥇 Bereits vergoldet!',2000); return; }
+    const cost = this._costFor(a);
+    if((z.tokens||0) < cost) { ZP.toast('❌ Zu wenig Tokens! Brauchst '+cost,2500); return; }
+    // Deduct tokens and apply gold INSTANTLY (no wait time in rarity model)
+    z.tokens = (z.tokens||0) - cost;
     if(!z.upgrades) z.upgrades = {};
-    if(!z.upgrading) z.upgrading = {};
-    z.upgrading[animalId] = {tier:tier+1, finishAt:Date.now()+nextDef.waitMin*60*1000};
-    // Animal earns nothing during upgrade
-    enc.animal._upgrading = true;
+    z.upgrades[animalId] = {tier:1};
+    // Boost earnings ×2
+    enc.animal._baseEarn = enc.animal._baseEarn || (enc.animal.earn||1);
+    enc.animal.earn = Math.round((enc.animal._baseEarn) * 2);
+    enc.animal._upgrading = false;
     ZS.save && ZS.save();
-    ZP.toast('⚗️ Upgrade gestartet! '+nextDef.waitMin+' Minuten...',3000);
+    ZG._encs && ZG._encs();
+    ZP.toast('🥇 '+(enc.animal.e||'')+' '+(enc.animal.n||'')+' ist jetzt vergoldet! Einkommen ×2',4000);
+    // Refresh the panel
     document.getElementById('gm-panel')?.remove();
+    GoldMachine.open();
   },
 
   _collect(animalId) {
