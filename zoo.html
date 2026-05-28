@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v214 -->
+<!-- ZOO v215 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v214','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v215','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -309,15 +309,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.76rem;margin-bottom:4px">🍀 Mehr Glück:</div>
 <div id="gluck"></div>
 <div class="rboard">
-<div style="font-weight:900;color:#FFD700;font-size:.8rem;margin-bottom:5px;text-align:center">📋 Seltenheiten</div>
-<div class="rrow"><span class="rn">Normal</span><span>Katze 40% Hund 30% Hamster 15% Sieben.15%</span></div>
-<div class="rrow"><span class="rr">Selten</span><span>Fisch 10% Schw.5% Brud.5% Käng.3% Zebra2%</span></div>
-<div class="rrow"><span class="re">Episch</span><span>Frosch 2% Waschb.1% Delphin.5% Wolf.25%</span></div>
-<div class="rrow"><span class="rl">Legendär</span><span>Qualle.2% Fuchs.2% Tiger.1% Elef.08%</span></div>
-<div class="rrow"><span class="ru">Ultra</span><span>Orca.09% Drache.003% Phönix.002%</span></div>
-<div class="rrow"><span class="rg">Gott</span><span>Löwe.001% Mammut.0009% Kraken.0005%</span></div>
-<div class="rrow"><span class="rm">Mythisch</span><span>Cerb.0001% Poseidon.00005% Zeus.00002%</span></div>
-<div class="rrow"><span class="rs">SECRET</span><span>Dino .00001% Megalodon .0000009%</span></div>
+<div style="font-weight:900;color:#FFD700;font-size:.8rem;margin-bottom:5px;text-align:center">📋 Alle Tiere nach Seltenheit</div>
+<div id="rboard-content"></div>
 <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-top:4px;text-align:center">Traits nur während Events!</div>
 </div>
 </div></div>
@@ -2934,6 +2927,30 @@ const LW={
     ctx.fillStyle=grad;ctx.fill();
   },
 
+  buySpin(n){
+    const z=ZS.zoo; if(!z) return;
+    const cost=100000;
+    n=n||1;
+    if(z.mt < cost*n){ ZP.toast('❌ Zu wenig MT! 1 Spin = 100K MT',2500); return; }
+    z.mt -= cost*n;
+    this.spins += n;
+    ZS.save && ZS.save();
+    ZG._updHUD && ZG._updHUD();
+    this.open(); // refresh the wheel panel (spin count + button)
+    ZP.toast('🎡 +'+n+' Spin'+(n>1?'s':'')+' gekauft! Du hast jetzt '+this.spins,2500);
+  },
+  buyMaxSpins(){
+    const z=ZS.zoo; if(!z) return;
+    const cost=100000;
+    const affordable=Math.floor((z.mt||0)/cost);
+    if(affordable<=0){ ZP.toast('❌ Zu wenig MT für einen Spin (100K)!',2500); return; }
+    z.mt -= cost*affordable;
+    this.spins += affordable;
+    ZS.save && ZS.save();
+    ZG._updHUD && ZG._updHUD();
+    this.open();
+    ZP.toast('🎡 +'+affordable+' Spins gekauft! Du hast jetzt '+this.spins,2500);
+  },
   spin(){
     if(this.spinning||this.spins<=0)return;
     this.spinning=true;this.spins--;
@@ -3066,7 +3083,7 @@ const ZP={
     // Close all others first
     ['gond','index','shop','reb','enc','menu','adm'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
-    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();}
+    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
     if(p==='shop'){if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();}
     if(p==='trade')this._rTrade('m');
@@ -3152,13 +3169,38 @@ const ZP={
   },
 
   // GONDOLA
+  _rRboard(){
+    const el=G('rboard-content'); if(!el) return;
+    const order=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+    const labels={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra',god:'Gott',mythic:'Mythisch',secret:'SECRET'};
+    const cls={normal:'rn',rare:'rr',epic:'re',legendary:'rl',ultralegendary:'ru',god:'rg',mythic:'rm',secret:'rs'};
+    const all=(window.ANIMALS||ANIMALS||[]);
+    // Total weight for % calc
+    const totalW=all.reduce((s,a)=>s+(a.w||0),0)||1;
+    let out='';
+    order.forEach(r=>{
+      const list=all.filter(a=>a.r===r);
+      if(!list.length) return;
+      // Sort by weight descending
+      list.sort((a,b)=>(b.w||0)-(a.w||0));
+      const items=list.map(a=>{
+        const pct=((a.w||0)/totalW*100);
+        const pctStr=pct>=1?pct.toFixed(0)+'%':pct>=0.01?pct.toFixed(2)+'%':pct.toFixed(4)+'%';
+        return (a.e||'')+' '+(a.n||a.id)+' '+pctStr;
+      }).join(' · ');
+      out+='<div class="rrow"><span class="'+(cls[r]||'rn')+'">'+(labels[r]||r)+'</span><span style="font-size:.62rem">'+items+'</span></div>';
+    });
+    el.innerHTML=out;
+  },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
   _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};ZG.gQ.shift();ZG.gQ.push(ZG._mkG());    // Broadcast animal purchase to all players (multiplayer)
-    this._broadcastAnimalWalk(g.a, slot);
+    try{ZG._broadcastAnimalWalk(g.a, slot);}catch(e){}
     // Local walk animation
-    this._animalWalk(g.a, slot);
-    ZG._encs();
+    try{ZG._animalWalk(g.a, slot);}catch(e){}
+    ZG._encs();ZG._updHUD&&ZG._updHUD();
+    try{ZS.save&&ZS.save();}catch(e){}
+    if(!G('p-gond').classList.contains('off')){this._rGond();this._rGCars();}
     const rareR=['ultralegendary','god','mythic','secret'];
     if(rareR.includes(g.a.r)){
       const pop=document.createElement('div');
@@ -4529,19 +4571,35 @@ const ZAdmin = {
   _spawnSelected(){
     const id=this._selectedAnimal;
     if(!id){ZP.toast('❗ Tier im Grid anklicken!',2000);return;}
-    const a=(window.ANIMALS||[]).find(x=>x.id===id);if(!a)return;
+    const a=(window.ANIMALS||ANIMALS||[]).find(x=>x.id===id);if(!a){ZP.toast('❌ Tier nicht gefunden',2000);return;}
     const shiny=document.getElementById('padmin-spawn-shiny')?.checked||false;
+    const sh=shiny?{id:'rainbow',...(SHINY?.rainbow||{})}:null;
     const targetSel=document.getElementById('padmin-spawn-target')?.value||'_all';
-    const target=this.target?.name?.toLowerCase()||targetSel;
-    const cmd={type:'spawn_animal',animalId:id,shinyId:shiny?'rainbow':null,traitIds:[],target,id:Date.now().toString(),exp:Date.now()+30000};
-    // Write to config/zoo_admin_cmd (where _adminCmd reads) AND localStorage
+    const target=(this.target?.name?.toLowerCase())||targetSel;
+    const cmd={type:'spawn_animal',animalId:id,shinyId:shiny?'rainbow':null,traitIds:[],target,
+      spawnMsg:'🎁 Mischa hat dir '+(a.e||'')+' '+(a.n||'')+' geschenkt!',
+      id:Date.now().toString(),exp:Date.now()+60000};
+    // Send command to other players via Firebase
     try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
     try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
-    // If target is a specific player, also write directly into their zoo doc (most reliable)
-    if(this.target?.name){
+    // If a specific OTHER player is targeted, write directly into their zoo doc
+    if(this.target?.name && this.target.name.toLowerCase()!==ZS.player?.toLowerCase()){
       this._giveAnimalDirect(this.target.name, a);
     }
-    ZP.toast('🐾 '+(a.e||'')+' '+a.n+' gespawnt!',2500);
+    // If targeting self or _all, place immediately in MY zoo
+    if(target==='_all' || target===ZS.player?.toLowerCase()){
+      const z=ZS.zoo;
+      if(z){
+        let slot=z.enc.findIndex(e=>!e||!e.animal);
+        const entry={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};
+        if(slot>=0){z.enc[slot]=entry;} else {z.enc.push(entry);slot=z.enc.length-1;}
+        ZG._encs&&ZG._encs();
+        ZS.save&&ZS.save();
+        ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' in dein Gehege '+(slot+1)+' gespawnt!',3000);
+        return;
+      }
+    }
+    ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' an '+(this.target?.name||target)+' gespawnt!',2500);
   },
   async _giveAnimalDirect(playerName, animal){
     try{
@@ -5875,6 +5933,9 @@ const GoldMachine = {
   },
 
   open() {
+    // Remove any existing panel first (prevents stacked/stale panels blocking clicks)
+    const existing = document.getElementById('gm-panel');
+    if(existing) existing.remove();
     const z = ZS.zoo; if(!z) return;
     const tokens = z.tokens||0;
     const animals = z.enc.filter(e=>e&&e.animal).map(e=>e.animal);
