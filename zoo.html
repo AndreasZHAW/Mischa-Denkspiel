@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v213 -->
+<!-- ZOO v214 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v213','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v214','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -848,7 +848,7 @@ const ZG={
     this._raf=requestAnimationFrame(()=>this._loop());
     this._ivs.push(setInterval(()=>this._tick(),100));
     this._ivs.push(setInterval(()=>ZS.save(),15000));
-    this._ivs.push(setInterval(()=>this._adminCmd(),5000));
+    this._ivs.push(setInterval(()=>this._adminCmd(),2000));
     this._ivs.push(setInterval(()=>this._syncMP(),3000));
     this._gondTick();
     for(let i=0;i<3;i++)this.gQ.push(this._mkG());
@@ -2015,22 +2015,11 @@ const ZG={
       return;
     }
     if(this.nearSt){
-      // Check if near a gondola car (E to buy)
-      let nearCar=-1,nearDist=8;
-      if(this._carMeshes){this._carMeshes.forEach((g,i)=>{
-        const dx=g.position.x-this.pl.x,dz=g.position.z-this.pl.z;
-        const d=Math.sqrt(dx*dx+dz*dz);
-        if(d<nearDist&&g.position.y<15){nearDist=d;nearCar=i;}
-      });}
-      if(nearCar>=0){
-        // Buy from this gondola position (use queue index)
-        ZP._buyGondolaIdx(nearCar); return;
-      }
-      // Check lucky wheel
+      // Check lucky wheel first (it's near the station)
       const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
       if(wdist<6){LW.open();return;}
-      // Show gondola station menu (Gondel / Glücksrad / Verlassen)
-      // Show Gondel station only — lucky wheel has its own proximity trigger
+      // Walking into the station ALWAYS opens the station panel
+      // (no auto-buy — the player chooses inside the panel)
       ZP.open('gond'); return;
     }
     // Lucky block interaction
@@ -2690,20 +2679,26 @@ const ZG={
   const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];
   const sh=cmd.shinyId?{id:cmd.shinyId,...(SHINY?.[cmd.shinyId]||{})}:null;
   const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);
-  const slot=z.enc.findIndex(e=>!e);
-  if(slot>=0){
-    z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};
-    this._encs();
-    // Big toast with ⬇️ message
-    const msg=cmd.spawnMsg||('⬇️ Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt!');
-    ZP.toast(msg,5000);
-    // Floating announcement
-    const ann=document.createElement('div');
-    ann.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border:2px solid #27AE60;border-radius:20px;padding:20px 28px;text-align:center;font-weight:900;color:#fff;font-size:1.1rem;box-shadow:0 0 40px rgba(39,174,96,.5),0 8px 24px rgba(0,0,0,.7);animation:bounceIn .5s ease';
-    ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">⬇️</div><div>Mischa hat</div><div style="font-size:1.6rem;margin:4px 0">'+a.e+' '+a.n+'</div><div>in deinem Zoo gespawnt!</div>';
-    document.body.appendChild(ann);
-    setTimeout(()=>ann.remove(),5000);
+  // If admin already wrote the animal to the zoo doc, don't add a duplicate — just reload+show message
+  if(cmd.alreadyPlaced){
+    // Reload zoo state from cloud to pick up the admin-placed animal, then refresh enclosures
+    ZS.load().then(()=>{this._encs&&this._encs();}).catch(()=>{});
+  } else {
+    const slot=z.enc.findIndex(e=>!e);
+    if(slot>=0){
+      z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};
+      this._encs();
+      ZS.save&&ZS.save();
+    }
   }
+  // ALWAYS show the message (even if zoo full / already placed)
+  const msg=cmd.spawnMsg||('⬇️ Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt!');
+  ZP.toast(msg,5000);
+  const ann=document.createElement('div');
+  ann.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border:2px solid #27AE60;border-radius:20px;padding:20px 28px;text-align:center;font-weight:900;color:#fff;font-size:1.1rem;box-shadow:0 0 40px rgba(39,174,96,.5),0 8px 24px rgba(0,0,0,.7);animation:bounceIn .5s ease';
+  ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">🎁</div><div>Mischa hat dir</div><div style="font-size:1.6rem;margin:4px 0">'+a.e+' '+a.n+'</div><div>geschenkt!</div>';
+  document.body.appendChild(ann);
+  setTimeout(()=>ann.remove(),5000);
 }else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players

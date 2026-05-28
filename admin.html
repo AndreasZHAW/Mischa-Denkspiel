@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v213</span></h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v214</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -665,6 +665,13 @@ async function giftPlayer(name) {
       if(slot >= 0) { zoo.enc[slot] = encEntry; }
       else { zoo.enc.push(encEntry); slot = zoo.enc.length-1; }
       await zref.set(zoo);
+      // Also send a live command so a player currently in the zoo sees the spawn + message instantly
+      try {
+        const cmd = { type:'spawn_animal', animalId:found.id, shinyId:null, traitIds:[],
+          target:name.toLowerCase(), id:Date.now().toString(), exp:Date.now()+60000,
+          spawnMsg:'🎁 Mischa hat dir '+found.e+' '+found.n+' geschenkt!', alreadyPlaced:true };
+        await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
+      } catch(e) {}
       alert('✅ '+found.e+' '+found.n+' ('+found.r+') an '+name+' vergeben — Gehege '+(slot+1)+'!');
     } else {
       alert('Unbekannter Typ. Nutze: MT, TOKEN oder TIER.');
