@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v215 -->
+<!-- ZOO v216 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -164,7 +164,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   #wbar{padding:10px 14px !important}
   #zt{font-size:1rem !important;padding:8px 18px !important}
 }
-</style>
+@keyframes rbFade{from{opacity:0}to{opacity:1}}@keyframes rbBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script>
   let lastTap=0;
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v215','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v216','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -503,24 +503,24 @@ const ANIMALS=[
   {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:8,earn:.75},{id:'snail',n:'Schnecke',e:'🐌',r:'normal',w:5,p:16,earn:1.4},
   {id:'ladybug',n:'Marienkäfer',e:'🐞',r:'normal',w:6,p:14,earn:1.2},{id:'butterfly',n:'Schmetterling',e:'🦋',r:'normal',w:5,p:16,earn:1.35},
   // Rare
-  {id:'fox',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
-  {id:'bear',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
-  {id:'lion',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
-  {id:'elephant',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
+  {id:'fox_b',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf_b',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
+  {id:'bear_b',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda_b',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
+  {id:'lion_b',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger_b',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
+  {id:'elephant_b',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
   {id:'rhino',n:'Nashorn',e:'🦏',r:'rare',w:0.5,p:215,earn:29},{id:'giraffe',n:'Giraffe',e:'🦒',r:'rare',w:0.6,p:190,earn:26},
   {id:'camel',n:'Kamel',e:'🐪',r:'rare',w:0.8,p:155,earn:20},{id:'horse',n:'Pferd',e:'🐴',r:'rare',w:1.1,p:115,earn:15},
   {id:'donkey',n:'Esel',e:'🫏',r:'rare',w:1.0,p:120,earn:15.5},{id:'bison',n:'Bison',e:'🦬',r:'rare',w:0.7,p:170,earn:22},
   {id:'moose',n:'Elch',e:'🫎',r:'rare',w:0.8,p:150,earn:19},
   // Epic
-  {id:'gorilla',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
+  {id:'gorilla_b',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
   {id:'whale',n:'Wal',e:'🐋',r:'epic',w:0.4,p:500,earn:70},{id:'shark',n:'Hai',e:'🦈',r:'epic',w:0.5,p:420,earn:58},
-  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
-  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
-  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
+  {id:'dolphin_b',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
+  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal_b',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
+  {id:'flamingo_b',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
   // Legendary
-  {id:'dragon',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
-  {id:'phoenix',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
-  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
+  {id:'dragon_b',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn_b',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
+  {id:'phoenix_b',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken_b',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
+  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth_b',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
   {id:'dodo',n:'Dodo',e:'🦤',r:'legendary',w:0.15,p:2100,earn:315},{id:'yeti',n:'Yeti',e:'🏔️',r:'legendary',w:0.09,p:3000,earn:450},
   // Ultra-Legendary
   {id:'alien_pet',n:'Alien-Tier',e:'👽',r:'ultralegendary',w:0.02,p:15000,earn:2500},{id:'robot_pet',n:'Roboter-Hund',e:'🤖',r:'ultralegendary',w:0.02,p:14000,earn:2300},
@@ -584,7 +584,7 @@ function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).j
 const ZS={
   player:null,char:null,zoo:null,isAdmin:false,isPrivate:false,
   nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
-  maxE(){if(!this.zoo)return 5;return 5+(this.zoo?.xenc||0)+(this.zoo?.reb||0)*2;},
+  maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;return Math.max(500,ms);},
   lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
   async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
@@ -652,8 +652,17 @@ const ZS={
     if(z.lslaps===undefined) z.lslaps = 0;
     // Clean up enc entries with no animal
     z.enc = z.enc.map(e => (e && e.animal) ? e : null);
-    // Ensure enc array is long enough
     const n=this.maxE();
+    // If player has MORE animals than allowed (e.g. from old rebirth bonus),
+    // keep the first n WITH animals, don't destroy extras silently:
+    const withAnimals = z.enc.filter(e => e && e.animal);
+    if(withAnimals.length > n){
+      // Keep first n animals, the rest stay in a 'stored' overflow (not lost)
+      z.encStored = (z.encStored||[]).concat(withAnimals.slice(n).map(e=>e.animal));
+      z.enc = withAnimals.slice(0, n);
+    }
+    // Ensure enc array is exactly n long
+    z.enc = z.enc.slice(0, n);
     while(z.enc.length<n) z.enc.push(null);
   }
 };
@@ -732,15 +741,24 @@ const ZG={
   LIMOPOS(){return this.ZONES.map((z,i)=>({x:z.x+(i===0?14:i===1?12:-12),z:z.z+(i===0?10:i===1?8:8)}));},
   // Enclosures: 5 per zone around each zone center
   ENCPOS(){
+    // Each player gets their OWN zone based on a hash of their name,
+    // so different players don't share the same enclosure spots.
     const out=[];
-    this.ZONES.forEach((zone,zi)=>{
-      const baseAngle=zi===0?Math.PI/2:zi===1?Math.PI*7/6:Math.PI*11/6;
-      for(let i=0;i<5;i++){
-        const a=baseAngle+(-2+i)*0.38;
-        out.push({x:zone.x+Math.cos(a)*16,z:zone.z+Math.sin(a)*16,zone:zi});
-      }
-    });
+    const name=(ZS.player||'').toLowerCase();
+    let h=0; for(let i=0;i<name.length;i++){h=(h*31+name.charCodeAt(i))>>>0;}
+    const zi = this.ZONES.length ? (h % this.ZONES.length) : 0;
+    const zone=this.ZONES[zi]||this.ZONES[0]||{x:0,z:55};
+    const baseAngle=zi===0?Math.PI/2:zi===1?Math.PI*7/6:Math.PI*11/6;
+    for(let i=0;i<5;i++){
+      const a=baseAngle+(-2+i)*0.38;
+      out.push({x:zone.x+Math.cos(a)*16,z:zone.z+Math.sin(a)*16,zone:zi});
+    }
     return out;
+  },
+  _myZone(){
+    const name=(ZS.player||'').toLowerCase();
+    let h=0; for(let i=0;i<name.length;i++){h=(h*31+name.charCodeAt(i))>>>0;}
+    return this.ZONES.length ? (h % this.ZONES.length) : 0;
   },
 
   start(){
@@ -846,11 +864,11 @@ const ZG={
     this._gondTick();
     for(let i=0;i<3;i++)this.gQ.push(this._mkG());
     // Start player in zone 0
-    this.pl.x=this.ZONES[0].x; this.pl.z=this.ZONES[0].z+12;
+    {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x; this.pl.z=_z.z+12;}
     this.yaw=Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this._updHUD(); this._updWBar();
     // Position camera - player starts at zone A entrance facing station
-    this.pl.x = this.ZONES[0].x;  // 0
+    {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x;}  // own zone
     this.pl.z = this.ZONES[0].z + 12; // 55+12=67
     this.pl.y = 1.7;
     this.yaw = Math.PI; // Face toward station (center)
@@ -1189,7 +1207,7 @@ const ZG={
                 setTimeout(()=>{
                   if(ZS.zoo){
                     // Teleport to enclosure area
-                    ZG.pl.x=ZG.ZONES[0].x; ZG.pl.z=ZG.ZONES[0].z+14;
+                    {const _z=ZG.ZONES[ZG._myZone()]||ZG.ZONES[0];ZG.pl.x=_z.x; ZG.pl.z=_z.z+14;}
                     ZP.toast('🏠 Du wurdest in deinen Zoo teleportiert!',2000);
                   }
                 },slapDur-500);
@@ -1487,6 +1505,33 @@ const ZG={
     this._goldMachineMesh = gmBody; // reference for glow animation
   },
 
+  _rebirthIntro(rebNum, mult, keptAnimal){
+    // Different intro each rebirth — cycles through themed messages
+    const intros=[
+      {bg:'linear-gradient(135deg,#2d1b4e,#1a0a2e)',icon:'🌱',title:'Neuanfang!',sub:'Dein Zoo wird wiedergeboren...'},
+      {bg:'linear-gradient(135deg,#0a2e3d,#0a1a2e)',icon:'🌊',title:'Eine neue Welle!',sub:'Frisches Wasser, frische Tiere!'},
+      {bg:'linear-gradient(135deg,#3d2e0a,#2e1a0a)',icon:'🔥',title:'Phönix-Aufstieg!',sub:'Aus der Asche entsteht Neues!'},
+      {bg:'linear-gradient(135deg,#0a3d1a,#0a2e0a)',icon:'🌿',title:'Wachstum!',sub:'Stärker als je zuvor!'},
+      {bg:'linear-gradient(135deg,#3d0a2e,#2e0a1a)',icon:'💎',title:'Diamant-Stufe!',sub:'Dein Zoo glänzt neu!'},
+      {bg:'linear-gradient(135deg,#1a1a3d,#0a0a2e)',icon:'🌌',title:'Kosmischer Neustart!',sub:'Die Sterne richten sich aus!'},
+      {bg:'linear-gradient(135deg,#3d3d0a,#2e2e0a)',icon:'⚡',title:'Energie-Schub!',sub:'Voller Power zurück!'},
+      {bg:'linear-gradient(135deg,#2e0a0a,#1a0a0a)',icon:'👑',title:'König des Zoos!',sub:'Deine Herrschaft wächst!'},
+    ];
+    const intro=intros[(rebNum-1)%intros.length];
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:'+intro.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:20px;animation:rbFade .6s ease';
+    ov.innerHTML='<div style="font-size:5rem;margin-bottom:10px;animation:rbBounce 1s ease infinite">'+intro.icon+'</div>'+
+      '<div style="font-size:.9rem;color:#FFD700;letter-spacing:2px;font-weight:700">REBIRTH #'+rebNum+'</div>'+
+      '<h1 style="font-size:2rem;margin:8px 0;color:#FFD700">'+intro.title+'</h1>'+
+      '<p style="font-size:1.1rem;color:rgba(255,255,255,.85);margin-bottom:14px">'+intro.sub+'</p>'+
+      '<div style="background:rgba(255,215,0,.15);border:2px solid #FFD700;border-radius:14px;padding:12px 24px;margin-bottom:8px">'+
+      '<div style="font-size:1.4rem;font-weight:900;color:#FFD700">Einkommen ×'+mult+'</div></div>'+
+      (keptAnimal?'<p style="font-size:.95rem;color:#27AE60;margin-top:8px">🎊 '+(keptAnimal.e||'')+' '+(keptAnimal.n||'')+' bleibt bei dir!</p>':'')+
+      '<button onclick="this.parentElement.remove()" style="margin-top:22px;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;border:none;padding:13px 36px;border-radius:12px;font-size:1.05rem;font-weight:900;cursor:pointer">Weiter ➜</button>';
+    document.body.appendChild(ov);
+    // Auto-close after 6s
+    setTimeout(()=>{if(ov.parentElement)ov.remove();},6000);
+  },
   _encs(){
     this.encGr.forEach(g=>this.scene.remove(g)); this.encGr=[];
     const z=ZS.zoo; const eps=this.ENCPOS();
@@ -2042,8 +2087,13 @@ const ZG={
     }
     // Pick up dropped animal
     if(this._nearDropped>=0){this._pickupDropped(this._nearDropped);return;}
-    // If carrying and at target enclosure — place it
-    if(this.carrying && this.nearEnc>=0 && this.nearEnc===this.carrying.slot){
+    // If carrying and near ANY enclosure — place it (forgiving, works on touch)
+    if(this.carrying && this.nearEnc>=0){
+      // Place at the nearest empty enclosure (or the original slot)
+      const z=ZS.zoo;
+      if(z && (!z.enc[this.nearEnc] || !z.enc[this.nearEnc].animal)){
+        this.carrying.slot = this.nearEnc; // retarget to where the player actually is
+      }
       this._placeCarried(); return;
     }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
@@ -2651,7 +2701,7 @@ const ZG={
     }
     this._raf=requestAnimationFrame(()=>this._loop());
     if(tp){ZP.toast('⏰ Zeit! Teleportiert zum Zoo.',3000);}
-    this.pl.x=this.ZONES[0].x;this.pl.z=this.ZONES[0].z+14;
+    {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x;this.pl.z=_z.z+14;}
   },
 
   // ═══ MULTIPLAYER ═══
@@ -2689,7 +2739,7 @@ const ZG={
   ZP.toast(msg,5000);
   const ann=document.createElement('div');
   ann.style.cssText='position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border:2px solid #27AE60;border-radius:20px;padding:20px 28px;text-align:center;font-weight:900;color:#fff;font-size:1.1rem;box-shadow:0 0 40px rgba(39,174,96,.5),0 8px 24px rgba(0,0,0,.7);animation:bounceIn .5s ease';
-  ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">🎁</div><div>Mischa hat dir</div><div style="font-size:1.6rem;margin:4px 0">'+a.e+' '+a.n+'</div><div>geschenkt!</div>';
+  ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">🎁</div><div style="font-size:1rem;padding:0 10px">'+(cmd.spawnMsg||('Mischa hat dir '+a.e+' '+a.n+' geschenkt!'))+'</div>';
   document.body.appendChild(ann);
   setTimeout(()=>ann.remove(),5000);
 }else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
@@ -3194,13 +3244,14 @@ const ZP={
   },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;z.enc[slot]={animal:{...g.a},shiny:g.sh,traits:g.tr,xm:g.xm,addedAt:Date.now(),sl:0};ZG.gQ.shift();ZG.gQ.push(ZG._mkG());    // Broadcast animal purchase to all players (multiplayer)
+  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;ZG.gQ.shift();ZG.gQ.push(ZG._mkG());
+    // CARRY mechanic: player must carry the animal to the enclosure (can be slapped → drops)
+    ZG._startCarry({animal:{...g.a},shiny:g.sh,traits:g.tr,slot});
     try{ZG._broadcastAnimalWalk(g.a, slot);}catch(e){}
-    // Local walk animation
-    try{ZG._animalWalk(g.a, slot);}catch(e){}
-    ZG._encs();ZG._updHUD&&ZG._updHUD();
+    ZG._updHUD&&ZG._updHUD();
     try{ZS.save&&ZS.save();}catch(e){}
-    if(!G('p-gond').classList.contains('off')){this._rGond();this._rGCars();}
+    this.close('gond');
+    this.toast('🐾 '+g.a.e+' '+g.a.n+' gekauft! Trage es zum Gehege '+(slot+1)+'! (Vorsicht: andere können dich slappen!)',3500);
     const rareR=['ultralegendary','god','mythic','secret'];
     if(rareR.includes(g.a.r)){
       const pop=document.createElement('div');
@@ -3738,7 +3789,7 @@ const ZP={
       ${can?`<button class="btn btng" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:`<button class="btn btnd" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
-  _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5+z.reb*2).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');this.toast(`🔄 Rebirth #${z.reb}! ×${z.rebirthMult}!\n${kept.length?`🎊 ${kept[0].animal.e} bleibt!`:''}`,5000);ZG._updHUD();},
+  _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();},
 
   // ENCLOSURE + LIMO SPEED SHOP
   _rEnc(i){

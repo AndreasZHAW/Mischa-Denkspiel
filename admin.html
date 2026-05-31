@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v215</span></h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v216</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -575,24 +575,24 @@ const ADMIN_ANIMALS=[
   {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:8,earn:.75},{id:'snail',n:'Schnecke',e:'🐌',r:'normal',w:5,p:16,earn:1.4},
   {id:'ladybug',n:'Marienkäfer',e:'🐞',r:'normal',w:6,p:14,earn:1.2},{id:'butterfly',n:'Schmetterling',e:'🦋',r:'normal',w:5,p:16,earn:1.35},
   // Rare
-  {id:'fox',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
-  {id:'bear',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
-  {id:'lion',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
-  {id:'elephant',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
+  {id:'fox_b',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf_b',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
+  {id:'bear_b',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda_b',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
+  {id:'lion_b',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger_b',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
+  {id:'elephant_b',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
   {id:'rhino',n:'Nashorn',e:'🦏',r:'rare',w:0.5,p:215,earn:29},{id:'giraffe',n:'Giraffe',e:'🦒',r:'rare',w:0.6,p:190,earn:26},
   {id:'camel',n:'Kamel',e:'🐪',r:'rare',w:0.8,p:155,earn:20},{id:'horse',n:'Pferd',e:'🐴',r:'rare',w:1.1,p:115,earn:15},
   {id:'donkey',n:'Esel',e:'🫏',r:'rare',w:1.0,p:120,earn:15.5},{id:'bison',n:'Bison',e:'🦬',r:'rare',w:0.7,p:170,earn:22},
   {id:'moose',n:'Elch',e:'🫎',r:'rare',w:0.8,p:150,earn:19},
   // Epic
-  {id:'gorilla',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
+  {id:'gorilla_b',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
   {id:'whale',n:'Wal',e:'🐋',r:'epic',w:0.4,p:500,earn:70},{id:'shark',n:'Hai',e:'🦈',r:'epic',w:0.5,p:420,earn:58},
-  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
-  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
-  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
+  {id:'dolphin_b',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
+  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal_b',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
+  {id:'flamingo_b',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
   // Legendary
-  {id:'dragon',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
-  {id:'phoenix',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
-  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
+  {id:'dragon_b',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn_b',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
+  {id:'phoenix_b',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken_b',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
+  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth_b',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
   {id:'dodo',n:'Dodo',e:'🦤',r:'legendary',w:0.15,p:2100,earn:315},{id:'yeti',n:'Yeti',e:'🏔️',r:'legendary',w:0.09,p:3000,earn:450},
   // Ultra-Legendary
   {id:'alien_pet',n:'Alien-Tier',e:'👽',r:'ultralegendary',w:0.02,p:15000,earn:2500},{id:'robot_pet',n:'Roboter-Hund',e:'🤖',r:'ultralegendary',w:0.02,p:14000,earn:2300},
@@ -604,7 +604,7 @@ window.ADMIN_ANIMALS = ADMIN_ANIMALS;
 
 async function giftPlayer(name) {
   if(!_db) { alert('Firebase nicht verbunden!'); return; }
-  const what = prompt('🎁 Was an "'+name+'" vergeben?\n\nGib ein:\n  MT 50      → 50 Mischa Taler\n  TOKEN 5    → 5 Gold-Tokens\n  TIER frog  → ein Tier (Tier-ID, siehe unten)\n\nTier-IDs z.B.: cat, dog, hamster, fish, frog, fox, lion, dragon, phoenix\n\n(Format: TYP WERT)', 'TOKEN 5');
+  const what = prompt('🎁 Was an "'+name+'" vergeben?\n\nGib ein:\n  MT 50      → 50 Mischa Taler\n  TOKEN 5    → 5 Gold-Tokens\n  TIER frog 3 → 3× Frosch (max 5)\n\nTier-IDs z.B.: cat, dog, hamster, fish, frog, fox, lion, dragon, phoenix\n\n(Format: TYP WERT ANZAHL)', 'TOKEN 5');
   if(!what) return;
   const parts = what.trim().split(/\s+/);
   const type = (parts[0]||'').toUpperCase();
@@ -652,7 +652,8 @@ async function giftPlayer(name) {
       if(!zooExists) { alert('⚠️ '+name+' hat noch keinen Zoo. Tier kann erst vergeben werden, wenn der Spieler den Zoo einmal besucht hat.'); return; }
       const animalId = (parts[1]||'').toLowerCase();
       if(!animalId) { alert('Bitte Tier-ID angeben, z.B.: TIER frog'); return; }
-      // Look up the real animal data
+      // Optional count (3rd param), default 1, max 5
+      let count = parseInt(parts[2]||'1'); if(isNaN(count)||count<1) count=1; if(count>5) count=5;
       const found = (window.ADMIN_ANIMALS||[]).find(a => a.id.toLowerCase() === animalId);
       if(!found) {
         const ids = (window.ADMIN_ANIMALS||[]).map(a=>a.id).join(', ');
@@ -660,19 +661,23 @@ async function giftPlayer(name) {
         return;
       }
       if(!Array.isArray(zoo.enc)) zoo.enc = [];
-      let slot = zoo.enc.findIndex(e => !e || !e.animal);
-      const encEntry = { animal: {...found}, shiny:null, traits:[], xm:1, addedAt:Date.now(), sl:0 };
-      if(slot >= 0) { zoo.enc[slot] = encEntry; }
-      else { zoo.enc.push(encEntry); slot = zoo.enc.length-1; }
+      const slots = [];
+      for(let n=0;n<count;n++){
+        let slot = zoo.enc.findIndex(e => !e || !e.animal);
+        const encEntry = { animal: {...found}, shiny:null, traits:[], xm:1, addedAt:Date.now()+n, sl:0 };
+        if(slot >= 0) { zoo.enc[slot] = encEntry; }
+        else { zoo.enc.push(encEntry); slot = zoo.enc.length-1; }
+        slots.push(slot+1);
+      }
       await zref.set(zoo);
-      // Also send a live command so a player currently in the zoo sees the spawn + message instantly
+      // Live command so a player currently in the zoo sees the spawn + message instantly
       try {
-        const cmd = { type:'spawn_animal', animalId:found.id, shinyId:null, traitIds:[],
+        const cmd = { type:'spawn_animal', animalId:found.id, shinyId:null, traitIds:[], count:count,
           target:name.toLowerCase(), id:Date.now().toString(), exp:Date.now()+60000,
-          spawnMsg:'🎁 Mischa hat dir '+found.e+' '+found.n+' geschenkt!', alreadyPlaced:true };
+          spawnMsg:'🎁 Mischa hat '+(count>1?count+'× ':'ein ')+found.e+' '+found.n+' in deinem Server gespawnt!', alreadyPlaced:true };
         await _db.collection('config').doc('zoo_admin_cmd').set(cmd);
       } catch(e) {}
-      alert('✅ '+found.e+' '+found.n+' ('+found.r+') an '+name+' vergeben — Gehege '+(slot+1)+'!');
+      alert('✅ '+count+'× '+found.e+' '+found.n+' ('+found.r+') an '+name+' vergeben — Gehege '+slots.join(', ')+'!');
     } else {
       alert('Unbekannter Typ. Nutze: MT, TOKEN oder TIER.');
       return;
