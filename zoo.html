@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v216 -->
+<!-- ZOO v217 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v216','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v217','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -548,6 +548,14 @@ const EVENTS=[
   {id:'treasure',  n:'💰 Schatzjagd',    col:'#ccaa00', d:'×5 MT für alle + Lucky Blocks!',    dur:300000},
   {id:'spring',    n:'🌸 Frühling',      col:'#88dd44', d:'CRYSTAL + COSMIC + sanfte Musik!',  dur:300000},
   {id:'halloween', n:'🎃 Halloween',     col:'#ff6600', d:'Geistertiere + Grusel-Bonus!',       dur:300000},
+  {id:'aurora',    n:'🌠 Polarlicht',    col:'#00ffaa', d:'CRYSTAL + ×3 Luck am Himmel!',      dur:300000},
+  {id:'desert',    n:'🏜️ Wüstensturm',   col:'#e0a050', d:'FIRE + ×4 MT in der Hitze!',        dur:300000},
+  {id:'ocean',     n:'🌊 Ozean-Flut',    col:'#0088cc', d:'Wassertiere häufiger + ×3!',         dur:300000},
+  {id:'thunder',   n:'⚡ Gewitter',       col:'#ffcc00', d:'ELECTRIC + ×5 Besucher-Boost!',     dur:300000},
+  {id:'bloom',     n:'🌺 Blütenpracht',  col:'#ff77bb', d:'CONCERT + sanfter ×3 Bonus!',        dur:300000},
+  {id:'cosmic',    n:'☄️ Sternschnuppe', col:'#aa44ff', d:'COSMIC + legendäre Tiere x2!',      dur:300000},
+  {id:'gold_rush', n:'🪙 Goldrausch',    col:'#ffd700', d:'×6 MT für 5 Minuten!',              dur:300000},
+  {id:'festival',  n:'🎪 Zoo-Festival',  col:'#ff5599', d:'Alle Traits + ×4 + Party-Modus!',   dur:300000},
 ];
 const LUCK_UPS=[{m:1.5,cost:1500,l:'×1.5 🍀'},{m:2,cost:4000,l:'×2 🍀🍀'},{m:3,cost:40000,l:'×3 🍀🍀🍀'},{m:5,cost:85000,l:'×5 ⭐'},{m:7,cost:500000,l:'×7 🌟'},{m:10,cost:2000000,l:'×10 👑 MAX'}];
 
@@ -2478,9 +2486,8 @@ const ZG={
     const delay=15*60000;
     setTimeout(()=>{
       if(!ZS.player)return;
-      // How many events this cycle? 1 guaranteed, chance of 2 or 3
-      const roll=Math.random();
-      const count=roll<0.12?3:roll<0.35?2:1;
+      // Exactly ONE event per 15-minute cycle (rarer, as requested)
+      const count=1;
       const shuffled=[...EVENTS].sort(()=>Math.random()-.5);
       for(let i=0;i<count;i++){
         const ev=shuffled[i%shuffled.length];
@@ -2496,15 +2503,7 @@ const ZG={
       }
       this._scheduleEvent();
     },delay);
-    // Also trigger one event shortly after zoo loads (30s) so players see events quickly
-    if(!this._firstEventDone){
-      this._firstEventDone=true;
-      setTimeout(()=>{
-        if(!ZS.player)return;
-        const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
-        this.startEv(ev,5*60000);
-      },30000);
-    }
+    // (No early event — events only come every 15 minutes now)
   },
 
   startEv(ev,dur){
@@ -3915,7 +3914,7 @@ const ZP={
       '<label style="font-size:.74rem;color:rgba(255,255,255,.45)">Event starten:</label>'+
       '<select id="aev" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:3px 0 4px;font-size:.82rem;-webkit-appearance:none">'+ev_opts+'</select>'+
       '<select id="aed" style="width:100%;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);margin:3px 0 9px;font-size:.8rem;-webkit-appearance:none">'+
-        '<option value="15000">15s Test</option><option value="30000" selected>30s</option><option value="60000">1 Min</option><option value="300000">5 Min</option></select>'+
+        '<option value="15000">15s Test</option><option value="60000">1 Min</option><option value="300000" selected>5 Min</option><option value="600000">10 Min</option><option value="900000">15 Min</option><option value="1800000">30 Min</option></select>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'+
         '<button class="btn btng" onclick="ZP._adSp()" style="font-size:.82rem;padding:10px">🦁 Spawnen</button>'+
         '<button class="btn" style="background:rgba(231,76,60,.3);color:#ff6b6b;font-size:.82rem;padding:10px;border-radius:50px;border:none;cursor:pointer" onclick="ZP._adEv()">⚡ Event</button></div>'+
@@ -3959,7 +3958,9 @@ const ZP={
     await this._cmd(cmd);
     if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){
       const slot=ZS.zoo.enc.findIndex(e=>!e);
-      if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs();}
+      if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};ZG._encs();ZS.save&&ZS.save();}
+      // Mark this command as already handled locally so _adminCmd does NOT place a 2nd copy
+      try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
     }
     this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
   },
@@ -4627,30 +4628,37 @@ const ZAdmin = {
     const sh=shiny?{id:'rainbow',...(SHINY?.rainbow||{})}:null;
     const targetSel=document.getElementById('padmin-spawn-target')?.value||'_all';
     const target=(this.target?.name?.toLowerCase())||targetSel;
-    const cmd={type:'spawn_animal',animalId:id,shinyId:shiny?'rainbow':null,traitIds:[],target,
-      spawnMsg:'🎁 Mischa hat dir '+(a.e||'')+' '+(a.n||'')+' geschenkt!',
-      id:Date.now().toString(),exp:Date.now()+60000};
-    // Send command to other players via Firebase
-    try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
-    try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
-    // If a specific OTHER player is targeted, write directly into their zoo doc
+    // Targeting a SPECIFIC other player → write directly to their zoo, command has alreadyPlaced
     if(this.target?.name && this.target.name.toLowerCase()!==ZS.player?.toLowerCase()){
       this._giveAnimalDirect(this.target.name, a);
+      const cmd={type:'spawn_animal',animalId:id,shinyId:shiny?'rainbow':null,traitIds:[],target,alreadyPlaced:true,
+        spawnMsg:'🎁 Mischa hat dir '+(a.e||'')+' '+(a.n||'')+' geschenkt!',
+        id:Date.now().toString(),exp:Date.now()+60000};
+      try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
+      try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
+      ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' an '+this.target.name+' gespawnt!',2500);
+      return;
     }
-    // If targeting self or _all, place immediately in MY zoo
-    if(target==='_all' || target===ZS.player?.toLowerCase()){
-      const z=ZS.zoo;
-      if(z){
-        let slot=z.enc.findIndex(e=>!e||!e.animal);
-        const entry={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};
-        if(slot>=0){z.enc[slot]=entry;} else {z.enc.push(entry);slot=z.enc.length-1;}
-        ZG._encs&&ZG._encs();
-        ZS.save&&ZS.save();
-        ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' in dein Gehege '+(slot+1)+' gespawnt!',3000);
-        return;
-      }
+    // Targeting self or _all
+    const cmd={type:'spawn_animal',animalId:id,shinyId:shiny?'rainbow':null,traitIds:[],target,alreadyPlaced:true,
+      spawnMsg:'🎁 Mischa hat dir '+(a.e||'')+' '+(a.n||'')+' geschenkt!',
+      id:Date.now().toString(),exp:Date.now()+60000};
+    // Place immediately in MY zoo (once)
+    const z=ZS.zoo;
+    if(z){
+      let slot=z.enc.findIndex(e=>!e||!e.animal);
+      const entry={animal:{...a},shiny:sh,traits:[],xm:1,addedAt:Date.now(),sl:0};
+      if(slot>=0){z.enc[slot]=entry;} else {z.enc.push(entry);slot=z.enc.length-1;}
+      ZG._encs&&ZG._encs();
+      ZS.save&&ZS.save();
+      ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' in dein Gehege '+(slot+1)+' gespawnt!',3000);
     }
-    ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' an '+(this.target?.name||target)+' gespawnt!',2500);
+    // Broadcast to OTHER players (for _all). Mark own command handled so WE don't double-place.
+    if(target==='_all'){
+      try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
+      try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
+    }
+    try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
   },
   async _giveAnimalDirect(playerName, animal){
     try{
@@ -5947,6 +5955,24 @@ document.addEventListener('DOMContentLoaded',()=>{
     } else { history.pushState(null,'',''); }
   });
   history.pushState(null,'','');
+
+  // ═══ IDLE TIMEOUT: 20 min no activity → back to Mischa Denkspiel ═══
+  (function(){
+    const IDLE_MS = 20*60*1000; // 20 minutes
+    let idleTimer = null;
+    function goToDenkspiel(){
+      try{ sessionStorage.setItem('from_game','1'); }catch(e){}
+      window.location.href = 'index.html';
+    }
+    function resetIdle(){
+      if(idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(goToDenkspiel, IDLE_MS);
+    }
+    ['mousemove','mousedown','keydown','touchstart','touchmove','click','wheel','pointerdown'].forEach(ev=>{
+      window.addEventListener(ev, resetIdle, {passive:true});
+    });
+    resetIdle(); // start the countdown
+  })();
 });
 
 // ══════════════════════════════════════════════
