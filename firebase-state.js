@@ -53,31 +53,32 @@ const ADMIN_KEY = 'mischa_admin_pw';
 const State = {
 
   // ---- FIREBASE HELPERS ----
-  _col() { return _db ? _db.collection('mischa_players') : null; },
+  _colName() { return (typeof window!=='undefined' && window.MISCHA_TESTMODE) ? 'mischa_players_TEST' : 'mischa_players'; },
+  _col() { return _db ? _db.collection(this._colName()) : null; },
 
   _useCloud() { return _firebaseReady && _db !== null; },
 
   // ---- LOCAL FALLBACK (wenn Firebase nicht konfiguriert) ----
   _local: {
     getAll() {
-      try { return JSON.parse(localStorage.getItem('mischa_players')) || {}; } catch { return {}; }
+      try { return JSON.parse(localStorage.getItem(this._colName())) || {}; } catch { return {}; }
     },
     get(name) { if(!name)return null; const lc=name.toLowerCase(); const all=this.getAll(); return all[lc]||all[name]||null; },
     set(name, player) {
       const all = this.getAll();
       player.updatedAt = Date.now(); // Always stamp with current time
       all[name.toLowerCase()] = player;
-      localStorage.setItem('mischa_players', JSON.stringify(all));
+      localStorage.setItem(this._colName(), JSON.stringify(all));
     },
     save(player) {
       const all = this.getAll();
       all[player.name.toLowerCase()] = { ...player, updatedAt: Date.now() };
-      localStorage.setItem('mischa_players', JSON.stringify(all));
+      localStorage.setItem(this._colName(), JSON.stringify(all));
     },
     delete(name) {
       const all = this.getAll();
       delete all[name.toLowerCase()];
-      localStorage.setItem('mischa_players', JSON.stringify(all));
+      localStorage.setItem(this._colName(), JSON.stringify(all));
     }
   },
 

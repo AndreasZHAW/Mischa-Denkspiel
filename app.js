@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v217';
+const APP_VERSION = 'v218';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v217 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v218 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -362,6 +362,7 @@ const App = {
     if (!confirm('🦁 In den Zoo teleportieren?')) return;
     // Zoo is FREE once unlocked - no MT deduction
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());
+    if(window.MISCHA_TESTMODE){try{sessionStorage.setItem('mischa_testmode','1');}catch(e){}}
     // Pass character so zoo skips its own login
     const charData = (window.CHARACTERS||CHARACTERS||[]).find(c=>c.id===p.character);
     const zooUsers = JSON.parse(localStorage.getItem('zoo_users')||'{}');
