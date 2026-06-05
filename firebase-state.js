@@ -61,24 +61,24 @@ const State = {
   // ---- LOCAL FALLBACK (wenn Firebase nicht konfiguriert) ----
   _local: {
     getAll() {
-      try { return JSON.parse(localStorage.getItem(this._colName())) || {}; } catch { return {}; }
+      try { return JSON.parse(localStorage.getItem(State._colName())) || {}; } catch { return {}; }
     },
     get(name) { if(!name)return null; const lc=name.toLowerCase(); const all=this.getAll(); return all[lc]||all[name]||null; },
     set(name, player) {
       const all = this.getAll();
       player.updatedAt = Date.now(); // Always stamp with current time
       all[name.toLowerCase()] = player;
-      localStorage.setItem(this._colName(), JSON.stringify(all));
+      localStorage.setItem(State._colName(), JSON.stringify(all));
     },
     save(player) {
       const all = this.getAll();
       all[player.name.toLowerCase()] = { ...player, updatedAt: Date.now() };
-      localStorage.setItem(this._colName(), JSON.stringify(all));
+      localStorage.setItem(State._colName(), JSON.stringify(all));
     },
     delete(name) {
       const all = this.getAll();
       delete all[name.toLowerCase()];
-      localStorage.setItem(this._colName(), JSON.stringify(all));
+      localStorage.setItem(State._colName(), JSON.stringify(all));
     }
   },
 
