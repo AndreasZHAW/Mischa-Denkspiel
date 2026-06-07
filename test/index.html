@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<script>window.MISCHA_TESTMODE = true;</script>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#87CEEB">
-  <title>Das Mischa Denkspiel ✈️ v29</title>
+  <title>🧪 TEST — Mischa Denkspiel</title>
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
@@ -118,9 +119,11 @@
 </script>
 </head>
 <body ontouchstart=""><!-- ontouchstart="" enables :active CSS on iOS -->
+<div id="testmap-banner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:repeating-linear-gradient(45deg,#ff6b00,#ff6b00 14px,#1a1a1a 14px,#1a1a1a 28px);color:#fff;text-align:center;font-weight:900;font-size:.78rem;padding:4px;font-family:Arial,sans-serif;letter-spacing:1px;text-shadow:0 1px 3px #000;pointer-events:none">🧪 TEST-UMGEBUNG — Echte Daten · Zum Testen · Nicht die Live-Version</div>
 <script>
 (function(){
   // FIRST: Restore session from localStorage backup if sessionStorage lost it
+  if (window.MISCHA_TESTMODE) { return; }
   if (!sessionStorage.getItem('mischa_current')) {
     const backup = localStorage.getItem('mischa_current_backup');
     if (backup) sessionStorage.setItem('mischa_current', backup);

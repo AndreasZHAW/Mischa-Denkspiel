@@ -1,0 +1,536 @@
+
+
+/* ===== GLOBAL FONT: Arial/Aptos everywhere ===== */
+* {
+  font-family: 'Aptos', Arial, 'Helvetica Neue', Helvetica, sans-serif !important;
+}
+/* Emoji and icon fonts should still work */
+.task-icon, [style*="font-size:3"], [style*="font-size: 3"],
+[style*="font-size:2"], [style*="font-size: 2"] {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
+}
+
+/* ===== STRONG MOBILE TYPOGRAPHY (Android + iPhone) ===== */
+@media screen and (max-width: 768px) {
+  /* BASE FONT: legible on all mobile screens */
+  body { font-size: 16px !important; }
+  
+  /* Task buttons: emoji + name clearly visible */
+  .task-btn {
+    min-height: 82px !important;
+    min-width: 82px !important;
+    border-radius: 14px !important;
+    padding: 6px 4px !important;
+  }
+  .task-btn .task-icon { 
+    font-size: 34px !important; 
+    display: block !important; 
+    margin-bottom: 4px !important;
+  }
+  .task-btn .task-name { 
+    font-size: 15px !important; 
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+  }
+  .task-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: clamp(5px,1.8vw,8px) !important;
+    padding: 0 2px !important;
+  }
+  
+  /* World list */
+  .world-name { font-size: 18px !important; font-weight: 900 !important; }
+  .world-desc { font-size: 13px !important; }
+  .world-progress { font-size: 13px !important; }
+  .world-icon { font-size: 32px !important; }
+  .world-item { padding: 12px 10px !important; gap: 12px !important; }
+  
+  /* Navigation buttons */
+  .btn { 
+    font-size: 15px !important; 
+    min-height: 44px !important; 
+    padding: 8px 14px !important;
+  }
+  
+  /* Player header */
+  .player-name { font-size: 20px !important; }
+  .player-sub { font-size: 13px !important; }
+  
+  /* MT display */
+  .mt-display { font-size: 18px !important; }
+  
+  /* Cards */
+  .card { padding: 14px 12px !important; }
+  
+  /* ALL game canvases */
+  #game-area canvas {
+    max-width: 100vw !important;
+    width: 100% !important;
+    height: auto !important;
+    touch-action: none !important;
+  }
+  #game-area {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+}
+/* ===== iPhone OPTIMIZATIONS ===== */
+/* Prevent ALL horizontal overflow */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+* {
+  box-sizing: border-box;
+}
+
+/* Minimum tap target size 44x44px (Apple HIG) */
+@media (max-width: 430px) {
+  button, .btn {
+    min-height: 44px !important;
+    font-size: clamp(0.88rem, 3.8vw, 1rem) !important;
+  }
+  .task-btn {
+    min-height: 78px !important;
+    min-width: 78px !important;
+    font-size: clamp(0.85rem, 3.8vw, 1rem) !important;
+    padding: 6px 3px !important;
+  }
+  .task-btn span:first-child {
+    font-size: clamp(1.6rem, 7vw, 2rem) !important;
+    display: block;
+    margin-bottom: 3px;
+  }
+  /* Task grid: 4 columns on iPhone */
+  .task-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 7px !important;
+  }
+  /* World map */
+  .world-name { font-size: clamp(1.0rem, 4vw, 1.15rem) !important; }
+  .world-desc { font-size: clamp(0.8rem, 3.2vw, 0.9rem) !important; }
+  .world-progress { font-size: clamp(0.8rem, 3.2vw, 0.9rem) !important; }
+  .banner-title { font-size: clamp(1.4rem, 6vw, 1.8rem) !important; }
+  /* Cards */
+  .card { padding: 10px 8px !important; }
+  .page { padding: 4px !important; }
+  /* Game header */
+  .game-header { padding: 5px 8px !important; }
+  .game-title { font-size: clamp(0.88rem, 3.8vw, 1rem) !important; }
+  /* Prevent canvas overflow */
+  #game-area canvas {
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+  #game-area {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  /* Joker button */
+  .joker-btn { min-height: 44px !important; font-size: 0.9rem !important; }
+  /* Nav buttons (Rangliste, Kontoauszug, Garderobe) */
+  .nav-btn, [class*="nav"] button {
+    font-size: clamp(0.78rem, 3.3vw, 0.9rem) !important;
+    padding: 6px 8px !important;
+  }
+}
+
+/* Very small (iPhone SE 375px) */
+@media (max-width: 390px) {
+  .task-grid { 
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 5px !important;
+    padding: 2px !important;
+  }
+  .task-btn {
+    min-height: 72px !important;
+    min-width: 72px !important;
+    font-size: clamp(0.82rem, 3.5vw, 0.95rem) !important;
+    padding: 5px 3px !important;
+  }
+  .card { padding: 8px 6px !important; }
+  h2 { font-size: clamp(1.1rem, 5vw, 1.3rem) !important; }
+  h3 { font-size: clamp(0.95rem, 4vw, 1.1rem) !important; }
+  /* 3 column layout option for very small */
+  .banner-sub { font-size: clamp(0.78rem, 3.3vw, 0.88rem) !important; }
+}
+
+/* iOS safe area support */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Prevent pinch-zoom on game canvases */
+#game-area canvas,
+#game-area {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ========== LANDSCAPE / ORIENTATION SYSTEM ========== */
+
+/* Base: fluid font scaling based on viewport */
+:root {
+  --fluid-base: clamp(13px, 2.2vw, 17px);
+  --fluid-sm:   clamp(11px, 1.8vw, 14px);
+  --fluid-lg:   clamp(15px, 2.6vw, 20px);
+  --fluid-xl:   clamp(18px, 3.5vw, 28px);
+}
+body { font-size: var(--fluid-base); }
+
+/* Portrait on mobile: show rotate hint for GAMES only */
+@media (max-width: 600px) and (orientation: portrait) {
+  .game-container .rotate-hint { display: flex !important; }
+  /* Scale up game text in portrait */
+  .task-btn span { font-size: clamp(0.75rem, 3.5vw, 0.9rem) !important; }
+  .game-header .game-title { font-size: clamp(0.85rem, 3.5vw, 1rem) !important; }
+  #game-area { 
+    width: 100% !important;
+  }
+}
+
+/* Landscape on mobile: maximize game space */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mountain-bg { display: none !important; }
+  .page { padding: 0 !important; }
+  .game-container { margin: 0 !important; border-radius: 0 !important; }
+  .game-header { padding: 3px 8px !important; font-size: 0.78rem !important; }
+  #game-area canvas { 
+    max-height: calc(100dvh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    width: auto !important;
+  }
+  /* World map in landscape: side layout */
+  .world-map { flex-direction: row !important; flex-wrap: wrap !important; }
+  .world-item { flex: 1 1 45% !important; }
+}
+
+/* Auto-scale text based on viewport for all devices */
+.world-name { font-size: var(--fluid-lg) !important; }
+.world-desc { font-size: var(--fluid-sm) !important; }
+.world-progress { font-size: var(--fluid-sm) !important; }
+.banner-title { font-size: var(--fluid-xl) !important; }
+.btn { font-size: var(--fluid-base) !important; }
+
+/* Task grid: larger on all mobile */  
+@media (max-width: 600px) {
+  .task-grid { 
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+  .task-btn {
+    min-height: 66px !important;
+    font-size: clamp(0.72rem, 3vw, 0.85rem) !important;
+  }
+  .task-btn span:first-child { font-size: clamp(1.2rem, 5vw, 1.6rem) !important; }
+}
+
+/* Game area fills screen */
+#game-area {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Prevent game overflow on small screens */
+#game-area {
+  max-height: calc(100dvh - 100px);
+  overflow: hidden;
+}
+#game-area canvas {
+  max-height: calc(100dvh - 180px) !important;
+  width: 100% !important;
+  height: auto !important;
+}
+#game-area > div {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+/* Shrink game container on narrow screens */
+.game-container {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* ===== RESPONSIVE GAME AREA ===== */
+/* Game fills available width always */
+#game-area {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+#game-area canvas {
+  display: block;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box;
+}
+/* On mobile portrait: card fills more of screen */
+@media (max-width: 480px) {
+  .card { padding: 8px !important; }
+  .page { padding: 4px !important; padding-top: 8px !important; }
+  .game-header { padding: 6px 8px !important; }
+  .game-title { font-size: 0.85rem !important; }
+}
+/* On landscape mobile: compact layout */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page { padding: 2px !important; }
+  .mountain-bg { height: 60px !important; }
+  .game-header { padding: 4px 8px !important; }
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+/* Prevent double-tap zoom */
+button, .btn, .task-btn, .world-item, [onclick] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Responsive font size */
+html { font-size: clamp(13px, 3.5vw, 17px); }
+body { -webkit-text-size-adjust: 100%; }
+/* Game canvas fills mobile width */
+canvas { display: block; max-width: 100%; }
+/* Card padding reduces on small screens */
+@media (max-width: 400px) {
+  .card { padding: 10px !important; }
+  .btn { font-size: .88rem !important; }
+  .task-btn { min-width: 52px !important; min-height: 52px !important; touch-action: manipulation !important; }
+@media (max-width: 380px) {
+  .task-grid { gap: 4px; }
+  .task-btn { min-width: 44px !important; min-height: 44px !important; font-size: .65rem !important; }
+}
+}
+
+/* MISCHA DENKSPIEL v3 */
+/* Google Fonts removed */
+:root{--sky:#87CEEB;--sky-deep:#4A90D9;--mountain:#6B7F5E;--mountain-dark:#3D4F2E;--meadow:#7BC47F;--meadow-dark:#4A9E4E;--gold:#FFD700;--text-dark:#2C3E50;--text-mid:#5D6D7E;--radius:20px;--shadow:0 8px 32px rgba(0,0,0,0.15);--shadow-big:0 16px 48px rgba(0,0,0,0.2)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100vh;font-family:Arial, 'Helvetica Neue', sans-serif;background:var(--sky);color:var(--text-dark);overflow-x:hidden}
+.mountain-bg{position:fixed;bottom:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.sky-gradient{position:absolute;inset:0;background:linear-gradient(180deg,#5DADE2 0%,#AED6F1 45%,#D5EFF5 70%,#C8F0D8 100%)}
+.mountain-svg{position:absolute;bottom:0;width:100%}
+.cloud{position:absolute;background:white;border-radius:50px;opacity:0.85;animation:floatCloud linear infinite}
+.cloud::before,.cloud::after{content:'';position:absolute;background:white;border-radius:50%}
+.cloud-1{width:120px;height:40px;top:8%;left:-140px;animation-duration:40s}
+.cloud-1::before{width:60px;height:60px;top:-30px;left:15px}
+.cloud-1::after{width:40px;height:40px;top:-18px;left:55px}
+.cloud-2{width:90px;height:30px;top:15%;left:-110px;animation-duration:55s;animation-delay:-18s;opacity:0.7}
+.cloud-2::before{width:45px;height:45px;top:-22px;left:10px}
+.cloud-2::after{width:30px;height:30px;top:-14px;left:40px}
+.cloud-3{width:150px;height:50px;top:5%;left:-180px;animation-duration:70s;animation-delay:-35s}
+.cloud-3::before{width:70px;height:70px;top:-35px;left:20px}
+.cloud-3::after{width:50px;height:50px;top:-25px;left:70px}
+@keyframes floatCloud{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 200px))}}
+.page{position:relative;z-index:10;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px}
+.card{background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-radius:var(--radius);padding:24px 20px;box-shadow:var(--shadow-big);width:100%;max-width:480px;border:3px solid rgba(255,255,255,0.6)}
+.card-title{font-family:Arial,cursive;font-size:1.8rem;color:var(--mountain-dark);text-align:center;margin-bottom:8px}
+.card-subtitle{font-size:0.95rem;color:var(--text-mid);text-align:center;margin-bottom:18px;line-height:1.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:Arial,cursive;font-size:1.1rem;padding:13px 26px;border-radius:50px;border:none;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;text-decoration:none;user-select:none;-webkit-user-select:none}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:linear-gradient(135deg,var(--meadow),var(--meadow-dark));color:white;box-shadow:0 6px 20px rgba(75,158,78,0.4)}
+.btn-secondary{background:linear-gradient(135deg,var(--sky-deep),#2980B9);color:white;box-shadow:0 6px 20px rgba(41,128,185,0.4)}
+.btn-gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:var(--text-dark);box-shadow:0 6px 20px rgba(255,165,0,0.4)}
+.btn-full{width:100%}
+.btn-big{font-size:1.3rem;padding:16px 32px}
+.input-group{margin-bottom:14px}
+.input-group label{display:block;font-weight:700;font-size:0.85rem;color:var(--text-mid);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
+.input-group input,.input-group select{width:100%;padding:11px 15px;border:2px solid #E0E6EE;border-radius:12px;font-family:Arial, 'Helvetica Neue', sans-serif;font-size:1rem;background:white;transition:border-color 0.2s;-webkit-appearance:none}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:var(--meadow)}
+.game-logo{text-align:center;margin-bottom:22px}
+.game-logo .logo-emoji{font-size:3.5rem;display:block;animation:bounce 2s ease-in-out infinite}
+.game-logo h1{font-family:Arial,cursive;font-size:2.2rem;color:var(--mountain-dark);text-shadow:3px 3px 0 rgba(255,255,255,0.8);line-height:1.1}
+.game-logo .subtitle{font-size:0.95rem;color:var(--text-mid);margin-top:4px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.char-card{background:white;border:3px solid #E0E6EE;border-radius:14px;padding:8px 5px;text-align:center;cursor:pointer;transition:all 0.2s}
+.char-card:hover{border-color:var(--meadow);transform:translateY(-3px);box-shadow:var(--shadow)}
+.char-card.selected{border-color:var(--meadow-dark);background:#F0FAF0;box-shadow:0 0 0 3px rgba(75,158,78,0.3)}
+.char-card .char-img{font-size:2rem;display:block;margin-bottom:3px}
+.char-card .char-name{font-size:0.65rem;font-weight:700;color:var(--text-mid)}
+.color-picker{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.color-dot{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform 0.15s,border-color 0.15s}
+.color-dot:hover{transform:scale(1.2)}
+.color-dot.selected{border-color:var(--text-dark);transform:scale(1.2)}
+.world-map{display:flex;flex-direction:column;gap:8px;width:100%;max-width:480px}
+.world-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.9);border-radius:14px;padding:12px;box-shadow:var(--shadow);cursor:pointer;border:3px solid transparent;transition:all 0.2s}
+.world-item.unlocked{border-color:var(--meadow)}
+.world-item.locked{opacity:0.4;cursor:not-allowed;filter:grayscale(0.5)}
+.world-item.completed{border-color:var(--gold);background:rgba(255,215,0,0.08)}
+.world-item:hover:not(.locked){transform:translateX(5px)}
+.world-icon{font-size:2rem}
+.world-info{flex:1}
+.world-name{font-family:Arial,cursive;font-size:0.95rem;color:var(--mountain-dark)}
+.world-desc{font-size:0.7rem;color:var(--text-mid);margin-top:1px}
+.world-progress{font-size:0.75rem;font-weight:700;color:var(--meadow-dark)}
+.task-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(4px,1.5vw,7px);margin:10px 0;width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+.task-btn{aspect-ratio:1;border-radius:12px;border:3px solid #DDD;background:white;font-family:Arial,sans-serif;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;min-height:clamp(72px,20vw,88px);padding:4px 2px;box-sizing:border-box}
+.task-btn.done{background:linear-gradient(135deg,var(--meadow),var(--meadow-dark));border-color:var(--meadow-dark);color:white}
+.task-btn.active{background:linear-gradient(135deg,var(--sky-deep),#2980B9);border-color:#2980B9;color:white;animation:pulse 1.5s ease-in-out infinite}
+.task-btn.locked{opacity:0.3;cursor:not-allowed}
+.task-btn.joker{background:linear-gradient(135deg,#FFD700,#FFA500);border-color:#FFA500;color:white}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,144,217,0.5)}50%{box-shadow:0 0 0 8px rgba(74,144,217,0)}}
+.game-container{background:rgba(255,255,255,0.95);border-radius:var(--radius);padding:10px;width:100%;max-width:100%;box-shadow:var(--shadow-big);box-sizing:border-box}
+.game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.game-title{font-family:Arial,cursive;font-size:1.15rem;color:var(--mountain-dark)}
+.joker-badge{background:linear-gradient(135deg,#FFD700,#FFA500);color:#5D3A00;padding:5px 12px;border-radius:50px;font-weight:800;font-size:0.8rem;cursor:pointer;transition:transform 0.15s}
+.joker-badge.used{background:#DDD;color:#999;cursor:not-allowed}
+.progress-bar-wrap{background:#E8F5E9;border-radius:50px;height:11px;overflow:hidden;margin:8px 0}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--meadow),#27AE60);border-radius:50px;transition:width 0.5s ease}
+.score-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold),#FFA500);color:var(--text-dark);padding:5px 14px;border-radius:50px;font-family:Arial,cursive;font-size:0.95rem;box-shadow:0 4px 12px rgba(255,165,0,0.3)}
+.overlay-box{background:white;border-radius:24px;padding:30px 22px;text-align:center;max-width:340px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.3);animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275)}
+.overlay-emoji{font-size:3.5rem;margin-bottom:10px}
+.overlay-title{font-family:Arial,cursive;font-size:1.7rem;margin-bottom:8px}
+.overlay-msg{color:var(--text-mid);margin-bottom:18px;font-size:0.88rem}
+@keyframes popIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+.world-banner{width:100%;max-width:480px;border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:12px;box-shadow:var(--shadow);color:white}
+.world-banner .banner-icon{font-size:2.2rem;display:block;margin-bottom:2px}
+.world-banner .banner-title{font-family:Arial,cursive;font-size:1.2rem}
+.world-banner .banner-sub{font-size:0.78rem;opacity:0.85;margin-top:2px}
+.world-banner.w1{background:linear-gradient(135deg,#2980B9,#1A5276)}
+.world-banner.w2{background:linear-gradient(135deg,#8E44AD,#4A235A)}
+.world-banner.w3{background:linear-gradient(135deg,#27AE60,#145A32)}
+.world-banner.w4{background:linear-gradient(135deg,#E67E22,#784212)}
+.world-banner.w5{background:linear-gradient(135deg,#E74C3C,#641E16)}
+.world-banner.w6{background:linear-gradient(135deg,#16A085,#0E6655)}
+.world-banner.w7{background:linear-gradient(135deg,#D35400,#784212)}
+.world-banner.w8{background:linear-gradient(135deg,#E30613,#8B0000)}
+.world-banner.w9{background:linear-gradient(135deg,#7F8C8D,#2C3E50)}
+.world-banner.w10{background:linear-gradient(135deg,#2C3E50,#1A252F)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes starPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.4)}100%{transform:scale(1);opacity:1}}
+@keyframes circleIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@media(max-width:400px){.card{padding:16px 12px}.char-grid{grid-template-columns:repeat(3,1fr);gap:6px}.task-grid{gap:5px}}
+@media(min-width:768px){.card,.world-map{max-width:560px}}
+
+
+/* === MOBILE / ANDROID OPTIMIERUNGEN === */
+/* Prevent double-tap zoom on all interactive elements */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+button, .btn, .task-btn, [onclick], a {
+  touch-action: manipulation; /* prevents 300ms delay AND double-tap zoom */
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Prevent zoom on input focus (iOS) */
+input, select, textarea {
+  font-size: 16px !important; /* ≥16px prevents iOS zoom on focus */
+}
+/* Fluid text scaling */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* Game area: fill available space */
+#game-area {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+/* Cards: use full mobile width */
+@media (max-width: 480px) {
+  .card { 
+    margin: 4px !important; 
+    padding: 10px !important; 
+    border-radius: 12px !important;
+  }
+  .page {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+  .btn { 
+    font-size: clamp(0.85rem, 4vw, 1rem) !important;
+    padding: clamp(8px, 3vw, 14px) clamp(12px, 4vw, 24px) !important;
+  }
+  .task-btn {
+    font-size: clamp(1.2rem, 5vw, 1.5rem) !important;
+    min-width: clamp(48px, 13vw, 60px) !important;
+    min-height: clamp(48px, 13vw, 60px) !important;
+  }
+  /* Bigger tap targets */
+  button { min-height: 44px; }
+}
+
+/* Mobile: maximize game space */
+@media (max-width: 500px) {
+  /* Game area */
+  .game-container { padding: 4px !important; margin: 0 !important; border-radius: 8px !important; }
+  .page { padding: 2px !important; align-items: stretch !important; }
+  /* World selection card fills full width */
+  .page > div, .page > form { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+  .mountain-bg { height: 80px !important; min-height: 80px !important; }
+  #game-area canvas { border-radius: 4px !important; }
+  .game-header { padding: 5px 8px !important; font-size: 0.9rem !important; }
+
+  /* World map - task buttons BIGGER */
+  .task-btn {
+    min-width: 58px !important;
+    min-height: 58px !important;
+    font-size: 0.75rem !important;
+    border-radius: 10px !important;
+    padding: 4px 2px !important;
+  }
+  .task-grid {
+    gap: 5px !important;
+    padding: 2px !important;
+  }
+  /* World map card text */
+  .world-name { font-size: 1.1rem !important; }
+  .world-desc { font-size: 0.82rem !important; }
+  .world-progress { font-size: 0.78rem !important; }
+  /* Banner */
+  .banner-title { font-size: 1.4rem !important; }
+  .banner-sub { font-size: 0.9rem !important; }
+  /* Top bar */
+  .card { padding: 10px !important; }
+  /* Buttons in world */
+  .btn { font-size: 0.85rem !important; padding: 8px 14px !important; }
+  /* World selection card */
+  .world-item { padding: 10px 8px !important; gap: 8px !important; }
+  .world-name { font-size: 1.05rem !important; }
+  .world-desc { font-size: 0.78rem !important; }
+  .world-progress { font-size: 0.82rem !important; }
+  .world-icon { font-size: 1.8rem !important; }
+  /* Header player name */
+  h2, h3 { font-size: 1.1rem !important; }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .task-btn { min-width: 48px !important; min-height: 48px !important; font-size: 0.65rem !important; }
+  .task-grid { gap: 4px !important; }
+}
+
+/* Body mode classes set by JS */
+body.landscape-mode.mobile-device .mountain-bg { 
+  min-height: 60px !important; 
+  max-height: 80px !important;
+}
+body.landscape-mode.mobile-device .page { 
+  padding: 2px !important; 
+}
+body.landscape-mode.mobile-device .game-container { 
+  margin: 0 !important; 
+  padding: 4px !important;
+  border-radius: 4px !important;
+}
+body.landscape-mode.mobile-device .game-header { 
+  padding: 3px 6px !important; 
+  font-size: 0.75rem !important;
+}
+body.landscape-mode.mobile-device #game-area canvas {
+  max-height: calc(100dvh - 56px) !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: calc(100dvh - 56px) !important;
+}
+/* Landscape world map: 2 columns */
+body.landscape-mode.mobile-device .task-grid {
+  grid-template-columns: repeat(5, 1fr) !important;
+}

@@ -1,0 +1,493 @@
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif;}
+
+/* ── STARS ── */
+#stars{position:fixed;inset:0;z-index:0;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(1);}50%{opacity:1;transform:scale(1.4);}}
+
+/* ── SCENE ── */
+#scene{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+
+/* ── CHAPTER ── */
+.chapter{display:none;text-align:center;max-width:680px;animation:fadeIn .8s ease;}
+.chapter.active{display:flex;flex-direction:column;align-items:center;gap:16px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.chapter-label{font-size:clamp(0.59rem,2.0vw,0.8rem);letter-spacing:4px;color:rgba(255,215,0,.5);text-transform:uppercase;}
+.chapter-icon{font-size:clamp(4.25rem,14.0vw,5.75rem);filter:drop-shadow(0 0 20px rgba(255,215,0,.6));animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.chapter-title{font-size:clamp(1.4rem,4vw,2.2rem);font-weight:900;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,.8);letter-spacing:1px;line-height:1.3;}
+.chapter-text{font-size:clamp(.85rem,2.5vw,1.1rem);color:rgba(255,255,255,.85);line-height:1.8;max-width:560px;text-shadow:0 2px 8px rgba(0,0,0,.8);}
+.chapter-text b{color:#FFD700;}
+
+/* ── CHARACTERS ── */
+.chars{display:flex;gap:40px;justify-content:center;align-items:flex-end;margin:8px 0;}
+.char-card{display:flex;flex-direction:column;align-items:center;gap:6px;animation:charIn .6s ease both;}
+@keyframes charIn{from{opacity:0;transform:scale(.7) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.char-card:nth-child(2){animation-delay:.2s;}
+.char-avatar{font-size:clamp(2.98rem,9.8vw,4.02rem);filter:drop-shadow(0 0 15px rgba(255,215,0,.5));}
+.char-name{font-size:clamp(0.64rem,2.1vw,0.86rem);letter-spacing:2px;color:#FFD700;text-transform:uppercase;}
+.char-desc{font-size:clamp(0.55rem,1.8vw,0.75rem);color:rgba(255,255,255,.5);text-align:center;max-width:90px;}
+
+/* ── CINEMATIC BARS ── */
+.bar-top,.bar-bot{position:fixed;left:0;right:0;height:60px;background:#000;z-index:20;transition:height .8s ease;}
+.bar-top{top:0;}
+.bar-bot{bottom:0;}
+.bars-hidden .bar-top,.bars-hidden .bar-bot{height:0;}
+
+/* ── NEXT BUTTON ── */
+#next-btn{
+  margin-top:8px;
+  background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,215,0,.05));
+  border:1px solid rgba(255,215,0,.4);
+  color:#FFD700;
+  padding:12px 32px;
+  border-radius:50px;
+  font-size:clamp(0.77rem,2.5vw,1.03rem);
+  cursor:pointer;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  transition:all .2s;
+  animation:pulse 2s ease-in-out infinite;
+}
+#next-btn:hover{background:rgba(255,215,0,.25);border-color:#FFD700;box-shadow:0 0 20px rgba(255,215,0,.4);}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(255,215,0,.2);}50%{box-shadow:0 0 25px rgba(255,215,0,.5);}}
+
+/* ── SKIP ── */
+#skip-btn{
+  position:fixed;top:20px;right:20px;z-index:100;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.5);padding:7px 16px;border-radius:50px;
+  font-size:clamp(0.61rem,2.0vw,0.83rem);cursor:pointer;letter-spacing:1px;transition:all .2s;
+}
+#skip-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
+
+/* ── PROGRESS ── */
+#progress{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:30;}
+.pdot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s;}
+.pdot.active{background:#FFD700;box-shadow:0 0 8px rgba(255,215,0,.8);}
+.pdot.done{background:rgba(255,215,0,.4);}
+
+/* ── BACKGROUND GLOW ── */
+.bg-glow{position:fixed;inset:0;z-index:1;pointer-events:none;}
+
+/* ── END SCREEN ── */
+#end-screen{display:none;position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at center,#0a0a1a 0%,#000 100%);flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:24px;}
+#end-screen.show{display:flex;}
+.end-logo{font-size:clamp(2.98rem,9.8vw,4.02rem);animation:float 3s ease-in-out infinite;}
+.end-title{font-family:'Georgia',serif;font-size:clamp(1.5rem,5vw,2.8rem);font-weight:900;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.end-sub{font-size:clamp(0.77rem,2.5vw,1.03rem);color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;}
+.enter-btn{
+  background:linear-gradient(135deg,#FFD700,#F39C12);
+  color:#0a0a1a;border:none;padding:16px 40px;
+  border-radius:50px;font-size:clamp(0.94rem,3.1vw,1.26rem);font-weight:900;
+  cursor:pointer;letter-spacing:1px;
+  box-shadow:0 0 40px rgba(255,165,0,.5);
+  animation:glow 2s ease-in-out infinite;
+  transform:none;transition:transform .15s;
+}
+.enter-btn:hover{transform:scale(1.05);}
+@keyframes glow{0%,100%{box-shadow:0 0 30px rgba(255,165,0,.4);}50%{box-shadow:0 0 60px rgba(255,165,0,.8);}}
+.ver-badge{font-size:clamp(0.55rem,1.8vw,0.75rem);color:rgba(255,255,255,.2);letter-spacing:1px;}
+
+/* Chapter-specific backgrounds */
+.bg-blue{background:radial-gradient(ellipse at 50% 80%,rgba(0,100,200,.15),transparent 70%);}
+.bg-gold{background:radial-gradient(ellipse at 50% 80%,rgba(255,165,0,.12),transparent 70%);}
+.bg-red{background:radial-gradient(ellipse at 50% 80%,rgba(200,0,0,.12),transparent 70%);}
+.bg-green{background:radial-gradient(ellipse at 50% 80%,rgba(0,180,0,.12),transparent 70%);}
+.bg-purple{background:radial-gradient(ellipse at 50% 80%,rgba(150,0,200,.12),transparent 70%);}
+</style>
+</head>
+<body>
+<audio id="bg-music" src="mischa_intro.mp3" loop style="display:none"></audio>
+
+<!-- Stars -->
+<canvas id="stars"></canvas>
+
+<!-- Cinematic bars -->
+<div class="bar-top" id="bar-top"></div>
+<div class="bar-bot" id="bar-bot"></div>
+
+<!-- Background glow -->
+<div class="bg-glow" id="bg-glow"></div>
+
+<!-- Skip button -->
+<button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
+<div id="music-hint" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;color:rgba(255,255,255,.35);font-size:.7rem;letter-spacing:1px;pointer-events:none;animation:pulse 2s infinite">🔊 Tippe für Musik</div>
+<script>document.addEventListener('click',function(){const h=document.getElementById('music-hint');if(h)h.remove();},{once:true});</script>
+
+<!-- Progress dots -->
+<div id="progress"></div>
+
+<!-- Scene -->
+<div id="scene">
+
+  <!-- CHAPTER 0: Darkness -->
+  <div class="chapter active" id="ch0">
+    <div class="chapter-label">Prolog</div>
+    <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.6">🌌</div>
+    <div class="chapter-title">Irgendwo in der Welt...</div>
+    <div class="chapter-text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
+    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+  </div>
+
+  <!-- CHAPTER 1: Characters -->
+  <div class="chapter" id="ch1">
+    <div class="chapter-label">Die Helden</div>
+    <div class="chars">
+      <div class="char-card">
+        <div class="char-avatar">🧭</div>
+        <div class="char-name">Mischa</div>
+        <div class="char-desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
+      </div>
+      <div class="char-card" style="animation-delay:.3s">
+        <div class="char-avatar">🔬</div>
+        <div class="char-name">Janosch</div>
+        <div class="char-desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
+      </div>
+    </div>
+    <div class="chapter-text">Los geht es auf unserer Erde!<br>Genauer gesagt geht es zuerst auf eine Reise nach <b>Frankreich</b> —<br>in ein wunderschönes Schloss.<br><br>Dort gilt es <b>Startkapital zu erkämpfen</b>,<br>denn ohne Startkapital kein Zoo.</div>
+    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+  </div>
+
+  <!-- CHAPTER 2: The Challenge -->
+  <div class="chapter" id="ch2">
+    <div class="chapter-label">Die Herausforderung</div>
+    <div class="chapter-icon">⚔️</div>
+    <div class="chapter-title">Erkämpfe dein Startkapital</div>
+    <div class="chapter-text">Es braucht <b>Köpfchen und Ausdauer</b>.<br><br>Aber zusammen ist alles möglich!</div>
+    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+  </div>
+
+  <!-- CHAPTER 3: The Dream -->
+  <div class="chapter" id="ch3">
+    <div class="chapter-label">Der Traum</div>
+    <div class="chapter-icon">🦁</div>
+    <div class="chapter-title">Baue deinen eigenen Zoo</div>
+    <div class="chapter-text">Mit deinem Startkapital kannst du dich in die <b>nächste Welt teleportieren</b><br>und dort helfen, den <b>intergalaktischen Mega-Zoo</b> zu erschaffen —<br>mit bekannten Tieren aus unserer Welt<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...</div>
+    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+  </div>
+
+  <!-- CHAPTER 4: Multiplayer -->
+  <div class="chapter" id="ch4">
+    <div class="chapter-label">Zusammen stärker</div>
+    <div class="chapter-icon">🌍</div>
+    <div class="chapter-title">Du bist nicht allein</div>
+    <div class="chapter-text">Mischa und Janosch zählen auf dich.<br><br><b>Machst du mit?</b><br>Mach den ersten Schritt. <b>Jetzt!</b></div>
+    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+  </div>
+
+  <!-- CHAPTER 5: Call to action -->
+  <div class="chapter" id="ch5">
+    <div class="chapter-label">Deine Geschichte beginnt</div>
+    <div class="chapter-icon">🚀</div>
+    <div class="chapter-title">Bist du bereit?</div>
+    <div class="chapter-text">Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b></div>
+    <button id="next-btn" onclick="showEnd()" style="background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,140,0,.2));border-color:#FFD700;font-size:1rem;padding:14px 36px;">
+      🚀 Abenteuer starten
+    </button>
+  </div>
+
+</div>
+
+<!-- End screen -->
+<div id="end-screen">
+  <div class="end-logo">🦁</div>
+  <div class="end-title">Mischa Denkspiel</div>
+  <div class="end-sub">+ Zoo 3D · Das Abenteuer</div>
+  <button class="enter-btn" onclick="enterGame()">▶ Jetzt spielen</button>
+  <div class="ver-badge" id="ver-badge">v2026.05.05-1140</div>
+</div>
+
+<script>
+// ── CONFIG ──
+const CHAPTERS = 6;
+let current = 0;
+const BG_CLASSES = ['','bg-blue','bg-red','bg-green','bg-purple','bg-gold'];
+
+// ── STARS ──
+(function(){
+  const c = document.getElementById('stars');
+  const ctx = c.getContext('2d');
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  for(let i=0;i<200;i++){
+    const x=Math.random()*c.width, y=Math.random()*c.height;
+    const r=Math.random()*1.5+.3;
+    const op=Math.random()*.7+.1;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${op})`;ctx.fill();
+  }
+  // Shooting star occasionally
+  function shootingStar(){
+    const x=Math.random()*c.width, y=Math.random()*c.height*.5;
+    const len=80+Math.random()*120;
+    const angle=Math.PI/6;
+    let t=0;
+    const anim=()=>{
+      t+=2;
+      if(t>len)return;
+      const grad=ctx.createLinearGradient(x+Math.cos(angle)*t,y+Math.sin(angle)*t,x+Math.cos(angle)*(t-30),y+Math.sin(angle)*(t-30));
+      grad.addColorStop(0,'rgba(255,255,200,0.8)');grad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.beginPath();ctx.strokeStyle=grad;ctx.lineWidth=1.5;
+      ctx.moveTo(x+Math.cos(angle)*t,y+Math.sin(angle)*t);
+      ctx.lineTo(x+Math.cos(angle)*(t-30),y+Math.sin(angle)*(t-30));
+      ctx.stroke();requestAnimationFrame(anim);
+    };requestAnimationFrame(anim);
+  }
+  setInterval(shootingStar,4000);
+  setTimeout(shootingStar,1500);
+})();
+
+// ── PROGRESS DOTS ──
+(function(){
+  const p=document.getElementById('progress');
+  for(let i=0;i<CHAPTERS;i++){
+    const d=document.createElement('div');d.className='pdot'+(i===0?' active':'');
+    d.id='pdot-'+i;p.appendChild(d);
+  }
+})();
+
+// ── NEXT CHAPTER ──
+function nextChapter(){
+  if(current>=CHAPTERS-1){showEnd();return;}
+  const prev=document.getElementById('ch'+current);
+  if(prev){prev.style.animation='none';prev.style.opacity='0';prev.style.transition='opacity .4s';setTimeout(()=>{prev.classList.remove('active');prev.style.opacity='';prev.style.transition='';},400);}
+  document.getElementById('pdot-'+current)?.classList.replace('active','done');
+  current++;
+  setTimeout(()=>{
+    const next=document.getElementById('ch'+current);
+    if(next){next.classList.add('active');}
+    document.getElementById('pdot-'+current)?.classList.add('active');
+    // Change bg
+    const glow=document.getElementById('bg-glow');
+    glow.className='bg-glow '+(BG_CLASSES[current]||'');
+    // Cinematic bar animation
+    if(current===1){document.body.classList.add('bars-hidden');}
+  },450);
+}
+
+// ── SHOW END ──
+function showEnd(){
+  const scene=document.getElementById('scene');
+  const skip=document.getElementById('skip-btn');
+  const prog=document.getElementById('progress');
+  scene.style.opacity='0';scene.style.transition='opacity .6s';
+  if(skip)skip.style.display='none';
+  if(prog)prog.style.display='none';
+  setTimeout(()=>{
+    scene.style.display='none';
+    const e=document.getElementById('end-screen');
+    e.classList.add('show');
+    // Stop current music, play fanfare
+    stopMusic();
+    playFanfare();
+  },600);
+}
+
+// ── SKIP ──
+function skipIntro(){
+  stopMusic();
+  localStorage.setItem('mischa_intro_ts', Date.now().toString());
+  showEnd();
+}
+
+// ── ENTER GAME ──
+function enterGame(){
+  stopMusic();
+  // Mark intro as seen — prevents loop
+  const nowTs = Date.now().toString();
+  localStorage.setItem('mischa_intro_ts', nowTs);
+  try { sessionStorage.setItem('mischa_intro_ts', nowTs); } catch(e){}
+  document.body.style.opacity='0';
+  document.body.style.transition='opacity .6s';
+  setTimeout(()=>{ window.location.replace('index.html?from_intro=1'); },600);
+}
+
+// ── MUSIC ENGINE ──
+let _ctx=null,_nodes=[];
+function _audio(){
+  if(!_ctx)try{_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  if(_ctx&&_ctx.state==='suspended')_ctx.resume();
+  return _ctx;
+}
+
+// Cinematic theme - builds up over time
+function playIntroMusic(){
+  const ctx=_audio();if(!ctx)return;
+  const T=ctx.currentTime;
+  
+  // ── REVERB (impulse response) ──
+  function mkRev(sec){
+    const c=ctx.createConvolver();
+    const len=Math.floor(ctx.sampleRate*sec);
+    const b=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/len*4);}
+    c.buffer=b;return c;
+  }
+  const rev=mkRev(3.5);
+  const revG=ctx.createGain();revG.gain.setValueAtTime(.4,T);
+  rev.connect(revG);revG.connect(ctx.destination);
+  _nodes.push(rev,revG);
+  
+  // ── MASTER COMPRESSOR ──
+  const comp=ctx.createDynamicsCompressor();
+  comp.threshold.value=-16;comp.ratio.value=5;comp.attack.value=.003;comp.release.value=.25;
+  comp.connect(ctx.destination);_nodes.push(comp);
+  
+  // Helper: play one note
+  function N(f,t,d,v,type){
+    if(!f)return;
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(v,t+Math.min(.15,d*.25));
+    g.gain.setValueAtTime(v*.85,t+d*.6);
+    g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(comp);g.connect(rev);
+    o.start(t);o.stop(t+d+.05);
+    _nodes.push(o,g);
+  }
+  
+  // ── RADIOHEAD-STYLE ELECTRONIC BASS ──  
+  // Repeating 2-bar pattern in D minor
+  const BPM=80,B=60/BPM;
+  const bassLine=[
+    [73.4,1],[73.4,.5],[77.8,.5],[73.4,1],[65.4,.5],[69.3,.5],
+    [73.4,1],[73.4,.5],[77.8,.5],[87.3,1],[82.4,1],
+  ];
+  for(let rep=0;rep<6;rep++){
+    let t=T+.5+rep*bassLine.reduce((s,n)=>s+n[1],0)*B;
+    bassLine.forEach(([f,d])=>{
+      N(f,t,d*B*.8,.09,'sawtooth');
+      N(f/2,t,d*B*.6,.06,'sine');
+      t+=d*B;
+    });
+  }
+  
+  // ── PAD LAYER (Hans Zimmer sustained chords) ──
+  const chordSeq=[
+    [146.8,220,293.7,392], // Dm
+    [130.8,196,261.6,349], // C
+    [123.5,185,246.9,329], // B♭
+    [138.6,207.7,277.2,369.9], // C#dim
+  ];
+  chordSeq.forEach((chord,ci)=>{
+    const ct=T+.3+ci*8*B;
+    chord.forEach(f=>{
+      N(f,ct,7*B,.055,'sine');
+      N(f,ct+B*.5,6.5*B,.03,'triangle');
+    });
+  });
+  
+  // ── MAIN MELODY (orchestral, 2 passes) ──
+  // D minor pentatonic: D E F A C
+  const mel=[
+    [293.7,.75],[329.6,.5],[349.2,.5],[392,.75],[440,.5],
+    [392,1],[349.2,.75],[329.6,.5],[293.7,1.5],
+    [261.6,.5],[293.7,.75],[329.6,.5],[349.2,.75],[392,1.5],
+    [440,.5],[523.3,.75],[493.9,.5],[440,1],[392,2],
+  ];
+  for(let rep=0;rep<2;rep++){
+    let mt=T+1.5+rep*mel.reduce((s,n)=>s+n[1],0)*B;
+    const vol=rep===0?.16:.20;
+    mel.forEach(([f,d])=>{
+      N(f,mt,d*B*.9,vol,'triangle');
+      if(rep===1)N(f*1.498,mt+B*.05,d*B*.7,vol*.35,'sine'); // fifth harmony
+      mt+=d*B;
+    });
+  }
+  
+  // ── ELECTRONIC ARP (Radiohead texture) ──
+  const arp=[293.7,392,493.9,392,329.6,440,523.3,440];
+  for(let rep=0;rep<8;rep++){
+    arp.forEach((f,i)=>{
+      const at=T+3+rep*arp.length*(B*.25)+i*(B*.25);
+      N(f,at,B*.2,.038,'square');
+    });
+  }
+  
+  // ── ELECTRONIC KICK + SNARE ──
+  for(let i=0;i<48;i++){
+    const pt=T+1+i*(B*.5);
+    // Kick on beats 1 & 3
+    if(i%4===0||i%4===2){
+      N(65.4,pt,B*.18,.12,'sine');N(40,pt+.02,B*.12,.07,'sine');
+    }
+    // Hi-hat every 8th note
+    try{
+      const buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.04),ctx.sampleRate);
+      const bd=buf.getChannelData(0);for(let j=0;j<bd.length;j++)bd[j]=(Math.random()*2-1);
+      const src=ctx.createBufferSource();src.buffer=buf;
+      const hf=ctx.createBiquadFilter();hf.type='highpass';hf.frequency.value=9000;
+      const hg=ctx.createGain();hg.gain.setValueAtTime(i%4===0?.06:.025,pt);
+      src.connect(hf);hf.connect(hg);hg.connect(comp);src.start(pt);_nodes.push(src,hg,hf);
+    }catch(e){}
+  }
+}
+
+
+function playFanfare(){
+  const ctx=_audio();if(!ctx)return;
+  const fanfare=[[392,.2],[392,.2],[392,.2],[523,.8],[494,.2],[466,.2],[523,1.2]];
+  let t=ctx.currentTime+.1;
+  fanfare.forEach(([f,d])=>{
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.type='triangle';o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.25,t+.03);
+    g.gain.exponentialRampToValueAtTime(0.001,t+d*.95);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+d);
+    _nodes.push(o,g);t+=d;
+  });
+}
+
+function stopMusic(){
+  // Stop HTML audio
+  const audio = document.getElementById('bg-music');
+  if(audio){audio.pause();audio.currentTime=0;}
+  // Stop Web Audio nodes
+  _nodes.forEach(n=>{try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}});
+  _nodes=[];
+}
+
+// Music starts on first user interaction (required by browser policy)
+let musicStarted=false;
+function startMusicOnce(){
+  if(musicStarted)return;
+  musicStarted=true;
+  // PRIMARY: HTML Audio (MP3)
+  const audio = document.getElementById('bg-music');
+  if(audio){
+    audio.volume = 0.7;
+    audio.play().catch(()=>{
+      // Fallback: Web Audio API synthesis
+      try{
+        _ctx=new(window.AudioContext||window.webkitAudioContext)();
+        if(_ctx.state==='suspended')_ctx.resume().then(()=>playIntroMusic());
+        else playIntroMusic();
+      }catch(e){}
+    });
+    return;
+  }
+  // Fallback if no audio element
+  try{
+    _ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(_ctx.state==='suspended')_ctx.resume().then(()=>playIntroMusic());
+    else playIntroMusic();
+  }catch(e){}
+}
+// Attach to next button directly for reliable mobile gesture
+document.querySelectorAll('#next-btn, button').forEach(b=>{
+  b.addEventListener('click',startMusicOnce,{once:true});
+  b.addEventListener('touchend',startMusicOnce,{once:true});
+});
+document.addEventListener('click',startMusicOnce,{once:true});
+document.addEventListener('touchend',startMusicOnce,{once:true});
+
+// Set deploy version
+document.getElementById('ver-badge').textContent='v2026.05.05-1140';
+</script>
+</body>
+</html>
