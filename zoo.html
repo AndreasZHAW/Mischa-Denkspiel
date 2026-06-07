@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v221 -->
+<!-- ZOO v222 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -174,7 +174,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v221','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v222','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -1054,6 +1054,95 @@ const ZG={
       this._spawnDroppedMesh(d);
     }
   },
+  // ═══ 3D TRASH ROOM (Müllraum, gleiche Engine + Steuerung) ═══
+  _trashActive:false,
+  _trashMeshes:[],
+  _trashSaved:null,
+  enterTrashRoom(){
+    if(this._trashActive)return;
+    this._trashActive=true;
+    // Save current zoo camera/scene state
+    this._trashSaved={ px:this.pl.x, py:this.pl.y, pz:this.pl.z, yaw:this.yaw, pitch:this.pitch, clear:0x87CEEB };
+    // Hide all zoo objects (keep lights)
+    this._trashHidden=[];
+    this.scene.children.forEach(ch=>{
+      if(ch.type==='AmbientLight'||ch.type==='DirectionalLight'||ch.type==='HemisphereLight')return;
+      if(ch.visible){ this._trashHidden.push(ch); ch.visible=false; }
+    });
+    // Dark grungy background
+    try{this.renderer.setClearColor(0x2a2418,1);}catch(e){}
+    // Floor for the trash room
+    const floorGeo=new THREE.PlaneGeometry(60,60);
+    const floorMat=new THREE.MeshBasicMaterial({color:0x3a3020});
+    const floor=new THREE.Mesh(floorGeo,floorMat); floor.rotation.x=-Math.PI/2; floor.position.set(0,0,0);
+    this.scene.add(floor); this._trashFloor=floor;
+    // Walls (simple boxes)
+    const wallMat=new THREE.MeshBasicMaterial({color:0x4a4030});
+    const walls=[];
+    [[0,-30,60,1],[0,30,60,1],[-30,0,1,60],[30,0,1,60]].forEach(([x,z,w,d])=>{
+      const wm=new THREE.Mesh(new THREE.BoxGeometry(w,8,d),wallMat); wm.position.set(x,4,z); this.scene.add(wm); walls.push(wm);
+    });
+    this._trashWalls=walls;
+    // Spawn 20 trash piles as 3D emoji sprites scattered around
+    this._trashMeshes=[];
+    this._trashLeft=20;
+    const emojis=['🗑️','🍌','📦','🥫','🧻','🍂','🛢️','🥤'];
+    for(let i=0;i<20;i++){
+      const ang=Math.random()*Math.PI*2, rad=4+Math.random()*22;
+      const tx=Math.cos(ang)*rad, tz=Math.sin(ang)*rad;
+      const spr=this._txt(emojis[i%emojis.length],1.4,'#ffffff');
+      spr.position.set(tx,1,tz); spr.scale.set(2.4,2.4,1);
+      spr.userData.isTrash=true;
+      this.scene.add(spr); this._trashMeshes.push(spr);
+    }
+    // Place player in the room center
+    this.pl.x=0; this.pl.y=1.7; this.pl.z=24; this.yaw=Math.PI; this.pitch=0;
+    this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+    // HUD hint
+    ZP.toast('🧹 Sammle allen Müll ein! Laufe hin und tippe/[E]. (Du bist verletzt → langsam)',5000);
+    this._trashBanner=document.createElement('div');
+    this._trashBanner.id='trash-banner';
+    this._trashBanner.style.cssText='position:fixed;top:8%;left:0;right:0;text-align:center;z-index:9000;color:#fff;font-weight:900;font-size:1rem;text-shadow:0 2px 4px #000;pointer-events:none';
+    this._trashBanner.textContent='🧹 Müll übrig: 20';
+    document.body.appendChild(this._trashBanner);
+    // Slow the player (injured): halve move speed
+    this._trashSpeedMul=0.5;
+  },
+  _checkTrashPickup(){
+    if(!this._trashActive)return;
+    this._nearTrash=-1;
+    let best=3.2;
+    for(let i=0;i<this._trashMeshes.length;i++){
+      const m=this._trashMeshes[i]; if(!m||!m.visible)continue;
+      const d=Math.sqrt((this.pl.x-m.position.x)**2+(this.pl.z-m.position.z)**2);
+      if(d<best){best=d;this._nearTrash=i;}
+    }
+  },
+  _pickupTrash(idx){
+    const m=this._trashMeshes[idx]; if(!m)return;
+    this.scene.remove(m); this._trashMeshes[idx]=null;
+    this._trashLeft--;
+    if(this._trashBanner)this._trashBanner.textContent='🧹 Müll übrig: '+this._trashLeft;
+    ZSound&&ZSound.coin&&ZSound.coin();
+    if(this._trashLeft<=0){ this.exitTrashRoom(true); }
+  },
+  exitTrashRoom(cleaned){
+    if(!this._trashActive)return;
+    this._trashActive=false;
+    // Remove trash room objects
+    (this._trashMeshes||[]).forEach(m=>{if(m)this.scene.remove(m);}); this._trashMeshes=[];
+    if(this._trashFloor)this.scene.remove(this._trashFloor);
+    (this._trashWalls||[]).forEach(w=>this.scene.remove(w)); this._trashWalls=[];
+    if(this._trashBanner){this._trashBanner.remove();this._trashBanner=null;}
+    this._trashSpeedMul=1;
+    // Restore zoo objects
+    (this._trashHidden||[]).forEach(ch=>ch.visible=true); this._trashHidden=[];
+    try{this.renderer.setClearColor(0x87CEEB,1);}catch(e){}
+    // Restore player position
+    if(this._trashSaved){ this.pl.x=this._trashSaved.px; this.pl.y=this._trashSaved.py; this.pl.z=this._trashSaved.pz; this.yaw=this._trashSaved.yaw; this.pitch=this._trashSaved.pitch; this.cam.position.set(this.pl.x,this.pl.y,this.pl.z); }
+    // The firm pays you and sends you to hospital
+    if(cleaned){ Sweeper._firmPays(); }
+  },
   _updCarryHUD(){
     // Show/hide carry indicator
     let cind = document.getElementById('carry-indicator');
@@ -1784,6 +1873,8 @@ const ZG={
         const onHL=t.clientX<80;
         const onWB=t.clientY>window.innerHeight-95;
         if(onJ||onHL||onWB)continue;
+        // Trash room: tap to pick up trash
+        if(this._trashActive){ if(this._nearTrash>=0)this._pickupTrash(this._nearTrash); return; }
         // Gold Machine: tap to open when near (iPad/touch — no [E] key)
         if(this._nearGoldMachine){GoldMachine.open();return;}
       if(this._nearFeeder){Feeder.open();return;}
@@ -1794,7 +1885,7 @@ const ZG={
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -1872,7 +1963,8 @@ const ZG={
     }
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
     const carry_mod=this.carrying?0.5:1; // 50% slower when carrying
-    const sp=((this._sprintActive?12:7)*steal_mod*carry_mod)*steal_mod;
+    const trash_mod=this._trashActive?(this._trashSpeedMul||0.5):1; // injured = slow in trash room
+    const sp=((this._sprintActive?12:7)*steal_mod*carry_mod)*steal_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -1883,6 +1975,15 @@ const ZG={
     if(this.joy.on){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
     const l=Math.sqrt(mx*mx+mz*mz);
     if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
+    if(this._trashActive){
+      // Trash room: square boundary 28, no zoo collisions
+      this.pl.x=Math.max(-28,Math.min(28,this.pl.x));
+      this.pl.z=Math.max(-28,Math.min(28,this.pl.z));
+      this.pl.y=1.7;
+      this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+      this._checkTrashPickup&&this._checkTrashPickup();
+      return;
+    }
     // Gold Machine collision — push player out of 2.6 radius (all machines)
     (this._goldMachinePositions||[{x:16,z:55}]).forEach(p=>{
       const gmdx=this.pl.x-p.x, gmdz=this.pl.z-p.z, gmd=Math.sqrt(gmdx*gmdx+gmdz*gmdz);
@@ -1899,7 +2000,7 @@ const ZG={
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
     this.nearSt=stD<14;
     this.nearEnc=-1;
-    this._nearDropped=-1; this._checkDroppedPickup();
+    this._nearDropped=-1; this._checkDroppedPickup(); this._checkTrashPickup&&this._checkTrashPickup();
     const eps=this.ENCPOS();
     for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){
       if(Math.sqrt((this.pl.x-eps[i].x)**2+(this.pl.z-eps[i].z)**2)<5.5){
@@ -2166,6 +2267,8 @@ const ZG={
       const idx=LuckyBlocks.blocks.indexOf(nearBlock);
       LuckyBlocks.open(idx);return;
     }
+    // Trash room: pick up trash
+    if(this._trashActive){ if(this._nearTrash>=0){this._pickupTrash(this._nearTrash);} return; }
     // Pick up dropped animal
     if(this._nearDropped>=0){this._pickupDropped(this._nearDropped);return;}
     // If carrying and near ANY enclosure — place it (forgiving, works on touch)
@@ -3322,7 +3425,7 @@ const ZP={
     el.innerHTML=out;
   },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
-  _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
+  _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">Gondel gesperrt!</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">Polizei-Razzia · noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min</div></div>';return;}const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
   _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;ZG.gQ.shift();ZG.gQ.push(ZG._mkG());
     // CARRY mechanic: player must carry the animal to the enclosure (can be slapped → drops)
     ZG._startCarry({animal:{...g.a},shiny:g.sh,traits:g.tr,slot});
@@ -3954,10 +4057,10 @@ const ZP={
   },
   _buyGondolaIdx(carIdx){
     // Buy the animal from the gondola at this car position
-    // Use queue shifted by carIdx
     const g=ZG.gQ[carIdx%ZG.gQ.length]||ZG.gQ[0];
     if(!g)return;
     const z=ZS.zoo;
+    if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}
     const slot=z.enc.findIndex(e=>!e||!e.animal);
     if(slot<0){ZP.toast('❌ Alle Gehege belegt!');return;}
     if(z.mt<g.a.p){ZP.toast('❌ Zu wenig MT! Brauche '+$mt(g.a.p));return;}
@@ -6464,30 +6567,9 @@ const Sweeper = {
     this._ambulance();
   },
   _refuse(){
-    // must clean 20 trash with 50% slowness
-    this._cleanLeft=20;
-    const ov=document.getElementById('accident-overlay'); if(!ov) return;
-    ov.style.background='#231c10';
-    const render=()=>{
-      let trash='';
-      for(let i=0;i<this._cleanLeft;i++){
-        const x=Math.random()*88+3, y=Math.random()*66+22, em=['🗑️','🍌','📦','🥫','🧻','🍂'][i%6];
-        trash+='<div onclick="Sweeper._clean(this)" style="position:absolute;left:'+x+'%;top:'+y+'%;font-size:2rem;cursor:pointer;transition:transform .1s;user-select:none">'+em+'</div>';
-      }
-      ov.innerHTML='<div style="position:absolute;top:10px;left:0;right:0;text-align:center;z-index:3;color:#fff;font-weight:900;font-size:.95rem;text-shadow:0 1px 3px #000">🧹 Putze den Müll weg! Klicke alle an.<br><span style="color:#f5c542">Noch '+this._cleanLeft+' · (du bist verletzt → 50% langsamer)</span></div>'+trash;
-    };
-    this._renderClean=render; render();
-  },
-  _clean(el){
-    // 50% slowness: each click only removes after a short delay sometimes
-    if(this._cleaning) return;
-    this._cleaning=true;
-    el.style.transform='scale(0.1)';
-    setTimeout(()=>{
-      el.remove(); this._cleanLeft--; this._cleaning=false;
-      if(this._cleanLeft<=0){ this._firmPays(); }
-      else { this._renderClean&&this._renderClean(); }
-    }, 400); // delay simulates 50% slowness
+    // Enter the 3D trash room (same engine + controls). Player walks & collects 20 trash, injured = slow.
+    document.getElementById('accident-overlay')?.remove();
+    ZG.enterTrashRoom();
   },
   _firmPays(){
     const z=ZS.zoo; z.mt=(z.mt||0)+20000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
