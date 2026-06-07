@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v220 -->
+<!-- ZOO v221 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -174,7 +174,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v220','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v221','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -585,7 +585,7 @@ function rA(luck,night){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultra
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){if(!ev)return[];if(ev==='mega')return TRAITS.filter(t=>Math.random()*100<t.p*1.5);return TRAITS.filter(t=>t.ev===ev&&Math.random()*100<t.p);}
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;return e;}
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;return e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
 function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).join('');}
 
@@ -594,7 +594,7 @@ const ZS={
   player:null,char:null,zoo:null,isAdmin:false,isPrivate:false,
   nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
   maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
-  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;return Math.max(500,ms);},
+  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));return Math.max(500,ms);},
   lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
   async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
   async load(){
@@ -899,6 +899,22 @@ const ZG={
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     this._scheduleEvent();
+    // Insurance: charge 1000 MT every 5 min while active (test mode)
+    this._ivs.push(setInterval(()=>{
+      const z=ZS.zoo; if(!z||!z.insuranceActive) return;
+      if(Date.now() >= (z.insuranceNext||0)){
+        if((z.mt||0) >= 1000){
+          z.mt-=1000; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
+          this._updHUD&&this._updHUD(); ZS.save&&ZS.save();
+          ZP.toast('🛡️ Versicherung: 1000 MT abgebucht',2500);
+        } else {
+          // can't pay → insurance lapses
+          z.insuranceActive=false; z.insuranceUntil=0;
+          ZP.toast('🛡️ Versicherung abgelaufen (zu wenig MT)!',3000);
+          ZS.save&&ZS.save();
+        }
+      }
+    },10000));
     setInterval(()=>{if(LuckyBlocks.blocks.length<3)LuckyBlocks.spawn();},180000);
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
   },
@@ -1486,6 +1502,21 @@ const ZG={
     sc.add(this._worldWheel);
     // Wheel label
     const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(8,8.5,16); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
+    // ═══ KEHRMASCHINE (Test-Modus) — next to the wheel at (14,16) ═══
+    this._sweeperPos = null;
+    if(typeof window!=='undefined' && window.MISCHA_TESTMODE){
+      const sx=14, sz=20;
+      const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,2,4),new THREE.MeshBasicMaterial({color:0xF39C12}));
+      swBody.position.set(sx,1.2,sz); sc.add(swBody);
+      const swCab=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,1.8),new THREE.MeshBasicMaterial({color:0x2c3e50}));
+      swCab.position.set(sx,2.6,sz+0.6); sc.add(swCab);
+      // brushes (front rollers)
+      const swBrush=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,2.6,12),new THREE.MeshBasicMaterial({color:0x8e44ad}));
+      swBrush.rotation.z=Math.PI/2; swBrush.position.set(sx,0.7,sz-2.2); sc.add(swBrush);
+      const swLbl=this._txt('🧹 KEHRMASCHINE',0.6,'#F39C12'); swLbl.position.set(sx,5,sz); swLbl.scale.set(8,2,1); sc.add(swLbl);
+      const swLbl2=this._txt('Zoo kehren! Antippen 🧹',0.5,'#fff'); swLbl2.position.set(sx,4,sz); swLbl2.scale.set(7,1.4,1); sc.add(swLbl2);
+      this._sweeperPos={x:sx,z:sz};
+    }
     const wlbl2=this._txt('Näher kommen!',0.55,'#fff'); wlbl2.position.set(8,7.5,16); wlbl2.scale.set(6,1.5,1); sc.add(wlbl2);
 
     // ═══ GOLD MACHINE in EVERY zone ═══
@@ -1527,8 +1558,8 @@ const ZG={
         fGlass.position.set(fx,3,fz+1.1); sc.add(fGlass);
         const fTray=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.4,0.3),new THREE.MeshBasicMaterial({color:0x222831}));
         fTray.position.set(fx,1,fz+1.1); sc.add(fTray);
-        const fLbl=this._txt('🍖 FUTTERAUTOMAT',0.6,'#a8e063'); fLbl.position.set(fx,6.8,fz); fLbl.scale.set(8,2,1); sc.add(fLbl);
-        const fLbl2=this._txt('Tier kaufen! Antippen 🍖',0.5,'#fff'); fLbl2.position.set(fx,5.8,fz); fLbl2.scale.set(7,1.4,1); sc.add(fLbl2);
+        const fLbl=this._txt('🍬 LECKERLI-AUTOMAT',0.6,'#a8e063'); fLbl.position.set(fx,6.8,fz); fLbl.scale.set(8,2,1); sc.add(fLbl);
+        const fLbl2=this._txt('Tier füttern! Antippen 🍬',0.5,'#fff'); fLbl2.position.set(fx,5.8,fz); fLbl2.scale.set(7,1.4,1); sc.add(fLbl2);
         this._feederPositions.push({x:fx,z:fz});
       });
     }
@@ -1717,6 +1748,7 @@ const ZG={
       // Gold Machine: open directly on tap/click when near (works on iPad/touch — no [E] key needed)
       if(this._nearGoldMachine){GoldMachine.open();return;}
       if(this._nearFeeder){Feeder.open();return;}
+      if(this._nearSweeper){Sweeper.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0||this.nearLimo>=0)this._interact();
@@ -1755,13 +1787,14 @@ const ZG={
         // Gold Machine: tap to open when near (iPad/touch — no [E] key)
         if(this._nearGoldMachine){GoldMachine.open();return;}
       if(this._nearFeeder){Feeder.open();return;}
+      if(this._nearSweeper){Sweeper.open();return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
         this.slap();
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -2025,8 +2058,16 @@ const ZG={
     let _fdDist=999;
     (this._feederPositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_fdDist)_fdDist=d;});
     this._nearFeeder = _fdDist < 6;
-    if(this._nearFeeder && !this._fdHinted){ this._fdHinted=true; ZP.toast('🍖 Tippe den Futterautomat an!',2500); }
+    if(this._nearFeeder && !this._fdHinted){ this._fdHinted=true; ZP.toast('🍬 Tippe den Leckerli-Automat an!',2500); }
     else if(!this._nearFeeder){ this._fdHinted=false; }
+    // Kehrmaschine proximity
+    this._nearSweeper=false;
+    if(this._sweeperPos){
+      const sd=Math.sqrt((this.pl.x-this._sweeperPos.x)**2+(this.pl.z-this._sweeperPos.z)**2);
+      this._nearSweeper = sd<6;
+      if(this._nearSweeper && !this._swHinted){ this._swHinted=true; ZP.toast('🧹 Tippe die Kehrmaschine an!',2500); }
+      else if(!this._nearSweeper){ this._swHinted=false; }
+    }
     if(this._nearGoldMachine && !this._gmHinted){
       this._gmHinted=true;
       const isTouch=('ontouchstart' in window);
@@ -2141,6 +2182,7 @@ const ZG={
     // Gold Machine
     if(this._nearGoldMachine){GoldMachine.open();return;}
     if(this._nearFeeder){Feeder.open();return;}
+    if(this._nearSweeper){Sweeper.open();return;}
   },
 
   // ═══ SLAP SYSTEM ═══
@@ -3281,7 +3323,7 @@ const ZP={
   },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;ZG.gQ.shift();ZG.gQ.push(ZG._mkG());
+  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;ZG.gQ.shift();ZG.gQ.push(ZG._mkG());
     // CARRY mechanic: player must carry the animal to the enclosure (can be slapped → drops)
     ZG._startCarry({animal:{...g.a},shiny:g.sh,traits:g.tr,slot});
     try{ZG._broadcastAnimalWalk(g.a, slot);}catch(e){}
@@ -3443,7 +3485,8 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];el.innerHTML=IT.map(item=>{const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
+    if(window.MISCHA_TESTMODE){IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'1000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});}el.innerHTML=IT.map(item=>{const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||z.mt<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${z.mt<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){
     const z=ZS.zoo;
     // Apply active discount
@@ -3456,6 +3499,12 @@ const ZP={
     if(id==='token_1'){z.tokens=(z.tokens||0)+1;this.toast('🥇 +1 Gold-Token! Total: '+z.tokens);}
     else if(id==='token_5'){z.tokens=(z.tokens||0)+5;this.toast('🥇 +5 Gold-Tokens! Total: '+z.tokens);}
     else if(id==='token_10'){z.tokens=(z.tokens||0)+10;this.toast('🥇 +10 Gold-Tokens! Total: '+z.tokens);}
+    else if(id==='treat_1'){z.treats=(z.treats||0)+1;this.toast('🍬 +1 Leckerli! Total: '+z.treats);}
+    else if(id==='treat_5'){z.treats=(z.treats||0)+5;this.toast('🍬 +5 Leckerlis! Total: '+z.treats);}
+    else if(id==='insurance'){
+      if(z.insuranceActive){z.insuranceActive=false;z.insuranceUntil=0;this.toast('🛡️ Versicherung gekündigt.');}
+      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 1000 MT alle 5 Min.');}
+    }
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
     ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();},
   _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
@@ -5994,6 +6043,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   history.pushState(null,'','');
 
+  // ═══ TEST-MODE: Trigger-Buttons zum Testen der Events ═══
+  if(window.MISCHA_TESTMODE){
+    setTimeout(()=>{
+      if(document.getElementById('test-triggers'))return;
+      const box=document.createElement('div');
+      box.id='test-triggers';
+      box.style.cssText='position:fixed;bottom:8px;left:8px;z-index:9000;display:flex;flex-direction:column;gap:4px';
+      box.innerHTML='<div style="font-size:.6rem;color:#ff6b00;font-weight:900">🧪 TEST-TRIGGER</div>'+
+        '<button onclick="ZooEvents.policeRaid()" style="background:#3498db;color:#fff;border:none;padding:5px 8px;border-radius:6px;font-size:.66rem;cursor:pointer;font-weight:700">🚓 Polizei</button>'+
+        '<button onclick="Sweeper._accident()" style="background:#F39C12;color:#1a1a2e;border:none;padding:5px 8px;border-radius:6px;font-size:.66rem;cursor:pointer;font-weight:700">🚜 Unfall</button>';
+      document.body.appendChild(box);
+    }, 3000);
+  }
+
   // ═══ IDLE TIMEOUT: 20 min no activity → back to Mischa Denkspiel ═══
   (function(){
     const IDLE_MS = 20*60*1000; // 20 minutes
@@ -6233,70 +6296,312 @@ window.GoldMachine = GoldMachine;
 // FUTTERAUTOMAT — buy an animal, cost by rarity (Test-Map)
 // ══════════════════════════════════════════════
 const Feeder = {
-  _COSTS: {normal:250, rare:800, epic:2500, legendary:8000, ultralegendary:20000, god:45000, mythic:70000, secret:100000},
-  _RNAMES: {normal:'Gewoehnlich', rare:'Selten', epic:'Episch', legendary:'Legendaer', ultralegendary:'Ultra Legendaer', god:'Gott', mythic:'Mythisch', secret:'Geheim'},
-  _costFor(a){ return this._COSTS[(a&&a.r)||'normal'] || 250; },
+  _TREAT_MIN: 5, // a treat lasts 5 minutes (2x earn during that time)
   _selected: null,
   open(){
     document.getElementById('feeder-panel')?.remove();
     const z=ZS.zoo; if(!z) return;
-    const mt=z.mt||0;
-    const animals=(window.ANIMALS||ANIMALS||[]);
-    const RAR_ORDER=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+    const treats=z.treats||0;
     const RAR_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#f39c12',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#00CFFF',secret:'#FF1493'};
-    const sorted=[...animals].sort((a,b)=>RAR_ORDER.indexOf(a.r)-RAR_ORDER.indexOf(b.r));
-    const cards=sorted.map(a=>{
-      const cost=this._costFor(a);
-      const afford=mt>=cost;
-      return '<div onclick="Feeder._select(\''+a.id+'\')" style="background:'+(RAR_COL[a.r]||'#95a5a6')+'22;border:2px solid '+(RAR_COL[a.r]||'#95a5a6')+';border-radius:10px;padding:8px 5px;text-align:center;cursor:pointer;min-width:80px">'+
-        '<div style="font-size:1.8rem">'+(a.e||'🐾')+'</div>'+
-        '<div style="font-size:.72rem;color:#fff;font-weight:700">'+(a.n||a.id)+'</div>'+
-        '<div style="font-size:.62rem;color:'+(RAR_COL[a.r]||'#95a5a6')+'">'+(this._RNAMES[a.r]||a.r)+'</div>'+
-        '<div style="font-size:.66rem;color:'+(afford?'#27AE60':'#E74C3C')+';font-weight:700">'+$mt(cost)+' MT</div>'+
+    // Only animals currently in enclosures can be fed
+    const myAnimals=(z.enc||[]).map((e,i)=>({e,i})).filter(o=>o.e&&o.e.animal);
+    const now=Date.now();
+    const cards=myAnimals.map(o=>{
+      const a=o.e.animal;
+      const active=o.e.treatUntil&&o.e.treatUntil>now;
+      const mins=active?Math.ceil((o.e.treatUntil-now)/60000):0;
+      return '<div onclick="Feeder._select('+o.i+')" style="background:'+(RAR_COL[a.r]||"#95a5a6")+"22"+';border:2px solid '+(active?"#27AE60":(RAR_COL[a.r]||"#95a5a6"))+';border-radius:10px;padding:8px 5px;text-align:center;cursor:pointer;min-width:78px">'+
+        '<div style="font-size:1.8rem">'+(a.e||"🐾")+'</div>'+
+        '<div style="font-size:.7rem;color:#fff;font-weight:700">'+(a.n||a.id)+'</div>'+
+        (active?'<div style="font-size:.62rem;color:#27AE60;font-weight:700">⚡ 2× ('+mins+"min)"+'</div>':'<div style="font-size:.62rem;color:rgba(255,255,255,.45)">Gehege '+(o.i+1)+'</div>')+
         '</div>';
-    }).join('');
+    }).join('') || '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:20px">Keine Tiere im Zoo zum Füttern.</div>';
     const ov=document.createElement('div');
     ov.id='feeder-panel';
     ov.style.cssText='position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px';
-    ov.innerHTML='<div style="background:linear-gradient(135deg,#1a2e1a,#0e1e0e);border:2px solid #6ab04c;border-radius:18px;max-width:620px;width:100%;max-height:88vh;overflow:auto;padding:18px;color:#fff">'+
+    ov.innerHTML='<div style="background:linear-gradient(135deg,#2a1e0e,#1e1408);border:2px solid #d9a441;border-radius:18px;max-width:620px;width:100%;max-height:88vh;overflow:auto;padding:18px;color:#fff">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-        '<div style="font-size:1.2rem;font-weight:900;color:#a8e063">🍖 Futterautomat</div>'+
+        '<div style="font-size:1.2rem;font-weight:900;color:#f5c542">🍬 Leckerli-Automat</div>'+
         '<button onclick="document.getElementById(\'feeder-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer">✕</button>'+
       '</div>'+
-      '<div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:6px">Dein Geld: <b style="color:#FFD700">'+$mt(mt)+' MT</b> · Wähle ein Tier zum Kaufen</div>'+
+      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">Deine Leckerlis: <b style="color:#f5c542">🍬 '+treats+'</b> · Wähle ein Tier, das du fütterst</div>'+
       '<div id="feeder-action" style="margin-bottom:10px"></div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+cards+'</div>'+
-      '<div style="margin-top:12px;font-size:.68rem;color:rgba(255,255,255,.4);text-align:center">Preis nach Seltenheit: Gewöhnlich 250 · Selten 800 · Episch 2.5K · Legendär 8K · Ultra 20K · Gott 45K · Mythisch 70K · Geheim 100K</div>'+
+      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">Ein Leckerli macht ein Tier <b style="color:#27AE60">5 Min lang 2× so schnell Geld</b>.<br>Leckerlis im Shop kaufen (1000 MT).</div>'+
     '</div>';
     document.body.appendChild(ov);
   },
-  _select(id){
-    const a=(window.ANIMALS||ANIMALS||[]).find(x=>x.id===id); if(!a) return;
-    this._selected=id;
-    const z=ZS.zoo; const mt=z.mt||0; const cost=this._costFor(a);
-    const afford=mt>=cost;
+  _select(idx){
+    const z=ZS.zoo; if(!z) return;
+    const enc=z.enc[idx]; if(!enc||!enc.animal) return;
+    this._selected=idx;
+    const a=enc.animal; const treats=z.treats||0;
+    const now=Date.now(); const active=enc.treatUntil&&enc.treatUntil>now;
     const el=document.getElementById('feeder-action'); if(!el) return;
     el.innerHTML='<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center">'+
-      '<span style="font-size:1.4rem">'+(a.e||'')+'</span> <b>'+(a.n||a.id)+'</b> — <b style="color:'+(afford?'#27AE60':'#E74C3C')+'">'+$mt(cost)+' MT</b>'+
-      (afford? '<br><button onclick="Feeder._buy()" style="margin-top:8px;background:linear-gradient(135deg,#6ab04c,#27AE60);color:#fff;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">🍖 Kaufen</button>'
-             : '<br><span style="color:#E74C3C;font-size:.8rem">Zu wenig MT!</span>')+
+      '<span style="font-size:1.4rem">'+(a.e||"")+'</span> <b>'+(a.n||a.id)+'</b>'+
+      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ Schon gefüttert! Läuft noch.</span>':'')+
+      (treats>0? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">🍬 Füttern (1 Leckerli)</button>'
+                : '<br><span style="color:#E74C3C;font-size:.8rem">Keine Leckerlis! Im Shop kaufen.</span>')+
       '</div>';
   },
-  _buy(){
-    const a=(window.ANIMALS||ANIMALS||[]).find(x=>x.id===this._selected); if(!a) return;
-    const z=ZS.zoo; if(!z) return;
-    const cost=this._costFor(a);
-    if((z.mt||0)<cost){ ZP.toast('❌ Zu wenig MT!',2000); return; }
-    const slot=z.enc.findIndex(e=>!e||!e.animal);
-    if(slot<0){ ZP.toast('❌ Alle Gehege belegt!',2000); return; }
-    z.mt-=cost;
-    z.enc[slot]={animal:{...a},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
+  _feed(){
+    const z=ZS.zoo; if(!z||this._selected==null) return;
+    const enc=z.enc[this._selected]; if(!enc||!enc.animal) return;
+    if((z.treats||0)<1){ ZP.toast('❌ Keine Leckerlis!',2000); return; }
+    z.treats--;
+    const now=Date.now();
+    // Extend if already active, else start fresh
+    const base=(enc.treatUntil&&enc.treatUntil>now)?enc.treatUntil:now;
+    enc.treatUntil=base+this._TREAT_MIN*60000;
     ZG._encs&&ZG._encs(); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
-    ZP.toast('🍖 '+(a.e||'')+' '+(a.n||'')+' gekauft! Gehege '+(slot+1),3000);
-    document.getElementById('feeder-panel')?.remove();
+    ZP.toast('🍬 '+(enc.animal.e||"")+' '+(enc.animal.n||"")+' frisst — jetzt 2× so schnell Geld!',3500);
+    this.open(); // refresh
   },
 };
 window.Feeder = Feeder;
+
+// ══════════════════════════════════════════════
+// KEHRMASCHINE — sweep the zoo, 20% accident → trash room → 112 → hospital
+// ══════════════════════════════════════════════
+const Sweeper = {
+  _COST: 5000,
+  _hasInsurance(){ const z=ZS.zoo; return z && z.insuranceUntil && z.insuranceUntil>Date.now(); },
+  open(){
+    document.getElementById('sweeper-panel')?.remove();
+    const z=ZS.zoo; if(!z) return;
+    const mt=z.mt||0;
+    const active=(z.sweepUntil||0)>Date.now();
+    const mins=active?Math.ceil((z.sweepUntil-Date.now())/60000):0;
+    const ov=document.createElement('div');
+    ov.id='sweeper-panel';
+    ov.style.cssText='position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px';
+    ov.innerHTML='<div style="background:linear-gradient(135deg,#3a2e0e,#241c08);border:2px solid #F39C12;border-radius:18px;max-width:440px;width:100%;padding:20px;color:#fff;text-align:center">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+        '<div style="font-size:1.2rem;font-weight:900;color:#F39C12">🧹 Kehrmaschine</div>'+
+        '<button onclick="document.getElementById(\'sweeper-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer">✕</button>'+
+      '</div>'+
+      '<div style="font-size:3rem;margin:6px 0">🧹</div>'+
+      '<div style="font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:6px">Kehre den Zoo für <b style="color:#FFD700">'+$mt(this._COST)+' MT</b></div>'+
+      '<div style="font-size:.78rem;color:#27AE60;margin-bottom:4px">→ +1,2% mehr Besucher für 30 Min (stapelbar!)</div>'+
+      (active?'<div style="font-size:.74rem;color:#27AE60;margin-bottom:6px">✅ Aktiv noch '+mins+' Min ('+(z.sweepStacks||1)+'× gestapelt)</div>':'')+
+      '<div style="font-size:.7rem;color:#E74C3C;margin-bottom:10px">⚠️ Achtung: 20% Risiko, dass die Maschine dich überfährt!</div>'+
+      (this._hasInsurance()?'<div style="font-size:.68rem;color:#27AE60;margin-bottom:8px">🛡️ Versichert — keine Unfallkosten</div>':'')+
+      '<button '+(mt<this._COST?'disabled style="opacity:.5"':'')+' onclick="Sweeper._sweep()" style="width:100%;background:linear-gradient(135deg,#F39C12,#e67e22);color:#1a1a2e;border:none;padding:12px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">'+(mt<this._COST?'Zu wenig MT':'🧹 Kehren ('+$mt(this._COST)+' MT)')+'</button>'+
+    '</div>';
+    document.body.appendChild(ov);
+  },
+  _sweep(){
+    const z=ZS.zoo; if(!z) return;
+    if((z.mt||0)<this._COST){ ZP.toast('❌ Zu wenig MT!',2000); return; }
+    z.mt-=this._COST;
+    document.getElementById('sweeper-panel')?.remove();
+    // 20% accident chance
+    if(Math.random()<0.20){
+      this._accident();
+    } else {
+      // Apply / stack the visitor boost
+      const now=Date.now();
+      if((z.sweepUntil||0)>now){ z.sweepStacks=(z.sweepStacks||1)+1; }
+      else { z.sweepStacks=1; }
+      z.sweepUntil=now+30*60000;
+      ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
+      ZP.toast('🧹 Zoo gekehrt! +1,2% Besucher 30 Min ('+z.sweepStacks+'×)',3500);
+    }
+  },
+  // ─── ACCIDENT: run over → trash room ───
+  _accident(){
+    const ov=document.createElement('div');
+    ov.id='accident-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:99990;background:#1a1410;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:18px;overflow:auto';
+    // trash room scene
+    let trashBg='';
+    for(let i=0;i<22;i++){ const x=Math.random()*90+2, y=Math.random()*70+15, em=['🗑️','🍌','📦','🥫','🧻','🍂','🛢️'][Math.floor(Math.random()*7)]; trashBg+='<div style="position:absolute;left:'+x+'%;top:'+y+'%;font-size:'+(1.2+Math.random()*1.5)+'rem;opacity:.7">'+em+'</div>'; }
+    ov.innerHTML='<div style="position:absolute;inset:0;pointer-events:none">'+trashBg+'</div>'+
+      '<div style="position:relative;z-index:2;background:rgba(0,0,0,.6);border-radius:16px;padding:20px;max-width:380px">'+
+      '<div style="font-size:3.4rem">🚜💥</div>'+
+      '<h2 style="color:#E74C3C;margin:6px 0">AUTSCH!</h2>'+
+      '<p style="font-size:.95rem;line-height:1.4">Die Kehrmaschine hat dich überfahren und eingesaugt! Du liegst in einem Raum voller Müll und hast dir das Bein gebrochen. 🦴</p>'+
+      '<p style="font-size:.85rem;color:#f5c542;margin-top:10px">📱 Öffne dein Handy und rufe den Notruf <b>112</b>!</p>'+
+      '<button onclick="Sweeper._openPhone()" style="margin-top:14px;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">📱 Handy öffnen</button>'+
+      '</div>';
+    document.body.appendChild(ov);
+  },
+  _openPhone(){
+    const ov=document.getElementById('accident-overlay'); if(!ov) return;
+    ov.innerHTML='<div style="position:relative;z-index:2;background:#0a0a0a;border:6px solid #222;border-radius:30px;padding:0;max-width:300px;width:100%;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.8)">'+
+      '<div style="background:#111;padding:6px;text-align:center;font-size:.7rem;color:#888">📶 Zoo-Phone · 112</div>'+
+      '<div style="background:linear-gradient(160deg,#1a2a3a,#0a0a0a);padding:24px 16px;min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center">'+
+        '<div style="font-size:3rem;margin-bottom:6px">📞</div>'+
+        '<div style="font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:4px">Notruf-App</div>'+
+        '<div style="font-size:.78rem;color:#aaa;text-align:center;margin-bottom:14px">Wähle 112 — du hast dir das Bein gebrochen!</div>'+
+        '<div style="font-size:2rem;font-weight:900;color:#27AE60;letter-spacing:4px;margin-bottom:14px">1 1 2</div>'+
+        '<button onclick="Sweeper._call()" style="background:#27AE60;color:#fff;border:none;width:64px;height:64px;border-radius:50%;font-size:1.6rem;cursor:pointer;box-shadow:0 0 20px rgba(39,174,96,.6)">📞</button>'+
+        '<div style="font-size:.7rem;color:#666;margin-top:8px">Anrufen</div>'+
+      '</div></div>';
+  },
+  _call(){
+    const ov=document.getElementById('accident-overlay'); if(!ov) return;
+    const insured=this._hasInsurance();
+    if(insured){
+      // insurance covers it → straight to ambulance
+      ZP.toast('🛡️ Versicherung übernimmt die Kosten!',3000);
+      this._ambulance(); return;
+    }
+    ov.innerHTML='<div style="position:relative;z-index:2;background:rgba(10,10,10,.95);border-radius:16px;padding:22px;max-width:360px;text-align:center;color:#fff">'+
+      '<div style="font-size:2.6rem">🚑</div>'+
+      '<h3 style="color:#f5c542;margin:8px 0">Krankenwagen gerufen!</h3>'+
+      '<p style="font-size:.88rem;line-height:1.4">Der Rettungsdienst verlangt <b style="color:#FFD700">15.000 MT</b> für den Transport ins Krankenhaus.</p>'+
+      '<div style="display:flex;gap:8px;margin-top:14px">'+
+        '<button onclick="Sweeper._pay()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Bezahlen<br><small>15.000 MT</small></button>'+
+        '<button onclick="Sweeper._refuse()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht<br>bezahlen</button>'+
+      '</div></div>';
+  },
+  _pay(){
+    const z=ZS.zoo;
+    if((z.mt||0)<15000){ ZP.toast('❌ Du hast keine 15.000 MT! Du musst putzen.',3000); this._refuse(); return; }
+    z.mt-=15000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._ambulance();
+  },
+  _refuse(){
+    // must clean 20 trash with 50% slowness
+    this._cleanLeft=20;
+    const ov=document.getElementById('accident-overlay'); if(!ov) return;
+    ov.style.background='#231c10';
+    const render=()=>{
+      let trash='';
+      for(let i=0;i<this._cleanLeft;i++){
+        const x=Math.random()*88+3, y=Math.random()*66+22, em=['🗑️','🍌','📦','🥫','🧻','🍂'][i%6];
+        trash+='<div onclick="Sweeper._clean(this)" style="position:absolute;left:'+x+'%;top:'+y+'%;font-size:2rem;cursor:pointer;transition:transform .1s;user-select:none">'+em+'</div>';
+      }
+      ov.innerHTML='<div style="position:absolute;top:10px;left:0;right:0;text-align:center;z-index:3;color:#fff;font-weight:900;font-size:.95rem;text-shadow:0 1px 3px #000">🧹 Putze den Müll weg! Klicke alle an.<br><span style="color:#f5c542">Noch '+this._cleanLeft+' · (du bist verletzt → 50% langsamer)</span></div>'+trash;
+    };
+    this._renderClean=render; render();
+  },
+  _clean(el){
+    // 50% slowness: each click only removes after a short delay sometimes
+    if(this._cleaning) return;
+    this._cleaning=true;
+    el.style.transform='scale(0.1)';
+    setTimeout(()=>{
+      el.remove(); this._cleanLeft--; this._cleaning=false;
+      if(this._cleanLeft<=0){ this._firmPays(); }
+      else { this._renderClean&&this._renderClean(); }
+    }, 400); // delay simulates 50% slowness
+  },
+  _firmPays(){
+    const z=ZS.zoo; z.mt=(z.mt||0)+20000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    const ov=document.getElementById('accident-overlay'); if(!ov) return;
+    ov.innerHTML='<div style="position:relative;z-index:2;background:rgba(10,10,10,.95);border-radius:16px;padding:22px;max-width:360px;text-align:center;color:#fff">'+
+      '<div style="font-size:2.6rem">🏢💰</div>'+
+      '<h3 style="color:#27AE60;margin:8px 0">Aufgeräumt!</h3>'+
+      '<p style="font-size:.9rem;line-height:1.4">Die Kehrmaschinen-Firma fühlt sich schuldig und gibt dir <b style="color:#FFD700">20.000 MT</b>, damit du doch ins Krankenhaus fahren kannst!</p>'+
+      '<button onclick="Sweeper._ambulance()" style="margin-top:14px;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-weight:900;cursor:pointer">🚑 Zum Krankenhaus</button>'+
+    '</div>';
+  },
+  // ─── AMBULANCE / HOSPITAL bild-animation ───
+  _ambulance(){
+    let ov=document.getElementById('accident-overlay');
+    if(!ov){ ov=document.createElement('div'); ov.id='accident-overlay'; ov.style.cssText='position:fixed;inset:0;z-index:99990'; document.body.appendChild(ov); }
+    ov.style.cssText='position:fixed;inset:0;z-index:99990;background:#000;overflow:hidden';
+    ov.innerHTML='<canvas id="amb-cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>'+
+      '<div id="amb-txt" style="position:absolute;bottom:12%;left:0;right:0;text-align:center;color:#fff;font-family:Arial;font-weight:900;font-size:1.1rem;text-shadow:0 2px 6px #000"></div>';
+    const cv=document.getElementById('amb-cv'), ctx=cv.getContext('2d');
+    let W,H; const rs=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;}; rs();
+    let f=0; const TOTAL=150;
+    const txt=document.getElementById('amb-txt');
+    const loop=()=>{
+      ctx.clearRect(0,0,W,H);
+      // night road
+      const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0a0a2a'); g.addColorStop(.6,'#1a1a3a'); g.addColorStop(1,'#222');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+      // stars
+      for(let i=0;i<40;i++){ ctx.fillStyle='rgba(255,255,255,'+(0.3+Math.sin(f*0.1+i)*0.3)+')'; ctx.fillRect((i*97)%W,(i*53)%(H*0.5),2,2); }
+      // road
+      ctx.fillStyle='#333'; ctx.fillRect(0,H*0.7,W,H*0.3);
+      // moving dashes
+      for(let i=-1;i<W/60+1;i++){ const x=((i*60)+ (f*8)%60); ctx.fillStyle='#ff0'; ctx.fillRect(x,H*0.84,30,5); }
+      // ambulance (drives in from left, settles center)
+      const ax=Math.min(W*0.5, -120 + f*12);
+      const ay=H*0.62;
+      ctx.save(); ctx.translate(ax,ay);
+      ctx.fillStyle='#fff'; ctx.fillRect(-60,-30,120,46);
+      ctx.fillStyle='#e74c3c'; ctx.fillRect(-60,-4,120,8);
+      ctx.fillStyle='#bdd'; ctx.fillRect(20,-24,30,20);
+      ctx.fillStyle='#e74c3c'; ctx.font='bold 20px Arial'; ctx.fillText('+',-30,8);
+      // flashing light
+      ctx.fillStyle=(Math.floor(f/4)%2)?'#ff2222':'#2222ff'; ctx.fillRect(-10,-40,20,10);
+      // wheels
+      ctx.fillStyle='#111'; ctx.beginPath(); ctx.arc(-35,18,11,0,7); ctx.arc(35,18,11,0,7); ctx.fill();
+      ctx.restore();
+      // text phases
+      if(f<45) txt.textContent='🚑 Der Krankenwagen kommt...';
+      else if(f<95) txt.textContent='🚑 Tatütata — schnell ins Krankenhaus!';
+      else txt.textContent='🏥 Ankunft im Krankenhaus...';
+      f++;
+      if(f<=TOTAL) requestAnimationFrame(loop);
+      else Sweeper._hospital();
+    };
+    addEventListener('resize',rs); loop();
+  },
+  _hospital(){
+    const ov=document.getElementById('accident-overlay'); if(!ov) return;
+    ov.style.background='#0a1a2a';
+    ov.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial;text-align:center;padding:20px">'+
+      '<div style="font-size:4rem">🏥</div>'+
+      '<h2 style="color:#4af0ff;margin:8px 0">Im Krankenhaus</h2>'+
+      '<p style="font-size:.95rem;line-height:1.4;max-width:340px">Die Ärzte haben dein Bein eingegipst. 🦵 Nach einer kurzen Pause darfst du zurück in deinen Zoo!</p>'+
+      '<div style="font-size:2.4rem;margin:12px 0">🛏️ 🩺 💊</div>'+
+      '<button onclick="Sweeper._backToZoo()" style="margin-top:10px;background:linear-gradient(135deg,#4af0ff,#2980b9);color:#021018;border:none;padding:12px 30px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">🦁 Zurück in den Zoo</button>'+
+    '</div>';
+  },
+  _backToZoo(){
+    document.getElementById('accident-overlay')?.remove();
+    ZP.toast('🦁 Willkommen zurück! Pass auf die Kehrmaschine auf. 😅',4000);
+  },
+};
+window.Sweeper = Sweeper;
+
+// ══════════════════════════════════════════════
+// ZOO-EVENTS (Notfälle) — Polizei-Razzia (Paket 1), mehr folgen
+// ══════════════════════════════════════════════
+const ZooEvents = {
+  _hasInsurance(){ const z=ZS.zoo; return z && z.insuranceUntil && z.insuranceUntil>Date.now(); },
+  _overlay(html){
+    document.getElementById('zevent-overlay')?.remove();
+    const ov=document.createElement('div'); ov.id='zevent-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:99980;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:18px;font-family:Arial,sans-serif';
+    ov.innerHTML='<div style="background:linear-gradient(135deg,#1a1a2e,#0e0e1e);border:2px solid #3498db;border-radius:18px;max-width:380px;width:100%;padding:22px;color:#fff;text-align:center">'+html+'</div>';
+    document.body.appendChild(ov);
+    return ov;
+  },
+  _close(){ document.getElementById('zevent-overlay')?.remove(); },
+  // ─── POLIZEI-RAZZIA ───
+  policeRaid(){
+    const insured=this._hasInsurance();
+    if(insured){ ZP.toast('🛡️ Versicherung regelt die Polizei-Razzia!',3500); return; }
+    this._overlay(
+      '<div style="font-size:3.4rem">🚓</div>'+
+      '<h2 style="color:#3498db;margin:6px 0">Polizei-Razzia!</h2>'+
+      '<p style="font-size:.92rem;line-height:1.4">Die Polizei durchsucht deinen Zoo! Zahle <b style="color:#FFD700">8.000 MT</b> Strafe — sonst wird die Gondel 10 Min gesperrt (keine neuen Tiere).</p>'+
+      '<div style="display:flex;gap:8px;margin-top:14px">'+
+        '<button onclick="ZooEvents._payPolice()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Zahlen<br><small>8.000 MT</small></button>'+
+        '<button onclick="ZooEvents._refusePolice()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht<br>zahlen</button>'+
+      '</div>');
+  },
+  _payPolice(){
+    const z=ZS.zoo;
+    if((z.mt||0)<8000){ ZP.toast('❌ Keine 8.000 MT! Gondel wird gesperrt.',3000); this._refusePolice(); return; }
+    z.mt-=8000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._close(); ZP.toast('🚓 Strafe bezahlt. Die Polizei zieht ab.',3000);
+  },
+  _refusePolice(){
+    const z=ZS.zoo;
+    z.gondLockUntil=Date.now()+10*60000; ZS.save&&ZS.save();
+    this._close(); ZP.toast('🚓 Gondel 10 Min gesperrt — keine neuen Tiere!',4000);
+  },
+};
+window.ZooEvents = ZooEvents;
 
 </script>
 
