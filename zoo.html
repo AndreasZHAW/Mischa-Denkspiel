@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v225 -->
+<!-- ZOO v226 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -174,7 +174,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v225','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v226','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -577,7 +577,7 @@ const SLAPS=[
   {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true},
 ];
 
-function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000},{e:3,l:2,u:1,g:0,m:0,s:0,mt:25000},{e:4,l:3,u:2,g:1,m:0,s:0,mt:120000},{e:5,l:4,u:3,g:2,m:1,s:0,mt:600000},{e:5,l:5,u:4,g:3,m:2,s:0,mt:3000000},{e:5,l:5,u:5,g:4,m:3,s:0,mt:15000000},{e:5,l:5,u:5,g:5,m:4,s:1,mt:100000000}];return R[Math.min(n,R.length-1)];}
+function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:700},{e:2,l:1,u:0,g:0,m:0,s:0,mt:3500},{e:2,l:1,u:1,g:0,m:0,s:0,mt:17500},{e:3,l:2,u:1,g:1,m:0,s:0,mt:84000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:420000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:2100000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:10500000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:70000000}];return R[Math.min(n,R.length-1)];}
 function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e15)return'🌀'+(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return'🌀'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'🌀'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'🌀'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
@@ -1641,7 +1641,7 @@ const ZG={
     this._goldMachinePositions = [];
     this._goldMachineMeshes = [];
     this.ZONES.forEach((zone)=>{
-      const gx=zone.x+16, gz=zone.z; // offset to the right side of each zone
+      const gx=zone.x+24, gz=zone.z+8; // clearly to the side of the enclosures
       const gmBase=new THREE.Mesh(new THREE.BoxGeometry(4,0.6,4),new THREE.MeshBasicMaterial({color:0x4a3520}));
       gmBase.position.set(gx,0.3,gz); sc.add(gmBase);
       const gmBody=new THREE.Mesh(new THREE.BoxGeometry(3,4,2.5),new THREE.MeshBasicMaterial({color:0xFFD700}));
@@ -1667,7 +1667,7 @@ const ZG={
     this._feederPositions = [];
     if(typeof window!=='undefined' && window.MISCHA_TESTMODE){
       this.ZONES.forEach((zone)=>{
-        const fx=zone.x-16, fz=zone.z; // left side of each zone
+        const fx=zone.x-24, fz=zone.z+8; // clearly to the other side
         const fBase=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.6,3.5),new THREE.MeshBasicMaterial({color:0x2a3a1a}));
         fBase.position.set(fx,0.3,fz); sc.add(fBase);
         const fBody=new THREE.Mesh(new THREE.BoxGeometry(2.6,3.6,2.2),new THREE.MeshBasicMaterial({color:0x6ab04c}));
@@ -1936,18 +1936,47 @@ const ZG={
     LuckyBlocks.tick(dt);
     this._carAngle+=dt*.45;
     if(this._worldWheel)this._worldWheel.rotation.z+=0.01;
-    // Kehrmaschine fährt im Kreis
+    // Kehrmaschine — Zustandsmaschine: idle (Kreis) / mission (zum Zoo, Gehege abfahren, zurück)
     if(this._sweeperMesh && this._sweeperCenter){
-      this._sweeperAngle=(this._sweeperAngle||0)+dt*0.5;
-      const r=this._sweeperRadius||5;
-      const sx=this._sweeperCenter.x+Math.cos(this._sweeperAngle)*r;
-      const sz=this._sweeperCenter.z+Math.sin(this._sweeperAngle)*r;
-      this._sweeperMesh.position.set(sx,0,sz);
-      this._sweeperMesh.rotation.y=-this._sweeperAngle+Math.PI/2;
+      const m=this._sweeperMesh;
       if(this._sweeperBrush)this._sweeperBrush.rotation.x+=dt*8;
-      if(this._sweeperBeacon)this._sweeperBeacon.material.color.setHex((Math.floor(this._sweeperAngle*4)%2)?0xff6600:0xffcc00);
-      // update proximity position to the moving machine
-      this._sweeperPos={x:sx,z:sz};
+      if(this._sweeperBeacon)this._sweeperBeacon.material.color.setHex((Math.floor((this._sweeperAngle||0)*4)%2)?0xff6600:0xffcc00);
+      const state=this._sweepState||'idle';
+      const driveTo=(tx,tz,speed)=>{
+        const dx=tx-m.position.x, dz=tz-m.position.z, d=Math.hypot(dx,dz);
+        if(d<0.6)return true;
+        const step=Math.min(d,(speed||14)*dt);
+        m.position.x+=dx/d*step; m.position.z+=dz/d*step;
+        m.rotation.y=Math.atan2(dx,dz);
+        return false;
+      };
+      if(state==='idle'){
+        this._sweeperAngle=(this._sweeperAngle||0)+dt*0.5;
+        const r=this._sweeperRadius||5;
+        const sx=this._sweeperCenter.x+Math.cos(this._sweeperAngle)*r;
+        const sz=this._sweeperCenter.z+Math.sin(this._sweeperAngle)*r;
+        m.position.set(sx,0,sz);
+        m.rotation.y=-this._sweeperAngle+Math.PI/2;
+      } else if(state==='toZoo'){
+        // drive to the first enclosure waypoint
+        const wp=this._sweepWaypoints&&this._sweepWaypoints[0];
+        if(wp && driveTo(wp.x,wp.z)){ this._sweepState='sweeping'; this._sweepIdx=0; }
+      } else if(state==='sweeping'){
+        const wps=this._sweepWaypoints||[];
+        const wp=wps[this._sweepIdx||0];
+        if(wp){
+          if(driveTo(wp.x,wp.z,8)){ this._sweepIdx=(this._sweepIdx||0)+1; }
+        } else {
+          this._sweepState='return';
+        }
+      } else if(state==='return'){
+        if(driveTo(this._sweeperCenter.x,this._sweeperCenter.z)){
+          this._sweepState='idle';
+          // apply the sweep boost now that the machine finished its round
+          const z=ZS.zoo; if(z){ const now=Date.now(); if((z.sweepUntil||0)>now){z.sweepStacks=(z.sweepStacks||1)+1;}else{z.sweepStacks=1;} z.sweepUntil=now+30*60000; ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); ZP.toast('🧹 Kehrmaschine fertig! +1,2% Besucher 30 Min ('+z.sweepStacks+'×)',3500); }
+        }
+      }
+      this._sweeperPos={x:m.position.x,z:m.position.z};
     }
     if(this._carMeshes){
       const pl=this.pl;
@@ -4949,7 +4978,7 @@ const ZAdmin = {
     const durSel='<div style="width:100%;margin-bottom:6px"><label style="font-size:.7rem;color:rgba(255,255,255,.5)">Dauer:</label> '+
       '<select id="padmin-event-dur" onchange="ZAdmin._selectedEventDur=parseInt(this.value)" style="background:#222;color:#fff;border:1px solid #555;border-radius:6px;padding:3px 6px;font-size:.72rem">'+
       '<option value="60000">1 Min</option><option value="300000" selected>5 Min</option><option value="600000">10 Min</option><option value="900000">15 Min</option><option value="1800000">30 Min</option></select></div>';
-    const emergencies=[{id:'em_police',n:'🚓 Polizei',fn:'policeRaid'},{id:'em_assault',n:'🤕 Anfall',fn:'assault'},{id:'em_fire',n:'🔥 Feuer',fn:'fire'},{id:'em_health',n:'🦠 Gesundheit',fn:'health'},{id:'em_thief',n:'🦹 Einbrecher',fn:'thief'},{id:'em_protest',n:'⚖️ Protest',fn:'protest'}];
+    const emergencies=[{id:'em_police',n:'🚓 Polizei',fn:'policeRaid'},{id:'em_assault',n:'🤕 Anfall',fn:'assault'},{id:'em_fire',n:'🔥 Feuer',fn:'fire'},{id:'em_health',n:'🦠 Gesundheit',fn:'health'},{id:'em_thief',n:'🦹 Einbrecher',fn:'thief'},{id:'em_protest',n:'⚖️ Protest',fn:'protest'},{id:'em_storm',n:'🌪️ Sturm',fn:'storm'},{id:'em_inf',n:'🤩 Influencer',fn:'influencer'},{id:'em_escape',n:'🐍 Ausbruch',fn:'escape'}];
     el.innerHTML=durSel
       +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:4px">🎉 Fest-Events:</div>'
       +EVENTS.map(ev=>'<button class="padmin-btn" data-evid="'+ev.id+'" style="background:'+(ev.col||'#333')+';font-size:.7rem;padding:5px 8px;border:2px solid transparent" onclick="ZAdmin._selEv(\''+ev.id+'\')">'+ev.n+'</button>').join('')
@@ -6246,7 +6275,10 @@ document.addEventListener('DOMContentLoaded',()=>{
         mk('🔥 Feuer','ZooEvents.fire()','#e67e22')+
         mk('🦠 Gesundheit','ZooEvents.health()','#16a085')+
         mk('🦹 Einbrecher','ZooEvents.thief()','#8e44ad')+
-        mk('⚖️ Protest','ZooEvents.protest()','#27ae60');
+        mk('⚖️ Protest','ZooEvents.protest()','#27ae60')+
+        mk('🌪️ Sturm','ZooEvents.storm()','#5dade2')+
+        mk('🤩 Influencer','ZooEvents.influencer()','#e84393')+
+        mk('🐍 Ausbruch','ZooEvents.escape()','#e67e22');
       document.body.appendChild(box);
     }, 3000);
   }
@@ -6588,20 +6620,26 @@ const Sweeper = {
   _sweep(){
     const z=ZS.zoo; if(!z) return;
     if((z.mt||0)<this._COST){ ZP.toast('❌ Zu wenig MT!',2000); return; }
-    z.mt-=this._COST;
+    if(ZG._sweepState && ZG._sweepState!=='idle'){ ZP.toast('🧹 Maschine ist schon unterwegs!',2500); return; }
+    z.mt=Math.max(0,(z.mt||0)-this._COST);
+    ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
     document.getElementById('sweeper-panel')?.remove();
-    // 20% accident chance
+    // 20% accident chance (happens right away)
     if(Math.random()<0.20){
       this._accident();
-    } else {
-      // Apply / stack the visitor boost
-      const now=Date.now();
-      if((z.sweepUntil||0)>now){ z.sweepStacks=(z.sweepStacks||1)+1; }
-      else { z.sweepStacks=1; }
-      z.sweepUntil=now+30*60000;
-      ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
-      ZP.toast('🧹 Zoo gekehrt! +1,2% Besucher 30 Min ('+z.sweepStacks+'×)',3500);
+      return;
     }
+    // Send the machine on its mission: drive to the player's own zone, pass every enclosure, return
+    const eps=(ZG.ENCPOS&&ZG.ENCPOS())||[];
+    const wps=eps.map(p=>({x:p.x,z:p.z}));
+    if(!wps.length){
+      // no enclosures → just apply boost
+      const now=Date.now(); if((z.sweepUntil||0)>now){z.sweepStacks=(z.sweepStacks||1)+1;}else{z.sweepStacks=1;} z.sweepUntil=now+30*60000; ZS.save&&ZS.save();
+      ZP.toast('🧹 Zoo gekehrt! +1,2% Besucher 30 Min',3500); return;
+    }
+    ZG._sweepWaypoints=wps;
+    ZG._sweepState='toZoo';
+    ZP.toast('🧹 Die Kehrmaschine fährt los und kehrt alle Gehege!',3500);
   },
   // ─── ACCIDENT: run over → trash room ───
   _accident(){
@@ -6654,7 +6692,9 @@ const Sweeper = {
   _pay(){
     const z=ZS.zoo;
     if((z.mt||0)<15000){ ZP.toast('❌ Du hast keine 15.000 MT! Du musst putzen.',3000); this._refuse(); return; }
-    z.mt-=15000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    z.mt = Math.max(0, (z.mt||0) - 15000);
+    ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    ZP.toast('💳 15.000 MT bezahlt. Neuer Stand: '+$mt(z.mt),3500);
     this._ambulance();
   },
   _refuse(){
@@ -6765,8 +6805,8 @@ const ZooEvents = {
   _payPolice(){
     const z=ZS.zoo;
     if((z.mt||0)<8000){ ZP.toast('❌ Keine 8.000 MT! Gondel wird gesperrt.',3000); this._refusePolice(); return; }
-    z.mt-=8000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
-    this._close(); ZP.toast('🚓 Strafe bezahlt. Die Polizei zieht ab.',3000);
+    z.mt=Math.max(0,(z.mt||0)-8000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._close(); ZP.toast('🚓 8.000 MT Strafe bezahlt. Neuer Stand: '+$mt(z.mt),3500);
   },
   _refusePolice(){
     const z=ZS.zoo;
@@ -6822,8 +6862,8 @@ const ZooEvents = {
   _payAssault(){
     const z=ZS.zoo;
     if((z.mt||0)<10000){ ZP.toast('❌ Keine 10.000 MT! Besucher fliehen.',3000); this._refuseAssault(); return; }
-    z.mt-=10000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
-    this._close(); ZP.toast('🚓🚑 Polizei & Sanitäter kommen. Alles beruhigt sich.',3000);
+    z.mt=Math.max(0,(z.mt||0)-10000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._close(); ZP.toast('🚓🚑 10.000 MT bezahlt. Neuer Stand: '+$mt(z.mt),3500);
   },
   _refuseAssault(){ this._scareVisitors(20,10); this._close(); ZP.toast('😱 20% deiner Besucher sind geflohen!',4000); },
   // ─── FEUERALARM ───
@@ -6858,7 +6898,7 @@ const ZooEvents = {
         '<button onclick="ZooEvents._refuseHealth()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht zahlen</button>'+
       '</div>');
   },
-  _payHealth(){ const z=ZS.zoo; if((z.mt||0)<6000){ZP.toast('❌ Keine 6.000 MT!',2500);this._refuseHealth();return;} z.mt-=6000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('📋 Hygiene-Zertifikat erhalten!',3000); },
+  _payHealth(){ const z=ZS.zoo; if((z.mt||0)<6000){ZP.toast('❌ Keine 6.000 MT!',2500);this._refuseHealth();return;} z.mt=Math.max(0,(z.mt||0)-6000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('📋 6.000 MT — Zertifikat erhalten! Stand: '+$mt(z.mt),3500); },
   _refuseHealth(){ const z=ZS.zoo; z.earnDebuffUntil=Date.now()+5*60000; ZS.save&&ZS.save(); this._close(); ZP.toast('🦠 5 Min lang 50% weniger Einnahmen!',4000); },
   // ─── EINBRECHER ───
   thief(){
@@ -6876,7 +6916,7 @@ const ZooEvents = {
     const b=document.getElementById('thief-btn'); if(b){b.style.transform='scale(0.8) rotate('+(this._thiefHits*20)+'deg)';setTimeout(()=>{if(b)b.style.transform='';},100);}
     if(this._thiefHits>=5){ this._close(); ZP.toast('👮 Dieb vertrieben! Deine Tiere sind sicher.',3500); }
   },
-  _payThief(){ const z=ZS.zoo; if((z.mt||0)<12000){ZP.toast('❌ Keine 12.000 MT! Klicke den Dieb weg!',2500);return;} z.mt-=12000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('👮 Sicherheitsdienst hat den Dieb geschnappt!',3000); },
+  _payThief(){ const z=ZS.zoo; if((z.mt||0)<12000){ZP.toast('❌ Keine 12.000 MT! Klicke den Dieb weg!',2500);return;} z.mt=Math.max(0,(z.mt||0)-12000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('👮 12.000 MT — Dieb geschnappt! Stand: '+$mt(z.mt),3500); },
   // ─── TIERSCHÜTZER-PROTEST ───
   protest(){
     if(this._hasInsurance()){ ZP.toast('🛡️ Versicherung regelt den Protest (PR)!',3500); return; }
@@ -6889,10 +6929,65 @@ const ZooEvents = {
         '<button onclick="ZooEvents._refuseProtest()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Ignorieren</button>'+
       '</div>');
   },
-  _payProtest(){ const z=ZS.zoo; if((z.mt||0)<7000){ZP.toast('❌ Keine 7.000 MT!',2500);this._refuseProtest();return;} z.mt-=7000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('💚 Spende gemacht. Die Demo löst sich auf.',3000); },
+  _payProtest(){ const z=ZS.zoo; if((z.mt||0)<7000){ZP.toast('❌ Keine 7.000 MT!',2500);this._refuseProtest();return;} z.mt=Math.max(0,(z.mt||0)-7000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('💚 7.000 MT gespendet. Stand: '+$mt(z.mt),3500); },
   _refuseProtest(){ this._scareVisitors(20,10); this._close(); ZP.toast('📢 20% weniger Besucher für 10 Min!',4000); },
+  // ─── STURM ───
+  storm(){
+    if(this._hasInsurance()){ ZP.toast('🛡️ Versicherung deckt die Sturmschäden!',3500); return; }
+    this._overlay(
+      '<div style="font-size:3.4rem">🌪️</div>'+
+      '<h2 style="color:#5dade2;margin:6px 0">Sturm im Zoo!</h2>'+
+      '<p style="font-size:.92rem;line-height:1.4">Ein Sturm fegt durch den Zoo! Zahle <b style="color:#FFD700">9.000 MT</b> für Reparaturen — sonst verdienen deine Tiere 5 Min lang weniger (Schäden).</p>'+
+      '<div style="display:flex;gap:8px;margin-top:14px">'+
+        '<button onclick="ZooEvents._payStorm()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">🔧 Reparieren<br><small>9.000 MT</small></button>'+
+        '<button onclick="ZooEvents._refuseStorm()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht zahlen</button>'+
+      '</div>');
+  },
+  _payStorm(){ const z=ZS.zoo; if((z.mt||0)<9000){ZP.toast('❌ Keine 9.000 MT!',2500);this._refuseStorm();return;} z.mt=Math.max(0,(z.mt||0)-9000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('🔧 9.000 MT — Zoo repariert! Stand: '+$mt(z.mt),3500); },
+  _refuseStorm(){ const z=ZS.zoo; z.earnDebuffUntil=Date.now()+5*60000; ZS.save&&ZS.save(); this._close(); ZP.toast('🌪️ Schäden! 5 Min weniger Einnahmen.',4000); },
+  // ─── INFLUENCER (10 Sek, 8 Klicks) ───
+  influencer(){
+    this._infLeft=8;
+    const ov=this._overlay('<div id="inf-area"></div>');
+    this._renderInf();
+  },
+  _renderInf(){
+    const ov=document.getElementById('zevent-overlay'); if(!ov)return;
+    const inner=ov.firstChild;
+    inner.style.cssText='background:linear-gradient(135deg,#2a1a3a,#0e0e1e);border:2px solid #e84393;border-radius:18px;max-width:400px;width:100%;height:55vh;position:relative;padding:14px;color:#fff;overflow:hidden';
+    let pics='';
+    for(let i=0;i<this._infLeft;i++){ const x=Math.random()*76+10, y=Math.random()*45+35; pics+='<div onclick="ZooEvents._snapInf(this)" style="position:absolute;left:'+x+'%;top:'+y+'%;font-size:2.2rem;cursor:pointer;user-select:none">📸</div>'; }
+    inner.innerHTML='<div style="position:absolute;top:8px;left:0;right:0;text-align:center;z-index:3;font-weight:900">🤩 Influencer da! Mach 8 Fotos in 10 Sek!<br><span style="color:#e84393;font-size:.85rem">Noch '+this._infLeft+'</span></div>'+pics;
+    if(!this._infTimer){ this._infTimer=setTimeout(()=>{ if(this._infLeft>0){ this._close(); ZP.toast('📸 Zu langsam — Influencer ist weg.',3500);} this._infTimer=null; }, 10000); }
+  },
+  _snapInf(el){
+    el.remove(); this._infLeft--;
+    if(this._infLeft<=0){
+      if(this._infTimer){clearTimeout(this._infTimer);this._infTimer=null;}
+      const z=ZS.zoo; z.sweepUntil=Math.max(z.sweepUntil||0,Date.now())+10*60000; z.sweepStacks=(z.sweepStacks||0)+42; // ~+50% via big stack
+      ZS.save&&ZS.save();
+      this._close(); ZP.toast('🤩 Viral! +50% Besucher für 10 Min!',4000);
+    } else this._renderInf();
+  },
+  // ─── AUSBRUCH (20 Klicks) ───
+  escape(){
+    this._escHits=0;
+    this._overlay(
+      '<div style="font-size:3.4rem">🐍💨</div>'+
+      '<h2 style="color:#e67e22;margin:6px 0">Tier ausgebrochen!</h2>'+
+      '<p style="font-size:.92rem;line-height:1.4">Ein Tier ist los! Klicke es <b>20×</b> zum Einfangen — oder zahle <b style="color:#FFD700">8.000 MT</b> Tierfänger.</p>'+
+      '<div style="text-align:center;margin:14px 0"><button id="esc-btn" onclick="ZooEvents._catchEsc()" style="font-size:2.6rem;background:none;border:none;cursor:pointer">🦎</button><div style="font-size:.8rem;color:#f5c542">Gefangen: <span id="esc-cnt">0</span>/20</div></div>'+
+      '<button onclick="ZooEvents._payEsc()" style="width:100%;background:rgba(255,215,0,.2);border:1px solid #FFD700;color:#FFD700;padding:9px;border-radius:10px;font-weight:900;cursor:pointer">💳 Tierfänger (8.000 MT)</button>');
+  },
+  _catchEsc(){
+    this._escHits++;
+    const c=document.getElementById('esc-cnt'); if(c)c.textContent=this._escHits;
+    const b=document.getElementById('esc-btn'); if(b){const x=(Math.random()*60-30),y=(Math.random()*30-15);b.style.transform='translate('+x+'px,'+y+'px) rotate('+(this._escHits*30)+'deg)';}
+    if(this._escHits>=20){ this._close(); ZP.toast('🦎 Tier wieder eingefangen! Puh!',3500); }
+  },
+  _payEsc(){ const z=ZS.zoo; if((z.mt||0)<8000){ZP.toast('❌ Keine 8.000 MT! Fang es selbst!',2500);return;} z.mt=Math.max(0,(z.mt||0)-8000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('🪤 8.000 MT — Tierfänger hat es. Stand: '+$mt(z.mt),3500); },
   // ─── random emergency trigger (5% per 5 min) ───
-  _allEmergencies:['policeRaid','assault','fire','health','thief','protest'],
+  _allEmergencies:['policeRaid','assault','fire','health','thief','protest','storm','influencer','escape'],
   randomEmergency(){
     const pick=this._allEmergencies[Math.floor(Math.random()*this._allEmergencies.length)];
     if(typeof this[pick]==='function') this[pick]();
