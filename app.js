@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v227';
+const APP_VERSION = 'v228';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v227 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v228 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -1035,7 +1035,7 @@ const App = {
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">⚑ Meldungen</button>` : ''}
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">🔤 Schrift</button>
-            ${window.MISCHA_TESTMODE ? `<button id="reward-btn" onclick="RewardChests.open()" style="position:relative;background:rgba(255,165,0,0.25);border:2px solid #FFA500;color:#FFD700;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🎁 Belohnungen<span id="reward-badge" style="display:none;position:absolute;top:-6px;right:-6px;background:#E74C3C;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:.9rem;font-weight:900;box-shadow:0 0 8px rgba(231,76,60,.8)">!</span></button>` : ''}
+
             <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Spielprotokoll anzeigen">📋 Log</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">Abmelden</button>
           </div>
@@ -1048,6 +1048,15 @@ const App = {
             <span style="font-size:clamp(0.85rem,3.5vw,0.95rem);color:rgba(255,255,255,.7);margin-left:8px">Mischa Taler</span>
           </div>
         </div>
+
+        <!-- Belohnungen / Truhen -->
+        ${window.MISCHA_TESTMODE ? `
+        <div style="margin-bottom:12px">
+          <button id="reward-btn" onclick="RewardChests.open()" style="position:relative;width:100%;background:linear-gradient(135deg,#FFA500,#FF6B00);color:#1a1a2e;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(255,140,0,.4)">
+            🎁 Belohnungen abholen
+            <span id="reward-badge" style="display:none;position:absolute;top:-8px;right:14px;background:#E74C3C;color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;text-align:center;font-size:1.05rem;font-weight:900;box-shadow:0 0 10px rgba(231,76,60,.9);animation:bounce 1s infinite">!</span>
+          </button>
+        </div>` : ''}
 
         <!-- Teleport Button -->
         ${mt>=10 ? `
@@ -2836,6 +2845,36 @@ const RewardChests = {
       {type:'nothing', icon:'🕳️', label:'Nichts...',  apply:()=>{}},
     ];
   },
+  // ── professional SVG treasure chest, colored ──
+  _chestSVG(color, size, opened){
+    size=size||90;
+    const dark=this._darken(color,0.6), light=this._lighten(color,0.3);
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" style="filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))">'+
+      // lid
+      '<path d="M15 42 Q50 18 85 42 L85 50 L15 50 Z" fill="'+light+'" stroke="#c0c0c8" stroke-width="3"/>'+
+      // body
+      '<rect x="15" y="50" width="70" height="34" rx="3" fill="'+color+'" stroke="#c0c0c8" stroke-width="3"/>'+
+      // wood planks
+      '<line x1="15" y1="62" x2="85" y2="62" stroke="'+dark+'" stroke-width="2"/>'+
+      '<line x1="15" y1="73" x2="85" y2="73" stroke="'+dark+'" stroke-width="2"/>'+
+      // metal bands
+      '<rect x="28" y="40" width="7" height="44" fill="#b8b8c0" stroke="#888" stroke-width="1"/>'+
+      '<rect x="65" y="40" width="7" height="44" fill="#b8b8c0" stroke="#888" stroke-width="1"/>'+
+      // lock
+      '<rect x="44" y="56" width="12" height="14" rx="2" fill="#d0d0d8" stroke="#888" stroke-width="1.5"/>'+
+      '<circle cx="50" cy="62" r="2.5" fill="#444"/>'+
+      (opened?'<text x="50" y="38" font-size="16" text-anchor="middle">📭</text>':'')+
+    '</svg>';
+  },
+  _darken(hex,f){ return this._shade(hex,-f); },
+  _lighten(hex,f){ return this._shade(hex,f); },
+  _shade(hex,f){
+    try{ hex=hex.replace('#',''); let r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
+      if(f<0){r=Math.round(r*(1+f));g=Math.round(g*(1+f));b=Math.round(b*(1+f));}
+      else{r=Math.round(r+(255-r)*f);g=Math.round(g+(255-g)*f);b=Math.round(b+(255-b)*f);}
+      return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join('');
+    }catch(e){return hex;}
+  },
   // ── timing (resets each game session) ──
   _startTs(){
     let t=0; try{ t=parseInt(sessionStorage.getItem('mischa_session_start')||'0'); }catch(e){}
@@ -2870,7 +2909,7 @@ const RewardChests = {
       const mm=String(Math.floor(minsLeft)).padStart(2,'0'), ss=String(Math.floor((minsLeft%1)*60)).padStart(2,'0');
       return '<div style="flex:1;min-width:150px;max-width:240px;background:linear-gradient(180deg,'+t.color+'22,'+t.color+'08);border:2px solid '+t.color+';border-radius:16px;padding:14px;text-align:center;box-shadow:0 0 24px '+t.glow+'">'+
         '<div style="font-size:clamp(1rem,4vw,1.3rem);font-weight:900;color:'+t.color+';text-shadow:0 0 10px '+t.glow+';margin-bottom:10px">'+t.name+'</div>'+
-        '<div style="font-size:3.4rem;margin:6px 0;filter:drop-shadow(0 0 10px '+t.glow+')">'+(opened?'📭':'🧰')+'</div>'+
+        '<div style="margin:6px 0;display:flex;justify-content:center">'+this._chestSVG(t.color,90,opened)+'</div>'+
         (opened
           ? '<div style="color:rgba(255,255,255,.4);font-weight:700;margin-top:8px">Schon geöffnet</div><div style="font-size:.7rem;color:rgba(255,255,255,.3)">Neustart für neue Truhe</div>'
           : ready
@@ -2924,7 +2963,7 @@ const RewardChests = {
     const labelCol = isHell ? '#ff3030' : ((this.RARITIES[shownIdx]||this.RARITIES[0]).id==='superepic'?'#fff':(this.RARITIES[shownIdx]||this.RARITIES[0]).bg);
     ov.innerHTML=
       '<div id="chest-rarity" style="font-size:clamp(1.2rem,5vw,1.8rem);font-weight:900;margin-bottom:16px;color:'+labelCol+';text-shadow:0 0 14px '+labelCol+'">'+label+'</div>'+
-      '<div id="chest-3d" style="font-size:6rem;transition:transform .35s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 26px '+labelCol+')">'+(isHell?'🗃️':'🧰')+'</div>'+
+      '<div id="chest-3d" style="transition:transform .35s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 26px '+labelCol+')">'+(isHell?this._chestSVG('#8b0000',150,false):this._chestSVG((this.RARITIES[shownIdx]||this.RARITIES[0]).bg,150,false))+'</div>'+
       '<div id="chest-hint" style="margin-top:20px;font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.85)">Tippe '+(5-s.clicks)+'× zum Öffnen!</div>'+
       '<div style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.4)">'+'●'.repeat(s.clicks)+'○'.repeat(5-s.clicks)+'</div>';
     ov.onclick=()=>this._chestClick();
@@ -2939,6 +2978,10 @@ const RewardChests = {
     if(chest){
       const rot=s.clicks*360;
       chest.style.transform='rotateY('+rot+'deg) scale('+(1+s.clicks*0.06)+')';
+      // recolor chest to the newly revealed rarity
+      const shownIdx2 = s.isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
+      const col2 = s.isHell ? '#8b0000' : (this.RARITIES[shownIdx2]||this.RARITIES[0]).bg;
+      chest.innerHTML = this._chestSVG(col2,150,false);
     }
     // update bg + label live
     this._updateAnimVisual();
