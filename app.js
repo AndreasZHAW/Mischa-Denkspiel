@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v226';
+const APP_VERSION = 'v227';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v226 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v227 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -1035,6 +1035,7 @@ const App = {
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">⚑ Meldungen</button>` : ''}
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">🔤 Schrift</button>
+            ${window.MISCHA_TESTMODE ? `<button id="reward-btn" onclick="RewardChests.open()" style="position:relative;background:rgba(255,165,0,0.25);border:2px solid #FFA500;color:#FFD700;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🎁 Belohnungen<span id="reward-badge" style="display:none;position:absolute;top:-6px;right:-6px;background:#E74C3C;color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:.9rem;font-weight:900;box-shadow:0 0 8px rgba(231,76,60,.8)">!</span></button>` : ''}
             <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Spielprotokoll anzeigen">📋 Log</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">Abmelden</button>
           </div>
@@ -1096,6 +1097,8 @@ const App = {
           </button>
         </div>
       </div>`);
+    // Start reward-chest badge timer (test mode)
+    if(window.MISCHA_TESTMODE && typeof RewardChests!=='undefined'){ RewardChests.startBadgeTimer(); }
   },
 
   _logout() {
@@ -2792,6 +2795,220 @@ function getTaskInstruction(type, worldId) {
   const instr = INSTRUCTIONS[type] || `🎮 <b>Los geht's!</b><br>Spiele das Spiel so gut du kannst!`;
   return `<span style="font-size:1.5rem">${icon}</span><br>${instr}`;
 }
+
+
+
+// ══════════════════════════════════════════════
+// REWARD CHESTS — Brawl-Stars-style timed chests (test mode)
+// ══════════════════════════════════════════════
+const RewardChests = {
+  // chest tiers: minutes to unlock + upgrade chances + hell chance + reward quality
+  TIERS: [
+    {min:5,   name:'5 MIN TRUHE',   color:'#2ecc40', glow:'rgba(46,204,64,.6)',  up:0.30, hell:0.05, q:1},
+    {min:10,  name:'10 MIN TRUHE',  color:'#0074d9', glow:'rgba(0,116,217,.6)',  up:0.40, hell:0.03, q:2},
+    {min:30,  name:'30 MIN TRUHE',  color:'#b10dc9', glow:'rgba(177,13,201,.6)', up:0.50, hell:0.01, q:3},
+    {min:60,  name:'60 MIN TRUHE',  color:'#ff851b', glow:'rgba(255,133,27,.6)', up:0.62, hell:0.007,q:4},
+    {min:120, name:'120 MIN TRUHE', color:'#ffd700', glow:'rgba(255,215,0,.7)',  up:0.75, hell:0.005,q:5},
+  ],
+  RARITIES:[
+    {id:'normal', name:'Normal',       bg:'#7f8c8d', grad:'linear-gradient(135deg,#95a5a6,#5d6d7e)'},
+    {id:'rare',   name:'Selten',       bg:'#3498db', grad:'linear-gradient(135deg,#5dade2,#2471a3)'},
+    {id:'epic',   name:'Episch',       bg:'#9b59b6', grad:'linear-gradient(135deg,#bb8fce,#6c3483)'},
+    {id:'superepic',name:'Super-Episch',bg:'#e74c3c', grad:'linear-gradient(135deg,#ff6b6b,#c0392b)'},
+  ],
+  // 6 reward types per chest; quality q scales the MT amounts
+  _rewardPool(q, rarityIdx){
+    const mult = q * (1+rarityIdx*0.8); // higher tier + higher rarity = better
+    return [
+      {type:'mt',   icon:'🌀', label:'+'+Math.round(500*mult)+' MT',   apply:()=>this._giveMT(Math.round(500*mult))},
+      {type:'mt2',  icon:'💰', label:'+'+Math.round(1500*mult)+' MT',  apply:()=>this._giveMT(Math.round(1500*mult))},
+      {type:'token',icon:'🥇', label:'+'+(q+rarityIdx)+' Gold-Token',  apply:()=>this._giveToken(q+rarityIdx)},
+      {type:'spin', icon:'🎡', label:'+'+(1+rarityIdx)+' Glücksrad-Spin', apply:()=>this._giveSpin(1+rarityIdx)},
+      {type:'treat',icon:'🍬', label:'+'+(2+rarityIdx)+' Leckerli',     apply:()=>this._giveTreat(2+rarityIdx)},
+      {type:'event',icon:'🎉', label:'Zufalls-Event!',                 apply:()=>this._giveEvent()},
+    ];
+  },
+  _hellPool(){
+    return [
+      {type:'mt_loss', icon:'💀', label:'-10.000 MT', apply:()=>this._giveMT(-10000)},
+      {type:'mt_loss2',icon:'🔥', label:'-5.000 MT',  apply:()=>this._giveMT(-5000)},
+      {type:'accident',icon:'🚜', label:'Unfall!',    apply:()=>{ try{sessionStorage.setItem('mischa_pending_accident','1');}catch(e){} }},
+      {type:'nothing', icon:'🕳️', label:'Nichts...',  apply:()=>{}},
+    ];
+  },
+  // ── timing (resets each game session) ──
+  _startTs(){
+    let t=0; try{ t=parseInt(sessionStorage.getItem('mischa_session_start')||'0'); }catch(e){}
+    if(!t){ t=Date.now(); try{sessionStorage.setItem('mischa_session_start',String(t));}catch(e){} }
+    return t;
+  },
+  _opened(){ try{ return JSON.parse(sessionStorage.getItem('mischa_chests_opened')||'[]'); }catch(e){ return []; } },
+  _markOpened(min){ const o=this._opened(); if(!o.includes(min)){o.push(min);try{sessionStorage.setItem('mischa_chests_opened',JSON.stringify(o));}catch(e){}} },
+  _minsPlayed(){ return (Date.now()-this._startTs())/60000; },
+  _isReady(tier){ return this._minsPlayed()>=tier.min && !this._opened().includes(tier.min); },
+  _anyReady(){ return this.TIERS.some(t=>this._isReady(t)); },
+  // ── badge on the menu button ──
+  updateBadge(){
+    const b=document.getElementById('reward-badge'); if(!b)return;
+    b.style.display = this._anyReady() ? 'block' : 'none';
+  },
+  startBadgeTimer(){
+    if(this._badgeIv)clearInterval(this._badgeIv);
+    this._badgeIv=setInterval(()=>this.updateBadge(),5000);
+    this.updateBadge();
+  },
+  // ── the chest selection page ──
+  open(){
+    document.getElementById('chest-overlay')?.remove();
+    const ov=document.createElement('div');
+    ov.id='chest-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:99970;background:linear-gradient(160deg,#0a0e1a,#161b2e);overflow:auto;font-family:Arial,sans-serif;color:#fff';
+    const cards=this.TIERS.map(t=>{
+      const ready=this._isReady(t);
+      const opened=this._opened().includes(t.min);
+      const minsLeft=Math.max(0,t.min-this._minsPlayed());
+      const mm=String(Math.floor(minsLeft)).padStart(2,'0'), ss=String(Math.floor((minsLeft%1)*60)).padStart(2,'0');
+      return '<div style="flex:1;min-width:150px;max-width:240px;background:linear-gradient(180deg,'+t.color+'22,'+t.color+'08);border:2px solid '+t.color+';border-radius:16px;padding:14px;text-align:center;box-shadow:0 0 24px '+t.glow+'">'+
+        '<div style="font-size:clamp(1rem,4vw,1.3rem);font-weight:900;color:'+t.color+';text-shadow:0 0 10px '+t.glow+';margin-bottom:10px">'+t.name+'</div>'+
+        '<div style="font-size:3.4rem;margin:6px 0;filter:drop-shadow(0 0 10px '+t.glow+')">'+(opened?'📭':'🧰')+'</div>'+
+        (opened
+          ? '<div style="color:rgba(255,255,255,.4);font-weight:700;margin-top:8px">Schon geöffnet</div><div style="font-size:.7rem;color:rgba(255,255,255,.3)">Neustart für neue Truhe</div>'
+          : ready
+            ? '<div style="color:'+t.color+';font-weight:900;margin:8px 0">Bereit zum Öffnen!</div><button onclick="RewardChests.openChest('+t.min+')" style="width:100%;background:linear-gradient(135deg,'+t.color+','+t.color+'cc);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;font-size:1rem;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.4)">ÖFFNEN</button>'
+            : '<div style="color:rgba(255,255,255,.6);font-size:.85rem;margin-top:6px">Öffne in:</div><div style="background:#000;border-radius:8px;padding:6px;margin-top:4px;font-size:1.1rem;font-weight:900">🕐 '+mm+':'+ss+'</div>'
+        )+
+        (t.min===120?'<div style="font-size:.62rem;color:'+t.color+';margin-top:6px;font-weight:700">ENTHÄLT SEHR SELTENE BELOHNUNGEN!</div>':'')+
+      '</div>';
+    }).join('');
+    ov.innerHTML=
+      '<div style="position:sticky;top:0;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 14px,#3a1010 14px,#3a1010 28px);border-bottom:2px solid #c0392b;padding:10px;text-align:center;z-index:5">'+
+        '<button onclick="document.getElementById(\'chest-overlay\').remove()" style="position:absolute;left:12px;top:8px;background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1.2rem;cursor:pointer">✕</button>'+
+        '<span style="color:#e74c3c;font-weight:900;font-size:clamp(.8rem,3.2vw,1rem)">⚠️ WENN DU DAS SPIEL SCHLIESST, WERDEN DIE BELOHNUNGEN ZURÜCKGESETZT!</span>'+
+      '</div>'+
+      '<div style="text-align:center;padding:14px"><h1 style="margin:6px 0;font-size:clamp(1.3rem,6vw,2rem);background:linear-gradient(90deg,#FFD700,#FF8C00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">🎁 Belohnungs-Truhen</h1>'+
+        '<div style="color:rgba(255,255,255,.55);font-size:.85rem">Spiele länger → bessere Truhen werden bereit. Spielzeit: '+Math.floor(this._minsPlayed())+' Min</div></div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 20px;max-width:900px;margin:0 auto">'+cards+'</div>'+'<div style="text-align:center;padding:0 14px 30px"><button onclick="RewardChests._ffTest()" style="background:rgba(255,107,0,.25);border:1px dashed #ff6b00;color:#ff6b00;padding:8px 16px;border-radius:10px;font-size:.8rem;cursor:pointer;font-weight:700">🧪 +130 Min vorspulen (Test)</button></div>';
+    document.body.appendChild(ov);
+  },
+  // ── opening animation: 5 clicks, chest spins, rarity can rise ──
+  openChest(min){
+    const tier=this.TIERS.find(t=>t.min===min); if(!tier)return;
+    if(!this._isReady(tier)){ return; }
+    // determine if this is a HELL chest
+    const isHell = Math.random() < tier.hell;
+    // roll final rarity via 5 upgrade steps
+    let rarityIdx=0;
+    if(!isHell){
+      for(let i=0;i<5;i++){ if(rarityIdx<3 && Math.random()<tier.up) rarityIdx++; }
+    }
+    this._animState={tier,isHell,rarityIdx,clicks:0,curIdx:0};
+    this._renderOpenAnim();
+  },
+  _renderOpenAnim(){
+    const s=this._animState; if(!s)return;
+    document.getElementById('chest-anim')?.remove();
+    const ov=document.createElement('div');
+    ov.id='chest-anim';
+    const isHell=s.isHell;
+    // background reflects current shown rarity (or hell)
+    const shownIdx = isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
+    let bg;
+    if(isHell) bg='radial-gradient(circle at 50% 40%,#5a0000,#1a0000)';
+    else {
+      const r=this.RARITIES[shownIdx]||this.RARITIES[0];
+      if(r.id==='superepic') bg='linear-gradient(135deg,#ff0000,#ff8c00,#ffee00,#00ff00,#0088ff,#8800ff)';
+      else bg='radial-gradient(circle at 50% 40%,'+r.bg+',#0a0a14)';
+    }
+    ov.style.cssText='position:fixed;inset:0;z-index:99975;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:20px;transition:background .4s';
+    const label = isHell ? '🔥 HÖLLEN-TRUHE 🔥' : (this.RARITIES[shownIdx]||this.RARITIES[0]).name.toUpperCase();
+    const labelCol = isHell ? '#ff3030' : ((this.RARITIES[shownIdx]||this.RARITIES[0]).id==='superepic'?'#fff':(this.RARITIES[shownIdx]||this.RARITIES[0]).bg);
+    ov.innerHTML=
+      '<div id="chest-rarity" style="font-size:clamp(1.2rem,5vw,1.8rem);font-weight:900;margin-bottom:16px;color:'+labelCol+';text-shadow:0 0 14px '+labelCol+'">'+label+'</div>'+
+      '<div id="chest-3d" style="font-size:6rem;transition:transform .35s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 26px '+labelCol+')">'+(isHell?'🗃️':'🧰')+'</div>'+
+      '<div id="chest-hint" style="margin-top:20px;font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.85)">Tippe '+(5-s.clicks)+'× zum Öffnen!</div>'+
+      '<div style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.4)">'+'●'.repeat(s.clicks)+'○'.repeat(5-s.clicks)+'</div>';
+    ov.onclick=()=>this._chestClick();
+    document.body.appendChild(ov);
+  },
+  _chestClick(){
+    const s=this._animState; if(!s)return;
+    s.clicks++;
+    // each click reveals one upgrade step toward final rarity
+    if(s.curIdx < s.rarityIdx) s.curIdx++;
+    const chest=document.getElementById('chest-3d');
+    if(chest){
+      const rot=s.clicks*360;
+      chest.style.transform='rotateY('+rot+'deg) scale('+(1+s.clicks*0.06)+')';
+    }
+    // update bg + label live
+    this._updateAnimVisual();
+    if(s.clicks>=5){ setTimeout(()=>this._revealReward(),450); }
+  },
+  _updateAnimVisual(){
+    const s=this._animState; if(!s)return;
+    const ov=document.getElementById('chest-anim'); if(!ov)return;
+    const isHell=s.isHell;
+    const shownIdx = isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
+    let bg;
+    if(isHell) bg='radial-gradient(circle at 50% 40%,#5a0000,#1a0000)';
+    else { const r=this.RARITIES[shownIdx]||this.RARITIES[0];
+      if(r.id==='superepic') bg='linear-gradient(135deg,#ff0000,#ff8c00,#ffee00,#00ff00,#0088ff,#8800ff)';
+      else bg='radial-gradient(circle at 50% 40%,'+r.bg+',#0a0a14)'; }
+    ov.style.background=bg;
+    const rEl=document.getElementById('chest-rarity'), hEl=document.getElementById('chest-hint');
+    const r=this.RARITIES[shownIdx]||this.RARITIES[0];
+    const label = isHell ? '🔥 HÖLLEN-TRUHE 🔥' : r.name.toUpperCase();
+    const labelCol = isHell ? '#ff3030' : (r.id==='superepic'?'#fff':r.bg);
+    if(rEl){ rEl.textContent=label; rEl.style.color=labelCol; rEl.style.textShadow='0 0 14px '+labelCol; }
+    if(hEl){ hEl.textContent = s.clicks>=5?'✨ Öffnet sich...':'Tippe '+(5-s.clicks)+'× zum Öffnen!'; }
+    const dots=ov.querySelector('div:last-child'); if(dots && dots.id!=='chest-hint') dots.textContent='●'.repeat(s.clicks)+'○'.repeat(5-s.clicks);
+  },
+  _revealReward(){
+    const s=this._animState; if(!s)return;
+    this._markOpened(s.tier.min);
+    let pool, reward;
+    if(s.isHell){ pool=this._hellPool(); reward=pool[Math.floor(Math.random()*pool.length)]; }
+    else { pool=this._rewardPool(s.tier.q, s.rarityIdx); reward=pool[Math.floor(Math.random()*pool.length)]; }
+    try{ reward.apply(); }catch(e){}
+    const ov=document.getElementById('chest-anim'); if(!ov)return;
+    const isHell=s.isHell;
+    const r=this.RARITIES[s.rarityIdx]||this.RARITIES[0];
+    const col=isHell?'#ff3030':(r.id==='superepic'?'#FFD700':r.bg);
+    ov.innerHTML=
+      '<div style="font-size:clamp(1.1rem,4.5vw,1.6rem);font-weight:900;color:'+col+';text-shadow:0 0 14px '+col+';margin-bottom:10px">'+(isHell?'🔥 HÖLLEN-TRUHE 🔥':r.name.toUpperCase()+'-TRUHE')+'</div>'+
+      '<div style="font-size:5rem;margin:10px 0;animation:bounce 1s infinite">'+reward.icon+'</div>'+
+      '<div style="font-size:clamp(1.2rem,5vw,1.7rem);font-weight:900;color:#fff;margin-bottom:6px">'+reward.label+'</div>'+
+      '<div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:20px">'+(isHell?'Autsch! Pech gehabt...':'Belohnung erhalten!')+'</div>'+
+      '<button onclick="RewardChests._closeAnim()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:12px 30px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">Super! ➜</button>';
+    ov.onclick=null;
+    this.updateBadge();
+  },
+  _closeAnim(){
+    document.getElementById('chest-anim')?.remove();
+    this._animState=null;
+    this.open(); // back to chest list (refreshed)
+    this.updateBadge();
+  },
+  // ── reward appliers (operate on the player's MT / zoo) ──
+  _ffTest(){
+    // shift the session start back 130 min so all chests become ready (test only)
+    try{ const t=this._startTs()-130*60000; sessionStorage.setItem('mischa_session_start',String(t)); }catch(e){}
+    this.open(); this.updateBadge();
+  },
+  _giveMT(amount){
+    const p=State.currentPlayer; if(!p)return;
+    p.totalScore=Math.max(0,(p.totalScore||0)+amount);
+    State.savePlayer&&State.savePlayer(p);
+  },
+  _giveToken(n){ /* tokens live in the zoo doc; store pending */ this._pending('tokens',n); },
+  _giveSpin(n){ this._pending('spins',n); },
+  _giveTreat(n){ this._pending('treats',n); },
+  _giveEvent(){ this._pending('event',1); },
+  _pending(key,n){
+    try{ const p=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}'); p[key]=(p[key]||0)+n; sessionStorage.setItem('mischa_pending_rewards',JSON.stringify(p)); }catch(e){}
+  },
+};
+window.RewardChests = RewardChests;
 
 window.App = App;
 window.mountainSVG = mountainSVG;

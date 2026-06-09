@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v226 -->
+<!-- ZOO v227 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -174,7 +174,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v226','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v227','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -900,6 +900,31 @@ const ZG={
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     this._scheduleEvent();
+    // Apply pending chest rewards (from the Belohnungs-Truhen in the menu)
+    if(window.MISCHA_TESTMODE){
+      try{
+        const pr=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}');
+        const z=ZS.zoo;
+        if(z && (pr.tokens||pr.spins||pr.treats||pr.event)){
+          if(pr.tokens){ z.tokens=(z.tokens||0)+pr.tokens; }
+          if(pr.spins){ if(typeof LW!=='undefined'){LW.spins=(LW.spins||0)+pr.spins; LW._saveSpins&&LW._saveSpins();} }
+          if(pr.treats){ z.treats=(z.treats||0)+pr.treats; }
+          let msg='🎁 Truhen-Belohnungen: ';
+          if(pr.tokens)msg+=pr.tokens+'🥇 ';
+          if(pr.spins)msg+=pr.spins+'🎡 ';
+          if(pr.treats)msg+=pr.treats+'🍬 ';
+          ZP.toast(msg,4000);
+          if(pr.event){ setTimeout(()=>{ const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)]; this.startEv(ev,300000); },1500); }
+          ZS.save&&ZS.save();
+        }
+        sessionStorage.removeItem('mischa_pending_rewards');
+        // pending accident from a hell chest
+        if(sessionStorage.getItem('mischa_pending_accident')==='1'){
+          sessionStorage.removeItem('mischa_pending_accident');
+          setTimeout(()=>{ if(typeof Sweeper!=='undefined')Sweeper._accident(); },2000);
+        }
+      }catch(e){}
+    }
     // Insurance: charge 1000 MT every 5 min while active (test mode)
     this._ivs.push(setInterval(()=>{
       const z=ZS.zoo; if(!z||!z.insuranceActive) return;
