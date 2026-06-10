@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v228 -->
+<!-- ZOO v229 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -172,9 +172,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
+<script src="rewardchests.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v228','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v229','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -223,6 +224,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
+<div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
 </div>
@@ -905,15 +907,24 @@ const ZG={
       try{
         const pr=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}');
         const z=ZS.zoo;
-        if(z && (pr.tokens||pr.spins||pr.treats||pr.event)){
-          if(pr.tokens){ z.tokens=(z.tokens||0)+pr.tokens; }
-          if(pr.spins){ if(typeof LW!=='undefined'){LW.spins=(LW.spins||0)+pr.spins; LW._saveSpins&&LW._saveSpins();} }
-          if(pr.treats){ z.treats=(z.treats||0)+pr.treats; }
-          let msg='🎁 Truhen-Belohnungen: ';
-          if(pr.tokens)msg+=pr.tokens+'🥇 ';
-          if(pr.spins)msg+=pr.spins+'🎡 ';
-          if(pr.treats)msg+=pr.treats+'🍬 ';
-          ZP.toast(msg,4000);
+        if(z && Object.keys(pr).length){
+          let msg=[];
+          if(pr.tokens){ z.tokens=(z.tokens||0)+pr.tokens; msg.push(pr.tokens+'🥇'); }
+          if(pr.spins){ if(typeof LW!=='undefined'){LW.spins=(LW.spins||0)+pr.spins; LW._saveSpins&&LW._saveSpins();} msg.push(pr.spins+'🎡'); }
+          if(pr.treats){ z.treats=(z.treats||0)+pr.treats; msg.push(pr.treats+'🍬'); }
+          if(pr.freeSweep){ z.freeSweeps=(z.freeSweeps||0)+pr.freeSweep; msg.push(pr.freeSweep+'× 🧹 gratis'); }
+          if(pr.lifeInsurance){ z.insuranceActive=true; z.lifeInsurance=true; z.insuranceUntil=Date.now()+9e12; msg.push('🛡️ lebenslang'); }
+          // animals by rarity
+          const giveAnimal=(rarity)=>{
+            const slot=z.enc.findIndex(e=>!e||!e.animal); if(slot<0){ZP.toast('🦁 Kein Platz für ein Tier! Belohnung verfällt.',3500);return;}
+            let pool=(window.ANIMALS||ANIMALS||[]).filter(a=>a.r===rarity);
+            if(rarity==='dino'){ const a={id:'chest_dino',n:'Dinosaurier',e:'🦕',r:'mythic',p:0,earn:800,w:0}; z.enc[slot]={animal:a,shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0}; ZG._encs&&ZG._encs(); return; }
+            if(!pool.length) pool=(window.ANIMALS||ANIMALS||[]).filter(a=>a.r==='epic');
+            const a=pool[Math.floor(Math.random()*pool.length)]; if(!a)return;
+            z.enc[slot]={animal:{...a},shiny:(rarity==='mythic'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0}; ZG._encs&&ZG._encs();
+          };
+          ['rare','epic','mythic','dino'].forEach(rar=>{ if(pr['animal_'+rar]){ for(let i=0;i<pr['animal_'+rar];i++)giveAnimal(rar); msg.push('🐾 '+rar); } });
+          if(msg.length){ ZP.toast('🎁 Truhen-Belohnung: '+msg.join(' · '),5000); }
           if(pr.event){ setTimeout(()=>{ const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)]; this.startEv(ev,300000); },1500); }
           ZS.save&&ZS.save();
         }
@@ -928,6 +939,7 @@ const ZG={
     // Insurance: charge 1000 MT every 5 min while active (test mode)
     this._ivs.push(setInterval(()=>{
       const z=ZS.zoo; if(!z||!z.insuranceActive) return;
+      if(z.lifeInsurance) return; // lifelong = free, no charge
       if(Date.now() >= (z.insuranceNext||0)){
         if((z.mt||0) >= 1000){
           z.mt-=1000; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
@@ -6287,6 +6299,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // ═══ TEST-MODE: Trigger-Buttons zum Testen der Events ═══
   if(window.MISCHA_TESTMODE){
+    // show reward button in zoo + badge timer
+    const rhz=document.getElementById('rewardHbZoo'); if(rhz)rhz.style.display='';
+    if(typeof RewardChests!=='undefined' && RewardChests.startBadgeTimer) RewardChests.startBadgeTimer();
     setTimeout(()=>{
       if(document.getElementById('test-triggers'))return;
       const box=document.createElement('div');
@@ -6644,9 +6659,9 @@ const Sweeper = {
   },
   _sweep(){
     const z=ZS.zoo; if(!z) return;
-    if((z.mt||0)<this._COST){ ZP.toast('❌ Zu wenig MT!',2000); return; }
     if(ZG._sweepState && ZG._sweepState!=='idle'){ ZP.toast('🧹 Maschine ist schon unterwegs!',2500); return; }
-    z.mt=Math.max(0,(z.mt||0)-this._COST);
+    if((z.freeSweeps||0)>0){ z.freeSweeps--; ZP.toast('🧹 Gratis-Kehren benutzt! ('+z.freeSweeps+' übrig)',2500); }
+    else { if((z.mt||0)<this._COST){ ZP.toast('❌ Zu wenig MT!',2000); return; } z.mt=Math.max(0,(z.mt||0)-this._COST); }
     ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
     document.getElementById('sweeper-panel')?.remove();
     // 20% accident chance (happens right away)

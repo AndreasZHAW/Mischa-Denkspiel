@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v228';
+const APP_VERSION = 'v229';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v228 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v229 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -378,8 +378,66 @@ const App = {
     }
     localStorage.setItem('zoo_users', JSON.stringify(zooUsers));
     sessionStorage.setItem('mischa_birthyear', p.birthYear||2000);
-    // ── CINEMATIC TELEPORT SCREEN ──
-    this._showTeleportCinema(p.name, charData?.emoji||'🧭', mt);
+    // ── BOARDING SCENE → then cinematic teleport ──
+    this._showBoardingScene(p.name, charData?.emoji||'🧭', mt);
+  },
+
+  _showBoardingScene(playerName, charEmoji, mtLeft) {
+    const PLAYER_NAME=playerName||'', PLAYER_EMOJI=charEmoji||'🧭';
+    const ov=document.createElement('div'); ov.id='boarding-scene';
+    document.body.style.background='#000';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Arial,sans-serif';
+    ov.innerHTML='<canvas id="bd-cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>'+
+      '<audio id="bd-music" src="mischa_intro.mp3" preload="auto"></audio>'+
+      '<div id="bd-title" style="position:absolute;top:9%;left:0;right:0;text-align:center;z-index:3;pointer-events:none;font-weight:900;letter-spacing:3px;opacity:0;transition:opacity .6s;font-family:Arial Black,Impact,sans-serif">'+
+        '<span style="display:block;font-size:clamp(.8rem,3vw,1.3rem);color:#ffe24a;letter-spacing:5px;text-shadow:0 0 18px rgba(255,210,74,.6);margin-bottom:4px">WELCOME TO THE</span>'+
+        '<span style="display:block;font-size:clamp(1.5rem,7vw,3.4rem);background:linear-gradient(90deg,#4af0ff,#9fd8ff,#4af0ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 50px rgba(74,240,255,.5)">JANOSCH-SPACE-SHIP</span></div>'+
+      '<div style="position:absolute;inset:0;z-index:3;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:7%"><div id="bd-speech" style="max-width:80%;background:linear-gradient(135deg,rgba(8,16,40,.94),rgba(2,6,20,.94));border:2px solid #4af0ff;border-radius:14px;padding:13px 22px;color:#fff;text-align:center;box-shadow:0 0 30px rgba(74,240,255,.45);opacity:0;transition:opacity .35s"><div style="font-size:.78rem;letter-spacing:2px;color:#4af0ff;font-weight:800;text-transform:uppercase;margin-bottom:3px">🚀 Janosch</div><div id="bd-msg" style="font-size:clamp(1rem,3.5vw,1.4rem);font-weight:700;line-height:1.3"></div></div></div>'+
+      '<button id="bd-skip" style="position:absolute;bottom:14px;right:14px;z-index:10;background:rgba(255,255,255,.2);color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer">Überspringen ⏭</button>';
+    document.body.appendChild(ov);
+    const cv=document.getElementById('bd-cv'),ctx=cv.getContext('2d');
+    const music=document.getElementById('bd-music');
+    let W,H; const rs=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;}; rs(); window.addEventListener('resize',rs);
+    const titleEl=document.getElementById('bd-title'),speechEl=document.getElementById('bd-speech'),msgEl=document.getElementById('bd-msg');
+    let stars=Array.from({length:160},()=>({x:Math.random()*W,y:Math.random()*H*0.7,r:Math.random()*1.6+0.3,tw:Math.random()*7}));
+    let frame=0,animId=null,_spoke={},done=false;
+    const TOTAL=210;
+    try{ music.volume=0; music.play().then(()=>{let v=0;const fd=setInterval(()=>{v=Math.min(0.75,v+0.05);music.volume=v;if(v>=0.75)clearInterval(fd);},60);}).catch(()=>{}); }catch(e){}
+    const speak=(t)=>{try{if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.92;u.pitch=1.05;u.volume=1;const vs=speechSynthesis.getVoices();const en=vs.find(v=>/^en/i.test(v.lang));if(en)u.voice=en;speechSynthesis.speak(u);}catch(e){}};
+    const setSpeech=(msg,show)=>{msgEl.textContent=msg;speechEl.style.opacity=show?'1':'0';};
+    const finish=()=>{ if(done)return; done=true; try{music.pause();}catch(e){} try{window.removeEventListener('resize',rs);}catch(e){} if(animId)cancelAnimationFrame(animId); ov.remove(); this._showTeleportCinema(playerName,charEmoji,mtLeft); };
+    document.getElementById('bd-skip').onclick=finish;
+    const drawShip=(cx,cy,s,doorOpen,glow)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);const eg=ctx.createRadialGradient(-92,0,0,-92,0,70);eg.addColorStop(0,'rgba(120,200,255,'+(0.85*glow)+')');eg.addColorStop(.5,'rgba(60,120,255,'+(0.4*glow)+')');eg.addColorStop(1,'rgba(0,0,80,0)');ctx.fillStyle=eg;ctx.beginPath();ctx.arc(-92,0,70,0,7);ctx.fill();ctx.fillStyle='#1b2230';ctx.fillRect(-95,-22,22,16);ctx.fillRect(-95,6,22,16);const hull=ctx.createLinearGradient(0,-46,0,46);hull.addColorStop(0,'#d8e2f2');hull.addColorStop(.5,'#9aa6c0');hull.addColorStop(1,'#5a647e');ctx.fillStyle=hull;ctx.beginPath();ctx.moveTo(120,0);ctx.lineTo(20,-26);ctx.lineTo(-75,-22);ctx.lineTo(-88,-10);ctx.lineTo(-88,10);ctx.lineTo(-75,22);ctx.lineTo(20,26);ctx.closePath();ctx.fill();ctx.fillStyle='#6a7596';ctx.beginPath();ctx.moveTo(-10,-24);ctx.lineTo(-30,-58);ctx.lineTo(-46,-56);ctx.lineTo(-40,-22);ctx.closePath();ctx.fill();ctx.fillStyle='#7d88a8';ctx.beginPath();ctx.moveTo(-20,-18);ctx.lineTo(-70,-62);ctx.lineTo(-58,-60);ctx.lineTo(-8,-20);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-20,18);ctx.lineTo(-70,62);ctx.lineTo(-58,60);ctx.lineTo(-8,20);ctx.closePath();ctx.fill();ctx.fillStyle='#c0392b';ctx.fillRect(-73,-64,7,5);ctx.fillRect(-73,60,7,5);const cg=ctx.createLinearGradient(40,-20,70,5);cg.addColorStop(0,'rgba(190,235,255,.95)');cg.addColorStop(.6,'rgba(70,150,255,.75)');cg.addColorStop(1,'rgba(15,45,110,.55)');ctx.fillStyle=cg;ctx.beginPath();ctx.moveTo(44,-14);ctx.lineTo(78,-6);ctx.lineTo(78,6);ctx.lineTo(44,14);ctx.closePath();ctx.fill();ctx.fillStyle='#e8533a';ctx.fillRect(-20,-4,90,4);ctx.fillStyle='#ffb24a';ctx.fillRect(-20,2,90,2);ctx.save();ctx.fillStyle='#161b28';ctx.fillRect(-46,16,34,10);if(doorOpen>0){ctx.fillStyle='rgba(255,220,140,'+(0.7*doorOpen)+')';ctx.fillRect(-44,16,30*doorOpen,9);}ctx.restore();ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(-8,-2,70,15);ctx.fillStyle='#4af0ff';ctx.font='bold 9px Arial';ctx.textAlign='center';ctx.fillText('JANOSCH-SPACE-SHIP',27,9);ctx.restore();};
+    const drawJanosch=(cx,cy,s,wave)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.fillStyle='#e8edf6';ctx.beginPath();ctx.roundRect(-20,-14,40,34,12);ctx.fill();ctx.fillStyle='#1b2230';ctx.beginPath();ctx.roundRect(-11,-6,22,14,3);ctx.fill();ctx.fillStyle='#27e070';ctx.fillRect(-8,-3,4,3);ctx.fillStyle='#4af0ff';ctx.fillRect(-8,3,16,2);const wa=Math.sin(wave*6)*0.5;ctx.strokeStyle='#e8edf6';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(16,-6);ctx.lineTo(28+wa*5,-26-wa*7);ctx.stroke();ctx.beginPath();ctx.moveTo(-16,-6);ctx.lineTo(-26,10);ctx.stroke();ctx.fillStyle='#eef2fa';ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.fill();const vg=ctx.createLinearGradient(-12,-38,12,-22);vg.addColorStop(0,'#0a2a4a');vg.addColorStop(.45,'#1d6fff');vg.addColorStop(.55,'#5fd0ff');vg.addColorStop(1,'#0a2a4a');ctx.fillStyle=vg;ctx.beginPath();ctx.ellipse(0,-30,12,11,0,0,7);ctx.fill();ctx.strokeStyle='#aab4c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.stroke();ctx.fillStyle='#4af0ff';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('🚀 JANOSCH',0,62);ctx.restore();};
+    const drawPlayer=(x,y,s,bob)=>{ctx.save();ctx.translate(x,y+Math.sin(bob)*3);ctx.scale(s,s);ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,30,20,6,0,0,7);ctx.fill();ctx.font='44px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(PLAYER_EMOJI,0,0);ctx.fillStyle='#fff';ctx.font='bold 13px Arial';ctx.fillText(PLAYER_NAME,0,34);ctx.restore();};
+    const loop=()=>{
+      const f=frame; ctx.clearRect(0,0,W,H);
+      const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#03040c');bg.addColorStop(.6,'#080c1e');bg.addColorStop(1,'#0e1228');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+      stars.forEach(st=>{const a=0.4+Math.sin(f*0.05+st.tw)*0.4;ctx.globalAlpha=a;ctx.fillStyle='#cfe5ff';ctx.beginPath();ctx.arc(st.x,st.y,st.r,0,7);ctx.fill();});ctx.globalAlpha=1;
+      const floorY=H*0.72;
+      titleEl.style.opacity=(f>8&&f<170)?'1':'0';
+      const shipS=Math.min(W,H)/560*1.2,shipX=W*0.64,shipY=floorY-40;
+      const janoschS=Math.min(W,H)/560*0.85,janoschX=W*0.64-150*shipS,janoschY=floorY-4;
+      const doorOpen=f<105?0:Math.min(1,(f-105)/25);
+      const powerGlow=f>185?Math.min(1,(f-185)/18):(f>20?0.5:0);
+      drawShip(shipX,shipY,shipS,doorOpen,powerGlow);
+      if(f>10)drawJanosch(janoschX,janoschY,janoschS,f*0.04);
+      const rampX=shipX-46*shipS;
+      if(f<150){const t=Math.min(1,Math.max(0,(f-40)/70));const px=W*0.10+(rampX-W*0.10)*t;const walking=f>40&&f<105;drawPlayer(px,floorY-4,Math.min(W,H)/560*1.05,walking?f*0.3:0);}
+      else if(f<170){const t=(f-150)/20;ctx.globalAlpha=1-t;drawPlayer(rampX,floorY-4,(Math.min(W,H)/560*1.05)*(1-t*0.6),0);ctx.globalAlpha=1;}
+      if(f>=8&&!_spoke.w){_spoke.w=1;speak('Welcome to the Janosch Space Ship');}
+      if(f>=14&&f<46)setSpeech('Welcome to the Janosch-Space-Ship!',true);
+      else if(f>=52&&f<102)setSpeech('Steig ein, '+PLAYER_NAME+'!',true);
+      else if(f>=108&&f<170)setSpeech('Festschnallen — wir fliegen zum Zoo!',true);
+      else if(f>=170)setSpeech('Triebwerke an… 3… 2… 1…',f<200);
+      else setSpeech('',false);
+      if(f>195){ctx.fillStyle='rgba(120,200,255,'+((f-195)/12*0.6)+')';ctx.fillRect(0,0,W,H);}
+      frame++;
+      if(frame<=TOTAL && !done)animId=requestAnimationFrame(loop);
+      else finish();
+    };
+    if('speechSynthesis'in window)speechSynthesis.getVoices();
+    loop();
   },
 
   _showTeleportCinema(playerName, charEmoji, mtLeft) {
@@ -2810,248 +2868,7 @@ function getTaskInstruction(type, worldId) {
 // ══════════════════════════════════════════════
 // REWARD CHESTS — Brawl-Stars-style timed chests (test mode)
 // ══════════════════════════════════════════════
-const RewardChests = {
-  // chest tiers: minutes to unlock + upgrade chances + hell chance + reward quality
-  TIERS: [
-    {min:5,   name:'5 MIN TRUHE',   color:'#2ecc40', glow:'rgba(46,204,64,.6)',  up:0.30, hell:0.05, q:1},
-    {min:10,  name:'10 MIN TRUHE',  color:'#0074d9', glow:'rgba(0,116,217,.6)',  up:0.40, hell:0.03, q:2},
-    {min:30,  name:'30 MIN TRUHE',  color:'#b10dc9', glow:'rgba(177,13,201,.6)', up:0.50, hell:0.01, q:3},
-    {min:60,  name:'60 MIN TRUHE',  color:'#ff851b', glow:'rgba(255,133,27,.6)', up:0.62, hell:0.007,q:4},
-    {min:120, name:'120 MIN TRUHE', color:'#ffd700', glow:'rgba(255,215,0,.7)',  up:0.75, hell:0.005,q:5},
-  ],
-  RARITIES:[
-    {id:'normal', name:'Normal',       bg:'#7f8c8d', grad:'linear-gradient(135deg,#95a5a6,#5d6d7e)'},
-    {id:'rare',   name:'Selten',       bg:'#3498db', grad:'linear-gradient(135deg,#5dade2,#2471a3)'},
-    {id:'epic',   name:'Episch',       bg:'#9b59b6', grad:'linear-gradient(135deg,#bb8fce,#6c3483)'},
-    {id:'superepic',name:'Super-Episch',bg:'#e74c3c', grad:'linear-gradient(135deg,#ff6b6b,#c0392b)'},
-  ],
-  // 6 reward types per chest; quality q scales the MT amounts
-  _rewardPool(q, rarityIdx){
-    const mult = q * (1+rarityIdx*0.8); // higher tier + higher rarity = better
-    return [
-      {type:'mt',   icon:'🌀', label:'+'+Math.round(500*mult)+' MT',   apply:()=>this._giveMT(Math.round(500*mult))},
-      {type:'mt2',  icon:'💰', label:'+'+Math.round(1500*mult)+' MT',  apply:()=>this._giveMT(Math.round(1500*mult))},
-      {type:'token',icon:'🥇', label:'+'+(q+rarityIdx)+' Gold-Token',  apply:()=>this._giveToken(q+rarityIdx)},
-      {type:'spin', icon:'🎡', label:'+'+(1+rarityIdx)+' Glücksrad-Spin', apply:()=>this._giveSpin(1+rarityIdx)},
-      {type:'treat',icon:'🍬', label:'+'+(2+rarityIdx)+' Leckerli',     apply:()=>this._giveTreat(2+rarityIdx)},
-      {type:'event',icon:'🎉', label:'Zufalls-Event!',                 apply:()=>this._giveEvent()},
-    ];
-  },
-  _hellPool(){
-    return [
-      {type:'mt_loss', icon:'💀', label:'-10.000 MT', apply:()=>this._giveMT(-10000)},
-      {type:'mt_loss2',icon:'🔥', label:'-5.000 MT',  apply:()=>this._giveMT(-5000)},
-      {type:'accident',icon:'🚜', label:'Unfall!',    apply:()=>{ try{sessionStorage.setItem('mischa_pending_accident','1');}catch(e){} }},
-      {type:'nothing', icon:'🕳️', label:'Nichts...',  apply:()=>{}},
-    ];
-  },
-  // ── professional SVG treasure chest, colored ──
-  _chestSVG(color, size, opened){
-    size=size||90;
-    const dark=this._darken(color,0.6), light=this._lighten(color,0.3);
-    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" style="filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))">'+
-      // lid
-      '<path d="M15 42 Q50 18 85 42 L85 50 L15 50 Z" fill="'+light+'" stroke="#c0c0c8" stroke-width="3"/>'+
-      // body
-      '<rect x="15" y="50" width="70" height="34" rx="3" fill="'+color+'" stroke="#c0c0c8" stroke-width="3"/>'+
-      // wood planks
-      '<line x1="15" y1="62" x2="85" y2="62" stroke="'+dark+'" stroke-width="2"/>'+
-      '<line x1="15" y1="73" x2="85" y2="73" stroke="'+dark+'" stroke-width="2"/>'+
-      // metal bands
-      '<rect x="28" y="40" width="7" height="44" fill="#b8b8c0" stroke="#888" stroke-width="1"/>'+
-      '<rect x="65" y="40" width="7" height="44" fill="#b8b8c0" stroke="#888" stroke-width="1"/>'+
-      // lock
-      '<rect x="44" y="56" width="12" height="14" rx="2" fill="#d0d0d8" stroke="#888" stroke-width="1.5"/>'+
-      '<circle cx="50" cy="62" r="2.5" fill="#444"/>'+
-      (opened?'<text x="50" y="38" font-size="16" text-anchor="middle">📭</text>':'')+
-    '</svg>';
-  },
-  _darken(hex,f){ return this._shade(hex,-f); },
-  _lighten(hex,f){ return this._shade(hex,f); },
-  _shade(hex,f){
-    try{ hex=hex.replace('#',''); let r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16);
-      if(f<0){r=Math.round(r*(1+f));g=Math.round(g*(1+f));b=Math.round(b*(1+f));}
-      else{r=Math.round(r+(255-r)*f);g=Math.round(g+(255-g)*f);b=Math.round(b+(255-b)*f);}
-      return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join('');
-    }catch(e){return hex;}
-  },
-  // ── timing (resets each game session) ──
-  _startTs(){
-    let t=0; try{ t=parseInt(sessionStorage.getItem('mischa_session_start')||'0'); }catch(e){}
-    if(!t){ t=Date.now(); try{sessionStorage.setItem('mischa_session_start',String(t));}catch(e){} }
-    return t;
-  },
-  _opened(){ try{ return JSON.parse(sessionStorage.getItem('mischa_chests_opened')||'[]'); }catch(e){ return []; } },
-  _markOpened(min){ const o=this._opened(); if(!o.includes(min)){o.push(min);try{sessionStorage.setItem('mischa_chests_opened',JSON.stringify(o));}catch(e){}} },
-  _minsPlayed(){ return (Date.now()-this._startTs())/60000; },
-  _isReady(tier){ return this._minsPlayed()>=tier.min && !this._opened().includes(tier.min); },
-  _anyReady(){ return this.TIERS.some(t=>this._isReady(t)); },
-  // ── badge on the menu button ──
-  updateBadge(){
-    const b=document.getElementById('reward-badge'); if(!b)return;
-    b.style.display = this._anyReady() ? 'block' : 'none';
-  },
-  startBadgeTimer(){
-    if(this._badgeIv)clearInterval(this._badgeIv);
-    this._badgeIv=setInterval(()=>this.updateBadge(),5000);
-    this.updateBadge();
-  },
-  // ── the chest selection page ──
-  open(){
-    document.getElementById('chest-overlay')?.remove();
-    const ov=document.createElement('div');
-    ov.id='chest-overlay';
-    ov.style.cssText='position:fixed;inset:0;z-index:99970;background:linear-gradient(160deg,#0a0e1a,#161b2e);overflow:auto;font-family:Arial,sans-serif;color:#fff';
-    const cards=this.TIERS.map(t=>{
-      const ready=this._isReady(t);
-      const opened=this._opened().includes(t.min);
-      const minsLeft=Math.max(0,t.min-this._minsPlayed());
-      const mm=String(Math.floor(minsLeft)).padStart(2,'0'), ss=String(Math.floor((minsLeft%1)*60)).padStart(2,'0');
-      return '<div style="flex:1;min-width:150px;max-width:240px;background:linear-gradient(180deg,'+t.color+'22,'+t.color+'08);border:2px solid '+t.color+';border-radius:16px;padding:14px;text-align:center;box-shadow:0 0 24px '+t.glow+'">'+
-        '<div style="font-size:clamp(1rem,4vw,1.3rem);font-weight:900;color:'+t.color+';text-shadow:0 0 10px '+t.glow+';margin-bottom:10px">'+t.name+'</div>'+
-        '<div style="margin:6px 0;display:flex;justify-content:center">'+this._chestSVG(t.color,90,opened)+'</div>'+
-        (opened
-          ? '<div style="color:rgba(255,255,255,.4);font-weight:700;margin-top:8px">Schon geöffnet</div><div style="font-size:.7rem;color:rgba(255,255,255,.3)">Neustart für neue Truhe</div>'
-          : ready
-            ? '<div style="color:'+t.color+';font-weight:900;margin:8px 0">Bereit zum Öffnen!</div><button onclick="RewardChests.openChest('+t.min+')" style="width:100%;background:linear-gradient(135deg,'+t.color+','+t.color+'cc);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;font-size:1rem;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.4)">ÖFFNEN</button>'
-            : '<div style="color:rgba(255,255,255,.6);font-size:.85rem;margin-top:6px">Öffne in:</div><div style="background:#000;border-radius:8px;padding:6px;margin-top:4px;font-size:1.1rem;font-weight:900">🕐 '+mm+':'+ss+'</div>'
-        )+
-        (t.min===120?'<div style="font-size:.62rem;color:'+t.color+';margin-top:6px;font-weight:700">ENTHÄLT SEHR SELTENE BELOHNUNGEN!</div>':'')+
-      '</div>';
-    }).join('');
-    ov.innerHTML=
-      '<div style="position:sticky;top:0;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 14px,#3a1010 14px,#3a1010 28px);border-bottom:2px solid #c0392b;padding:10px;text-align:center;z-index:5">'+
-        '<button onclick="document.getElementById(\'chest-overlay\').remove()" style="position:absolute;left:12px;top:8px;background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1.2rem;cursor:pointer">✕</button>'+
-        '<span style="color:#e74c3c;font-weight:900;font-size:clamp(.8rem,3.2vw,1rem)">⚠️ WENN DU DAS SPIEL SCHLIESST, WERDEN DIE BELOHNUNGEN ZURÜCKGESETZT!</span>'+
-      '</div>'+
-      '<div style="text-align:center;padding:14px"><h1 style="margin:6px 0;font-size:clamp(1.3rem,6vw,2rem);background:linear-gradient(90deg,#FFD700,#FF8C00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">🎁 Belohnungs-Truhen</h1>'+
-        '<div style="color:rgba(255,255,255,.55);font-size:.85rem">Spiele länger → bessere Truhen werden bereit. Spielzeit: '+Math.floor(this._minsPlayed())+' Min</div></div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 20px;max-width:900px;margin:0 auto">'+cards+'</div>'+'<div style="text-align:center;padding:0 14px 30px"><button onclick="RewardChests._ffTest()" style="background:rgba(255,107,0,.25);border:1px dashed #ff6b00;color:#ff6b00;padding:8px 16px;border-radius:10px;font-size:.8rem;cursor:pointer;font-weight:700">🧪 +130 Min vorspulen (Test)</button></div>';
-    document.body.appendChild(ov);
-  },
-  // ── opening animation: 5 clicks, chest spins, rarity can rise ──
-  openChest(min){
-    const tier=this.TIERS.find(t=>t.min===min); if(!tier)return;
-    if(!this._isReady(tier)){ return; }
-    // determine if this is a HELL chest
-    const isHell = Math.random() < tier.hell;
-    // roll final rarity via 5 upgrade steps
-    let rarityIdx=0;
-    if(!isHell){
-      for(let i=0;i<5;i++){ if(rarityIdx<3 && Math.random()<tier.up) rarityIdx++; }
-    }
-    this._animState={tier,isHell,rarityIdx,clicks:0,curIdx:0};
-    this._renderOpenAnim();
-  },
-  _renderOpenAnim(){
-    const s=this._animState; if(!s)return;
-    document.getElementById('chest-anim')?.remove();
-    const ov=document.createElement('div');
-    ov.id='chest-anim';
-    const isHell=s.isHell;
-    // background reflects current shown rarity (or hell)
-    const shownIdx = isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
-    let bg;
-    if(isHell) bg='radial-gradient(circle at 50% 40%,#5a0000,#1a0000)';
-    else {
-      const r=this.RARITIES[shownIdx]||this.RARITIES[0];
-      if(r.id==='superepic') bg='linear-gradient(135deg,#ff0000,#ff8c00,#ffee00,#00ff00,#0088ff,#8800ff)';
-      else bg='radial-gradient(circle at 50% 40%,'+r.bg+',#0a0a14)';
-    }
-    ov.style.cssText='position:fixed;inset:0;z-index:99975;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:20px;transition:background .4s';
-    const label = isHell ? '🔥 HÖLLEN-TRUHE 🔥' : (this.RARITIES[shownIdx]||this.RARITIES[0]).name.toUpperCase();
-    const labelCol = isHell ? '#ff3030' : ((this.RARITIES[shownIdx]||this.RARITIES[0]).id==='superepic'?'#fff':(this.RARITIES[shownIdx]||this.RARITIES[0]).bg);
-    ov.innerHTML=
-      '<div id="chest-rarity" style="font-size:clamp(1.2rem,5vw,1.8rem);font-weight:900;margin-bottom:16px;color:'+labelCol+';text-shadow:0 0 14px '+labelCol+'">'+label+'</div>'+
-      '<div id="chest-3d" style="transition:transform .35s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 26px '+labelCol+')">'+(isHell?this._chestSVG('#8b0000',150,false):this._chestSVG((this.RARITIES[shownIdx]||this.RARITIES[0]).bg,150,false))+'</div>'+
-      '<div id="chest-hint" style="margin-top:20px;font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.85)">Tippe '+(5-s.clicks)+'× zum Öffnen!</div>'+
-      '<div style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.4)">'+'●'.repeat(s.clicks)+'○'.repeat(5-s.clicks)+'</div>';
-    ov.onclick=()=>this._chestClick();
-    document.body.appendChild(ov);
-  },
-  _chestClick(){
-    const s=this._animState; if(!s)return;
-    s.clicks++;
-    // each click reveals one upgrade step toward final rarity
-    if(s.curIdx < s.rarityIdx) s.curIdx++;
-    const chest=document.getElementById('chest-3d');
-    if(chest){
-      const rot=s.clicks*360;
-      chest.style.transform='rotateY('+rot+'deg) scale('+(1+s.clicks*0.06)+')';
-      // recolor chest to the newly revealed rarity
-      const shownIdx2 = s.isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
-      const col2 = s.isHell ? '#8b0000' : (this.RARITIES[shownIdx2]||this.RARITIES[0]).bg;
-      chest.innerHTML = this._chestSVG(col2,150,false);
-    }
-    // update bg + label live
-    this._updateAnimVisual();
-    if(s.clicks>=5){ setTimeout(()=>this._revealReward(),450); }
-  },
-  _updateAnimVisual(){
-    const s=this._animState; if(!s)return;
-    const ov=document.getElementById('chest-anim'); if(!ov)return;
-    const isHell=s.isHell;
-    const shownIdx = isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
-    let bg;
-    if(isHell) bg='radial-gradient(circle at 50% 40%,#5a0000,#1a0000)';
-    else { const r=this.RARITIES[shownIdx]||this.RARITIES[0];
-      if(r.id==='superepic') bg='linear-gradient(135deg,#ff0000,#ff8c00,#ffee00,#00ff00,#0088ff,#8800ff)';
-      else bg='radial-gradient(circle at 50% 40%,'+r.bg+',#0a0a14)'; }
-    ov.style.background=bg;
-    const rEl=document.getElementById('chest-rarity'), hEl=document.getElementById('chest-hint');
-    const r=this.RARITIES[shownIdx]||this.RARITIES[0];
-    const label = isHell ? '🔥 HÖLLEN-TRUHE 🔥' : r.name.toUpperCase();
-    const labelCol = isHell ? '#ff3030' : (r.id==='superepic'?'#fff':r.bg);
-    if(rEl){ rEl.textContent=label; rEl.style.color=labelCol; rEl.style.textShadow='0 0 14px '+labelCol; }
-    if(hEl){ hEl.textContent = s.clicks>=5?'✨ Öffnet sich...':'Tippe '+(5-s.clicks)+'× zum Öffnen!'; }
-    const dots=ov.querySelector('div:last-child'); if(dots && dots.id!=='chest-hint') dots.textContent='●'.repeat(s.clicks)+'○'.repeat(5-s.clicks);
-  },
-  _revealReward(){
-    const s=this._animState; if(!s)return;
-    this._markOpened(s.tier.min);
-    let pool, reward;
-    if(s.isHell){ pool=this._hellPool(); reward=pool[Math.floor(Math.random()*pool.length)]; }
-    else { pool=this._rewardPool(s.tier.q, s.rarityIdx); reward=pool[Math.floor(Math.random()*pool.length)]; }
-    try{ reward.apply(); }catch(e){}
-    const ov=document.getElementById('chest-anim'); if(!ov)return;
-    const isHell=s.isHell;
-    const r=this.RARITIES[s.rarityIdx]||this.RARITIES[0];
-    const col=isHell?'#ff3030':(r.id==='superepic'?'#FFD700':r.bg);
-    ov.innerHTML=
-      '<div style="font-size:clamp(1.1rem,4.5vw,1.6rem);font-weight:900;color:'+col+';text-shadow:0 0 14px '+col+';margin-bottom:10px">'+(isHell?'🔥 HÖLLEN-TRUHE 🔥':r.name.toUpperCase()+'-TRUHE')+'</div>'+
-      '<div style="font-size:5rem;margin:10px 0;animation:bounce 1s infinite">'+reward.icon+'</div>'+
-      '<div style="font-size:clamp(1.2rem,5vw,1.7rem);font-weight:900;color:#fff;margin-bottom:6px">'+reward.label+'</div>'+
-      '<div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:20px">'+(isHell?'Autsch! Pech gehabt...':'Belohnung erhalten!')+'</div>'+
-      '<button onclick="RewardChests._closeAnim()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:12px 30px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">Super! ➜</button>';
-    ov.onclick=null;
-    this.updateBadge();
-  },
-  _closeAnim(){
-    document.getElementById('chest-anim')?.remove();
-    this._animState=null;
-    this.open(); // back to chest list (refreshed)
-    this.updateBadge();
-  },
-  // ── reward appliers (operate on the player's MT / zoo) ──
-  _ffTest(){
-    // shift the session start back 130 min so all chests become ready (test only)
-    try{ const t=this._startTs()-130*60000; sessionStorage.setItem('mischa_session_start',String(t)); }catch(e){}
-    this.open(); this.updateBadge();
-  },
-  _giveMT(amount){
-    const p=State.currentPlayer; if(!p)return;
-    p.totalScore=Math.max(0,(p.totalScore||0)+amount);
-    State.savePlayer&&State.savePlayer(p);
-  },
-  _giveToken(n){ /* tokens live in the zoo doc; store pending */ this._pending('tokens',n); },
-  _giveSpin(n){ this._pending('spins',n); },
-  _giveTreat(n){ this._pending('treats',n); },
-  _giveEvent(){ this._pending('event',1); },
-  _pending(key,n){
-    try{ const p=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}'); p[key]=(p[key]||0)+n; sessionStorage.setItem('mischa_pending_rewards',JSON.stringify(p)); }catch(e){}
-  },
-};
-window.RewardChests = RewardChests;
+/* RewardChests is loaded from rewardchests.js */
 
 window.App = App;
 window.mountainSVG = mountainSVG;
