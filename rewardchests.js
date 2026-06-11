@@ -50,6 +50,22 @@ const RewardChests = {
 
   // ── SOUNDS (Web Audio, synthetic) ──
   _ac(){ try{ if(!this._actx)this._actx=new(window.AudioContext||window.webkitAudioContext)(); if(this._actx.state==='suspended')this._actx.resume(); return this._actx; }catch(e){ return null; } },
+  _unlockAudio(){
+    // iPad/Safari: AudioContext must be created+resumed inside a user gesture, and primed with a silent blip
+    try{
+      const a=this._ac(); if(!a)return;
+      if(a.state==='suspended')a.resume();
+      const o=a.createOscillator(),g=a.createGain(); g.gain.value=0.0001; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.02);
+      this._audioUnlocked=true;
+    }catch(e){}
+  },
+  _initAudioUnlock(){
+    if(this._audioInit)return; this._audioInit=true;
+    const unlock=()=>{ this._unlockAudio(); };
+    ['touchstart','touchend','pointerdown','mousedown','click','keydown'].forEach(ev=>{
+      document.addEventListener(ev, unlock, {passive:true});
+    });
+  },
   _beep(freq,dur,type,vol){ const a=this._ac(); if(!a)return; const o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq; g.gain.setValueAtTime(vol||0.2,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+(dur||0.15)); o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+(dur||0.15)); },
   _sndClick(){ this._beep(420+Math.random()*80,0.12,'square',0.12); },
   _sndSuperEpic(){ const a=this._ac(); if(!a)return; [523,659,784,1047].forEach((f,i)=>setTimeout(()=>this._beep(f,0.3,'sawtooth',0.18),i*90)); },
@@ -79,6 +95,7 @@ const RewardChests = {
 
   // ── chest list page ──
   open(){
+    this._initAudioUnlock(); this._unlockAudio();
     document.getElementById('chest-overlay')?.remove();
     const tiers=this._tiers(); const round=this._round();
     const cards=tiers.map(t=>{
@@ -117,6 +134,7 @@ const RewardChests = {
 
   // ── open a chest ──
   openChest(min){
+    this._unlockAudio();
     const tier=this._tiers().find(t=>t.min===min); if(!tier)return;
     if(!this._isReady(tier))return;
     // roll hell first
@@ -145,43 +163,72 @@ const RewardChests = {
     const ov=document.createElement('div'); ov.id='chest-anim';
     ov.style.cssText='position:fixed;inset:0;z-index:99975;background:radial-gradient(circle at 50% 45%,#3a1a6e,#05010f);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Arial,sans-serif;color:#fff';
     ov.innerHTML='<canvas id="star-cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>'+
-      '<div id="star-txt" style="position:absolute;bottom:16%;left:0;right:0;text-align:center;font-weight:900;font-size:1.2rem;color:#d8b4ff;text-shadow:0 0 14px #9b59ff">🌌 Eine überdimensionale Kraft naht...</div>';
+      '<div id="star-txt" style="position:absolute;bottom:14%;left:0;right:0;text-align:center;font-weight:900;font-size:clamp(1rem,4.5vw,1.4rem);color:#d8b4ff;text-shadow:0 0 14px #9b59ff;z-index:2">🌌 Eine überdimensionale Kraft naht...</div>';
     document.body.appendChild(ov);
-    this._sndOverdim();
+    this._unlockAudio(); this._sndOverdim();
     const cv=document.getElementById('star-cv'),ctx=cv.getContext('2d');
-    let W,H; const rs=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;}; rs();
-    const stars=Array.from({length:80},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3}));
-    let f=0; const TOTAL=90; const cx=()=>W/2, cy=()=>H*0.52;
+    let W,H; const rs=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;}; rs(); window.addEventListener('resize',rs);
+    const stars=Array.from({length:90},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3}));
+    // rainbow super-epic chest drawn with the same SVG style, rasterized via emoji-free vector
+    const self=this;
+    const drawChest=(cx,cy,scale,space,shake)=>{
+      ctx.save();
+      ctx.translate(cx+(shake||0),cy);
+      ctx.scale(scale,scale);
+      // rainbow gradient body (super-epic) OR purple space
+      let grad;
+      if(space){ grad=ctx.createRadialGradient(0,-10,5,0,-10,60); grad.addColorStop(0,'#b388ff'); grad.addColorStop(1,'#2a0a5e'); }
+      else { grad=ctx.createLinearGradient(-45,0,45,0); ['#ff0000','#ff8c00','#ffee00','#00ff00','#0088ff','#8800ff'].forEach((c,i,a)=>grad.addColorStop(i/(a.length-1),c)); }
+      // lid
+      ctx.fillStyle=grad; ctx.strokeStyle='#c0c0c8'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(-45,-8); ctx.quadraticCurveTo(0,-44,45,-8); ctx.lineTo(45,0); ctx.lineTo(-45,0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      // body
+      ctx.fillStyle=grad; ctx.fillRect(-45,0,90,34); ctx.strokeRect(-45,0,90,34);
+      // metal bands
+      ctx.fillStyle='#b8b8c0'; ctx.fillRect(-20,-10,7,44); ctx.fillRect(13,-10,7,44);
+      // lock
+      ctx.fillStyle='#d0d0d8'; ctx.fillRect(-6,6,12,14); ctx.fillStyle='#444'; ctx.beginPath(); ctx.arc(0,12,2.5,0,7); ctx.fill();
+      if(space){ ctx.fillStyle='#fff'; [[-15,-4],[12,-6],[0,5]].forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],1.2,0,7);ctx.fill();}); }
+      ctx.restore();
+    };
+    let f=0; const TOTAL=110; const cx=()=>W/2, cy=()=>H*0.5;
     const loop=()=>{
       ctx.clearRect(0,0,W,H);
-      ctx.fillStyle='rgba(10,2,25,0.4)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='rgba(10,2,25,0.45)'; ctx.fillRect(0,0,W,H);
       stars.forEach(s=>{ctx.fillStyle='rgba(255,255,255,'+(0.3+Math.random()*0.4)+')';ctx.fillRect(s.x,s.y,s.r,s.r);});
-      // super-epic chest sits in center
-      const chestY=cy();
-      ctx.font='90px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      // draw a red super-epic chest as placeholder block
-      ctx.fillStyle='#e74c3c'; ctx.fillRect(cx()-45,chestY-25,90,55);
-      ctx.fillStyle='#c0c0c8'; ctx.fillRect(cx()-45,chestY-30,90,10);
-      // incoming star
-      if(f<60){
-        const sx=cx()+ (W*0.6)*(1-f/60); const sy=cy()- (H*0.5)*(1-f/60);
-        ctx.font='44px serif'; ctx.fillText('⭐',sx,sy);
+      const baseScale=Math.min(W,H)/300;
+      const isSpace = f>72; // after impact → galactic chest
+      const shake = (f>=66&&f<78)? (Math.random()*10-5) : 0;
+      // chest grows slightly after impact
+      const sc = baseScale*(isSpace?1.25:1);
+      drawChest(cx(),cy(),sc,isSpace,shake);
+      // incoming star aims exactly at the chest center
+      if(f<66){
+        const t=f/66;
+        const sx=cx()+(W*0.55)*(1-t);
+        const sy=cy()-(H*0.55)*(1-t);
+        // glowing star
+        ctx.save(); ctx.translate(sx,sy);
+        ctx.shadowColor='#ffe680'; ctx.shadowBlur=25;
+        ctx.font=(38+t*30)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('⭐',0,0);
+        ctx.restore();
         // trail
-        ctx.strokeStyle='rgba(255,230,120,.6)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+40,sy-30); ctx.stroke();
-      } else if(f===60){ this._sndStar(); }
-      else {
-        // flash on impact
-        const a=Math.max(0,1-(f-60)/25);
+        ctx.strokeStyle='rgba(255,230,120,'+(0.5)+')'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+50,sy-38); ctx.stroke();
+      } else if(f>=66 && f<82){
+        // impact flash + sparkles
+        if(f===66){ self._sndStar(); }
+        const a=Math.max(0,1-(f-66)/16);
         ctx.fillStyle='rgba(255,240,180,'+a+')'; ctx.fillRect(0,0,W,H);
+        // burst sparkles
+        for(let i=0;i<14;i++){ const ang=i/14*Math.PI*2, rad=(f-66)*9; ctx.fillStyle='rgba(200,160,255,'+a+')'; ctx.beginPath(); ctx.arc(cx()+Math.cos(ang)*rad,cy()+Math.sin(ang)*rad,3,0,7); ctx.fill(); }
       }
       f++;
-      if(f<=TOTAL) requestAnimationFrame(loop);
-      else { document.getElementById('star-txt').textContent='💥 Der Stern ist eingeschlagen! Öffne die Truhe!'; this._animState.curIdx=4; this._renderOpenAnim(); }
+      if(f<=TOTAL){ requestAnimationFrame(loop); }
+      else { try{window.removeEventListener('resize',rs);}catch(e){} const tx=document.getElementById('star-txt'); if(tx)tx.textContent='💥 Aus der Super-Episch-Truhe wurde eine ÜBERDIMENSIONALE Truhe! Tippe zum Öffnen!'; this._animState.curIdx=4; this._renderOpenAnim(); }
     };
     loop();
   },
-
-  _renderOpenAnim(){
+    _renderOpenAnim(){
     const s=this._animState; if(!s)return;
     document.getElementById('chest-anim')?.remove();
     const ov=document.createElement('div'); ov.id='chest-anim';
@@ -189,16 +236,18 @@ const RewardChests = {
     const shownIdx = isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
     const r=this.RARITIES[shownIdx]||this.RARITIES[0];
     let bg=this._bgFor(isHell,r,s.isOverdim);
-    ov.style.cssText='position:fixed;inset:0;z-index:99975;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:20px;transition:background .4s';
+    ov.style.cssText='position:fixed;inset:0;z-index:99975;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:20px;transition:background .4s;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none';
     const label = isHell ? '🔥 HÖLLEN-TRUHE 🔥' : (s.isOverdim&&s.curIdx>=4?'🌌 ÜBERDIMENSIONAL 🌌':r.name.toUpperCase());
     const labelCol = this._colFor(isHell,r,s.isOverdim&&s.curIdx>=4);
     const chestCol = isHell?'#8b0000':(s.isOverdim&&s.curIdx>=4?'#7b2fff':r.bg);
     ov.innerHTML=
-      '<div id="chest-rarity" style="font-size:clamp(1.2rem,5vw,1.8rem);font-weight:900;margin-bottom:16px;color:'+labelCol+';text-shadow:0 0 14px '+labelCol+'">'+label+'</div>'+
-      '<div id="chest-3d" style="transition:transform .35s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 26px '+labelCol+')">'+this._chestSVG(chestCol,150,false,s.isOverdim&&s.curIdx>=4)+'</div>'+
-      '<div id="chest-hint" style="margin-top:20px;font-size:1.05rem;font-weight:700;color:rgba(255,255,255,.85)">Tippe '+(5-s.clicks)+'× zum Öffnen!</div>'+
-      '<div id="chest-dots" style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.4)">'+'●'.repeat(s.clicks)+'○'.repeat(5-s.clicks)+'</div>';
+      '<div id="chest-rarity" style="font-size:clamp(1.4rem,6vw,2.1rem);font-weight:900;margin-bottom:10px;color:'+labelCol+';text-shadow:0 0 14px '+labelCol+'">'+label+'</div>'+
+      '<div id="chest-3d" style="transition:transform .3s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 34px '+labelCol+')">'+this._chestSVG(chestCol,260,false,s.isOverdim&&s.curIdx>=4)+'</div>'+
+      '<div id="chest-hint" style="margin-top:18px;font-size:clamp(1.1rem,4.5vw,1.4rem);font-weight:900;color:#fff;text-shadow:0 0 10px '+labelCol+'">👆 Tippe '+(5-s.clicks)+'× zum Öffnen!</div>'+
+      '<div id="chest-dots" style="margin-top:12px;font-size:1.4rem;letter-spacing:6px;color:'+labelCol+'">'+'●'.repeat(s.clicks)+'○'.repeat(5-s.clicks)+'</div>';
+    // Tap anywhere on the whole screen counts (touch + click), big easy hit area
     ov.onclick=()=>this._chestClick();
+    ov.ontouchstart=(e)=>{ e.preventDefault(); this._chestClick(); };
     document.body.appendChild(ov);
   },
   _bgFor(isHell,r,isOverdim){
@@ -210,6 +259,9 @@ const RewardChests = {
   _colFor(isHell,r,overdim){ if(isHell)return '#ff3030'; if(overdim)return '#c89bff'; if(r.id==='superepic')return '#fff'; return r.bg; },
   _chestClick(){
     const s=this._animState; if(!s)return;
+    // debounce so touchstart+click don't both count
+    const now=Date.now(); if(this._lastClick && now-this._lastClick<250) return; this._lastClick=now;
+    if(s.clicks>=5) return;
     s.clicks++; this._sndClick();
     if(s.curIdx < s.rarityIdx) s.curIdx++;
     const chest=document.getElementById('chest-3d');
@@ -218,7 +270,7 @@ const RewardChests = {
       const shownIdx2 = s.isHell ? -1 : Math.min(s.curIdx, s.rarityIdx);
       const r2=this.RARITIES[shownIdx2]||this.RARITIES[0];
       const col2 = s.isHell ? '#8b0000' : (s.isOverdim&&s.curIdx>=4?'#7b2fff':r2.bg);
-      chest.innerHTML=this._chestSVG(col2,150,false,s.isOverdim&&s.curIdx>=4);
+      chest.innerHTML=this._chestSVG(col2,260,false,s.isOverdim&&s.curIdx>=4);
     }
     this._updateAnimVisual();
     if(s.clicks>=5){

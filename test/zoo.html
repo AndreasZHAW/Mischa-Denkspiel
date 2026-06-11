@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v229 -->
+<!-- ZOO v230 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -175,7 +175,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="rewardchests.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v229','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v230','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -941,10 +941,10 @@ const ZG={
       const z=ZS.zoo; if(!z||!z.insuranceActive) return;
       if(z.lifeInsurance) return; // lifelong = free, no charge
       if(Date.now() >= (z.insuranceNext||0)){
-        if((z.mt||0) >= 1000){
-          z.mt-=1000; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
+        if((z.mt||0) >= 2000){
+          z.mt-=2000; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
           this._updHUD&&this._updHUD(); ZS.save&&ZS.save();
-          ZP.toast('🛡️ Versicherung: 1000 MT abgebucht',2500);
+          ZP.toast('🛡️ Versicherung: 2000 MT abgebucht',2500);
         } else {
           // can't pay → insurance lapses
           z.insuranceActive=false; z.insuranceUntil=0;
@@ -2101,9 +2101,14 @@ const ZG={
     const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
     if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
     // Jump
-    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=8;setTimeout(()=>{this._jumping=false;this.pl.y=1.7;},600);}
-    if(this._jumping){this.pl.y=Math.max(1.7,this.pl.y+this._jumpV*.016);this._jumpV-=20*.016;if(this.pl.y<=1.7){this.pl.y=1.7;this._jumping=false;}}
-    else{this.pl.y=1.7;}
+    // Smooth jump: gentle launch + soft gravity, frame-rate independent (no setTimeout snap)
+    const GROUND=1.7;
+    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=5.2;}
+    if(this._jumping){
+      this.pl.y += this._jumpV*dt;
+      this._jumpV -= 11*dt;            // soft gravity → smooth arc up and down
+      if(this.pl.y<=GROUND){ this.pl.y=GROUND; this._jumping=false; this._jumpV=0; }
+    } else { this.pl.y=GROUND; }
     // Proximity
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
     this.nearSt=stD<14;
@@ -3697,7 +3702,7 @@ const ZP={
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
-    if(window.MISCHA_TESTMODE){IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'1000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});}el.innerHTML=IT.map(item=>{
+    if(window.MISCHA_TESTMODE){IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'2000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});}el.innerHTML=IT.map(item=>{
       if(item.insurance){
         const active=z.insuranceActive;
         return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div>🛡️</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
@@ -3719,7 +3724,7 @@ const ZP={
     else if(id==='treat_5'){z.treats=(z.treats||0)+5;this.toast('🍬 +5 Leckerlis! Total: '+z.treats);}
     else if(id==='insurance'){
       if(z.insuranceActive){z.insuranceActive=false;z.insuranceUntil=0;this.toast('🛡️ Versicherung gekündigt.');}
-      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 1000 MT alle 5 Min.');}
+      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 2000 MT alle 5 Min.');}
     }
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
     ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();},
