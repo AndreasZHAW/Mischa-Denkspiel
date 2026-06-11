@@ -42,8 +42,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v231</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v231 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v232</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v232 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -319,7 +319,7 @@ setInterval(renderCrash,1500);
 
 // ══ WELT 1 ══
 async function runWelt1(){
-  L('=== Welt 1 Tests (v231) ===');
+  L('=== Welt 1 Tests (v232) ===');
   // Players
   const pr=[];
   try{
@@ -573,7 +573,7 @@ async function runNet(){
 
 // ══ INIT ══
 async function runAll(){
-  L('=== Diagnose v231 gestartet === '+new Date().toLocaleString('de-CH'));
+  L('=== Diagnose v232 gestartet === '+new Date().toLocaleString('de-CH'));
   L('Browser: '+navigator.userAgent.slice(0,80));
   L('Viewport: '+window.innerWidth+'×'+window.innerHeight+' DPR='+window.devicePixelRatio);
   renderCrash();

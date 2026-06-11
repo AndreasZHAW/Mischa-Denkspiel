@@ -354,8 +354,41 @@ const RewardChests = {
   },
 
   // ── reward appliers ──
-  _giveMT(amount){ const p=State.currentPlayer; if(!p)return; p.totalScore=Math.max(0,(p.totalScore||0)+amount); State.savePlayer&&State.savePlayer(p); },
-  _giveAnimal(kind){ this._pending('animal_'+kind,1); },
-  _pending(key,n){ try{ const p=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}'); p[key]=(p[key]||0)+n; sessionStorage.setItem('mischa_pending_rewards',JSON.stringify(p)); }catch(e){} },
+  _inZoo(){ try{ return typeof ZS!=='undefined' && ZS.zoo && typeof ZG!=='undefined'; }catch(e){ return false; } },
+  _giveMT(amount){
+    // In the zoo, MT = zoo money (z.mt). In the menu, MT = totalScore.
+    if(this._inZoo()){ const z=ZS.zoo; z.mt=Math.max(0,(z.mt||0)+amount); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); return; }
+    const p=State.currentPlayer; if(!p)return; p.totalScore=Math.max(0,(p.totalScore||0)+amount); State.savePlayer&&State.savePlayer(p);
+  },
+  _giveAnimal(kind){
+    if(this._inZoo() && this._applyAnimalNow(kind)) return;
+    this._pending('animal_'+kind,1);
+  },
+  _applyAnimalNow(rarity){
+    try{
+      const z=ZS.zoo; if(!z||!z.enc)return false;
+      const slot=z.enc.findIndex(e=>!e||!e.animal); if(slot<0){ if(typeof ZP!=='undefined')ZP.toast('🦁 Kein Platz für ein Tier!',3000); return true; }
+      if(rarity==='dino'){ const a={id:'chest_dino',n:'Dinosaurier',e:'🦕',r:'mythic',p:0,earn:800,w:0}; z.enc[slot]={animal:a,shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0}; }
+      else { let pool=(window.ANIMALS||[]).filter(a=>a.r===rarity); if(!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='epic'); const a=pool[Math.floor(Math.random()*pool.length)]; if(!a)return false; z.enc[slot]={animal:{...a},shiny:(rarity==='mythic'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0}; }
+      ZG._encs&&ZG._encs(); ZS.save&&ZS.save();
+      if(typeof ZP!=='undefined')ZP.toast('🎁 Tier erhalten!',3000);
+      return true;
+    }catch(e){ return false; }
+  },
+  _pending(key,n){
+    // Apply immediately if in the zoo, else store for next zoo entry
+    if(this._inZoo()){
+      try{
+        const z=ZS.zoo;
+        if(key==='spins'){ if(typeof LW!=='undefined'){LW.spins=(LW.spins||0)+n; LW._saveSpins&&LW._saveSpins();} ZP.toast('🎡 +'+n+' Glücksrad-Dreh!',3000); ZS.save&&ZS.save(); return; }
+        if(key==='freeSweep'){ z.freeSweeps=(z.freeSweeps||0)+n; ZP.toast('🧹 +'+n+'× Gratis-Kehren!',3000); ZS.save&&ZS.save(); return; }
+        if(key==='treats'){ z.treats=(z.treats||0)+n; ZP.toast('🍬 +'+n+' Leckerli!',3000); ZS.save&&ZS.save(); return; }
+        if(key==='tokens'){ z.tokens=(z.tokens||0)+n; ZP.toast('🥇 +'+n+' Token!',3000); ZS.save&&ZS.save(); return; }
+        if(key==='lifeInsurance'){ z.insuranceActive=true; z.lifeInsurance=true; z.insuranceUntil=Date.now()+9e12; ZP.toast('🛡️ Lebenslange Versicherung!',3500); ZS.save&&ZS.save(); return; }
+        if(key==='event'){ if(typeof EVENTS!=='undefined'){ setTimeout(()=>{const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)]; ZG.startEv&&ZG.startEv(ev,300000);},800);} return; }
+      }catch(e){}
+    }
+    try{ const p=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}'); p[key]=(p[key]||0)+n; sessionStorage.setItem('mischa_pending_rewards',JSON.stringify(p)); }catch(e){}
+  },
 };
 window.RewardChests = RewardChests;
