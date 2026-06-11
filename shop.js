@@ -188,12 +188,7 @@ function getShopItems(player) {
   items.push({id:'extra_xp_boost', category:'extra', name:'📈 XP-Multiplikator (1h)', icon:'📈', price:1500, desc:'1 Stunde lang zählst du doppelt im Gesamt-Ranking!',
     activeUntil: purchases['extra_xp_boost']?.expiresAt > now ? purchases['extra_xp_boost'].expiresAt : null });
 
-  // ---- SPECIAL ----
-  const adminOwned = !!(purchases['admin_week']?.expiresAt > now);
-  const adminExpires = purchases['admin_week']?.expiresAt;
-  if (!adminOwned || now < adminExpires) {
-    items.push({id:'admin_week', category:'special', name:'🔐 Admin-Zugang (1 Woche)', icon:'🔐', price:99990, desc:'Einmalig! 7 Tage Zugang zum Admin-Panel.', limited:true, limitExpires:base+weekMs, oneTime:true, owned:adminOwned, activeUntil:adminExpires>now?adminExpires:null});
-  }
+  // ---- SPECIAL ---- (Admin-Zugang entfernt — Bu hat direkten Knopf)
 
   return items;
 }
@@ -495,11 +490,6 @@ const Shop = {
       target.activeStarMultiplier=2; target.starMultiplierExpires=exp;
       if(!target.unlockedSkins.includes('kniffler')) target.unlockedSkins.push('kniffler');
     }
-    if (itemId==='admin_week') {
-      const exp=now+7*24*60*60*1000;
-      target.purchases[itemId]={active:true,at:now,expiresAt:exp};
-      target.adminAccessExpires=exp;
-    }
     if (itemId==='extra_world_unlock') { if((target.currentWorld||1)<10) target.currentWorld=(target.currentWorld||1)+1; }
     if (itemId==='extra_score_shield') { const exp=now+24*60*60*1000; target.purchases[itemId]={active:true,at:now,expiresAt:exp}; target.scoreShieldExpires=exp; target.scoreShieldCharges=3; }
     if (itemId==='extra_hint') { target.hints=(target.hints||0)+5; }
@@ -508,12 +498,6 @@ const Shop = {
     await State.savePlayer(target);
     State.currentPlayer = await State.getPlayer(buyer.name);
 
-    if (itemId==='admin_week') {
-      Shop.close();
-      Shop._bigMsg('🔐 Admin-Zugang!',
-        `7 Tage Admin-Panel Zugang!<br><br><span style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FFD700">Passwort: mischa2026</span><br><br><span style="font-size:0.72rem;color:rgba(255,255,255,0.35)">Läuft in 7 Tagen ab</span>`);
-      return;
-    }
 
     Shop._toast(isGift ? `🎁 ${targetName} hat ${item.name} erhalten!` : `✅ ${item.name} erhalten!`, true);
     setTimeout(()=>{ Shop.close(); if(App?.showWorldMap) App.showWorldMap(); }, 1500);

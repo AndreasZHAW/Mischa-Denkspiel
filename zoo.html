@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v230 -->
+<!-- ZOO v231 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -175,7 +175,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="rewardchests.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v230','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v231','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -6311,7 +6311,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(document.getElementById('test-triggers'))return;
       const box=document.createElement('div');
       box.id='test-triggers';
-      box.style.cssText='position:fixed;bottom:8px;left:8px;z-index:9000;display:flex;flex-direction:column;gap:4px';
+      box.style.cssText='position:fixed;top:70px;right:8px;z-index:9000;display:flex;flex-direction:column;gap:4px;align-items:flex-end;max-width:130px';
       const mk=(label,fn,bg,fg)=>'<button onclick="'+fn+'" style="background:'+bg+';color:'+(fg||'#fff')+';border:none;padding:4px 7px;border-radius:6px;font-size:.62rem;cursor:pointer;font-weight:700">'+label+'</button>';
       box.innerHTML='<div style="font-size:.6rem;color:#ff6b00;font-weight:900">🧪 TEST-TRIGGER</div>'+
         mk('🚓 Polizei','ZooEvents.policeRaid()','#3498db')+

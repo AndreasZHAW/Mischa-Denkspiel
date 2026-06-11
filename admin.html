@@ -94,7 +94,7 @@ textarea.inp { resize:vertical; min-height:80px; }
 <div id="admin-wrap" style="display:none">
   <div class="topbar">
     <div>
-      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v230</span></h1>
+      <h1>🔧 Mischa Admin Panel <span style="font-size:.6em;color:rgba(255,255,255,.4);font-weight:400">v231</span></h1>
     </div>
     <div class="topbar-right">
       <span id="status-txt" style="font-size:.72rem;color:rgba(255,255,255,.4)">Bereit</span>
@@ -452,6 +452,7 @@ function doLogin() {
   }
 }
 document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+try { if (sessionStorage.getItem('mischa_admin_auto') === '1') { sessionStorage.removeItem('mischa_admin_auto'); const pwEl=document.getElementById('pw'); if(pwEl)pwEl.value=ADMIN_PW; setTimeout(doLogin,100); } } catch(e) {}
 
 function reloadAll() {
   loadPlayers(); loadMsgs(); loadBans(); loadReports(); loadCal();

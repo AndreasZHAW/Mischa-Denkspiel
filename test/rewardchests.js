@@ -307,8 +307,16 @@ const RewardChests = {
       '<div style="font-size:5rem;margin:10px 0;animation:bounce 1s infinite">'+reward.icon+'</div>'+
       '<div style="font-size:clamp(1.2rem,5vw,1.7rem);font-weight:900;color:#fff;margin-bottom:6px">'+reward.label+'</div>'+
       '<div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:20px">'+(s.isHell?'Autsch! Pech gehabt...':'Belohnung erhalten!')+'</div>'+
-      '<button onclick="RewardChests._closeAnim()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:12px 30px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">Super! ➜</button>';
-    ov.onclick=null; this.updateBadge();
+      '<button id="chest-claim-btn" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:14px 36px;border-radius:14px;font-weight:900;font-size:1.15rem;cursor:pointer;box-shadow:0 4px 14px rgba(255,140,0,.5)">Super! ➜</button>';
+    // Clear the chest-tap handlers so they don't swallow the button
+    ov.onclick=null; ov.ontouchstart=null;
+    const btn=document.getElementById('chest-claim-btn');
+    if(btn){
+      const claim=(e)=>{ if(e){e.preventDefault();e.stopPropagation();} this._closeAnim(); };
+      btn.onclick=claim;
+      btn.addEventListener('touchend',claim,{passive:false});
+    }
+    this.updateBadge();
   },
   _closeAnim(){ document.getElementById('chest-anim')?.remove(); this._animState=null; this.open(); this.updateBadge(); },
 
