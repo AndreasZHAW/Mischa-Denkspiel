@@ -1,0 +1,6 @@
+"""SDAA – Solar Drift Alignment Analyzer"""
+VERSION       = "0.12.3"
+VERSION_DATE  = "2026-06-14"
+APP_NAME      = "Solar Drift Alignment Analyzer"
+APP_ABBR      = "SDAA"
+VERSION_STRING = f"{APP_ABBR} v{VERSION}  ({VERSION_DATE})"

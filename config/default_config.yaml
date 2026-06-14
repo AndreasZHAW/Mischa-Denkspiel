@@ -1,0 +1,198 @@
+# =============================================================================
+#  SDAA – Solar Drift Alignment Analyzer
+#  Configuration File  (human-readable YAML)
+#  Edit this file to match your setup.
+#  A copy is saved to your sessions folder so you always know which config
+#  was active when a session was recorded.
+#
+#  Defaults preset for: ASI2600MC / Omegon veTEC 571 / ATR2600C  +  FMA180 Pro
+#  Observer:  Zürich
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Observer Location
+# Used to compute the sun's hour angle, which determines how a polar axis
+# error translates into measured drift.  Accuracy of ±50 km is fine –
+# Zürich coordinates work for anywhere within Switzerland.
+# ---------------------------------------------------------------------------
+observer:
+  latitude_deg:  47.3769    # positive = North, negative = South   (Zürich)
+  longitude_deg:  8.5417    # positive = East,  negative = West    (Zürich)
+  altitude_m:    408        # metres above sea level
+  timezone:      "Europe/Zurich"   # IANA timezone name
+
+# Quick-switch presets (copy values into observer above if you travel):
+#   Avignon:   latitude_deg: 43.9493   longitude_deg:  4.8055   altitude_m: 23   timezone: "Europe/Paris"
+#   Zürich:    latitude_deg: 47.3769   longitude_deg:  8.5417   altitude_m: 408  timezone: "Europe/Zurich"
+
+# ---------------------------------------------------------------------------
+# File Paths
+# ---------------------------------------------------------------------------
+paths:
+  # Leave these empty ("") so SDAA auto-discovers the capture folder and uses
+  # home-relative defaults on each machine.  Set them in Setup → Paths, or they
+  # will be filled automatically on first run.
+  watch_folder:     ""
+  processed_folder: ""
+  sessions_folder:  ""
+
+# ---------------------------------------------------------------------------
+# Camera  (Sony IMX571 colour sensor – ASI2600MC / Omegon veTEC 571 / ATR2600C)
+# ---------------------------------------------------------------------------
+camera:
+  model:            "ATR2600C / IMX571"
+  pixel_size_um:     3.76       # µm per pixel  (IMX571)
+  sensor_width_px:  6248        # full sensor width  (use ROI value if you crop)
+  sensor_height_px: 4176        # full sensor height (use ROI value if you crop)
+  is_color:         true
+  # Bayer pattern used as FALLBACK if not found in FITS header.
+  # Common values: RGGB  BGGR  GRBG  GBRG
+  bayer_pattern_fallback: "RGGB"
+
+# ---------------------------------------------------------------------------
+# Optics  (Askar FMA180 Pro)
+# ---------------------------------------------------------------------------
+optics:
+  focal_length_mm:  180       # Askar FMA180 Pro
+  reducer_factor:   1.0       # 0.85 for 0.85x reducer, 2.0 for 2x barlow, etc.
+  # Effective FL = focal_length_mm * reducer_factor
+  # Plate scale (arcsec/px) = 206265 * pixel_size_um / (effective_FL_mm * 1000)
+  # Calculated automatically; override below if you want to force a value:
+  plate_scale_override_arcsec_px: null   # null = auto-calculate
+
+# ---------------------------------------------------------------------------
+# Mount
+# ---------------------------------------------------------------------------
+mount:
+  model:         "EQ6-R Pro"
+  # tracking_rate: solar | sidereal | lunar | custom
+  # Set to "custom" if NINA's Orbitals plugin is sending tracking updates.
+  tracking_rate: "custom"
+
+# ---------------------------------------------------------------------------
+# Sun Detection
+# ---------------------------------------------------------------------------
+detection:
+  sun:
+    # Preprocessing
+    gaussian_blur_sigma:   2.0    # seeing smoothing before edge detection
+    bilateral_d:           9      # bilateral filter window (0 = disabled)
+    bilateral_sigma_color: 75
+    bilateral_sigma_space: 75
+
+    # Limb detection (Canny)
+    canny_low_threshold:  30
+    canny_high_threshold: 100
+
+    # Hough Circle (initial estimate)
+    hough_dp:            1.2
+    hough_min_dist_frac: 0.5    # min distance between circles (fraction of img width)
+    hough_param1:        60
+    hough_param2:        30
+
+    # Circle fit constraints
+    min_radius_frac:  0.05   # fraction of min(width, height)
+    max_radius_frac:  0.90
+
+    # Limb-fit refinement
+    limb_edge_percentile:   90   # keep only the top N% gradient edge points
+    max_fit_residual_px:    3.0  # reject points further than this from fit circle
+
+    # Quality gate: frames below this score are shown but downweighted.
+    # Small sun discs (FMA180 + IMX571: ~445 px diameter) tend to score
+    # around 0.20-0.40 due to limited limb-point count; that's fine.
+    quality_threshold:  0.15
+
+# ---------------------------------------------------------------------------
+# Tracking & Drift Analysis
+# ---------------------------------------------------------------------------
+drift:
+  min_frames_for_solution:    5     # don't output solution before N good frames
+  outlier_sigma:              3.0   # reject points > N sigma from regression line
+  # Maximum physically plausible drift (safety sanity check)
+  max_drift_arcsec_min:       600   # 10 arcmin/min  (very conservative)
+
+  # Auto-reset when mount movement detected
+  auto_reset_enabled:         true
+  # A jump larger than this in a single frame = mount was moved.
+  # Set high enough not to trigger on NINA Orbitals updates (which cause
+  # small position adjustments every ~20s, typically < 30 arcsec).
+  auto_reset_threshold_arcsec: 300
+  auto_reset_countdown_sec:    30   # seconds before reset executes automatically
+
+# ---------------------------------------------------------------------------
+# Atmospheric Refraction
+# ---------------------------------------------------------------------------
+refraction:
+  enabled:        true
+  # Standard conditions assumed when not provided externally
+  pressure_hPa:   1013.25
+  temperature_C:  15.0
+  warn_below_altitude_deg: 30.0   # show warning + include in uncertainty
+
+# ---------------------------------------------------------------------------
+# ASCOM Mount Integration  (Windows only)
+# ---------------------------------------------------------------------------
+ascom:
+  enabled:          false
+  # driver: eqmod | gs_server
+  driver:           "eqmod"
+  # ASCOM ProgID for your driver, e.g. "EQMOD.Telescope"
+  prog_id:          "EQMOD.Telescope"
+  # auto_correction: send correction slews automatically (ADVANCED – use with care!)
+  auto_correction:  false
+  # Minimum time between auto-corrections (seconds)
+  correction_cooldown_sec: 30
+
+# ---------------------------------------------------------------------------
+# Camera Rotation Calibration  (set by the Calibration Wizard)
+# ---------------------------------------------------------------------------
+calibration:
+  # Angle from sensor X-axis to celestial East direction, degrees CCW positive.
+  # Run Tools → Camera Rotation Wizard to measure this automatically.
+  camera_rotation_deg: 0.0
+  calibration_date:    null   # ISO date string, set by wizard
+
+# ---------------------------------------------------------------------------
+# Mount Adjustment Screws  (EQ6-R Pro defaults)
+# Used to convert polar error into screw-turn instructions.
+# Refine after first real-world correction iteration if values feel off.
+# ---------------------------------------------------------------------------
+mount_adjust:
+  az_arcmin_per_turn:        30.0    # arcmin polar-axis swing per full turn
+  alt_arcmin_per_turn:       30.0    # arcmin polar-axis tilt per full turn
+  # Which direction does the right azimuth screw (tightening) move the polar axis?
+  # On a standard EQ6 setup with you behind the mount facing north: right = east
+  az_right_screw_direction:  "east"
+
+# ---------------------------------------------------------------------------
+# SDO Reference Image  (optional online check of camera rotation)
+# If enabled and internet is available, SDAA downloads the latest SDO HMI
+# continuum image and compares its orientation with yours.
+# Falls back gracefully if offline.
+# ---------------------------------------------------------------------------
+sdo_ref:
+  enabled:          true
+  image_url:        "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_2048_HMIIF.jpg"
+  timeout_seconds:  10.0
+  cache_minutes:    15
+  cache_filename:   "sdo_reference.jpg"
+
+# ---------------------------------------------------------------------------
+# GUI
+# ---------------------------------------------------------------------------
+gui:
+  theme:                  "dark"    # dark | light
+  image_stretch:          "auto"    # auto | linear | log | sqrt
+  drift_plot_history_min: 30        # how much history to show in the plot
+  compass_scale:          "arcmin"  # arcmin | arcsec | degrees
+  font_size_pt:           10
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logging:
+  level:     "INFO"       # DEBUG | INFO | WARNING | ERROR
+  log_file:  "sdaa.log"   # relative to sessions_folder
+  max_bytes: 5242880      # 5 MB before rotating
+  backup_count: 3

@@ -1,0 +1,28 @@
+# SDAA – Solar Drift Alignment Analyzer
+# Install with:  pip install -r requirements.txt
+
+# GUI
+PyQt6>=6.6.0
+pyqtgraph>=0.13.3
+
+# Astronomy / image I/O
+astropy>=6.0.0
+Pillow>=10.3.0
+
+# Image processing
+opencv-python>=4.9.0
+numpy>=1.26.0
+scipy>=1.12.0
+
+# File watching
+watchdog>=4.0.0
+
+# Configuration
+PyYAML>=6.0.1
+
+# Build to .exe (run manually: pyinstaller sdaa.spec)
+pyinstaller>=6.5.0
+
+# Testing
+pytest>=8.0.0
+pytest-qt>=4.4.0
