@@ -207,6 +207,7 @@
   <!-- App -->
   <script src="french.js"></script>
 <script src="rewardchests.js"></script>
+  <script src="personality.js"></script>
   <script src="app.js"></script>
   <script>
     // Prevent double-tap zoom on touch devices
@@ -309,7 +310,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v232 wird geladen...';
+      if(vEl) vEl.textContent = 'v235 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)

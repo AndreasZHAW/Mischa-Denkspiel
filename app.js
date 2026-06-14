@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v232';
+const APP_VERSION = 'v235';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -224,13 +224,12 @@ const FontScale = {
     const zoom = sizePx / 15;
     styleEl.textContent = [
       `:root { --ufs: ${sizePx}px; --ufz: ${zoom.toFixed(3)}; font-size: ${sizePx}px; }`,
-      `body { font-size: ${sizePx}px; }`,
-      // Scale the app container so all text inside scales proportionally
-      `#app { font-size: ${sizePx}px; }`,
-      // Override specific common patterns
-      `.card, .btn, button, input, select, textarea, p, div, span, label { font-size: inherit; }`,
-      // World map task items
-      `.world-item { font-size: ${sizePx}px !important; }`,
+      `html { font-size: ${sizePx}px !important; -webkit-text-size-adjust:none !important; text-size-adjust:none !important; }`,
+      `body { font-size: ${sizePx}px !important; }`,
+      // Use CSS zoom on #app so ALL child elements (incl. inline styles) scale uniformly
+      `#app { zoom: ${zoom.toFixed(3)}; -moz-transform: scale(${zoom.toFixed(3)}); -moz-transform-origin: 0 0; font-size: ${sizePx}px; }`,
+      // Buttons and text elements also inherit
+      `#app button, #app div, #app span, #app p, #app input { font-size: inherit; }`,
     ].join('\n');
   },
 
@@ -305,7 +304,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v232 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v235 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -889,6 +888,7 @@ const App = {
       }
     } catch(e) {} // ban check failed silently, allow login
     FontScale.applyForPlayer(State.currentPlayer?.name||'');
+    if(typeof Personality!=='undefined')Personality.init();
     this.showWorldMap();
   },
 
@@ -1005,6 +1005,8 @@ const App = {
     // Merge locally saved currentWorld in case Firebase was behind
     if (player) {
       const _appliedSize = FontScale.applyForPlayer(player.name);
+      // Apply user personality (color + avatar)
+      if(typeof Personality!=='undefined') Personality.init();
       // If test was never done on this device, remember to show hint
       if (!FontScale.testDone(player.name)) {
         window._showEyeTestHint = true;
@@ -1042,7 +1044,10 @@ const App = {
     const _isRef = player.name.toLowerCase() === 'janoschtest';
     const _isAdmin = player.name.toLowerCase() === 'bu';
     // Bu gets displayed with special black/gold style
-    const displayName = _isAdmin ? '<span style="background:#FFD700;color:#000;font-weight:900;padding:2px 8px;border-radius:6px">Bu 🌀</span>' : player.name;
+    // Avatar from Personality module (if any)
+    const _avatarHTML = (typeof Personality!=='undefined') ? Personality.getAvatarHTML(36) : '';
+    const _avatarPrefix = _avatarHTML ? '<span style="display:inline-block;vertical-align:middle;margin-right:6px">'+_avatarHTML+'</span>' : '';
+    const displayName = _avatarPrefix + (_isAdmin ? '<span style="background:#FFD700;color:#000;font-weight:900;padding:2px 8px;border-radius:6px;vertical-align:middle">Bu 🌀</span>' : '<span style="vertical-align:middle">'+player.name+'</span>');
 
     if (_isRef) setTimeout(() => {
       document.getElementById('ref-banner')?.remove();
@@ -1095,6 +1100,7 @@ const App = {
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">🔤 Schrift</button>
 
 
+
             <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Spielprotokoll anzeigen">📋 Log</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">Abmelden</button>
           </div>
@@ -1114,6 +1120,11 @@ const App = {
           <button id="reward-btn" onclick="RewardChests.open()" style="position:relative;width:100%;background:linear-gradient(135deg,#FFA500,#FF6B00);color:#1a1a2e;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(255,140,0,.4)">
             🎁 Belohnungen abholen
             <span id="reward-badge" style="display:none;position:absolute;top:-8px;right:14px;background:#E74C3C;color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;text-align:center;font-size:1.05rem;font-weight:900;box-shadow:0 0 10px rgba(231,76,60,.9);animation:bounce 1s infinite">!</span>
+          </button>
+        </div>
+        <div style="margin-bottom:12px">
+          <button onclick="App.showPersonality()" style="width:100%;background:linear-gradient(135deg,#FF6FB5,#9B59B6);color:#fff;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(155,89,182,.4)">
+            🎨 Persönlichkeit (Farbe + Avatar)
           </button>
         </div>` : ''}
 
@@ -1172,6 +1183,11 @@ const App = {
   goToAdmin() {
     try { sessionStorage.setItem('mischa_admin_auto','1'); } catch(e){}
     window.location.href = 'admin.html';
+  },
+  showPersonality(){
+    if(typeof Personality==='undefined'){ alert('❌ Persönlichkeits-Modul nicht geladen! Bitte Seite neu laden.'); return; }
+    try{ Personality.show(); }
+    catch(e){ alert('❌ Fehler beim Öffnen: '+e.message); console.error(e); }
   },
   _logout() {
     State.logout();

@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v232 -->
+<!-- ZOO v235 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
+<script>// Apply personality color in zoo if saved
+window.addEventListener('DOMContentLoaded',()=>{
+  try{
+    if(typeof Personality==='undefined')return;
+    // try to find player name from zoo state when available, or last login
+    const k=Object.keys(localStorage).find(k=>k.startsWith('mischa_personality_'));
+    if(k){ const data=JSON.parse(localStorage.getItem(k)||'{}'); if(data.color){
+      const el=document.createElement('style'); el.textContent=':root{--user-color:'+data.color+'}';
+      document.head.appendChild(el);
+    }}
+  }catch(e){}
+});</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -182,9 +194,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
 <script src="rewardchests.js"></script>
+<script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v232','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v235','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -911,33 +924,11 @@ const ZG={
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     this._scheduleEvent();
-    // Apply pending chest rewards (from the Belohnungs-Truhen in the menu)
+    // Apply pending chest rewards via RewardChests.applyPending()
     if(window.MISCHA_TESTMODE){
       try{
-        const pr=JSON.parse(sessionStorage.getItem('mischa_pending_rewards')||'{}');
-        const z=ZS.zoo;
-        if(z && Object.keys(pr).length){
-          let msg=[];
-          if(pr.tokens){ z.tokens=(z.tokens||0)+pr.tokens; msg.push(pr.tokens+'🥇'); }
-          if(pr.spins){ if(typeof LW!=='undefined'){LW.spins=(LW.spins||0)+pr.spins; LW._saveSpins&&LW._saveSpins();} msg.push(pr.spins+'🎡'); }
-          if(pr.treats){ z.treats=(z.treats||0)+pr.treats; msg.push(pr.treats+'🍬'); }
-          if(pr.freeSweep){ z.freeSweeps=(z.freeSweeps||0)+pr.freeSweep; msg.push(pr.freeSweep+'× 🧹 gratis'); }
-          if(pr.lifeInsurance){ z.insuranceActive=true; z.lifeInsurance=true; z.insuranceUntil=Date.now()+9e12; msg.push('🛡️ lebenslang'); }
-          // animals by rarity
-          const giveAnimal=(rarity)=>{
-            const slot=z.enc.findIndex(e=>!e||!e.animal); if(slot<0){ZP.toast('🦁 Kein Platz für ein Tier! Belohnung verfällt.',3500);return;}
-            let pool=(window.ANIMALS||ANIMALS||[]).filter(a=>a.r===rarity);
-            if(rarity==='dino'){ const a={id:'chest_dino',n:'Dinosaurier',e:'🦕',r:'mythic',p:0,earn:800,w:0}; z.enc[slot]={animal:a,shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0}; ZG._encs&&ZG._encs(); return; }
-            if(!pool.length) pool=(window.ANIMALS||ANIMALS||[]).filter(a=>a.r==='epic');
-            const a=pool[Math.floor(Math.random()*pool.length)]; if(!a)return;
-            z.enc[slot]={animal:{...a},shiny:(rarity==='mythic'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0}; ZG._encs&&ZG._encs();
-          };
-          ['rare','epic','mythic','dino'].forEach(rar=>{ if(pr['animal_'+rar]){ for(let i=0;i<pr['animal_'+rar];i++)giveAnimal(rar); msg.push('🐾 '+rar); } });
-          if(msg.length){ ZP.toast('🎁 Truhen-Belohnung: '+msg.join(' · '),5000); }
-          if(pr.event){ setTimeout(()=>{ const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)]; this.startEv(ev,300000); },1500); }
-          ZS.save&&ZS.save();
-        }
-        sessionStorage.removeItem('mischa_pending_rewards');
+        window.ANIMALS=ANIMALS; // make sure RewardChests can find animals
+        setTimeout(()=>{ if(typeof RewardChests!=='undefined') RewardChests.applyPending(); },500);
         // pending accident from a hell chest
         if(sessionStorage.getItem('mischa_pending_accident')==='1'){
           sessionStorage.removeItem('mischa_pending_accident');
@@ -1265,7 +1256,7 @@ const ZG={
         else if(d.type==='poll'){
           // Poll banner with Yes/No buttons
           const pollDiv=document.createElement('div');
-          pollDiv.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:280px;max-width:90vw;background:linear-gradient(135deg,#0a1a2e,#1a2a4e);border:2px solid #8E44AD;border-radius:16px;padding:20px 24px;text-align:center;color:#fff;box-shadow:0 0 30px rgba(138,43,226,.3)';
+          pollDiv.style.cssText='position:fixed;bottom:12%;left:50%;transform:translateX(-50%);z-index:9800;min-width:280px;max-width:90vw;background:linear-gradient(135deg,#0a1a2e,#1a2a4e);border:2px solid #8E44AD;border-radius:16px;padding:20px 24px;text-align:center;color:#fff;box-shadow:0 0 30px rgba(138,43,226,.3)';
           // Build poll with DOM (no quote issues)
           const pTitle=document.createElement('div');pTitle.style.cssText='font-size:.75rem;color:#8E44AD;font-weight:700;margin-bottom:8px';pTitle.textContent='📊 Umfrage von '+(d.from||'Admin');
           const pMsg=document.createElement('div');pMsg.style.cssText='font-size:.95rem;margin-bottom:14px';pMsg.textContent=d.msg||'';
@@ -1277,6 +1268,7 @@ const ZG={
           // Close (X) button so the player can always dismiss it
           const pClose=document.createElement('button');pClose.textContent='✕';pClose.style.cssText='position:absolute;top:6px;right:8px;background:rgba(255,255,255,.15);color:#fff;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;font-weight:900';
           pClose.onclick=function(){pollDiv.remove();};
+          pollDiv.style.position='relative'; // needed for absolute-positioned X button
           pollDiv.appendChild(pClose);
           pollDiv.appendChild(pTitle);pollDiv.appendChild(pMsg);pollDiv.appendChild(pYes);pollDiv.appendChild(pNo);
           document.body.appendChild(pollDiv);
@@ -2780,7 +2772,23 @@ const ZG={
     requestAnimationFrame(anim);
   },
 
-  _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}},100);this._ivs.push(iv);},
+  _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;
+    // 10-sec warning: when gCD hits ~2500ms, the slot 4 positions ahead (≈10s) comes into view
+    if(this.gCD<=2600&&this.gCD>2400){
+      const ahead=this.gQ[3]||this.gQ[2];
+      if(ahead&&ahead.a&&!this._warned10?.has(ahead.a.id)){
+        const r=ahead.a.r;
+        const WARN_RARITIES=['ultralegendary','god','mythic','secret'];
+        if(WARN_RARITIES.includes(r)){
+          if(!this._warned10)this._warned10=new Set();
+          this._warned10.add(ahead.a.id+'_'+Date.now());
+          const label=r==='ultralegendary'?'Ultra-Legendär':r==='god'?'Göttlich':r==='mythic'?'Mythisch':'SECRET';
+          ZP.toast('⚡ In ~10 Sek kommt ein '+label+' Tier! '+ahead.a.e+' '+ahead.a.n+' — sei bereit!',8000);
+        }
+      }
+    }
+    if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}
+  },100);this._ivs.push(iv);},
 
   // ═══ EVENTS ═══
 
@@ -7417,6 +7425,7 @@ window.ZooEvents = ZooEvents;
     box-shadow:0 4px 12px rgba(0,0,0,.4);touch-action:none;user-select:none">⬆️</button>
 
 
-<div id="zoo-test-banner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:repeating-linear-gradient(45deg,#ff6b00,#ff6b00 14px,#1a1a1a 14px,#1a1a1a 28px);color:#fff;text-align:center;font-weight:900;font-size:.72rem;padding:3px;font-family:Arial,sans-serif;letter-spacing:1px;text-shadow:0 1px 3px #000;pointer-events:none">🧪 TEST-ZOO</div>
+<div id="test-zoo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(255,107,0,.85);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:3px">🧪 TEST-ZOO</div>
+<script>if(window.MISCHA_TESTMODE){var b=document.getElementById('test-zoo-banner');if(b)b.style.display='block';}</script>
 </body>
 </html>
