@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v235';
+const APP_VERSION = 'v236';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -160,8 +160,10 @@ const FontScale = {
     try {
       const saved = localStorage.getItem(this.storageKey(playerName));
       if (saved) {
-        const size = parseInt(saved);
-        if (size >= 8 && size <= 120) return size; // wider range for detected sizes
+        let size = parseInt(saved);
+        // If a previous broken version saved a giant size, clamp it back down
+        if (size > 28) { size = 16; try{localStorage.removeItem(this.storageKey(playerName));}catch(e){} }
+        if (size >= 10 && size <= 28) return size;
       }
     } catch(e) {}
     // No saved size: auto-detect effective default
@@ -201,7 +203,7 @@ const FontScale = {
   // Apply scale — sets root font + CSS vars + dynamic style injection
   apply(sizePx) {
     // Clamp to reasonable range (detectSizes gives 8-120px range)
-    sizePx = Math.max(8, Math.min(120, parseInt(sizePx) || 15));
+    sizePx = Math.max(10, Math.min(28, parseInt(sizePx) || 15));
     const scale = sizePx / 15; // 15px is the base
     document.documentElement.style.setProperty('--user-font-size', sizePx + 'px');
     document.documentElement.style.setProperty('--user-font-scale', scale.toFixed(3));
@@ -222,14 +224,13 @@ const FontScale = {
     // We do this by setting html font-size and making all rem-based text scale
     // For hardcoded sizes in the app HTML, we use a zoom approach on #app
     const zoom = sizePx / 15;
+    // Simple, safe approach: set the root font-size only.
+    // No CSS zoom (caused doubling), no html !important (overrode inline styles).
+    // The hardcoded inline font-sizes in the HTML are kept as-is — they're the design.
     styleEl.textContent = [
-      `:root { --ufs: ${sizePx}px; --ufz: ${zoom.toFixed(3)}; font-size: ${sizePx}px; }`,
-      `html { font-size: ${sizePx}px !important; -webkit-text-size-adjust:none !important; text-size-adjust:none !important; }`,
-      `body { font-size: ${sizePx}px !important; }`,
-      // Use CSS zoom on #app so ALL child elements (incl. inline styles) scale uniformly
-      `#app { zoom: ${zoom.toFixed(3)}; -moz-transform: scale(${zoom.toFixed(3)}); -moz-transform-origin: 0 0; font-size: ${sizePx}px; }`,
-      // Buttons and text elements also inherit
-      `#app button, #app div, #app span, #app p, #app input { font-size: inherit; }`,
+      `:root { --ufs: ${sizePx}px; --ufz: ${zoom.toFixed(3)}; }`,
+      `html { -webkit-text-size-adjust:100%; text-size-adjust:100%; font-size: ${sizePx}px; }`,
+      `body { font-size: ${sizePx}px; }`,
     ].join('\n');
   },
 
@@ -304,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v235 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v236 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>

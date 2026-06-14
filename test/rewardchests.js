@@ -1,4 +1,4 @@
-// Shared reward chest system — Denkspiel + Zoo (v235)
+// Shared reward chest system — Denkspiel + Zoo (v236)
 const RewardChests = {
   // ── TIER CONFIG ──
   // hell = chance for hell chest (rolled first)
