@@ -1,4 +1,4 @@
-// Personality module — color + avatar customization (v236)
+// Personality module — color + avatar customization (v238)
 const Personality = {
   // ── COLOR PALETTE ── (10×10 grid like the user's reference image)
   COLORS: [
@@ -68,15 +68,33 @@ const Personality = {
     document.documentElement.style.setProperty('--user-color-dark', this._shade(col,-0.3));
     document.documentElement.style.setProperty('--user-color-light', this._shade(col,0.3));
     document.documentElement.style.setProperty('--user-color-rgba', this._toRgba(col,0.18));
-    // Inject a global style that uses these vars for accents
+    // Inject global style: tint the body background with the user color
     let el=document.getElementById('personality-style');
     if(!el){ el=document.createElement('style'); el.id='personality-style'; document.head.appendChild(el); }
+    const r=parseInt(col.replace('#','').substr(0,2),16),
+          g=parseInt(col.replace('#','').substr(2,2),16),
+          b=parseInt(col.replace('#','').substr(4,2),16);
+    const darkBg = 'rgb('+Math.round(r*0.15)+','+Math.round(g*0.15)+','+Math.round(b*0.15)+')';
+    const midBg  = 'rgb('+Math.round(r*0.35)+','+Math.round(g*0.35)+','+Math.round(b*0.35)+')';
+    // Build the tinted gradient as a CSS background-image string
+    const bgGrad = 'linear-gradient(160deg,'+darkBg+' 0%,'+midBg+' 100%)';
     el.textContent =
+      // Body/html — base background
+      'html,body{background:'+bgGrad+' fixed !important}'+
+      // #app container
+      '#app{background:'+bgGrad+' !important}'+
+      // The menu's inner background-gradient div: override its inline style by targeting first child of .mountain-bg
+      '.mountain-bg > div:first-child{background:'+bgGrad+' !important}'+
+      // The final dark fade-overlay too
+      '.mountain-bg > div:last-child{background:linear-gradient(180deg,transparent 40%,'+this._toRgba(col,0.25)+' 100%) !important}'+
+      // Decorative accent classes
       '.p-accent{color:'+col+'!important}'+
       '.p-bg{background:'+col+'!important}'+
-      '.p-border{border-color:'+col+'!important}'+
-      // Sprinkle the color on common accents (best-effort, doesn't override deliberate brand colors)
-      '#app .menu-card-accent,#app .accent-text{color:'+col+'}';
+      '.p-border{border-color:'+col+'!important}';
+  },
+  // Remove all color overrides (in case user wants pure default)
+  clearColor(){
+    document.getElementById('personality-style')?.remove();
   },
   _shade(hex,f){ try{ hex=hex.replace('#',''); let r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16); if(f<0){r=Math.round(r*(1+f));g=Math.round(g*(1+f));b=Math.round(b*(1+f));}else{r=Math.round(r+(255-r)*f);g=Math.round(g+(255-g)*f);b=Math.round(b+(255-b)*f);} return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join(''); }catch(e){return hex;} },
   _toRgba(hex,a){ try{ hex=hex.replace('#',''); const r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16); return 'rgba('+r+','+g+','+b+','+a+')'; }catch(e){return hex;} },
@@ -93,12 +111,21 @@ const Personality = {
     size=size||64;
     const d=this._data();
     if(!d.face) return '';
-    const overlaySize = Math.round(size*0.42);
-    return '<div style="position:relative;display:inline-block;width:'+size+'px;height:'+size+'px;line-height:'+size+'px;text-align:center;font-size:'+Math.round(size*0.85)+'px">'+
-      d.face+
-      (d.hat?'<span style="position:absolute;top:-'+Math.round(size*0.15)+'px;left:50%;transform:translateX(-50%);font-size:'+overlaySize+'px;line-height:1">'+d.hat+'</span>':'')+
-      (d.glasses?'<span style="position:absolute;top:'+Math.round(size*0.18)+'px;left:50%;transform:translateX(-50%);font-size:'+Math.round(overlaySize*0.85)+'px;line-height:1">'+d.glasses+'</span>':'')+
-      (d.earring?'<span style="position:absolute;top:'+Math.round(size*0.42)+'px;right:'+Math.round(size*0.05)+'px;font-size:'+Math.round(overlaySize*0.6)+'px;line-height:1">'+d.earring+'</span>':'')+
+    // The face emoji is rendered at ~85% of size, roughly centered, with its visual content
+    // typically occupying the middle 60-70% of its em-box.
+    // Accessories use these tuned offsets to land in believable places for most emojis.
+    const hatSize     = Math.round(size*0.55);  // hat: bigger, more prominent
+    const glassesSize = Math.round(size*0.45);  // glasses: cover the eye area
+    const earringSize = Math.round(size*0.30);  // earring: small, side
+    return '<div style="position:relative;display:inline-block;width:'+size+'px;height:'+size+'px;text-align:center;font-size:'+Math.round(size*0.92)+'px;line-height:'+size+'px;vertical-align:middle">'+
+      // Face (base)
+      '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">'+d.face+'</span>'+
+      // Hat: sits ON TOP, slightly overlapping the head crown (top of head area)
+      (d.hat?'<span style="position:absolute;top:'+Math.round(size*-0.10)+'px;left:50%;transform:translateX(-50%);font-size:'+hatSize+'px;line-height:1;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.3)">'+d.hat+'</span>':'')+
+      // Glasses: covers the eye region (roughly 30-45% from top)
+      (d.glasses?'<span style="position:absolute;top:'+Math.round(size*0.28)+'px;left:50%;transform:translateX(-50%);font-size:'+glassesSize+'px;line-height:1;pointer-events:none">'+d.glasses+'</span>':'')+
+      // Earring: bottom-right of the face, near the cheek/ear
+      (d.earring?'<span style="position:absolute;top:'+Math.round(size*0.50)+'px;right:'+Math.round(size*0.02)+'px;font-size:'+earringSize+'px;line-height:1;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.3)">'+d.earring+'</span>':'')+
     '</div>';
   },
 

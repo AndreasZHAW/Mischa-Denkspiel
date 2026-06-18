@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v236';
+const APP_VERSION = 'v238';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -157,11 +157,23 @@ const FontScale = {
 
   // Load saved scale for current player+device
   load(playerName) {
+    // ONE-TIME RESET: if the user has v235's broken stored size, clear it
+    try{
+      if(localStorage.getItem('mischa_fontscale_reset_v238')!=='1'){
+        // Wipe ALL mischa_fontscale_* entries (broken sizes from earlier versions)
+        const keys=[];
+        for(let i=0;i<localStorage.length;i++){
+          const k=localStorage.key(i);
+          if(k && k.startsWith('mischa_fontscale_')) keys.push(k);
+        }
+        keys.forEach(k=>localStorage.removeItem(k));
+        localStorage.setItem('mischa_fontscale_reset_v238','1');
+      }
+    }catch(e){}
     try {
       const saved = localStorage.getItem(this.storageKey(playerName));
       if (saved) {
         let size = parseInt(saved);
-        // If a previous broken version saved a giant size, clamp it back down
         if (size > 28) { size = 16; try{localStorage.removeItem(this.storageKey(playerName));}catch(e){} }
         if (size >= 10 && size <= 28) return size;
       }
@@ -200,38 +212,26 @@ const FontScale = {
     } catch(e) {}
   },
 
-  // Apply scale — sets root font + CSS vars + dynamic style injection
+  // Apply scale — minimal, safe approach.
+  // Just sets the root font-size, which affects rem units naturally.
+  // No zoom, no transform, no !important — nothing that breaks layout.
   apply(sizePx) {
-    // Clamp to reasonable range (detectSizes gives 8-120px range)
-    sizePx = Math.max(10, Math.min(28, parseInt(sizePx) || 15));
-    const scale = sizePx / 15; // 15px is the base
-    document.documentElement.style.setProperty('--user-font-size', sizePx + 'px');
-    document.documentElement.style.setProperty('--user-font-scale', scale.toFixed(3));
-    // Set root font-size so rem units scale everywhere
-    document.documentElement.style.fontSize = sizePx + 'px';
-    document.body.style.fontSize = sizePx + 'px';
+    sizePx = Math.max(10, Math.min(28, parseInt(sizePx) || 16));
+    const scale = sizePx / 16;
     window._userFontSize = sizePx;
     window._userFontScale = scale;
-    // Inject/update a persistent <style> that scales all UI text
-    // This works even for hardcoded px values via zoom-like scaling
+    document.documentElement.style.setProperty('--user-font-size', sizePx + 'px');
+    document.documentElement.style.setProperty('--user-font-scale', scale.toFixed(3));
+    // Clear any old broken overrides
     let styleEl = document.getElementById('mischa-font-override');
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = 'mischa-font-override';
-      document.head.appendChild(styleEl);
+    if (styleEl) styleEl.remove();
+    // Only override root font-size if user explicitly wants non-default
+    if (Math.abs(scale - 1.0) > 0.05) {
+      document.documentElement.style.fontSize = sizePx + 'px';
+    } else {
+      document.documentElement.style.fontSize = '';
     }
-    // Scale factor: if user needs 20px (scale=1.33), make everything 33% bigger
-    // We do this by setting html font-size and making all rem-based text scale
-    // For hardcoded sizes in the app HTML, we use a zoom approach on #app
-    const zoom = sizePx / 15;
-    // Simple, safe approach: set the root font-size only.
-    // No CSS zoom (caused doubling), no html !important (overrode inline styles).
-    // The hardcoded inline font-sizes in the HTML are kept as-is — they're the design.
-    styleEl.textContent = [
-      `:root { --ufs: ${sizePx}px; --ufz: ${zoom.toFixed(3)}; }`,
-      `html { -webkit-text-size-adjust:100%; text-size-adjust:100%; font-size: ${sizePx}px; }`,
-      `body { font-size: ${sizePx}px; }`,
-    ].join('\n');
+    document.body.style.fontSize = '';
   },
 
   // Apply for player (load + apply)
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v236 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v238 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
