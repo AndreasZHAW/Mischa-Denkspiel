@@ -310,7 +310,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v242 wird geladen...';
+      if(vEl) vEl.textContent = 'v243 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)
@@ -474,5 +474,45 @@
   <style>
     @keyframes slideDown { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
   </style>
+<script>
+function _showDenkspielAnnouncement(ann){
+  if(document.getElementById('ann-modal-d')) return;
+  const eventTs=ann.eventTs?new Date(ann.eventTs):null;
+  const fmtDate=eventTs?eventTs.toLocaleString('de-CH',{weekday:'short',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}):'';
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const ov=document.createElement('div'); ov.id='ann-modal-d';
+  ov.style.cssText='position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif';
+  ov.innerHTML=
+    '<div style="background:#0a0a0a;border-radius:20px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1)">'+
+        '<button onclick="document.getElementById('ann-modal-d').remove()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%">✕</button>'+
+        '<span style="color:#fff;font-weight:700;font-size:1rem">Event beitreten</span>'+
+        '<div style="width:32px"></div>'+
+      '</div>'+
+      (fmtDate?'<div style="padding:16px 20px 0"><div style="display:inline-block;background:#fff;color:#000;border-radius:20px;padding:6px 14px;font-size:.82rem;font-weight:700">'+fmtDate+'</div></div>':'')+
+      '<div style="background:#000;margin:12px 20px;border-radius:12px;padding:30px 20px;text-align:center">'+
+        '<div style="font-size:clamp(1.6rem,8vw,2.8rem);font-weight:900;color:#fff;text-transform:uppercase;line-height:1.1;letter-spacing:2px">'+esc(ann.title)+'</div>'+
+        (ann.desc?'<div style="margin-top:10px;font-size:.85rem;color:rgba(255,255,255,.7)">'+esc(ann.desc)+'</div>':'')+
+      '</div>'+
+      '<div style="padding:0 20px 20px">'+
+        '<div style="font-weight:700;font-size:1rem;color:#fff;margin-bottom:14px">'+esc(ann.title)+'</div>'+
+        (ann.eventTs?'<button onclick="_annNotifyD(''+ann.id+'',''+esc(ann.title)+'','+ann.eventTs+')" style="width:100%;background:#3478f6;color:#fff;border:none;padding:16px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">Benachrichtigen</button>':'')+
+        '<button onclick="document.getElementById('ann-modal-d').remove();_annMarkSeenD(''+ann.id+'')" style="width:100%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:none;padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:8px">Schliessen</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(ov);
+}
+function _annMarkSeenD(id){const s=JSON.parse(localStorage.getItem('zoo_ann_seen')||'[]');if(!s.includes(id)){s.push(id);if(s.length>10)s.shift();}localStorage.setItem('zoo_ann_seen',JSON.stringify(s));}
+async function _annNotifyD(id,title,eventTs){
+  _annMarkSeenD(id); document.getElementById('ann-modal-d')?.remove();
+  if(!('Notification' in window)){alert('❌ Benachrichtigungen nicht unterstützt.');return;}
+  const perm=await Notification.requestPermission();
+  if(perm!=='granted'){alert('❌ Nicht erlaubt.');return;}
+  const delay=eventTs-5*60*1000-Date.now();
+  if(delay<0){alert('⏰ Zu spät für Erinnerung!');return;}
+  setTimeout(()=>{try{new Notification('🎮 '+title,{body:'In 5 Minuten: '+title});}catch(e){}},delay);
+  alert('✅ Erinnerung gesetzt! Du wirst 5 Min vorher benachrichtigt.');
+}
+</script>
 </body>
 </html>
