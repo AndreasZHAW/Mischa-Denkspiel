@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v243 -->
+<!-- ZOO v244 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -85,7 +85,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 /* Minimap TR */
 #mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
 /* Event timer */
-#evt{position:absolute;bottom:14px;right:10px;background:rgba(0,0,0,.72);border-radius:10px;padding:6px 10px;border:2px solid rgba(255,255,255,.18);font-size:.76rem;text-align:center;display:none;pointer-events:none;font-weight:900}
+#evt{position:absolute;bottom:14px;right:10px;background:rgba(0,0,0,.82);border-radius:10px;padding:7px 10px;border:2px solid rgba(255,255,255,.22);font-size:.72rem;text-align:left;display:none;pointer-events:none;font-weight:900;max-width:160px;min-width:110px}
 /* Crosshair */
 #xhair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.7}
 /* Interact prompt */
@@ -106,6 +106,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 @keyframes snf{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(110vh) rotate(720deg)}}
 .zbm{position:fixed;bottom:0;z-index:183;border-radius:3px;opacity:.5;transform-origin:bottom;animation:bma 2s ease-in-out infinite;width:5px}
 @keyframes bma{0%,100%{height:55px;opacity:.45}50%{height:145px;opacity:.8}}
+@keyframes zsfall{0%{transform:translateY(-30px) scale(1);opacity:1}100%{transform:translateY(110vh) scale(.5);opacity:0}}
+@keyframes zsrise{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-100px) scale(1.5);opacity:0}}
 /* Glitch interior */
 #gint{position:fixed;inset:0;z-index:500;background:#060606;display:none;flex-direction:column;align-items:center;justify-content:center}
 .gisc{width:min(370px,95vw);height:250px;background:#0e0e0e;border-radius:16px;border:2px solid #00ff88;position:relative;overflow:hidden;margin-bottom:12px;box-shadow:0 0 30px rgba(0,255,136,.2)}
@@ -197,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v243','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v244','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -608,7 +610,18 @@ function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
 function rA(luck,night){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(luck,.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
-function rTr(ev){if(!ev)return[];if(ev==='mega')return TRAITS.filter(t=>Math.random()*100<t.p*1.5);return TRAITS.filter(t=>t.ev===ev&&Math.random()*100<t.p);}
+function rTr(ev){
+  // Support both single event id (legacy) and multi-event array from ZG.evs
+  const activeIds = (typeof ZG!=='undefined' && ZG.evs && ZG.evs.length)
+    ? ZG.evs.map(e=>e.id) : (ev?[ev]:[]);
+  if(!activeIds.length) return [];
+  const got=[];
+  activeIds.forEach(eid=>{
+    if(eid==='mega'){ TRAITS.forEach(t=>{ if(Math.random()<0.25&&!got.find(x=>x.id===t.id)) got.push(t); }); }
+    else { TRAITS.forEach(t=>{ if(t.ev===eid && Math.random()<0.25 && !got.find(x=>x.id===t.id)) got.push(t); }); }
+  });
+  return got.slice(0,5); // max 5 traits
+}
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
 function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;return e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
@@ -2401,12 +2414,26 @@ const ZG={
     if(!z.enc)ZS._fix(); // ensure fixed
     G('hmoney').textContent='🌀 '+$mt(z.mt||0).replace('🌀','');
     G('hvis').textContent='👥 '+(z.tv||0).toLocaleString();
-    const m=[];if((z.rebirthMult||1)>1)m.push(`×${(z.rebirthMult||1).toFixed(1)}`);if((z.luck||1)>1)m.push(`🍀×${z.luck}`);if(this.ev)m.push(this.ev.n);
+    const m=[];if((z.rebirthMult||1)>1)m.push(`×${(z.rebirthMult||1).toFixed(1)}`);if((z.luck||1)>1)m.push(`🍀×${z.luck}`);(this.evs||[]).filter(e=>e.end>Date.now()).forEach(e=>m.push(e.n));
     G('hmult').textContent=m.join(' · ');
     const b=G('lwbadge');if(b){b.style.display=LW.spins>0?'inline':'none';b.textContent=LW.spins>0?LW.spins:'';}
   },
 
-  _updEvTimer(){const el=G('evt');if(!el)return;if(this.ev&&this.evEnd>Date.now()){const r=Math.ceil((this.evEnd-Date.now())/1000);el.style.display='block';el.innerHTML=`<div style="font-size:.58rem;color:rgba(255,255,255,.4)">${this.ev.n}</div><div style="color:#FFD700">⏱ ${r}s</div>`;}else el.style.display='none';},
+  _updEvTimer(){
+    const el=G('evt'); if(!el)return;
+    const now=Date.now();
+    const active=(this.evs||[]).filter(e=>e.end>now);
+    if(!active.length){el.style.display='none';return;}
+    el.style.display='block';
+    el.innerHTML=active.map(ev=>{
+      const r=Math.ceil((ev.end-now)/1000);
+      return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+        <span style="font-size:.8rem">${ev.n.split(' ')[0]}</span>
+        <span style="font-size:.65rem;color:rgba(255,255,255,.6);flex:1">${ev.n.split(' ').slice(1).join(' ')}</span>
+        <span style="color:#FFD700;font-size:.65rem;font-weight:900">⏱${r}s</span>
+      </div>`;
+    }).join('');
+  },
 
   _interact(){
     if(this._nearWheel){
@@ -2799,7 +2826,7 @@ const ZG={
   },
 
   // ═══ GONDOLA ═══
-  _mkG(){const l=ZS.lk(),ni=this.ev?.id==='night';const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(this.ev?.id==='snow'&&Math.random()<.05)?3.5:(this.ev?.id==='party'&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
+  _mkG(){const l=ZS.lk(),evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
   _slapLaunchSelf(dur){
     const start=Date.now(); const half=dur*.45;
     const startY=this.pl.y;
@@ -2880,15 +2907,64 @@ const ZG={
   },
 
   startEv(ev,dur){
-    this.ev=ev;this.evEnd=Date.now()+dur;
+    if(!this.evs) this.evs=[];
+    // Remove if already running
+    this.evs=this.evs.filter(e=>e.id!==ev.id);
+    const end=Date.now()+dur;
+    this.evs.push({...ev, end});
+    // Legacy single-event compat
+    this.ev=this.evs[0]; this.evEnd=this.evs[0].end;
     try{this.renderer.setClearColor(parseInt(ev.col.replace('#',''),16));}catch(e){}
     try{if(typeof ZSound!=='undefined'&&ZSound._playEventMusic)ZSound._playEventMusic(ev.id);}catch(e){}
-    const b=G('evb');b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';setTimeout(()=>b.style.opacity='0',4500);
-    if(ev.id==='snow'){for(let i=0;i<18;i++){const e=document.createElement('div');e.className='zsn';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;G('s-zoo').appendChild(e);this.snowE.push(e);}}
-    if(ev.id==='party'){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbm';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%6]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;G('s-zoo').appendChild(e);this.beamE.push(e);}}
+    const b=G('evb');if(b){b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';setTimeout(()=>b.style.opacity='0',4500);}
+    // Visual effects per event type
+    this._startEvFX(ev);
     if(ev.id==='glitch')ZP.toast('👾 GLITCH! Betrete die Gondel-Station für ein Abenteuer!',5000);
     ZP.toast(ev.n+'! '+ev.d,4000);
-    setTimeout(()=>{this.ev=null;this.evEnd=0;try{this.renderer.setClearColor(0x87CEEB);}catch(e){}this.snowE.forEach(e=>e.remove());this.snowE=[];this.beamE.forEach(e=>e.remove());this.beamE=[];},dur);
+    // Auto-stop after dur
+    setTimeout(()=>{
+      if(!this.evs) return;
+      this.evs=this.evs.filter(e=>e.id!==ev.id);
+      this._stopEvFX(ev.id);
+      this.ev=this.evs[0]||null; this.evEnd=this.ev?.end||0;
+      if(!this.evs.length){try{this.renderer.setClearColor(0x87CEEB);}catch(e){}}
+      this._updEvTimer();
+    },dur);
+    this._updEvTimer();
+  },
+  _startEvFX(ev){
+    if(!this._evFXEls) this._evFXEls={};
+    const els=[]; const zoo=G('s-zoo'); if(!zoo) return;
+    if(ev.id==='snow'){
+      for(let i=0;i<18;i++){const e=document.createElement('div');e.className='zsn';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;zoo.appendChild(e);els.push(e);}
+    }
+    if(ev.id==='party'){
+      const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];
+      for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbm';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%6]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;zoo.appendChild(e);els.push(e);}
+    }
+    if(ev.id==='night'||ev.id==='cosmic'||ev.id==='aurora'){
+      // Stars raining down / meteors
+      for(let i=0;i<12;i++){
+        const e=document.createElement('div');
+        e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:${Math.random()*30}vh;font-size:${0.8+Math.random()}rem;animation:zsfall ${2+Math.random()*3}s linear ${Math.random()*4}s infinite;pointer-events:none;z-index:90`;
+        e.textContent=ev.id==='aurora'?'🌟':'⭐'; zoo.appendChild(e); els.push(e);
+      }
+    }
+    if(ev.id==='golden'||ev.id==='gold_rush'){
+      for(let i=0;i<10;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-20px;font-size:1.2rem;animation:zsfall ${1.5+Math.random()*2}s linear ${Math.random()*3}s infinite;pointer-events:none;z-index:90`;e.textContent='💰';zoo.appendChild(e);els.push(e);}
+    }
+    if(ev.id==='volcano'){
+      for(let i=0;i<8;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;bottom:20%;font-size:1rem;animation:zsrise ${1+Math.random()*2}s linear ${Math.random()*2}s infinite;pointer-events:none;z-index:90`;e.textContent='🔥';zoo.appendChild(e);els.push(e);}
+    }
+    if(ev.id==='rainbow'){
+      const e=document.createElement('div');e.style.cssText='position:fixed;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,red,orange,yellow,green,blue,violet);opacity:.7;z-index:90;pointer-events:none';zoo.appendChild(e);els.push(e);
+    }
+    this._evFXEls[ev.id]=els;
+  },
+  _stopEvFX(evId){
+    if(!this._evFXEls) return;
+    (this._evFXEls[evId]||[]).forEach(e=>e.remove());
+    delete this._evFXEls[evId];
   },
 
   // ═══ GONDOLA INTERIOR ═══
@@ -4151,10 +4227,11 @@ const ZP={
   // ── LUCKY EGGS ──
   _EGG_TYPES:[
     {id:'normal',    name:'Normal-Ei',    e:'🥚', color:'#8e9da8', glow:'rgba(142,157,168,.5)', cost:500,    rarity:'normal'},
-    {id:'rare',      name:'Seltenes Ei',  e:'🥚', color:'#3498db', glow:'rgba(52,152,219,.5)',  cost:1500,   rarity:'rare'},
-    {id:'epic',      name:'Episches Ei',  e:'🥚', color:'#9b59b6', glow:'rgba(155,89,182,.5)',  cost:4000,   rarity:'epic'},
-    {id:'superepic', name:'Super-Ei',     e:'🥚', color:'#e74c3c', glow:'rgba(231,76,60,.5)',   cost:12000,  rarity:'superepic'},
-    {id:'overdim',   name:'Überdim-Ei',   e:'🥚', color:'#7b2fff', glow:'rgba(123,47,255,.7)',  cost:35000,  rarity:'overdim'},
+    {id:'rare',      name:'Seltenes Ei',  e:'🥚', color:'#3498db', glow:'rgba(52,152,219,.5)',  cost:2000,   rarity:'rare'},
+    {id:'epic',      name:'Episches Ei',  e:'🥚', color:'#9b59b6', glow:'rgba(155,89,182,.5)',  cost:6000,   rarity:'epic'},
+    {id:'superepic', name:'Super-Ei',     e:'🥚', color:'#e74c3c', glow:'rgba(231,76,60,.5)',   cost:18000,  rarity:'superepic'},
+    {id:'overdim',   name:'Überdim-Ei',   e:'🥚', color:'#7b2fff', glow:'rgba(123,47,255,.7)',  cost:50000,  rarity:'overdim'},
+    {id:'secret',    name:'🌟 Secret-Ei', e:'🥚', color:'#FFD700', glow:'rgba(255,215,0,.9)',   cost:150000, rarity:'secret'},
   ],
   _sE(el){
     const z=ZS.zoo;
@@ -4236,13 +4313,22 @@ const ZP={
     const z=ZS.zoo;
     const lm=z.eggLuckMult||1;
     // Pick animal rarity based on egg rarity + luck
-    const rarMap={normal:['normal','normal','normal','rare'],rare:['rare','rare','epic'],epic:['epic','epic','superepic'],superepic:['superepic','superepic','mythic'],overdim:['rare','epic','superepic','mythic','mythic']};
+    // Each egg pulls from its rarity pool — normal is as rare as a hamster, secret like a dino
+    const rarMap={
+      normal:   ['normal','normal','normal','normal','normal','rare'],          // mostly normal (hamster-level)
+      rare:     ['rare','rare','rare','epic'],                                  // mostly rare, sometimes epic
+      epic:     ['epic','epic','superepic'],                                    // mostly epic
+      superepic:['superepic','superepic','mythic'],                             // mostly superepic, best rare
+      overdim:  ['rare','epic','superepic','mythic','mythic'],                  // always good, rarely mythic
+      secret:   ['mythic','mythic','mythic','dino'],                            // god-tier: mythic or dino
+    };
     let pool=rarMap[egg.id]||['normal'];
     // Luck multiplier: shifts toward rarer
     if(lm>=2&&pool.length>1) pool=pool.slice(Math.min(lm-1,pool.length-1));
     // Overdim special: tiny chance for dino
     let picked; 
-    if(egg.id==='overdim'&&Math.random()<0.04) picked='dino';
+    if(egg.id==='secret'&&Math.random()<0.35) picked='dino'; // secret: 35% dino
+    else if(egg.id==='overdim'&&Math.random()<0.04) picked='dino'; // overdim: 4% dino
     else picked=pool[Math.floor(Math.random()*pool.length)];
     // Give the animal
     let animalObj=null;
@@ -4255,7 +4341,7 @@ const ZP={
     // Reset egg luck after use
     z.eggLuckMult=1;
     // Show result
-    const rarLabels={normal:'Normal',rare:'Selten',epic:'Episch',superepic:'Super-Episch',mythic:'Mythisch',dino:'DINOSAURIER!'};
+    const rarLabels={normal:'Normal',rare:'Selten',epic:'Episch',superepic:'Super-Episch',mythic:'Mythisch',dino:'DINOSAURIER! 🦕',secret:'SECRET ⭐'};
     const rarColors={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',superepic:'#e74c3c',mythic:'#FFD700',dino:'#ff6b35'};
     const col=rarColors[picked]||'#fff';
     ov.innerHTML=
