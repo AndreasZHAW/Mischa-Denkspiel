@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v244 -->
+<!-- ZOO v245 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -199,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v244','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v245','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -377,7 +377,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     </div>
   </div>
 </div>
-<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-e" class="tab ti" onclick="ZP.shopTab('e')">🥚 Eier</button></div><div id="scont"></div>
+<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button></div><div id="scont"></div>
   <!-- Secret admin access field -->
   <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
     <input id="shop-admin-pw" type="password" placeholder="🔐 Code eingeben..." maxlength="30"
@@ -554,6 +554,12 @@ const ANIMALS=[
   {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:16000,earn:2700},{id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:20000,earn:3500},
   {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
   {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
+  // ── LUCKY EGGS (appear in gondola, open with cracks like chests) ──
+  {id:'egg_normal',    n:'Normal-Ei',    e:'🥚',r:'normal',        w:5,    p:800,   earn:0,isEgg:true,eggRar:'normal'},
+  {id:'egg_rare',      n:'Seltenes Ei',  e:'🥚',r:'rare',          w:2,    p:2500,  earn:0,isEgg:true,eggRar:'rare'},
+  {id:'egg_epic',      n:'Episches Ei',  e:'🥚',r:'epic',          w:0.6,  p:8000,  earn:0,isEgg:true,eggRar:'epic'},
+  {id:'egg_superepic', n:'Super-Ei',     e:'🥚',r:'legendary',     w:0.15, p:25000, earn:0,isEgg:true,eggRar:'legendary'},
+  {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.04, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
 ];
 window.ANIMALS = ANIMALS;
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
@@ -3685,6 +3691,116 @@ const ZP={
   },
 
   // GONDOLA
+  // ── EGG OPENING (Gondola) ──
+  // Pick animal from rarity pool sorted by earn (quality indicator):
+  // normal/selten/episch = sorted ascending by earn, click upgrades quality
+  _eggRarityAnimals(eggRar){
+    // Map egg rarity to animal rarity pool
+    const rarMap={
+      normal:'normal', rare:'rare', epic:'epic',
+      legendary:'legendary', overdim:null // overdim → worst of next tier = worst ultralegendary
+    };
+    let targetRar = rarMap[eggRar]||'normal';
+    if(eggRar==='overdim') targetRar='ultralegendary'; // next tier up
+    const pool=(window.ANIMALS||[]).filter(a=>a.r===targetRar&&!a.isEgg);
+    // Sort by earn ascending (worst to best)
+    pool.sort((a,b)=>a.earn-b.earn);
+    return pool;
+  },
+  _openGondolaEgg(eggAnimal){
+    const rar=eggAnimal.eggRar||'normal';
+    const allPool=this._eggRarityAnimals(rar);
+    if(!allPool.length){this.toast('❌ Keine Tiere in diesem Pool!');return;}
+    // Split pool into 5 quality tiers by earn value
+    const sorted=[...allPool].sort((a,b)=>a.earn-b.earn);
+    const len=sorted.length;
+    // 5 tiers: worst(0-20%), bad(20-40%), mid(40-60%), good(60-80%), best(80-100%)
+    const tiers=[0,1,2,3,4].map(i=>{
+      const start=Math.floor(i/5*len), end=Math.floor((i+1)/5*len)||1;
+      return sorted.slice(start,end);
+    });
+    // Brawl-Stars: start at tier 0 (worst), each click has upChance to move up one tier
+    const upChances={normal:0.40,rare:0.50,epic:0.60,legendary:0.72,overdim:0.85};
+    const upChance=upChances[rar]||0.5;
+    const state={clicks:0,tierIdx:0,tiers,upChance,rar};
+    this._showEggCrackUI(eggAnimal,state);
+  },
+  _showEggCrackUI(eggAnimal,state){
+    document.getElementById('egg-crack-ui')?.remove();
+    const rarColors={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',overdim:'#7b2fff'};
+    const col=rarColors[state.rar]||'#fff';
+    const CRACKS=['','◜ ','◜ ◝','◜ ◝ ◟','◜ ◝ ◟ ✦'];
+    const curAnimal=state.pool[state.idx];
+    const ov=document.createElement('div'); ov.id='egg-crack-ui';
+    ov.style.cssText='position:fixed;inset:0;z-index:99980;background:radial-gradient(circle at 50% 45%,'+col+'44,#05010f);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:20px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent';
+    const remaining=4-state.clicks;
+    ov.innerHTML=
+      '<div style="font-size:clamp(1.1rem,4vw,1.5rem);font-weight:900;color:'+col+';margin-bottom:14px;text-shadow:0 0 20px '+col+'">'+eggAnimal.n+'</div>'+
+      '<div id="egg-vis-g" style="font-size:clamp(7rem,18vw,11rem);line-height:1;filter:drop-shadow(0 0 40px '+col+');position:relative;transition:transform .15s cubic-bezier(.15,1.6,.4,1)">'+
+        '🥚<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(1.5rem,5vw,2.5rem)" id="egg-crack-txt"></div>'+
+      '</div>'+
+      '<div id="egg-cur-animal" style="font-size:1rem;color:rgba(255,255,255,.45);margin:10px 0;min-height:24px"></div>'+
+      '<div id="egg-hint-g" style="font-size:clamp(1rem,4vw,1.25rem);font-weight:700;margin-top:6px">👆 Tippe '+remaining+'× zum Öffnen!</div>'+
+      '<div id="egg-dots-g" style="margin-top:8px;font-size:1.3rem;letter-spacing:5px;color:'+col+'">'+'○'.repeat(4)+'</div>';
+    const tierLabels=['😐 Schwach','🙂 OK','😊 Mittel','😎 Gut','🌟 Bestes!'];
+    const click=()=>{
+      if(state.clicks>=4)return;
+      state.clicks++;
+      ZSound._tone&&ZSound._tone(380+state.clicks*60,.12,'triangle',.18);
+      // Brawl-Stars upgrade: chance to move up one quality tier
+      if(state.tierIdx<4&&Math.random()<state.upChance){
+        state.tierIdx++;
+        ZSound._tone&&ZSound._tone(600+state.tierIdx*80,.12,'sine',.15);
+      }
+      // Update crack visual
+      const ct=document.getElementById('egg-crack-txt'); if(ct) ct.textContent=CRACKS[state.clicks]||'';
+      const vis=document.getElementById('egg-vis-g'); if(vis)vis.style.transform='rotate('+(state.clicks%2===0?'-':'')+state.clicks*3+'deg) scale('+(1+state.clicks*.03)+')';
+      const hint=document.getElementById('egg-hint-g');
+      const dots=document.getElementById('egg-dots-g');
+      const cur=document.getElementById('egg-cur-animal');
+      if(dots) dots.innerHTML='●'.repeat(state.clicks)+'○'.repeat(4-state.clicks);
+      if(state.clicks>=4){
+        if(hint) hint.textContent='✨ Schlüpft...';
+        if(cur) cur.textContent='';
+        setTimeout(()=>this._revealGondolaEgg(state,ov),500);
+      } else {
+        if(hint) hint.textContent='👆 Noch '+(4-state.clicks)+'× tippen!';
+        if(cur) cur.textContent=tierLabels[state.tierIdx]||'';
+      }
+    };
+    ov.addEventListener('click',click); ov.addEventListener('touchend',e=>{e.preventDefault();click();},{passive:false});
+    document.body.appendChild(ov);
+  },
+  _revealGondolaEgg(state,ov){
+    const z=ZS.zoo;
+    // Pick random animal from the reached quality tier
+    const tier=state.tiers[Math.min(state.tierIdx,state.tiers.length-1)];
+    const animal=tier[Math.floor(Math.random()*tier.length)];
+    if(!animal){ov.remove();this.toast('❌ Kein Tier!');return;}
+    // Place in enclosure
+    const slot=z.enc.findIndex(e=>!e);
+    let placed=false;
+    if(slot>=0){
+      z.enc[slot]={animal:{...animal},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
+      try{ZG._encs&&ZG._encs();}catch(e){} ZS.save&&ZS.save(); placed=true;
+    }
+    const rarNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra-Legendär',god:'Göttlich',mythic:'Mythisch',secret:'SECRET'};
+    const rarCols={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#c89bff',secret:'#fff'};
+    const col2=rarCols[animal.r]||'#fff';
+    ov.innerHTML=
+      '<div style="font-size:1.4rem;font-weight:900;color:'+col2+';margin-bottom:8px;text-shadow:0 0 20px '+col2+'">'+(rarNames[animal.r]||animal.r).toUpperCase()+'</div>'+
+      '<div style="font-size:5.5rem;margin:8px 0">'+animal.e+'</div>'+
+      '<div style="font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:4px">'+animal.n+'</div>'+
+      '<div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-bottom:6px">💰 '+$mt(animal.earn)+'/v</div>'+
+      '<div style="font-size:.85rem;color:'+(placed?'#27AE60':'#e74c3c')+';margin-bottom:22px;font-weight:700">'+(placed?'✅ Im Gehege!':'❌ Kein Platz — Tier verloren')+'</div>'+
+      '<button onclick="document.getElementById(\"egg-crack-ui\").remove()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:14px 40px;border-radius:14px;font-weight:900;font-size:1.1rem;cursor:pointer">Super! ➜</button>';
+    ov.onclick=null; ov.ontouchend=null;
+    // Sound
+    if(animal.r==='mythic'||animal.r==='secret') ZSound._sndSuperEpic&&ZSound._sndSuperEpic();
+    else ZSound._sndUpgrade&&ZSound._sndUpgrade(2);
+    ZG._updHUD&&ZG._updHUD();
+  },
+
   _rRboard(){
     const el=G('rboard-content'); if(!el) return;
     const order=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
@@ -3709,13 +3825,15 @@ const ZP={
     el.innerHTML=out;
   },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
-  _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">Gondel gesperrt!</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">Polizei-Razzia · noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min</div></div>';return;}const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">💰 ${$mt(a.earn*tm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot?'❌ Gehege voll':'🛒 Kaufen'}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}z.mt-=g.a.p;ZG.gQ.shift();ZG.gQ.push(ZG._mkG());
+  _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">Gondel gesperrt!</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">Polizei-Razzia · noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min</div></div>';return;}const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?'🥚 Auftippen zum Öffnen':'💰 '+$mt(a.earn*tm)+'/v'} · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot&&!a.isEgg)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot&&!a.isEgg?'❌ Gehege voll':a.isEgg?'🥚 Kaufen & Öffnen':'🛒 Kaufen'}</button></div>`;},
+  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}
+    // Deduct cost + advance queue
+    z.mt-=g.a.p; ZG.gQ.shift(); ZG.gQ.push(ZG._mkG()); ZG._updHUD&&ZG._updHUD(); try{ZS.save&&ZS.save();}catch(e){}
+    // EGG: show crack-open animation instead of carry
+    if(g.a.isEgg){ this.close('gond'); this._openGondolaEgg(g.a); return; }
     // CARRY mechanic: player must carry the animal to the enclosure (can be slapped → drops)
     ZG._startCarry({animal:{...g.a},shiny:g.sh,traits:g.tr,slot});
     try{ZG._broadcastAnimalWalk(g.a, slot);}catch(e){}
-    ZG._updHUD&&ZG._updHUD();
-    try{ZS.save&&ZS.save();}catch(e){}
     this.close('gond');
     this.toast('🐾 '+g.a.e+' '+g.a.n+' gekauft! Trage es zum Gehege '+(slot+1)+'! (Vorsicht: andere können dich slappen!)',3500);
     const rareR=['ultralegendary','god','mythic','secret'];
@@ -3799,7 +3917,7 @@ const ZP={
   },
 
   // SHOP
-  shopTab(t){this._st=t;['z','x','b','e'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  shopTab(t){this._st=t;['z','x','b'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
   _sP(el){
     const z=ZS.zoo;if(!z)return;
     const pt=z.pt||0; // Premium Taler
