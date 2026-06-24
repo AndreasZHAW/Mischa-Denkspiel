@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v245 -->
+<!-- ZOO v246 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -199,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v245','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v246','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -554,12 +554,13 @@ const ANIMALS=[
   {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:16000,earn:2700},{id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:20000,earn:3500},
   {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
   {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
-  // ── LUCKY EGGS (appear in gondola, open with cracks like chests) ──
-  {id:'egg_normal',    n:'Normal-Ei',    e:'🥚',r:'normal',        w:5,    p:800,   earn:0,isEgg:true,eggRar:'normal'},
+  // ── LUCKY EGGS (appear in gondola like normal animals, open with crack animation) ──
+  // Weights match equivalent animals: Normal like Katze, Selten like Wolf, etc.
+  {id:'egg_normal',    n:'Normal-Ei',    e:'🥚',r:'normal',        w:40,   p:800,   earn:0,isEgg:true,eggRar:'normal'},
   {id:'egg_rare',      n:'Seltenes Ei',  e:'🥚',r:'rare',          w:2,    p:2500,  earn:0,isEgg:true,eggRar:'rare'},
-  {id:'egg_epic',      n:'Episches Ei',  e:'🥚',r:'epic',          w:0.6,  p:8000,  earn:0,isEgg:true,eggRar:'epic'},
-  {id:'egg_superepic', n:'Super-Ei',     e:'🥚',r:'legendary',     w:0.15, p:25000, earn:0,isEgg:true,eggRar:'legendary'},
-  {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.04, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
+  {id:'egg_epic',      n:'Episches Ei',  e:'🥚',r:'epic',          w:0.5,  p:8000,  earn:0,isEgg:true,eggRar:'epic'},
+  {id:'egg_superepic', n:'Super-Ei',     e:'🥚',r:'legendary',     w:0.1,  p:25000, earn:0,isEgg:true,eggRar:'legendary'},
+  {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.03, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
 ];
 window.ANIMALS = ANIMALS;
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
@@ -3709,20 +3710,12 @@ const ZP={
   },
   _openGondolaEgg(eggAnimal){
     const rar=eggAnimal.eggRar||'normal';
-    const allPool=this._eggRarityAnimals(rar);
-    if(!allPool.length){this.toast('❌ Keine Tiere in diesem Pool!');return;}
-    // Split pool into 5 quality tiers by earn value
-    const sorted=[...allPool].sort((a,b)=>a.earn-b.earn);
-    const len=sorted.length;
-    // 5 tiers: worst(0-20%), bad(20-40%), mid(40-60%), good(60-80%), best(80-100%)
-    const tiers=[0,1,2,3,4].map(i=>{
-      const start=Math.floor(i/5*len), end=Math.floor((i+1)/5*len)||1;
-      return sorted.slice(start,end);
-    });
-    // Brawl-Stars: start at tier 0 (worst), each click has upChance to move up one tier
-    const upChances={normal:0.40,rare:0.50,epic:0.60,legendary:0.72,overdim:0.85};
-    const upChance=upChances[rar]||0.5;
-    const state={clicks:0,tierIdx:0,tiers,upChance,rar};
+    // Rarity ladder: normal→rare→epic→legendary→ultralegendary→god→mythic→secret
+    const RARS=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+    const rarIdx=RARS.indexOf(rar);
+    // Start with the egg's own rarity pool
+    // Each click: 1.5% chance to upgrade to the next rarity tier
+    const state={clicks:0,rarIdx,RARS,rar,upgradeChance:0.015};
     this._showEggCrackUI(eggAnimal,state);
   },
   _showEggCrackUI(eggAnimal,state){
@@ -3742,15 +3735,21 @@ const ZP={
       '<div id="egg-cur-animal" style="font-size:1rem;color:rgba(255,255,255,.45);margin:10px 0;min-height:24px"></div>'+
       '<div id="egg-hint-g" style="font-size:clamp(1rem,4vw,1.25rem);font-weight:700;margin-top:6px">👆 Tippe '+remaining+'× zum Öffnen!</div>'+
       '<div id="egg-dots-g" style="margin-top:8px;font-size:1.3rem;letter-spacing:5px;color:'+col+'">'+'○'.repeat(4)+'</div>';
-    const tierLabels=['😐 Schwach','🙂 OK','😊 Mittel','😎 Gut','🌟 Bestes!'];
+    const rarNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra',god:'Göttlich',mythic:'Mythisch',secret:'SECRET'};
+    const rarColors2={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#c89bff',secret:'#fff'};
     const click=()=>{
       if(state.clicks>=4)return;
       state.clicks++;
       ZSound._tone&&ZSound._tone(380+state.clicks*60,.12,'triangle',.18);
-      // Brawl-Stars upgrade: chance to move up one quality tier
-      if(state.tierIdx<4&&Math.random()<state.upChance){
-        state.tierIdx++;
-        ZSound._tone&&ZSound._tone(600+state.tierIdx*80,.12,'sine',.15);
+      // 1.5% chance per click to upgrade to next rarity tier (no going back)
+      const maxRarIdx=state.RARS.length-1;
+      if(state.rarIdx<maxRarIdx && Math.random()<state.upgradeChance){
+        state.rarIdx++;
+        // Special upgrade sound + flash
+        ZSound._tone&&ZSound._tone(900,.15,'sine',.2);
+        ZSound._tone&&ZSound._tone(1200,.1,'sine',.15);
+        const vis2=document.getElementById('egg-vis-g');
+        if(vis2){vis2.style.filter='drop-shadow(0 0 60px #FFD700)';setTimeout(()=>{if(vis2)vis2.style.filter='';},400);}
       }
       // Update crack visual
       const ct=document.getElementById('egg-crack-txt'); if(ct) ct.textContent=CRACKS[state.clicks]||'';
@@ -3759,13 +3758,18 @@ const ZP={
       const dots=document.getElementById('egg-dots-g');
       const cur=document.getElementById('egg-cur-animal');
       if(dots) dots.innerHTML='●'.repeat(state.clicks)+'○'.repeat(4-state.clicks);
+      const curRar=state.RARS[state.rarIdx];
+      const curCol=rarColors2[curRar]||'#fff';
       if(state.clicks>=4){
         if(hint) hint.textContent='✨ Schlüpft...';
         if(cur) cur.textContent='';
         setTimeout(()=>this._revealGondolaEgg(state,ov),500);
       } else {
         if(hint) hint.textContent='👆 Noch '+(4-state.clicks)+'× tippen!';
-        if(cur) cur.textContent=tierLabels[state.tierIdx]||'';
+        // Show current rarity (shows upgrade if it happened!)
+        if(cur){ cur.style.color=curCol; cur.style.fontWeight='900';
+          const upgraded=curRar!==eggAnimal.eggRar;
+          cur.textContent=(upgraded?'✨ UPGRADE → ':'')+rarNames[curRar]; }
       }
     };
     ov.addEventListener('click',click); ov.addEventListener('touchend',e=>{e.preventDefault();click();},{passive:false});
@@ -3773,9 +3777,11 @@ const ZP={
   },
   _revealGondolaEgg(state,ov){
     const z=ZS.zoo;
-    // Pick random animal from the reached quality tier
-    const tier=state.tiers[Math.min(state.tierIdx,state.tiers.length-1)];
-    const animal=tier[Math.floor(Math.random()*tier.length)];
+    // Pick random animal from the reached rarity
+    const targetRar=state.RARS[state.rarIdx]||state.rar;
+    let pool=(window.ANIMALS||[]).filter(a=>a.r===targetRar&&!a.isEgg);
+    if(!pool.length) pool=(window.ANIMALS||[]).filter(a=>a.r===state.rar&&!a.isEgg);
+    const animal=pool[Math.floor(Math.random()*pool.length)];
     if(!animal){ov.remove();this.toast('❌ Kein Tier!');return;}
     // Place in enclosure
     const slot=z.enc.findIndex(e=>!e);
