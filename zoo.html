@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v250 -->
+<!-- ZOO v251 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -199,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v250','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v251','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -565,10 +565,10 @@ const ANIMALS=[
 ];
 window.ANIMALS = ANIMALS;
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
-const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:2},diamond:{n:'DIAMOND',c:'td',m:2,p:1},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:.5},void:{n:'VOID',c:'tv',m:5,p:.5}};
+const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:8},diamond:{n:'DIAMOND',c:'td',m:2,p:5},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:2.5},void:{n:'VOID',c:'tv',m:5,p:1.5}};
 const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'},
   // New event traits
-  {id:'tidal',n:'TIDAL',c:'ttd',m:1.8,p:4,ev:'flood'},{id:'sparkle',n:'SPARKLE',c:'tsp',m:1.5,p:5,ev:'fireworks'},{id:'swift',n:'SWIFT',c:'tsw',m:1.6,p:4,ev:'tornado'},{id:'sunny',n:'SUNNY',c:'tsu',m:1.4,p:5,ev:'summer'},{id:'spooky',n:'SPOOKY',c:'tsk',m:2.0,p:3,ev:'halloween2'},{id:'frosty',n:'FROSTY',c:'tft',m:1.7,p:4,ev:'xmas'},{id:'stardust',n:'STARDUST',c:'tsd',m:2.0,p:3,ev:'meteor'},{id:'magic',n:'MAGIC',c:'tmg',m:1.9,p:4,ev:'mushroom'},{id:'bolt',n:'BOLT',c:'tbt',m:1.8,p:4,ev:'thunder2'},{id:'draconic',n:'DRACONIC',c:'tdr',m:2.0,p:3,ev:'dragon'},{id:'baguette',n:'BAGUETTE',c:'tbg',m:2.0,p:3,ev:'france'}];
+  {id:'tidal',n:'TIDAL',c:'ttd',m:1.8,p:4,ev:'flood'},{id:'sparkle',n:'SPARKLE',c:'tsp',m:1.5,p:5,ev:'fireworks'},{id:'swift',n:'SWIFT',c:'tsw',m:1.6,p:4,ev:'tornado'},{id:'sunny',n:'SUNNY',c:'tsu',m:1.4,p:5,ev:'summer'},{id:'spooky',n:'SPOOKY',c:'tsk',m:2.0,p:3,ev:'halloween2'},{id:'frosty',n:'FROSTY',c:'tft',m:1.7,p:4,ev:'xmas'},{id:'stardust',n:'STARDUST',c:'tsd',m:2.0,p:3,ev:'meteor'},{id:'magic',n:'MAGIC',c:'tmg',m:1.9,p:4,ev:'mushroom'},{id:'bolt',n:'BOLT',c:'tbt',m:1.8,p:4,ev:'thunder2'},{id:'draconic',n:'DRACONIC',c:'tdr',m:2.0,p:3,ev:'dragon'},{id:'baguette',n:'BAGUETTE',c:'tbg',m:2.0,p:3,ev:'france'},{id:'acrobat',n:'ACROBAT',c:'tac',m:1.8,p:4,ev:'jump'}];
 const EVENTS=[
   {id:'snow',      n:'❄️ Schneesturm',  col:'#AED6F1', d:'CRYSTAL Trait + weiße Gondeln!',    dur:300000},
   {id:'party',     n:'🎉 Konzert',       col:'#FF69B4', d:'CONCERT Trait + Party ×4!',         dur:300000},
@@ -605,6 +605,7 @@ const EVENTS=[
   {id:'thunder2',  n:'⚡ Gewitter',       col:'#333300', d:'Blitz! ELECTRIC ×2 + Rush!',         dur:300000, trait:{id:'bolt',n:'BOLT',c:'tbt',m:1.8,p:4}},
   {id:'dragon',    n:'🐉 Drachen',        col:'#880000', d:'Drachen-Invasion! FIRE ×3!',         dur:300000, trait:{id:'draconic',n:'DRACONIC',c:'tdr',m:2.0,p:3}},
   {id:'france',    n:'🇫🇷 Frankreich',   col:'#0055a4', d:'Liberté! Jedes 10. Tier ×5!',        dur:600000, adminOnly:true, trait:{id:'baguette',n:'BAGUETTE',c:'tbg',m:2.0,p:3}},
+  {id:'jump',      n:'🏃 Jump-Event',    col:'#27ae60', d:'Meistere den Jump-Run → Riesige MT!',  dur:900000, adminOnly:false, trait:{id:'acrobat',n:'ACROBAT',c:'tac',m:1.8,p:4}},
 ];
 window.EVENTS = EVENTS;
 const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀'},{m:3,cost:80000,l:'×3 🍀🍀🍀'},{m:5,cost:250000,l:'×5 ⭐'},{m:7,cost:1000000,l:'×7 🌟'},{m:10,cost:5000000,l:'×10 👑 MAX'}];
@@ -2250,6 +2251,7 @@ const ZG={
     const qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),this.yaw);
     const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),this.pitch);
     this.cam.quaternion.copy(qY).multiply(qX);
+    if(this._jumpActive) this._checkJumpCollision();
   },
 
   _minimap(){
@@ -2438,6 +2440,171 @@ const ZG={
     if(this._starsGroup) this._starsGroup.visible = showStars;
   },
 
+
+  // ══════════════════════════════════════════════════════════════
+  // 3D JUMP & RUN EVENT
+  // Platforms float above lava. Reach the end → win MT.
+  // Fall → lava → teleport back to zoo, no reward.
+  // ══════════════════════════════════════════════════════════════
+  _startJumpLevel(){
+    if(this._jumpActive) return;
+    this._jumpActive=true;
+    ZP.toast('🏃 JUMP-EVENT! Erreiche das Ziel für grosse MT!',4000);
+    // Save player position to restore if they fall
+    this._jumpSave={x:this.pl.x,y:this.pl.y,z:this.pl.z,yaw:this.yaw};
+    // Build the level
+    this._jumpMeshes=[];
+    this._buildJumpLevel();
+    // Show HUD countdown
+    this._jumpTimeLeft=90; // 90 seconds to complete
+    this._jumpHUD=document.createElement('div');
+    this._jumpHUD.style.cssText='position:fixed;top:14%;left:50%;transform:translateX(-50%);z-index:500;background:rgba(0,0,0,.75);color:#fff;font-weight:900;font-size:1.1rem;padding:8px 20px;border-radius:12px;text-align:center;pointer-events:none;border:2px solid #27ae60';
+    this._jumpHUD.innerHTML='🏃 Jump-Run · ⏱ 90s · <span style="color:#FFD700">Ziel erreichen!</span>';
+    document.body.appendChild(this._jumpHUD);
+    // Timer
+    this._jumpTimerIv=setInterval(()=>{
+      this._jumpTimeLeft--;
+      if(this._jumpHUD) this._jumpHUD.innerHTML='🏃 Jump-Run · ⏱ '+this._jumpTimeLeft+'s · <span style="color:#FFD700">Ziel erreichen!</span>';
+      if(this._jumpTimeLeft<=0){ clearInterval(this._jumpTimerIv); this._failJumpLevel('⏰ Zeit abgelaufen!'); }
+    },1000);
+    // Teleport player to start
+    setTimeout(()=>{
+      this.pl.x=-2; this.pl.y=8; this.pl.z=60;
+      this.yaw=Math.PI;
+      this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+    },500);
+  },
+  _buildJumpLevel(){
+    const sc=this.scene;
+    const platMat=new THREE.MeshPhongMaterial({color:0x2ecc71,emissive:0x0a3a1a});
+    const lavaMat=new THREE.MeshPhongMaterial({color:0xff4400,emissive:0xaa2200,emissiveIntensity:0.8});
+    const goalMat=new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffaa00,emissiveIntensity:1});
+    const walls=[];
+    // Lava floor (extends under level)
+    const lava=new THREE.Mesh(new THREE.PlaneGeometry(60,80),lavaMat);
+    lava.rotation.x=-Math.PI/2; lava.position.set(0,0.5,20);
+    sc.add(lava); this._jumpMeshes.push(lava);
+    // Animated lava glow
+    this._lavaAnimIv=setInterval(()=>{
+      if(!lavaMat)return;
+      const t=Date.now()/500;
+      lavaMat.emissiveIntensity=0.6+Math.sin(t)*0.3;
+    },50);
+    // Platform layout (z goes from 60 down to -20 = toward goal)
+    // Each platform: [x, y, z, width, depth]
+    const platforms=[
+      [-2, 7, 58, 8, 4],   // start platform
+      [-2, 7, 48, 5, 3],   // step 1
+      [4,  8, 40, 4, 3],   // step 2 (higher)
+      [-3, 8, 32, 4, 3],   // step 3
+      [2,  9, 24, 3, 3],   // step 4
+      [-4, 10, 16, 5, 3],  // step 5 (highest)
+      [0,  10, 8,  4, 3],  // step 6
+      [5,  9,  0, 4, 3],   // step 7
+      [-2, 8, -8, 6, 3],   // step 8 (wider, near end)
+      [0,  7, -16, 8, 4],  // GOAL platform
+    ];
+    platforms.forEach(([x,y,z,w,d], i)=>{
+      const isGoal=i===platforms.length-1;
+      const mat=isGoal?goalMat:platMat;
+      const plat=new THREE.Mesh(new THREE.BoxGeometry(w,0.6,d),mat);
+      plat.position.set(x,y,z);
+      sc.add(plat); this._jumpMeshes.push(plat);
+      if(isGoal){
+        // Goal marker: spinning star above
+        const star=new THREE.Mesh(new THREE.OctahedronGeometry(1.2),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffdd00,emissiveIntensity:1}));
+        star.position.set(x,y+3,z); sc.add(star); this._jumpMeshes.push(star);
+        this._goalStar=star;
+        this._goalPos={x,y:y+1.2,z};
+      }
+    });
+    // Moving platform (extra challenge)
+    const movPlat=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.6,2.5),platMat);
+    movPlat.position.set(0,8.5,28);
+    sc.add(movPlat); this._jumpMeshes.push(movPlat);
+    this._movingPlat=movPlat; this._movPlatDir=1;
+    this._movPlatIv=setInterval(()=>{
+      if(!this._movingPlat)return;
+      this._movingPlat.position.x+=this._movPlatDir*0.06;
+      if(Math.abs(this._movingPlat.position.x)>5) this._movPlatDir*=-1;
+    },16);
+    this._jumpPlatforms=platforms;
+  },
+  _checkJumpCollision(){
+    if(!this._jumpActive||!this._jumpPlatforms) return;
+    const px=this.pl.x, py=this.pl.y, pz=this.pl.z;
+    // Check lava (fell below y=2)
+    if(py<2){
+      this._failJumpLevel('🌋 In die Lava gefallen!');
+      return;
+    }
+    // Spin goal star
+    if(this._goalStar) this._goalStar.rotation.y+=0.03;
+    // Check if reached goal
+    if(this._goalPos){
+      const gp=this._goalPos;
+      const dx=px-gp.x, dz=pz-gp.z;
+      if(Math.sqrt(dx*dx+dz*dz)<4 && py>gp.y-3 && py<gp.y+4){
+        this._winJumpLevel();
+        return;
+      }
+    }
+    // Check if on moving platform
+    if(this._movingPlat&&!this._jumping){
+      const mp=this._movingPlat.position;
+      if(Math.abs(px-mp.x)<2&&Math.abs(pz-mp.z)<1.5&&Math.abs(py-mp.y-0.8)<0.5){
+        // Move with platform
+        this.pl.x=mp.x+(px-mp.x);
+      }
+    }
+  },
+  _winJumpLevel(){
+    if(!this._jumpActive)return;
+    clearInterval(this._jumpTimerIv);
+    clearInterval(this._movPlatIv);
+    clearInterval(this._lavaAnimIv);
+    // Calculate reward: 5 minutes of earnings
+    const z=ZS.zoo;
+    const earn5min=this._jumpPlatforms?Math.max(1000,(z.enc||[]).reduce((s,e)=>{if(!e||!e.animal)return s;const tm=e.shiny?Object.values(SHINY).find(sh=>sh.c===e.shiny)?.m||1:1;return s+(e.animal.earn||0)*(e.xm||1)*tm;},0)*5*60/1000*10):5000;
+    const reward=Math.round(earn5min);
+    z.mt=(z.mt||0)+reward;
+    ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
+    this._endJumpLevel();
+    // Big win screen
+    const win=document.createElement('div');
+    win.style.cssText='position:fixed;inset:0;z-index:600;background:radial-gradient(circle,#1a4a1a,#000);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;text-align:center';
+    win.innerHTML='<div style="font-size:4rem">🏆</div>'+
+      '<div style="font-size:2rem;font-weight:900;color:#FFD700;margin:10px 0">GEWONNEN!</div>'+
+      '<div style="font-size:1.1rem;color:rgba(255,255,255,.8)">5-Minuten-Einnahmen:</div>'+
+      '<div style="font-size:2.5rem;font-weight:900;color:#00FF88;margin:8px 0">'+$mt(reward)+'</div>'+
+      '<div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:20px">Zurück zum Zoo</div>'+
+      '<div style="background:#27ae60;padding:14px 36px;border-radius:14px;font-weight:900;font-size:1.2rem;cursor:pointer" onclick="this.parentElement.remove()">🎉 Super!</div>';
+    document.body.appendChild(win);
+    ZP.toast('🏆 Gewonnen! +'+$mt(reward)+' MT!',5000);
+  },
+  _failJumpLevel(reason){
+    if(!this._jumpActive)return;
+    clearInterval(this._jumpTimerIv);
+    clearInterval(this._movPlatIv);
+    clearInterval(this._lavaAnimIv);
+    ZP.toast('💀 '+reason+' Zurück zum Zoo!',3500);
+    this._endJumpLevel();
+  },
+  _endJumpLevel(){
+    this._jumpActive=false;
+    // Remove jump HUD
+    this._jumpHUD?.remove(); this._jumpHUD=null;
+    // Remove all jump meshes
+    (this._jumpMeshes||[]).forEach(m=>{if(m&&this.scene)this.scene.remove(m);});
+    this._jumpMeshes=[]; this._jumpPlatforms=null; this._goalStar=null; this._goalPos=null;
+    this._movingPlat=null;
+    // Restore player to zoo
+    if(this._jumpSave){
+      this.pl.x=this._jumpSave.x; this.pl.y=this._jumpSave.y||1.7; this.pl.z=this._jumpSave.z;
+      this.yaw=this._jumpSave.yaw||0;
+      this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+    }
+  },
   _tryStartRandomEvent(){
     if(!this.evs) this.evs=[];
     if(this.evs.length>=3) return; // already at max
@@ -2954,10 +3121,10 @@ const ZG={
     // (No early event — events only come every 15 minutes now)
   },
 
-  startEv(ev,dur){
+  startEv(ev,dur,byAdmin){
     if(!this.evs) this.evs=[];
-    // Max 3 concurrent events
-    if(this.evs.length>=3){ ZP.toast('⚡ Max 3 Events gleichzeitig! Warte bis eines endet.',3000); return; }
+    // Max 3 concurrent events (auto system only - admin bypasses this)
+    if(!byAdmin && this.evs.length>=3){ ZP.toast('⚡ Max 3 Events gleichzeitig!',2000); return; }
     // Remove if already running (restart it)
     this.evs=this.evs.filter(e=>e.id!==ev.id);
     const end=Date.now()+dur;
@@ -3035,6 +3202,12 @@ const ZG={
       // Build real 3D Eiffel Tower in Three.js scene
       this._buildEiffelTower();
     }
+    if(id==='jump'){
+      topBar('linear-gradient(90deg,#27ae60,#FFD700,#27ae60)');
+      overlay('rgba(39,174,96,.08)');
+      // Start the jump level after a short delay
+      setTimeout(()=>ZG._startJumpLevel(),2000);
+    }
     this._evFXEls[id]=els;
   },
   _buildEiffelTower(){
@@ -3105,13 +3278,34 @@ const ZG={
     const tip=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xFFAA00,emissiveIntensity:1}));
     tip.position.y=32+32+5+12.5; g.add(tip);
 
+    // ── BASE PLATFORM (ground level, below legs) ──
+    const baseMat=new THREE.MeshPhongMaterial({color:0x5a4a2a});
+    const base=new THREE.Mesh(new THREE.BoxGeometry(9,0.8,9),baseMat);
+    base.position.y=0.4; g.add(base);
+    // Corner footings
+    [[4,4],[-4,4],[4,-4],[-4,-4]].forEach(([x,z])=>{
+      const foot=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.2,1.4),baseMat);
+      foot.position.set(x,0.6,z); g.add(foot);
+    });
     // ── DECORATIVE ARCHES at base (Eiffel Tower signature arches) ──
-    const archMat=new THREE.MeshPhongMaterial({color:0x6b5a3a});
-    [0,Math.PI/2,Math.PI,Math.PI*1.5].forEach(angle=>{
-      const arch=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.18,6,12,Math.PI),archMat);
-      arch.position.set(Math.sin(angle)*1.5,8,Math.cos(angle)*1.5);
-      arch.rotation.y=angle; arch.rotation.x=Math.PI/2;
+    const archMat=new THREE.MeshPhongMaterial({color:0x7a6a4a});
+    // 4 arches between the legs (one on each side)
+    [[0,0],[Math.PI/2,0],[Math.PI,0],[Math.PI*1.5,0]].forEach(([angle])=>{
+      const arch=new THREE.Mesh(new THREE.TorusGeometry(3,0.22,8,16,Math.PI),archMat);
+      arch.position.set(Math.sin(angle)*0.5,4.5,Math.cos(angle)*0.5);
+      arch.rotation.y=angle+Math.PI/4;
+      arch.rotation.x=Math.PI/2;
       g.add(arch);
+    });
+    // ── HORIZONTAL CROSS-BRACES connecting legs ──
+    const braceMat=new THREE.MeshPhongMaterial({color:0x7a6a4a});
+    [[3.5,4,0],[-3.5,4,0],[0,4,3.5],[0,4,-3.5]].forEach(([x,y,z])=>{
+      if(isNaN(x))return;
+      const b=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,7,5),braceMat);
+      b.position.set(0,y,0);
+      b.rotation.z=x!==0?Math.PI/2:0;
+      b.rotation.x=z!==0?Math.PI/2:0;
+      g.add(b);
     });
 
     // ── LIGHT BEAMS (rotating spotlights at night) ──
@@ -5761,7 +5955,7 @@ const ZAdmin = {
   _selEv(id){
     const ev=(window.EVENTS||[]).find(e=>e.id===id); if(!ev)return;
     const dur=this._selectedEventDur||300000;
-    ZG.startEv(ev,dur);
+    ZG.startEv(ev,dur,true);
     ZP.toast('⚡ '+ev.n+' gestartet für '+(dur/60000)+'Min!',3000);
     document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #FFD700':'2px solid transparent';});
     setTimeout(()=>document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border='2px solid transparent';}),3000);
