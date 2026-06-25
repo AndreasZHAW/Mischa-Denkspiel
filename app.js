@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v246';
+const APP_VERSION = 'v248';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -159,7 +159,7 @@ const FontScale = {
   load(playerName) {
     // ONE-TIME RESET: if the user has v235's broken stored size, clear it
     try{
-      if(localStorage.getItem('mischa_fontscale_reset_v246')!=='1'){
+      if(localStorage.getItem('mischa_fontscale_reset_v248')!=='1'){
         // Wipe ALL mischa_fontscale_* entries (broken sizes from earlier versions)
         const keys=[];
         for(let i=0;i<localStorage.length;i++){
@@ -167,7 +167,7 @@ const FontScale = {
           if(k && k.startsWith('mischa_fontscale_')) keys.push(k);
         }
         keys.forEach(k=>localStorage.removeItem(k));
-        localStorage.setItem('mischa_fontscale_reset_v246','1');
+        localStorage.setItem('mischa_fontscale_reset_v248','1');
       }
     }catch(e){}
     try {
@@ -305,7 +305,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v246 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v248 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
@@ -1114,6 +1114,7 @@ const App = {
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">⚑ Meldungen</button>` : ''}
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">🔤 Schrift</button>
+            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:2px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Seite neu laden">🔄 Update</button>
 
 
 

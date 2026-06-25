@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v246 -->
+<!-- ZOO v248 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -199,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v246','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v248','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -251,6 +251,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
+<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl">Update</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
@@ -3832,7 +3833,7 @@ const ZP={
   },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">Gondel gesperrt!</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">Polizei-Razzia · noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min</div></div>';return;}const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?'🥚 Auftippen zum Öffnen':'💰 '+$mt(a.earn*tm)+'/v'} · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot&&!a.isEgg)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot&&!a.isEgg?'❌ Gehege voll':a.isEgg?'🥚 Kaufen & Öffnen':'🛒 Kaufen'}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}
+  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}
     // Deduct cost + advance queue
     z.mt-=g.a.p; ZG.gQ.shift(); ZG.gQ.push(ZG._mkG()); ZG._updHUD&&ZG._updHUD(); try{ZS.save&&ZS.save();}catch(e){}
     // EGG: show crack-open animation instead of carry
@@ -4750,17 +4751,54 @@ const ZP={
   },
   async _adMT(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();const cmd={type:'give_mt',target:tgt,amount:50000,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){ZS.zoo.mt+=50000;ZG._updHUD();}this.toast('✅ +50K MT!');this.close('adm');},
   // ── ANNOUNCEMENTS ──
+  _loadAnnStatus(){
+    try{
+      const ann=JSON.parse(localStorage.getItem('zoo_announcement')||'null');
+      const status=document.getElementById('ann-status');
+      if(ann&&status){
+        const d=ann.eventTs?new Date(ann.eventTs).toLocaleString('de-CH'):'kein Datum';
+        status.textContent='✅ Aktiv: "'+ann.title+'" — '+d;
+        status.style.color='#27AE60';
+        // Pre-fill form
+        const ti=document.getElementById('ann-title'); if(ti)ti.value=ann.title;
+        const dt=document.getElementById('ann-datetime');
+        if(dt&&ann.eventTs){const d2=new Date(ann.eventTs);dt.value=d2.toISOString().slice(0,16);}
+        this._previewAnn();
+      } else if(status){ status.textContent='Noch keine Ankündigung aktiv.'; status.style.color='rgba(255,255,255,.35)'; }
+    }catch(e){}
+  },
+  _previewAnn(){
+    const title=(document.getElementById('ann-title')?.value||'DEIN EVENT TITEL').toUpperCase()||'DEIN EVENT TITEL';
+    const dtVal=document.getElementById('ann-datetime')?.value;
+    const eventTs=dtVal?new Date(dtVal):null;
+    const fmtDate=eventTs?eventTs.toLocaleString('de-CH',{weekday:'short',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}):'Sa., Juni 27 um 20:00';
+    const pt=document.getElementById('ann-preview-title'); if(pt)pt.textContent=title;
+    const ps=document.getElementById('ann-preview-sub'); if(ps)ps.textContent=document.getElementById('ann-title')?.value||'Dein Event Titel';
+    const pd=document.getElementById('ann-preview-date'); if(pd)pd.textContent=fmtDate;
+  },
   async _sendAnnounce(){
     const title=document.getElementById('ann-title')?.value?.trim();
-    const desc=document.getElementById('ann-desc')?.value?.trim();
     const dtVal=document.getElementById('ann-datetime')?.value;
+    const durSec=parseInt(document.getElementById('ann-duration')?.value||'10');
     if(!title){ZP.toast('❌ Titel fehlt!',2500);return;}
-    const eventTs=dtVal?new Date(dtVal).getTime():null;
-    const ann={id:'ann_'+Date.now(),title,desc:desc||'',eventTs,createdAt:Date.now(),from:'Admin'};
+    if(!dtVal){ZP.toast('❌ Datum & Uhrzeit fehlen!',2500);return;}
+    const eventTs=new Date(dtVal).getTime();
+    const ann={id:'ann_'+Date.now(),title,desc:'',eventTs,createdAt:Date.now(),from:'Admin',autoClose:durSec};
     try{
-      if(State._useCloud()) await _db.collection('config').doc('zoo_announcement').set(ann);
+      if(typeof _db!=='undefined'&&State._useCloud()) await _db.collection('config').doc('zoo_announcement').set(ann);
       localStorage.setItem('zoo_announcement',JSON.stringify(ann));
-      ZP.toast('✅ Ankündigung gesendet!',3000);
+      const status=document.getElementById('ann-status');
+      if(status)status.textContent='✅ Aktiv: "'+title+'" — '+new Date(eventTs).toLocaleString('de-CH');
+      ZP.toast('✅ Ankündigung gesendet! Spieler sehen sie beim nächsten Start.',4000);
+    }catch(e){ZP.toast('❌ Fehler: '+e.message,3000);}
+  },
+  async _clearAnnounce(){
+    try{
+      if(typeof _db!=='undefined'&&State._useCloud()) await _db.collection('config').doc('zoo_announcement').delete().catch(()=>{});
+      localStorage.removeItem('zoo_announcement');
+      const status=document.getElementById('ann-status');
+      if(status)status.textContent='Noch keine Ankündigung aktiv.';
+      ZP.toast('🗑️ Ankündigung gelöscht.',2500);
     }catch(e){ZP.toast('❌ Fehler: '+e.message,3000);}
   },
   // ── ADMIN LUCK ──
@@ -5379,6 +5417,7 @@ const ZAdmin = {
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
     if(tab==='einst')this._populateEvents();
     if(tab==='cal')this._renderCalTable();
+    if(tab==='announce')ZP._loadAnnStatus();
   },
   _populateAnimalGrid(){
     const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
@@ -6494,8 +6533,29 @@ function _showAnnouncementModal(ann){
     nb.onclick=()=>_annNotify(ann.id,ann.title,ann.eventTs);
     bot.appendChild(nb);
   }
-  const cb=document.createElement('button'); cb.textContent='Schliessen'; cb.style.cssText='width:100%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:none;padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:8px';
-  cb.onclick=()=>{ov.remove();_annMarkSeen(ann.id);}; bot.appendChild(cb);
+  // Auto-close OR manual close button based on ann.autoClose
+  const durSec=ann.autoClose||0;
+  if(durSec>0){
+    // Countdown bar
+    const bar=document.createElement('div');
+    bar.style.cssText='height:4px;background:rgba(255,255,255,.15);border-radius:0 0 20px 20px;overflow:hidden';
+    const fill=document.createElement('div');
+    fill.style.cssText='height:100%;background:#3478f6;width:100%;transition:width '+durSec+'s linear';
+    bar.appendChild(fill); card.appendChild(bar);
+    // Trigger transition after paint
+    setTimeout(()=>fill.style.width='0%',50);
+    // Timer text
+    const timerEl=document.createElement('div');
+    timerEl.style.cssText='text-align:center;font-size:.72rem;color:rgba(255,255,255,.35);padding:6px 0 2px';
+    timerEl.textContent='Schliesst in '+durSec+'s';
+    card.appendChild(timerEl);
+    let rem=durSec;
+    const iv=setInterval(()=>{ rem--; if(timerEl)timerEl.textContent='Schliesst in '+rem+'s'; if(rem<=0){clearInterval(iv);ov.remove();_annMarkSeen(ann.id);} },1000);
+    setTimeout(()=>{clearInterval(iv);ov.remove();_annMarkSeen(ann.id);},durSec*1000);
+  } else {
+    const cb=document.createElement('button'); cb.textContent='Schliessen ✕'; cb.style.cssText='width:100%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:none;padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:8px';
+    cb.onclick=()=>{ov.remove();_annMarkSeen(ann.id);}; bot.appendChild(cb);
+  }
   card.appendChild(bot);
   ov.appendChild(card); document.body.appendChild(ov);
 }
@@ -7671,6 +7731,7 @@ window.ZooEvents = ZooEvents;
         <div id="padmin-playerlist" style="display:flex;flex-direction:column;gap:2px;padding:0 6px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
         <!-- Nav tabs -->
         <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
+          <div class="padmin-tab-btn" data-tab="announce" onclick="ZAdmin.switchTab('announce')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3478f6;display:flex;align-items:center;gap:6px;background:rgba(52,120,246,.1);border:1px solid rgba(52,120,246,.3);border-radius:6px">📢 Ankündigung</div>
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
@@ -7683,7 +7744,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="scores" onclick="ZAdmin.switchTab('scores')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏆 Scores</div>
           <div class="padmin-tab-btn" data-tab="fragen" onclick="ZAdmin.switchTab('fragen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">❓ Fragen</div>
           <div class="padmin-tab-btn" data-tab="meldungen" onclick="ZAdmin.switchTab('meldungen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🚨 Meldungen</div>
-          <div class="padmin-tab-btn" data-tab="announce" onclick="ZAdmin.switchTab('announce')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📢 Ankündigung</div>
+
         </div>
       </div>
       <!-- Content area -->
@@ -7821,7 +7882,7 @@ window.ZooEvents = ZooEvents;
               <option value="60">1 Std</option>
             </select>
           </div>
-          <button class="padmin-btn" style="background:linear-gradient(135deg,#27AE60,#1E8449);width:100%" onclick="ZAdmin._setAdminLuck(parseInt(document.getElementById('admin-luck-mult').value),parseInt(document.getElementById('admin-luck-dur').value))">🍀 Glück aktivieren</button>
+          <button class="padmin-btn" style="background:linear-gradient(135deg,#27AE60,#1E8449);width:100%" onclick="ZP._setAdminLuck(parseInt(document.getElementById('admin-luck-mult').value),parseInt(document.getElementById('admin-luck-dur').value))">🍀 Glück aktivieren</button>
         </div>
         <!-- TAB: AKTIONEN (player actions) -->
         <div class="padmin-tab" id="padmin-tab-aktionen" style="display:none">
@@ -7976,20 +8037,61 @@ window.ZooEvents = ZooEvents;
 
         <!-- TAB: ANKÜNDIGUNG -->
         <div class="padmin-tab" id="padmin-tab-announce" style="display:none">
-          <div class="padmin-section-title">📢 Ankündigung erstellen</div>
-          <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:10px">
-            <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:6px">Titel</div>
-            <input id="ann-title" type="text" placeholder="z.B. Samstag 27 Juni Update" maxlength="60"
-              style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:9px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box;margin-bottom:8px">
-            <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:6px">Beschreibung (optional)</div>
-            <textarea id="ann-desc" placeholder="Weitere Details..." maxlength="200" rows="2"
-              style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:9px 12px;border-radius:8px;font-size:.85rem;resize:none;box-sizing:border-box;margin-bottom:8px"></textarea>
-            <div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:6px">Datum &amp; Uhrzeit des Events</div>
-            <input id="ann-datetime" type="datetime-local"
-              style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:9px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box;margin-bottom:10px">
-            <button onclick="ZAdmin._sendAnnounce()" style="width:100%;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">📢 Ankündigung senden</button>
+          <div class="padmin-section-title">📢 Event-Ankündigung</div>
+
+          <!-- Live Preview (like the user's screenshot) -->
+          <div style="background:#000;border-radius:16px;overflow:hidden;margin-bottom:14px;border:1px solid rgba(255,255,255,.15)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)">
+              <span style="color:rgba(255,255,255,.5);font-size:1.1rem">✕</span>
+              <span style="color:#fff;font-weight:700;font-size:.9rem">Event beitreten</span>
+              <div style="width:20px"></div>
+            </div>
+            <div style="padding:14px 16px 6px">
+              <div id="ann-preview-date" style="display:inline-block;background:#fff;color:#000;border-radius:20px;padding:5px 12px;font-size:.78rem;font-weight:700;margin-bottom:10px">Sa., Juni 27 um 20:00</div>
+            </div>
+            <div style="background:#000;margin:0 14px;border-radius:10px;padding:22px 16px;text-align:center">
+              <div id="ann-preview-title" style="font-size:clamp(1.4rem,6vw,2.2rem);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:2px;line-height:1.1">DEIN EVENT TITEL</div>
+            </div>
+            <div style="padding:12px 16px 6px">
+              <div id="ann-preview-sub" style="font-weight:700;font-size:.95rem;color:#fff;margin-bottom:12px">Dein Event Titel</div>
+              <div style="background:#3478f6;border-radius:12px;padding:14px;text-align:center;font-weight:700;color:#fff;font-size:.95rem">Benachrichtigen</div>
+            </div>
+            <div style="height:12px"></div>
           </div>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.4);text-align:center">Spieler sehen die Ankündigung beim Spielstart. Der Benachrichtigen-Knopf schickt 5 Min vorher eine Push-Meldung.</div>
+
+          <!-- Form -->
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px">
+            <div>
+              <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Titel (wird gross angezeigt)</div>
+              <input id="ann-title" type="text" placeholder="z.B. 26 JUNI UPDATE" maxlength="40"
+                oninput="ZP._previewAnn()"
+                style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📅 Datum &amp; Uhrzeit</div>
+              <input id="ann-datetime" type="datetime-local"
+                oninput="ZP._previewAnn()"
+                style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">⏱️ Modal verschwindet nach</div>
+              <select id="ann-duration" style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
+                <option value="5">5 Sekunden</option>
+                <option value="10" selected>10 Sekunden</option>
+                <option value="15">15 Sekunden</option>
+                <option value="0">Manuell schliessen (✕)</option>
+              </select>
+            </div>
+            <button onclick="ZP._sendAnnounce()"
+              style="width:100%;background:linear-gradient(135deg,#3478f6,#2563cc);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer;margin-top:4px">
+              📢 Ankündigung an alle senden
+            </button>
+            <button onclick="ZP._clearAnnounce()"
+              style="width:100%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);padding:10px;border-radius:10px;font-size:.82rem;cursor:pointer">
+              🗑️ Aktuelle Ankündigung löschen
+            </button>
+          </div>
+          <div id="ann-status" style="text-align:center;font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Noch keine Ankündigung aktiv.</div>
         </div>
 
         <!-- TAB: EINSTELLUNGEN -->
