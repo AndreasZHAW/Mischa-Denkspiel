@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v248 -->
+<!-- ZOO v250 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -199,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v248','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v250','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -566,7 +566,9 @@ const ANIMALS=[
 window.ANIMALS = ANIMALS;
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:2},diamond:{n:'DIAMOND',c:'td',m:2,p:1},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:.5},void:{n:'VOID',c:'tv',m:5,p:.5}};
-const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'}];
+const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'},
+  // New event traits
+  {id:'tidal',n:'TIDAL',c:'ttd',m:1.8,p:4,ev:'flood'},{id:'sparkle',n:'SPARKLE',c:'tsp',m:1.5,p:5,ev:'fireworks'},{id:'swift',n:'SWIFT',c:'tsw',m:1.6,p:4,ev:'tornado'},{id:'sunny',n:'SUNNY',c:'tsu',m:1.4,p:5,ev:'summer'},{id:'spooky',n:'SPOOKY',c:'tsk',m:2.0,p:3,ev:'halloween2'},{id:'frosty',n:'FROSTY',c:'tft',m:1.7,p:4,ev:'xmas'},{id:'stardust',n:'STARDUST',c:'tsd',m:2.0,p:3,ev:'meteor'},{id:'magic',n:'MAGIC',c:'tmg',m:1.9,p:4,ev:'mushroom'},{id:'bolt',n:'BOLT',c:'tbt',m:1.8,p:4,ev:'thunder2'},{id:'draconic',n:'DRACONIC',c:'tdr',m:2.0,p:3,ev:'dragon'},{id:'baguette',n:'BAGUETTE',c:'tbg',m:2.0,p:3,ev:'france'}];
 const EVENTS=[
   {id:'snow',      n:'❄️ Schneesturm',  col:'#AED6F1', d:'CRYSTAL Trait + weiße Gondeln!',    dur:300000},
   {id:'party',     n:'🎉 Konzert',       col:'#FF69B4', d:'CONCERT Trait + Party ×4!',         dur:300000},
@@ -591,6 +593,18 @@ const EVENTS=[
   {id:'cosmic',    n:'☄️ Sternschnuppe', col:'#aa44ff', d:'COSMIC + legendäre Tiere x2!',      dur:300000},
   {id:'gold_rush', n:'🪙 Goldrausch',    col:'#ffd700', d:'×6 MT für 5 Minuten!',              dur:300000},
   {id:'festival',  n:'🎪 Zoo-Festival',  col:'#ff5599', d:'Alle Traits + ×4 + Party-Modus!',   dur:300000},
+  // ── NEW EVENTS ──
+  {id:'flood',     n:'🌊 Flut',          col:'#1a6b9e', d:'Wasser steigt! Wasser-Tiere ×4!',    dur:600000, trait:{id:'tidal',n:'TIDAL',c:'ttd',m:1.8,p:4}},
+  {id:'fireworks', n:'🎆 Feuerwerk',     col:'#ff4466', d:'Bunte Explosion! ×3 Einnahmen!',     dur:300000, trait:{id:'sparkle',n:'SPARKLE',c:'tsp',m:1.5,p:5}},
+  {id:'tornado',   n:'🌪️ Tornado',       col:'#88aacc', d:'Wirbelsturm! ×5 Besucher!',          dur:300000, trait:{id:'swift',n:'SWIFT',c:'tsw',m:1.6,p:4}},
+  {id:'summer',    n:'🏖️ Sommer-Fieber', col:'#ffcc00', d:'Heiß! ×3 MT + exotische Tiere!',     dur:600000, trait:{id:'sunny',n:'SUNNY',c:'tsu',m:1.4,p:5}},
+  {id:'halloween2',n:'🎃 Halloween',     col:'#ff6600', d:'Grusel! Geister-Tiere + GLITCH!',    dur:600000, trait:{id:'spooky',n:'SPOOKY',c:'tsk',m:2.0,p:3}},
+  {id:'xmas',      n:'🎄 Weihnachten',   col:'#cc0000', d:'Ho Ho Ho! ×4 überall!',              dur:600000, trait:{id:'frosty',n:'FROSTY',c:'tft',m:1.7,p:4}},
+  {id:'meteor',    n:'🌌 Meteor-Regen',  col:'#330066', d:'Meteore! Legendäre Tiere ×3!',       dur:300000, trait:{id:'stardust',n:'STARDUST',c:'tsd',m:2.0,p:3}},
+  {id:'mushroom',  n:'🍄 Pilz-Welt',     col:'#aa44cc', d:'Psychedelic! ×2 alles!',             dur:300000, trait:{id:'magic',n:'MAGIC',c:'tmg',m:1.9,p:4}},
+  {id:'thunder2',  n:'⚡ Gewitter',       col:'#333300', d:'Blitz! ELECTRIC ×2 + Rush!',         dur:300000, trait:{id:'bolt',n:'BOLT',c:'tbt',m:1.8,p:4}},
+  {id:'dragon',    n:'🐉 Drachen',        col:'#880000', d:'Drachen-Invasion! FIRE ×3!',         dur:300000, trait:{id:'draconic',n:'DRACONIC',c:'tdr',m:2.0,p:3}},
+  {id:'france',    n:'🇫🇷 Frankreich',   col:'#0055a4', d:'Liberté! Jedes 10. Tier ×5!',        dur:600000, adminOnly:true, trait:{id:'baguette',n:'BAGUETTE',c:'tbg',m:2.0,p:3}},
 ];
 window.EVENTS = EVENTS;
 const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀'},{m:3,cost:80000,l:'×3 🍀🍀🍀'},{m:5,cost:250000,l:'×5 ⭐'},{m:7,cost:1000000,l:'×7 🌟'},{m:10,cost:5000000,l:'×10 👑 MAX'}];
@@ -619,16 +633,23 @@ function hide(id){G(id)?.classList.add('off');}
 function rA(luck,night){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(luck,.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
-  // Support both single event id (legacy) and multi-event array from ZG.evs
-  const activeIds = (typeof ZG!=='undefined' && ZG.evs && ZG.evs.length)
-    ? ZG.evs.map(e=>e.id) : (ev?[ev]:[]);
+  const activeIds=(typeof ZG!=='undefined'&&ZG.evs&&ZG.evs.length)?ZG.evs.map(e=>e.id):(ev?[ev]:[]);
   if(!activeIds.length) return [];
   const got=[];
   activeIds.forEach(eid=>{
-    if(eid==='mega'){ TRAITS.forEach(t=>{ if(Math.random()<0.25&&!got.find(x=>x.id===t.id)) got.push(t); }); }
-    else { TRAITS.forEach(t=>{ if(t.ev===eid && Math.random()<0.25 && !got.find(x=>x.id===t.id)) got.push(t); }); }
+    if(eid==='mega'||eid==='festival'){ TRAITS.forEach(t=>{if(Math.random()<0.25&&!got.find(x=>x.id===t.id))got.push(t);}); }
+    else {
+      // Check TRAITS array for matching event
+      TRAITS.forEach(t=>{if(t.ev===eid&&Math.random()<0.25&&!got.find(x=>x.id===t.id))got.push(t);});
+      // Also check inline trait on the event object (new events)
+      const evObj=(window.EVENTS||[]).find(e=>e.id===eid);
+      if(evObj&&evObj.trait&&Math.random()<0.25&&!got.find(x=>x.id===evObj.trait.id)){
+        // Cap trait multiplier at ×2 per spec
+        got.push({...evObj.trait, m:Math.min(evObj.trait.m,2)});
+      }
+    }
   });
-  return got.slice(0,5); // max 5 traits
+  return got.slice(0,5);
 }
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
 function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;return e;}
@@ -946,6 +967,8 @@ const ZG={
       if(jb)jb.style.display='flex';
     }
     setTimeout(()=>ZG._listenAnimalEvents(),3000);
+    // Schedule random events every 10 minutes
+    this._ivs.push(setInterval(()=>ZG._tryStartRandomEvent(),10*60*1000));
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     this._scheduleEvent();
@@ -2415,6 +2438,23 @@ const ZG={
     if(this._starsGroup) this._starsGroup.visible = showStars;
   },
 
+  _tryStartRandomEvent(){
+    if(!this.evs) this.evs=[];
+    if(this.evs.length>=3) return; // already at max
+    // Pick a random non-admin event
+    const available=(window.EVENTS||[]).filter(ev=>!ev.adminOnly && !this.evs.find(e=>e.id===ev.id));
+    if(!available.length) return;
+    const ev=available[Math.floor(Math.random()*available.length)];
+    this.startEv(ev,ev.dur||300000);
+  },
+  _applyFranceBonus(){
+    // Give ×5 multiplier to every 10th animal (slot index 9, 19, 29...)
+    const z=ZS.zoo; if(!z||!z.enc) return;
+    let count=0;
+    z.enc.forEach((slot,i)=>{ if(slot&&slot.animal){ count++; if(count%10===0){ slot.xm=(slot.xm||1)*5; ZP.toast('🇫🇷 Tier #'+count+' bekommt ×5 Multiplier! '+slot.animal.e,3500); } } });
+    ZS.save&&ZS.save(); ZG._encs&&ZG._encs(); ZG._updHUD&&ZG._updHUD();
+  },
+
   _updHUD(){
     const z=ZS.zoo;if(!z)return;
     if(!z.tv&&z.tv!==0)z.tv=z.totalVisitors||0; // migrate on the fly
@@ -2916,7 +2956,9 @@ const ZG={
 
   startEv(ev,dur){
     if(!this.evs) this.evs=[];
-    // Remove if already running
+    // Max 3 concurrent events
+    if(this.evs.length>=3){ ZP.toast('⚡ Max 3 Events gleichzeitig! Warte bis eines endet.',3000); return; }
+    // Remove if already running (restart it)
     this.evs=this.evs.filter(e=>e.id!==ev.id);
     const end=Date.now()+dur;
     this.evs.push({...ev, end});
@@ -2927,6 +2969,8 @@ const ZG={
     const b=G('evb');if(b){b.textContent=ev.n+' — '+ev.d;b.style.opacity='1';setTimeout(()=>b.style.opacity='0',4500);}
     // Visual effects per event type
     this._startEvFX(ev);
+    // France special: apply ×5 to every 10th animal
+    if(ev.id==='france'){ setTimeout(()=>this._applyFranceBonus(),1000); }
     if(ev.id==='glitch')ZP.toast('👾 GLITCH! Betrete die Gondel-Station für ein Abenteuer!',5000);
     ZP.toast(ev.n+'! '+ev.d,4000);
     // Auto-stop after dur
@@ -2943,36 +2987,166 @@ const ZG={
   _startEvFX(ev){
     if(!this._evFXEls) this._evFXEls={};
     const els=[]; const zoo=G('s-zoo'); if(!zoo) return;
-    if(ev.id==='snow'){
-      for(let i=0;i<18;i++){const e=document.createElement('div');e.className='zsn';e.textContent='❄️';e.style.cssText=`left:${Math.random()*100}vw;font-size:.9rem;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*3}s`;zoo.appendChild(e);els.push(e);}
+    const id=ev.id;
+    const fall=(emoji,n,css='')=>{for(let i=0;i<n;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-30px;font-size:${0.9+Math.random()*0.6}rem;animation:zsfall ${1.5+Math.random()*3}s linear ${Math.random()*4}s infinite;pointer-events:none;z-index:90;${css}`;e.textContent=emoji;zoo.appendChild(e);els.push(e);}};
+    const rise=(emoji,n)=>{for(let i=0;i<n;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;bottom:15%;font-size:${0.9+Math.random()*0.7}rem;animation:zsrise ${1+Math.random()*2}s linear ${Math.random()*2}s infinite;pointer-events:none;z-index:90`;e.textContent=emoji;zoo.appendChild(e);els.push(e);}};
+    const overlay=(bg,opacity=.18)=>{const e=document.createElement('div');e.style.cssText=`position:fixed;inset:0;background:${bg};opacity:${opacity};pointer-events:none;z-index:85;transition:opacity 2s`;zoo.appendChild(e);els.push(e);return e;};
+    const topBar=(bg)=>{const e=document.createElement('div');e.style.cssText=`position:fixed;top:0;left:0;right:0;height:5px;background:${bg};z-index:95;pointer-events:none`;zoo.appendChild(e);els.push(e);};
+
+    // ── EXISTING EVENTS ──
+    if(id==='snow'){fall('❄️',18);overlay('rgba(180,220,255,.12)');}
+    if(id==='party'){const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbm';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%6]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;zoo.appendChild(e);els.push(e);}}
+    if(id==='golden'){fall('💰',10);topBar('linear-gradient(90deg,#FFD700,#FFA500,#FFD700)');}
+    if(id==='night'){fall('⭐',14);overlay('rgba(10,0,30,.35)');}
+    if(id==='rush'){fall('🏃',8,'filter:scaleX(-1)');topBar('#E74C3C');}
+    if(id==='mega'){fall('💎',8);fall('✨',8);topBar('linear-gradient(90deg,#00CFFF,#9B59B6,#00CFFF)');}
+    if(id==='glitch'){const e=document.createElement('div');e.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:88;animation:glitchFX .3s steps(1) infinite';zoo.appendChild(e);els.push(e);}
+    if(id==='storm'){fall('🌧️',12);overlay('rgba(30,50,80,.4)');}
+    if(id==='rainbow'){topBar('linear-gradient(90deg,red,orange,yellow,green,blue,violet)');fall('🌈',5);}
+    if(id==='volcano'){rise('🔥',10);rise('💥',4);overlay('rgba(120,30,0,.2)');}
+    if(id==='galaxy'){fall('🌟',8);fall('⭐',6);overlay('rgba(30,0,60,.35)');}
+    if(id==='carnival'){fall('🎠',6);fall('🎡',4);topBar('linear-gradient(90deg,#ff66aa,#ffcc00,#ff66aa)');}
+    if(id==='treasure'){fall('💰',8);fall('🪙',6);topBar('#ccaa00');}
+    if(id==='spring'){fall('🌸',14);fall('🦋',6);}
+    if(id==='halloween'){fall('🦇',10);fall('🎃',6);overlay('rgba(20,0,0,.4)');}
+    if(id==='aurora'){fall('🌟',10);overlay('rgba(0,200,120,.15)');topBar('linear-gradient(90deg,#00ffaa,#0088ff,#00ffaa)');}
+    if(id==='desert'){fall('🌵',6);rise('🔥',8);overlay('rgba(150,80,0,.2)');}
+    if(id==='ocean'){fall('🐟',8);fall('🐠',6);overlay('rgba(0,80,150,.25)');}
+    if(id==='thunder'){fall('⚡',8);overlay('rgba(20,20,0,.3)');topBar('#ffcc00');}
+    if(id==='bloom'){fall('🌺',14);fall('🌼',10);}
+    if(id==='cosmic'){fall('☄️',8);fall('🌟',6);overlay('rgba(40,0,80,.3)');}
+    if(id==='gold_rush'){fall('🪙',14);topBar('#ffd700');}
+    if(id==='festival'){fall('🎪',6);fall('🎆',6);fall('🎉',6);topBar('linear-gradient(90deg,#ff5599,#ffcc00,#ff5599)');}
+    // ── NEW EVENTS ──
+    if(id==='flood'){fall('🌊',12);fall('🐠',6);overlay('rgba(0,60,120,.35)');topBar('#1a6b9e');}
+    if(id==='fireworks'){fall('🎆',10);fall('✨',8);topBar('linear-gradient(90deg,#ff4466,#ffcc00,#4466ff)');overlay('rgba(0,0,0,.2)');}
+    if(id==='tornado'){fall('🌪️',6);fall('🍂',10);overlay('rgba(80,100,120,.25)');}
+    if(id==='summer'){fall('☀️',6);fall('🌴',5);fall('🍦',5);overlay('rgba(255,200,0,.1)');}
+    if(id==='halloween2'){fall('🦇',12);fall('👻',8);overlay('rgba(10,0,0,.45)');topBar('#ff6600');}
+    if(id==='xmas'){fall('❄️',10);fall('🎄',5);fall('🎁',5);overlay('rgba(0,10,0,.2)');topBar('#cc0000');}
+    if(id==='meteor'){fall('☄️',10);fall('💥',6);overlay('rgba(20,0,40,.4)');topBar('#330066');}
+    if(id==='mushroom'){fall('🍄',10);fall('✨',8);overlay('rgba(100,0,150,.2)');topBar('linear-gradient(90deg,#aa44cc,#44aacc,#aa44cc)');}
+    if(id==='thunder2'){fall('⚡',12);fall('🌩️',6);overlay('rgba(0,0,0,.5)');topBar('#333300');}
+    if(id==='dragon'){fall('🐉',8);rise('🔥',10);overlay('rgba(80,0,0,.3)');topBar('#880000');}
+    if(id==='france'){
+      fall('🥖',6);fall('⚜️',4);fall('🇫🇷',4);
+      topBar('linear-gradient(90deg,#0055a4 33%,#fff 33%,#fff 66%,#ef4135 66%)');
+      overlay('rgba(0,40,120,.08)');
+      // Build real 3D Eiffel Tower in Three.js scene
+      this._buildEiffelTower();
     }
-    if(ev.id==='party'){
-      const cols=['#ff6b6b','#FFD700','#27AE60','#4A90D9','#cc00ff','#FF69B4'];
-      for(let i=0;i<10;i++){const e=document.createElement('div');e.className='zbm';e.style.cssText=`left:${4+i*9.5}%;height:${60+Math.random()*40}px;background:${cols[i%6]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()}s`;zoo.appendChild(e);els.push(e);}
-    }
-    if(ev.id==='night'||ev.id==='cosmic'||ev.id==='aurora'){
-      // Stars raining down / meteors
-      for(let i=0;i<12;i++){
-        const e=document.createElement('div');
-        e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:${Math.random()*30}vh;font-size:${0.8+Math.random()}rem;animation:zsfall ${2+Math.random()*3}s linear ${Math.random()*4}s infinite;pointer-events:none;z-index:90`;
-        e.textContent=ev.id==='aurora'?'🌟':'⭐'; zoo.appendChild(e); els.push(e);
-      }
-    }
-    if(ev.id==='golden'||ev.id==='gold_rush'){
-      for(let i=0;i<10;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-20px;font-size:1.2rem;animation:zsfall ${1.5+Math.random()*2}s linear ${Math.random()*3}s infinite;pointer-events:none;z-index:90`;e.textContent='💰';zoo.appendChild(e);els.push(e);}
-    }
-    if(ev.id==='volcano'){
-      for(let i=0;i<8;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;bottom:20%;font-size:1rem;animation:zsrise ${1+Math.random()*2}s linear ${Math.random()*2}s infinite;pointer-events:none;z-index:90`;e.textContent='🔥';zoo.appendChild(e);els.push(e);}
-    }
-    if(ev.id==='rainbow'){
-      const e=document.createElement('div');e.style.cssText='position:fixed;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,red,orange,yellow,green,blue,violet);opacity:.7;z-index:90;pointer-events:none';zoo.appendChild(e);els.push(e);
-    }
-    this._evFXEls[ev.id]=els;
+    this._evFXEls[id]=els;
   },
+  _buildEiffelTower(){
+    if(!this.scene||typeof THREE==='undefined') return;
+    if(this._eiffelGroup) this._removeEiffelTower();
+    const g=new THREE.Group();
+    const iron=new THREE.MeshPhongMaterial({color:0x8B7355,emissive:0x2a1a00,shininess:40});
+    const ironDark=new THREE.MeshPhongMaterial({color:0x5a4a2a,emissive:0x1a0d00,shininess:20});
+
+    // ── FOUNDATION PILLARS (4 legs spread out at base) ──
+    const legPositions=[[-3.5,0,-3.5],[3.5,0,-3.5],[-3.5,0,3.5],[3.5,0,3.5]];
+    legPositions.forEach(([x,,z])=>{
+      // Curved leg (approximated with angled cylinders)
+      for(let seg=0;seg<4;seg++){
+        const t=seg/4;
+        const bot_x=x*(1-t*0.75), bot_z=z*(1-t*0.75);
+        const top_x=x*(1-(t+0.25)*0.75), top_z=z*(1-(t+0.25)*0.75);
+        const cy=new THREE.CylinderGeometry(0.18,0.22,3.2,5);
+        const mesh=new THREE.Mesh(cy,iron);
+        mesh.position.set((bot_x+top_x)/2,t*12+1.6,(bot_z+top_z)/2);
+        mesh.lookAt(new THREE.Vector3(0,12,0)); // angle toward center top
+        g.add(mesh);
+      }
+    });
+
+    // ── FIRST FLOOR PLATFORM (y≈11) ──
+    const f1=new THREE.Mesh(new THREE.BoxGeometry(7,0.6,7),iron);
+    f1.position.y=11; g.add(f1);
+    // cross-braces on first floor
+    [-2.5,2.5].forEach(x=>{
+      const b=new THREE.Mesh(new THREE.BoxGeometry(6,0.15,0.25),ironDark);
+      b.position.set(0,11.4,x); g.add(b);
+    });
+    [-2.5,2.5].forEach(z=>{
+      const b=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.15,6),ironDark);
+      b.position.set(z,11.4,0); g.add(b);
+    });
+
+    // ── FIRST TO SECOND FLOOR (tapered tower body) ──
+    for(let seg=0;seg<6;seg++){
+      const t=seg/6;
+      const r_bot=2.8*(1-t*0.6), r_top=2.8*(1-(t+1/6)*0.6);
+      const cy=new THREE.CylinderGeometry(r_top,r_bot,3.5,4);
+      const mesh=new THREE.Mesh(cy,iron);
+      mesh.position.y=11+seg*3.5+1.75;
+      mesh.rotation.y=Math.PI/4; // orient square cross-section
+      g.add(mesh);
+    }
+
+    // ── SECOND FLOOR PLATFORM (y≈32) ──
+    const f2=new THREE.Mesh(new THREE.BoxGeometry(4.5,0.5,4.5),iron);
+    f2.position.y=32; g.add(f2);
+
+    // ── UPPER TOWER (slender section) ──
+    for(let seg=0;seg<8;seg++){
+      const t=seg/8;
+      const r=1.2*(1-t*0.75);
+      const cy=new THREE.CylinderGeometry(r*(1-1/8*0.75),r,4,8);
+      const mesh=new THREE.Mesh(cy,iron);
+      mesh.position.y=32+seg*4+2;
+      g.add(mesh);
+    }
+
+    // ── ANTENNA / SPIRE ──
+    const spire=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.25,12,6),iron);
+    spire.position.y=32+32+5+6; g.add(spire);
+    // Antenna tip light (golden ball)
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xFFAA00,emissiveIntensity:1}));
+    tip.position.y=32+32+5+12.5; g.add(tip);
+
+    // ── DECORATIVE ARCHES at base (Eiffel Tower signature arches) ──
+    const archMat=new THREE.MeshPhongMaterial({color:0x6b5a3a});
+    [0,Math.PI/2,Math.PI,Math.PI*1.5].forEach(angle=>{
+      const arch=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.18,6,12,Math.PI),archMat);
+      arch.position.set(Math.sin(angle)*1.5,8,Math.cos(angle)*1.5);
+      arch.rotation.y=angle; arch.rotation.x=Math.PI/2;
+      g.add(arch);
+    });
+
+    // ── LIGHT BEAMS (rotating spotlights at night) ──
+    const beam1=new THREE.SpotLight(0xffd700,3,80,0.15);
+    beam1.position.set(0,32+32+5,0); beam1.target.position.set(20,0,0);
+    g.add(beam1); g.add(beam1.target);
+    this._eiffelBeam=beam1;
+
+    // Position: behind gondola station, slightly to the side
+    g.position.set(-8,0,-20);
+    g.scale.set(0.7,0.7,0.7); // scale to fit world
+    this.scene.add(g);
+    this._eiffelGroup=g;
+
+    // Animate: gentle rotation of light beam
+    this._eiffelAnimIv=setInterval(()=>{
+      if(!this._eiffelBeam||!this._eiffelGroup)return;
+      const t=Date.now()/1000;
+      this._eiffelBeam.target.position.set(20*Math.sin(t*0.5),0,20*Math.cos(t*0.5));
+      this._eiffelBeam.target.updateMatrixWorld();
+    },50);
+
+    ZP.toast('🗼 Der Eiffelturm erscheint im Zoo!',4000);
+  },
+  _removeEiffelTower(){
+    if(this._eiffelGroup){ this.scene.remove(this._eiffelGroup); this._eiffelGroup=null; }
+    if(this._eiffelAnimIv){ clearInterval(this._eiffelAnimIv); this._eiffelAnimIv=null; }
+  },
+
   _stopEvFX(evId){
     if(!this._evFXEls) return;
     (this._evFXEls[evId]||[]).forEach(e=>e.remove());
     delete this._evFXEls[evId];
+    // Remove Eiffel Tower when France event ends
+    if(evId==='france') this._removeEiffelTower();
   },
 
   // ═══ GONDOLA INTERIOR ═══
@@ -3832,7 +4006,7 @@ const ZP={
     el.innerHTML=out;
   },
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
-  _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">Gondel gesperrt!</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">Polizei-Razzia · noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min</div></div>';return;}const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?'🥚 Auftippen zum Öffnen':'💰 '+$mt(a.earn*tm)+'/v'} · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot&&!a.isEgg)?'disabled':''} style="font-size:.88rem;padding:9px 20px" onclick="ZP._buyG()">${!can?'❌ Zu wenig':!hasSlot&&!a.isEgg?'❌ Gehege voll':a.isEgg?'🥚 Kaufen & Öffnen':'🛒 Kaufen'}</button></div>`;},
+  _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">Gondel gesperrt!</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">Polizei-Razzia · noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min</div></div>';return;}const can=z.mt>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?'🥚 Sofort öffnen nach Kauf!':'💰 '+$mt(a.earn*tm)+'/v'} · ${$mt(a.p)}</div><button class="ab" ${(!can)?'disabled':''} style="font-size:.88rem;padding:9px 20px;${a.isEgg?'background:linear-gradient(135deg,#9b59b6,#6c3483);':''}" onclick="ZP._buyG()">${!can?'❌ Zu wenig':a.isEgg?'🥚 Kaufen & Öffnen!':'🛒 Kaufen'}</button></div>`;},
   _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}
     // Deduct cost + advance queue
     z.mt-=g.a.p; ZG.gQ.shift(); ZG.gQ.push(ZG._mkG()); ZG._updHUD&&ZG._updHUD(); try{ZS.save&&ZS.save();}catch(e){}
@@ -5585,10 +5759,12 @@ const ZAdmin = {
     ZP.toast('🚨 '+label+' an '+this.target.name+' gesendet!',2500);
   },
   _selEv(id){
-    this._selectedEvent=id;
-    const ev=(window.EVENTS||[]).find(e=>e.id===id);
-    document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #fff':'2px solid transparent';});
-    ZP.toast('✅ Ausgewählt: '+(ev?ev.n:id),1500);
+    const ev=(window.EVENTS||[]).find(e=>e.id===id); if(!ev)return;
+    const dur=this._selectedEventDur||300000;
+    ZG.startEv(ev,dur);
+    ZP.toast('⚡ '+ev.n+' gestartet für '+(dur/60000)+'Min!',3000);
+    document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #FFD700':'2px solid transparent';});
+    setTimeout(()=>document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border='2px solid transparent';}),3000);
   },
   revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
   _renderCalTable(){
@@ -6496,9 +6672,7 @@ async function _checkAnnouncement(){
     // Fallback to localStorage
     if(!ann) ann=JSON.parse(localStorage.getItem('zoo_announcement')||'null');
     if(!ann||!ann.id) return;
-    // Don't show same announcement twice
-    const seen=JSON.parse(localStorage.getItem('zoo_ann_seen')||'[]');
-    if(seen.includes(ann.id)) return;
+    // Show every time the zoo is entered (no "already seen" filter)
     _showAnnouncementModal(ann);
   }catch(e){}
 }
@@ -8102,7 +8276,8 @@ window.ZooEvents = ZooEvents;
             <div id="padmin-event-select" style="display:flex;gap:6px;flex-wrap:wrap">
               <!-- Filled by JS -->
             </div>
-            <button id="padmin-event-btn" class="padmin-btn" style="background:#E67E22;width:100%" onclick="ZAdmin.triggerEvent()">⚡ Event starten</button>
+            <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-align:center;margin-top:4px">Klicke einen Event-Knopf oben zum Starten</div>
+
           </div>
         </div>
       </div>
