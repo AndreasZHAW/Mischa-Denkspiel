@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v251 -->
+<!-- ZOO v252 -->
 <html lang="de">
 <head>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
@@ -199,7 +199,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v251','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v252','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -956,6 +956,8 @@ const ZG={
     LW.init();ZSound.loadStyle();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     // Check for admin announcement
     setTimeout(()=>_checkAnnouncement(),1500);
+    // Check for update news (shown once per news id)
+    setTimeout(()=>_checkNews(),2200);
     ZChat.show(); ZChat._startListen(); _announceSecrets();
     // Restore admin button if previously unlocked
     if(ZAdmin._hasAccess||ZS.isAdmin||localStorage.getItem('zoo_secret_admin')===ZS.player){
@@ -2446,33 +2448,63 @@ const ZG={
   // Platforms float above lava. Reach the end → win MT.
   // Fall → lava → teleport back to zoo, no reward.
   // ══════════════════════════════════════════════════════════════
+  // START POSITION: in front of the parcours
+  _jumpStartPos(){ return {x:-2, y:8, z:62, yaw:Math.PI}; },
   _startJumpLevel(){
     if(this._jumpActive) return;
+    // Show Ja/Nein question banner at the top
+    this._showJumpQuestion();
+  },
+  _showJumpQuestion(){
+    const q=document.createElement('div'); q.id='jump-question';
+    q.style.cssText='position:fixed;top:0;left:0;right:0;z-index:600;background:linear-gradient(135deg,#1a4a1a,#27ae60);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:Arial,sans-serif;box-shadow:0 4px 20px rgba(39,174,96,.6)';
+    q.innerHTML='<div style="font-size:clamp(.95rem,4vw,1.2rem);font-weight:900">🏃 Jump-Event läuft! Zur Obby teleportieren?</div>'+
+      '<div style="display:flex;gap:10px;flex-shrink:0">'+
+        '<button onclick="var jq=document.getElementById(\"jump-question\");if(jq)jq.remove();ZG._beginJumpLevel()" style="background:#FFD700;color:#000;border:none;padding:10px 22px;border-radius:10px;font-weight:900;font-size:1rem;cursor:pointer;min-height:44px">✅ Ja</button>'+
+        '<button onclick="var jq2=document.getElementById(\"jump-question\");if(jq2)jq2.remove()" style="background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.4);padding:10px 18px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;min-height:44px">❌ Nein</button>'+
+      '</div>';
+    document.body.appendChild(q);
+    // Auto-remove after 15s if not clicked
+    setTimeout(()=>document.getElementById('jump-question')?.remove(),15000);
+  },
+  _beginJumpLevel(){
+    if(this._jumpActive) return;
     this._jumpActive=true;
-    ZP.toast('🏃 JUMP-EVENT! Erreiche das Ziel für grosse MT!',4000);
-    // Save player position to restore if they fall
-    this._jumpSave={x:this.pl.x,y:this.pl.y,z:this.pl.z,yaw:this.yaw};
-    // Build the level
-    this._jumpMeshes=[];
-    this._buildJumpLevel();
-    // Show HUD countdown
-    this._jumpTimeLeft=90; // 90 seconds to complete
+    // Save zoo position
+    this._jumpZooSave={x:this.pl.x,y:this.pl.y,z:this.pl.z,yaw:this.yaw};
+    // Teleport animation
+    this._jumpTeleportAnim(()=>{
+      this._jumpMeshes=[];
+      this._buildJumpLevel();
+      this._placePlayerAtStart();
+      this._startJumpTimer();
+    });
+  },
+  _jumpTeleportAnim(cb){
+    const ov=document.createElement('div'); ov.id='jump-teleport';
+    ov.style.cssText='position:fixed;inset:0;z-index:700;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#fff';
+    ov.innerHTML='<div style="font-size:4rem;animation:walkBounce 0.5s infinite">🏃</div>'+
+      '<div style="font-size:1.4rem;font-weight:900;margin-top:16px;color:#27ae60">Teleportiere zur Obby...</div>'+
+      '<div style="margin-top:12px;width:200px;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden"><div style="height:100%;background:#27ae60;animation:zsfall 1.5s linear forwards;width:100%"></div></div>';
+    document.body.appendChild(ov);
+    setTimeout(()=>{ ov.remove(); cb(); },1800);
+  },
+  _placePlayerAtStart(){
+    const s=this._jumpStartPos();
+    this.pl.x=s.x; this.pl.y=s.y; this.pl.z=s.z; this.yaw=s.yaw;
+    this.cam.position.set(s.x,s.y,s.z);
+  },
+  _startJumpTimer(){
+    this._jumpTimeLeft=90;
     this._jumpHUD=document.createElement('div');
-    this._jumpHUD.style.cssText='position:fixed;top:14%;left:50%;transform:translateX(-50%);z-index:500;background:rgba(0,0,0,.75);color:#fff;font-weight:900;font-size:1.1rem;padding:8px 20px;border-radius:12px;text-align:center;pointer-events:none;border:2px solid #27ae60';
-    this._jumpHUD.innerHTML='🏃 Jump-Run · ⏱ 90s · <span style="color:#FFD700">Ziel erreichen!</span>';
+    this._jumpHUD.style.cssText='position:fixed;top:6%;left:50%;transform:translateX(-50%);z-index:500;background:rgba(0,0,0,.8);color:#fff;font-weight:900;font-size:1rem;padding:8px 20px;border-radius:12px;text-align:center;pointer-events:none;border:2px solid #27ae60';
+    this._jumpHUD.innerHTML='🏃 Obby · ⏱ 90s · <span style="color:#FFD700">Ziel erreichen!</span>';
     document.body.appendChild(this._jumpHUD);
-    // Timer
     this._jumpTimerIv=setInterval(()=>{
       this._jumpTimeLeft--;
-      if(this._jumpHUD) this._jumpHUD.innerHTML='🏃 Jump-Run · ⏱ '+this._jumpTimeLeft+'s · <span style="color:#FFD700">Ziel erreichen!</span>';
-      if(this._jumpTimeLeft<=0){ clearInterval(this._jumpTimerIv); this._failJumpLevel('⏰ Zeit abgelaufen!'); }
+      if(this._jumpHUD) this._jumpHUD.innerHTML='🏃 Obby · ⏱ '+this._jumpTimeLeft+'s · <span style="color:#FFD700">Ziel!</span>';
+      if(this._jumpTimeLeft<=0){ clearInterval(this._jumpTimerIv); this._failJumpLevel('⏰ Zeit abgelaufen — Event vorbei!',true); }
     },1000);
-    // Teleport player to start
-    setTimeout(()=>{
-      this.pl.x=-2; this.pl.y=8; this.pl.z=60;
-      this.yaw=Math.PI;
-      this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
-    },500);
   },
   _buildJumpLevel(){
     const sc=this.scene;
@@ -2535,7 +2567,7 @@ const ZG={
     const px=this.pl.x, py=this.pl.y, pz=this.pl.z;
     // Check lava (fell below y=2)
     if(py<2){
-      this._failJumpLevel('🌋 In die Lava gefallen!');
+      this._failJumpLevel('🌋 In die Lava!',false);
       return;
     }
     // Spin goal star
@@ -2569,7 +2601,7 @@ const ZG={
     const reward=Math.round(earn5min);
     z.mt=(z.mt||0)+reward;
     ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
-    this._endJumpLevel();
+    this._endJumpLevel(true);
     // Big win screen
     const win=document.createElement('div');
     win.style.cssText='position:fixed;inset:0;z-index:600;background:radial-gradient(circle,#1a4a1a,#000);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;text-align:center';
@@ -2582,29 +2614,140 @@ const ZG={
     document.body.appendChild(win);
     ZP.toast('🏆 Gewonnen! +'+$mt(reward)+' MT!',5000);
   },
-  _failJumpLevel(reason){
+  _failJumpLevel(reason,backToZoo){
     if(!this._jumpActive)return;
-    clearInterval(this._jumpTimerIv);
-    clearInterval(this._movPlatIv);
-    clearInterval(this._lavaAnimIv);
-    ZP.toast('💀 '+reason+' Zurück zum Zoo!',3500);
-    this._endJumpLevel();
-  },
-  _endJumpLevel(){
-    this._jumpActive=false;
-    // Remove jump HUD
-    this._jumpHUD?.remove(); this._jumpHUD=null;
-    // Remove all jump meshes
-    (this._jumpMeshes||[]).forEach(m=>{if(m&&this.scene)this.scene.remove(m);});
-    this._jumpMeshes=[]; this._jumpPlatforms=null; this._goalStar=null; this._goalPos=null;
-    this._movingPlat=null;
-    // Restore player to zoo
-    if(this._jumpSave){
-      this.pl.x=this._jumpSave.x; this.pl.y=this._jumpSave.y||1.7; this.pl.z=this._jumpSave.z;
-      this.yaw=this._jumpSave.yaw||0;
-      this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+    clearInterval(this._movPlatIv); clearInterval(this._lavaAnimIv);
+    if(backToZoo){
+      // Time ran out or event ended → back to zoo
+      clearInterval(this._jumpTimerIv);
+      ZP.toast('💀 '+reason,3500);
+      this._endJumpLevel(true);
+    } else {
+      // Fell in lava → respawn before parcours, keep timer running
+      ZP.toast('🌋 In die Lava gefallen! Nochmal versuchen...',2500);
+      setTimeout(()=>{ this._placePlayerAtStart(); this._jumping=false; this._jumpV=0; },600);
     }
   },
+  _endJumpLevel(backToZoo){
+    this._jumpActive=false;
+    clearInterval(this._jumpTimerIv); clearInterval(this._movPlatIv); clearInterval(this._lavaAnimIv);
+    this._jumpHUD?.remove(); this._jumpHUD=null;
+    document.getElementById('jump-question')?.remove();
+    (this._jumpMeshes||[]).forEach(m=>{if(m&&this.scene)this.scene.remove(m);});
+    this._jumpMeshes=[]; this._jumpPlatforms=null; this._goalStar=null; this._goalPos=null; this._movingPlat=null;
+    if(backToZoo&&this._jumpZooSave){
+      const s=this._jumpZooSave;
+      this.pl.x=s.x; this.pl.y=s.y||1.7; this.pl.z=s.z; this.yaw=s.yaw||0;
+      this.cam.position.set(this.pl.x,this.pl.y,this.pl.z);
+      ZP.toast('🏠 Zurück im Zoo!',2000);
+    }
+  },
+  // ── 3D EVENT OBJECTS ──
+  _build3DEventObj(evId){
+    if(!this.scene||typeof THREE==='undefined') return;
+    if(!this._evObj3D) this._evObj3D={};
+    if(this._evObj3D[evId]) return;
+    const g=new THREE.Group(); const sc=this.scene;
+
+    if(evId==='volcano'){
+      // 3D Volcano: cone + lava particles
+      const body=new THREE.Mesh(new THREE.ConeGeometry(12,18,12),new THREE.MeshPhongMaterial({color:0x5a3a1a,emissive:0x1a0800}));
+      body.position.y=9; g.add(body);
+      const crater=new THREE.Mesh(new THREE.CylinderGeometry(3,5,3,10),new THREE.MeshPhongMaterial({color:0x3a2010}));
+      crater.position.y=17; g.add(crater);
+      const lava=new THREE.Mesh(new THREE.CircleGeometry(3,10),new THREE.MeshPhongMaterial({color:0xff4400,emissive:0xcc2200,emissiveIntensity:1}));
+      lava.rotation.x=-Math.PI/2; lava.position.y=18.5; g.add(lava);
+      // Lava glow light
+      const light=new THREE.PointLight(0xff4400,3,60); light.position.y=22; g.add(light);
+      this._evObj3D[evId+'_light']=light;
+      this._evObj3D[evId+'_iv']=setInterval(()=>{light.intensity=2+Math.random()*2;},200);
+      g.position.set(-this.WR+18,0,-this.WR+18); g.scale.set(.55,.55,.55);
+    }
+    if(evId==='xmas'){
+      // 3D Christmas tree
+      [0,1,2].forEach((i)=>{const cone=new THREE.Mesh(new THREE.ConeGeometry(5-i*1.2,5,8),new THREE.MeshPhongMaterial({color:0x1a6a1a,emissive:0x052005})); cone.position.y=i*3.5+3; g.add(cone);});
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.6,1,2.5,6),new THREE.MeshPhongMaterial({color:0x5a3010})); trunk.position.y=1.2; g.add(trunk);
+      const star=new THREE.Mesh(new THREE.OctahedronGeometry(1.2),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffdd00,emissiveIntensity:1})); star.position.y=14.5; g.add(star);
+      // Colorful lights
+      [[0xff0000],[0x00ff00],[0x0000ff],[0xffaa00],[0xff00ff]].forEach(([c],i)=>{const l=new THREE.PointLight(c,1,12); l.position.set(Math.cos(i/5*Math.PI*2)*3.5,5+i*2,Math.sin(i/5*Math.PI*2)*3.5); g.add(l);});
+      g.position.set(this.WR-15,0,-5); g.scale.set(.7,.7,.7);
+    }
+    if(evId==='thunder2'||evId==='thunder'){
+      // 3D Lightning bolts (tall jagged cylinders)
+      for(let i=0;i<4;i++){
+        const bolt=new THREE.Group();
+        const segs=6;
+        for(let s=0;s<segs;s++){
+          const seg=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,4,4),new THREE.MeshPhongMaterial({color:0xffff44,emissive:0xffff00,emissiveIntensity:2}));
+          seg.position.set((Math.random()-.5)*1.5,s*3.5,(Math.random()-.5)*1.5);
+          bolt.add(seg);
+        }
+        bolt.position.set(-10+i*7,0,(-this.WR+10));
+        g.add(bolt);
+      }
+      const light=new THREE.PointLight(0xffffaa,0,80); g.add(light);
+      this._evObj3D[evId+'_iv']=setInterval(()=>{light.intensity=Math.random()<0.1?8:0;},150);
+      this._evObj3D[evId+'_light']=light;
+      g.position.set(0,0,0);
+    }
+    if(evId==='flood'){
+      // Rising water plane
+      const waterMat=new THREE.MeshPhongMaterial({color:0x0066cc,transparent:true,opacity:.65,emissive:0x003366,emissiveIntensity:.3});
+      const water=new THREE.Mesh(new THREE.PlaneGeometry(this.WR*2.5,this.WR*2.5),waterMat);
+      water.rotation.x=-Math.PI/2; water.position.y=0;
+      g.add(water);
+      this._evObj3D[evId+'_water']=water;
+      this._evObj3D[evId+'_iv']=setInterval(()=>{
+        const t=Date.now()/1000;
+        water.position.y=Math.sin(t*.3)*1.5+1;
+        waterMat.opacity=.5+Math.sin(t*.5)*.15;
+      },50);
+    }
+    if(evId==='dragon'){
+      // Flying dragon (simple 3D approximation)
+      const bodyMat=new THREE.MeshPhongMaterial({color:0x8B0000,emissive:0x3a0000});
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(1.5,3,12,8),bodyMat); body.rotation.z=Math.PI/2; g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(3,8,8),bodyMat); head.position.x=10; g.add(head);
+      // Wings
+      [-1,1].forEach(side=>{
+        const wing=new THREE.Mesh(new THREE.ConeGeometry(10,3,3),new THREE.MeshPhongMaterial({color:0x660000,emissive:0x220000}));
+        wing.position.set(0,side*5,0); wing.rotation.z=side*Math.PI/3; wing.rotation.x=Math.PI/2; g.add(wing);
+      });
+      const light=new THREE.PointLight(0xff4400,2,30); light.position.x=12; g.add(light);
+      // Dragon flies in a circle
+      this._evObj3D[evId+'_iv']=setInterval(()=>{
+        const t=Date.now()/3000;
+        g.position.set(Math.cos(t)*35,20+Math.sin(t*2)*5,Math.sin(t)*35);
+        g.rotation.y=-t-Math.PI/2;
+        light.intensity=1.5+Math.sin(t*8)*.5;
+      },30);
+    }
+    if(evId==='meteor'){
+      // Meteor crater + glow
+      const mat=new THREE.MeshPhongMaterial({color:0x333300,emissive:0x221100});
+      const crater=new THREE.Mesh(new THREE.CylinderGeometry(6,.5,2,16),mat);
+      crater.position.set(15,-.8,-15); g.add(crater);
+      const glow=new THREE.PointLight(0xff6600,2,25); glow.position.set(15,2,-15); g.add(glow);
+      // Falling meteor
+      const met=new THREE.Mesh(new THREE.SphereGeometry(2,8,8),new THREE.MeshPhongMaterial({color:0x886622,emissive:0xff4400,emissiveIntensity:1.5}));
+      g.add(met);
+      let my=80;
+      this._evObj3D[evId+'_iv']=setInterval(()=>{
+        my-=0.3; if(my<-2)my=80;
+        met.position.set(15,my,-15);
+        glow.intensity=my<5?Math.max(0,(5-my)*0.8):0;
+      },16);
+    }
+
+    sc.add(g);
+    this._evObj3D[evId]=g;
+  },
+  _remove3DEventObj(evId){
+    if(!this._evObj3D) return;
+    if(this._evObj3D[evId]){ this.scene?.remove(this._evObj3D[evId]); delete this._evObj3D[evId]; }
+    if(this._evObj3D[evId+'_iv']){ clearInterval(this._evObj3D[evId+'_iv']); delete this._evObj3D[evId+'_iv']; }
+  },
+
   _tryStartRandomEvent(){
     if(!this.evs) this.evs=[];
     if(this.evs.length>=3) return; // already at max
@@ -3208,6 +3351,9 @@ const ZG={
       // Start the jump level after a short delay
       setTimeout(()=>ZG._startJumpLevel(),2000);
     }
+    // Build 3D scene object if applicable
+    const ev3d=['volcano','xmas','thunder2','thunder','flood','dragon','meteor'];
+    if(ev3d.includes(id)) this._build3DEventObj(id);
     this._evFXEls[id]=els;
   },
   _buildEiffelTower(){
@@ -3339,8 +3485,8 @@ const ZG={
     if(!this._evFXEls) return;
     (this._evFXEls[evId]||[]).forEach(e=>e.remove());
     delete this._evFXEls[evId];
-    // Remove Eiffel Tower when France event ends
     if(evId==='france') this._removeEiffelTower();
+    this._remove3DEventObj(evId);
   },
 
   // ═══ GONDOLA INTERIOR ═══
@@ -5118,7 +5264,46 @@ const ZP={
     this.close('adm');
   },
   async _adMT(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();const cmd={type:'give_mt',target:tgt,amount:50000,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){ZS.zoo.mt+=50000;ZG._updHUD();}this.toast('✅ +50K MT!');this.close('adm');},
+  // ── UPDATE NEWS ──
+  _previewNews(){
+    const t=document.getElementById('news-title')?.value||'Titel erscheint hier';
+    const b=document.getElementById('news-body')?.value||'Beschreibung erscheint hier...';
+    const pt=document.getElementById('news-preview-title'); if(pt)pt.textContent=t;
+    const pb=document.getElementById('news-preview-body'); if(pb)pb.textContent=b;
+  },
+  async _sendNews(){
+    const title=document.getElementById('news-title')?.value?.trim();
+    const body=document.getElementById('news-body')?.value?.trim();
+    if(!title){ZP.toast('❌ Titel fehlt!',2500);return;}
+    const news={id:'news_'+Date.now(),title,body:body||'',createdAt:Date.now()};
+    try{
+      if(typeof _db!=='undefined'&&State._useCloud()) await _db.collection('config').doc('zoo_news').set(news);
+      localStorage.setItem('zoo_news',JSON.stringify(news));
+      const s=document.getElementById('news-status'); if(s){s.textContent='✅ Aktiv: "'+title+'"';s.style.color='#27AE60';}
+      ZP.toast('✅ News veröffentlicht! Spieler sehen es beim nächsten Start (einmalig).',4000);
+    }catch(e){ZP.toast('❌ Fehler: '+e.message,3000);}
+  },
+  async _clearNews(){
+    try{
+      if(typeof _db!=='undefined'&&State._useCloud()) await _db.collection('config').doc('zoo_news').delete().catch(()=>{});
+      localStorage.removeItem('zoo_news');
+      const s=document.getElementById('news-status'); if(s){s.textContent='Noch keine News aktiv.';s.style.color='rgba(255,255,255,.35)';}
+      ZP.toast('🗑️ News gelöscht.',2500);
+    }catch(e){ZP.toast('❌ Fehler: '+e.message,3000);}
+  },
   // ── ANNOUNCEMENTS ──
+  _loadNewsStatus(){
+    try{
+      const news=JSON.parse(localStorage.getItem('zoo_news')||'null');
+      const s=document.getElementById('news-status');
+      if(news&&s){
+        s.textContent='✅ Aktiv: "'+news.title+'"'; s.style.color='#27AE60';
+        const ti=document.getElementById('news-title'); if(ti)ti.value=news.title;
+        const bo=document.getElementById('news-body'); if(bo)bo.value=news.body||'';
+        this._previewNews();
+      }
+    }catch(e){}
+  },
   _loadAnnStatus(){
     try{
       const ann=JSON.parse(localStorage.getItem('zoo_announcement')||'null');
@@ -5786,6 +5971,7 @@ const ZAdmin = {
     if(tab==='einst')this._populateEvents();
     if(tab==='cal')this._renderCalTable();
     if(tab==='announce')ZP._loadAnnStatus();
+    if(tab==='news')ZP._loadNewsStatus();
   },
   _populateAnimalGrid(){
     const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
@@ -6854,6 +7040,50 @@ async function visitZoo(playerName){
 window.visitZoo=visitZoo;
 
 // Announce secrets exist on first zoo visit
+// ── UPDATE NEWS (shown once per news id) ──
+async function _checkNews(){
+  try{
+    let news=null;
+    if(typeof _db!=='undefined'&&State._useCloud()){
+      const doc=await _db.collection('config').doc('zoo_news').get().catch(()=>null);
+      if(doc&&doc.exists) news=doc.data();
+    }
+    if(!news) news=JSON.parse(localStorage.getItem('zoo_news')||'null');
+    if(!news||!news.id) return;
+    // Only show once per news id
+    const seen=JSON.parse(localStorage.getItem('zoo_news_seen')||'[]');
+    if(seen.includes(news.id)) return;
+    _showNewsModal(news);
+  }catch(e){}
+}
+function _showNewsModal(news){
+  const ov=document.createElement('div'); ov.id='news-modal';
+  ov.style.cssText='position:fixed;inset:0;z-index:99989;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif';
+  const card=document.createElement('div');
+  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3)';
+  // Header
+  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px';
+  const badge=document.createElement('div'); badge.style.cssText='background:#FFD700;color:#000;border-radius:8px;padding:3px 10px;font-size:.75rem;font-weight:900'; badge.textContent='📰 UPDATE';
+  const htitle=document.createElement('div'); htitle.style.cssText='color:#fff;font-weight:900;font-size:1rem;flex:1'; htitle.textContent='Was ist neu?';
+  const xb=document.createElement('button'); xb.textContent='✕'; xb.style.cssText='background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer';
+  xb.onclick=()=>{ov.remove(); _newsMarkSeen(news.id);};
+  hdr.appendChild(badge); hdr.appendChild(htitle); hdr.appendChild(xb);
+  card.appendChild(hdr);
+  // Content
+  const body=document.createElement('div'); body.style.cssText='padding:18px';
+  const ttl=document.createElement('div'); ttl.style.cssText='font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:10px'; ttl.textContent=news.title;
+  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6;margin-bottom:16px'; bdy.textContent=news.body||'';
+  const okb=document.createElement('button'); okb.textContent='👍 Verstanden!'; okb.style.cssText='width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer';
+  okb.onclick=()=>{ov.remove(); _newsMarkSeen(news.id);};
+  body.appendChild(ttl); body.appendChild(bdy); body.appendChild(okb);
+  card.appendChild(body); ov.appendChild(card); document.body.appendChild(ov);
+}
+function _newsMarkSeen(id){
+  const s=JSON.parse(localStorage.getItem('zoo_news_seen')||'[]');
+  if(!s.includes(id)){s.push(id);if(s.length>20)s.shift();}
+  localStorage.setItem('zoo_news_seen',JSON.stringify(s));
+}
+
 // ── ADMIN ANNOUNCEMENTS ──
 async function _checkAnnouncement(){
   try{
@@ -8100,6 +8330,7 @@ window.ZooEvents = ZooEvents;
         <!-- Nav tabs -->
         <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
           <div class="padmin-tab-btn" data-tab="announce" onclick="ZAdmin.switchTab('announce')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3478f6;display:flex;align-items:center;gap:6px;background:rgba(52,120,246,.1);border:1px solid rgba(52,120,246,.3);border-radius:6px">📢 Ankündigung</div>
+          <div class="padmin-tab-btn" data-tab="news" onclick="ZAdmin.switchTab('news')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#27AE60;display:flex;align-items:center;gap:6px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:6px">📰 Update-News</div>
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
@@ -8460,6 +8691,44 @@ window.ZooEvents = ZooEvents;
             </button>
           </div>
           <div id="ann-status" style="text-align:center;font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Noch keine Ankündigung aktiv.</div>
+        </div>
+
+        <!-- TAB: UPDATE-NEWS -->
+        <div class="padmin-tab" id="padmin-tab-news" style="display:none">
+          <div class="padmin-section-title">📰 Update-News</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px;margin-bottom:10px">
+            <div>
+              <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Version / Titel</div>
+              <input id="news-title" type="text" placeholder="z.B. v252 – Neue Events + Jump Level!" maxlength="60"
+                oninput="ZAdmin._previewNews()"
+                style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📋 Beschreibung</div>
+              <textarea id="news-body" placeholder="Was ist neu? Schreibe hier die Änderungen..." maxlength="400" rows="4"
+                oninput="ZAdmin._previewNews()"
+                style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.85rem;resize:none;box-sizing:border-box"></textarea>
+            </div>
+            <button onclick="ZP._sendNews()"
+              style="width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">
+              📰 News veröffentlichen
+            </button>
+            <button onclick="ZP._clearNews()"
+              style="width:100%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);padding:10px;border-radius:10px;font-size:.82rem;cursor:pointer">
+              🗑️ News löschen
+            </button>
+          </div>
+          <!-- Preview -->
+          <div style="background:#0a0a0a;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1)">
+            <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+              <span style="color:#27AE60;font-weight:900;font-size:.8rem">📰 VORSCHAU</span>
+            </div>
+            <div style="padding:14px">
+              <div id="news-preview-title" style="font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:8px">Titel erscheint hier</div>
+              <div id="news-preview-body" style="font-size:.85rem;color:rgba(255,255,255,.7);white-space:pre-wrap;line-height:1.5">Beschreibung erscheint hier...</div>
+            </div>
+          </div>
+          <div id="news-status" style="text-align:center;font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Noch keine News aktiv.</div>
         </div>
 
         <!-- TAB: EINSTELLUNGEN -->
