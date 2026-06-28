@@ -2180,37 +2180,40 @@ const ZG={
       if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
     }
     // Jump
-    const GROUND=this._jumpActive?18:1.7; // in jump level, lava death zone at y=18
+    const GROUND=1.7; // always normal ground (jump level handles y separately)
     if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=this._jumpActive?10:5.2;}
     if(this._jumping){
       this.pl.y += this._jumpV*dt;
       this._jumpV -= 16*dt; // stronger gravity for jump level
       if(this.pl.y<=GROUND){ this.pl.y=GROUND; this._jumping=false; this._jumpV=0; }
-    } else if(!this._jumpActive){ this.pl.y=GROUND; }
+    } else if(!this._jumpActive){ this.pl.y=1.7; }
     // In jump level: let gravity pull player down freely
     else if(!this._jumping){
-      // Gravity in jump level
+      // Gravity in jump level - step by step to avoid tunneling
       if(this._jumpV===undefined)this._jumpV=0;
-      this._jumpV-=16*dt;
-      this.pl.y+=this._jumpV*dt;
-      // Simple platform collision: am I above a platform and moving downward?
+      this._jumpV=Math.max(this._jumpV-16*dt,-20); // cap fall speed
+      // Move in small steps to prevent tunneling through platforms
+      const steps=3;
+      const stepDy=this._jumpV*dt/steps;
       let onPlat=false;
-      if(this._jumpPlatforms){
-        const checkPlat=(px,py,pz,pw,pd)=>{
-          const topY=py+0.6; // top surface of platform
-          if(Math.abs(this.pl.x-px)<pw/2+0.3 && Math.abs(this.pl.z-pz)<pd/2+0.3){
-            // Player is horizontally over platform
-            if(this.pl.y<=topY+1.5 && this.pl.y>=topY-0.5 && this._jumpV<=0){
-              // Landing!
-              this.pl.y=topY+1.5; this._jumpV=0; onPlat=true;
+      for(let s=0;s<steps&&!onPlat;s++){
+        this.pl.y+=stepDy;
+        if(this._jumpPlatforms){
+          const checkP=(px,py,pz,pw,pd)=>{
+            const hw=pw/2+0.4, hd=pd/2+0.4;
+            const topY=py+0.6+1.5; // surface + player height offset
+            if(Math.abs(this.pl.x-px)<hw && Math.abs(this.pl.z-pz)<hd){
+              if(this.pl.y<=topY+0.2 && this.pl.y>=topY-1.5 && stepDy<=0){
+                this.pl.y=topY; this._jumpV=0; onPlat=true;
+              }
             }
+          };
+          this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>checkP(px,py,pz,pw,pd));
+          if(this._movingPlat&&!onPlat){
+            const mp=this._movingPlat.position;
+            checkP(mp.x,mp.y,mp.z,4,3.5);
+            if(onPlat){this.pl.x+=this._movingPlat.position.x-mp.x;}
           }
-        };
-        this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>checkPlat(px,py,pz,pw,pd));
-        if(this._movingPlat){
-          const mp=this._movingPlat.position;
-          checkPlat(mp.x,mp.y,mp.z,4,3.5);
-          if(onPlat) this.pl.x+=(this._movingPlat.position.x-mp.x)*0.5;
         }
       }
       if(onPlat) this._jumping=false;
@@ -2620,8 +2623,11 @@ const ZG={
     if(!this._jumpActive||!this._jumpPlatforms) return;
     const px=this.pl.x, py=this.pl.y, pz=this.pl.z;
     // Check lava (fell below y=2)
-    if(py<17){
-      this._failJumpLevel('🌋 In die Lava gefallen!',false);
+    if(py<17.5){
+      // Lava death: respawn at start
+      this._jumpV=0; this._jumping=false;
+      ZP.toast('🌋 LAVA! Wieder von vorne...',2000);
+      setTimeout(()=>this._placePlayerAtStart(),400);
       return;
     }
     // Spin goal star

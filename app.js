@@ -826,11 +826,14 @@ const App = {
     // Validate BEFORE showing loading screen
     // More robust test page detection
     // On test page: empty name → go back to normal world
-    const _isTestPage = !!(window.MISCHA_TESTMODE || document.querySelector('div[style*="TEST-UMGEBUNG"]') || window.location.pathname.includes('test'));
+    const _isTestPage = !!(window.MISCHA_TESTMODE || window.location.pathname.indexOf('/test/') !== -1 || window.location.pathname.indexOf('/test') === window.location.pathname.length - 5);
     if (!name && _isTestPage) {
-      // Go up one level to the normal world
-      const base = window.location.href.split('/test/')[0];
-      window.location.href = base + '/index.html';
+      // Navigate to parent directory's index.html
+      // Split on '/test' and take everything before it
+      const _path = window.location.pathname;
+      const _testIdx = _path.lastIndexOf('/test');
+      const _basePath = _testIdx >= 0 ? _path.substring(0, _testIdx) : _path.replace(/\/[^\/]*$/, '');
+      window.location.href = window.location.origin + _basePath + '/index.html';
       return;
     }
     if (!name) {
