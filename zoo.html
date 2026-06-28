@@ -243,6 +243,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <button id="hud-toggle" onclick="ZG._toggleHUD()" 
   style="width:36px;height:36px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.6);font-size:.9rem;cursor:pointer;margin-bottom:4px;display:flex;align-items:center;justify-content:center;transition:all .2s"
   title="HUD minimieren/maximieren">⊟</button>
+<!-- TEST-ONLY button (nur im Test sichtbar) -->
+<div class="hb" id="test-only-btn" style="display:none" onclick="ZP.toast('🧪 Dieser Knopf ist nur im Test!',2000)">
+  <div class="hbb" style="background:rgba(255,107,0,.9);border:2px solid #ff6b00">🧪</div>
+  <div class="hbl" style="color:#ff6b00">Test</div>
+</div>
+<script>if(window.MISCHA_TESTMODE){ var tb=document.getElementById('test-only-btn'); if(tb)tb.style.display=''; }</script>
 <div class="hb" onclick="ZP.open('index')"><div class="hbb" style="background:rgba(52,152,219,.8)">📖</div><div class="hbl">Index</div></div>
 <div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl">Profil</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">Tauschen</div></div>
@@ -8772,5 +8778,7 @@ window.ZooEvents = ZooEvents;
     box-shadow:0 4px 12px rgba(0,0,0,.4);touch-action:none;user-select:none">⬆️</button>
 
 
+<div id="test-zoo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(255,107,0,.85);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:3px">🧪 TEST-ZOO — Getrennte Datenbank</div>
+<script>if(window.MISCHA_TESTMODE){var b=document.getElementById("test-zoo-banner");if(b)b.style.display="block";}</script>
 </body>
 </html>
