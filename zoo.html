@@ -2180,7 +2180,7 @@ const ZG={
       if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
     }
     // Jump
-    const GROUND=this._jumpActive?2:1.7; // in jump level, ground is at y=2 (platform height)
+    const GROUND=this._jumpActive?18:1.7; // in jump level, lava death zone at y=18
     if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=this._jumpActive?8:5.2;}
     if(this._jumping){
       this.pl.y += this._jumpV*dt;
@@ -2189,19 +2189,32 @@ const ZG={
     } else if(!this._jumpActive){ this.pl.y=GROUND; }
     // In jump level: let gravity pull player down freely
     else if(!this._jumping){
-      this.pl.y += (this._jumpV||0)*dt;
+      // Falling / gravity in jump level
       if(this._jumpV===undefined)this._jumpV=0;
-      this._jumpV-=16*dt;
-      // Check if on a platform
+      this._jumpV-=18*dt; // gravity
+      this.pl.y+=this._jumpV*dt;
+      // Platform landing detection
       let onPlat=false;
       if(this._jumpPlatforms){
-        const allPlats=[...this._jumpPlatforms,[62,7,28,3.5,2.5]]; // include moving plat
-        if(this._movingPlat){const mp=this._movingPlat.position; if(Math.abs(this.pl.x-mp.x)<2&&Math.abs(this.pl.z-mp.z)<1.5&&this.pl.y-mp.y<1.5&&this.pl.y>mp.y){onPlat=true;this.pl.y=mp.y+1.2;this._jumpV=0;}}
-        allPlats.forEach(([px,py,pz,pw,pd])=>{
-          if(Math.abs(this.pl.x-px)<(pw||4)/2+0.5&&Math.abs(this.pl.z-pz)<(pd||3)/2+0.5&&this.pl.y-py<1.8&&this.pl.y>py-0.5){onPlat=true;this.pl.y=py+1.2;this._jumpV=0;}
+        // Check all static platforms
+        this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>{
+          const hw=pw/2+0.6, hd=pd/2+0.6;
+          const prevY=this.pl.y-this._jumpV*dt;
+          if(Math.abs(this.pl.x-px)<hw && Math.abs(this.pl.z-pz)<hd && prevY>=py+0.6 && this.pl.y<=py+1.2){
+            this.pl.y=py+1.2; this._jumpV=0; onPlat=true;
+          }
         });
+        // Moving platform
+        if(this._movingPlat){
+          const mp=this._movingPlat.position;
+          const prevY=this.pl.y-this._jumpV*dt;
+          if(Math.abs(this.pl.x-mp.x)<2.6&&Math.abs(this.pl.z-mp.z)<2.3&&prevY>=mp.y+0.6&&this.pl.y<=mp.y+1.2){
+            this.pl.y=mp.y+1.2; this._jumpV=0; onPlat=true;
+            this.pl.x+=(this._movingPlat.position.x-(mp.x))*0.5; // move with platform
+          }
+        }
       }
-      if(onPlat){this._jumping=false;}
+      if(onPlat)this._jumping=false;
     }
     // Proximity
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
@@ -2467,8 +2480,8 @@ const ZG={
   // Platforms float above lava. Reach the end → win MT.
   // Fall → lava → teleport back to zoo, no reward.
   // ══════════════════════════════════════════════════════════════
-  // START POSITION: in front of the parcours
-  _jumpStartPos(){ return {x:-2, y:8, z:62, yaw:Math.PI}; },
+  // START POSITION: floating above the zoo
+  _jumpStartPos(){ return {x:0, y:27, z:55, yaw:Math.PI}; },
   _startJumpLevel(){
     if(this._jumpActive) return;
     // Show Ja/Nein question banner at the top
@@ -2542,66 +2555,75 @@ const ZG={
   },
   _buildJumpLevel(){
     const sc=this.scene;
+    // Materials
     const platMat=new THREE.MeshPhongMaterial({color:0x2ecc71,emissive:0x0a3a1a});
-    const lavaMat=new THREE.MeshPhongMaterial({color:0xff4400,emissive:0xaa2200,emissiveIntensity:0.8});
-    const goalMat=new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffaa00,emissiveIntensity:1});
-    const walls=[];
-    // Lava floor (extends under level)
-    const lava=new THREE.Mesh(new THREE.PlaneGeometry(60,80),lavaMat);
-    lava.rotation.x=-Math.PI/2; lava.position.set(0,0.5,20);
+    const lavaMat=new THREE.MeshPhongMaterial({color:0xff3300,emissive:0xcc1100,emissiveIntensity:1.2,transparent:true,opacity:0.95});
+    const goalMat=new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffaa00,emissiveIntensity:1.5});
+    const wallMat=new THREE.MeshPhongMaterial({color:0x8B4513,emissive:0x3a1a00});
+
+    // ── LAVA LAKE at y=15 (visible below platforms) ──
+    const lava=new THREE.Mesh(new THREE.PlaneGeometry(200,200),lavaMat);
+    lava.rotation.x=-Math.PI/2; lava.position.set(0,15,0);
     sc.add(lava); this._jumpMeshes.push(lava);
-    // Animated lava glow
+    // Lava glow point light
+    const lavaLight=new THREE.PointLight(0xff3300,2,80);
+    lavaLight.position.set(0,16,0); sc.add(lavaLight); this._jumpMeshes.push(lavaLight);
     this._lavaAnimIv=setInterval(()=>{
-      if(!lavaMat)return;
       const t=Date.now()/500;
-      lavaMat.emissiveIntensity=0.6+Math.sin(t)*0.3;
+      lavaMat.emissiveIntensity=0.8+Math.sin(t)*0.4;
+      lavaLight.intensity=1.5+Math.sin(t*1.3)*0.8;
     },50);
-    // Platform layout (z goes from 60 down to -20 = toward goal)
-    // Each platform: [x, y, z, width, depth]
+
+    // ── PLATFORMS: floating at y=25 baseline, scattered in XZ ──
+    // [x, y, z, width, depth]  — all ABOVE y=15 lava
     const platforms=[
-      [-2, 7, 58, 8, 4],   // start platform
-      [-2, 7, 48, 5, 3],   // step 1
-      [4,  8, 40, 4, 3],   // step 2 (higher)
-      [-3, 8, 32, 4, 3],   // step 3
-      [2,  9, 24, 3, 3],   // step 4
-      [-4, 10, 16, 5, 3],  // step 5 (highest)
-      [0,  10, 8,  4, 3],  // step 6
-      [5,  9,  0, 4, 3],   // step 7
-      [-2, 8, -8, 6, 3],   // step 8 (wider, near end)
-      [0,  7, -16, 8, 4],  // GOAL platform
+      [0,   25, 55,  10, 6],   // START — big safe platform
+      [8,   26, 44,   5, 4],   // step 1
+      [-5,  27, 34,   4, 4],   // step 2
+      [6,   26, 24,   4, 3],   // step 3
+      [-8,  28, 14,   5, 4],   // step 4 (higher)
+      [4,   27,  4,   4, 3],   // step 5
+      [-4,  26, -6,   4, 3],   // step 6
+      [7,   27,-16,   5, 4],   // step 7
+      [-2,  28,-26,   4, 3],   // step 8
+      [0,   26,-36,  10, 6],   // GOAL — big golden platform
     ];
-    platforms.forEach(([x,y,z,w,d], i)=>{
+    platforms.forEach(([x,y,z,w,d],i)=>{
       const isGoal=i===platforms.length-1;
-      const mat=isGoal?goalMat:platMat;
-      const plat=new THREE.Mesh(new THREE.BoxGeometry(w,0.6,d),mat);
-      plat.position.set(x,y,z);
-      sc.add(plat); this._jumpMeshes.push(plat);
+      const plat=new THREE.Mesh(new THREE.BoxGeometry(w,1.2,d),isGoal?goalMat:platMat);
+      plat.position.set(x,y,z); sc.add(plat); this._jumpMeshes.push(plat);
+      // Hanging stone beneath each platform (visual)
+      const hang=new THREE.Mesh(new THREE.BoxGeometry(w-0.5,2+Math.random()*3,d-0.5),wallMat);
+      hang.position.set(x,y-2,z); sc.add(hang); this._jumpMeshes.push(hang);
       if(isGoal){
-        // Goal marker: spinning star above
-        const star=new THREE.Mesh(new THREE.OctahedronGeometry(1.2),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffdd00,emissiveIntensity:1}));
-        star.position.set(x,y+3,z); sc.add(star); this._jumpMeshes.push(star);
+        const star=new THREE.Mesh(new THREE.OctahedronGeometry(1.8),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xffdd00,emissiveIntensity:2}));
+        star.position.set(x,y+4,z); sc.add(star); this._jumpMeshes.push(star);
         this._goalStar=star;
-        this._goalPos={x,y:y+1.2,z};
+        this._goalPos={x,y:y+1.5,z,r:5}; // r = reach radius
       }
     });
-    // Moving platform (extra challenge)
-    const movPlat=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.6,2.5),platMat);
-    movPlat.position.set(0,8.5,28);
-    sc.add(movPlat); this._jumpMeshes.push(movPlat);
+
+    // Moving platform between step 5 and 6
+    const movPlat=new THREE.Mesh(new THREE.BoxGeometry(4,1.2,3.5),platMat);
+    movPlat.position.set(-1,27,-1); sc.add(movPlat); this._jumpMeshes.push(movPlat);
     this._movingPlat=movPlat; this._movPlatDir=1;
     this._movPlatIv=setInterval(()=>{
       if(!this._movingPlat)return;
-      this._movingPlat.position.x+=this._movPlatDir*0.06;
-      if(Math.abs(this._movingPlat.position.x)>5) this._movPlatDir*=-1;
+      this._movingPlat.position.x+=this._movPlatDir*0.07;
+      if(Math.abs(this._movingPlat.position.x)>7) this._movPlatDir*=-1;
     },16);
+
+    // Store platform data for collision (same format [x,y,z,w,d])
     this._jumpPlatforms=platforms;
+    this._jumpPlatWidth=platforms.map(p=>p[3]);
+    this._jumpPlatDepth=platforms.map(p=>p[4]);
   },
   _checkJumpCollision(){
     if(!this._jumpActive||!this._jumpPlatforms) return;
     const px=this.pl.x, py=this.pl.y, pz=this.pl.z;
     // Check lava (fell below y=2)
-    if(py<2){
-      this._failJumpLevel('🌋 In die Lava!',false);
+    if(py<17){
+      this._failJumpLevel('🌋 In die Lava gefallen!',false);
       return;
     }
     // Spin goal star
@@ -2610,7 +2632,7 @@ const ZG={
     if(this._goalPos){
       const gp=this._goalPos;
       const dx=px-gp.x, dz=pz-gp.z;
-      if(Math.sqrt(dx*dx+dz*dz)<4 && py>gp.y-3 && py<gp.y+4){
+      if(Math.sqrt(dx*dx+dz*dz)<(gp.r||4) && py>gp.y-2 && py<gp.y+5){
         this._winJumpLevel();
         return;
       }
@@ -8803,7 +8825,7 @@ window.ZooEvents = ZooEvents;
     box-shadow:0 4px 12px rgba(0,0,0,.4);touch-action:none;user-select:none">⬆️</button>
 
 
-<div id="test-zoo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(255,107,0,.85);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:3px">🧪 TEST-ZOO — Getrennte Datenbank</div>
+<div id="test-zoo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(255,107,0,.85);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:3px">🧪 TEST-ZOO</div>
 <script>if(window.MISCHA_TESTMODE){var b=document.getElementById("test-zoo-banner");if(b)b.style.display="block";}</script>
 </body>
 </html>

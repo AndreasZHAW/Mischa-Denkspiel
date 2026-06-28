@@ -824,10 +824,11 @@ const App = {
     const name = document.getElementById('l-name')?.value.trim();
     const pw   = document.getElementById('l-pw')?.value.trim();
     // Validate BEFORE showing loading screen
-    const onTestPage2 = /\/test\//.test(window.location.pathname);
-    // On test page: empty input → go back to normal world
+    // More robust test page detection
+    const onTestPage2 = window.location.href.includes('/test/') || window.location.href.includes('/test/index') || window.MISCHA_TESTMODE===true;
+    // On test page: empty name → go back to normal world (no error message)
     if (!name && onTestPage2) {
-      window.location.href = '../index.html';
+      window.location.href = window.location.href.replace(/\/test\/.*/, '/') + 'index.html';
       return;
     }
     if (!name) {
