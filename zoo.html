@@ -2174,18 +2174,35 @@ const ZG={
       const gmdx=this.pl.x-p.x, gmdz=this.pl.z-p.z, gmd=Math.sqrt(gmdx*gmdx+gmdz*gmdz);
       if(gmd<2.6 && gmd>0){this.pl.x=p.x+gmdx/gmd*2.6;this.pl.z=p.z+gmdz/gmd*2.6;}
     });
-    // Circular boundary
-    const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
-    if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
+    // Circular boundary (skip during jump level — platforms are outside zoo)
+    if(!this._jumpActive){
+      const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
+      if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
+    }
     // Jump
-    // Smooth jump: gentle launch + soft gravity, frame-rate independent (no setTimeout snap)
-    const GROUND=1.7;
-    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=5.2;}
+    const GROUND=this._jumpActive?2:1.7; // in jump level, ground is at y=2 (platform height)
+    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=this._jumpActive?8:5.2;}
     if(this._jumping){
       this.pl.y += this._jumpV*dt;
-      this._jumpV -= 11*dt;            // soft gravity → smooth arc up and down
+      this._jumpV -= 16*dt; // stronger gravity for jump level
       if(this.pl.y<=GROUND){ this.pl.y=GROUND; this._jumping=false; this._jumpV=0; }
-    } else { this.pl.y=GROUND; }
+    } else if(!this._jumpActive){ this.pl.y=GROUND; }
+    // In jump level: let gravity pull player down freely
+    else if(!this._jumping){
+      this.pl.y += (this._jumpV||0)*dt;
+      if(this._jumpV===undefined)this._jumpV=0;
+      this._jumpV-=16*dt;
+      // Check if on a platform
+      let onPlat=false;
+      if(this._jumpPlatforms){
+        const allPlats=[...this._jumpPlatforms,[62,7,28,3.5,2.5]]; // include moving plat
+        if(this._movingPlat){const mp=this._movingPlat.position; if(Math.abs(this.pl.x-mp.x)<2&&Math.abs(this.pl.z-mp.z)<1.5&&this.pl.y-mp.y<1.5&&this.pl.y>mp.y){onPlat=true;this.pl.y=mp.y+1.2;this._jumpV=0;}}
+        allPlats.forEach(([px,py,pz,pw,pd])=>{
+          if(Math.abs(this.pl.x-px)<(pw||4)/2+0.5&&Math.abs(this.pl.z-pz)<(pd||3)/2+0.5&&this.pl.y-py<1.8&&this.pl.y>py-0.5){onPlat=true;this.pl.y=py+1.2;this._jumpV=0;}
+        });
+      }
+      if(onPlat){this._jumping=false;}
+    }
     // Proximity
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
     this.nearSt=stD<14;
@@ -2504,7 +2521,7 @@ const ZG={
       '<div style="font-size:1.4rem;font-weight:900;margin-top:16px;color:#27ae60">Teleportiere zur Obby...</div>'+
       '<div style="margin-top:12px;width:200px;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden"><div style="height:100%;background:#27ae60;animation:zsfall 1.5s linear forwards;width:100%"></div></div>';
     document.body.appendChild(ov);
-    setTimeout(()=>{ ov.remove(); cb(); },1800);
+    setTimeout(()=>{ ov.remove(); const zc=document.getElementById('zc');if(zc)zc.style.pointerEvents=''; cb(); },1800);
   },
   _placePlayerAtStart(){
     const s=this._jumpStartPos();

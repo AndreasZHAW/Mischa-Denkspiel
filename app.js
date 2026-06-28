@@ -803,6 +803,7 @@ const App = {
             <input type="password" id="l-pw" onkeyup="if(event.key==='Enter')App.doLogin()"/></div>
           <div id="l-err" style="color:#E74C3C;font-size:0.88rem;text-align:center;display:none;margin-bottom:8px"></div>
           <button class="btn btn-primary btn-full btn-big" onclick="App.doLogin()">Anmelden ➜</button>
+          ${(/\/test\//.test(window.location.pathname))?`<div style="text-align:center;margin-top:10px"><a href="../index.html" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}
         </div>
       </div>`);
     // On the TEST page: prefill name from the live-page redirect and auto-login with admin pw
@@ -823,6 +824,12 @@ const App = {
     const name = document.getElementById('l-name')?.value.trim();
     const pw   = document.getElementById('l-pw')?.value.trim();
     // Validate BEFORE showing loading screen
+    const onTestPage2 = /\/test\//.test(window.location.pathname);
+    // On test page: empty input → go back to normal world
+    if (!name && onTestPage2) {
+      window.location.href = '../index.html';
+      return;
+    }
     if (!name) {
       const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Namen eingeben!';e.style.display='block';} return;
     }
