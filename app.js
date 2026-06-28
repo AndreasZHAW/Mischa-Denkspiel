@@ -803,7 +803,7 @@ const App = {
             <input type="password" id="l-pw" onkeyup="if(event.key==='Enter')App.doLogin()"/></div>
           <div id="l-err" style="color:#E74C3C;font-size:0.88rem;text-align:center;display:none;margin-bottom:8px"></div>
           <button class="btn btn-primary btn-full btn-big" onclick="App.doLogin()">Anmelden ➜</button>
-          ${(/\/test\//.test(window.location.pathname))?`<div style="text-align:center;margin-top:10px"><a href="../index.html" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}
+          ${window.MISCHA_TESTMODE?`<div style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="var p=window.location.pathname;var i=p.lastIndexOf('/test');window.location.href=window.location.origin+(i>=0?p.substring(0,i):p.replace(/\\/[^\\/]*$/,''))+'/index.html'" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}
         </div>
       </div>`);
     // On the TEST page: prefill name from the live-page redirect and auto-login with admin pw
@@ -826,14 +826,10 @@ const App = {
     // Validate BEFORE showing loading screen
     // More robust test page detection
     // On test page: empty name → go back to normal world
-    const _isTestPage = !!(window.MISCHA_TESTMODE || window.location.pathname.indexOf('/test/') !== -1 || window.location.pathname.indexOf('/test') === window.location.pathname.length - 5);
-    if (!name && _isTestPage) {
-      // Navigate to parent directory's index.html
-      // Split on '/test' and take everything before it
-      const _path = window.location.pathname;
-      const _testIdx = _path.lastIndexOf('/test');
-      const _basePath = _testIdx >= 0 ? _path.substring(0, _testIdx) : _path.replace(/\/[^\/]*$/, '');
-      window.location.href = window.location.origin + _basePath + '/index.html';
+    if (!name && window.MISCHA_TESTMODE) {
+      // Go back to normal world
+      const _p=window.location.pathname, _i=_p.lastIndexOf('/test');
+      window.location.href=window.location.origin+(_i>=0?_p.substring(0,_i):_p.replace(/\/[^\/]*$/,''))+'/index.html';
       return;
     }
     if (!name) {
