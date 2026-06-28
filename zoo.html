@@ -2181,7 +2181,7 @@ const ZG={
     }
     // Jump
     const GROUND=this._jumpActive?18:1.7; // in jump level, lava death zone at y=18
-    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=this._jumpActive?8:5.2;}
+    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=this._jumpActive?10:5.2;}
     if(this._jumping){
       this.pl.y += this._jumpV*dt;
       this._jumpV -= 16*dt; // stronger gravity for jump level
@@ -2189,32 +2189,31 @@ const ZG={
     } else if(!this._jumpActive){ this.pl.y=GROUND; }
     // In jump level: let gravity pull player down freely
     else if(!this._jumping){
-      // Falling / gravity in jump level
+      // Gravity in jump level
       if(this._jumpV===undefined)this._jumpV=0;
-      this._jumpV-=18*dt; // gravity
+      this._jumpV-=16*dt;
       this.pl.y+=this._jumpV*dt;
-      // Platform landing detection
+      // Simple platform collision: am I above a platform and moving downward?
       let onPlat=false;
       if(this._jumpPlatforms){
-        // Check all static platforms
-        this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>{
-          const hw=pw/2+0.6, hd=pd/2+0.6;
-          const prevY=this.pl.y-this._jumpV*dt;
-          if(Math.abs(this.pl.x-px)<hw && Math.abs(this.pl.z-pz)<hd && prevY>=py+0.6 && this.pl.y<=py+1.2){
-            this.pl.y=py+1.2; this._jumpV=0; onPlat=true;
+        const checkPlat=(px,py,pz,pw,pd)=>{
+          const topY=py+0.6; // top surface of platform
+          if(Math.abs(this.pl.x-px)<pw/2+0.3 && Math.abs(this.pl.z-pz)<pd/2+0.3){
+            // Player is horizontally over platform
+            if(this.pl.y<=topY+1.5 && this.pl.y>=topY-0.5 && this._jumpV<=0){
+              // Landing!
+              this.pl.y=topY+1.5; this._jumpV=0; onPlat=true;
+            }
           }
-        });
-        // Moving platform
+        };
+        this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>checkPlat(px,py,pz,pw,pd));
         if(this._movingPlat){
           const mp=this._movingPlat.position;
-          const prevY=this.pl.y-this._jumpV*dt;
-          if(Math.abs(this.pl.x-mp.x)<2.6&&Math.abs(this.pl.z-mp.z)<2.3&&prevY>=mp.y+0.6&&this.pl.y<=mp.y+1.2){
-            this.pl.y=mp.y+1.2; this._jumpV=0; onPlat=true;
-            this.pl.x+=(this._movingPlat.position.x-(mp.x))*0.5; // move with platform
-          }
+          checkPlat(mp.x,mp.y,mp.z,4,3.5);
+          if(onPlat) this.pl.x+=(this._movingPlat.position.x-mp.x)*0.5;
         }
       }
-      if(onPlat)this._jumping=false;
+      if(onPlat) this._jumping=false;
     }
     // Proximity
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
@@ -2481,7 +2480,7 @@ const ZG={
   // Fall → lava → teleport back to zoo, no reward.
   // ══════════════════════════════════════════════════════════════
   // START POSITION: floating above the zoo
-  _jumpStartPos(){ return {x:0, y:27, z:55, yaw:Math.PI}; },
+  _jumpStartPos(){ return {x:0, y:28.5, z:53, yaw:Math.PI}; },
   _startJumpLevel(){
     if(this._jumpActive) return;
     // Show Ja/Nein question banner at the top
@@ -2577,16 +2576,15 @@ const ZG={
     // ── PLATFORMS: floating at y=25 baseline, scattered in XZ ──
     // [x, y, z, width, depth]  — all ABOVE y=15 lava
     const platforms=[
-      [0,   25, 55,  10, 6],   // START — big safe platform
-      [8,   26, 44,   5, 4],   // step 1
-      [-5,  27, 34,   4, 4],   // step 2
-      [6,   26, 24,   4, 3],   // step 3
-      [-8,  28, 14,   5, 4],   // step 4 (higher)
-      [4,   27,  4,   4, 3],   // step 5
-      [-4,  26, -6,   4, 3],   // step 6
-      [7,   27,-16,   5, 4],   // step 7
-      [-2,  28,-26,   4, 3],   // step 8
-      [0,   26,-36,  10, 6],   // GOAL — big golden platform
+      [0,   25, 55,  14, 8],   // START — very big safe platform
+      [5,   25, 43,   9, 6],   // step 1 — easy gap
+      [-4,  26, 32,   8, 6],   // step 2
+      [6,   26, 22,   8, 6],   // step 3
+      [-3,  27, 12,   8, 6],   // step 4
+      [4,   27,  2,   8, 6],   // step 5
+      [-4,  27, -8,   8, 6],   // step 6
+      [3,   27,-18,   9, 6],   // step 7
+      [0,   26,-28,  14, 8],   // GOAL — very big golden platform
     ];
     platforms.forEach(([x,y,z,w,d],i)=>{
       const isGoal=i===platforms.length-1;

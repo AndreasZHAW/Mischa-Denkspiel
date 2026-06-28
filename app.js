@@ -825,10 +825,12 @@ const App = {
     const pw   = document.getElementById('l-pw')?.value.trim();
     // Validate BEFORE showing loading screen
     // More robust test page detection
-    const onTestPage2 = window.location.href.includes('/test/') || window.location.href.includes('/test/index') || window.MISCHA_TESTMODE===true;
-    // On test page: empty name → go back to normal world (no error message)
-    if (!name && onTestPage2) {
-      window.location.href = window.location.href.replace(/\/test\/.*/, '/') + 'index.html';
+    // On test page: empty name → go back to normal world
+    const _isTestPage = !!(window.MISCHA_TESTMODE || document.querySelector('div[style*="TEST-UMGEBUNG"]') || window.location.pathname.includes('test'));
+    if (!name && _isTestPage) {
+      // Go up one level to the normal world
+      const base = window.location.href.split('/test/')[0];
+      window.location.href = base + '/index.html';
       return;
     }
     if (!name) {
