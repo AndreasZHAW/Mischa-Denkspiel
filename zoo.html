@@ -2179,44 +2179,47 @@ const ZG={
       const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
       if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
     }
-    // Jump
-    const GROUND=1.7; // always normal ground (jump level handles y separately)
-    if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=this._jumpActive?10:5.2;}
-    if(this._jumping){
-      this.pl.y += this._jumpV*dt;
-      this._jumpV -= 16*dt; // stronger gravity for jump level
-      if(this.pl.y<=GROUND){ this.pl.y=GROUND; this._jumping=false; this._jumpV=0; }
-    } else if(!this._jumpActive){ this.pl.y=1.7; }
-    // In jump level: let gravity pull player down freely
-    else if(!this._jumping){
-      // Gravity in jump level - step by step to avoid tunneling
-      if(this._jumpV===undefined)this._jumpV=0;
-      this._jumpV=Math.max(this._jumpV-16*dt,-20); // cap fall speed
-      // Move in small steps to prevent tunneling through platforms
-      const steps=3;
-      const stepDy=this._jumpV*dt/steps;
+    // ── JUMP & GRAVITY ──
+    if(this._jumpActive){
+      // ── JUMP LEVEL MODE ──
+      // Jump if Space pressed and not already jumping
+      if(!this._jumping && (this.keys['Space']||this.keys['KeyJ'])){
+        this._jumping=true; this._jumpV=9;
+      }
+      // Apply gravity always
+      if(this._jumpV===undefined) this._jumpV=0;
+      this._jumpV=Math.max(this._jumpV-20*dt,-25);
+      // Move in sub-steps to avoid tunneling
+      const STEPS=4;
       let onPlat=false;
-      for(let s=0;s<steps&&!onPlat;s++){
-        this.pl.y+=stepDy;
-        if(this._jumpPlatforms){
-          const checkP=(px,py,pz,pw,pd)=>{
-            const hw=pw/2+0.4, hd=pd/2+0.4;
-            const topY=py+0.6+1.5; // surface + player height offset
-            if(Math.abs(this.pl.x-px)<hw && Math.abs(this.pl.z-pz)<hd){
-              if(this.pl.y<=topY+0.2 && this.pl.y>=topY-1.5 && stepDy<=0){
-                this.pl.y=topY; this._jumpV=0; onPlat=true;
-              }
+      for(let s=0;s<STEPS;s++){
+        this.pl.y+=this._jumpV*dt/STEPS;
+        // Check all platforms
+        const checkP=(px,py,pz,pw,pd)=>{
+          if(onPlat)return;
+          const topY=py+1.5; // landing y for player (plat top + player feet)
+          const prevY=this.pl.y-this._jumpV*dt/STEPS;
+          if(Math.abs(this.pl.x-px)<pw/2+0.3 && Math.abs(this.pl.z-pz)<pd/2+0.3){
+            if(prevY>=topY-0.1 && this.pl.y<=topY+0.05 && this._jumpV<=0){
+              this.pl.y=topY; this._jumpV=0; onPlat=true;
             }
-          };
-          this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>checkP(px,py,pz,pw,pd));
-          if(this._movingPlat&&!onPlat){
-            const mp=this._movingPlat.position;
-            checkP(mp.x,mp.y,mp.z,4,3.5);
-            if(onPlat){this.pl.x+=this._movingPlat.position.x-mp.x;}
           }
+        };
+        if(this._jumpPlatforms) this._jumpPlatforms.forEach(([px,py,pz,pw,pd])=>checkP(px,py,pz,pw,pd));
+        if(this._movingPlat&&!onPlat){
+          const mp=this._movingPlat.position;
+          checkP(mp.x,mp.y,mp.z,4,3.5);
         }
       }
       if(onPlat) this._jumping=false;
+    } else {
+      // ── NORMAL ZOO MODE ──
+      if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=5.2;}
+      if(this._jumping){
+        this.pl.y+=this._jumpV*dt;
+        this._jumpV-=11*dt;
+        if(this.pl.y<=1.7){this.pl.y=1.7;this._jumping=false;this._jumpV=0;}
+      } else { this.pl.y=1.7; }
     }
     // Proximity
     const stD=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
@@ -5068,13 +5071,18 @@ const ZP={
   // REBIRTH
   _rReb(){
     const z=ZS.zoo,rb=z.reb||0,req=rebReq(rb),nM=Math.round((1+(rb+1)*.5)*100)/100;
-    const a=z.enc.filter(e=>e);
-    const ck=(fn,t,h)=>({ok:fn(a),t,h});
+    // Safe filter: only real animals (not null, not eggs, has valid rarity)
+    const a=(z.enc||[]).filter(e=>e&&e.animal&&e.animal.r&&!e.animal.isEgg&&e.animal.id&&e.animal.id!=='');
+    // Count helpers with safe access
+    const countR=(...rs)=>a.filter(e=>rs.includes(e.animal?.r)).length;
+    const nEpic  = countR('epic','legendary','ultralegendary','god','mythic','secret');
+    const nLeg   = countR('legendary','ultralegendary','god','mythic','secret');
+    const nUltra = countR('ultralegendary','god','mythic','secret');
     const checks=[
-      {ok:a.filter(e=>['epic','legendary','ultralegendary','god','mythic','secret'].includes(e.animal.r)).length>=req.e,t:`${req.e}× Episch+`,h:a.filter(e=>['epic','legendary','ultralegendary','god','mythic','secret'].includes(e.animal.r)).length},
-      ...(req.l>0?[{ok:a.filter(e=>['legendary','ultralegendary','god','mythic','secret'].includes(e.animal.r)).length>=req.l,t:`${req.l}× Legendär+`,h:a.filter(e=>['legendary','ultralegendary','god','mythic','secret'].includes(e.animal.r)).length}]:[]),
-      ...(req.u>0?[{ok:a.filter(e=>['ultralegendary','god','mythic','secret'].includes(e.animal.r)).length>=req.u,t:`${req.u}× Ultra+`,h:a.filter(e=>['ultralegendary','god','mythic','secret'].includes(e.animal.r)).length}]:[]),
-      {ok:z.mt>=req.mt,t:$mt(req.mt)+' MT',h:z.mt}
+      {ok:nEpic>=req.e,  t:`${req.e}× Episch+`,   h:nEpic},
+      ...(req.l>0?[{ok:nLeg>=req.l,   t:`${req.l}× Legendär+`,  h:nLeg}]:[]),
+      ...(req.u>0?[{ok:nUltra>=req.u, t:`${req.u}× Ultra+`,     h:nUltra}]:[]),
+      {ok:(z.mt||0)>=req.mt, t:$mt(req.mt)+' MT', h:z.mt||0}
     ];
     const can=checks.every(c=>c.ok);
     const nSlap=SLAPS[Math.min(rb+1,SLAPS.length-1)];
@@ -5417,8 +5425,12 @@ const ZP={
   // ── ADMIN LUCK ──
   async _setAdminLuck(mult, mins){
     const cmd={id:'luck_'+Date.now(),type:'admin_luck',mult,durationMs:mins*60000,startTs:Date.now(),exp:Date.now()+mins*60000+5000,target:'_all'};
+    // Apply locally for admin first
+    const z=ZS.zoo;
+    if(z&&(z.luck||1)<mult){z.luck=mult;z.adminLuckExp=Date.now()+mins*60000;ZS.save&&ZS.save();ZG._updHUD&&ZG._updHUD();}
+    // Send to all other players via Firebase
     await this._cmd(cmd);
-    ZP.toast('✅ Admin ×'+mult+' Glück für '+mins+' Min!',3000);
+    ZP.toast('🍀 ×'+mult+' Glück für ALLE für '+mins+' Min aktiv!',3000);
   },
   async _cmd(cmd){try{if(State._useCloud())await _db.collection('config').doc('zoo_admin_cmd').set(cmd);}catch(e){}localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));},
 };
@@ -6198,11 +6210,15 @@ const ZAdmin = {
     }}catch(e){}
     ZP.toast('🚨 '+label+' an '+this.target.name+' gesendet!',2500);
   },
-  _selEv(id){
+  async _selEv(id){
     const ev=(window.EVENTS||[]).find(e=>e.id===id); if(!ev)return;
     const dur=this._selectedEventDur||300000;
+    // Start locally for admin
     ZG.startEv(ev,dur,true);
-    ZP.toast('⚡ '+ev.n+' gestartet für '+(dur/60000)+'Min!',3000);
+    // Send to ALL other players via Firebase
+    const cmd={id:'ev_'+Date.now(),type:'start_event',target:'_all',eventId:id,dur,exp:Date.now()+dur+10000};
+    await this._cmd(cmd);
+    ZP.toast('⚡ '+ev.n+' für ALLE gestartet für '+(dur/60000)+' Min!',3000);
     document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #FFD700':'2px solid transparent';});
     setTimeout(()=>document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border='2px solid transparent';}),3000);
   },
