@@ -42,7 +42,7 @@ const GameLog = {
       <div style="display:flex;gap:8px">
         <button onclick="GameLog.clear();this.closest('div[style]').remove()" style="background:#E74C3C;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">🗑️ Löschen</button>
         <button onclick="navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(stored).replace(/'/g,"\'")}));alert('Kopiert!')" style="background:#3498DB;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">📋 Kopieren</button>
-        <button onclick="this.closest('div[style]').remove()" style="background:#555;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">✕ Schliessen</button>
+        <button onclick="this.closest('div[style]').remove()" style="background:#555;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">✕ ${typeof t!=='undefined'?t('worldmap.close'):'Schliessen'}</button>
       </div>
     </div>
     <div>${lines||'<div style="color:#555">Keine Einträge</div>'}</div>`;
@@ -304,15 +304,16 @@ const App = {
         <div class="game-logo">
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
-          <p class="subtitle">2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!</p>
+          <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
           <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v253 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
-          <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ Willkommen, Abenteurer</div>
+          <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
+          <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ ${typeof t!=='undefined'?t('welcome.title'):'Willkommen, Abenteurer'}</div>
 
           <!-- Welt 1 Box - dark dramatic style -->
           <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 Welt 1 — Denkspiel</div>
+            <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 ${typeof t!=='undefined'?t('welcome.world1.title'):'Welt 1 — Denkspiel'}</div>
             <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#333;line-height:1.6">
               Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.<br>
               Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).<br>
@@ -322,7 +323,7 @@ const App = {
 
           <!-- Welt 2 Box -->
           <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
-            <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 Welt 2 — Zoo-Empire</div>
+            <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 ${typeof t!=='undefined'?t('welcome.world2.title'):'Welt 2 — Zoo-Empire'}</div>
             <div style="font-size:clamp(0.9rem,3.7vw,1rem);color:#333;line-height:1.6">
               Teleportiere für <b>10 🌀 MT</b> in den Zoo.<br>
               Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.<br>
@@ -331,7 +332,7 @@ const App = {
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">🆕 Neu registrieren</button>
+            <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
@@ -795,14 +796,15 @@ const App = {
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
             <button onclick="App.showWelcome()" style="background:none;border:none;font-size:1.3rem;cursor:pointer">◀</button>
-            <div class="card-title" style="margin-bottom:0">Anmelden 🔑</div>
+            <div class="card-title" style="margin-bottom:0">${typeof t!=='undefined'?t('login.title'):'Anmelden 🔑'}</div>
           </div>
-          <div class="card-subtitle">Willkommen zurück!</div>
+          <div class="card-subtitle">${typeof t!=='undefined'?t('login.welcome_back'):'Willkommen zurück!'}</div>
           <div class="input-group"><label>Name</label><input type="text" id="l-name" autocomplete="off"/></div>
           <div class="input-group"><label>Passwort</label>
             <input type="password" id="l-pw" onkeyup="if(event.key==='Enter')App.doLogin()"/></div>
           <div id="l-err" style="color:#E74C3C;font-size:0.88rem;text-align:center;display:none;margin-bottom:8px"></div>
-          <button class="btn btn-primary btn-full btn-big" onclick="App.doLogin()">Anmelden ➜</button>
+          <button class="btn btn-primary btn-full btn-big" onclick="App.doLogin()">${typeof t!=='undefined'?t('login.btn'):'Anmelden ➜'}</button>
+          ${window.MISCHA_TESTMODE?`<div style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="var p=window.location.pathname;var i=p.lastIndexOf('/test');window.location.href=window.location.origin+(i>=0?p.substring(0,i):p.replace(/\\/[^\\/]*$/,''))+'/index.html'" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}
         </div>
       </div>`);
     // On the TEST page: prefill name from the live-page redirect and auto-login with admin pw
@@ -823,6 +825,14 @@ const App = {
     const name = document.getElementById('l-name')?.value.trim();
     const pw   = document.getElementById('l-pw')?.value.trim();
     // Validate BEFORE showing loading screen
+    // More robust test page detection
+    // On test page: empty name → go back to normal world
+    if (!name && window.MISCHA_TESTMODE) {
+      // Go back to normal world
+      const _p=window.location.pathname, _i=_p.lastIndexOf('/test');
+      window.location.href=window.location.origin+(_i>=0?_p.substring(0,_i):_p.replace(/\/[^\/]*$/,''))+'/index.html';
+      return;
+    }
     if (!name) {
       const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Namen eingeben!';e.style.display='block';} return;
     }
@@ -890,6 +900,7 @@ const App = {
     } catch(e) {} // ban check failed silently, allow login
     FontScale.applyForPlayer(State.currentPlayer?.name||'');
     if(typeof Personality!=='undefined')Personality.init();
+      if(typeof LANG!=='undefined')LANG.load();
     this.showWorldMap();
   },
 
@@ -1127,13 +1138,13 @@ const App = {
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">⚑ Meldungen</button>` : ''}
-            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">🔤 Schrift</button>
-            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:2px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Seite neu laden">🔄 Update</button>
+            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
+            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:2px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
 
 
 
             <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px" title="Spielprotokoll anzeigen">📋 Log</button>
-            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">Abmelden</button>
+            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:clamp(6px,2vw,9px) clamp(10px,3vw,16px);border-radius:50px;font-weight:700;cursor:pointer;font-size:clamp(0.95rem,4.5vw,1.1rem);min-height:48px">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
           </div>
         </div>
 
@@ -1155,7 +1166,7 @@ const App = {
         </div>
         <div style="margin-bottom:12px">
           <button onclick="App.showPersonality()" style="width:100%;background:linear-gradient(135deg,#FF6FB5,#9B59B6);color:#fff;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(155,89,182,.4)">
-            🎨 Persönlichkeit (Farbe + Avatar)
+            ${typeof t!=='undefined'?t('worldmap.personality'):'🎨 Persönlichkeit (Farbe + Avatar)'}
           </button>
         </div>` : ''}
 
@@ -2170,7 +2181,7 @@ const App = {
               ⚠️ Falsche Meldungen können zur Sperrung deines Kontos führen.
             </div>
             <div style="display:flex;gap:8px">
-              <button onclick="App.showGlobalLeaderboard()" style="flex:1;padding:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:9px;cursor:pointer">Abbrechen</button>
+              <button onclick="App.showGlobalLeaderboard()" style="flex:1;padding:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:9px;cursor:pointer">${typeof t!=='undefined'?t('worldmap.cancel'):'Abbrechen'}</button>
               <button id="rsend" onclick="App._sendReport('${playerName}')"
                 style="flex:2;padding:11px;background:rgba(231,76,60,.12);border:1.5px solid rgba(231,76,60,.2);
                        color:rgba(231,76,60,.4);border-radius:9px;cursor:not-allowed;font-weight:900;transition:.2s" disabled>Meldung senden</button>
