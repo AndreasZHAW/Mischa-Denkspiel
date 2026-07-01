@@ -9,6 +9,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#87CEEB">
   <title>Das Mischa Denkspiel ✈️ v29</title>
+  <script>
+  // FONT SYSTEM v254: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+  (function(){
+    try{
+      var v = localStorage.getItem('mischa_font_size');
+      var n = parseInt(v,10);
+      if(!isNaN(n) && n>=10 && n<=40){
+        document.documentElement.style.setProperty('--user-font-size', n+'px');
+      }
+    }catch(e){}
+  })();
+  </script>
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
@@ -20,23 +32,22 @@
        All rem-based sizes auto-scale. Touch targets min 48px (Material Design).
     */
     :root {
-      --user-font-size: 15px;  /* set by FontScale.apply() */
-      --user-font-scale: 1.0;  /* multiplier relative to 15px */
+      --user-font-size: 16px;  /* THE single source of truth — set by FontScale.apply() */
+      --user-font-scale: 1.0;
       --fs-xs:  calc(var(--user-font-size) * 0.80);
       --fs-sm:  calc(var(--user-font-size) * 0.90);
       --fs-md:  var(--user-font-size);
       --fs-lg:  calc(var(--user-font-size) * 1.10);
       --fs-xl:  calc(var(--user-font-size) * 1.22);
       --fs-2xl: calc(var(--user-font-size) * 1.45);
-      --touch-min: max(44px, 6.5vw);
+      --touch-min: 44px;
     }
-    html { font-size: 16px; }
-    /* On narrow screens (<400px) scale up base font */
-    @media (max-width:399px) { html { font-size: 17px; } }
-    @media (max-width:359px) { html { font-size: 18px; } }
-    body { font-size: var(--user-font-size); }
-    button { min-height: var(--touch-min); font-size: var(--user-font-size) !important; }
-    input, select, textarea { font-size: var(--fs-md) !important; min-height: var(--touch-min); }
+    /* CLEAN FONT SYSTEM: html font-size = user setting, so ALL rem units scale together.
+       No vw, no media queries, no competing rules. One source of truth. */
+    html { font-size: var(--user-font-size) !important; -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
+    body { font-size: 1rem; }
+    button { min-height: var(--touch-min); font-size: 1rem !important; }
+    input, select, textarea { font-size: 1rem !important; min-height: var(--touch-min); }
     /* World map cards */
     .card { font-size: var(--fs-md); }
     /* HUD elements */
@@ -78,7 +89,7 @@
     }
     canvas { touch-action: none !important; }
     /* Force font size — Android must not auto-adjust */
-    html { font-size: 16px; -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
+    /* html font-size handled by clean font system above */
     body { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; -webkit-touch-callout: none; }
     /* Game area fills screen properly on mobile */
     /* game canvas scaling handled per-game by auto-zoom, not forced here */
@@ -326,7 +337,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v253 wird geladen...';
+      if(vEl) vEl.textContent = 'v254 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)

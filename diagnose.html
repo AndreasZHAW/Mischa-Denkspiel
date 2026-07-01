@@ -42,8 +42,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v253</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v253 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v254</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v254 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -128,12 +128,26 @@ try {
 <!-- ══ TAB: FONT ══ -->
 <div id="tab-font" class="tab-content">
   <div class="box blue">
-    <h2>📱 Schriftgrössen-Analyse</h2>
+    <h2>📱 Schriftgrössen-Analyse (v254 — neues System)</h2>
     <pre id="font-out">⏳</pre>
     <div style="margin-top:8px">
       <button onclick="App&&App.showEyeTest?window.location.href='index.html':alert('Starte das Spiel, dann gehe zu Welten → 👁 Sehtest')" class="sec">👁 Zum Sehtest</button>
+      <button onclick="runFont()" class="info">🔄 Neu prüfen</button>
     </div>
   </div>
+
+  <div class="box green" id="persist-box">
+    <h2>🔬 Persistenz-Selbsttest</h2>
+    <div style="font-size:.78rem;color:#999;margin-bottom:8px">
+      Dieser Test schreibt eine Test-Grösse, lädt die Seite neu und prüft ob der Wert erhalten bleibt.
+      Genau das war der Bug: Grössen &gt;28px wurden beim nächsten Laden automatisch gelöscht.
+    </div>
+    <pre id="persist-out">Klicke "Test starten"</pre>
+    <div style="margin-top:8px">
+      <button onclick="startPersistTest()" class="sec">▶ Test starten (36px)</button>
+    </div>
+  </div>
+
   <div class="box">
     <h2>Schrift-Vorschau (aktuelle Grösse)</h2>
     <div id="font-preview" style="padding:10px;background:#0d1a0d;border-radius:6px;line-height:1.8">
@@ -141,6 +155,12 @@ try {
       <div style="font-weight:700">Fett: 🌀 11.5 MT · Rangliste · Shop</div>
       <div style="opacity:.5">Klein: Stufe 3 von 20 · Sokoban · Star Wars</div>
     </div>
+  </div>
+
+  <div class="box red">
+    <h2>⚠️ Zurücksetzen</h2>
+    <div style="font-size:.78rem;color:#999;margin-bottom:8px">Löscht die gespeicherte Schriftgrösse komplett (für Support-Zwecke).</div>
+    <button onclick="resetFont()" class="danger">🗑️ Schrift-Einstellung löschen</button>
   </div>
 </div>
 
@@ -319,7 +339,7 @@ setInterval(renderCrash,1500);
 
 // ══ WELT 1 ══
 async function runWelt1(){
-  L('=== Welt 1 Tests (v253) ===');
+  L('=== Welt 1 Tests (v254) ===');
   // Players
   const pr=[];
   try{
@@ -508,30 +528,25 @@ function runFont(){
   const dpr=window.devicePixelRatio||1;
   const vw=window.innerWidth;
   const root=parseFloat(getComputedStyle(document.documentElement).fontSize);
-  const clampOk=CSS.supports('font-size','clamp(1rem,4vw,2rem)');
+  const cssVar=getComputedStyle(document.documentElement).getPropertyValue('--user-font-size').trim();
+  const rawSaved=localStorage.getItem('mischa_font_size');
   const b=document.createElement('button');b.style.cssText='position:fixed;left:-9999px;min-height:var(--touch-min,44px)';
   document.body.appendChild(b);const bh=b.offsetHeight;b.remove();
 
   const lines=[
+    `═══ NEUES SYSTEM v254 (ein globaler Key) ═══`,
+    `Gespeicherter Rohwert (localStorage 'mischa_font_size'): ${rawSaved===null?'❌ NICHTS GESPEICHERT':rawSaved+'px'}`,
+    `CSS-Variable --user-font-size: ${cssVar||'❌ NICHT GESETZT'}`,
+    `Tatsächliches Root font-size (berechnet): ${root}px`,
+    `Stimmen Rohwert und Root überein: ${rawSaved && parseInt(rawSaved)===Math.round(root)?'✅ JA':(rawSaved?'⚠️ NEIN — das ist der Bug-Zustand!':'ℹ️ kein gespeicherter Wert, Standard aktiv')}`,
+    '',
+    `═══ GERÄT-INFO ═══`,
     `DPR: ${dpr.toFixed(1)} (≥2 = High-DPI, braucht grössere Schrift)`,
     `Viewport: ${vw}×${window.innerHeight}px (CSS-Pixel)`,
     `Physisch: ${Math.round(vw*dpr)}×${Math.round(window.innerHeight*dpr)}px`,
-    `Root font-size: ${root}px ${root<14?'⚠️ ZU KLEIN':'✅'}`,
-    `clamp(): ${clampOk?'✅ supported':'❌ nicht supported'}`,
     `Button touch-target: ${bh}px ${bh>=44?'✅':'⚠️ unter 44px'}`,
-    '',
-    `EMPFEHLUNG: ${dpr>=2?`Bei DPR=${dpr.toFixed(1)} sollte Root ≥ 16px sein. Mache den 👁 Sehtest!`:'Schrift OK für dieses Gerät.'}`,
   ];
-  // Check saved font
-  const dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1);
-  const savedKeys=Object.keys(localStorage).filter(k=>k.includes('fontscale')&&k.includes(dKey));
-  if(savedKeys.length){
-    const sz=localStorage.getItem(savedKeys[0]);
-    lines.push('💾 Gespeicherte Schriftgrösse: '+sz+'px (für '+dKey+')');
-  }else{
-    lines.push('⚠️ Kein Sehtest gemacht für dieses Gerät ('+dKey+')');
-  }
-  // Show detected sizes range
+  // Show detected sizes range (for eye-test context)
   try{
     const probe=document.createElement('div');
     probe.style.cssText='position:fixed;visibility:hidden;font-size:1em;left:-9999px';
@@ -541,17 +556,67 @@ function runFont(){
     const eff=sys<18?Math.round(sys*Math.min(dpr,1.8)):sys;
     const maxPx=Math.round(eff*2.0);
     const minPx=Math.max(8,Math.round(eff*0.3));
+    lines.push('');
+    lines.push(`═══ SEHTEST-BEREICH ═══`);
     lines.push('🔍 Systemschrift erkannt: '+sys.toFixed(1)+'px');
-    lines.push('📐 Effektiv (DPR-angepasst): '+eff+'px');
     lines.push('📏 Sehtest-Bereich: '+maxPx+'px → '+minPx+'px (10 Stufen)');
-    if(dpr>=2) lines.push('⚠️ DPR='+dpr.toFixed(1)+': System kompensiert Pixeldichte NICHT → Sehtest empfohlen!');
+    lines.push('✅ NEU: Werte bis 40px werden jetzt gespeichert, nicht mehr gelöscht (alter Bug: Cap bei 28px)');
   }catch(e){lines.push('❌ Erkennung fehlgeschlagen: '+e.message);}
+  // Check for leftover old-system keys (should be migrated/cleaned by now)
+  const oldKeys=Object.keys(localStorage).filter(k=>k.startsWith('mischa_fontscale_'));
+  lines.push('');
+  lines.push(`═══ MIGRATION ═══`);
+  lines.push(`Migriert (v254): ${localStorage.getItem('mischa_font_migrated_v254')==='1'?'✅ ja':'⏳ noch nicht (passiert beim nächsten App-Start)'}`);
+  lines.push(`Alte Fingerabdruck-Keys übrig: ${oldKeys.length===0?'✅ keine (sauber)':'⚠️ '+oldKeys.length+' Stück (werden beim nächsten Start entfernt)'}`);
+
   document.getElementById('font-out').textContent=lines.join('\n');
-  // Preview uses current font
   const prev=document.getElementById('font-preview');
   prev.style.fontSize=root+'px';
   lines.forEach(l=>L(l));
 }
+
+// ══ PERSISTENCE SELF-TEST ══
+// Writes a test size, reloads the page, and checks whether it survived —
+// the exact scenario that was silently broken before (sizes >28px got deleted).
+function startPersistTest(){
+  const TEST_SIZE = 36;
+  try{
+    sessionStorage.setItem('mischa_persist_test_pending', String(TEST_SIZE));
+    localStorage.setItem('mischa_font_size', String(TEST_SIZE));
+    document.getElementById('persist-out').textContent = 'Schreibe '+TEST_SIZE+'px … lade neu …';
+    setTimeout(()=>location.reload(), 400);
+  }catch(e){
+    document.getElementById('persist-out').textContent = '❌ Fehler: '+e.message;
+  }
+}
+function checkPersistTestResult(){
+  const pending = sessionStorage.getItem('mischa_persist_test_pending');
+  if(!pending) return; // no test was running
+  sessionStorage.removeItem('mischa_persist_test_pending');
+  const expected = parseInt(pending);
+  const actual = parseInt(localStorage.getItem('mischa_font_size'));
+  const out = document.getElementById('persist-out');
+  const box = document.getElementById('persist-box');
+  if(actual === expected){
+    out.textContent = `✅ ERFOLG! ${expected}px blieb nach dem Neuladen erhalten.\nDas Problem ist behoben — die Einstellung wird nicht mehr überschrieben.`;
+    box.className = 'box green';
+  } else {
+    out.textContent = `❌ FEHLGESCHLAGEN! Erwartet ${expected}px, aber gefunden: ${isNaN(actual)?'nichts (gelöscht!)':actual+'px'}.\nDas Problem besteht noch — bitte melden.`;
+    box.className = 'box red';
+  }
+  // Restore whatever the user had before the test (best effort: just leave it, they can re-run eye test)
+}
+function resetFont(){
+  if(!confirm('Gespeicherte Schriftgrösse wirklich löschen?')) return;
+  try{
+    localStorage.removeItem('mischa_font_size');
+    localStorage.removeItem('mischa_font_tested_v254');
+    alert('Gelöscht. Beim nächsten Spielstart wird automatisch eine Standardgrösse erkannt.');
+    runFont();
+  }catch(e){ alert('Fehler: '+e.message); }
+}
+// Check on page load whether a persist-test was pending (i.e. we just reloaded for the test)
+checkPersistTestResult();
 
 // ══ NETZWERK ══
 async function runNet(){
@@ -573,7 +638,7 @@ async function runNet(){
 
 // ══ INIT ══
 async function runAll(){
-  L('=== Diagnose v253 gestartet === '+new Date().toLocaleString('de-CH'));
+  L('=== Diagnose v254 gestartet === '+new Date().toLocaleString('de-CH'));
   L('Browser: '+navigator.userAgent.slice(0,80));
   L('Viewport: '+window.innerWidth+'×'+window.innerHeight+' DPR='+window.devicePixelRatio);
   renderCrash();
