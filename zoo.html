@@ -23,7 +23,17 @@ window.addEventListener('DOMContentLoaded',()=>{
 <title>Mischa Zoo 3D</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%;font-size:16px}
+html{-webkit-text-size-adjust:100%!important;-moz-text-size-adjust:100%!important;text-size-adjust:100%!important;font-size:16px}
+/* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on zoo canvas + controls */
+#zc, canvas, .hb, .hbb, .zp, .pmenu, [onclick]{
+  -webkit-touch-callout:none!important;
+  -webkit-user-select:none!important;
+  -moz-user-select:none!important;
+  user-select:none!important;
+}
+#zc{touch-action:none!important}
+.hb, .hbb, button, [onclick]{touch-action:manipulation!important}
+body{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important;-webkit-touch-callout:none}
 html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;background:#000;color:#fff;touch-action:none;user-select:none}
 /* On phones, scale the whole UI up a bit so Android's small system font doesn't make it tiny */
 @media (max-width:600px){
@@ -195,6 +205,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
+<script src="lang.js"></script>
 <script src="rewardchests.js"></script>
 <script src="personality.js"></script>
 </head>
@@ -247,14 +258,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl">Profil</div></div>
 <div class="hb" id="test-only-btn" style="display:none" onclick="ZP.toast('🧪 Nur im Test!',2000)"><div class="hbb" style="background:rgba(255,107,0,.9)">🧪</div><div class="hbl" style="color:#ff6b00">Test</div></div>
 <script>if(window.MISCHA_TESTMODE){var tb=document.getElementById("test-only-btn");if(tb)tb.style.display="";}</script>
-<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">Tauschen</div></div>
-<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">Rebirth</div></div>
-<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">Shop</div></div>
+<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">${typeof t!=='undefined'?t('zoo.trade'):'Tauschen'}</div></div>
+<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">${typeof t!=='undefined'?t('zoo.rebirth'):'Rebirth'}</div></div>
+<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">${typeof t!=='undefined'?t('zoo.shop'):'Shop'}</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
-<div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl">Sound</div></div>
-<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">Menü</div></div>
+<div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl">${typeof t!=='undefined'?t('zoo.sound'):'Sound'}</div></div>
+<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">${typeof t!=='undefined'?t('zoo.menu'):'Menü'}</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
-<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl">Update</div></div>
+<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl">${typeof t!=='undefined'?t('zoo.update'):'Update'}</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
@@ -960,6 +971,7 @@ const ZG={
     this.yaw = Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this.pitch = 0;
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
+    if(typeof LANG!=='undefined')LANG.load();
     LW.init();ZSound.loadStyle();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     // Check for admin announcement
     setTimeout(()=>_checkAnnouncement(),1500);
@@ -2498,17 +2510,17 @@ const ZG={
     q.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99960;background:linear-gradient(135deg,#1a4a1a,#27ae60);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:Arial,sans-serif;box-shadow:0 4px 20px rgba(39,174,96,.6);pointer-events:auto';
     const txt=document.createElement('div');
     txt.style.cssText='font-size:clamp(.95rem,4vw,1.2rem);font-weight:900';
-    txt.textContent='🏃 Jump-Event läuft! Zur Obby teleportieren?';
+    txt.textContent=typeof t!=='undefined'?t('jump.question'):'🏃 Jump-Event läuft! Zur Obby teleportieren?';
     const btns=document.createElement('div');
     btns.style.cssText='display:flex;gap:10px;flex-shrink:0';
     const reEnable=()=>{const c=document.getElementById('zc');if(c)c.style.pointerEvents='';};
     const closeQ=()=>{const jq=document.getElementById('jump-question');if(jq)jq.remove();reEnable();};
     const jaBtn=document.createElement('button');
-    jaBtn.textContent='✅ Ja';
+    jaBtn.textContent=typeof t!=='undefined'?t('jump.yes'):'✅ Ja';
     jaBtn.style.cssText='background:#FFD700;color:#000;border:none;padding:10px 22px;border-radius:10px;font-weight:900;font-size:1rem;cursor:pointer;min-height:44px';
     jaBtn.onclick=()=>{closeQ();ZG._beginJumpLevel();};
     const neinBtn=document.createElement('button');
-    neinBtn.textContent='❌ Nein';
+    neinBtn.textContent=typeof t!=='undefined'?t('jump.no'):'❌ Nein';
     neinBtn.style.cssText='background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.4);padding:10px 18px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;min-height:44px';
     neinBtn.onclick=()=>closeQ();
     btns.appendChild(jaBtn); btns.appendChild(neinBtn);
@@ -5209,10 +5221,10 @@ const ZP={
     const el=document.getElementById('psound'); if(!el)return;
     const cur=(typeof ZSound!=='undefined'?ZSound.style:'normal')||'normal';
     const styles=[
-      {id:'off',     icon:'🔇', name:'Stumm',      desc:'Kein Sound'},
-      {id:'arcade',  icon:'🕹️', name:'Arcade',     desc:'Retro 8-Bit Töne'},
-      {id:'normal',  icon:'🎶', name:'Normal',     desc:'Standard Töne'},
-      {id:'satisfying',icon:'✨',name:'Satisfying', desc:'Weiche, angenehme Töne'},
+      {id:'off',       icon:'🔇', name:typeof t!=='undefined'?t('sound.mute'):'Stumm',       desc:typeof t!=='undefined'?t('sound.mute.desc'):'Kein Sound'},
+      {id:'arcade',    icon:'🕹️', name:typeof t!=='undefined'?t('sound.arcade'):'Arcade',     desc:typeof t!=='undefined'?t('sound.arcade.desc'):'Retro 8-Bit Töne'},
+      {id:'normal',    icon:'🎶', name:typeof t!=='undefined'?t('sound.normal'):'Normal',     desc:typeof t!=='undefined'?t('sound.normal.desc'):'Standard Töne'},
+      {id:'satisfying',icon:'✨', name:typeof t!=='undefined'?t('sound.satisfying'):'Satisfying',desc:typeof t!=='undefined'?t('sound.satisfying.desc'):'Weiche, angenehme Töne'},
     ];
     el.innerHTML='<div style="display:grid;gap:8px;padding:4px">'+
       styles.map(s=>`
@@ -5236,7 +5248,7 @@ const ZP={
     let todOn=true; try{todOn=localStorage.getItem('zoo_tod')!=='0';}catch(e){}
     G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left;font-size:.78rem;line-height:1.85;color:rgba(255,255,255,.6)">${ZS._personalityAvatar()} <b style="color:#fff">${ZS.player}</b><br>🌀 ${$mt(z.mt)}<br>📈 ${$mt(z.te||0)} verdient<br>🐾 ${z.enc.filter(e=>e).length}/${ZS.maxE()} Tiere<br>🔄 ${z.reb||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}</div>
       <div style="background:linear-gradient(135deg,rgba(255,107,0,.3),rgba(255,165,0,.2));border:2px solid #FFA500;border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
-        <div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px;text-align:center;letter-spacing:1px">⚙️ EINSTELLUNGEN ⚙️</div>
+        <div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px;text-align:center;letter-spacing:1px">${typeof t!=='undefined'?t('menu.settings'):'⚙️ EINSTELLUNGEN ⚙️'}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">🎵 Sound</span>
           <select onchange="ZSound.setStyle(this.value)" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 8px;font-size:.78rem;min-width:130px">

@@ -69,12 +69,25 @@
     /* Mobile: prevent double-tap zoom and 300ms delay */
     * { -webkit-tap-highlight-color: transparent; }
     button, a, [onclick] { touch-action: manipulation; }
-    /* Auto font scaling based on viewport */
-    html { font-size: clamp(14px, 2.5vw, 18px); }
-    /* Prevent text size adjustment on orientation change */
-    body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    /* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on game elements */
+    canvas, #game-area, #game-area * {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      user-select: none !important;
+    }
+    canvas { touch-action: none !important; }
+    /* Force font size — Android must not auto-adjust */
+    html { font-size: 16px; -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
+    body { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; -webkit-touch-callout: none; }
     /* Game area fills screen properly on mobile */
-    #game-area canvas { max-width: 100%; height: auto; }
+    /* game canvas scaling handled per-game by auto-zoom, not forced here */
+    /* Game control buttons: always tappable, never trigger long-press */
+    #game-area button, .game-control, [class*="ctrl"], [class*="control"] {
+      touch-action: manipulation !important;
+      -webkit-touch-callout: none !important;
+      user-select: none !important;
+    }
   </style>
 <script>
 // ══ RESPONSIVE FONT SCALER ══
@@ -208,7 +221,8 @@
   <script src="shop.js"></script>
   <!-- App -->
   <script src="french.js"></script>
-<script src="rewardchests.js"></script>
+<script src="lang.js"></script>
+  <script src="rewardchests.js"></script>
   <script src="personality.js"></script>
   <script src="app.js"></script>
   <script>
