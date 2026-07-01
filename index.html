@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#87CEEB">
   <title>Das Mischa Denkspiel ✈️ v29</title>
   <script>
-  // FONT SYSTEM v254: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+  // FONT SYSTEM v256: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
   (function(){
     try{
       var v = localStorage.getItem('mischa_font_size');
@@ -62,6 +62,16 @@
     @keyframes popBurst{0%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.5}100%{transform:scale(0);opacity:0}}
   </style>
   <script>
+  // PHASE 1 FIX v256: Block Android's long-press context menu (Download/Share/Print).
+  // -webkit-touch-callout (CSS) only affects iOS Safari — it does NOT stop Android
+  // Chrome's native long-press menu on canvas/img. The real fix is intercepting the
+  // 'contextmenu' event itself, which Android fires on long-press.
+  document.addEventListener('contextmenu', function(e) {
+    if (e.target.closest && e.target.closest('canvas, #game-area, .game-control, [class*="ctrl"], [class*="control"]')) {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
   // Prevent double-tap zoom globally
   let lastTap = 0;
   document.addEventListener('touchend', function(e) {
@@ -337,7 +347,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v254 wird geladen...';
+      if(vEl) vEl.textContent = 'v256 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)

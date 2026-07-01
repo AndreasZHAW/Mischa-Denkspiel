@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v254';
+const APP_VERSION = 'v256';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v254 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v256 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -142,7 +142,7 @@ const FontScale = {
   // players who already ran the eye-test don't lose their chosen size.
   _migrateOnce() {
     try {
-      if (localStorage.getItem('mischa_font_migrated_v254') === '1') return;
+      if (localStorage.getItem('mischa_font_migrated_v256') === '1') return;
       let migrated = null;
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -157,7 +157,7 @@ const FontScale = {
       if (migrated) localStorage.setItem(this.KEY, String(this.clamp(migrated)));
       // Clean up ALL old keys (fragile, no longer used)
       keys.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
-      localStorage.setItem('mischa_font_migrated_v254', '1');
+      localStorage.setItem('mischa_font_migrated_v256', '1');
     } catch(e) {}
   },
 
@@ -227,10 +227,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v254') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v256') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v254', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v256', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -255,18 +255,8 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply font size immediately — use detected system size default
-    try {
-      const dKey = screen.width+'x'+screen.height+'x'+(window.devicePixelRatio||1).toFixed(1);
-      const keys = Object.keys(localStorage).filter(k=>k.includes('fontscale')&&k.includes(dKey));
-      if(keys.length) {
-        const saved = parseInt(localStorage.getItem(keys[0]));
-        if(saved>=8&&saved<=120) { FontScale.apply(saved); }
-      } else {
-        const d = FontScale.detectSizes();
-        FontScale.apply(d.steps[3]||16); // step 3 ≈ 90% of system = good intro default
-      }
-    } catch(e) {}
+    // Apply saved font size immediately (new v256 single-key system)
+    try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
     const wmc = document.getElementById('wm-stars');
@@ -288,7 +278,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v254 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v256 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -1121,6 +1111,7 @@ const App = {
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">⚑ Meldungen</button>` : ''}
+            <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,.5);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
             <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:2px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
 
@@ -1220,6 +1211,29 @@ const App = {
   },
 
   // ══ SEHTEST — Augen-Test für optimale Schriftgrösse ══
+  showLanguagePicker() {
+    const ov = document.createElement('div');
+    ov.id = 'lang-picker-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+    ov.onclick = (e) => { if(e.target===ov) ov.remove(); };
+    const card = document.createElement('div');
+    card.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center';
+    const title = document.createElement('div');
+    title.style.cssText = 'color:#fff;font-weight:900;font-size:1.15rem;margin-bottom:16px';
+    title.textContent = '🌐 Sprache / Language / Langue';
+    card.appendChild(title);
+    const sel = document.createElement('div');
+    sel.innerHTML = typeof LANG!=='undefined' ? LANG.selectorHTML(false) : '';
+    card.appendChild(sel);
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = typeof t!=='undefined'?t('worldmap.close'):'Schliessen';
+    closeBtn.style.cssText = 'margin-top:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 24px;border-radius:10px;cursor:pointer;font-size:.9rem';
+    closeBtn.onclick = () => ov.remove();
+    card.appendChild(closeBtn);
+    ov.appendChild(card);
+    document.body.appendChild(ov);
+  },
+
   showEyeTest() {
     const player = State.currentPlayer;
     const playerName = player?.name || '';
