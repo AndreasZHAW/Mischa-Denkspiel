@@ -186,3 +186,9 @@ const t = (key, ...args) => LANG.t(key);
 window.LANG = LANG;
 window.STRINGS = STRINGS;
 window.t = t;
+
+// CRITICAL FIX: load the saved language IMMEDIATELY when this script runs,
+// not just after login. Without this, LANG._cur stays at the hardcoded
+// default ('de') for any screen shown before login (Welcome, Intro),
+// making language selection look broken even though it saved correctly.
+LANG.load();
