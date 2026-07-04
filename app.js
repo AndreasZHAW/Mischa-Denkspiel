@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v258';
+const APP_VERSION = 'v259';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v258 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v259 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -142,22 +142,28 @@ const FontScale = {
   // players who already ran the eye-test don't lose their chosen size.
   _migrateOnce() {
     try {
-      if (localStorage.getItem('mischa_font_migrated_v258') === '1') return;
+      // Stable flag name (not version-suffixed) — runs exactly once, ever.
+      if (localStorage.getItem('mischa_font_migrated') === '1') return;
       let migrated = null;
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.startsWith('mischa_fontscale_') && !k.endsWith('_tested')) keys.push(k);
       }
-      // Take the first valid old value found as the migration candidate
+      // BUGFIX: take the LARGEST valid old value, not the first one found.
+      // After many eye-test sessions across devices/versions, several old
+      // fragile keys could exist (small early tests, later bigger choices).
+      // Picking "first found" picked essentially a random one — often a
+      // small leftover — silently shrinking the font. Largest-value is the
+      // safer default: under-sizing hurts readability more than over-sizing.
       for (const k of keys) {
         const v = parseInt(localStorage.getItem(k));
-        if (v >= 8 && v <= 60) { migrated = v; break; }
+        if (v >= 8 && v <= 60 && (migrated === null || v > migrated)) migrated = v;
       }
       if (migrated) localStorage.setItem(this.KEY, String(this.clamp(migrated)));
       // Clean up ALL old keys (fragile, no longer used)
       keys.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
-      localStorage.setItem('mischa_font_migrated_v258', '1');
+      localStorage.setItem('mischa_font_migrated', '1');
     } catch(e) {}
   },
 
@@ -227,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v258') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v259') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v258', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v259', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -255,7 +261,7 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v258 single-key system)
+    // Apply saved font size immediately (new v259 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -278,7 +284,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v258 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v259 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -308,7 +314,7 @@ const App = {
             <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
             <div style="display:flex;gap:6px;margin-top:2px">
-              <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">🌍 Rangliste</button>
+              <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
               <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">👜 Geldbeutel</button>
               <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()" style="flex:1;background:rgba(255,215,0,.12);color:#FFD700;border:2px solid rgba(255,215,0,.3);font-size:1rem;min-height:40px;padding:6px 8px">📊 Konto</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
@@ -1117,7 +1123,7 @@ const App = {
 
 
 
-            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Spielprotokoll anzeigen">📋 Log</button>
+            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Spielprotokoll anzeigen">${typeof t!=='undefined'?t('wm.log'):'📋 Log'}</button>
             <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
           </div>
         </div>
@@ -1126,7 +1132,7 @@ const App = {
         <div style="text-align:center;margin-bottom:10px">
           <div style="background:rgba(255,215,0,.2);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;display:inline-block">
             <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${mt.toFixed(1)} MT</span>
-            <span style="font-size:0.95rem;color:rgba(255,255,255,.7);margin-left:8px">Mischa Taler</span>
+            <span style="font-size:0.95rem;color:rgba(255,255,255,.7);margin-left:8px">${typeof t!=='undefined'?t('wm.mt_full'):'Mischa Taler'}</span>
           </div>
         </div>
 
@@ -1134,7 +1140,7 @@ const App = {
         ${window.MISCHA_TESTMODE ? `
         <div style="margin-bottom:12px">
           <button id="reward-btn" onclick="RewardChests.open()" style="position:relative;width:100%;background:linear-gradient(135deg,#FFA500,#FF6B00);color:#1a1a2e;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(255,140,0,.4)">
-            🎁 Belohnungen abholen
+            ${typeof t!=='undefined'?t('wm.rewards_btn'):'🎁 Belohnungen abholen'}
             <span id="reward-badge" style="display:none;position:absolute;top:-8px;right:14px;background:#E74C3C;color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;text-align:center;font-size:1.05rem;font-weight:900;box-shadow:0 0 10px rgba(231,76,60,.9);animation:bounce 1s infinite">!</span>
           </button>
         </div>
@@ -1148,18 +1154,18 @@ const App = {
         ${mt>=10 ? `
         <div style="margin-bottom:12px">
           <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
-            🚀 In den Zoo teleportieren! (10 🌀 MT)
+            ${typeof t!=='undefined'?t('wm.teleport_btn'):'🚀 In den Zoo teleportieren! (10 🌀 MT)'}
           </button>
         </div>` : `
         <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:100%;width:100%">
-          <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">🦁 Zoo freischalten</div>
-          <div style="font-size:1rem;color:rgba(255,255,255,.6);margin-top:4px">Noch ${Math.max(0,(10-mt)).toFixed(1)} 🌀 MT bis zur Teleportation</div>
+          <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">${typeof t!=='undefined'?t('wm.zoo_unlock_title'):'🦁 Zoo freischalten'}</div>
+          <div style="font-size:1rem;color:rgba(255,255,255,.6);margin-top:4px">${(typeof t!=='undefined'?t('wm.zoo_unlock_body'):'Noch {n} 🌀 MT bis zur Teleportation').replace('{n}',Math.max(0,(10-mt)).toFixed(1))}</div>
           <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
             <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,mt/10*100)}%"></div>
           </div>
         </div>`}
 
-        <div style="font-family:Arial,sans-serif;font-size:1.35rem;color:white;text-align:center;margin-bottom:10px">🎮 Deine 20 Spiele</div>
+        <div style="font-family:Arial,sans-serif;font-size:1.35rem;color:white;text-align:center;margin-bottom:10px">${typeof t!=='undefined'?t('wm.your_games'):'🎮 Deine 20 Spiele'}</div>
 
         <div class="world-map">
           ${WORLDS.map(world => {
@@ -1175,7 +1181,7 @@ const App = {
                 <div class="world-info">
                   <div class="world-name" style="font-size:1.2rem;font-weight:900;color:#1a3a6e">${world.name}${world.subtitle?` <span style="font-size:0.92rem;font-weight:500;color:#555">· ${world.subtitle}</span>`:''}</div>
                   <div class="world-desc" style="font-size:1rem;font-weight:500">${world.difficulty}</div>
-                  <div class="world-progress" style="font-size:0.97rem;font-weight:600">${done}/${ws.tasks.length} Spiele ✓ · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0).toFixed(1)} MT</div>
+                  <div class="world-progress" style="font-size:0.97rem;font-weight:600">${done}/${ws.tasks.length} ${typeof t!=='undefined'?t('wm.games_done'):'Spiele ✓'} · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0).toFixed(1)} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;

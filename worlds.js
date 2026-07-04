@@ -100,9 +100,9 @@ const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
 // WORLDS (legacy — kept for compatibility)
 // ══════════════════════════════════════════
 const WORLD_DEFS = [
-  {id:1, name:'Welt 1', subtitle:'Reise nach Frankreich', icon:'🇫🇷', color:'#2980B9',
-   description:'Verdiene Mischa Taler — baue dein Zoo-Empire!',
-   difficulty:'20 Spiele · bis 2 🌀 MT pro Spiel',
+  {id:1, name:'Welt 1', get subtitle(){ return (typeof t!=='undefined'?t('world1.subtitle'):'Reise nach Frankreich'); }, icon:'🇫🇷', color:'#2980B9',
+   get description(){ return (typeof t!=='undefined'?t('world1.description'):'Verdiene Mischa Taler — baue dein Zoo-Empire!'); },
+   get difficulty(){ return (typeof t!=='undefined'?t('wm.games_count').replace('{n}','20').replace('{m}','2'):'20 Spiele · bis 2 🌀 MT pro Spiel'); },
    memoryEmojis:['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🦒','🐘','🦓'],
    tasks:[
     {id:'dart',       type:'dart',       name:'Dart',          icon:'🎯', title:'Dart spielen'},

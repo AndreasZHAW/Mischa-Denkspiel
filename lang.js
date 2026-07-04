@@ -190,6 +190,20 @@ const STRINGS = {
   'feeder.hint':           { de:'Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld.', en:'A treat makes an animal earn 2× money for 5 minutes.', fr:'Une friandise fait gagner 2× plus d\'argent pendant 5 min.' },
   'feeder.buy_shop':       { de:'Leckerlis im Shop kaufen (1000 MT).', en:'Buy treats in the shop (1000 MT).', fr:'Achète des friandises dans la boutique (1000 MT).' },
   'feeder.slot':           { de:'Gehege', en:'Enclosure', fr:'Enclos' },
+
+  // ── WORLD MAP (Weltkarte, expanded) ──
+  'wm.leaderboard':        { de:'🌍 Rangliste', en:'🌍 Leaderboard', fr:'🌍 Classement' },
+  'wm.log':                { de:'📋 Log', en:'📋 Log', fr:'📋 Journal' },
+  'wm.mt_full':            { de:'Mischa Taler', en:'Mischa Coins', fr:'Mischa Pièces' },
+  'wm.rewards_btn':        { de:'🎁 Belohnungen abholen', en:'🎁 Collect rewards', fr:'🎁 Récupérer récompenses' },
+  'wm.zoo_unlock_title':   { de:'🦁 Zoo freischalten', en:'🦁 Unlock the Zoo', fr:'🦁 Débloquer le Zoo' },
+  'wm.zoo_unlock_body':    { de:'Noch {n} 🌀 MT bis zur Teleportation', en:'{n} more 🌀 MT until teleportation', fr:'Encore {n} 🌀 MT avant la téléportation' },
+  'wm.teleport_btn':       { de:'🚀 In den Zoo teleportieren! (10 🌀 MT)', en:'🚀 Teleport to the Zoo! (10 🌀 MT)', fr:'🚀 Téléporter au Zoo ! (10 🌀 MT)' },
+  'wm.your_games':         { de:'🎮 Deine 20 Spiele', en:'🎮 Your 20 games', fr:'🎮 Tes 20 jeux' },
+  'wm.games_done':         { de:'Spiele ✓', en:'games ✓', fr:'jeux ✓' },
+  'wm.games_count':        { de:'{n} Spiele · bis {m} 🌀 MT pro Spiel', en:'{n} games · up to {m} 🌀 MT per game', fr:'{n} jeux · jusqu\'à {m} 🌀 MT par jeu' },
+  'world1.subtitle':       { de:'Reise nach Frankreich', en:'Journey to France', fr:'Voyage en France' },
+  'world1.description':    { de:'Verdiene Mischa Taler — baue dein Zoo-Empire!', en:'Earn Mischa Coins — build your Zoo Empire!', fr:'Gagne des Mischa Pièces — construis ton Empire du Zoo !' },
 };
 
 // Helper: translate shorthand
