@@ -178,6 +178,18 @@ const STRINGS = {
   'pers.color.reset':      { de:'↺ Auf Standardfarbe zurücksetzen', en:'↺ Reset to default color', fr:'↺ Réinitialiser la couleur' },
   'pers.preview':          { de:'Dein Avatar', en:'Your Avatar', fr:'Ton Avatar' },
   'pers.color.preview':    { de:'Aktive Farbe:', en:'Active color:', fr:'Couleur active :' },
+
+  // ── FEEDER (Leckerli-Automat) ──
+  'feeder.title':          { de:'🍬 Leckerli-Automat', en:'🍬 Treat Dispenser', fr:'🍬 Distributeur de Friandises' },
+  'feeder.yours':          { de:'Deine Leckerlis:', en:'Your treats:', fr:'Tes friandises :' },
+  'feeder.choose':         { de:'Wähle ein Tier, das du fütterst', en:'Choose an animal to feed', fr:'Choisis un animal à nourrir' },
+  'feeder.none':           { de:'Keine Tiere im Zoo zum Füttern.', en:'No animals in the zoo to feed.', fr:'Aucun animal à nourrir dans le zoo.' },
+  'feeder.feed_btn':       { de:'🍬 Füttern (1 Leckerli)', en:'🍬 Feed (1 treat)', fr:'🍬 Nourrir (1 friandise)' },
+  'feeder.already':        { de:'⚡ Schon gefüttert! Läuft noch.', en:'⚡ Already fed! Still active.', fr:'⚡ Déjà nourri ! Toujours actif.' },
+  'feeder.none_left':      { de:'Keine Leckerlis! Im Shop kaufen.', en:'No treats left! Buy some in the shop.', fr:'Plus de friandises ! Achète-en dans la boutique.' },
+  'feeder.hint':           { de:'Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld.', en:'A treat makes an animal earn 2× money for 5 minutes.', fr:'Une friandise fait gagner 2× plus d\'argent pendant 5 min.' },
+  'feeder.buy_shop':       { de:'Leckerlis im Shop kaufen (1000 MT).', en:'Buy treats in the shop (1000 MT).', fr:'Achète des friandises dans la boutique (1000 MT).' },
+  'feeder.slot':           { de:'Gehege', en:'Enclosure', fr:'Enclos' },
 };
 
 // Helper: translate shorthand

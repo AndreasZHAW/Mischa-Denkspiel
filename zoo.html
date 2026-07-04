@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v257 -->
+<!-- ZOO v258 -->
 <html lang="de">
 <head>
 <script>
-// FONT SYSTEM v257: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+// FONT SYSTEM v258: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
 (function(){
   try{
     var v = localStorage.getItem('mischa_font_size');
@@ -17,7 +17,7 @@
 </script>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
 <script>
-// PHASE 1 FIX v257: Block Android's long-press context menu (Download/Share/Print).
+// PHASE 1 FIX v258: Block Android's long-press context menu (Download/Share/Print).
 // -webkit-touch-callout (CSS) does NOT stop Android Chrome's native long-press menu
 // on canvas — the real fix is intercepting the 'contextmenu' event itself.
 document.addEventListener('contextmenu', function(e) {
@@ -47,7 +47,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--user-font-size:16px}
-/* SHARED FONT SYSTEM v257 — same --user-font-size key as Denkspiel (index.html),
+/* SHARED FONT SYSTEM v258 — same --user-font-size key as Denkspiel (index.html),
    read from the same localStorage key 'mischa_font_size'. One setting, both worlds. */
 html{font-size:var(--user-font-size)!important;-webkit-text-size-adjust:100%!important;-moz-text-size-adjust:100%!important;text-size-adjust:100%!important}
 /* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on zoo canvas + controls */
@@ -235,7 +235,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v257','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v258','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -615,6 +615,118 @@ const ANIMALS=[
   {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.03, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
 ];
 window.ANIMALS = ANIMALS;
+const ANIMAL_I18N={
+  cat:{en:'Cat',fr:'Chat'},
+  dog:{en:'Dog',fr:'Chien'},
+  hamster:{en:'Hamster',fr:'Hamster'},
+  dormouse:{en:'Dormouse',fr:'Loir'},
+  rabbit:{en:'Rabbit',fr:'Lapin'},
+  duck:{en:'Duck',fr:'Canard'},
+  chicken:{en:'Chicken',fr:'Poule'},
+  turtle:{en:'Turtle',fr:'Tortue'},
+  fish:{en:'Fish',fr:'Poisson'},
+  sister:{en:'Sister',fr:'Sœur'},
+  brother:{en:'Brother',fr:'Frère'},
+  kangaroo:{en:'Kangaroo',fr:'Kangourou'},
+  deer:{en:'Deer',fr:'Chevreuil'},
+  penguin:{en:'Penguin',fr:'Pingouin'},
+  koala:{en:'Koala',fr:'Koala'},
+  zebra:{en:'Zebra',fr:'Zèbre'},
+  parrot:{en:'Parrot',fr:'Perroquet'},
+  otter:{en:'Otter',fr:'Loutre'},
+  frog:{en:'Frog',fr:'Grenouille'},
+  raccoon:{en:'Raccoon',fr:'Raton laveur'},
+  dolphin:{en:'Dolphin',fr:'Dauphin'},
+  wolf:{en:'Wolf',fr:'Loup'},
+  panda:{en:'Panda',fr:'Panda'},
+  bear:{en:'Bear',fr:'Ours'},
+  flamingo:{en:'Flamingo',fr:'Flamant'},
+  capybara:{en:'Capybara',fr:'Capybara'},
+  jellyfish:{en:'Jellyfish',fr:'Méduse'},
+  fox:{en:'Fox',fr:'Renard'},
+  tiger:{en:'Tiger',fr:'Tigre'},
+  elephant:{en:'Elephant',fr:'Éléphant'},
+  gorilla:{en:'Gorilla',fr:'Gorille'},
+  unicorn:{en:'Unicorn',fr:'Licorne'},
+  narwhal:{en:'Narwhal',fr:'Narval'},
+  orca:{en:'Orca',fr:'Orque'},
+  dragon:{en:'Dragon',fr:'Dragon'},
+  phoenix:{en:'Phoenix',fr:'Phénix'},
+  nessie:{en:'Nessie',fr:'Nessie'},
+  lion:{en:'Lion',fr:'Lion'},
+  mammoth:{en:'Mammoth',fr:'Mammouth'},
+  kraken:{en:'Kraken',fr:'Kraken'},
+  anubis:{en:'Anubis',fr:'Anubis'},
+  cerberus:{en:'Cerberus',fr:'Cerbère'},
+  poseidon:{en:'Poseidon',fr:'Poséidon'},
+  zeus:{en:'Zeus',fr:'Zeus'},
+  thor:{en:'Thor',fr:'Thor'},
+  dino:{en:'Dinosaur',fr:'Dinosaure'},
+  megalodon:{en:'Megalodon',fr:'Mégalodon'},
+  goat:{en:'Goat',fr:'Chèvre'},
+  sheep:{en:'Sheep',fr:'Mouton'},
+  pig:{en:'Pig',fr:'Cochon'},
+  cow:{en:'Cow',fr:'Vache'},
+  rooster:{en:'Rooster',fr:'Coq'},
+  chick:{en:'Chick',fr:'Poussin'},
+  mouse:{en:'Mouse',fr:'Souris'},
+  snail:{en:'Snail',fr:'Escargot'},
+  ladybug:{en:'Ladybug',fr:'Coccinelle'},
+  butterfly:{en:'Butterfly',fr:'Papillon'},
+  fox_b:{en:'Fox',fr:'Renard'},
+  wolf_b:{en:'Wolf',fr:'Loup'},
+  bear_b:{en:'Bear',fr:'Ours'},
+  panda_b:{en:'Panda',fr:'Panda'},
+  lion_b:{en:'Lion',fr:'Lion'},
+  tiger_b:{en:'Tiger',fr:'Tigre'},
+  elephant_b:{en:'Elephant',fr:'Éléphant'},
+  hippo:{en:'Hippo',fr:'Hippopotame'},
+  rhino:{en:'Rhino',fr:'Rhinocéros'},
+  giraffe:{en:'Giraffe',fr:'Girafe'},
+  camel:{en:'Camel',fr:'Chameau'},
+  horse:{en:'Horse',fr:'Cheval'},
+  donkey:{en:'Donkey',fr:'Âne'},
+  bison:{en:'Bison',fr:'Bison'},
+  moose:{en:'Moose',fr:'Élan'},
+  gorilla_b:{en:'Gorilla',fr:'Gorille'},
+  chimp:{en:'Chimp',fr:'Chimpanzé'},
+  whale:{en:'Whale',fr:'Baleine'},
+  shark:{en:'Shark',fr:'Requin'},
+  dolphin_b:{en:'Dolphin',fr:'Dauphin'},
+  octopus:{en:'Octopus',fr:'Poulpe'},
+  seahorse:{en:'Seahorse',fr:'Hippocampe'},
+  narwhal_b:{en:'Narwhal',fr:'Narval'},
+  flamingo_b:{en:'Flamingo',fr:'Flamant'},
+  peacock:{en:'Peacock',fr:'Paon'},
+  dragon_b:{en:'Dragon',fr:'Dragon'},
+  unicorn_b:{en:'Unicorn',fr:'Licorne'},
+  phoenix_b:{en:'Phoenix',fr:'Phénix'},
+  kraken_b:{en:'Kraken',fr:'Kraken'},
+  t_rex:{en:'T-Rex',fr:'T-Rex'},
+  mammoth_b:{en:'Mammoth',fr:'Mammouth'},
+  dodo:{en:'Dodo',fr:'Dodo'},
+  yeti:{en:'Yeti',fr:'Yéti'},
+  alien_pet:{en:'Alien Pet',fr:'Animal Alien'},
+  robot_pet:{en:'Robot Dog',fr:'Chien Robot'},
+  mermaid_pet:{en:'Mermaid',fr:'Sirène'},
+  angel_pet:{en:'Angel Pet',fr:'Animal Ange'},
+  galaxy_pet:{en:'Galaxy Creature',fr:'Créature Galactique'},
+  time_pet:{en:'Time Traveler',fr:'Voyageur Temporel'},
+  void_pet:{en:'Void Being',fr:'Être du Vide'},
+  god_beast:{en:'Divine Beast',fr:'Bête Divine'}
+};
+// Translate animal names in-place if a non-German language is active.
+// Mutating ANIMALS directly means every reference throughout the app
+// (gondola, enclosures, trade, eggs, leaderboards) shows the translation
+// automatically — no need to touch each display call site individually.
+(function(){
+  try{
+    const lang=(typeof LANG!=='undefined'?LANG._cur:null)||localStorage.getItem('mischa_lang')||'de';
+    if(lang==='de')return;
+    ANIMALS.forEach(a=>{ const tr=ANIMAL_I18N[a.id]; if(tr&&tr[lang]) a.n=tr[lang]; });
+  }catch(e){}
+})();
+
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:8},diamond:{n:'DIAMOND',c:'td',m:2,p:5},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:2.5},void:{n:'VOID',c:'tv',m:5,p:1.5}};
 const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'},
@@ -704,7 +816,8 @@ function rTr(ev){
   return got.slice(0,5);
 }
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;return e;}
+function langEarnBonus(){try{const l=(typeof LANG!=='undefined'?LANG._cur:null)||localStorage.getItem('mischa_lang')||'de';return l==='fr'?1.20:(l==='en'?1.10:1.0);}catch(e){return 1.0;}}
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0)*langEarnBonus();if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;return e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
 function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).join('');}
 
@@ -855,7 +968,7 @@ const ZG={
   // Carry system
   carrying:null, carryTimer:null,
   droppedAnimals:[], // [{animal,shiny,traits,slot,x,z,expiresAt,mesh}]
-  nearSt:false,nearEnc:-1,nearLimo:-1,
+  nearSt:false,nearEnc:-1,
   _raf:null,_ivs:[],
   // CIRCULAR MAP
   WR:80, // world radius
@@ -867,7 +980,6 @@ const ZG={
     {x:48,  z:-27, label:'Zoo C',color:0x8E44AD},
   ],
   // Limo shop: one per zone
-  LIMOPOS(){return this.ZONES.map((z,i)=>({x:z.x+(i===0?14:i===1?12:-12),z:z.z+(i===0?10:i===1?8:8)}));},
   // Enclosures: 5 per zone around each zone center
   ENCPOS(){
     // Each player gets their OWN zone based on a hash of their name,
@@ -1631,7 +1743,6 @@ const ZG={
     this._encs();
     this._trees();
     this._hiddenTrapdoor();
-    this._limoStands();
     this._clouds();
     // DEBUG: bright test cube in front of player start position
     const testCube=new THREE.Mesh(
@@ -1905,17 +2016,6 @@ const ZG={
     this._trapdoorPos={x:22,z:-18};
   },
 
-  _limoStands(){
-    const sc=this.scene;
-    this.LIMOPOS().forEach((lp,i)=>{
-      const body=new THREE.Mesh(new THREE.BoxGeometry(5,3,3),new THREE.MeshBasicMaterial({color:0xFF69B4}));
-      body.position.set(lp.x,1.5,lp.z); sc.add(body);
-      const roof=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),new THREE.MeshBasicMaterial({color:0xff1111}));
-      roof.position.set(lp.x,3.2,lp.z); sc.add(roof);
-      const lbl=this._txt('🚗 Speed-Shop',.7,'#FFD700'); lbl.position.set(lp.x,4.5,lp.z); lbl.scale.set(7,1.8,1); sc.add(lbl);
-    });
-  },
-
   _trees(){
     const tM=new THREE.MeshBasicMaterial({color:0x8B4513});
     const lM=new THREE.MeshBasicMaterial({color:0x2d8f2d});
@@ -2033,7 +2133,7 @@ const ZG={
       if(this._nearSweeper){Sweeper.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
-      if(this.nearSt||this.nearEnc>=0||this.nearLimo>=0)this._interact();
+      if(this.nearSt||this.nearEnc>=0)this._interact();
       else this.slap();
     });
     // Mouse move for looking (works without pointer lock - relative tracking)
@@ -2284,8 +2384,6 @@ const ZG={
         break;
       }
     }
-    this.nearLimo=-1;
-    this.LIMOPOS().forEach((lp,i)=>{if(Math.sqrt((this.pl.x-lp.x)**2+(this.pl.z-lp.z)**2)<7)this.nearLimo=i;});
     // Lucky wheel proximity - show prompt
     const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
     this._nearWheel=(wdist<6);
@@ -2326,7 +2424,6 @@ const ZG={
         ip.textContent='🍀 Glücksrad — nächster Spin in '+(minsLeft>0?minsLeft:0)+' Min';
       }
     }
-    else if(this.nearLimo>=0){ip.style.opacity='1';ip.textContent='🚗 [E] Speed-Shop öffnen';}
     else{ip.style.opacity='0';}
   },
 
@@ -2353,9 +2450,6 @@ const ZG={
     // Enclosures
     ctx.fillStyle='rgba(74,138,48,.8)';
     this.ENCPOS().slice(0,ZS.maxE()).forEach(ep=>{ctx.fillRect(W/2+ep.x*sc2-2,W/2+ep.z*sc2-2,4,4);});
-    // Limo stands
-    ctx.fillStyle='#FF69B4';
-    this.LIMOPOS().forEach(lp=>{ctx.fillRect(W/2+lp.x*sc2-2,W/2+lp.z*sc2-2,4,4);});
     // Player arrow
     ctx.fillStyle='#FFD700';const px=W/2+this.pl.x*sc2,pz=W/2+this.pl.z*sc2;
     ctx.beginPath();ctx.arc(px,pz,4,0,Math.PI*2);ctx.fill();
@@ -2953,7 +3047,6 @@ const ZG={
       this._placeCarried(); return;
     }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
-    if(this.nearLimo>=0){ZP.openLimo(this.nearLimo);return;}
     // Gold Machine
     if(this._nearGoldMachine){GoldMachine.open();return;}
     if(this._nearFeeder){Feeder.open();return;}
@@ -4307,15 +4400,6 @@ const ZP={
     loop();
   },
   openEnc(i){show('p-enc');G('pent').textContent='Gehege #'+(i+1);this._rEnc(i);},
-  openLimo(zi){
-    // Find first enclosure in this zone
-    const eps=ZG.ENCPOS();const z=ZS.zoo;
-    for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){
-      if(eps[i].zone===zi&&z.enc[i]){this.openEnc(i);return;}
-    }
-    this.toast('Keine Tiere in diesem Zoo-Bereich.',2000);
-  },
-
   // GONDOLA
   // ── EGG OPENING (Gondola) ──
   // Pick animal from rarity pool sorted by earn (quality indicator):
@@ -5152,7 +5236,7 @@ const ZP={
   },
   _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();},
 
-  // ENCLOSURE + LIMO SPEED SHOP
+  // ENCLOSURE
   _rEnc(i){
     const z=ZS.zoo,enc=z.enc[i],el=G('pencm');
     if(!enc){el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Leer — Tier in der Gondel-Station kaufen!</div>`;return;}
@@ -5165,15 +5249,7 @@ const ZP={
       <div style="font-weight:900;font-size:1.05rem;margin-bottom:3px">${sB(enc.shiny)} ${enc.animal.n}</div>
       <div class="${rd.c}" style="margin-bottom:3px">${rd.n}</div>${tB(enc.traits)}
       <div style="background:rgba(255,255,255,.06);border-radius:9px;padding:9px;margin:9px 0;text-align:left;font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.8">
-        💰 ${$mt(ev2)}/Besucher<br>📊 ×${tm.toFixed(2)} Mult<br>🏃 Speed-Lv ${sl} (+${sp}% Einnahmen)
-      </div>
-      <!-- LIMO SPEED SHOP -->
-      <div style="background:linear-gradient(135deg,rgba(255,105,180,.1),rgba(255,165,0,.08));border:2px solid rgba(255,105,180,.35);border-radius:12px;padding:11px;margin-bottom:10px">
-        <div style="font-size:1.5rem;margin-bottom:4px">🚗</div>
-        <div style="font-weight:900;color:#FF69B4;font-size:.86rem;margin-bottom:4px">Limo Speed-Shop</div>
-        <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:6px">+5% Einnahmen pro Level</div>
-        <div style="font-size:.76rem;color:#00CFFF;margin-bottom:6px">Nächstes Level: ${$mt(sc)}</div>
-        <button class="ab" ${z.mt<sc?'disabled':''} onclick="ZP._bSpd(${i},${sc})" style="font-size:.82rem;padding:7px 16px">⚡ Speed +5%</button>
+        💰 ${$mt(ev2)}/Besucher<br>📊 ×${tm.toFixed(2)} Mult<br>🏃 Speed-Lv ${sl} (+${sp}% Einnahmen)${(typeof langEarnBonus==='function'&&langEarnBonus()>1)?'<br>🌐 Sprach-Bonus: +'+Math.round((langEarnBonus()-1)*100)+'%':''}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         <button class="btn btnd" style="font-size:.78rem;padding:8px" onclick="ZP._sell(${i})">🗑️ Verkaufen (${$mt(enc.animal.p*.5)})</button>
@@ -5247,7 +5323,6 @@ const ZP={
     ZP.toast('🐾 '+g.a.e+' '+g.a.n+' auf dem Weg! Trage es ins Gehege '+(slot+1)+'! (50% langsamer)',3000);
     ZG._updHUD();
   },
-  _bSpd(i,cost){const z=ZS.zoo;if(z.mt<cost){this.toast('❌ Zu wenig!');return;}z.mt-=cost;z.enc[i].sl=(z.enc[i].sl||0)+1;this.toast(`⚡ Speed-Level ${z.enc[i].sl}!`,2000);this._rEnc(i);ZG._updHUD();},
   _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();},
 
   // MENU
@@ -7802,30 +7877,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   history.pushState(null,'','');
 
-  // ═══ TEST-MODE: Trigger-Buttons zum Testen der Events ═══
+  // Reward button + badge timer still needed in test mode (unrelated to debug triggers)
   if(window.MISCHA_TESTMODE){
-    // show reward button in zoo + badge timer
     const rhz=document.getElementById('rewardHbZoo'); if(rhz)rhz.style.display='';
     if(typeof RewardChests!=='undefined' && RewardChests.startBadgeTimer) RewardChests.startBadgeTimer();
-    setTimeout(()=>{
-      if(document.getElementById('test-triggers'))return;
-      const box=document.createElement('div');
-      box.id='test-triggers';
-      box.style.cssText='position:fixed;top:70px;right:8px;z-index:9000;display:flex;flex-direction:column;gap:4px;align-items:flex-end;max-width:130px';
-      const mk=(label,fn,bg,fg)=>'<button onclick="'+fn+'" style="background:'+bg+';color:'+(fg||'#fff')+';border:none;padding:4px 7px;border-radius:6px;font-size:.62rem;cursor:pointer;font-weight:700">'+label+'</button>';
-      box.innerHTML='<div style="font-size:.6rem;color:#ff6b00;font-weight:900">🧪 TEST-TRIGGER</div>'+
-        mk('🚓 Polizei','ZooEvents.policeRaid()','#3498db')+
-        mk('🚜 Unfall','Sweeper._accident()','#F39C12','#1a1a2e')+
-        mk('🤕 Anfall','ZooEvents.assault()','#e74c3c')+
-        mk('🔥 Feuer','ZooEvents.fire()','#e67e22')+
-        mk('🦠 Gesundheit','ZooEvents.health()','#16a085')+
-        mk('🦹 Einbrecher','ZooEvents.thief()','#8e44ad')+
-        mk('⚖️ Protest','ZooEvents.protest()','#27ae60')+
-        mk('🌪️ Sturm','ZooEvents.storm()','#5dade2')+
-        mk('🤩 Influencer','ZooEvents.influencer()','#e84393')+
-        mk('🐍 Ausbruch','ZooEvents.escape()','#e67e22');
-      document.body.appendChild(box);
-    }, 3000);
   }
 
   // ═══ IDLE TIMEOUT: 20 min no activity → back to Mischa Denkspiel ═══
@@ -8084,21 +8139,21 @@ const Feeder = {
       return '<div onclick="Feeder._select('+o.i+')" style="background:'+(RAR_COL[a.r]||"#95a5a6")+"22"+';border:2px solid '+(active?"#27AE60":(RAR_COL[a.r]||"#95a5a6"))+';border-radius:10px;padding:8px 5px;text-align:center;cursor:pointer;min-width:78px">'+
         '<div style="font-size:1.8rem">'+(a.e||"🐾")+'</div>'+
         '<div style="font-size:.7rem;color:#fff;font-weight:700">'+(a.n||a.id)+'</div>'+
-        (active?'<div style="font-size:.62rem;color:#27AE60;font-weight:700">⚡ 2× ('+mins+"min)"+'</div>':'<div style="font-size:.62rem;color:rgba(255,255,255,.45)">Gehege '+(o.i+1)+'</div>')+
+        (active?'<div style="font-size:.62rem;color:#27AE60;font-weight:700">⚡ 2× ('+mins+"min)"+'</div>':'<div style="font-size:.62rem;color:rgba(255,255,255,.45)">'+(typeof t!=='undefined'?t('feeder.slot'):'Gehege')+' '+(o.i+1)+'</div>')+
         '</div>';
-    }).join('') || '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:20px">Keine Tiere im Zoo zum Füttern.</div>';
+    }).join('') || '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:20px">'+(typeof t!=='undefined'?t('feeder.none'):'Keine Tiere im Zoo zum Füttern.')+'</div>';
     const ov=document.createElement('div');
     ov.id='feeder-panel';
     ov.style.cssText='position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px';
     ov.innerHTML='<div style="background:linear-gradient(135deg,#2a1e0e,#1e1408);border:2px solid #d9a441;border-radius:18px;max-width:620px;width:100%;max-height:88vh;overflow:auto;padding:18px;color:#fff">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-        '<div style="font-size:1.2rem;font-weight:900;color:#f5c542">🍬 Leckerli-Automat</div>'+
+        '<div style="font-size:1.2rem;font-weight:900;color:#f5c542">'+(typeof t!=='undefined'?t('feeder.title'):'🍬 Leckerli-Automat')+'</div>'+
         '<button onclick="document.getElementById(\'feeder-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer">✕</button>'+
       '</div>'+
-      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">Deine Leckerlis: <b style="color:#f5c542">🍬 '+treats+'</b> · Wähle ein Tier, das du fütterst</div>'+
+      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">'+(typeof t!=='undefined'?t('feeder.yours'):'Deine Leckerlis:')+' <b style="color:#f5c542">🍬 '+treats+'</b> · '+(typeof t!=='undefined'?t('feeder.choose'):'Wähle ein Tier, das du fütterst')+'</div>'+
       '<div id="feeder-action" style="margin-bottom:10px"></div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+cards+'</div>'+
-      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">Ein Leckerli macht ein Tier <b style="color:#27AE60">5 Min lang 2× so schnell Geld</b>.<br>Leckerlis im Shop kaufen (1000 MT).</div>'+
+      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">'+(typeof t!=='undefined'?t('feeder.hint'):'Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld.')+'<br>'+(typeof t!=='undefined'?t('feeder.buy_shop'):'Leckerlis im Shop kaufen (1000 MT).')+'</div>'+
     '</div>';
     document.body.appendChild(ov);
   },
@@ -8111,9 +8166,9 @@ const Feeder = {
     const el=document.getElementById('feeder-action'); if(!el) return;
     el.innerHTML='<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center">'+
       '<span style="font-size:1.4rem">'+(a.e||"")+'</span> <b>'+(a.n||a.id)+'</b>'+
-      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ Schon gefüttert! Läuft noch.</span>':'')+
-      (treats>0? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">🍬 Füttern (1 Leckerli)</button>'
-                : '<br><span style="color:#E74C3C;font-size:.8rem">Keine Leckerlis! Im Shop kaufen.</span>')+
+      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ '+(typeof t!=='undefined'?t('feeder.already'):'Schon gefüttert! Läuft noch.')+'</span>':'')+
+      (treats>0? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">'+(typeof t!=='undefined'?t('feeder.feed_btn'):'🍬 Füttern (1 Leckerli)')+'</button>'
+                : '<br><span style="color:#E74C3C;font-size:.8rem">'+(typeof t!=='undefined'?t('feeder.none_left'):'Keine Leckerlis! Im Shop kaufen.')+'</span>')+
       '</div>';
   },
   _feed(){
@@ -8971,7 +9026,7 @@ window.ZooEvents = ZooEvents;
           <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px;margin-bottom:10px">
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Version / Titel</div>
-              <input id="news-title" type="text" placeholder="z.B. v257 – Neue Events + Jump Level!" maxlength="60"
+              <input id="news-title" type="text" placeholder="z.B. v258 – Neue Events + Jump Level!" maxlength="60"
                 oninput="ZAdmin._previewNews()"
                 style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
             </div>
