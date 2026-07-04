@@ -176,6 +176,9 @@ const State = {
     if (nameLc === 'bu' && password !== 'mischa2026') return null;
     const existing = await this.getPlayer(name);
     if (existing) return null; // Player already exists
+    // Language bonus: +1 MT for non-German UI languages (not de_simple — still German)
+    let _langBonus = 0;
+    try { if (typeof LANG !== 'undefined') _langBonus = LANG.getBonus(); } catch(e) {}
     const player = {
       name, password,
       birthYear: parseInt(birthYear),
@@ -183,7 +186,7 @@ const State = {
       characterColor: characterColor || null,
       currentWorld: 1,
       worlds: this._emptyWorlds(),
-      totalScore: 0,
+      totalScore: _langBonus,
       createdAt: Date.now(),
     };
     await this.savePlayer(player);

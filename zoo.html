@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v259 -->
+<!-- ZOO v260 -->
 <html lang="de">
 <head>
 <script>
-// FONT SYSTEM v259: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+// FONT SYSTEM v260: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
 (function(){
   try{
     var v = localStorage.getItem('mischa_font_size');
@@ -17,7 +17,7 @@
 </script>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
 <script>
-// PHASE 1 FIX v259: Block Android's long-press context menu (Download/Share/Print).
+// PHASE 1 FIX v260: Block Android's long-press context menu (Download/Share/Print).
 // -webkit-touch-callout (CSS) does NOT stop Android Chrome's native long-press menu
 // on canvas — the real fix is intercepting the 'contextmenu' event itself.
 document.addEventListener('contextmenu', function(e) {
@@ -47,7 +47,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--user-font-size:16px}
-/* SHARED FONT SYSTEM v259 — same --user-font-size key as Denkspiel (index.html),
+/* SHARED FONT SYSTEM v260 — same --user-font-size key as Denkspiel (index.html),
    read from the same localStorage key 'mischa_font_size'. One setting, both worlds. */
 html{font-size:var(--user-font-size)!important;-webkit-text-size-adjust:100%!important;-moz-text-size-adjust:100%!important;text-size-adjust:100%!important}
 /* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on zoo canvas + controls */
@@ -235,7 +235,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v259','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v260','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -282,14 +282,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 
 <div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl">Profil</div></div>
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl">Melden</div></div>
-<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">${typeof t!=='undefined'?t('zoo.trade'):'Tauschen'}</div></div>
-<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">${typeof t!=='undefined'?t('zoo.rebirth'):'Rebirth'}</div></div>
-<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">${typeof t!=='undefined'?t('zoo.shop'):'Shop'}</div></div>
+<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
+<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
+<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
-<div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl">${typeof t!=='undefined'?t('zoo.sound'):'Sound'}</div></div>
-<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">${typeof t!=='undefined'?t('zoo.menu'):'Menü'}</div></div>
+<div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl" data-i18n="zoo.sound">Sound</div></div>
+<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
-<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl">${typeof t!=='undefined'?t('zoo.update'):'Update'}</div></div>
+<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl" data-i18n="zoo.update">Update</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
@@ -722,7 +722,7 @@ const ANIMAL_I18N={
 (function(){
   try{
     const lang=(typeof LANG!=='undefined'?LANG._cur:null)||localStorage.getItem('mischa_lang')||'de';
-    if(lang==='de')return;
+    if(lang==='de'||lang==='de_simple')return;
     ANIMALS.forEach(a=>{ const tr=ANIMAL_I18N[a.id]; if(tr&&tr[lang]) a.n=tr[lang]; });
   }catch(e){}
 })();
@@ -771,6 +771,54 @@ const EVENTS=[
   {id:'jump',      n:'🏃 Jump-Event',    col:'#27ae60', d:'Meistere den Jump-Run → Riesige MT!',  dur:900000, adminOnly:false, trait:{id:'acrobat',n:'ACROBAT',c:'tac',m:1.8,p:4}},
 ];
 window.EVENTS = EVENTS;
+const EVENT_I18N={
+  snow:{en:{n:'❄️ Snowstorm',d:'CRYSTAL Trait + white gondolas!'},fr:{n:'❄️ Tempête de neige',d:'Trait CRISTAL + gondoles blanches !'}},
+  party:{en:{n:'🎉 Concert',d:'CONCERT Trait + Party ×4!'},fr:{n:'🎉 Concert',d:'Trait CONCERT + Fête ×4 !'}},
+  golden:{en:{n:'✨ Golden Rain',d:'FIRE Trait + ×2.5 earnings!'},fr:{n:'✨ Pluie dorée',d:'Trait FEU + ×2,5 revenus !'}},
+  night:{en:{n:'🌙 Magic Night',d:'COSMIC + Rares more common!'},fr:{n:'🌙 Nuit magique',d:'COSMIQUE + Raretés plus fréquentes !'}},
+  rush:{en:{n:'🏃 Rush Hour',d:'ELECTRIC + ×5 visitors!'},fr:{n:'🏃 Heure de pointe',d:'ÉLECTRIQUE + ×5 visiteurs !'}},
+  mega:{en:{n:'💎 Mega Event',d:'All traits + ×3 everywhere!'},fr:{n:'💎 Méga-événement',d:'Tous les traits + ×3 partout !'}},
+  glitch:{en:{n:'👾 Glitch',d:'GLITCH + Gondola walkable!'},fr:{n:'👾 Glitch',d:'GLITCH + Gondole praticable !'}},
+  storm:{en:{n:'⛈️ Storm',d:'×4 earnings in the storm!'},fr:{n:'⛈️ Tempête',d:'×4 revenus pendant la tempête !'}},
+  rainbow:{en:{n:'🌈 Rainbow',d:'All shinies + ×3 luck!'},fr:{n:'🌈 Arc-en-ciel',d:'Tous les brillants + ×3 chance !'}},
+  volcano:{en:{n:'🌋 Volcano',d:'FIRE + ELECTRIC + ×6 visitors!'},fr:{n:'🌋 Volcan',d:'FEU + ÉLECTRIQUE + ×6 visiteurs !'}},
+  galaxy:{en:{n:'🌌 Galaxy',d:'COSMIC + rare animals appear!'},fr:{n:'🌌 Galaxie',d:'COSMIQUE + animaux rares apparaissent !'}},
+  carnival:{en:{n:'🎠 Carnival',d:'CONCERT + ×3 gondolas + party!'},fr:{n:'🎠 Carnaval',d:'CONCERT + ×3 gondoles + fête !'}},
+  treasure:{en:{n:'💰 Treasure Hunt',d:'×5 MT for everyone + Lucky Blocks!'},fr:{n:'💰 Chasse au trésor',d:'×5 MT pour tous + Blocs Chanceux !'}},
+  spring:{en:{n:'🌸 Spring',d:'CRYSTAL + COSMIC + gentle music!'},fr:{n:'🌸 Printemps',d:'CRISTAL + COSMIQUE + musique douce !'}},
+  halloween:{en:{n:'🎃 Halloween',d:'Ghost animals + spooky bonus!'},fr:{n:'🎃 Halloween',d:'Animaux fantômes + bonus effrayant !'}},
+  aurora:{en:{n:'🌠 Aurora',d:'CRYSTAL + ×3 luck in the sky!'},fr:{n:'🌠 Aurore boréale',d:'CRISTAL + ×3 chance dans le ciel !'}},
+  desert:{en:{n:'🏜️ Desert Storm',d:'FIRE + ×4 MT in the heat!'},fr:{n:'🏜️ Tempête du désert',d:'FEU + ×4 MT dans la chaleur !'}},
+  ocean:{en:{n:'🌊 Ocean Flood',d:'Water animals more common + ×3!'},fr:{n:'🌊 Marée océanique',d:'Animaux aquatiques plus fréquents + ×3 !'}},
+  thunder:{en:{n:'⚡ Thunderstorm',d:'ELECTRIC + ×5 visitor boost!'},fr:{n:'⚡ Orage',d:'ÉLECTRIQUE + ×5 boost de visiteurs !'}},
+  bloom:{en:{n:'🌺 Full Bloom',d:'CONCERT + gentle ×3 bonus!'},fr:{n:'🌺 Pleine floraison',d:'CONCERT + bonus doux ×3 !'}},
+  cosmic:{en:{n:'☄️ Shooting Star',d:'COSMIC + legendary animals x2!'},fr:{n:'☄️ Étoile filante',d:'COSMIQUE + animaux légendaires x2 !'}},
+  gold_rush:{en:{n:'🪙 Gold Rush',d:'×6 MT for 5 minutes!'},fr:{n:'🪙 Ruée vers l’or',d:'×6 MT pendant 5 minutes !'}},
+  festival:{en:{n:'🎪 Zoo Festival',d:'All traits + ×4 + party mode!'},fr:{n:'🎪 Festival du Zoo',d:'Tous les traits + ×4 + mode fête !'}},
+  flood:{en:{n:'🌊 Flood',d:'Water rises! Water animals ×4!'},fr:{n:'🌊 Inondation',d:'L’eau monte ! Animaux aquatiques ×4 !'}},
+  fireworks:{en:{n:'🎆 Fireworks',d:'Colorful explosion! ×3 earnings!'},fr:{n:'🎆 Feu d’artifice',d:'Explosion colorée ! ×3 revenus !'}},
+  tornado:{en:{n:'🌪️ Tornado',d:'Whirlwind! ×5 visitors!'},fr:{n:'🌪️ Tornade',d:'Tourbillon ! ×5 visiteurs !'}},
+  summer:{en:{n:'🏖️ Summer Fever',d:'Hot! ×3 MT + exotic animals!'},fr:{n:'🏖️ Fièvre estivale',d:'Chaud ! ×3 MT + animaux exotiques !'}},
+  halloween2:{en:{n:'🎃 Halloween',d:'Spooky! Ghost animals + GLITCH!'},fr:{n:'🎃 Halloween',d:'Effrayant ! Animaux fantômes + GLITCH !'}},
+  xmas:{en:{n:'🎄 Christmas',d:'Ho Ho Ho! ×4 everywhere!'},fr:{n:'🎄 Noël',d:'Ho Ho Ho ! ×4 partout !'}},
+  meteor:{en:{n:'🌌 Meteor Shower',d:'Meteors! Legendary animals ×3!'},fr:{n:'🌌 Pluie de météores',d:'Météores ! Animaux légendaires ×3 !'}},
+  mushroom:{en:{n:'🍄 Mushroom World',d:'Psychedelic! ×2 everything!'},fr:{n:'🍄 Monde des champignons',d:'Psychédélique ! ×2 tout !'}},
+  thunder2:{en:{n:'⚡ Thunderstorm',d:'Lightning! ELECTRIC ×2 + Rush!'},fr:{n:'⚡ Orage',d:'Éclair ! ÉLECTRIQUE ×2 + Rush !'}},
+  dragon:{en:{n:'🐉 Dragons',d:'Dragon invasion! FIRE ×3!'},fr:{n:'🐉 Dragons',d:'Invasion de dragons ! FEU ×3 !'}},
+  france:{en:{n:'🇫🇷 France',d:'Liberté! Every 10th animal ×5!'},fr:{n:'🇫🇷 France',d:'Liberté ! Chaque 10e animal ×5 !'}},
+  jump:{en:{n:'🏃 Jump Event',d:'Master the Jump-Run → huge MT!'},fr:{n:'🏃 Jeu de Saut',d:'Maîtrise le parcours → MT énormes !'}},
+};
+// Translate event names/descriptions in-place (same pattern as ANIMAL_I18N) —
+// mutating the shared EVENTS array means every place that reads ev.n / ev.d
+// (HUD banner, admin panel, toasts) shows the translation automatically.
+(function(){
+  try{
+    const lang=(typeof LANG!=='undefined'?LANG._cur:null)||localStorage.getItem('mischa_lang')||'de';
+    if(lang==='de'||lang==='de_simple')return;
+    EVENTS.forEach(e=>{ const tr=EVENT_I18N[e.id]; if(tr&&tr[lang]){ e.n=tr[lang].n; e.d=tr[lang].d; } });
+  }catch(e){}
+})();
+
 const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀'},{m:3,cost:80000,l:'×3 🍀🍀🍀'},{m:5,cost:250000,l:'×5 ⭐'},{m:7,cost:1000000,l:'×7 🌟'},{m:10,cost:5000000,l:'×10 👑 MAX'}];
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
@@ -1117,6 +1165,7 @@ const ZG={
     this.pitch = 0;
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     if(typeof LANG!=='undefined')LANG.load();
+    applyI18n();
     LW.init();ZSound.loadStyle();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     // Check for admin announcement
     setTimeout(()=>_checkAnnouncement(),1500);
@@ -7396,30 +7445,51 @@ async function _checkNews(){
 function _showNewsModal(news){
   const ov=document.createElement('div'); ov.id='news-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:99989;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif';
+  // Card: fixed header + footer, SCROLLABLE middle (supports long news up to 10000 chars)
   const card=document.createElement('div');
-  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3)';
-  // Header
-  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px';
+  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3);display:flex;flex-direction:column';
+  // Header (fixed)
+  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0';
   const badge=document.createElement('div'); badge.style.cssText='background:#FFD700;color:#000;border-radius:8px;padding:3px 10px;font-size:.75rem;font-weight:900'; badge.textContent='📰 UPDATE';
   const htitle=document.createElement('div'); htitle.style.cssText='color:#fff;font-weight:900;font-size:1rem;flex:1'; htitle.textContent='Was ist neu?';
   const xb=document.createElement('button'); xb.textContent='✕'; xb.style.cssText='background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer';
   xb.onclick=()=>{ov.remove(); _newsMarkSeen(news.id);};
   hdr.appendChild(badge); hdr.appendChild(htitle); hdr.appendChild(xb);
   card.appendChild(hdr);
-  // Content
-  const body=document.createElement('div'); body.style.cssText='padding:18px';
+  // Scrollable content
+  const scroll=document.createElement('div'); scroll.style.cssText='overflow-y:auto;flex:1;padding:18px;min-height:0;-webkit-overflow-scrolling:touch';
   const ttl=document.createElement('div'); ttl.style.cssText='font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:10px'; ttl.textContent=news.title;
-  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6;margin-bottom:16px'; bdy.textContent=news.body||'';
+  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6'; bdy.textContent=news.body||'';
+  scroll.appendChild(ttl); scroll.appendChild(bdy);
+  card.appendChild(scroll);
+  // Footer (fixed, always reachable even with long text)
+  const footer=document.createElement('div'); footer.style.cssText='padding:14px 18px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)';
   const okb=document.createElement('button'); okb.textContent='👍 Verstanden!'; okb.style.cssText='width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer';
   okb.onclick=()=>{ov.remove(); _newsMarkSeen(news.id);};
-  body.appendChild(ttl); body.appendChild(bdy); body.appendChild(okb);
-  card.appendChild(body); ov.appendChild(card); document.body.appendChild(ov);
+  footer.appendChild(okb);
+  card.appendChild(footer);
+  ov.appendChild(card); document.body.appendChild(ov);
 }
 function _newsMarkSeen(id){
   const s=JSON.parse(localStorage.getItem('zoo_news_seen')||'[]');
   if(!s.includes(id)){s.push(id);if(s.length>20)s.shift();}
   localStorage.setItem('zoo_news_seen',JSON.stringify(s));
 }
+
+// ── I18N: translate any static HTML marked with data-i18n="key" ──
+// (Needed because template-literal-looking ${...} syntax in raw HTML is
+// NEVER evaluated by the browser outside of an actual JS template literal —
+// it just renders as literal text. This function is the correct fix.)
+function applyI18n(root){
+  try{
+    const scope = root || document;
+    scope.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      if(typeof t==='function'){ const txt=t(key); if(txt && txt!==key) el.textContent=txt; }
+    });
+  }catch(e){}
+}
+window.applyI18n = applyI18n;
 
 // ── ADMIN ANNOUNCEMENTS ──
 async function _checkAnnouncement(){
@@ -9026,13 +9096,13 @@ window.ZooEvents = ZooEvents;
           <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px;margin-bottom:10px">
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Version / Titel</div>
-              <input id="news-title" type="text" placeholder="z.B. v259 – Neue Events + Jump Level!" maxlength="60"
+              <input id="news-title" type="text" placeholder="z.B. v260 – Neue Events + Jump Level!" maxlength="60"
                 oninput="ZAdmin._previewNews()"
                 style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
             </div>
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📋 Beschreibung</div>
-              <textarea id="news-body" placeholder="Was ist neu? Schreibe hier die Änderungen..." maxlength="400" rows="4"
+              <textarea id="news-body" placeholder="Was ist neu? Schreibe hier die Änderungen..." maxlength="10000" rows="8"
                 oninput="ZAdmin._previewNews()"
                 style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.85rem;resize:none;box-sizing:border-box"></textarea>
             </div>
@@ -9052,7 +9122,7 @@ window.ZooEvents = ZooEvents;
             </div>
             <div style="padding:14px">
               <div id="news-preview-title" style="font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:8px">Titel erscheint hier</div>
-              <div id="news-preview-body" style="font-size:.85rem;color:rgba(255,255,255,.7);white-space:pre-wrap;line-height:1.5">Beschreibung erscheint hier...</div>
+              <div id="news-preview-body" style="font-size:.85rem;color:rgba(255,255,255,.7);white-space:pre-wrap;line-height:1.5;max-height:200px;overflow-y:auto">Beschreibung erscheint hier...</div>
             </div>
           </div>
           <div id="news-status" style="text-align:center;font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Noch keine News aktiv.</div>

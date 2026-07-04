@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#87CEEB">
   <title>Das Mischa Denkspiel ✈️ v29</title>
   <script>
-  // FONT SYSTEM v259: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+  // FONT SYSTEM v260: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
   (function(){
     try{
       var v = localStorage.getItem('mischa_font_size');
@@ -62,7 +62,7 @@
     @keyframes popBurst{0%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.5}100%{transform:scale(0);opacity:0}}
   </style>
   <script>
-  // PHASE 1 FIX v259: Block Android's long-press context menu (Download/Share/Print).
+  // PHASE 1 FIX v260: Block Android's long-press context menu (Download/Share/Print).
   // -webkit-touch-callout (CSS) only affects iOS Safari — it does NOT stop Android
   // Chrome's native long-press menu on canvas/img. The real fix is intercepting the
   // 'contextmenu' event itself, which Android fires on long-press.
@@ -347,7 +347,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v259 wird geladen...';
+      if(vEl) vEl.textContent = 'v260 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)
@@ -517,21 +517,25 @@ function _showDenkspielNews(news){
   const ov=document.createElement('div'); ov.id='news-modal-d';
   ov.style.cssText='position:fixed;inset:0;z-index:99989;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif';
   const card=document.createElement('div');
-  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3)';
-  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px';
+  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3);display:flex;flex-direction:column';
+  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0';
   const badge=document.createElement('div'); badge.style.cssText='background:#FFD700;color:#000;border-radius:8px;padding:3px 10px;font-size:.75rem;font-weight:900'; badge.textContent='📰 UPDATE';
   const htitle=document.createElement('div'); htitle.style.cssText='color:#fff;font-weight:900;font-size:1rem;flex:1'; htitle.textContent='Was ist neu?';
   const xb=document.createElement('button'); xb.textContent='✕'; xb.style.cssText='background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer';
   xb.onclick=()=>{ov.remove();_newsMarkSeenD(news.id);};
   hdr.appendChild(badge); hdr.appendChild(htitle); hdr.appendChild(xb);
   card.appendChild(hdr);
-  const body=document.createElement('div'); body.style.cssText='padding:18px';
+  const scroll=document.createElement('div'); scroll.style.cssText='overflow-y:auto;flex:1;padding:18px;min-height:0;-webkit-overflow-scrolling:touch';
   const ttl=document.createElement('div'); ttl.style.cssText='font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:10px'; ttl.textContent=news.title;
-  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6;margin-bottom:16px'; bdy.textContent=news.body||'';
+  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6'; bdy.textContent=news.body||'';
+  scroll.appendChild(ttl); scroll.appendChild(bdy);
+  card.appendChild(scroll);
+  const footer=document.createElement('div'); footer.style.cssText='padding:14px 18px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)';
   const okb=document.createElement('button'); okb.textContent='👍 Verstanden!'; okb.style.cssText='width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer';
   okb.onclick=()=>{ov.remove();_newsMarkSeenD(news.id);};
-  body.appendChild(ttl); body.appendChild(bdy); body.appendChild(okb);
-  card.appendChild(body); ov.appendChild(card); document.body.appendChild(ov);
+  footer.appendChild(okb);
+  card.appendChild(footer);
+  ov.appendChild(card); document.body.appendChild(ov);
 }
 function _newsMarkSeenD(id){const s=JSON.parse(localStorage.getItem('zoo_news_seen')||'[]');if(!s.includes(id)){s.push(id);if(s.length>20)s.shift();}localStorage.setItem('zoo_news_seen',JSON.stringify(s));}
 </script>

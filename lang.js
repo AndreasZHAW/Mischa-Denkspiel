@@ -1,17 +1,19 @@
 // Mischa Denkspiel — Language System
-// Supports: de (Deutsch), en (English), fr (Français)
+// Supports: de (Jugendsprache/Standard-Deutsch), de_simple (einfaches Deutsch
+// für Eltern/Grosseltern — erklärt Denglisch-Begriffe wie "Jump-Event"),
+// en (English), fr (Français)
 const LANG = {
   _cur: 'de',
   
   load() {
     try { this._cur = localStorage.getItem('mischa_lang') || 'de'; } catch(e) {}
-    document.documentElement.lang = this._cur;
+    document.documentElement.lang = (this._cur==='de_simple'?'de':this._cur);
   },
   
   set(lang) {
     this._cur = lang;
     try { localStorage.setItem('mischa_lang', lang); } catch(e) {}
-    document.documentElement.lang = lang;
+    document.documentElement.lang = (lang==='de_simple'?'de':lang);
     // Reload page to apply
     location.reload();
   },
@@ -19,27 +21,34 @@ const LANG = {
   t(key) {
     const entry = STRINGS[key];
     if (!entry) return key;
+    // de_simple falls back to de.simple key if present, else plain 'de' text
+    if (this._cur === 'de_simple') return entry.de_simple || entry.de || key;
     return entry[this._cur] || entry.de || key;
   },
   
-  // Bonus MT for non-German speakers
+  // Bonus MT for non-German speakers (de_simple is still German, no bonus)
   getBonus() {
-    return this._cur !== 'de' ? 1 : 0;
+    return (this._cur !== 'de' && this._cur !== 'de_simple') ? 1 : 0;
   },
   
-  // Flag emoji for current language
+  // Flag/icon for current language
   flag() {
-    return {de:'🇩🇪', en:'🇬🇧', fr:'🇫🇷'}[this._cur] || '🇩🇪';
+    return {de:'🇩🇪', de_simple:'👴', en:'🇬🇧', fr:'🇫🇷'}[this._cur] || '🇩🇪';
   },
   
   // Language selector HTML
   selectorHTML(small) {
-    const langs = [{id:'de',flag:'🇩🇪',name:'Deutsch'},{id:'en',flag:'🇬🇧',name:'English'},{id:'fr',flag:'🇫🇷',name:'Français'}];
+    const langs = [
+      {id:'de',        flag:'🇩🇪', name:'Deutsch'},
+      {id:'de_simple',  flag:'👴', name:'Deutsch (einfach)'},
+      {id:'en',        flag:'🇬🇧', name:'English'},
+      {id:'fr',        flag:'🇫🇷', name:'Français'},
+    ];
     if(small) {
       return langs.map(l=>`<button onclick="LANG.set('${l.id}')" style="background:${l.id===LANG._cur?'rgba(255,255,255,.25)':'rgba(255,255,255,.08)'};border:1px solid rgba(255,255,255,${l.id===LANG._cur?'.5':'.15'});color:#fff;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:.85rem">${l.flag} ${l.name}</button>`).join('');
     }
     return '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'+
-      langs.map(l=>`<button onclick="LANG.set('${l.id}')" style="background:${l.id===LANG._cur?'rgba(255,255,255,.2)':'rgba(255,255,255,.07)'};border:2px solid ${l.id===LANG._cur?'rgba(255,255,255,.6)':'rgba(255,255,255,.15)'};color:#fff;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:${l.id===LANG._cur?'900':'400'}">${l.flag} ${l.name}${l.id!=='de'?' +1 MT':''}</button>`).join('')+
+      langs.map(l=>`<button onclick="LANG.set('${l.id}')" style="background:${l.id===LANG._cur?'rgba(255,255,255,.2)':'rgba(255,255,255,.07)'};border:2px solid ${l.id===LANG._cur?'rgba(255,255,255,.6)':'rgba(255,255,255,.15)'};color:#fff;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:${l.id===LANG._cur?'900':'400'}">${l.flag} ${l.name}${(l.id!=='de'&&l.id!=='de_simple')?' +1 MT':''}</button>`).join('')+
     '</div>';
   }
 };
@@ -90,8 +99,8 @@ const STRINGS = {
   // ── ZOO HUD ──
   'zoo.gondola':           { de:'Gondel', en:'Gondola', fr:'Gondole' },
   'zoo.wheel':             { de:'Rad', en:'Wheel', fr:'Roue' },
-  'zoo.rebirth':           { de:'Rebirth', en:'Rebirth', fr:'Renaissance' },
-  'zoo.shop':              { de:'Shop', en:'Shop', fr:'Boutique' },
+  'zoo.rebirth':           { de:'Rebirth', de_simple:'Neustart (Bonus)', en:'Rebirth', fr:'Renaissance' },
+  'zoo.shop':              { de:'Shop', de_simple:'Laden', en:'Shop', fr:'Boutique' },
   'zoo.trade':             { de:'Tauschen', en:'Trade', fr:'Échanger' },
   'zoo.menu':              { de:'Menü', en:'Menu', fr:'Menu' },
   'zoo.sound':             { de:'Sound', en:'Sound', fr:'Son' },
@@ -108,7 +117,7 @@ const STRINGS = {
   'shop.full':             { de:'❌ Alle Gehege belegt!', en:'❌ All enclosures full!', fr:'❌ Tous les enclos sont pleins !' },
 
   // ── ZOO GONDOLA ──
-  'gond.title':            { de:'Gondelbahn', en:'Gondola Station', fr:'Station du Téléphérique' },
+  'gond.title':            { de:'Gondelbahn', de_simple:'Tier-Kaufstation (Gondel)', en:'Gondola Station', fr:'Station du Téléphérique' },
   'gond.buy':              { de:'🛒 Kaufen', en:'🛒 Buy', fr:'🛒 Acheter' },
   'gond.buy_egg':          { de:'🥚 Kaufen & Öffnen!', en:'🥚 Buy & Open!', fr:'🥚 Acheter & Ouvrir !' },
   'gond.not_enough':       { de:'❌ Zu wenig MT!', en:'❌ Not enough MT!', fr:'❌ Pas assez de MT !' },
@@ -125,16 +134,16 @@ const STRINGS = {
   // ── SOUND PANEL ──
   'sound.mute':            { de:'Stumm', en:'Mute', fr:'Muet' },
   'sound.mute.desc':       { de:'Kein Sound', en:'No Sound', fr:'Pas de Son' },
-  'sound.arcade':          { de:'Arcade', en:'Arcade', fr:'Arcade' },
+  'sound.arcade':          { de:'Arcade', de_simple:'Retro-Spielhalle', en:'Arcade', fr:'Arcade' },
   'sound.arcade.desc':     { de:'Retro 8-Bit Töne', en:'Retro 8-Bit Sounds', fr:'Sons Rétro 8-Bit' },
   'sound.normal':          { de:'Normal', en:'Normal', fr:'Normal' },
   'sound.normal.desc':     { de:'Standard Töne', en:'Standard Sounds', fr:'Sons Standards' },
-  'sound.satisfying':      { de:'Satisfying', en:'Satisfying', fr:'Satisfaisant' },
+  'sound.satisfying':      { de:'Satisfying', de_simple:'Angenehm', en:'Satisfying', fr:'Satisfaisant' },
   'sound.satisfying.desc': { de:'Weiche, angenehme Töne', en:'Soft, pleasant sounds', fr:'Sons doux et agréables' },
 
   // ── REBIRTH ──
-  'reb.title':             { de:'Wiedergeburt', en:'Rebirth', fr:'Renaissance' },
-  'reb.btn':               { de:'🔄 Wiedergeburt!', en:'🔄 Rebirth!', fr:'🔄 Renaissance !' },
+  'reb.title':             { de:'Wiedergeburt', de_simple:'Neustart mit Bonus', en:'Rebirth', fr:'Renaissance' },
+  'reb.btn':               { de:'🔄 Wiedergeburt!', de_simple:'🔄 Neu starten (mit Bonus)!', en:'🔄 Rebirth!', fr:'🔄 Renaissance !' },
   'reb.cant':              { de:'Noch nicht möglich', en:'Not possible yet', fr:'Pas encore possible' },
   'reb.mult':              { de:'Neuer Multiplikator', en:'New Multiplier', fr:'Nouveau Multiplicateur' },
 
@@ -144,7 +153,7 @@ const STRINGS = {
   'chest.ready':           { de:'✨ Bereit zum Öffnen!', en:'✨ Ready to open!', fr:'✨ Prêt à ouvrir !' },
   'chest.tap':             { de:'👆 Tippe', en:'👆 Tap', fr:'👆 Appuie' },
   'chest.to_open':         { de:'× zum Öffnen!', en:'× to open!', fr:'× pour ouvrir !' },
-  'chest.rewards':         { de:'🎁 Belohnungs-Truhen', en:'🎁 Reward Chests', fr:'🎁 Coffres de Récompenses' },
+  'chest.rewards':         { de:'🎁 Belohnungs-Truhen', de_simple:'🎁 Geschenk-Kisten', en:'🎁 Reward Chests', fr:'🎁 Coffres de Récompenses' },
   'chest.opened':          { de:'Schon geöffnet', en:'Already opened', fr:'Déjà ouvert' },
 
   // ── ANIMALS ──
@@ -158,10 +167,10 @@ const STRINGS = {
   'animal.secret':         { de:'SECRET', en:'SECRET', fr:'SECRET' },
 
   // ── JUMP EVENT ──
-  'jump.question':         { de:'🏃 Jump-Event läuft! Zur Obby teleportieren?', en:'🏃 Jump Event active! Teleport to Obby?', fr:'🏃 Jump Event actif ! Téléporter vers l\'Obby ?' },
+  'jump.question':         { de:'🏃 Jump-Event läuft! Zur Obby teleportieren?', de_simple:'🏃 Ein Sprung-Geschicklichkeitsspiel hat begonnen! Möchtest du hingehen?', en:'🏃 Jump Event active! Teleport to Obby?', fr:'🏃 Jump Event actif ! Téléporter vers l\'Obby ?' },
   'jump.yes':              { de:'✅ Ja', en:'✅ Yes', fr:'✅ Oui' },
   'jump.no':               { de:'❌ Nein', en:'❌ No', fr:'❌ Non' },
-  'jump.goal':             { de:'🏃 Obby · Ziel erreichen!', en:'🏃 Obby · Reach the goal!', fr:'🏃 Obby · Atteins l\'objectif !' },
+  'jump.goal':             { de:'🏃 Obby · Ziel erreichen!', de_simple:'🏃 Sprung-Spiel · Kletter zum Ziel!', en:'🏃 Obby · Reach the goal!', fr:'🏃 Obby · Atteins l\'objectif !' },
   'jump.won':              { de:'GEWONNEN!', en:'YOU WON!', fr:'GAGNÉ !' },
   'jump.reward':           { de:'5-Minuten-Einnahmen:', en:'5-Minute Earnings:', fr:'Revenus de 5 Minutes :' },
   'jump.back':             { de:'Zurück zum Zoo', en:'Back to Zoo', fr:'Retour au Zoo' },

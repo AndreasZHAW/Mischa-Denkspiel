@@ -1,4 +1,4 @@
-// Personality module — color + avatar customization (v259)
+// Personality module — color + avatar customization (v260)
 const Personality = {
   // ── COLOR PALETTE ── (10×10 grid like the user's reference image)
   COLORS: [

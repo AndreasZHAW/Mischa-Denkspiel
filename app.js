@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v259';
+const APP_VERSION = 'v260';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v259 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v260 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v259') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v260') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v259', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v260', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -261,7 +261,7 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v259 single-key system)
+    // Apply saved font size immediately (new v260 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -284,7 +284,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v259 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v260 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -2327,15 +2327,29 @@ const App = {
     if (!player || (name !== 'bu' && name !== 'mischa' && name !== 'admin')) { alert('Kein Zugriff.'); return; }
     this._loading('Lade Meldungen...');
     let reports = [];
+    let zooReports = [];
     try {
       if(typeof _db !== 'undefined' && _db) {
         const snap = await _db.collection('player_reports').orderBy('ts','desc').limit(80).get();
         snap.forEach(doc => reports.push({id: doc.id, ...doc.data()}));
       }
     } catch(e) { console.warn('Load failed:', e); }
+    // Also fetch Zoo feedback reports (questions/bugs sent via the 📢 button in the Zoo)
+    // — a completely separate collection from player-vs-player reports above.
+    try {
+      if(typeof _db !== 'undefined' && _db) {
+        const zsnap = await _db.collection('zoo_reports').orderBy('ts','desc').limit(50).get();
+        zsnap.forEach(doc => zooReports.push({id: doc.id, ...doc.data()}));
+      }
+      const zlocal = JSON.parse(localStorage.getItem('zoo_reports')||'[]');
+      zlocal.forEach(r => { if(!zooReports.find(x=>x.id===r.id)) zooReports.push(r); });
+      zooReports.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    } catch(e) { console.warn('Zoo reports load failed:', e); }
 
     window._rCache = {};
     reports.forEach(r => window._rCache[r.id] = r);
+    window._zrCache = {};
+    zooReports.forEach(r => window._zrCache[r.id] = r);
 
     const SC = {open:'#E74C3C', reviewing:'#F39C12', resolved:'#2ecc71', dismissed:'#888'};
     const SL = {open:'Offen', reviewing:'In Prüfung', resolved:'Erledigt', dismissed:'Abgewiesen'};
@@ -2348,6 +2362,26 @@ const App = {
           <h2 style="margin:0;flex:1;font-size:1.05rem">⚑ Meldungen <span style="color:#E74C3C">(${openCount} offen)</span></h2>
           <button onclick="App.showAdminReports()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem">🔄 Aktualisieren</button>
         </div>
+
+        <!-- ZOO FEEDBACK — separate from player-vs-player reports above -->
+        <div style="background:rgba(52,152,219,.08);border:1.5px solid rgba(52,152,219,.3);border-radius:14px;padding:12px 14px;margin-bottom:16px">
+          <div style="font-weight:900;font-size:.92rem;color:#3498db;margin-bottom:8px">🎮 Feedback aus dem Zoo (Fragen/Fehler, via 📢 Melden-Knopf)</div>
+          ${zooReports.length===0
+            ? '<div style="text-align:center;padding:16px;color:rgba(255,255,255,.3);font-size:.85rem">Keine Zoo-Meldungen</div>'
+            : zooReports.map(r=>{
+                const d = r.ts ? new Date(r.ts).toLocaleString('de-CH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+                return `<div style="background:${r.done?'rgba(39,174,96,.08)':'rgba(255,255,255,.04)'};border:1px solid ${r.done?'rgba(39,174,96,.25)':'rgba(255,255,255,.08)'};border-radius:10px;padding:9px 12px;margin-bottom:6px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <span style="font-weight:900;color:#3498db;font-size:.82rem">👤 ${(r.player||'?').replace(/[<>]/g,'')}</span>
+                    <span style="font-size:.65rem;color:rgba(255,255,255,.4)">${d}</span>
+                  </div>
+                  <div style="font-size:.82rem;color:#fff;white-space:pre-wrap">${(r.text||'').replace(/[<>]/g,'')}</div>
+                </div>`;
+              }).join('')
+          }
+        </div>
+
+        <div style="font-weight:900;font-size:.92rem;color:#ff6b6b;margin-bottom:8px">⚑ Spieler-Meldungen (Verhalten/Regelverstösse)</div>
         ${reports.length === 0
           ? '<div style="text-align:center;padding:50px;color:rgba(255,255,255,.3);font-size:1.1rem">✅ Keine Meldungen</div>'
           : reports.map(r => {
