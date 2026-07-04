@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v260';
+const APP_VERSION = 'v261';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v260 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v261 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v260') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v261') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v260', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v261', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -261,7 +261,7 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v260 single-key system)
+    // Apply saved font size immediately (new v261 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -284,7 +284,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v260 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v261 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
