@@ -192,67 +192,67 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
 
   <!-- CHAPTER 0: Darkness -->
   <div class="chapter active" id="ch0">
-    <div class="chapter-label">Prolog</div>
+    <div class="chapter-label" data-i18n="intro.ch0.label">Prolog</div>
     <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.6">🌌</div>
-    <div class="chapter-title">Irgendwo in der Welt...</div>
-    <div class="chapter-text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch0.title">Irgendwo in der Welt...</div>
+    <div class="chapter-text" data-i18n-html="intro.ch0.text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 1: Characters -->
   <div class="chapter" id="ch1">
-    <div class="chapter-label">Die Helden</div>
+    <div class="chapter-label" data-i18n="intro.ch1.label">Die Helden</div>
     <div class="chars">
       <div class="char-card">
         <div class="char-avatar">🧭</div>
         <div class="char-name">Mischa</div>
-        <div class="char-desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
+        <div class="char-desc" data-i18n="intro.ch1.mischa_desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
       </div>
       <div class="char-card" style="animation-delay:.3s">
         <div class="char-avatar">🔬</div>
         <div class="char-name">Janosch</div>
-        <div class="char-desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
+        <div class="char-desc" data-i18n="intro.ch1.janosch_desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
       </div>
     </div>
-    <div class="chapter-text">Los geht es auf unserer Erde!<br>Genauer gesagt geht es zuerst auf eine Reise nach <b>Frankreich</b> —<br>in ein wunderschönes Schloss.<br><br>Dort gilt es <b>Startkapital zu erkämpfen</b>,<br>denn ohne Startkapital kein Zoo.</div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-text" data-i18n-html="intro.ch1.text">Los geht es auf unserer Erde!<br>Genauer gesagt geht es zuerst auf eine Reise nach <b>Frankreich</b> —<br>in ein wunderschönes Schloss.<br><br>Dort gilt es <b>Startkapital zu erkämpfen</b>,<br>denn ohne Startkapital kein Zoo.</div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 2: The Challenge -->
   <div class="chapter" id="ch2">
-    <div class="chapter-label">Die Herausforderung</div>
+    <div class="chapter-label" data-i18n="intro.ch2.label">Die Herausforderung</div>
     <div class="chapter-icon">⚔️</div>
-    <div class="chapter-title">Erkämpfe dein Startkapital</div>
-    <div class="chapter-text">Es braucht <b>Köpfchen und Ausdauer</b>.<br><br>Aber zusammen ist alles möglich!</div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch2.title">Erkämpfe dein Startkapital</div>
+    <div class="chapter-text" data-i18n-html="intro.ch2.text">Es braucht <b>Köpfchen und Ausdauer</b>.<br><br>Aber zusammen ist alles möglich!</div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 3: The Dream -->
   <div class="chapter" id="ch3">
-    <div class="chapter-label">Der Traum</div>
+    <div class="chapter-label" data-i18n="intro.ch3.label">Der Traum</div>
     <div class="chapter-icon">🦁</div>
-    <div class="chapter-title">Baue deinen eigenen Zoo</div>
-    <div class="chapter-text">Mit deinem Startkapital kannst du dich in die <b>nächste Welt teleportieren</b><br>und dort helfen, den <b>intergalaktischen Mega-Zoo</b> zu erschaffen —<br>mit bekannten Tieren aus unserer Welt<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...</div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch3.title">Baue deinen eigenen Zoo</div>
+    <div class="chapter-text" data-i18n-html="intro.ch3.text">Mit deinem Startkapital kannst du dich in die <b>nächste Welt teleportieren</b><br>und dort helfen, den <b>intergalaktischen Mega-Zoo</b> zu erschaffen —<br>mit bekannten Tieren aus unserer Welt<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...</div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 4: Multiplayer -->
   <div class="chapter" id="ch4">
-    <div class="chapter-label">Zusammen stärker</div>
+    <div class="chapter-label" data-i18n="intro.ch4.label">Zusammen stärker</div>
     <div class="chapter-icon">🌍</div>
-    <div class="chapter-title">Du bist nicht allein</div>
-    <div class="chapter-text">Mischa und Janosch zählen auf dich.<br><br><b>Machst du mit?</b><br>Mach den ersten Schritt. <b>Jetzt!</b></div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch4.title">Du bist nicht allein</div>
+    <div class="chapter-text" data-i18n-html="intro.ch4.text">Mischa und Janosch zählen auf dich.<br><br><b>Machst du mit?</b><br>Mach den ersten Schritt. <b>Jetzt!</b></div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 5: Call to action -->
   <div class="chapter" id="ch5">
-    <div class="chapter-label">Deine Geschichte beginnt</div>
+    <div class="chapter-label" data-i18n="intro.ch5.label">Deine Geschichte beginnt</div>
     <div class="chapter-icon">🚀</div>
-    <div class="chapter-title">Bist du bereit?</div>
-    <div class="chapter-text">Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b></div>
+    <div class="chapter-title" data-i18n="intro.ch5.title">Bist du bereit?</div>
+    <div class="chapter-text" data-i18n-html="intro.ch5.text">Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b></div>
     <button id="next-btn" onclick="showEnd()" style="background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,140,0,.2));border-color:#FFD700;font-size:1rem;padding:14px 36px;">
-      🚀 Abenteuer starten
+      <span data-i18n="intro.ch5.btn">🚀 Abenteuer starten</span>
     </button>
   </div>
 
@@ -262,12 +262,28 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
 <div id="end-screen">
   <div class="end-logo">🦁</div>
   <div class="end-title">Mischa Denkspiel</div>
-  <div class="end-sub">+ Zoo 3D · Das Abenteuer</div>
-  <button class="enter-btn" onclick="enterGame()">▶ Jetzt spielen</button>
+  <div class="end-sub" data-i18n="intro.end.sub">+ Zoo 3D · Das Abenteuer</div>
+  <button class="enter-btn" onclick="enterGame()" data-i18n="intro.end.btn">▶ Jetzt spielen</button>
   <div class="ver-badge" id="ver-badge">v2026.05.05-1140</div>
 </div>
 
 <script>
+// ── I18N: apply translations to all chapters (data-i18n / data-i18n-html) ──
+// Uses innerHTML for data-i18n-html since chapter texts contain <b>/<br> tags.
+(function applyIntroI18n(){
+  try{
+    if(typeof t!=='function') return;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key=el.getAttribute('data-i18n'); const txt=t(key);
+      if(txt && txt!==key) el.textContent=txt;
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+      const key=el.getAttribute('data-i18n-html'); const txt=t(key);
+      if(txt && txt!==key) el.innerHTML=txt;
+    });
+  }catch(e){}
+})();
+
 // ── CONFIG ──
 const CHAPTERS = 6;
 let current = 0;

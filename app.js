@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v261';
+const APP_VERSION = 'v262';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v261 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v262 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v261') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v262') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v261', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v262', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -261,7 +261,7 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v261 single-key system)
+    // Apply saved font size immediately (new v262 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -284,7 +284,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v261 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v262 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -294,9 +294,9 @@ const App = {
           <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 ${typeof t!=='undefined'?t('welcome.world1.title'):'Welt 1 — Denkspiel'}</div>
             <div style="font-size:1rem;color:#333;line-height:1.6">
-              Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.<br>
-              Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).<br>
-              <span style="color:#888;font-size:var(--fs-sm)">🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...</span>
+              ${typeof t!=='undefined'?t('welcome.world1.body1'):'Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.'}<br>
+              ${typeof t!=='undefined'?t('welcome.world1.body2'):'Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).'}<br>
+              <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world1.games'):'🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...'}</span>
             </div>
           </div>
 
@@ -304,19 +304,19 @@ const App = {
           <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
             <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 ${typeof t!=='undefined'?t('welcome.world2.title'):'Welt 2 — Zoo-Empire'}</div>
             <div style="font-size:1rem;color:#333;line-height:1.6">
-              Teleportiere für <b>10 🌀 MT</b> in den Zoo.<br>
-              Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.<br>
-              <span style="color:#888;font-size:var(--fs-sm)">🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System</span>
+              ${typeof t!=='undefined'?t('welcome.world2.body1'):'Teleportiere für <b>10 🌀 MT</b> in den Zoo.'}<br>
+              ${typeof t!=='undefined'?t('welcome.world2.body2'):'Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.'}<br>
+              <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world2.feats'):'🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System'}</span>
             </div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
             <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>
-            <button class="btn btn-secondary btn-full" onclick="App.showLogin()">🔑 Anmelden</button>
+            <button class="btn btn-secondary btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
-              <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">👜 Geldbeutel</button>
-              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()" style="flex:1;background:rgba(255,215,0,.12);color:#FFD700;border:2px solid rgba(255,215,0,.3);font-size:1rem;min-height:40px;padding:6px 8px">📊 Konto</button>
+              <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">${typeof t!=='undefined'?t('btn.wallet_short'):'👜 Geldbeutel'}</button>
+              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>

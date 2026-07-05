@@ -42,8 +42,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v261</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v261 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v262</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v262 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -128,7 +128,7 @@ try {
 <!-- ══ TAB: FONT ══ -->
 <div id="tab-font" class="tab-content">
   <div class="box blue">
-    <h2>📱 Schriftgrössen-Analyse (v261 — neues System)</h2>
+    <h2>📱 Schriftgrössen-Analyse (v262 — neues System)</h2>
     <pre id="font-out">⏳</pre>
     <div style="margin-top:8px">
       <button onclick="App&&App.showEyeTest?window.location.href='index.html':alert('Starte das Spiel, dann gehe zu Welten → 👁 Sehtest')" class="sec">👁 Zum Sehtest</button>
@@ -339,7 +339,7 @@ setInterval(renderCrash,1500);
 
 // ══ WELT 1 ══
 async function runWelt1(){
-  L('=== Welt 1 Tests (v261) ===');
+  L('=== Welt 1 Tests (v262) ===');
   // Players
   const pr=[];
   try{
@@ -534,7 +534,7 @@ function runFont(){
   document.body.appendChild(b);const bh=b.offsetHeight;b.remove();
 
   const lines=[
-    `═══ NEUES SYSTEM v261 (ein globaler Key) ═══`,
+    `═══ NEUES SYSTEM v262 (ein globaler Key) ═══`,
     `Gespeicherter Rohwert (localStorage 'mischa_font_size'): ${rawSaved===null?'❌ NICHTS GESPEICHERT':rawSaved+'px'}`,
     `CSS-Variable --user-font-size: ${cssVar||'❌ NICHT GESETZT'}`,
     `Tatsächliches Root font-size (berechnet): ${root}px`,
@@ -566,7 +566,7 @@ function runFont(){
   const oldKeys=Object.keys(localStorage).filter(k=>k.startsWith('mischa_fontscale_'));
   lines.push('');
   lines.push(`═══ MIGRATION ═══`);
-  lines.push(`Migriert (v261): ${localStorage.getItem('mischa_font_migrated_v261')==='1'?'✅ ja':'⏳ noch nicht (passiert beim nächsten App-Start)'}`);
+  lines.push(`Migriert (v262): ${localStorage.getItem('mischa_font_migrated_v262')==='1'?'✅ ja':'⏳ noch nicht (passiert beim nächsten App-Start)'}`);
   lines.push(`Alte Fingerabdruck-Keys übrig: ${oldKeys.length===0?'✅ keine (sauber)':'⚠️ '+oldKeys.length+' Stück (werden beim nächsten Start entfernt)'}`);
 
   document.getElementById('font-out').textContent=lines.join('\n');
@@ -610,7 +610,7 @@ function resetFont(){
   if(!confirm('Gespeicherte Schriftgrösse wirklich löschen?')) return;
   try{
     localStorage.removeItem('mischa_font_size');
-    localStorage.removeItem('mischa_font_tested_v261');
+    localStorage.removeItem('mischa_font_tested_v262');
     alert('Gelöscht. Beim nächsten Spielstart wird automatisch eine Standardgrösse erkannt.');
     runFont();
   }catch(e){ alert('Fehler: '+e.message); }
@@ -638,7 +638,7 @@ async function runNet(){
 
 // ══ INIT ══
 async function runAll(){
-  L('=== Diagnose v261 gestartet === '+new Date().toLocaleString('de-CH'));
+  L('=== Diagnose v262 gestartet === '+new Date().toLocaleString('de-CH'));
   L('Browser: '+navigator.userAgent.slice(0,80));
   L('Viewport: '+window.innerWidth+'×'+window.innerHeight+' DPR='+window.devicePixelRatio);
   renderCrash();
