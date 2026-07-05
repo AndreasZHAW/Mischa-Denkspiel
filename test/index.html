@@ -9,6 +9,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#87CEEB">
   <title>Das Mischa Denkspiel ✈️ v29</title>
+  <script>
+  // FONT SYSTEM v263: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+  (function(){
+    try{
+      var v = localStorage.getItem('mischa_font_size');
+      var n = parseInt(v,10);
+      if(!isNaN(n) && n>=10 && n<=40){
+        document.documentElement.style.setProperty('--user-font-size', n+'px');
+      }
+    }catch(e){}
+  })();
+  </script>
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
@@ -20,23 +32,22 @@
        All rem-based sizes auto-scale. Touch targets min 48px (Material Design).
     */
     :root {
-      --user-font-size: 15px;  /* set by FontScale.apply() */
-      --user-font-scale: 1.0;  /* multiplier relative to 15px */
+      --user-font-size: 16px;  /* THE single source of truth — set by FontScale.apply() */
+      --user-font-scale: 1.0;
       --fs-xs:  calc(var(--user-font-size) * 0.80);
       --fs-sm:  calc(var(--user-font-size) * 0.90);
       --fs-md:  var(--user-font-size);
       --fs-lg:  calc(var(--user-font-size) * 1.10);
       --fs-xl:  calc(var(--user-font-size) * 1.22);
       --fs-2xl: calc(var(--user-font-size) * 1.45);
-      --touch-min: max(44px, 6.5vw);
+      --touch-min: 44px;
     }
-    html { font-size: 16px; }
-    /* On narrow screens (<400px) scale up base font */
-    @media (max-width:399px) { html { font-size: 17px; } }
-    @media (max-width:359px) { html { font-size: 18px; } }
-    body { font-size: var(--user-font-size); }
-    button { min-height: var(--touch-min); font-size: var(--user-font-size) !important; }
-    input, select, textarea { font-size: var(--fs-md) !important; min-height: var(--touch-min); }
+    /* CLEAN FONT SYSTEM: html font-size = user setting, so ALL rem units scale together.
+       No vw, no media queries, no competing rules. One source of truth. */
+    html { font-size: var(--user-font-size) !important; -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
+    body { font-size: 1rem; }
+    button { min-height: var(--touch-min); font-size: 1rem !important; }
+    input, select, textarea { font-size: 1rem !important; min-height: var(--touch-min); }
     /* World map cards */
     .card { font-size: var(--fs-md); }
     /* HUD elements */
@@ -51,6 +62,16 @@
     @keyframes popBurst{0%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.5}100%{transform:scale(0);opacity:0}}
   </style>
   <script>
+  // PHASE 1 FIX v263: Block Android's long-press context menu (Download/Share/Print).
+  // -webkit-touch-callout (CSS) only affects iOS Safari — it does NOT stop Android
+  // Chrome's native long-press menu on canvas/img. The real fix is intercepting the
+  // 'contextmenu' event itself, which Android fires on long-press.
+  document.addEventListener('contextmenu', function(e) {
+    if (e.target.closest && e.target.closest('canvas, #game-area, .game-control, [class*="ctrl"], [class*="control"]')) {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
   // Prevent double-tap zoom globally
   let lastTap = 0;
   document.addEventListener('touchend', function(e) {
@@ -69,12 +90,25 @@
     /* Mobile: prevent double-tap zoom and 300ms delay */
     * { -webkit-tap-highlight-color: transparent; }
     button, a, [onclick] { touch-action: manipulation; }
-    /* Auto font scaling based on viewport */
-    html { font-size: clamp(14px, 2.5vw, 18px); }
-    /* Prevent text size adjustment on orientation change */
-    body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    /* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on game elements */
+    canvas, #game-area, #game-area * {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      user-select: none !important;
+    }
+    canvas { touch-action: none !important; }
+    /* Force font size — Android must not auto-adjust */
+    /* html font-size handled by clean font system above */
+    body { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; -webkit-touch-callout: none; }
     /* Game area fills screen properly on mobile */
-    #game-area canvas { max-width: 100%; height: auto; }
+    /* game canvas scaling handled per-game by auto-zoom, not forced here */
+    /* Game control buttons: always tappable, never trigger long-press */
+    #game-area button, .game-control, [class*="ctrl"], [class*="control"] {
+      touch-action: manipulation !important;
+      -webkit-touch-callout: none !important;
+      user-select: none !important;
+    }
   </style>
 <script>
 // ══ RESPONSIVE FONT SCALER ══
@@ -313,7 +347,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v253 wird geladen...';
+      if(vEl) vEl.textContent = 'v263 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)
@@ -483,21 +517,25 @@ function _showDenkspielNews(news){
   const ov=document.createElement('div'); ov.id='news-modal-d';
   ov.style.cssText='position:fixed;inset:0;z-index:99989;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif';
   const card=document.createElement('div');
-  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3)';
-  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px';
+  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3);display:flex;flex-direction:column';
+  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0';
   const badge=document.createElement('div'); badge.style.cssText='background:#FFD700;color:#000;border-radius:8px;padding:3px 10px;font-size:.75rem;font-weight:900'; badge.textContent='📰 UPDATE';
   const htitle=document.createElement('div'); htitle.style.cssText='color:#fff;font-weight:900;font-size:1rem;flex:1'; htitle.textContent='Was ist neu?';
   const xb=document.createElement('button'); xb.textContent='✕'; xb.style.cssText='background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer';
   xb.onclick=()=>{ov.remove();_newsMarkSeenD(news.id);};
   hdr.appendChild(badge); hdr.appendChild(htitle); hdr.appendChild(xb);
   card.appendChild(hdr);
-  const body=document.createElement('div'); body.style.cssText='padding:18px';
+  const scroll=document.createElement('div'); scroll.style.cssText='overflow-y:auto;flex:1;padding:18px;min-height:0;-webkit-overflow-scrolling:touch';
   const ttl=document.createElement('div'); ttl.style.cssText='font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:10px'; ttl.textContent=news.title;
-  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6;margin-bottom:16px'; bdy.textContent=news.body||'';
+  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6'; bdy.textContent=news.body||'';
+  scroll.appendChild(ttl); scroll.appendChild(bdy);
+  card.appendChild(scroll);
+  const footer=document.createElement('div'); footer.style.cssText='padding:14px 18px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)';
   const okb=document.createElement('button'); okb.textContent='👍 Verstanden!'; okb.style.cssText='width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer';
   okb.onclick=()=>{ov.remove();_newsMarkSeenD(news.id);};
-  body.appendChild(ttl); body.appendChild(bdy); body.appendChild(okb);
-  card.appendChild(body); ov.appendChild(card); document.body.appendChild(ov);
+  footer.appendChild(okb);
+  card.appendChild(footer);
+  ov.appendChild(card); document.body.appendChild(ov);
 }
 function _newsMarkSeenD(id){const s=JSON.parse(localStorage.getItem('zoo_news_seen')||'[]');if(!s.includes(id)){s.push(id);if(s.length>20)s.shift();}localStorage.setItem('zoo_news_seen',JSON.stringify(s));}
 </script>

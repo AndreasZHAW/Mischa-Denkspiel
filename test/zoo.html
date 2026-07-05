@@ -1,9 +1,32 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v253 -->
+<!-- ZOO v263 -->
 <html lang="de">
 <head>
+<script>
+// FONT SYSTEM v263: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+(function(){
+  try{
+    var v = localStorage.getItem('mischa_font_size');
+    var n = parseInt(v,10);
+    if(!isNaN(n) && n>=10 && n<=40){
+      document.documentElement.style.setProperty('--user-font-size', n+'px');
+    }
+  }catch(e){}
+})();
+</script>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
+<script>
+// PHASE 1 FIX v263: Block Android's long-press context menu (Download/Share/Print).
+// -webkit-touch-callout (CSS) does NOT stop Android Chrome's native long-press menu
+// on canvas — the real fix is intercepting the 'contextmenu' event itself.
+document.addEventListener('contextmenu', function(e) {
+  if (e.target.closest && e.target.closest('#zc, canvas, .hb, .hbb, .zp, .pmenu, [onclick]')) {
+    e.preventDefault();
+    return false;
+  }
+}, false);
+</script>
 <script>// Apply personality color in zoo if saved
 window.addEventListener('DOMContentLoaded',()=>{
   try{
@@ -23,11 +46,23 @@ window.addEventListener('DOMContentLoaded',()=>{
 <title>Mischa Zoo 3D</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%;font-size:16px}
+:root{--user-font-size:16px}
+/* SHARED FONT SYSTEM v263 — same --user-font-size key as Denkspiel (index.html),
+   read from the same localStorage key 'mischa_font_size'. One setting, both worlds. */
+html{font-size:var(--user-font-size)!important;-webkit-text-size-adjust:100%!important;-moz-text-size-adjust:100%!important;text-size-adjust:100%!important}
+/* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on zoo canvas + controls */
+#zc, canvas, .hb, .hbb, .zp, .pmenu, [onclick]{
+  -webkit-touch-callout:none!important;
+  -webkit-user-select:none!important;
+  -moz-user-select:none!important;
+  user-select:none!important;
+}
+#zc{touch-action:none!important}
+.hb, .hbb, button, [onclick]{touch-action:manipulation!important}
+body{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important;-webkit-touch-callout:none}
 html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;background:#000;color:#fff;touch-action:none;user-select:none}
 /* On phones, scale the whole UI up a bit so Android's small system font doesn't make it tiny */
 @media (max-width:600px){
-  html{font-size:17px}
   .hb{width:64px}
   .hbb{width:54px;height:54px;font-size:1.7rem}
   .hbl{font-size:.72rem}
@@ -200,7 +235,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v253','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v263','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -246,16 +281,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   title="HUD minimieren/maximieren">⊟</button>
 
 <div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl">Profil</div></div>
-<div class="hb" id="test-only-btn" style="display:none" onclick="ZP.toast('🧪 Nur im Test!',2000)"><div class="hbb" style="background:rgba(255,107,0,.9)">🧪</div><div class="hbl" style="color:#ff6b00">Test</div></div>
-<script>if(window.MISCHA_TESTMODE){var tb=document.getElementById("test-only-btn");if(tb)tb.style.display="";}</script>
-<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl">${typeof t!=='undefined'?t('zoo.trade'):'Tauschen'}</div></div>
-<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl">${typeof t!=='undefined'?t('zoo.rebirth'):'Rebirth'}</div></div>
-<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl">${typeof t!=='undefined'?t('zoo.shop'):'Shop'}</div></div>
+<div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl">Melden</div></div>
+<div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
+<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
+<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
-<div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl">${typeof t!=='undefined'?t('zoo.sound'):'Sound'}</div></div>
-<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl">${typeof t!=='undefined'?t('zoo.menu'):'Menü'}</div></div>
+<div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl" data-i18n="zoo.sound">Sound</div></div>
+<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
-<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl">${typeof t!=='undefined'?t('zoo.update'):'Update'}</div></div>
+<div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl" data-i18n="zoo.update">Update</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
@@ -328,6 +362,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </div>
 </div>
 <!-- PANELS -->
+<div class="zp off" id="p-report"><div class="zpi">
+  <div class="pmenu-title">📢 Frage / Fehler melden</div>
+  <div style="padding:4px">
+    <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:8px">Schreibe deine Frage oder melde einen Fehler. Der Admin sieht deine Meldung.</div>
+    <textarea id="report-text" placeholder="z.B. Der Shop lädt nicht richtig..." maxlength="300" rows="4" style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;resize:none;box-sizing:border-box;margin-bottom:8px"></textarea>
+    <button onclick="ZP._sendReport()" style="width:100%;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:13px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">📢 Meldung absenden</button>
+    <div id="report-status" style="text-align:center;font-size:.78rem;color:rgba(255,255,255,.4);margin-top:8px"></div>
+  </div>
+</div></div>
 <div class="zp off" id="p-sound"><div class="zpi">
   <div class="pmenu-title">🎵 Sound-Einstellungen</div>
   <div id="psound"></div>
@@ -572,6 +615,118 @@ const ANIMALS=[
   {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.03, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
 ];
 window.ANIMALS = ANIMALS;
+const ANIMAL_I18N={
+  cat:{en:'Cat',fr:'Chat'},
+  dog:{en:'Dog',fr:'Chien'},
+  hamster:{en:'Hamster',fr:'Hamster'},
+  dormouse:{en:'Dormouse',fr:'Loir'},
+  rabbit:{en:'Rabbit',fr:'Lapin'},
+  duck:{en:'Duck',fr:'Canard'},
+  chicken:{en:'Chicken',fr:'Poule'},
+  turtle:{en:'Turtle',fr:'Tortue'},
+  fish:{en:'Fish',fr:'Poisson'},
+  sister:{en:'Sister',fr:'Sœur'},
+  brother:{en:'Brother',fr:'Frère'},
+  kangaroo:{en:'Kangaroo',fr:'Kangourou'},
+  deer:{en:'Deer',fr:'Chevreuil'},
+  penguin:{en:'Penguin',fr:'Pingouin'},
+  koala:{en:'Koala',fr:'Koala'},
+  zebra:{en:'Zebra',fr:'Zèbre'},
+  parrot:{en:'Parrot',fr:'Perroquet'},
+  otter:{en:'Otter',fr:'Loutre'},
+  frog:{en:'Frog',fr:'Grenouille'},
+  raccoon:{en:'Raccoon',fr:'Raton laveur'},
+  dolphin:{en:'Dolphin',fr:'Dauphin'},
+  wolf:{en:'Wolf',fr:'Loup'},
+  panda:{en:'Panda',fr:'Panda'},
+  bear:{en:'Bear',fr:'Ours'},
+  flamingo:{en:'Flamingo',fr:'Flamant'},
+  capybara:{en:'Capybara',fr:'Capybara'},
+  jellyfish:{en:'Jellyfish',fr:'Méduse'},
+  fox:{en:'Fox',fr:'Renard'},
+  tiger:{en:'Tiger',fr:'Tigre'},
+  elephant:{en:'Elephant',fr:'Éléphant'},
+  gorilla:{en:'Gorilla',fr:'Gorille'},
+  unicorn:{en:'Unicorn',fr:'Licorne'},
+  narwhal:{en:'Narwhal',fr:'Narval'},
+  orca:{en:'Orca',fr:'Orque'},
+  dragon:{en:'Dragon',fr:'Dragon'},
+  phoenix:{en:'Phoenix',fr:'Phénix'},
+  nessie:{en:'Nessie',fr:'Nessie'},
+  lion:{en:'Lion',fr:'Lion'},
+  mammoth:{en:'Mammoth',fr:'Mammouth'},
+  kraken:{en:'Kraken',fr:'Kraken'},
+  anubis:{en:'Anubis',fr:'Anubis'},
+  cerberus:{en:'Cerberus',fr:'Cerbère'},
+  poseidon:{en:'Poseidon',fr:'Poséidon'},
+  zeus:{en:'Zeus',fr:'Zeus'},
+  thor:{en:'Thor',fr:'Thor'},
+  dino:{en:'Dinosaur',fr:'Dinosaure'},
+  megalodon:{en:'Megalodon',fr:'Mégalodon'},
+  goat:{en:'Goat',fr:'Chèvre'},
+  sheep:{en:'Sheep',fr:'Mouton'},
+  pig:{en:'Pig',fr:'Cochon'},
+  cow:{en:'Cow',fr:'Vache'},
+  rooster:{en:'Rooster',fr:'Coq'},
+  chick:{en:'Chick',fr:'Poussin'},
+  mouse:{en:'Mouse',fr:'Souris'},
+  snail:{en:'Snail',fr:'Escargot'},
+  ladybug:{en:'Ladybug',fr:'Coccinelle'},
+  butterfly:{en:'Butterfly',fr:'Papillon'},
+  fox_b:{en:'Fox',fr:'Renard'},
+  wolf_b:{en:'Wolf',fr:'Loup'},
+  bear_b:{en:'Bear',fr:'Ours'},
+  panda_b:{en:'Panda',fr:'Panda'},
+  lion_b:{en:'Lion',fr:'Lion'},
+  tiger_b:{en:'Tiger',fr:'Tigre'},
+  elephant_b:{en:'Elephant',fr:'Éléphant'},
+  hippo:{en:'Hippo',fr:'Hippopotame'},
+  rhino:{en:'Rhino',fr:'Rhinocéros'},
+  giraffe:{en:'Giraffe',fr:'Girafe'},
+  camel:{en:'Camel',fr:'Chameau'},
+  horse:{en:'Horse',fr:'Cheval'},
+  donkey:{en:'Donkey',fr:'Âne'},
+  bison:{en:'Bison',fr:'Bison'},
+  moose:{en:'Moose',fr:'Élan'},
+  gorilla_b:{en:'Gorilla',fr:'Gorille'},
+  chimp:{en:'Chimp',fr:'Chimpanzé'},
+  whale:{en:'Whale',fr:'Baleine'},
+  shark:{en:'Shark',fr:'Requin'},
+  dolphin_b:{en:'Dolphin',fr:'Dauphin'},
+  octopus:{en:'Octopus',fr:'Poulpe'},
+  seahorse:{en:'Seahorse',fr:'Hippocampe'},
+  narwhal_b:{en:'Narwhal',fr:'Narval'},
+  flamingo_b:{en:'Flamingo',fr:'Flamant'},
+  peacock:{en:'Peacock',fr:'Paon'},
+  dragon_b:{en:'Dragon',fr:'Dragon'},
+  unicorn_b:{en:'Unicorn',fr:'Licorne'},
+  phoenix_b:{en:'Phoenix',fr:'Phénix'},
+  kraken_b:{en:'Kraken',fr:'Kraken'},
+  t_rex:{en:'T-Rex',fr:'T-Rex'},
+  mammoth_b:{en:'Mammoth',fr:'Mammouth'},
+  dodo:{en:'Dodo',fr:'Dodo'},
+  yeti:{en:'Yeti',fr:'Yéti'},
+  alien_pet:{en:'Alien Pet',fr:'Animal Alien'},
+  robot_pet:{en:'Robot Dog',fr:'Chien Robot'},
+  mermaid_pet:{en:'Mermaid',fr:'Sirène'},
+  angel_pet:{en:'Angel Pet',fr:'Animal Ange'},
+  galaxy_pet:{en:'Galaxy Creature',fr:'Créature Galactique'},
+  time_pet:{en:'Time Traveler',fr:'Voyageur Temporel'},
+  void_pet:{en:'Void Being',fr:'Être du Vide'},
+  god_beast:{en:'Divine Beast',fr:'Bête Divine'}
+};
+// Translate animal names in-place if a non-German language is active.
+// Mutating ANIMALS directly means every reference throughout the app
+// (gondola, enclosures, trade, eggs, leaderboards) shows the translation
+// automatically — no need to touch each display call site individually.
+(function(){
+  try{
+    const lang=(typeof LANG!=='undefined'?LANG._cur:null)||localStorage.getItem('mischa_lang')||'de';
+    if(lang==='de'||lang==='de_simple')return;
+    ANIMALS.forEach(a=>{ const tr=ANIMAL_I18N[a.id]; if(tr&&tr[lang]) a.n=tr[lang]; });
+  }catch(e){}
+})();
+
 const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:8},diamond:{n:'DIAMOND',c:'td',m:2,p:5},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:2.5},void:{n:'VOID',c:'tv',m:5,p:1.5}};
 const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'},
@@ -616,6 +771,54 @@ const EVENTS=[
   {id:'jump',      n:'🏃 Jump-Event',    col:'#27ae60', d:'Meistere den Jump-Run → Riesige MT!',  dur:900000, adminOnly:false, trait:{id:'acrobat',n:'ACROBAT',c:'tac',m:1.8,p:4}},
 ];
 window.EVENTS = EVENTS;
+const EVENT_I18N={
+  snow:{en:{n:'❄️ Snowstorm',d:'CRYSTAL Trait + white gondolas!'},fr:{n:'❄️ Tempête de neige',d:'Trait CRISTAL + gondoles blanches !'}},
+  party:{en:{n:'🎉 Concert',d:'CONCERT Trait + Party ×4!'},fr:{n:'🎉 Concert',d:'Trait CONCERT + Fête ×4 !'}},
+  golden:{en:{n:'✨ Golden Rain',d:'FIRE Trait + ×2.5 earnings!'},fr:{n:'✨ Pluie dorée',d:'Trait FEU + ×2,5 revenus !'}},
+  night:{en:{n:'🌙 Magic Night',d:'COSMIC + Rares more common!'},fr:{n:'🌙 Nuit magique',d:'COSMIQUE + Raretés plus fréquentes !'}},
+  rush:{en:{n:'🏃 Rush Hour',d:'ELECTRIC + ×5 visitors!'},fr:{n:'🏃 Heure de pointe',d:'ÉLECTRIQUE + ×5 visiteurs !'}},
+  mega:{en:{n:'💎 Mega Event',d:'All traits + ×3 everywhere!'},fr:{n:'💎 Méga-événement',d:'Tous les traits + ×3 partout !'}},
+  glitch:{en:{n:'👾 Glitch',d:'GLITCH + Gondola walkable!'},fr:{n:'👾 Glitch',d:'GLITCH + Gondole praticable !'}},
+  storm:{en:{n:'⛈️ Storm',d:'×4 earnings in the storm!'},fr:{n:'⛈️ Tempête',d:'×4 revenus pendant la tempête !'}},
+  rainbow:{en:{n:'🌈 Rainbow',d:'All shinies + ×3 luck!'},fr:{n:'🌈 Arc-en-ciel',d:'Tous les brillants + ×3 chance !'}},
+  volcano:{en:{n:'🌋 Volcano',d:'FIRE + ELECTRIC + ×6 visitors!'},fr:{n:'🌋 Volcan',d:'FEU + ÉLECTRIQUE + ×6 visiteurs !'}},
+  galaxy:{en:{n:'🌌 Galaxy',d:'COSMIC + rare animals appear!'},fr:{n:'🌌 Galaxie',d:'COSMIQUE + animaux rares apparaissent !'}},
+  carnival:{en:{n:'🎠 Carnival',d:'CONCERT + ×3 gondolas + party!'},fr:{n:'🎠 Carnaval',d:'CONCERT + ×3 gondoles + fête !'}},
+  treasure:{en:{n:'💰 Treasure Hunt',d:'×5 MT for everyone + Lucky Blocks!'},fr:{n:'💰 Chasse au trésor',d:'×5 MT pour tous + Blocs Chanceux !'}},
+  spring:{en:{n:'🌸 Spring',d:'CRYSTAL + COSMIC + gentle music!'},fr:{n:'🌸 Printemps',d:'CRISTAL + COSMIQUE + musique douce !'}},
+  halloween:{en:{n:'🎃 Halloween',d:'Ghost animals + spooky bonus!'},fr:{n:'🎃 Halloween',d:'Animaux fantômes + bonus effrayant !'}},
+  aurora:{en:{n:'🌠 Aurora',d:'CRYSTAL + ×3 luck in the sky!'},fr:{n:'🌠 Aurore boréale',d:'CRISTAL + ×3 chance dans le ciel !'}},
+  desert:{en:{n:'🏜️ Desert Storm',d:'FIRE + ×4 MT in the heat!'},fr:{n:'🏜️ Tempête du désert',d:'FEU + ×4 MT dans la chaleur !'}},
+  ocean:{en:{n:'🌊 Ocean Flood',d:'Water animals more common + ×3!'},fr:{n:'🌊 Marée océanique',d:'Animaux aquatiques plus fréquents + ×3 !'}},
+  thunder:{en:{n:'⚡ Thunderstorm',d:'ELECTRIC + ×5 visitor boost!'},fr:{n:'⚡ Orage',d:'ÉLECTRIQUE + ×5 boost de visiteurs !'}},
+  bloom:{en:{n:'🌺 Full Bloom',d:'CONCERT + gentle ×3 bonus!'},fr:{n:'🌺 Pleine floraison',d:'CONCERT + bonus doux ×3 !'}},
+  cosmic:{en:{n:'☄️ Shooting Star',d:'COSMIC + legendary animals x2!'},fr:{n:'☄️ Étoile filante',d:'COSMIQUE + animaux légendaires x2 !'}},
+  gold_rush:{en:{n:'🪙 Gold Rush',d:'×6 MT for 5 minutes!'},fr:{n:'🪙 Ruée vers l’or',d:'×6 MT pendant 5 minutes !'}},
+  festival:{en:{n:'🎪 Zoo Festival',d:'All traits + ×4 + party mode!'},fr:{n:'🎪 Festival du Zoo',d:'Tous les traits + ×4 + mode fête !'}},
+  flood:{en:{n:'🌊 Flood',d:'Water rises! Water animals ×4!'},fr:{n:'🌊 Inondation',d:'L’eau monte ! Animaux aquatiques ×4 !'}},
+  fireworks:{en:{n:'🎆 Fireworks',d:'Colorful explosion! ×3 earnings!'},fr:{n:'🎆 Feu d’artifice',d:'Explosion colorée ! ×3 revenus !'}},
+  tornado:{en:{n:'🌪️ Tornado',d:'Whirlwind! ×5 visitors!'},fr:{n:'🌪️ Tornade',d:'Tourbillon ! ×5 visiteurs !'}},
+  summer:{en:{n:'🏖️ Summer Fever',d:'Hot! ×3 MT + exotic animals!'},fr:{n:'🏖️ Fièvre estivale',d:'Chaud ! ×3 MT + animaux exotiques !'}},
+  halloween2:{en:{n:'🎃 Halloween',d:'Spooky! Ghost animals + GLITCH!'},fr:{n:'🎃 Halloween',d:'Effrayant ! Animaux fantômes + GLITCH !'}},
+  xmas:{en:{n:'🎄 Christmas',d:'Ho Ho Ho! ×4 everywhere!'},fr:{n:'🎄 Noël',d:'Ho Ho Ho ! ×4 partout !'}},
+  meteor:{en:{n:'🌌 Meteor Shower',d:'Meteors! Legendary animals ×3!'},fr:{n:'🌌 Pluie de météores',d:'Météores ! Animaux légendaires ×3 !'}},
+  mushroom:{en:{n:'🍄 Mushroom World',d:'Psychedelic! ×2 everything!'},fr:{n:'🍄 Monde des champignons',d:'Psychédélique ! ×2 tout !'}},
+  thunder2:{en:{n:'⚡ Thunderstorm',d:'Lightning! ELECTRIC ×2 + Rush!'},fr:{n:'⚡ Orage',d:'Éclair ! ÉLECTRIQUE ×2 + Rush !'}},
+  dragon:{en:{n:'🐉 Dragons',d:'Dragon invasion! FIRE ×3!'},fr:{n:'🐉 Dragons',d:'Invasion de dragons ! FEU ×3 !'}},
+  france:{en:{n:'🇫🇷 France',d:'Liberté! Every 10th animal ×5!'},fr:{n:'🇫🇷 France',d:'Liberté ! Chaque 10e animal ×5 !'}},
+  jump:{en:{n:'🏃 Jump Event',d:'Master the Jump-Run → huge MT!'},fr:{n:'🏃 Jeu de Saut',d:'Maîtrise le parcours → MT énormes !'}},
+};
+// Translate event names/descriptions in-place (same pattern as ANIMAL_I18N) —
+// mutating the shared EVENTS array means every place that reads ev.n / ev.d
+// (HUD banner, admin panel, toasts) shows the translation automatically.
+(function(){
+  try{
+    const lang=(typeof LANG!=='undefined'?LANG._cur:null)||localStorage.getItem('mischa_lang')||'de';
+    if(lang==='de'||lang==='de_simple')return;
+    EVENTS.forEach(e=>{ const tr=EVENT_I18N[e.id]; if(tr&&tr[lang]){ e.n=tr[lang].n; e.d=tr[lang].d; } });
+  }catch(e){}
+})();
+
 const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀'},{m:3,cost:80000,l:'×3 🍀🍀🍀'},{m:5,cost:250000,l:'×5 ⭐'},{m:7,cost:1000000,l:'×7 🌟'},{m:10,cost:5000000,l:'×10 👑 MAX'}];
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
@@ -797,7 +1000,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm','sound'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm','sound','report'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -812,7 +1015,7 @@ const ZG={
   // Carry system
   carrying:null, carryTimer:null,
   droppedAnimals:[], // [{animal,shiny,traits,slot,x,z,expiresAt,mesh}]
-  nearSt:false,nearEnc:-1,nearLimo:-1,
+  nearSt:false,nearEnc:-1,
   _raf:null,_ivs:[],
   // CIRCULAR MAP
   WR:80, // world radius
@@ -824,7 +1027,6 @@ const ZG={
     {x:48,  z:-27, label:'Zoo C',color:0x8E44AD},
   ],
   // Limo shop: one per zone
-  LIMOPOS(){return this.ZONES.map((z,i)=>({x:z.x+(i===0?14:i===1?12:-12),z:z.z+(i===0?10:i===1?8:8)}));},
   // Enclosures: 5 per zone around each zone center
   ENCPOS(){
     // Each player gets their OWN zone based on a hash of their name,
@@ -962,6 +1164,7 @@ const ZG={
     this.pitch = 0;
     this.cam.position.set(this.pl.x, this.pl.y, this.pl.z);
     if(typeof LANG!=='undefined')LANG.load();
+    applyI18n();
     LW.init();ZSound.loadStyle();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     // Check for admin announcement
     setTimeout(()=>_checkAnnouncement(),1500);
@@ -1588,7 +1791,6 @@ const ZG={
     this._encs();
     this._trees();
     this._hiddenTrapdoor();
-    this._limoStands();
     this._clouds();
     // DEBUG: bright test cube in front of player start position
     const testCube=new THREE.Mesh(
@@ -1862,17 +2064,6 @@ const ZG={
     this._trapdoorPos={x:22,z:-18};
   },
 
-  _limoStands(){
-    const sc=this.scene;
-    this.LIMOPOS().forEach((lp,i)=>{
-      const body=new THREE.Mesh(new THREE.BoxGeometry(5,3,3),new THREE.MeshBasicMaterial({color:0xFF69B4}));
-      body.position.set(lp.x,1.5,lp.z); sc.add(body);
-      const roof=new THREE.Mesh(new THREE.BoxGeometry(6,.5,4),new THREE.MeshBasicMaterial({color:0xff1111}));
-      roof.position.set(lp.x,3.2,lp.z); sc.add(roof);
-      const lbl=this._txt('🚗 Speed-Shop',.7,'#FFD700'); lbl.position.set(lp.x,4.5,lp.z); lbl.scale.set(7,1.8,1); sc.add(lbl);
-    });
-  },
-
   _trees(){
     const tM=new THREE.MeshBasicMaterial({color:0x8B4513});
     const lM=new THREE.MeshBasicMaterial({color:0x2d8f2d});
@@ -1990,7 +2181,7 @@ const ZG={
       if(this._nearSweeper){Sweeper.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
-      if(this.nearSt||this.nearEnc>=0||this.nearLimo>=0)this._interact();
+      if(this.nearSt||this.nearEnc>=0)this._interact();
       else this.slap();
     });
     // Mouse move for looking (works without pointer lock - relative tracking)
@@ -2241,8 +2432,6 @@ const ZG={
         break;
       }
     }
-    this.nearLimo=-1;
-    this.LIMOPOS().forEach((lp,i)=>{if(Math.sqrt((this.pl.x-lp.x)**2+(this.pl.z-lp.z)**2)<7)this.nearLimo=i;});
     // Lucky wheel proximity - show prompt
     const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
     this._nearWheel=(wdist<6);
@@ -2283,7 +2472,6 @@ const ZG={
         ip.textContent='🍀 Glücksrad — nächster Spin in '+(minsLeft>0?minsLeft:0)+' Min';
       }
     }
-    else if(this.nearLimo>=0){ip.style.opacity='1';ip.textContent='🚗 [E] Speed-Shop öffnen';}
     else{ip.style.opacity='0';}
   },
 
@@ -2310,9 +2498,6 @@ const ZG={
     // Enclosures
     ctx.fillStyle='rgba(74,138,48,.8)';
     this.ENCPOS().slice(0,ZS.maxE()).forEach(ep=>{ctx.fillRect(W/2+ep.x*sc2-2,W/2+ep.z*sc2-2,4,4);});
-    // Limo stands
-    ctx.fillStyle='#FF69B4';
-    this.LIMOPOS().forEach(lp=>{ctx.fillRect(W/2+lp.x*sc2-2,W/2+lp.z*sc2-2,4,4);});
     // Player arrow
     ctx.fillStyle='#FFD700';const px=W/2+this.pl.x*sc2,pz=W/2+this.pl.z*sc2;
     ctx.beginPath();ctx.arc(px,pz,4,0,Math.PI*2);ctx.fill();
@@ -2910,7 +3095,6 @@ const ZG={
       this._placeCarried(); return;
     }
     if(this.nearEnc>=0){ZP.openEnc(this.nearEnc);return;}
-    if(this.nearLimo>=0){ZP.openLimo(this.nearLimo);return;}
     // Gold Machine
     if(this._nearGoldMachine){GoldMachine.open();return;}
     if(this._nearFeeder){Feeder.open();return;}
@@ -4184,7 +4368,7 @@ const ZP={
 
   open(p){
     // Close all others first
-    ['gond','index','shop','reb','enc','menu','adm','sound'].forEach(x=>{if(x!==p)hide('p-'+x);});
+    ['gond','index','shop','reb','enc','menu','adm','sound','report'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
     if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
@@ -4193,6 +4377,7 @@ const ZP={
     if(p==='reb')this._rReb();
     if(p==='menu')this._rMenu();
     if(p==='sound')this._rSound();
+    if(p==='report')this._rReport();
     if(p==='adm'){
       if(!ZS.isAdmin){
         const pw=prompt('Admin-Passwort:');
@@ -4263,15 +4448,6 @@ const ZP={
     loop();
   },
   openEnc(i){show('p-enc');G('pent').textContent='Gehege #'+(i+1);this._rEnc(i);},
-  openLimo(zi){
-    // Find first enclosure in this zone
-    const eps=ZG.ENCPOS();const z=ZS.zoo;
-    for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){
-      if(eps[i].zone===zi&&z.enc[i]){this.openEnc(i);return;}
-    }
-    this.toast('Keine Tiere in diesem Zoo-Bereich.',2000);
-  },
-
   // GONDOLA
   // ── EGG OPENING (Gondola) ──
   // Pick animal from rarity pool sorted by earn (quality indicator):
@@ -5108,7 +5284,7 @@ const ZP={
   },
   _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();},
 
-  // ENCLOSURE + LIMO SPEED SHOP
+  // ENCLOSURE
   _rEnc(i){
     const z=ZS.zoo,enc=z.enc[i],el=G('pencm');
     if(!enc){el.innerHTML=`<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Leer — Tier in der Gondel-Station kaufen!</div>`;return;}
@@ -5122,14 +5298,6 @@ const ZP={
       <div class="${rd.c}" style="margin-bottom:3px">${rd.n}</div>${tB(enc.traits)}
       <div style="background:rgba(255,255,255,.06);border-radius:9px;padding:9px;margin:9px 0;text-align:left;font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.8">
         💰 ${$mt(ev2)}/Besucher<br>📊 ×${tm.toFixed(2)} Mult<br>🏃 Speed-Lv ${sl} (+${sp}% Einnahmen)
-      </div>
-      <!-- LIMO SPEED SHOP -->
-      <div style="background:linear-gradient(135deg,rgba(255,105,180,.1),rgba(255,165,0,.08));border:2px solid rgba(255,105,180,.35);border-radius:12px;padding:11px;margin-bottom:10px">
-        <div style="font-size:1.5rem;margin-bottom:4px">🚗</div>
-        <div style="font-weight:900;color:#FF69B4;font-size:.86rem;margin-bottom:4px">Limo Speed-Shop</div>
-        <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:6px">+5% Einnahmen pro Level</div>
-        <div style="font-size:.76rem;color:#00CFFF;margin-bottom:6px">Nächstes Level: ${$mt(sc)}</div>
-        <button class="ab" ${z.mt<sc?'disabled':''} onclick="ZP._bSpd(${i},${sc})" style="font-size:.82rem;padding:7px 16px">⚡ Speed +5%</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         <button class="btn btnd" style="font-size:.78rem;padding:8px" onclick="ZP._sell(${i})">🗑️ Verkaufen (${$mt(enc.animal.p*.5)})</button>
@@ -5203,7 +5371,6 @@ const ZP={
     ZP.toast('🐾 '+g.a.e+' '+g.a.n+' auf dem Weg! Trage es ins Gehege '+(slot+1)+'! (50% langsamer)',3000);
     ZG._updHUD();
   },
-  _bSpd(i,cost){const z=ZS.zoo;if(z.mt<cost){this.toast('❌ Zu wenig!');return;}z.mt-=cost;z.enc[i].sl=(z.enc[i].sl||0)+1;this.toast(`⚡ Speed-Level ${z.enc[i].sl}!`,2000);this._rEnc(i);ZG._updHUD();},
   _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();},
 
   // MENU
@@ -5360,6 +5527,39 @@ const ZP={
     this.close('adm');
   },
   async _adMT(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();const cmd={type:'give_mt',target:tgt,amount:50000,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){ZS.zoo.mt+=50000;ZG._updHUD();}this.toast('✅ +50K MT!');this.close('adm');},
+  // ── PLAYER REPORTS (Frage/Fehler melden) ──
+  _rReport(){
+    const s=document.getElementById('report-status');
+    if(s)s.textContent='';
+    const ta=document.getElementById('report-text');
+    if(ta)ta.value='';
+  },
+  async _sendReport(){
+    const text=document.getElementById('report-text')?.value?.trim();
+    if(!text){ZP.toast('❌ Bitte etwas schreiben!',2500);return;}
+    const report={
+      id:'rep_'+Date.now(),
+      player:ZS.player||'Unbekannt',
+      text:text,
+      ts:Date.now(),
+      done:false
+    };
+    try{
+      if(typeof _db!=='undefined'&&State._useCloud()){
+        await _db.collection('zoo_reports').doc(report.id).set(report);
+      }
+      // Also keep local backup
+      const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
+      local.unshift(report); if(local.length>50)local.pop();
+      localStorage.setItem('zoo_reports',JSON.stringify(local));
+      const s=document.getElementById('report-status');
+      if(s){s.textContent='✅ Danke! Deine Meldung wurde gesendet.';s.style.color='#27AE60';}
+      const ta=document.getElementById('report-text'); if(ta)ta.value='';
+      ZP.toast('✅ Meldung gesendet! Danke :)',3000);
+      setTimeout(()=>this.close('report'),1500);
+    }catch(e){ZP.toast('❌ Fehler: '+e.message,3000);}
+  },
+
   // ── UPDATE NEWS ──
   _previewNews(){
     const t=document.getElementById('news-title')?.value||'Titel erscheint hier';
@@ -6087,6 +6287,7 @@ const ZAdmin = {
     if(tab==='cal')this._renderCalTable();
     if(tab==='announce')ZP._loadAnnStatus();
     if(tab==='news')ZP._loadNewsStatus();
+    if(tab==='reports')this._loadReports();
   },
   _populateAnimalGrid(){
     const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
@@ -6252,6 +6453,71 @@ const ZAdmin = {
       _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
     }}catch(e){}
     ZP.toast('🚨 '+label+' an '+this.target.name+' gesendet!',2500);
+  },
+  async _loadReports(){
+    const list=document.getElementById('reports-list'); if(!list)return;
+    list.innerHTML='<div style="color:rgba(255,255,255,.4);text-align:center;padding:12px">Lade...</div>';
+    let reports=[];
+    try{
+      if(typeof _db!=='undefined'&&State._useCloud()){
+        const snap=await _db.collection('zoo_reports').orderBy('ts','desc').limit(50).get();
+        snap.forEach(d=>reports.push(d.data()));
+      }
+    }catch(e){}
+    // Merge with local
+    try{
+      const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
+      local.forEach(r=>{ if(!reports.find(x=>x.id===r.id)) reports.push(r); });
+    }catch(e){}
+    reports.sort((a,b)=>b.ts-a.ts);
+    if(!reports.length){ list.innerHTML='<div style="color:rgba(255,255,255,.4);text-align:center;padding:20px">Keine Meldungen 🎉</div>'; return; }
+    list.innerHTML=reports.map(r=>{
+      const d=new Date(r.ts).toLocaleString('de-CH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return `<div style="background:${r.done?'rgba(39,174,96,.1)':'rgba(255,255,255,.05)'};border:1px solid ${r.done?'rgba(39,174,96,.3)':'rgba(255,255,255,.1)'};border-radius:10px;padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-weight:900;color:#3498db;font-size:.85rem">👤 ${(r.player||'?').replace(/[<>]/g,'')}</span>
+          <span style="font-size:.68rem;color:rgba(255,255,255,.4)">${d}</span>
+        </div>
+        <div style="font-size:.85rem;color:#fff;white-space:pre-wrap;margin-bottom:8px">${(r.text||'').replace(/[<>]/g,'')}</div>
+        <div style="display:flex;gap:6px">
+          <button onclick="ZAdmin._toggleReport('${r.id}')" style="flex:1;background:${r.done?'rgba(255,255,255,.1)':'rgba(39,174,96,.25)'};border:none;color:#fff;padding:6px;border-radius:6px;font-size:.72rem;cursor:pointer">${r.done?'↩️ Offen':'✅ Erledigt'}</button>
+          <button onclick="ZAdmin._delReport('${r.id}')" style="background:rgba(231,76,60,.25);border:none;color:#fff;padding:6px 12px;border-radius:6px;font-size:.72rem;cursor:pointer">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+  async _toggleReport(id){
+    try{
+      const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
+      const r=local.find(x=>x.id===id);
+      if(r){ r.done=!r.done; localStorage.setItem('zoo_reports',JSON.stringify(local)); }
+      if(typeof _db!=='undefined'&&State._useCloud()){
+        const doc=await _db.collection('zoo_reports').doc(id).get();
+        if(doc.exists) await _db.collection('zoo_reports').doc(id).update({done:!doc.data().done});
+      }
+      this._loadReports();
+    }catch(e){}
+  },
+  async _delReport(id){
+    try{
+      let local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
+      local=local.filter(x=>x.id!==id); localStorage.setItem('zoo_reports',JSON.stringify(local));
+      if(typeof _db!=='undefined'&&State._useCloud()) await _db.collection('zoo_reports').doc(id).delete().catch(()=>{});
+      this._loadReports();
+    }catch(e){}
+  },
+  async _clearAllReports(){
+    if(!confirm('Wirklich ALLE Meldungen löschen?'))return;
+    try{
+      localStorage.setItem('zoo_reports','[]');
+      if(typeof _db!=='undefined'&&State._useCloud()){
+        const snap=await _db.collection('zoo_reports').get();
+        const batch=[]; snap.forEach(d=>batch.push(d.ref.delete()));
+        await Promise.all(batch);
+      }
+      this._loadReports();
+      ZP.toast('🗑️ Alle Meldungen gelöscht',2500);
+    }catch(e){}
   },
   async _selEv(id){
     const ev=(window.EVENTS||[]).find(e=>e.id===id); if(!ev)return;
@@ -7178,30 +7444,51 @@ async function _checkNews(){
 function _showNewsModal(news){
   const ov=document.createElement('div'); ov.id='news-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:99989;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,sans-serif';
+  // Card: fixed header + footer, SCROLLABLE middle (supports long news up to 10000 chars)
   const card=document.createElement('div');
-  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3)';
-  // Header
-  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px';
+  card.style.cssText='background:#0d1a0d;border:2px solid #27AE60;border-radius:20px;max-width:440px;width:100%;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(39,174,96,.3);display:flex;flex-direction:column';
+  // Header (fixed)
+  const hdr=document.createElement('div'); hdr.style.cssText='background:linear-gradient(135deg,#1a4a1a,#27AE60);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0';
   const badge=document.createElement('div'); badge.style.cssText='background:#FFD700;color:#000;border-radius:8px;padding:3px 10px;font-size:.75rem;font-weight:900'; badge.textContent='📰 UPDATE';
   const htitle=document.createElement('div'); htitle.style.cssText='color:#fff;font-weight:900;font-size:1rem;flex:1'; htitle.textContent='Was ist neu?';
   const xb=document.createElement('button'); xb.textContent='✕'; xb.style.cssText='background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer';
   xb.onclick=()=>{ov.remove(); _newsMarkSeen(news.id);};
   hdr.appendChild(badge); hdr.appendChild(htitle); hdr.appendChild(xb);
   card.appendChild(hdr);
-  // Content
-  const body=document.createElement('div'); body.style.cssText='padding:18px';
+  // Scrollable content
+  const scroll=document.createElement('div'); scroll.style.cssText='overflow-y:auto;flex:1;padding:18px;min-height:0;-webkit-overflow-scrolling:touch';
   const ttl=document.createElement('div'); ttl.style.cssText='font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:10px'; ttl.textContent=news.title;
-  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6;margin-bottom:16px'; bdy.textContent=news.body||'';
+  const bdy=document.createElement('div'); bdy.style.cssText='font-size:.88rem;color:rgba(255,255,255,.75);white-space:pre-wrap;line-height:1.6'; bdy.textContent=news.body||'';
+  scroll.appendChild(ttl); scroll.appendChild(bdy);
+  card.appendChild(scroll);
+  // Footer (fixed, always reachable even with long text)
+  const footer=document.createElement('div'); footer.style.cssText='padding:14px 18px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)';
   const okb=document.createElement('button'); okb.textContent='👍 Verstanden!'; okb.style.cssText='width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:14px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer';
   okb.onclick=()=>{ov.remove(); _newsMarkSeen(news.id);};
-  body.appendChild(ttl); body.appendChild(bdy); body.appendChild(okb);
-  card.appendChild(body); ov.appendChild(card); document.body.appendChild(ov);
+  footer.appendChild(okb);
+  card.appendChild(footer);
+  ov.appendChild(card); document.body.appendChild(ov);
 }
 function _newsMarkSeen(id){
   const s=JSON.parse(localStorage.getItem('zoo_news_seen')||'[]');
   if(!s.includes(id)){s.push(id);if(s.length>20)s.shift();}
   localStorage.setItem('zoo_news_seen',JSON.stringify(s));
 }
+
+// ── I18N: translate any static HTML marked with data-i18n="key" ──
+// (Needed because template-literal-looking ${...} syntax in raw HTML is
+// NEVER evaluated by the browser outside of an actual JS template literal —
+// it just renders as literal text. This function is the correct fix.)
+function applyI18n(root){
+  try{
+    const scope = root || document;
+    scope.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      if(typeof t==='function'){ const txt=t(key); if(txt && txt!==key) el.textContent=txt; }
+    });
+  }catch(e){}
+}
+window.applyI18n = applyI18n;
 
 // ── ADMIN ANNOUNCEMENTS ──
 async function _checkAnnouncement(){
@@ -7659,30 +7946,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   history.pushState(null,'','');
 
-  // ═══ TEST-MODE: Trigger-Buttons zum Testen der Events ═══
-  if(window.MISCHA_TESTMODE){
-    // show reward button in zoo + badge timer
+  // Reward button: now shown for ALL players in the Zoo (moved here from
+  // the Welt-1 world map, which shouldn't have it — rewards belong in Welt 2).
+  {
     const rhz=document.getElementById('rewardHbZoo'); if(rhz)rhz.style.display='';
     if(typeof RewardChests!=='undefined' && RewardChests.startBadgeTimer) RewardChests.startBadgeTimer();
-    setTimeout(()=>{
-      if(document.getElementById('test-triggers'))return;
-      const box=document.createElement('div');
-      box.id='test-triggers';
-      box.style.cssText='position:fixed;top:70px;right:8px;z-index:9000;display:flex;flex-direction:column;gap:4px;align-items:flex-end;max-width:130px';
-      const mk=(label,fn,bg,fg)=>'<button onclick="'+fn+'" style="background:'+bg+';color:'+(fg||'#fff')+';border:none;padding:4px 7px;border-radius:6px;font-size:.62rem;cursor:pointer;font-weight:700">'+label+'</button>';
-      box.innerHTML='<div style="font-size:.6rem;color:#ff6b00;font-weight:900">🧪 TEST-TRIGGER</div>'+
-        mk('🚓 Polizei','ZooEvents.policeRaid()','#3498db')+
-        mk('🚜 Unfall','Sweeper._accident()','#F39C12','#1a1a2e')+
-        mk('🤕 Anfall','ZooEvents.assault()','#e74c3c')+
-        mk('🔥 Feuer','ZooEvents.fire()','#e67e22')+
-        mk('🦠 Gesundheit','ZooEvents.health()','#16a085')+
-        mk('🦹 Einbrecher','ZooEvents.thief()','#8e44ad')+
-        mk('⚖️ Protest','ZooEvents.protest()','#27ae60')+
-        mk('🌪️ Sturm','ZooEvents.storm()','#5dade2')+
-        mk('🤩 Influencer','ZooEvents.influencer()','#e84393')+
-        mk('🐍 Ausbruch','ZooEvents.escape()','#e67e22');
-      document.body.appendChild(box);
-    }, 3000);
   }
 
   // ═══ IDLE TIMEOUT: 20 min no activity → back to Mischa Denkspiel ═══
@@ -7941,21 +8209,21 @@ const Feeder = {
       return '<div onclick="Feeder._select('+o.i+')" style="background:'+(RAR_COL[a.r]||"#95a5a6")+"22"+';border:2px solid '+(active?"#27AE60":(RAR_COL[a.r]||"#95a5a6"))+';border-radius:10px;padding:8px 5px;text-align:center;cursor:pointer;min-width:78px">'+
         '<div style="font-size:1.8rem">'+(a.e||"🐾")+'</div>'+
         '<div style="font-size:.7rem;color:#fff;font-weight:700">'+(a.n||a.id)+'</div>'+
-        (active?'<div style="font-size:.62rem;color:#27AE60;font-weight:700">⚡ 2× ('+mins+"min)"+'</div>':'<div style="font-size:.62rem;color:rgba(255,255,255,.45)">Gehege '+(o.i+1)+'</div>')+
+        (active?'<div style="font-size:.62rem;color:#27AE60;font-weight:700">⚡ 2× ('+mins+"min)"+'</div>':'<div style="font-size:.62rem;color:rgba(255,255,255,.45)">'+(typeof t!=='undefined'?t('feeder.slot'):'Gehege')+' '+(o.i+1)+'</div>')+
         '</div>';
-    }).join('') || '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:20px">Keine Tiere im Zoo zum Füttern.</div>';
+    }).join('') || '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:20px">'+(typeof t!=='undefined'?t('feeder.none'):'Keine Tiere im Zoo zum Füttern.')+'</div>';
     const ov=document.createElement('div');
     ov.id='feeder-panel';
     ov.style.cssText='position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px';
     ov.innerHTML='<div style="background:linear-gradient(135deg,#2a1e0e,#1e1408);border:2px solid #d9a441;border-radius:18px;max-width:620px;width:100%;max-height:88vh;overflow:auto;padding:18px;color:#fff">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-        '<div style="font-size:1.2rem;font-weight:900;color:#f5c542">🍬 Leckerli-Automat</div>'+
+        '<div style="font-size:1.2rem;font-weight:900;color:#f5c542">'+(typeof t!=='undefined'?t('feeder.title'):'🍬 Leckerli-Automat')+'</div>'+
         '<button onclick="document.getElementById(\'feeder-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer">✕</button>'+
       '</div>'+
-      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">Deine Leckerlis: <b style="color:#f5c542">🍬 '+treats+'</b> · Wähle ein Tier, das du fütterst</div>'+
+      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">'+(typeof t!=='undefined'?t('feeder.yours'):'Deine Leckerlis:')+' <b style="color:#f5c542">🍬 '+treats+'</b> · '+(typeof t!=='undefined'?t('feeder.choose'):'Wähle ein Tier, das du fütterst')+'</div>'+
       '<div id="feeder-action" style="margin-bottom:10px"></div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+cards+'</div>'+
-      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">Ein Leckerli macht ein Tier <b style="color:#27AE60">5 Min lang 2× so schnell Geld</b>.<br>Leckerlis im Shop kaufen (1000 MT).</div>'+
+      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">'+(typeof t!=='undefined'?t('feeder.hint'):'Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld.')+'<br>'+(typeof t!=='undefined'?t('feeder.buy_shop'):'Leckerlis im Shop kaufen (1000 MT).')+'</div>'+
     '</div>';
     document.body.appendChild(ov);
   },
@@ -7968,9 +8236,9 @@ const Feeder = {
     const el=document.getElementById('feeder-action'); if(!el) return;
     el.innerHTML='<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center">'+
       '<span style="font-size:1.4rem">'+(a.e||"")+'</span> <b>'+(a.n||a.id)+'</b>'+
-      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ Schon gefüttert! Läuft noch.</span>':'')+
-      (treats>0? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">🍬 Füttern (1 Leckerli)</button>'
-                : '<br><span style="color:#E74C3C;font-size:.8rem">Keine Leckerlis! Im Shop kaufen.</span>')+
+      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ '+(typeof t!=='undefined'?t('feeder.already'):'Schon gefüttert! Läuft noch.')+'</span>':'')+
+      (treats>0? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">'+(typeof t!=='undefined'?t('feeder.feed_btn'):'🍬 Füttern (1 Leckerli)')+'</button>'
+                : '<br><span style="color:#E74C3C;font-size:.8rem">'+(typeof t!=='undefined'?t('feeder.none_left'):'Keine Leckerlis! Im Shop kaufen.')+'</span>')+
       '</div>';
   },
   _feed(){
@@ -8450,6 +8718,7 @@ window.ZooEvents = ZooEvents;
         <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
           <div class="padmin-tab-btn" data-tab="announce" onclick="ZAdmin.switchTab('announce')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3478f6;display:flex;align-items:center;gap:6px;background:rgba(52,120,246,.1);border:1px solid rgba(52,120,246,.3);border-radius:6px">📢 Ankündigung</div>
           <div class="padmin-tab-btn" data-tab="news" onclick="ZAdmin.switchTab('news')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#27AE60;display:flex;align-items:center;gap:6px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:6px">📰 Update-News</div>
+          <div class="padmin-tab-btn" data-tab="reports" onclick="ZAdmin.switchTab('reports')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">📋 Meldungen</div>
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
@@ -8813,18 +9082,27 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: UPDATE-NEWS -->
+        <div class="padmin-tab" id="padmin-tab-reports" style="display:none">
+          <div class="padmin-section-title">📋 Spieler-Meldungen</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <button onclick="ZAdmin._loadReports()" style="flex:1;background:rgba(52,152,219,.2);border:1px solid rgba(52,152,219,.4);color:#fff;padding:8px;border-radius:8px;font-size:.8rem;cursor:pointer">🔄 Aktualisieren</button>
+            <button onclick="ZAdmin._clearAllReports()" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);color:#fff;padding:8px 12px;border-radius:8px;font-size:.8rem;cursor:pointer">🗑️ Alle löschen</button>
+          </div>
+          <div id="reports-list" style="display:grid;gap:8px"><div style="color:rgba(255,255,255,.4);text-align:center;padding:20px">Klicke Aktualisieren...</div></div>
+        </div>
+
         <div class="padmin-tab" id="padmin-tab-news" style="display:none">
           <div class="padmin-section-title">📰 Update-News</div>
           <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px;margin-bottom:10px">
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Version / Titel</div>
-              <input id="news-title" type="text" placeholder="z.B. v253 – Neue Events + Jump Level!" maxlength="60"
+              <input id="news-title" type="text" placeholder="z.B. v263 – Neue Events + Jump Level!" maxlength="60"
                 oninput="ZAdmin._previewNews()"
                 style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
             </div>
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📋 Beschreibung</div>
-              <textarea id="news-body" placeholder="Was ist neu? Schreibe hier die Änderungen..." maxlength="400" rows="4"
+              <textarea id="news-body" placeholder="Was ist neu? Schreibe hier die Änderungen..." maxlength="10000" rows="8"
                 oninput="ZAdmin._previewNews()"
                 style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.85rem;resize:none;box-sizing:border-box"></textarea>
             </div>
@@ -8844,7 +9122,7 @@ window.ZooEvents = ZooEvents;
             </div>
             <div style="padding:14px">
               <div id="news-preview-title" style="font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:8px">Titel erscheint hier</div>
-              <div id="news-preview-body" style="font-size:.85rem;color:rgba(255,255,255,.7);white-space:pre-wrap;line-height:1.5">Beschreibung erscheint hier...</div>
+              <div id="news-preview-body" style="font-size:.85rem;color:rgba(255,255,255,.7);white-space:pre-wrap;line-height:1.5;max-height:200px;overflow-y:auto">Beschreibung erscheint hier...</div>
             </div>
           </div>
           <div id="news-status" style="text-align:center;font-size:.75rem;color:rgba(255,255,255,.35);margin-top:8px">Noch keine News aktiv.</div>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>🔤 Schrift-Diagnose</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#ddd;font-family:system-ui,sans-serif;padding:12px;line-height:1.5}
+h1{color:#FFD700;font-size:20px;margin-bottom:10px}
+h2{color:#4af;font-size:15px;margin:14px 0 6px;border-bottom:1px solid #333;padding-bottom:3px}
+.box{background:#141414;border:1px solid #262626;border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e1e1e;font-size:13px}
+.row:last-child{border-bottom:none}
+.k{color:#888}.v{color:#fff;font-weight:700;font-family:monospace}
+.ok{color:#2ecc71}.err{color:#e74c3c;font-weight:900}.warn{color:#f39c12}
+button{background:#4af;color:#000;border:none;padding:10px 16px;border-radius:8px;font-weight:900;font-size:14px;cursor:pointer;margin:3px}
+.slider-row{display:flex;align-items:center;gap:10px;margin:10px 0}
+input[type=range]{flex:1;height:36px}
+.sample{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:12px;margin:8px 0}
+.big{font-size:2rem}
+</style>
+</head>
+<body>
+<h1>🔤 Schrift-Diagnose</h1>
+<p style="color:#888;font-size:13px;margin-bottom:12px">Diese Seite zeigt genau, was mit der Schriftgrösse passiert und was sie überschreibt.</p>
+
+<div class="box">
+<h2>📐 Aktuelle Werte (live)</h2>
+<div id="live"></div>
+</div>
+
+<div class="box">
+<h2>🎚️ Test-Schieberegler</h2>
+<div class="slider-row">
+  <span style="font-size:13px">10px</span>
+  <input type="range" id="fontSlider" min="10" max="28" value="16" oninput="applyTest(this.value)">
+  <span style="font-size:13px">28px</span>
+</div>
+<div style="text-align:center;color:#4af;font-weight:900;font-size:18px" id="sliderVal">16px</div>
+<div class="sample">
+  <div style="font-size:var(--user-font-size,16px)">Text mit var(--user-font-size)</div>
+  <div style="font-size:1rem">Text mit 1rem</div>
+  <div style="font-size:clamp(1rem,5vw,1.3rem)">Text mit clamp(1rem,5vw,1.3rem)</div>
+  <div class="big">Grosser Text (2rem)</div>
+</div>
+</div>
+
+<div class="box">
+<h2>🔬 Was überschreibt die Schrift?</h2>
+<div id="overrides"></div>
+</div>
+
+<div class="box">
+<h2>💾 Gespeicherte FontScale-Werte</h2>
+<div id="storage"></div>
+</div>
+
+<div style="text-align:center;margin:16px 0">
+  <button onclick="location.reload()">🔄 Neu laden</button>
+  <button onclick="clearFont()" style="background:#a22;color:#fff">🗑️ FontScale zurücksetzen</button>
+</div>
+
+<script>
+function px(el,prop){ return getComputedStyle(el).getPropertyValue(prop); }
+
+function refresh(){
+  const html=document.documentElement, body=document.body;
+  const live=document.getElementById('live');
+  const rootFs=px(html,'font-size');
+  const bodyFs=px(body,'font-size');
+  const userVar=px(html,'--user-font-size')||'(nicht gesetzt)';
+  const inlineRoot=html.style.fontSize||'(kein inline)';
+  const vw=window.innerWidth;
+  const dpr=window.devicePixelRatio;
+  live.innerHTML=`
+    <div class="row"><span class="k">html font-size (computed)</span><span class="v">${rootFs}</span></div>
+    <div class="row"><span class="k">html font-size (inline style)</span><span class="v">${inlineRoot}</span></div>
+    <div class="row"><span class="k">body font-size (computed)</span><span class="v">${bodyFs}</span></div>
+    <div class="row"><span class="k">--user-font-size Variable</span><span class="v">${userVar}</span></div>
+    <div class="row"><span class="k">Viewport-Breite</span><span class="v">${vw}px</span></div>
+    <div class="row"><span class="k">Device Pixel Ratio</span><span class="v">${dpr}</span></div>
+    <div class="row"><span class="k">5vw entspricht</span><span class="v ${vw*0.05>21?'warn':''}">${(vw*0.05).toFixed(1)}px</span></div>
+  `;
+
+  // Overrides analysis
+  const ov=document.getElementById('overrides');
+  let issues=[];
+  if(inlineRoot==='(kein inline)') issues.push('<span class="warn">⚠️ html hat keinen inline font-size → CSS-Regeln bestimmen die Grösse (evtl. media queries)</span>');
+  if(vw*0.05 > 21) issues.push('<span class="err">❌ 5vw = '+(vw*0.05).toFixed(1)+'px — clamp(...5vw...) Texte werden auf max begrenzt, ignorieren FontScale!</span>');
+  if(userVar==='(nicht gesetzt)'||userVar.trim()==='') issues.push('<span class="err">❌ --user-font-size ist nicht gesetzt → Texte die es nutzen fallen auf Standard zurück</span>');
+  const rootNum=parseFloat(rootFs), userNum=parseFloat(userVar);
+  if(!isNaN(rootNum)&&!isNaN(userNum)&&Math.abs(rootNum-userNum)>2) issues.push('<span class="warn">⚠️ html font-size ('+rootFs+') ≠ --user-font-size ('+userVar+') → Inkonsistenz</span>');
+  if(!issues.length) issues.push('<span class="ok">✅ Keine offensichtlichen Konflikte</span>');
+  ov.innerHTML=issues.map(i=>'<div style="padding:4px 0">'+i+'</div>').join('');
+
+  // Storage
+  const st=document.getElementById('storage');
+  let rows='';
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&(k.includes('fontscale')||k.includes('font_size')||k.includes('fontsize'))){
+      rows+=`<div class="row"><span class="k">${k}</span><span class="v">${localStorage.getItem(k)}</span></div>`;
+    }
+  }
+  st.innerHTML=rows||'<div class="k">Keine FontScale-Werte gespeichert</div>';
+}
+
+function applyTest(v){
+  document.getElementById('sliderVal').textContent=v+'px';
+  document.documentElement.style.setProperty('--user-font-size',v+'px');
+  document.documentElement.style.fontSize=v+'px';
+  refresh();
+}
+
+function clearFont(){
+  for(let i=localStorage.length-1;i>=0;i--){
+    const k=localStorage.key(i);
+    if(k&&(k.includes('fontscale')||k.includes('font_size')||k.includes('fontsize'))) localStorage.removeItem(k);
+  }
+  alert('FontScale-Werte gelöscht. Seite wird neu geladen.');
+  location.reload();
+}
+
+refresh();
+setInterval(refresh,1000);
+</script>
+</body>
+</html>

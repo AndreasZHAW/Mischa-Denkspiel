@@ -1,6 +1,31 @@
+<script>
+// TEST-MODE DETECTION: intro.html previously had NO visual way to tell
+// live vs test apart — fixed here with the same orange banner pattern
+// used on index.html/zoo.html.
+(function(){
+  try{
+    window.MISCHA_TESTMODE = /\/test\//.test(window.location.pathname) || /\/test$/.test(window.location.pathname);
+  }catch(e){}
+})();
+// FONT SYSTEM v257: read the SAME shared font setting used by Denkspiel + Zoo,
+// so the Intro respects it too. Runs immediately, before first paint.
+(function(){
+  try{
+    var v = localStorage.getItem('mischa_font_size');
+    var n = parseInt(v,10);
+    var scale = (!isNaN(n) && n>=10 && n<=40) ? (n/16) : 1;
+    document.documentElement.style.setProperty('--user-font-scale', scale.toFixed(3));
+  }catch(e){
+    document.documentElement.style.setProperty('--user-font-scale','1');
+  }
+})();
+</script>
 <style>
+:root{--user-font-scale:1}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Georgia',serif;}
+/* Block Android's long-press context menu (Download/Share/Print) */
+*{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
 /* ── STARS ── */
 #stars{position:fixed;inset:0;z-index:0;}
@@ -15,11 +40,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 .chapter.active{display:flex;flex-direction:column;align-items:center;gap:16px;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 
-.chapter-label{font-size:clamp(0.59rem,2.0vw,0.8rem);letter-spacing:4px;color:rgba(255,215,0,.5);text-transform:uppercase;}
-.chapter-icon{font-size:clamp(4.25rem,14.0vw,5.75rem);filter:drop-shadow(0 0 20px rgba(255,215,0,.6));animation:float 3s ease-in-out infinite;}
+.chapter-label{font-size:calc(var(--user-font-scale,1) * clamp(0.59rem,2.0vw,0.8rem));letter-spacing:4px;color:rgba(255,215,0,.5);text-transform:uppercase;}
+.chapter-icon{font-size:calc(var(--user-font-scale,1) * clamp(4.25rem,14.0vw,5.75rem));filter:drop-shadow(0 0 20px rgba(255,215,0,.6));animation:float 3s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
-.chapter-title{font-size:clamp(1.4rem,4vw,2.2rem);font-weight:900;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,.8);letter-spacing:1px;line-height:1.3;}
-.chapter-text{font-size:clamp(.85rem,2.5vw,1.1rem);color:rgba(255,255,255,.85);line-height:1.8;max-width:560px;text-shadow:0 2px 8px rgba(0,0,0,.8);}
+.chapter-title{font-size:calc(var(--user-font-scale,1) * clamp(1.4rem,4vw,2.2rem));font-weight:900;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,.8);letter-spacing:1px;line-height:1.3;}
+.chapter-text{font-size:calc(var(--user-font-scale,1) * clamp(.85rem,2.5vw,1.1rem));color:rgba(255,255,255,.85);line-height:1.8;max-width:560px;text-shadow:0 2px 8px rgba(0,0,0,.8);}
 .chapter-text b{color:#FFD700;}
 
 /* ── CHARACTERS ── */
@@ -27,9 +52,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 .char-card{display:flex;flex-direction:column;align-items:center;gap:6px;animation:charIn .6s ease both;}
 @keyframes charIn{from{opacity:0;transform:scale(.7) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .char-card:nth-child(2){animation-delay:.2s;}
-.char-avatar{font-size:clamp(2.98rem,9.8vw,4.02rem);filter:drop-shadow(0 0 15px rgba(255,215,0,.5));}
-.char-name{font-size:clamp(0.64rem,2.1vw,0.86rem);letter-spacing:2px;color:#FFD700;text-transform:uppercase;}
-.char-desc{font-size:clamp(0.55rem,1.8vw,0.75rem);color:rgba(255,255,255,.5);text-align:center;max-width:90px;}
+.char-avatar{font-size:calc(var(--user-font-scale,1) * clamp(2.98rem,9.8vw,4.02rem));filter:drop-shadow(0 0 15px rgba(255,215,0,.5));}
+.char-name{font-size:calc(var(--user-font-scale,1) * clamp(0.64rem,2.1vw,0.86rem));letter-spacing:2px;color:#FFD700;text-transform:uppercase;}
+.char-desc{font-size:calc(var(--user-font-scale,1) * clamp(0.55rem,1.8vw,0.75rem));color:rgba(255,255,255,.5);text-align:center;max-width:90px;}
 
 /* ── CINEMATIC BARS ── */
 .bar-top,.bar-bot{position:fixed;left:0;right:0;height:60px;background:#000;z-index:20;transition:height .8s ease;}
@@ -45,7 +70,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
   color:#FFD700;
   padding:12px 32px;
   border-radius:50px;
-  font-size:clamp(0.77rem,2.5vw,1.03rem);
+  font-size:calc(var(--user-font-scale,1) * clamp(0.77rem,2.5vw,1.03rem));
   cursor:pointer;
   letter-spacing:2px;
   text-transform:uppercase;
@@ -57,12 +82,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 
 /* ── SKIP ── */
 #skip-btn{
-  position:fixed;top:20px;right:20px;z-index:100;
+  position:fixed;top:34px;right:20px;z-index:100;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
   color:rgba(255,255,255,.5);padding:7px 16px;border-radius:50px;
-  font-size:clamp(0.61rem,2.0vw,0.83rem);cursor:pointer;letter-spacing:1px;transition:all .2s;
+  font-size:calc(var(--user-font-scale,1) * clamp(0.61rem,2.0vw,0.83rem));cursor:pointer;letter-spacing:1px;transition:all .2s;
 }
 #skip-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
+
+/* Language flag button */
+#lang-btn{
+  position:fixed;top:34px;left:20px;z-index:100;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+  color:#fff;padding:7px 14px;border-radius:50px;
+  font-size:calc(var(--user-font-scale,1) * clamp(0.7rem,2.2vw,0.9rem));
+  cursor:pointer;letter-spacing:1px;transition:all .2s;
+}
+#lang-btn:hover{background:rgba(255,255,255,.15);}
 
 /* ── PROGRESS ── */
 #progress{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:30;}
@@ -76,13 +111,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 /* ── END SCREEN ── */
 #end-screen{display:none;position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at center,#0a0a1a 0%,#000 100%);flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:24px;}
 #end-screen.show{display:flex;}
-.end-logo{font-size:clamp(2.98rem,9.8vw,4.02rem);animation:float 3s ease-in-out infinite;}
-.end-title{font-family:'Georgia',serif;font-size:clamp(1.5rem,5vw,2.8rem);font-weight:900;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.end-sub{font-size:clamp(0.77rem,2.5vw,1.03rem);color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;}
+.end-logo{font-size:calc(var(--user-font-scale,1) * clamp(2.98rem,9.8vw,4.02rem));animation:float 3s ease-in-out infinite;}
+.end-title{font-family:'Georgia',serif;font-size:calc(var(--user-font-scale,1) * clamp(1.5rem,5vw,2.8rem));font-weight:900;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.end-sub{font-size:calc(var(--user-font-scale,1) * clamp(0.77rem,2.5vw,1.03rem));color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;}
 .enter-btn{
   background:linear-gradient(135deg,#FFD700,#F39C12);
   color:#0a0a1a;border:none;padding:16px 40px;
-  border-radius:50px;font-size:clamp(0.94rem,3.1vw,1.26rem);font-weight:900;
+  border-radius:50px;font-size:calc(var(--user-font-scale,1) * clamp(0.94rem,3.1vw,1.26rem));font-weight:900;
   cursor:pointer;letter-spacing:1px;
   box-shadow:0 0 40px rgba(255,165,0,.5);
   animation:glow 2s ease-in-out infinite;
@@ -90,7 +125,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 }
 .enter-btn:hover{transform:scale(1.05);}
 @keyframes glow{0%,100%{box-shadow:0 0 30px rgba(255,165,0,.4);}50%{box-shadow:0 0 60px rgba(255,165,0,.8);}}
-.ver-badge{font-size:clamp(0.55rem,1.8vw,0.75rem);color:rgba(255,255,255,.2);letter-spacing:1px;}
+.ver-badge{font-size:calc(var(--user-font-scale,1) * clamp(0.55rem,1.8vw,0.75rem));color:rgba(255,255,255,.2);letter-spacing:1px;}
 
 /* Chapter-specific backgrounds */
 .bg-blue{background:radial-gradient(ellipse at 50% 80%,rgba(0,100,200,.15),transparent 70%);}
@@ -114,7 +149,38 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 <div class="bg-glow" id="bg-glow"></div>
 
 <!-- Skip button -->
+<button id="lang-btn" onclick="introLangPicker()">🇩🇪 <span style="font-size:.8em">▾</span></button>
+<div id="intro-test-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:4px">🧪 TEST-UMGEBUNG</div>
+<script>if(window.MISCHA_TESTMODE){var b=document.getElementById('intro-test-banner');if(b)b.style.display='block';}</script>
 <button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
+<script src="lang.js"></script>
+<script>
+function introLangPicker(){
+  if(document.getElementById('intro-lang-overlay'))return;
+  const ov=document.createElement('div');
+  ov.id='intro-lang-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+  ov.onclick=(e)=>{ if(e.target===ov) ov.remove(); };
+  const card=document.createElement('div');
+  card.style.cssText='background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,215,0,.3);border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center';
+  const title=document.createElement('div');
+  title.style.cssText='color:#FFD700;font-weight:900;font-size:1.1rem;margin-bottom:16px';
+  title.textContent='🌐 Sprache / Language / Langue';
+  card.appendChild(title);
+  const sel=document.createElement('div');
+  sel.innerHTML = typeof LANG!=='undefined' ? LANG.selectorHTML(false) : '';
+  card.appendChild(sel);
+  const close=document.createElement('button');
+  close.textContent='Schliessen';
+  close.style.cssText='margin-top:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:9px 22px;border-radius:10px;cursor:pointer;font-size:.85rem';
+  close.onclick=()=>ov.remove();
+  card.appendChild(close);
+  ov.appendChild(card);
+  document.body.appendChild(ov);
+}
+// Show current flag on the button
+try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn'); if(b) b.innerHTML = LANG.flag()+' <span style="font-size:.8em">▾</span>'; } }catch(e){}
+</script>
 <div id="music-hint" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;color:rgba(255,255,255,.35);font-size:.7rem;letter-spacing:1px;pointer-events:none;animation:pulse 2s infinite">🔊 Tippe für Musik</div>
 <script>document.addEventListener('click',function(){const h=document.getElementById('music-hint');if(h)h.remove();},{once:true});</script>
 
@@ -126,67 +192,67 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 
   <!-- CHAPTER 0: Darkness -->
   <div class="chapter active" id="ch0">
-    <div class="chapter-label">Prolog</div>
+    <div class="chapter-label" data-i18n="intro.ch0.label">Prolog</div>
     <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.6">🌌</div>
-    <div class="chapter-title">Irgendwo in der Welt...</div>
-    <div class="chapter-text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch0.title">Irgendwo in der Welt...</div>
+    <div class="chapter-text" data-i18n-html="intro.ch0.text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 1: Characters -->
   <div class="chapter" id="ch1">
-    <div class="chapter-label">Die Helden</div>
+    <div class="chapter-label" data-i18n="intro.ch1.label">Die Helden</div>
     <div class="chars">
       <div class="char-card">
         <div class="char-avatar">🧭</div>
         <div class="char-name">Mischa</div>
-        <div class="char-desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
+        <div class="char-desc" data-i18n="intro.ch1.mischa_desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
       </div>
       <div class="char-card" style="animation-delay:.3s">
         <div class="char-avatar">🔬</div>
         <div class="char-name">Janosch</div>
-        <div class="char-desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
+        <div class="char-desc" data-i18n="intro.ch1.janosch_desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
       </div>
     </div>
-    <div class="chapter-text">Los geht es auf unserer Erde!<br>Genauer gesagt geht es zuerst auf eine Reise nach <b>Frankreich</b> —<br>in ein wunderschönes Schloss.<br><br>Dort gilt es <b>Startkapital zu erkämpfen</b>,<br>denn ohne Startkapital kein Zoo.</div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-text" data-i18n-html="intro.ch1.text">Los geht es auf unserer Erde!<br>Genauer gesagt geht es zuerst auf eine Reise nach <b>Frankreich</b> —<br>in ein wunderschönes Schloss.<br><br>Dort gilt es <b>Startkapital zu erkämpfen</b>,<br>denn ohne Startkapital kein Zoo.</div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 2: The Challenge -->
   <div class="chapter" id="ch2">
-    <div class="chapter-label">Die Herausforderung</div>
+    <div class="chapter-label" data-i18n="intro.ch2.label">Die Herausforderung</div>
     <div class="chapter-icon">⚔️</div>
-    <div class="chapter-title">Erkämpfe dein Startkapital</div>
-    <div class="chapter-text">Es braucht <b>Köpfchen und Ausdauer</b>.<br><br>Aber zusammen ist alles möglich!</div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch2.title">Erkämpfe dein Startkapital</div>
+    <div class="chapter-text" data-i18n-html="intro.ch2.text">Es braucht <b>Köpfchen und Ausdauer</b>.<br><br>Aber zusammen ist alles möglich!</div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 3: The Dream -->
   <div class="chapter" id="ch3">
-    <div class="chapter-label">Der Traum</div>
+    <div class="chapter-label" data-i18n="intro.ch3.label">Der Traum</div>
     <div class="chapter-icon">🦁</div>
-    <div class="chapter-title">Baue deinen eigenen Zoo</div>
-    <div class="chapter-text">Mit deinem Startkapital kannst du dich in die <b>nächste Welt teleportieren</b><br>und dort helfen, den <b>intergalaktischen Mega-Zoo</b> zu erschaffen —<br>mit bekannten Tieren aus unserer Welt<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...</div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch3.title">Baue deinen eigenen Zoo</div>
+    <div class="chapter-text" data-i18n-html="intro.ch3.text">Mit deinem Startkapital kannst du dich in die <b>nächste Welt teleportieren</b><br>und dort helfen, den <b>intergalaktischen Mega-Zoo</b> zu erschaffen —<br>mit bekannten Tieren aus unserer Welt<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...</div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 4: Multiplayer -->
   <div class="chapter" id="ch4">
-    <div class="chapter-label">Zusammen stärker</div>
+    <div class="chapter-label" data-i18n="intro.ch4.label">Zusammen stärker</div>
     <div class="chapter-icon">🌍</div>
-    <div class="chapter-title">Du bist nicht allein</div>
-    <div class="chapter-text">Mischa und Janosch zählen auf dich.<br><br><b>Machst du mit?</b><br>Mach den ersten Schritt. <b>Jetzt!</b></div>
-    <button id="next-btn" onclick="nextChapter()">Weiter ›</button>
+    <div class="chapter-title" data-i18n="intro.ch4.title">Du bist nicht allein</div>
+    <div class="chapter-text" data-i18n-html="intro.ch4.text">Mischa und Janosch zählen auf dich.<br><br><b>Machst du mit?</b><br>Mach den ersten Schritt. <b>Jetzt!</b></div>
+    <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
   <!-- CHAPTER 5: Call to action -->
   <div class="chapter" id="ch5">
-    <div class="chapter-label">Deine Geschichte beginnt</div>
+    <div class="chapter-label" data-i18n="intro.ch5.label">Deine Geschichte beginnt</div>
     <div class="chapter-icon">🚀</div>
-    <div class="chapter-title">Bist du bereit?</div>
-    <div class="chapter-text">Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b></div>
+    <div class="chapter-title" data-i18n="intro.ch5.title">Bist du bereit?</div>
+    <div class="chapter-text" data-i18n-html="intro.ch5.text">Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b></div>
     <button id="next-btn" onclick="showEnd()" style="background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,140,0,.2));border-color:#FFD700;font-size:1rem;padding:14px 36px;">
-      🚀 Abenteuer starten
+      <span data-i18n="intro.ch5.btn">🚀 Abenteuer starten</span>
     </button>
   </div>
 
@@ -196,12 +262,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 <div id="end-screen">
   <div class="end-logo">🦁</div>
   <div class="end-title">Mischa Denkspiel</div>
-  <div class="end-sub">+ Zoo 3D · Das Abenteuer</div>
-  <button class="enter-btn" onclick="enterGame()">▶ Jetzt spielen</button>
+  <div class="end-sub" data-i18n="intro.end.sub">+ Zoo 3D · Das Abenteuer</div>
+  <button class="enter-btn" onclick="enterGame()" data-i18n="intro.end.btn">▶ Jetzt spielen</button>
   <div class="ver-badge" id="ver-badge">v2026.05.05-1140</div>
 </div>
 
 <script>
+// ── I18N: apply translations to all chapters (data-i18n / data-i18n-html) ──
+// Uses innerHTML for data-i18n-html since chapter texts contain <b>/<br> tags.
+(function applyIntroI18n(){
+  try{
+    if(typeof t!=='function') return;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key=el.getAttribute('data-i18n'); const txt=t(key);
+      if(txt && txt!==key) el.textContent=txt;
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+      const key=el.getAttribute('data-i18n-html'); const txt=t(key);
+      if(txt && txt!==key) el.innerHTML=txt;
+    });
+  }catch(e){}
+})();
+
 // ── CONFIG ──
 const CHAPTERS = 6;
 let current = 0;

@@ -176,6 +176,14 @@ const State = {
     if (nameLc === 'bu' && password !== 'mischa2026') return null;
     const existing = await this.getPlayer(name);
     if (existing) return null; // Player already exists
+    // Language bonus: +1 MT, ONCE, for non-German UI languages (not de_simple — still German).
+    // Stored in its own field (not totalScore) so it's clearly a one-time bonus,
+    // and the World Map adds it into the visible Welt-1 MT total.
+    let _langBonus = 0;
+    let _langBonusLang = null;
+    try {
+      if (typeof LANG !== 'undefined') { _langBonus = LANG.getBonus(); _langBonusLang = LANG._cur; }
+    } catch(e) {}
     const player = {
       name, password,
       birthYear: parseInt(birthYear),
@@ -184,6 +192,8 @@ const State = {
       currentWorld: 1,
       worlds: this._emptyWorlds(),
       totalScore: 0,
+      langBonusMT: _langBonus,
+      langBonusGranted: _langBonus > 0 ? _langBonusLang : null, // used to show the one-time popup
       createdAt: Date.now(),
     };
     await this.savePlayer(player);
