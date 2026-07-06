@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v264';
+const APP_VERSION = 'v265';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v264 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v265 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v264') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v265') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v264', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v265', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -261,7 +261,7 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v264 single-key system)
+    // Apply saved font size immediately (new v265 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -276,17 +276,18 @@ const App = {
     const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0) + _langBonusMT;
     const hasEnough = mt >= 10;
     this._html(`
-      <div class="mountain-bg">
-        <div class="sky-gradient"></div>
-        <div class="cloud cloud-1"></div><div class="cloud cloud-2"></div><div class="cloud cloud-3"></div>
-        ${mountainSVG()}
+      <div class="mountain-bg" id="welcome-bg">
+        <!-- Black/starfield background matching the Prolog/Intro — no castle
+             here; the castle belongs to the Welt-1 game screens only. -->
+        <div style="position:absolute;inset:0;background:#000"></div>
+        <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
       </div>
       <div class="page">
         <div class="game-logo">
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v264 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v265 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -296,8 +297,7 @@ const App = {
           <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
             <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 ${typeof t!=='undefined'?t('welcome.world1.title'):'Welt 1 — Denkspiel'}</div>
             <div style="font-size:1rem;color:#333;line-height:1.6">
-              ${typeof t!=='undefined'?t('welcome.world1.body1'):'Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.'}<br>
-              ${typeof t!=='undefined'?t('welcome.world1.body2'):'Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).'}<br>
+              ${typeof t!=='undefined'?t('welcome.world1.body1'):'<b>20 Spiele</b>, verdiene <b>Mischa Taler</b> 🌀.'}<br>
               <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world1.games'):'🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...'}</span>
             </div>
           </div>
@@ -306,8 +306,7 @@ const App = {
           <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
             <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 ${typeof t!=='undefined'?t('welcome.world2.title'):'Welt 2 — Zoo-Empire'}</div>
             <div style="font-size:1rem;color:#333;line-height:1.6">
-              ${typeof t!=='undefined'?t('welcome.world2.body1'):'Teleportiere für <b>10 🌀 MT</b> in den Zoo.'}<br>
-              ${typeof t!=='undefined'?t('welcome.world2.body2'):'Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.'}<br>
+              ${typeof t!=='undefined'?t('welcome.world2.body1'):'Teleportiere für <b>10 MT</b> 🌀 in den Zoo.'}<br>
               <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world2.feats'):'🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System'}</span>
             </div>
           </div>
@@ -324,6 +323,13 @@ const App = {
           </div>
         </div>
       </div>`);
+    // Draw stars on the black welcome background (canvas now exists in DOM)
+    setTimeout(()=>{
+      const wmc = document.getElementById('wm-stars');
+      if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
+        for(let i=0;i<220;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
+      }
+    },0);
   },
 
   // ── TELEPORT TO ZOO ──
@@ -1807,20 +1813,20 @@ const App = {
             <div class="world-banner ${world.bannerClass}" style="margin-bottom:10px">
           <span class="banner-icon">${world.icon}</span>
           <div class="banner-title">${world.name}</div>
-          <div class="banner-sub">${done}/20 geschafft · 🌀${(ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
+          <div class="banner-sub">${done}/20 ${typeof t!=='undefined'?t('gamelist.done_of20'):'geschafft'} · 🌀${(ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
         </div>
 
 
         <div class="card" style="max-width:100%;padding:1.000rem;box-sizing:border-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">◀ Welten</button>
+            <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">${typeof t!=='undefined'?t('gamelist.back'):'◀ Welten'}</button>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">🌍 Rangliste</button>
-              <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">📊 Kontoauszug</button>
-              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500rem 0.750rem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">👗 Kleider</button>
+              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
+              <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
+              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500rem 0.750rem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">${typeof t!=='undefined'?t('gamelist.wardrobe'):'👗 Kleider'}</button>
               <div class="joker-badge ${State.getJokersRemaining(player,worldId)===0?'used':''}"
               onclick="${State.getJokersRemaining(player,worldId)===0?'':  `App.showJokerMenu(${worldId})`}">
-              🃏 ${State.getJokersRemaining(player,worldId)} Joker
+              🃏 ${State.getJokersRemaining(player,worldId)} ${typeof t!=='undefined'?t('gamelist.joker'):'Joker'}
             </div>
             </div>
           </div>
@@ -1828,12 +1834,12 @@ const App = {
           ${window._showEyeTestHint ? `<div onclick="App.showEyeTest()" style="background:linear-gradient(135deg,rgba(100,200,255,.14),rgba(41,182,246,.08));border:1.5px solid rgba(100,200,255,.4);border-radius:12px;padding:10px 14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:10px">
             <span style="font-size:1.4rem">👁</span>
             <div style="flex:1">
-              <div style="font-weight:900;color:rgba(180,240,255,1)">Schrift zu klein?</div>
-              <div style="color:rgba(255,255,255,.5);font-size:.82rem">Schrift optimieren — 10 Stufen, ~30 Sek.</div>
+              <div style="font-weight:900;color:rgba(180,240,255,1)">${typeof t!=='undefined'?t('gamelist.font_hint_t'):'Schrift zu klein?'}</div>
+              <div style="color:rgba(255,255,255,.5);font-size:.82rem">${typeof t!=='undefined'?t('gamelist.font_hint_b'):'Schrift optimieren — 10 Stufen, ~30 Sek.'}</div>
             </div>
             <span style="color:rgba(100,200,255,.7)">›</span>
           </div>` : ''}
-          <div style="font-size:1rem;color:var(--text-mid);margin-bottom:8px">Tippe auf die nächste Aufgabe:</div>
+          <div style="font-size:1rem;color:var(--text-mid);margin-bottom:8px">${typeof t!=='undefined'?t('gamelist.next_task'):'Tippe auf die nächste Aufgabe:'}</div>
 
           ${_isRefW ? '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:1rem;color:#fff"><b style="color:#E74C3C">&#128302; Kalibrierung:</b> '+calCount+'/20 Spiele &middot; '+runsCount+' Durchgang'+(runsCount>=3?' &middot; ✅ Vollständig':runsCount>0?' &middot; '+Math.round(calCount/20*100)+'%':'')+'</div>' : ''}
       <div class="task-grid">

@@ -215,12 +215,12 @@ const STRINGS = {
   'world1.description':    { de:'Verdiene Mischa Taler — baue dein Zoo-Empire!', en:'Earn Mischa Coins — build your Zoo Empire!', fr:'Gagne des Mischa Pièces — construis ton Empire du Zoo !' },
 
   // ── WELCOME PAGE BODY TEXT (previously missing) ──
-  'welcome.world1.body1':   { de:'Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.', en:'Play <b>20 different games</b> and earn <b>Mischa Coins (🌀 MT)</b>.', fr:'Joue à <b>20 jeux différents</b> et gagne des <b>Mischa Pièces (🌀 MT)</b>.' },
-  'welcome.world1.body2':   { de:'Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).', en:'The better you play, the more MT you earn (up to 1.5 MT per game).', fr:'Plus tu joues bien, plus tu gagnes de MT (jusqu\'à 1,5 MT par jeu).' },
-  'welcome.world1.games':   { de:'🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...', en:'🎯 Darts · 🔢 Math · 🚂 Train · 🧠 Memory · ⚡ Reaction · and more...', fr:'🎯 Fléchettes · 🔢 Calcul · 🚂 Train · 🧠 Mémoire · ⚡ Réaction · et plus...' },
-  'welcome.world2.body1':   { de:'Teleportiere für <b>10 🌀 MT</b> in den Zoo.', en:'Teleport to the Zoo for <b>10 🌀 MT</b>.', fr:'Téléporte-toi au Zoo pour <b>10 🌀 MT</b>.' },
-  'welcome.world2.body2':   { de:'Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.', en:'Buy animals with the gondola · Build enclosures · Earn MT automatically.', fr:'Achète des animaux avec le téléphérique · Construis des enclos · Gagne des MT automatiquement.' },
-  'welcome.world2.feats':   { de:'🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System', en:'🚡 Gondola · 🎡 Lucky Wheel · 🌀 Multiplayer · Slap System', fr:'🚡 Téléphérique · 🎡 Roue de la Chance · 🌀 Multijoueur · Système de Claque' },
+  'welcome.world1.body1':   { de:'<b>20 Spiele</b>, verdiene <b>Mischa Taler</b> 🌀.', en:'<b>20 games</b>, earn <b>Mischa Coins</b> 🌀.', fr:'<b>20 jeux</b>, gagne des <b>Mischa Pièces</b> 🌀.' },
+  'welcome.world1.body2':   { de:'', en:'', fr:'' },
+  'welcome.world1.games':   { de:'🎯 Dart · 🔢 Rechnen · 🧠 Memory · und mehr', en:'🎯 Darts · 🔢 Math · 🧠 Memory · and more', fr:'🎯 Fléchettes · 🔢 Calcul · 🧠 Mémoire · et plus' },
+  'welcome.world2.body1':   { de:'Teleportiere für <b>10 MT</b> 🌀 in den Zoo.', en:'Teleport to the Zoo for <b>10 MT</b> 🌀.', fr:'Téléporte-toi au Zoo pour <b>10 MT</b> 🌀.' },
+  'welcome.world2.body2':   { de:'', en:'', fr:'' },
+  'welcome.world2.feats':   { de:'🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer', en:'🚡 Gondola · 🎡 Lucky Wheel · 🌀 Multiplayer', fr:'🚡 Téléphérique · 🎡 Roue de la Chance · 🌀 Multijoueur' },
   'btn.login_short':        { de:'🔑 Anmelden', en:'🔑 Login', fr:'🔑 Connexion' },
   'btn.wallet_short':       { de:'👜 Geldbeutel', en:'👜 Wallet', fr:'👜 Portefeuille' },
   'btn.account_short':      { de:'📊 Konto', en:'📊 Account', fr:'📊 Compte' },
@@ -271,6 +271,15 @@ const STRINGS = {
   'langbonus.btn':    { de:'Super, danke!', en:'Great, thanks!', fr:'Super, merci !' },
   'lang.name.en':     { de:'Englisch', en:'English', fr:'Anglais' },
   'lang.name.fr':     { de:'Französisch', en:'French', fr:'Français' },
+
+  // ── WORLD-1 GAME LIST SCREEN ──
+  'gamelist.back':        { de:'◀ Welten', en:'◀ Worlds', fr:'◀ Mondes' },
+  'gamelist.wardrobe':    { de:'👗 Kleider', en:'👗 Wardrobe', fr:'👗 Garde-robe' },
+  'gamelist.joker':       { de:'Joker', en:'Joker', fr:'Joker' },
+  'gamelist.next_task':   { de:'Tippe auf die nächste Aufgabe:', en:'Tap the next task:', fr:'Touche la prochaine tâche :' },
+  'gamelist.done_of20':   { de:'geschafft', en:'done', fr:'réussi' },
+  'gamelist.font_hint_t': { de:'Schrift zu klein?', en:'Text too small?', fr:'Texte trop petit ?' },
+  'gamelist.font_hint_b': { de:'Schrift optimieren — 10 Stufen, ~30 Sek.', en:'Optimize text size — 10 steps, ~30 sec.', fr:'Optimiser la taille du texte — 10 étapes, ~30 s.' },
 };
 
 // Helper: translate shorthand

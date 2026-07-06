@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v264 -->
+<!-- ZOO v265 -->
 <html lang="de">
 <head>
 <script>
-// FONT SYSTEM v264: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
+// FONT SYSTEM v265: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
 (function(){
   try{
     var v = localStorage.getItem('mischa_font_size');
@@ -17,7 +17,7 @@
 </script>
 <script>try{if(sessionStorage.getItem('mischa_testmode')==='1')window.MISCHA_TESTMODE=true;}catch(e){}</script>
 <script>
-// PHASE 1 FIX v264: Block Android's long-press context menu (Download/Share/Print).
+// PHASE 1 FIX v265: Block Android's long-press context menu (Download/Share/Print).
 // -webkit-touch-callout (CSS) does NOT stop Android Chrome's native long-press menu
 // on canvas — the real fix is intercepting the 'contextmenu' event itself.
 document.addEventListener('contextmenu', function(e) {
@@ -47,7 +47,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--user-font-size:16px}
-/* SHARED FONT SYSTEM v264 — same --user-font-size key as Denkspiel (index.html),
+/* SHARED FONT SYSTEM v265 — same --user-font-size key as Denkspiel (index.html),
    read from the same localStorage key 'mischa_font_size'. One setting, both worlds. */
 html{font-size:var(--user-font-size)!important;-webkit-text-size-adjust:100%!important;-moz-text-size-adjust:100%!important;text-size-adjust:100%!important}
 /* PHASE 1: Prevent Android long-press menu (Download/Share/Print) on zoo canvas + controls */
@@ -235,7 +235,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v264','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v265','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -9096,7 +9096,7 @@ window.ZooEvents = ZooEvents;
           <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px;margin-bottom:10px">
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Version / Titel</div>
-              <input id="news-title" type="text" placeholder="z.B. v264 – Neue Events + Jump Level!" maxlength="60"
+              <input id="news-title" type="text" placeholder="z.B. v265 – Neue Events + Jump Level!" maxlength="60"
                 oninput="ZAdmin._previewNews()"
                 style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;box-sizing:border-box">
             </div>
