@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v265';
+const APP_VERSION = 'v267';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v265 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v267 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v265') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v267') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v265', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v267', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -259,9 +259,62 @@ const App = {
       </div></div>`);
   },
 
+  // ── BACKGROUND COLOR DIAGNOSTIC ──
+  // Shows the ACTUAL computed colors the browser is using, right on the
+  // affected page, so we stop guessing and see real data from the device.
+  _showBgDiagnostic() {
+    const rows = [];
+    const check = (label, el) => {
+      if (!el) { rows.push([label, '❌ Element nicht gefunden']); return; }
+      const cs = window.getComputedStyle(el);
+      rows.push([label + ' background-color', cs.backgroundColor]);
+      rows.push([label + ' background-image', cs.backgroundImage.slice(0,60)]);
+      if (cs.filter && cs.filter !== 'none') rows.push([label + ' filter', cs.filter]);
+      if (cs.mixBlendMode && cs.mixBlendMode !== 'normal') rows.push([label + ' mix-blend-mode', cs.mixBlendMode]);
+      if (cs.opacity && cs.opacity !== '1') rows.push([label + ' opacity', cs.opacity]);
+    };
+    check('html', document.documentElement);
+    check('body', document.body);
+    check('#app (container)', document.getElementById('app'));
+    check('.mountain-bg (first)', document.querySelector('.mountain-bg'));
+    check('#wm-bg', document.getElementById('wm-bg'));
+    check('#welcome-bg', document.getElementById('welcome-bg'));
+    check('.page', document.querySelector('.page'));
+    // Meta theme-color (affects browser chrome, not page, but worth logging)
+    const meta = document.querySelector('meta[name="theme-color"]');
+    rows.push(['<meta theme-color>', meta ? meta.content : '❌ nicht gefunden']);
+    // Device info
+    rows.push(['devicePixelRatio', window.devicePixelRatio]);
+    rows.push(['prefers-color-scheme: dark', window.matchMedia('(prefers-color-scheme: dark)').matches]);
+    rows.push(['User-Agent', navigator.userAgent.slice(0,80)]);
+
+    // ── STACK CHECK: every element sitting at the screen's center point ──
+    // This reveals any hidden overlay (semi-transparent color filter, extra
+    // div, etc.) between the black background and what the eye sees —
+    // without this, we'd only ever see the ONE element we guessed to check.
+    rows.push(['── STACK @ screen center ──', '']);
+    try {
+      const cx = window.innerWidth/2, cy = window.innerHeight/2;
+      const stack = document.elementsFromPoint(cx, cy);
+      stack.slice(0,8).forEach((el,i) => {
+        const cs = window.getComputedStyle(el);
+        const tag = el.tagName.toLowerCase() + (el.id?'#'+el.id:'') + (el.className&&typeof el.className==='string'?'.'+el.className.split(' ').slice(0,2).join('.'):'');
+        rows.push([`  [${i}] ${tag}`, `bg:${cs.backgroundColor} | filter:${cs.filter!=='none'?cs.filter:'-'} | opacity:${cs.opacity}`]);
+      });
+    } catch(e) { rows.push(['Stack-Check Fehler', e.message]); }
+
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.92);color:#0f0;font-family:monospace;font-size:.72rem;padding:16px;overflow-y:auto;box-sizing:border-box';
+    ov.innerHTML = '<div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px">🔍 Hintergrund-Diagnose</div>' +
+      rows.map(([k,v]) => `<div style="margin-bottom:6px;word-break:break-all"><span style="color:#7FDBFF">${k}:</span> ${v}</div>`).join('') +
+      '<button onclick="this.parentElement.remove()" style="margin-top:16px;background:#FFD700;color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:900;cursor:pointer">Schliessen</button>' +
+      '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(this.parentElement.innerText);this.textContent=\'Kopiert!\'" style="margin-top:16px;margin-left:8px;background:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:900;cursor:pointer">📋 Kopieren</button>';
+    document.body.appendChild(ov);
+  },
+
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v265 single-key system)
+    // Apply saved font size immediately (new v267 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -282,12 +335,13 @@ const App = {
         <div style="position:absolute;inset:0;background:#000"></div>
         <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
       </div>
+      ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
       <div class="page">
         <div class="game-logo">
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v265 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v267 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -1129,6 +1183,7 @@ const App = {
     } catch(_e) { mt = 0; }
 
     this._html(`
+      ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
       <div class="mountain-bg" id="wm-bg">
         <!-- Pure black background, matching the Intro's aesthetic (was a
              dark-purple gradient that photographed/rendered as brownish on
@@ -1807,6 +1862,7 @@ const App = {
     }
 
     this._html(`
+      ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
       <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
       <div class="page" style="padding-top:14px">
         
@@ -1870,9 +1926,9 @@ const App = {
 
           <div style="margin-top:12px">
             <div class="progress-bar-wrap">
-              <div class="progress-bar-fill" style="width:${done*10}%"></div>
+              <div class="progress-bar-fill" style="width:${done*5}%"></div>
             </div>
-            <div style="text-align:center;font-size:0.95rem;color:var(--text-mid)">${done}/10 Aufgaben</div>
+            <div style="text-align:center;font-size:0.95rem;color:var(--text-mid)">${done}/20 ${typeof t!=='undefined'?t('gamelist.done_of20'):'geschafft'}</div>
           </div>
         </div>
       </div>`);
