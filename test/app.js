@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v263';
+const APP_VERSION = 'v264';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v263 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v264 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v263') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v264') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v263', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v264', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -261,7 +261,7 @@ const App = {
 
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v263 single-key system)
+    // Apply saved font size immediately (new v264 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
     // Draw stars on canvas
@@ -286,7 +286,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v263 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v264 · 2026-05-24</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -1124,15 +1124,17 @@ const App = {
 
     this._html(`
       <div class="mountain-bg" id="wm-bg">
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,#020008 0%,#060015 30%,#0a001f 55%,#120028 75%,#1e0035 90%,#120020 100%)"></div>
+        <!-- Pure black background, matching the Intro's aesthetic (was a
+             dark-purple gradient that photographed/rendered as brownish on
+             some Android screens) -->
+        <div style="position:absolute;inset:0;background:#000"></div>
         <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 35% at 25% 18%,rgba(70,0,110,.3),transparent),radial-gradient(ellipse 50% 25% at 75% 35%,rgba(0,15,70,.25),transparent)"></div>
         <div style="position:absolute;top:5%;right:12%;width:46px;height:46px">
           <div style="width:46px;height:46px;border-radius:50%;background:#fffbe0;box-shadow:0 0 18px rgba(255,245,200,.5)"></div>
-          <div style="position:absolute;top:5px;right:-7px;width:38px;height:38px;border-radius:50%;background:#020008"></div>
+          <div style="position:absolute;top:5px;right:-7px;width:38px;height:38px;border-radius:50%;background:#000"></div>
         </div>
         ${mountainSVG(true)}
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,10,.65) 100%)"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.75) 100%)"></div>
       </div>
       <div class="page" style="padding-top:16px;padding-left:4px;padding-right:4px;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden">
         <!-- Header -->
@@ -1147,17 +1149,14 @@ const App = {
               <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:1rem;padding:4px 12px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
             </div>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">🌍 Rangliste</button>
-            ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">⚑ Meldungen</button>` : ''}
-            <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,.5);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
-            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
-            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:2px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
-
-
-
-            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Spielprotokoll anzeigen">${typeof t!=='undefined'?t('wm.log'):'📋 Log'}</button>
-            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
+            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
+            ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
+            <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,.5);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
+            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:1.5px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
+            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:1.5px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
+            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,.3);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Spielprotokoll anzeigen">${typeof t!=='undefined'?t('wm.log'):'📋 Log'}</button>
+            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:1.5px solid white;color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
           </div>
         </div>
 
@@ -1308,7 +1307,7 @@ const App = {
             <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
               Schritt ${s+1} von ${SIZES.length} — ${size}px
             </p>
-            <p style="color:rgba(255,255,255,.3);font-size:0.875remrem;margin:3px 0 0">
+            <p style="color:rgba(255,255,255,.3);font-size:0.875rem;margin:3px 0 0">
               Systemschrift: ${sysSize}px · DPR: ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
             </p>
           </div>
@@ -1359,7 +1358,7 @@ const App = {
             </button>` : ''}
             <button onclick="App.showWorldMap()"
               style="background:none;color:rgba(255,255,255,.3);border:none;
-                     padding:10px;font-size:1.000remrem;cursor:pointer;margin-top:4px">
+                     padding:10px;font-size:1.000rem;cursor:pointer;margin-top:4px">
               Überspringen (Standardgrösse beibehalten)
             </button>
           </div>
@@ -1445,10 +1444,10 @@ const App = {
         <div style="text-align:center;margin-bottom:28px">
           <div style="font-size:3rem;margin-bottom:8px">👁</div>
           <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Schriftgrösse optimieren</h2>
-          <p style="color:rgba(255,255,255,.5);font-size:1.000remrem;margin:0">
+          <p style="color:rgba(255,255,255,.5);font-size:1.000rem;margin:0">
             Schritt ${step+1} von ${SIZES.length} — ${size}px
           </p>
-          <p style="color:rgba(255,255,255,.3);font-size:0.812remrem;margin:3px 0 0">
+          <p style="color:rgba(255,255,255,.3);font-size:0.812rem;margin:3px 0 0">
             System: ${sysSize}px · DPR ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
           </p>
         </div>
@@ -1812,13 +1811,13 @@ const App = {
         </div>
 
 
-        <div class="card" style="max-width:100%;padding:1.000remrem;box-sizing:border-box">
+        <div class="card" style="max-width:100%;padding:1.000rem;box-sizing:border-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">◀ Welten</button>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">🌍 Rangliste</button>
               <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">📊 Kontoauszug</button>
-              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500remrem 0.750remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">👗 Kleider</button>
+              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500rem 0.750rem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">👗 Kleider</button>
               <div class="joker-badge ${State.getJokersRemaining(player,worldId)===0?'used':''}"
               onclick="${State.getJokersRemaining(player,worldId)===0?'':  `App.showJokerMenu(${worldId})`}">
               🃏 ${State.getJokersRemaining(player,worldId)} Joker
