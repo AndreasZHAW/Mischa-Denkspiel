@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<script>window.MISCHA_TESTMODE=true;</script>
+<script>window.MISCHA_TESTMODE = /\/test\//.test(window.location.pathname) || /\/test$/.test(window.location.pathname);</script>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -153,7 +153,8 @@
 </script>
 </head>
 <body ontouchstart="">
-<div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.75rem;font-weight:900;text-align:center;padding:5px">🧪 TEST-UMGEBUNG</div><!-- ontouchstart="" enables :active CSS on iOS -->
+<div id="root-test-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.75rem;font-weight:900;text-align:center;padding:5px">🧪 TEST-UMGEBUNG</div><!-- ontouchstart="" enables :active CSS on iOS -->
+<script>if(window.MISCHA_TESTMODE){var _b=document.getElementById('root-test-banner');if(_b)_b.style.display='block';}</script>
 <script>
 (function(){
   // FIRST: Restore session from localStorage backup if sessionStorage lost it

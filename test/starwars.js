@@ -28,7 +28,13 @@ const StarWarsGame = {
         localStorage.setItem('_mischa_crash_readable',(readable+'\n'+newLine).slice(-20000));
       }catch(e){}
     };
-    const _swOnErr=(msg,src,line)=>{_swLog('ERROR: '+msg+' (L'+line+')', 'E');};
+    const _swOnErr=(msg,src,line)=>{
+      // Include the real source file — window.onerror is page-global, so an error
+      // thrown by a completely different script while Starwars is running would
+      // otherwise get mislabeled as a Starwars bug with no way to trace it back.
+      const _fname = (src||'').split('/').pop() || '?';
+      _swLog('ERROR: '+msg+' ('+_fname+':L'+line+')', 'E');
+    };
     const _prevOnerr=window.onerror;
     window.onerror=function(m,s,l,c,e){_swOnErr(m,s,l);if(_prevOnerr)return _prevOnerr(m,s,l,c,e);};
 

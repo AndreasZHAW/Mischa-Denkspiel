@@ -79,11 +79,11 @@ const Personality = {
     // Build the tinted gradient as a CSS background-image string
     const bgGrad = 'linear-gradient(160deg,'+darkBg+' 0%,'+midBg+' 100%)';
     el.textContent =
-      // Body/html — base background
-      'html,body{background:'+bgGrad+' fixed !important}'+
-      // #app container
-      '#app{background:'+bgGrad+' !important}'+
       // The menu's inner background-gradient div: override its inline style by targeting first child of .mountain-bg
+      // (Removed the old html/body/#app !important override — that was the root cause of the
+      //  "dark brown/maroon instead of black" bug: it force-tinted every page's base background
+      //  with the personality color, and only pages with their own opaque black overlay div
+      //  masked it. Pages without one — like the profile screen — showed the raw tint through.)
       '.mountain-bg > div:first-child{background:'+bgGrad+' !important}'+
       // The final dark fade-overlay too
       '.mountain-bg > div:last-child{background:linear-gradient(180deg,transparent 40%,'+this._toRgba(col,0.25)+' 100%) !important}'+

@@ -315,8 +315,6 @@ const App = {
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
-              <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">${typeof t!=='undefined'?t('btn.wallet_short'):'👜 Geldbeutel'}</button>
-              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>

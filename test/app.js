@@ -347,22 +347,14 @@ const App = {
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ ${typeof t!=='undefined'?t('welcome.title'):'Willkommen, Abenteurer'}</div>
 
-          <!-- Welt 1 Box - dark dramatic style -->
-          <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 ${typeof t!=='undefined'?t('welcome.world1.title'):'Welt 1 — Denkspiel'}</div>
-            <div style="font-size:1rem;color:#333;line-height:1.6">
-              ${typeof t!=='undefined'?t('welcome.world1.body1'):'<b>20 Spiele</b>, verdiene <b>Mischa Taler</b> 🌀.'}<br>
-              <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world1.games'):'🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...'}</span>
-            </div>
+          <!-- Welt 1 Box - dunkel, kurz -->
+          <div style="background:rgba(41,128,185,.15);border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">
+            <div style="font-weight:900;color:#5DADE2;font-size:1.05rem">${typeof t!=='undefined'?t('welcome.world1.short'):'🇫🇷 Welt 1: Frankreich'}</div>
           </div>
 
-          <!-- Welt 2 Box -->
-          <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
-            <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 ${typeof t!=='undefined'?t('welcome.world2.title'):'Welt 2 — Zoo-Empire'}</div>
-            <div style="font-size:1rem;color:#333;line-height:1.6">
-              ${typeof t!=='undefined'?t('welcome.world2.body1'):'Teleportiere für <b>10 MT</b> 🌀 in den Zoo.'}<br>
-              <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world2.feats'):'🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System'}</span>
-            </div>
+          <!-- Welt 2 Box - dunkel, kurz -->
+          <div style="background:rgba(39,174,96,.15);border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
+            <div style="font-weight:900;color:#58D68D;font-size:1.05rem">${typeof t!=='undefined'?t('welcome.world2.short'):'🦁 Welt 2: Zoo Empire'}</div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -370,8 +362,6 @@ const App = {
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>
             <div style="display:flex;gap:6px;margin-top:2px">
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
-              <button class="btn" style="flex:1;background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,.4)" onclick="App.showGeldbeutel()">${typeof t!=='undefined'?t('btn.wallet_short'):'👜 Geldbeutel'}</button>
-              <button class="btn" style="flex:1;background:rgba(41,182,246,0.2);color:#29B6F6;border:1px solid rgba(41,182,246,.4)" onclick="App.showKontoauszug()">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
           </div>
@@ -863,7 +853,11 @@ const App = {
   // ---- LOGIN ----
   showLogin() {
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
+      <div class="mountain-bg" id="login-bg">
+        <!-- Black/starfield background matching the Prolog/Intro, same as Welcome -->
+        <div style="position:absolute;inset:0;background:#000"></div>
+        <canvas id="login-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+      </div>
       <div class="page">
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -879,6 +873,13 @@ const App = {
           ${window.MISCHA_TESTMODE?`<div style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="var p=window.location.pathname;var i=p.lastIndexOf('/test');window.location.href=window.location.origin+(i>=0?p.substring(0,i):p.replace(/\\/[^\\/]*$/,''))+'/index.html'" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}
         </div>
       </div>`);
+    // Draw twinkling stars on the black login background (same technique as Welcome)
+    setTimeout(()=>{
+      const c = document.getElementById('login-stars');
+      if(c){ const cx=c.getContext('2d'); c.width=c.offsetWidth||window.innerWidth; c.height=c.offsetHeight||window.innerHeight;
+        for(let i=0;i<220;i++){const x=Math.random()*c.width,y=Math.random()*c.height,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;cx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;cx.beginPath();cx.arc(x,y,s,0,Math.PI*2);cx.fill();}
+      }
+    },0);
     // On the TEST page: prefill name from the live-page redirect and auto-login with admin pw
     if (window.MISCHA_TESTMODE) {
       let tn = '';
