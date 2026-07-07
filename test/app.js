@@ -1881,10 +1881,6 @@ const App = {
               <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
               <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
               <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500rem 0.750rem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">${typeof t!=='undefined'?t('gamelist.wardrobe'):'👗 Kleider'}</button>
-              <div class="joker-badge ${State.getJokersRemaining(player,worldId)===0?'used':''}"
-              onclick="${State.getJokersRemaining(player,worldId)===0?'':  `App.showJokerMenu(${worldId})`}">
-              🃏 ${State.getJokersRemaining(player,worldId)} ${typeof t!=='undefined'?t('gamelist.joker'):'Joker'}
-            </div>
             </div>
           </div>
 
