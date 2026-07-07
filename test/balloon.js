@@ -21,12 +21,12 @@ const BalloonGame = {
       ${isMob?`
       <!-- Sensor controls row -->
       <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px auto 4px;max-width:300px">
-        <button id="sn-mode" style="background:#8e44ad;color:#fff;border:none;padding:9px 14px;border-radius:12px;font-size:clamp(.88rem,4vw,1rem);font-weight:900;cursor:pointer;touch-action:none">🎮 Tasten</button>
+        <button id="sn-mode" style="background:#8e44ad;color:#fff;border:none;padding:9px 14px;border-radius:12px;font-size:clamp(.88rem,4vw,1rem);font-weight:900;cursor:pointer;touch-action:none">${typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten'}</button>
         <button id="sn-sens" style="display:none;background:#2980b9;color:#fff;border:none;padding:9px 12px;border-radius:12px;font-size:clamp(.78rem,3.5vw,.9rem);font-weight:700;cursor:pointer;touch-action:none">📶 Grob</button>
         <button id="sn-rev-x" style="display:none;background:#444;color:#fff;border:none;padding:9px 10px;border-radius:12px;font-size:clamp(.78rem,3.5vw,.88rem);font-weight:700;cursor:pointer;touch-action:none">Reverse ↔X</button>
         <button id="sn-rev-y" style="display:none;background:#444;color:#fff;border:none;padding:9px 10px;border-radius:12px;font-size:clamp(.78rem,3.5vw,.88rem);font-weight:700;cursor:pointer;touch-action:none">Reverse ↕Y</button>
       </div>
-      <div id="sn-hint" style="display:none;color:rgba(255,255,255,.4);font-size:.78rem;margin-bottom:4px">📱 Gerät neigen zum Steuern</div>
+      <div id="sn-hint" style="display:none;color:rgba(255,255,255,.4);font-size:.78rem;margin-bottom:4px">${typeof t!=='undefined'?t('snake.tilt_hint'):'📱 Gerät neigen zum Steuern'}</div>
       <div id="sn-rev-btns" style="display:none;gap:5px;justify-content:center;margin-bottom:4px">
         <button id="sn-rev-x" style="background:#444;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:.82rem;cursor:pointer;touch-action:none">↔X</button>
         <button id="sn-rev-y" style="background:#444;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:.82rem;cursor:pointer;touch-action:none">↕Y</button>
@@ -39,7 +39,7 @@ const BalloonGame = {
         <button id="sn-down" style="${B('#4834d4')}">↓</button>
         <button id="sn-right"style="${B('#4834d4')}">→</button>
       </div>`:''}
-      <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten / Wischen / Neigen</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">${typeof t!=='undefined'?t('snake.controls'):'Pfeiltasten / Wischen / Neigen'}</div>
     </div>`;
     function B(c){return `background:${c};color:#fff;border:none;padding:${isMob?'clamp(16px,5vw,22px) clamp(14px,5vw,20px)':'10px 8px'};border-radius:12px;font-size:${isMob?'clamp(1.5rem,8vw,2rem)':'1rem'};font-weight:900;cursor:pointer;touch-action:none;min-height:${isMob?'clamp(65px,18vw,80px)':'40px'};min-width:${isMob?'clamp(65px,18vw,80px)':'40px'};box-shadow:0 4px 0 rgba(0,0,0,.4)`;}
 
@@ -198,16 +198,16 @@ const BalloonGame = {
       };
       if(modeBtn) modeBtn.addEventListener('click',()=>{
         useTilt=!useTilt;
-        modeBtn.textContent=useTilt?'📱 Neigen':'🎮 Tasten';
+        modeBtn.textContent=useTilt?(typeof t!=='undefined'?t('snake.mode_tilt'):'📱 Neigen'):(typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten');
         modeBtn.style.background=useTilt?'#8e44ad':'#2c3e50';
         showSensorBtns(useTilt);
         if(useTilt&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
-          DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent='🎮 Tasten';showSensorBtns(false);}}).catch(()=>{useTilt=false;});
+          DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten';showSensorBtns(false);}}).catch(()=>{useTilt=false;});
         }
       });
       if(sensBtn) sensBtn.addEventListener('click',()=>{
         sensorSensitive=!sensorSensitive;
-        sensBtn.textContent=sensorSensitive?'📶 Fein':'📶 Grob';
+        sensBtn.textContent=sensorSensitive?(typeof t!=='undefined'?t('snake.sens_fine'):'📶 Fein'):(typeof t!=='undefined'?t('snake.sens_coarse'):'📶 Grob');
         sensBtn.style.background=sensorSensitive?'#27ae60':'#2980b9';
       });
       // X/Y reverse handled below in sensor block

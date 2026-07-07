@@ -6,21 +6,44 @@
 const AnagramGame = {
   current: null, _lastConfig: null,
   _wordSets: {
-    1: ['AUTO','KARTE','REISE','STRASSE','FAHRT','TANK','NACHT','WALD'],
-    2: ['BURG','RITTER','SCHLOSS','KOENIG','TURM','HELD','RUESTUNG'],
-    3: ['POOL','SONNE','WASSER','STRAND','SOMMER','FISCH','WELLE'],
-    4: ['TENNIS','NETZ','BALL','SATZ','MATCH','PUNKT','AUFSCHLAG'],
-    5: ['WUERFEL','ZAHL','SPIEL','SPASS','RUNDE','KNIFFEL','PUNKT'],
-    6: ['FAHRRAD','HELM','WALD','NATUR','TOUR','BERG','BLUME'],
-    7: ['BROT','KAESE','WEIN','SUPPE','MENU','GABEL','KUECHE'],
-    8: ['FUSSBALL','TOR','JUBEL','SIEG','PASS','TRAINER','STADION'],
-    9: ['KOFFER','REISE','PACKEN','FLUG','TICKET','HEIMWEG'],
-    10:['FERIEN','ABSCHIED','URLAUB','ERINNERUNG','ZUHAUSE'],
+    1: { de:['AUTO','KARTE','REISE','STRASSE','FAHRT','TANK','NACHT','WALD'],
+         en:['CAR','MAP','TRIP','ROAD','DRIVE','TANK','NIGHT','FOREST'],
+         fr:['AUTO','CARTE','VOYAGE','ROUTE','TRAJET','RESERVOIR','NUIT','FORET'] },
+    2: { de:['BURG','RITTER','SCHLOSS','KOENIG','TURM','HELD','RUESTUNG'],
+         en:['CASTLE','KNIGHT','TOWER','KING','HERO','ARMOR','SWORD'],
+         fr:['CHATEAU','CHEVALIER','TOUR','ROI','HEROS','ARMURE','EPEE'] },
+    3: { de:['POOL','SONNE','WASSER','STRAND','SOMMER','FISCH','WELLE'],
+         en:['POOL','SUN','WATER','BEACH','SUMMER','FISH','WAVE'],
+         fr:['PISCINE','SOLEIL','EAU','PLAGE','ETE','POISSON','VAGUE'] },
+    4: { de:['TENNIS','NETZ','BALL','SATZ','MATCH','PUNKT','AUFSCHLAG'],
+         en:['TENNIS','NET','BALL','SET','MATCH','POINT','SERVE'],
+         fr:['TENNIS','FILET','BALLE','SET','MATCH','POINT','SERVICE'] },
+    5: { de:['WUERFEL','ZAHL','SPIEL','SPASS','RUNDE','KNIFFEL','PUNKT'],
+         en:['DICE','NUMBER','GAME','FUN','ROUND','YAHTZEE','SCORE'],
+         fr:['CUBE','NOMBRE','JEU','PLAISIR','MANCHE','YAHTZEE','SCORE'] },
+    6: { de:['FAHRRAD','HELM','WALD','NATUR','TOUR','BERG','BLUME'],
+         en:['BICYCLE','HELMET','FOREST','NATURE','TOUR','MOUNTAIN','FLOWER'],
+         fr:['VELO','CASQUE','FORET','NATURE','TOUR','MONTAGNE','FLEUR'] },
+    7: { de:['BROT','KAESE','WEIN','SUPPE','MENU','GABEL','KUECHE'],
+         en:['BREAD','CHEESE','WINE','SOUP','MENU','FORK','KITCHEN'],
+         fr:['PAIN','FROMAGE','VIN','SOUPE','MENU','FOURCHETTE','CUISINE'] },
+    8: { de:['FUSSBALL','TOR','JUBEL','SIEG','PASS','TRAINER','STADION'],
+         en:['FOOTBALL','GOAL','CHEER','VICTORY','PASS','COACH','STADIUM'],
+         fr:['FOOTBALL','BUT','JOIE','VICTOIRE','PASSE','ENTRAINEUR','STADE'] },
+    9: { de:['KOFFER','REISE','PACKEN','FLUG','TICKET','HEIMWEG'],
+         en:['SUITCASE','TRIP','PACKING','FLIGHT','TICKET','HOMEWARD'],
+         fr:['VALISE','VOYAGE','BAGAGE','VOL','BILLET','RETOUR'] },
+    10:{ de:['FERIEN','ABSCHIED','URLAUB','ERINNERUNG','ZUHAUSE'],
+         en:['VACATION','FAREWELL','HOLIDAY','MEMORY','HOME'],
+         fr:['VACANCES','ADIEU','CONGES','SOUVENIR','MAISON'] },
   },
   start(config) {
     AnagramGame._lastConfig = config;
     const { worldId=1, onComplete } = config;
-    const words = (this._wordSets[worldId]||this._wordSets[1]).sort(()=>Math.random()-0.5).slice(0,8);
+    const cur = (typeof LANG!=='undefined' && LANG._cur) ? LANG._cur : 'de';
+    const lang = (cur==='de_simple') ? 'de' : cur;
+    const set = this._wordSets[worldId]||this._wordSets[1];
+    const words = (set[lang]||set.de).sort(()=>Math.random()-0.5).slice(0,8);
     this.current = { words, index:0, results:[], errors:0, startTime:Date.now(), onComplete, selected:[] };
     this._nextWord();
   },
@@ -41,10 +64,10 @@ const AnagramGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center">
         <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-mid);margin-bottom:10px">
-          <span>Wort <b>${c.index+1}/${c.words.length}</b></span>
-          <span>❌ ${c.errors} Fehler</span>
+          <span>${typeof t!=='undefined'?t('anagram.word_n'):'Wort'} <b>${c.index+1}/${c.words.length}</b></span>
+          <span>❌ ${c.errors} ${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span>
         </div>
-        <div style="font-size:0.85rem;color:var(--text-mid);margin-bottom:14px">Tippe die Buchstaben in der richtigen Reihenfolge!</div>
+        <div style="font-size:0.85rem;color:var(--text-mid);margin-bottom:14px">${typeof t!=='undefined'?t('anagram.tap_order'):'Tippe die Buchstaben in der richtigen Reihenfolge!'}</div>
         <!-- Answer slots -->
         <div style="display:flex;gap:clamp(5px,2vw,8px);justify-content:center;margin-bottom:14px;min-height:clamp(52px,14vw,68px);flex-wrap:wrap">
           ${Array.from({length:word.length},(_,i)=>`
@@ -71,7 +94,7 @@ const AnagramGame = {
         </div>
         <button onclick="AnagramGame._clear()" style="background:rgba(231,76,60,0.1);border:2px solid #E74C3C;
           color:#E74C3C;padding:8px 20px;border-radius:50px;cursor:pointer;font-weight:700;font-size:0.85rem">
-          🔄 Zurücksetzen
+          ${typeof t!=='undefined'?t('anagram.reset'):'🔄 Zurücksetzen'}
         </button>
       </div>`;
   },
@@ -114,13 +137,13 @@ const AnagramGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:3rem">🔤🏆</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">${correct}/${c.words.length} Wörter!</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">${correct}/${c.words.length} ${typeof t!=='undefined'?t('anagram.words_n'):'Wörter!'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
-          <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">Zeit</span></div>
-          <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">Fehler</span></div>
-          <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">Punkte</span></div>
+          <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.time'):'Zeit'}</span></div>
+          <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span></div>
+          <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</span></div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="AnagramGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="AnagramGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
   _finish(s,t,e){ if(this.current?.onComplete) this.current.onComplete({rawScore:s,timeMs:t,errors:e,passed:s>=40}); }

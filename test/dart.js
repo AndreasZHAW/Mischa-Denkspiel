@@ -125,7 +125,9 @@ const DartGame = {
   _newWind() {
     const angle = Math.random() * 360;
     const strength = Math.random() * 3.5;
-    const names = ['Windstill','Leichte Brise','Mäßig','Stark','Sturm'];
+    const _deWind = {'dart.wind.calm':'Windstill','dart.wind.light':'Leichte Brise','dart.wind.moderate':'Mäßig','dart.wind.strong':'Stark','dart.wind.storm':'Sturm'};
+    const _tt = (k)=> typeof t!=='undefined'?t(k):_deWind[k];
+    const names = [_tt('dart.wind.calm'),_tt('dart.wind.light'),_tt('dart.wind.moderate'),_tt('dart.wind.strong'),_tt('dart.wind.storm')];
     const ni = Math.min(4, Math.floor(strength / 0.7));
     return { angle, strength, name: names[ni] };
   },
@@ -158,9 +160,9 @@ ${(isMob2&&!isPortrait)?`
 <div style="display:flex;gap:8px;align-items:flex-start;width:100%">
   <div style="display:flex;flex-direction:column;gap:4px;width:88px;flex-shrink:0">
     <div style="background:${isP?'linear-gradient(160deg,#2980B9,#1a5a8a)':'rgba(0,0,0,.06)'};border-radius:10px;padding:6px;text-align:center">
-      <div style="font-size:.7rem;color:${isP?'rgba(255,255,255,.8)':'var(--text-mid)'}">👤 Du</div>
+      <div style="font-size:.7rem;color:${isP?'rgba(255,255,255,.8)':'var(--text-mid)'}">👤 ${typeof t!=='undefined'?t('game.you'):'Du'}</div>
       <div style="font-size:1.5rem;font-weight:900;line-height:1;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
-      <div style="font-size:.62rem;color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'};margin-top:2px">${isP?'Pfeil '+(c.dartsThisRound+1)+'/3':'...'}</div>
+      <div style="font-size:.62rem;color:${isP?'rgba(255,255,255,.6)':'var(--text-mid)'};margin-top:2px">${isP?(typeof t!=='undefined'?t('dart.dart_n'):'Pfeil')+' '+(c.dartsThisRound+1)+'/3':'...'}</div>
     </div>
     <div style="text-align:center;font-size:.7rem;color:#999;font-weight:700">VS</div>
     <div style="background:${!isP?'linear-gradient(160deg,#c0392b,#7b0000)':'rgba(0,0,0,.06)'};border-radius:10px;padding:6px;text-align:center">
@@ -198,15 +200,15 @@ ${(isMob2&&!isPortrait)?`
     <div id="dart-joy-pad" style="position:relative;width:100px;height:100px;background:rgba(255,215,0,.08);border:3px solid rgba(255,215,0,.5);border-radius:50%;box-shadow:0 0 14px rgba(255,215,0,.2)">
       <div id="dart-joy-knob" style="position:absolute;top:50%;left:50%;width:38px;height:38px;background:linear-gradient(135deg,#FFD700,#F39C12);border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
     </div>
-    <div style="font-size:.65rem;color:rgba(255,255,255,.3);text-align:center">⬆️ Bull<br>los=Wurf</div>
-    ${!isP?'<div style="color:#E74C3C;font-weight:700;font-size:.78rem;text-align:center">🤖 CPU...</div>':''}
+    <div style="font-size:.65rem;color:rgba(255,255,255,.3);text-align:center">⬆️ Bull<br>${typeof t!=='undefined'?t('dart.release_throw'):'los=Wurf'}</div>
+    ${!isP?`<div style="color:#E74C3C;font-weight:700;font-size:.78rem;text-align:center">🤖 ${typeof t!=='undefined'?t('game.cpu'):'CPU'}...</div>`:''}
   </div>
 </div>
 `:`
 <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
   <div style="display:flex;align-items:stretch;gap:5px;width:100%;margin-bottom:2px">
     <div style="flex:1;background:${isP?'linear-gradient(135deg,#2980B9,#1a5a8a)':'rgba(0,0,0,.04)'};border-radius:10px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px">
-      <div style="font-size:clamp(0.7rem,3vw,0.8rem);color:${isP?'rgba(255,255,255,.85)':'var(--text-mid)'};line-height:1.2">👤 Du<br><span style="font-size:.65rem;opacity:.8">${isP?'Pfeil '+(c.dartsThisRound+1)+'/3':'warte'}</span></div>
+      <div style="font-size:clamp(0.7rem,3vw,0.8rem);color:${isP?'rgba(255,255,255,.85)':'var(--text-mid)'};line-height:1.2">👤 ${typeof t!=='undefined'?t('game.you'):'Du'}<br><span style="font-size:.65rem;opacity:.8">${isP?(typeof t!=='undefined'?t('dart.dart_n'):'Pfeil')+' '+(c.dartsThisRound+1)+'/3':(typeof t!=='undefined'?t('game.wait'):'warte')}</span></div>
       <div style="font-size:clamp(1.6rem,7vw,2rem);font-weight:900;color:${isP?'white':'var(--text-dark)'}">${c.player.score}</div>
     </div>
     <div style="align-self:center;font-weight:700;font-size:.72rem;color:#aaa">VS</div>
@@ -215,7 +217,7 @@ ${(isMob2&&!isPortrait)?`
       <div style="font-size:clamp(1.6rem,7vw,2rem);font-weight:900;color:${!isP?'white':'var(--text-dark)'}">${c.cpu.score}</div>
     </div>
   </div>
-  ${c.player.score<=40||c.cpu.score<=40?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:2px 8px;font-size:.7rem;color:#E74C3C;font-weight:700;text-align:center;width:100%;box-sizing:border-box">⚠️ Double-Out! Letzter Pfeil muss Double oder Bull treffen!</div>`:''}
+  ${c.player.score<=40||c.cpu.score<=40?`<div style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:2px 8px;font-size:.7rem;color:#E74C3C;font-weight:700;text-align:center;width:100%;box-sizing:border-box">${typeof t!=='undefined'?t('dart.doubleout_warn'):'⚠️ Double-Out! Letzter Pfeil muss Double oder Bull treffen!'}</div>`:''}
   <div id="dart-wind-panel" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:2px">
     <svg id="dart-windsock" width="36" height="20" viewBox="0 0 62 38" style="flex-shrink:0">${this._windsockSVG(c.wind.strength)}</svg>
     <span style="font-size:clamp(0.76rem,3.2vw,0.88rem);font-weight:700;color:var(--text-dark)">${c.wind.name}</span>
@@ -247,7 +249,7 @@ ${(isMob2&&!isPortrait)?`
     </div>
     <div style="font-size:clamp(0.7rem,3vw,0.8rem);color:rgba(255,255,255,.3)">⬆️ Mitte = Bullseye</div>
   </div>
-  ${!isP?'<div style="text-align:center;color:#E74C3C;font-weight:700;font-size:clamp(0.86rem,3.8vw,1rem);padding:3px 0">🤖 CPU wirft...</div>':''}
+  ${!isP?`<div style="text-align:center;color:#E74C3C;font-weight:700;font-size:clamp(0.86rem,3.8vw,1rem);padding:3px 0">🤖 ${typeof t!=='undefined'?t('dart.cpu_throwing'):'CPU wirft...'}</div>`:''}
 </div>
 `}
 
@@ -696,21 +698,21 @@ ${(isMob2&&!isPortrait)?`
 <div style="text-align:center;padding:20px 0">
   <div style="font-size:3rem">${won?'🎯🏆':'🤖😅'}</div>
   <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--mountain-dark);margin:10px 0">
-    ${won?'Du hast gewonnen!':'CPU hat gewonnen!'}
+    ${won?(typeof t!=='undefined'?t('dart.you_won'):'Du hast gewonnen!'):(typeof t!=='undefined'?t('dart.cpu_won'):'CPU hat gewonnen!')}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0;max-width:260px;margin-left:auto;margin-right:auto">
     <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:.78rem">
-      <div style="font-size:1.2rem">🎯</div><b>Rest: ${c.player.score}</b><br><span style="color:var(--text-mid)">Du</span>
+      <div style="font-size:1.2rem">🎯</div><b>${typeof t!=='undefined'?t('game.remaining'):'Rest:'} ${c.player.score}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('game.you'):'Du'}</span>
     </div>
     <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:.78rem">
-      <div style="font-size:1.2rem">🤖</div><b>Rest: ${c.cpu.score}</b><br><span style="color:var(--text-mid)">CPU</span>
+      <div style="font-size:1.2rem">🤖</div><b>${typeof t!=='undefined'?t('game.remaining'):'Rest:'} ${c.cpu.score}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('game.cpu'):'CPU'}</span>
     </div>
     <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:.78rem">
       <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">Score</span>
     </div>
   </div>
-  ${!won?`<button class="btn btn-secondary btn-full" style="margin-bottom:10px;max-width:260px" onclick="DartGame.start(DartGame._lastConfig)">🔄 Revanche!</button>`:''}
-  <button class="btn btn-primary btn-full" style="max-width:260px" onclick="DartGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+  ${!won?`<button class="btn btn-secondary btn-full" style="margin-bottom:10px;max-width:260px" onclick="DartGame.start(DartGame._lastConfig)">${typeof t!=='undefined'?t('dart.rematch'):'🔄 Revanche!'}</button>`:''}
+  <button class="btn btn-primary btn-full" style="max-width:260px" onclick="DartGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
 </div>`;
   },
 

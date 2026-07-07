@@ -7,40 +7,40 @@ const FrenchGame = {
     // Questions by age group
     const QUESTIONS = {
       sehr_einfach: [
-        { q:"Wie sagt man 'Hallo' auf Französisch?", a:"bonjour", choices:["bonjour","merci","oui","chat"] },
-        { q:"Was bedeutet 'chat'?", a:"Katze", choices:["Hund","Katze","Maus","Vogel"] },
-        { q:"Wie sagt man 'Danke'?", a:"merci", choices:["bonjour","merci","non","oui"] },
-        { q:"Was bedeutet 'maison'?", a:"Haus", choices:["Auto","Haus","Schule","Buch"] },
-        { q:"Wie sagt man 'Ja'?", a:"oui", choices:["non","si","oui","bien"] },
-        { q:"Was bedeutet 'école'?", a:"Schule", choices:["Schule","Park","Wald","See"] },
-        { q:"Wie sagt man 'Nein'?", a:"non", choices:["oui","non","peut-être","jamais"] },
-        { q:"Was bedeutet 'soleil'?", a:"Sonne", choices:["Mond","Stern","Sonne","Regen"] },
-        { q:"Wie sagt man 'Gute Nacht'?", a:"bonne nuit", choices:["bonjour","bonne nuit","au revoir","merci"] },
-        { q:"Was bedeutet 'chien'?", a:"Hund", choices:["Katze","Vogel","Hund","Fisch"] },
+        { q:{de:'Wie sagt man \'Hallo\' auf Französisch?',en:'How do you say \'Hello\' in French?',fr:'Comment dit-on « Bonjour » en allemand ?'}, a:{de:'bonjour',en:'bonjour',fr:'Hallo'}, choices:{de:['bonjour','merci','oui','chat'],en:['bonjour','merci','oui','chat'],fr:['Hallo','Danke','Ja','Katze']} },
+        { q:{de:'Was bedeutet \'chat\'?',en:'What does \'chat\' mean?',fr:'Que signifie « Katze » ?'}, a:{de:'Katze',en:'Cat',fr:'chat'}, choices:{de:['Hund','Katze','Maus','Vogel'],en:['Dog','Cat','Mouse','Bird'],fr:['chien','chat','souris','oiseau']} },
+        { q:{de:'Wie sagt man \'Danke\'?',en:'How do you say \'Thank you\'?',fr:'Comment dit-on « Merci » en allemand ?'}, a:{de:'merci',en:'merci',fr:'Danke'}, choices:{de:['bonjour','merci','non','oui'],en:['bonjour','merci','non','oui'],fr:['Hallo','Danke','Nein','Ja']} },
+        { q:{de:'Was bedeutet \'maison\'?',en:'What does \'maison\' mean?',fr:'Que signifie « Haus » ?'}, a:{de:'Haus',en:'House',fr:'maison'}, choices:{de:['Auto','Haus','Schule','Buch'],en:['Car','House','School','Book'],fr:['voiture','maison','école','livre']} },
+        { q:{de:'Wie sagt man \'Ja\'?',en:'How do you say \'Yes\'?',fr:'Comment dit-on « Oui » en allemand ?'}, a:{de:'oui',en:'oui',fr:'Ja'}, choices:{de:['non','si','oui','bien'],en:['non','si','oui','bien'],fr:['Nein','doch','Ja','gut']} },
+        { q:{de:'Was bedeutet \'école\'?',en:'What does \'école\' mean?',fr:'Que signifie « Schule » ?'}, a:{de:'Schule',en:'School',fr:'école'}, choices:{de:['Schule','Park','Wald','See'],en:['School','Park','Forest','Lake'],fr:['école','parc','forêt','lac']} },
+        { q:{de:'Wie sagt man \'Nein\'?',en:'How do you say \'No\'?',fr:'Comment dit-on « Non » en allemand ?'}, a:{de:'non',en:'non',fr:'Nein'}, choices:{de:['oui','non','peut-être','jamais'],en:['oui','non','peut-être','jamais'],fr:['Ja','Nein','vielleicht','nie']} },
+        { q:{de:'Was bedeutet \'soleil\'?',en:'What does \'soleil\' mean?',fr:'Que signifie « Sonne » ?'}, a:{de:'Sonne',en:'Sun',fr:'soleil'}, choices:{de:['Mond','Stern','Sonne','Regen'],en:['Moon','Star','Sun','Rain'],fr:['lune','étoile','soleil','pluie']} },
+        { q:{de:'Wie sagt man \'Gute Nacht\'?',en:'How do you say \'Good night\'?',fr:'Comment dit-on « Bonne nuit » en allemand ?'}, a:{de:'bonne nuit',en:'bonne nuit',fr:'Gute Nacht'}, choices:{de:['bonjour','bonne nuit','au revoir','merci'],en:['bonjour','bonne nuit','au revoir','merci'],fr:['Hallo','Gute Nacht','Auf Wiedersehen','Danke']} },
+        { q:{de:'Was bedeutet \'chien\'?',en:'What does \'chien\' mean?',fr:'Que signifie « Hund » ?'}, a:{de:'Hund',en:'Dog',fr:'chien'}, choices:{de:['Katze','Vogel','Hund','Fisch'],en:['Cat','Bird','Dog','Fish'],fr:['chat','oiseau','chien','poisson']} },
       ],
       einfach: [
-        { q:"Konjugiere 'être' – Ich bin:", a:"je suis", choices:["je suis","je es","j'ai","je est"] },
-        { q:"Was bedeutet 'Je m'appelle Marie'?", a:"Ich heiße Marie", choices:["Ich heiße Marie","Ich bin Marie","Ich sehe Marie","Ich liebe Marie"] },
-        { q:"Welcher Artikel hat 'livre' (Buch)?", a:"le", choices:["le","la","les","un"] },
-        { q:"Was ist die Verneinung von 'Je parle'?", a:"Je ne parle pas", choices:["Je ne parle pas","Je parle ne","Pas je parle","Ne je parle"] },
-        { q:"'avoir' bedeutet:", a:"haben", choices:["sein","haben","kommen","gehen"] },
-        { q:"Wie heißt 'wir spielen'?", a:"nous jouons", choices:["nous jouons","vous jouez","ils jouent","je joue"] },
-        { q:"Was bedeutet 'Quel âge as-tu?'", a:"Wie alt bist du?", choices:["Wie heißt du?","Wie alt bist du?","Wo wohnst du?","Was machst du?"] },
-        { q:"'La famille' bedeutet:", a:"die Familie", choices:["die Freunde","die Familie","die Schule","das Haus"] },
-        { q:"Wie sagt man 'Ich gehe in die Schule'?", a:"Je vais à l'école", choices:["Je vais à l'école","Je suis à l'école","J'ai l'école","Je fais l'école"] },
-        { q:"Was ist der Plural von 'un chien'?", a:"des chiens", choices:["des chiens","les chien","un chiens","des chien"] },
+        { q:{de:'Konjugiere \'être\' – Ich bin:',en:'Conjugate \'être\' – I am:',fr:'Conjugue « être » – Je suis :'}, a:{de:'je suis',en:'je suis',fr:'je suis'}, choices:{de:['je suis','je es','j\'ai','je est'],en:['je suis','je es','j\'ai','je est'],fr:['je suis','je es','j\'ai','je est']} },
+        { q:{de:'Was bedeutet \'Je m\'appelle Marie\'?',en:'What does \'Je m\'appelle Marie\' mean?',fr:'Que signifie « Ich heiße Marie » ?'}, a:{de:'Ich heiße Marie',en:'My name is Marie',fr:'je m\'appelle Marie'}, choices:{de:['Ich heiße Marie','Ich bin Marie','Ich sehe Marie','Ich liebe Marie'],en:['My name is Marie','I am Marie','I see Marie','I love Marie'],fr:['je m\'appelle Marie','je suis Marie','je vois Marie','j\'aime Marie']} },
+        { q:{de:'Welcher Artikel hat \'livre\' (Buch)?',en:'Which article goes with \'livre\' (book)?',fr:'Quel article accompagne « livre » ?'}, a:{de:'le',en:'le',fr:'le'}, choices:{de:['le','la','les','un'],en:['le','la','les','un'],fr:['le','la','les','un']} },
+        { q:{de:'Was ist die Verneinung von \'Je parle\'?',en:'What is the negation of \'Je parle\'?',fr:'Quelle est la négation de « Je parle » ?'}, a:{de:'Je ne parle pas',en:'Je ne parle pas',fr:'Je ne parle pas'}, choices:{de:['Je ne parle pas','Je parle ne','Pas je parle','Ne je parle'],en:['Je ne parle pas','Je parle ne','Pas je parle','Ne je parle'],fr:['Je ne parle pas','Je parle ne','Pas je parle','Ne je parle']} },
+        { q:{de:'\'avoir\' bedeutet:',en:'\'avoir\' means:',fr:'Que signifie « haben » ?'}, a:{de:'haben',en:'to have',fr:'avoir'}, choices:{de:['sein','haben','kommen','gehen'],en:['to be','to have','to come','to go'],fr:['être','avoir','venir','aller']} },
+        { q:{de:'Wie heißt \'wir spielen\'?',en:'How do you say \'we play\'?',fr:'Comment dit-on « nous jouons » en allemand ?'}, a:{de:'nous jouons',en:'nous jouons',fr:'wir spielen'}, choices:{de:['nous jouons','vous jouez','ils jouent','je joue'],en:['nous jouons','vous jouez','ils jouent','je joue'],fr:['wir spielen','ihr spielt','sie spielen','ich spiele']} },
+        { q:{de:'Was bedeutet \'Quel âge as-tu?\'',en:'What does \'Quel âge as-tu?\' mean?',fr:'Que signifie « Wie alt bist du? » ?'}, a:{de:'Wie alt bist du?',en:'How old are you?',fr:'quel âge as-tu'}, choices:{de:['Wie heißt du?','Wie alt bist du?','Wo wohnst du?','Was machst du?'],en:['What\'s your name?','How old are you?','Where do you live?','What are you doing?'],fr:['comment tu t\'appelles','quel âge as-tu','où habites-tu','que fais-tu']} },
+        { q:{de:'\'La famille\' bedeutet:',en:'\'La famille\' means:',fr:'Que signifie « die Familie » ?'}, a:{de:'die Familie',en:'the family',fr:'la famille'}, choices:{de:['die Freunde','die Familie','die Schule','das Haus'],en:['the friends','the family','the school','the house'],fr:['les amis','la famille','l\'école','la maison']} },
+        { q:{de:'Wie sagt man \'Ich gehe in die Schule\'?',en:'How do you say \'I am going to school\'?',fr:'Comment dit-on « Je vais à l\'école » en allemand ?'}, a:{de:'Je vais à l\'école',en:'Je vais à l\'école',fr:'Ich gehe in die Schule'}, choices:{de:['Je vais à l\'école','Je suis à l\'école','J\'ai l\'école','Je fais l\'école'],en:['Je vais à l\'école','Je suis à l\'école','J\'ai l\'école','Je fais l\'école'],fr:['Ich gehe in die Schule','Ich bin in der Schule','Ich habe die Schule','Ich mache die Schule']} },
+        { q:{de:'Was ist der Plural von \'un chien\'?',en:'What is the plural of \'un chien\'?',fr:'Quel est le pluriel de « un chien » ?'}, a:{de:'des chiens',en:'des chiens',fr:'des chiens'}, choices:{de:['des chiens','les chien','un chiens','des chien'],en:['des chiens','les chien','un chiens','des chien'],fr:['des chiens','les chien','un chiens','des chien']} },
       ],
       mittel: [
-        { q:"Was ist der Subjonctif présent von 'aller' (que je)?", a:"que j'aille", choices:["que j'aille","que je vais","que j'ai allé","que je soit"] },
-        { q:"Das Imparfait von 'je suis' ist:", a:"j'étais", choices:["j'étais","j'ai été","je serai","je serais"] },
-        { q:"Wähle den richtigen Konditionalis: 'Wenn ich Zeit hätte, ... ich reisen'", a:"je voyagerais", choices:["je voyagerais","je voyagerai","j'ai voyagé","je voyageais"] },
-        { q:"'Bien que' verlangt:", a:"Subjonctif", choices:["Subjonctif","Indicatif","Infinitif","Conditionnel"] },
-        { q:"Das Passé composé von 'partir' ist:", a:"je suis parti(e)", choices:["je suis parti(e)","j'ai parti","j'étais parti","je partis"] },
-        { q:"'Le développement durable' bedeutet:", a:"nachhaltige Entwicklung", choices:["nachhaltige Entwicklung","digitale Entwicklung","wirtschaftliche Entwicklung","soziale Entwicklung"] },
-        { q:"Was bedeutet 'néanmoins'?", a:"dennoch", choices:["dennoch","außerdem","deshalb","obwohl"] },
-        { q:"'Y' ersetzt:", a:"einen Ort oder 'à + Sache'", choices:["einen Ort oder 'à + Sache'","eine Person","ein Subjekt","einen Besitz"] },
-        { q:"Das Futur simple von 'avoir' (nous)?", a:"nous aurons", choices:["nous aurons","nous avons","nous aurions","nous ayons"] },
-        { q:"'Se rendre compte' bedeutet:", a:"sich bewusst werden", choices:["sich bewusst werden","zurückkommen","sich hinsetzen","Auskunft geben"] },
+        { q:{de:'Was ist der Subjonctif présent von \'aller\' (que je)?',en:'What is the present subjunctive of \'aller\' (que je)?',fr:'Quel est le subjonctif présent de « aller » (que je) ?'}, a:{de:'que j\'aille',en:'que j\'aille',fr:'que j\'aille'}, choices:{de:['que j\'aille','que je vais','que j\'ai allé','que je soit'],en:['que j\'aille','que je vais','que j\'ai allé','que je soit'],fr:['que j\'aille','que je vais','que j\'ai allé','que je soit']} },
+        { q:{de:'Das Imparfait von \'je suis\' ist:',en:'The imperfect of \'je suis\' is:',fr:'L\'imparfait de « je suis » est :'}, a:{de:'j\'étais',en:'j\'étais',fr:'j\'étais'}, choices:{de:['j\'étais','j\'ai été','je serai','je serais'],en:['j\'étais','j\'ai été','je serai','je serais'],fr:['j\'étais','j\'ai été','je serai','je serais']} },
+        { q:{de:'Wähle den richtigen Konditionalis: \'Wenn ich Zeit hätte, ... ich reisen\'',en:'Choose the correct conditional: \'If I had time, I ... travel\'',fr:'Choisis le bon conditionnel : « Si j\'avais le temps, je ... voyager »'}, a:{de:'je voyagerais',en:'je voyagerais',fr:'je voyagerais'}, choices:{de:['je voyagerais','je voyagerai','j\'ai voyagé','je voyageais'],en:['je voyagerais','je voyagerai','j\'ai voyagé','je voyageais'],fr:['je voyagerais','je voyagerai','j\'ai voyagé','je voyageais']} },
+        { q:{de:'\'Bien que\' verlangt:',en:'\'Bien que\' requires:',fr:'« Bien que » demande :'}, a:{de:'Subjonctif',en:'Subjunctive',fr:'le subjonctif'}, choices:{de:['Subjonctif','Indicatif','Infinitif','Conditionnel'],en:['Subjunctive','Indicative','Infinitive','Conditional'],fr:['le subjonctif','l\'indicatif','l\'infinitif','le conditionnel']} },
+        { q:{de:'Das Passé composé von \'partir\' ist:',en:'The passé composé of \'partir\' is:',fr:'Le passé composé de « partir » est :'}, a:{de:'je suis parti(e)',en:'je suis parti(e)',fr:'je suis parti(e)'}, choices:{de:['je suis parti(e)','j\'ai parti','j\'étais parti','je partis'],en:['je suis parti(e)','j\'ai parti','j\'étais parti','je partis'],fr:['je suis parti(e)','j\'ai parti','j\'étais parti','je partis']} },
+        { q:{de:'\'Le développement durable\' bedeutet:',en:'\'Le développement durable\' means:',fr:'Que signifie « nachhaltige Entwicklung » ?'}, a:{de:'nachhaltige Entwicklung',en:'sustainable development',fr:'le développement durable'}, choices:{de:['nachhaltige Entwicklung','digitale Entwicklung','wirtschaftliche Entwicklung','soziale Entwicklung'],en:['sustainable development','digital development','economic development','social development'],fr:['le développement durable','le développement numérique','le développement économique','le développement social']} },
+        { q:{de:'Was bedeutet \'néanmoins\'?',en:'What does \'néanmoins\' mean?',fr:'Que signifie « dennoch » ?'}, a:{de:'dennoch',en:'nevertheless',fr:'néanmoins'}, choices:{de:['dennoch','außerdem','deshalb','obwohl'],en:['nevertheless','besides','therefore','although'],fr:['néanmoins','d\'ailleurs','donc','bien que']} },
+        { q:{de:'\'Y\' ersetzt:',en:'\'Y\' replaces:',fr:'« Y » remplace :'}, a:{de:'einen Ort oder \'à + Sache\'',en:'a place or \'à + thing\'',fr:'un lieu ou « à + chose »'}, choices:{de:['einen Ort oder \'à + Sache\'','eine Person','ein Subjekt','einen Besitz'],en:['a place or \'à + thing\'','a person','a subject','a possession'],fr:['un lieu ou « à + chose »','une personne','un sujet','une possession']} },
+        { q:{de:'Das Futur simple von \'avoir\' (nous)?',en:'The futur simple of \'avoir\' (nous)?',fr:'Le futur simple de « avoir » (nous) ?'}, a:{de:'nous aurons',en:'nous aurons',fr:'nous aurons'}, choices:{de:['nous aurons','nous avons','nous aurions','nous ayons'],en:['nous aurons','nous avons','nous aurions','nous ayons'],fr:['nous aurons','nous avons','nous aurions','nous ayons']} },
+        { q:{de:'\'Se rendre compte\' bedeutet:',en:'\'Se rendre compte\' means:',fr:'Que signifie « sich bewusst werden » ?'}, a:{de:'sich bewusst werden',en:'to realize',fr:'se rendre compte'}, choices:{de:['sich bewusst werden','zurückkommen','sich hinsetzen','Auskunft geben'],en:['to realize','to come back','to sit down','to give information'],fr:['se rendre compte','revenir','s\'asseoir','donner des informations']} },
       ],
       schwer: [
         // Grammatik
@@ -108,22 +108,40 @@ const FrenchGame = {
     let qi=0, correct=0, wrong=0;
 
     // Show which difficulty is active (helps debug)
-    const grpLabel={'sehr_einfach':'Stufe: Anfänger','einfach':'Stufe: Grundkenntnisse','mittel':'Stufe: Mittelstufe','schwer':'Stufe: Fortgeschritten'};
+    const grpLabel = {
+      'sehr_einfach': typeof t!=='undefined'?t('french.level_beginner'):'Stufe: Anfänger',
+      'einfach':      typeof t!=='undefined'?t('french.level_basic'):'Stufe: Grundkenntnisse',
+      'mittel':       typeof t!=='undefined'?t('french.level_intermediate'):'Stufe: Mittelstufe',
+      'schwer':       typeof t!=='undefined'?t('french.level_advanced'):'Stufe: Fortgeschritten',
+    };
+
+    // Pick the right language variant of a question field. Older/not-yet-translated
+    // tiers still use plain strings — those are returned unchanged for every language.
+    const _pick = (v) => {
+      if (v && typeof v === 'object') {
+        const cur = (typeof LANG!=='undefined' && LANG._cur) ? LANG._cur : 'de';
+        const lang = (cur==='de_simple') ? 'de' : cur;
+        return v[lang] || v.de;
+      }
+      return v;
+    };
 
     const show = () => {
       if(qi >= questions.length){ finish(); return; }
       const q = questions[qi];
-      const shuffled = [...q.choices].sort(()=>Math.random()-0.5);
+      const qText = _pick(q.q), aText = _pick(q.a);
+      const choicesArr = (q.choices && typeof q.choices === 'object' && !Array.isArray(q.choices)) ? _pick(q.choices) : q.choices;
+      const shuffled = [...choicesArr].sort(()=>Math.random()-0.5);
       el.innerHTML = `
         <div style="padding:10px 8px;max-width:min(520px,100vw);margin:0 auto;overflow-x:hidden">
           <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:.82rem;color:rgba(255,255,255,.5)">
-            <span>🇫🇷 Frage ${qi+1}/${questions.length}</span>
+            <span>🇫🇷 ${typeof t!=='undefined'?t('tf.question_n'):'Frage'} ${qi+1}/${questions.length}</span>
             <span style="font-size:0.78rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.08);padding:2px 8px;border-radius:10px">${grpLabel[grp]||grp}</span>
             <span>✅ ${correct} ❌ ${wrong}</span>
           </div>
-          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:12px;font-size:clamp(.9rem,3vw,1.05rem);font-weight:600;line-height:1.4">${q.q}</div>
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:12px;font-size:clamp(.9rem,3vw,1.05rem);font-weight:600;line-height:1.4">${qText}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            ${shuffled.map(c=>`<button onclick="FrenchGame._answer('${c.replace(/'/g,"\\'")}','${q.a.replace(/'/g,"\\'")}',this)"
+            ${shuffled.map(c=>`<button onclick="FrenchGame._answer('${c.replace(/'/g,"\\'")}','${aText.replace(/'/g,"\\'")}',this)"
               style="background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);color:#fff;padding:10px 8px;border-radius:10px;cursor:pointer;font-size:clamp(.8rem,2.5vw,.95rem);font-family:inherit;line-height:1.3;text-align:center;touch-action:manipulation">${c}</button>`).join('')}
           </div>
         </div>`;

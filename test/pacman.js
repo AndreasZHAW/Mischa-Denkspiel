@@ -38,7 +38,7 @@ const PacmanGame = {
         ${isTouch ? `
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
           <span style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.5)">Steuerung:</span>
-          <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 10px;border-radius:20px;font-size:clamp(0.82rem,3.5vw,0.92rem);cursor:pointer">🎮 Tasten</button>
+          <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 10px;border-radius:20px;font-size:clamp(0.82rem,3.5vw,0.92rem);cursor:pointer">${typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten'}</button>
           <label id="pc-tilt-opts" style="display:none;align-items:center;gap:8px;font-size:clamp(0.8rem,3.4vw,0.9rem);color:rgba(255,255,255,.5)">
             <label style="display:flex;align-items:center;gap:3px;cursor:pointer">
               <input type="checkbox" id="pc-rev-x" style="cursor:pointer"> Links/Rechts ↔
@@ -57,7 +57,7 @@ const PacmanGame = {
           <button class="pc-btn" data-d="down" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▼</button>
           <button class="pc-btn" data-d="right" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▶</button>
         </div>
-        ${isTouch ? '<div id="pc-tilt-hint" style="display:none;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.4);text-align:center">📱 Gerät neigen zum Steuern</div>' : ''}
+        ${isTouch ? `<div id="pc-tilt-hint" style="display:none;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.4);text-align:center">${typeof t!=='undefined'?t('snake.tilt_hint'):'📱 Gerät neigen zum Steuern'}</div>` : ''}
       </div>`;
 
     const cv = document.getElementById('pccv');
@@ -87,7 +87,7 @@ const PacmanGame = {
     const tiltOptions = document.getElementById('pc-tilt-options');
     if(modeBtn) modeBtn.addEventListener('click', () => {
       useTilt = !useTilt;
-      modeBtn.textContent = useTilt ? '📱 Neigen' : '🎮 Tasten';
+      modeBtn.textContent = useTilt ? (typeof t!=='undefined'?t('snake.mode_tilt'):'📱 Neigen') : (typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten');
       modeBtn.style.background = useTilt ? '#8e44ad' : '#2c3e50';
       if(btnsDiv) btnsDiv.style.display = useTilt ? 'none' : 'grid';
       if(tiltHint) tiltHint.style.display = useTilt ? 'block' : 'none';
@@ -97,7 +97,7 @@ const PacmanGame = {
         // Request permission on iOS 13+
         if(typeof DeviceMotionEvent.requestPermission === 'function') {
           DeviceMotionEvent.requestPermission().then(r => {
-            if(r!=='granted'){ useTilt=false; modeBtn.textContent='🎮 Tasten'; }
+            if(r!=='granted'){ useTilt=false; modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten'; }
           }).catch(()=>{ useTilt=false; });
         }
       }
@@ -241,7 +241,7 @@ const PacmanGame = {
         ctx.fillStyle='#fff';ctx.font='11px monospace';ctx.textAlign='center';
         const arw=['←','→','↑','↓'];
         const di=Math.abs(tiltX)>Math.abs(tiltY)?(tiltX<-3?0:tiltX>3?1:-1):(tiltY<-3?2:tiltY>3?3:-1);
-        ctx.fillText('📱 Neigen: '+(di>=0?arw[di]:'gerade halten'),W/2,H-10);
+        ctx.fillText((typeof t!=='undefined'?t('snake.mode_tilt'):'📱 Neigen')+': '+(di>=0?arw[di]:(typeof t!=='undefined'?t('pacman.hold_steady'):'gerade halten')),W/2,H-10);
       }
 
       ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,H-28,W,28);

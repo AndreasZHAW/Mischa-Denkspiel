@@ -29,18 +29,21 @@ const WordSearchGame = {
 
   _getWords(worldId) {
     const sets = {
-      1:  ['AUTO','KARTE','REISE','STRASSE','TANK'],
-      2:  ['BURG','RITTER','KOENIG','TURM','SCHWERT'],
-      3:  ['POOL','SOMMER','SONNE','WASSER','TAUCHEN'],
-      4:  ['TENNIS','BALL','NETZ','PUNKT','MATCH'],
-      5:  ['WUERFEL','ZAHL','SPIEL','SPASS','GEWINN'],
-      6:  ['FAHRRAD','HELM','WALD','NATUR','LUFT'],
-      7:  ['BROT','KAESE','WEIN','ESSEN','SUPPE'],
-      8:  ['FUSSBALL','TOR','JUBEL','SPIEL','SIEG'],
-      9:  ['KOFFER','REISE','PACKEN','HEIMWEG','FLUG'],
-      10: ['ZUHAUSE','FERIEN','ENDE','SPASS','DANKE'],
+      1:  { de:['AUTO','KARTE','REISE','STRASSE','TANK'], en:['CAR','MAP','TRIP','ROAD','TANK'], fr:['AUTO','CARTE','VOYAGE','ROUTE','ESSENCE'] },
+      2:  { de:['BURG','RITTER','KOENIG','TURM','SCHWERT'], en:['CASTLE','KNIGHT','KING','TOWER','SWORD'], fr:['CHATEAU','CHEVALIER','ROI','TOUR','EPEE'] },
+      3:  { de:['POOL','SOMMER','SONNE','WASSER','TAUCHEN'], en:['POOL','SUMMER','SUN','WATER','DIVING'], fr:['PISCINE','ETE','SOLEIL','EAU','PLONGEE'] },
+      4:  { de:['TENNIS','BALL','NETZ','PUNKT','MATCH'], en:['TENNIS','BALL','NET','POINT','MATCH'], fr:['TENNIS','BALLE','FILET','POINT','MATCH'] },
+      5:  { de:['WUERFEL','ZAHL','SPIEL','SPASS','GEWINN'], en:['DICE','NUMBER','GAME','FUN','WIN'], fr:['CUBE','NOMBRE','JEU','PLAISIR','GAIN'] },
+      6:  { de:['FAHRRAD','HELM','WALD','NATUR','LUFT'], en:['BICYCLE','HELMET','FOREST','NATURE','AIR'], fr:['VELO','CASQUE','FORET','NATURE','AIR'] },
+      7:  { de:['BROT','KAESE','WEIN','ESSEN','SUPPE'], en:['BREAD','CHEESE','WINE','FOOD','SOUP'], fr:['PAIN','FROMAGE','VIN','REPAS','SOUPE'] },
+      8:  { de:['FUSSBALL','TOR','JUBEL','SPIEL','SIEG'], en:['FOOTBALL','GOAL','CHEER','GAME','VICTORY'], fr:['FOOTBALL','BUT','JOIE','JEU','VICTOIRE'] },
+      9:  { de:['KOFFER','REISE','PACKEN','HEIMWEG','FLUG'], en:['SUITCASE','TRIP','PACKING','HOMEWARD','FLIGHT'], fr:['VALISE','VOYAGE','BAGAGE','RETOUR','VOL'] },
+      10: { de:['ZUHAUSE','FERIEN','ENDE','SPASS','DANKE'], en:['HOME','VACATION','END','FUN','THANKS'], fr:['MAISON','VACANCES','FIN','PLAISIR','MERCI'] },
     };
-    return sets[worldId] || sets[1];
+    const cur = (typeof LANG!=='undefined' && LANG._cur) ? LANG._cur : 'de';
+    const lang = (cur==='de_simple') ? 'de' : cur;
+    const set = sets[worldId] || sets[1];
+    return set[lang] || set.de;
   },
 
   _buildGrid(words, rows, cols) {
@@ -85,7 +88,7 @@ const WordSearchGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center">
         <div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:8px">
-          Wische über die Buchstaben um ein Wort zu markieren!
+          ${typeof t!=='undefined'?t('wordsearch.swipe_hint'):'Wische über die Buchstaben um ein Wort zu markieren!'}
           &nbsp;⏱ <span id="ws-timer">0s</span>
         </div>
 
@@ -174,11 +177,11 @@ const WordSearchGame = {
         }
         const wordEl = document.getElementById(`wsw-${match.word}`);
         if (wordEl) { wordEl.style.textDecoration='line-through'; wordEl.style.color='#27AE60'; wordEl.style.borderColor='#27AE60'; }
-        document.getElementById('ws-hint').textContent = `✅ ${match.word} gefunden!`;
+        document.getElementById('ws-hint').textContent = `✅ ${match.word} ${typeof t!=='undefined'?t('wordsearch.found'):'gefunden!'}`;
         if (c.found.size >= c.words.length) { clearInterval(this._timerInterval); setTimeout(()=>this._showResult(),600); }
       } else if (word.length > 1) {
         c.errors++;
-        document.getElementById('ws-hint').textContent = '❌ Kein Wort — versuche nochmal!';
+        document.getElementById('ws-hint').textContent = typeof t!=='undefined'?t('wordsearch.not_a_word'):'❌ Kein Wort — versuche nochmal!';
         setTimeout(()=>{ if(document.getElementById('ws-hint')) document.getElementById('ws-hint').textContent=''; },1000);
       }
     };
@@ -243,19 +246,19 @@ const WordSearchGame = {
     document.getElementById('game-area').innerHTML=`
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:3rem">🔤🏆</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">Alle Wörter gefunden!</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">${typeof t!=='undefined'?t('wordsearch.all_found'):'Alle Wörter gefunden!'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
           <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">Zeit</span>
+            <div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.time'):'Zeit'}</span>
           </div>
           <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">Fehler</span>
+            <div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span>
           </div>
           <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">Punkte</span>
+            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</span>
           </div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="WordSearchGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="WordSearchGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
 

@@ -33,7 +33,7 @@ const ReactionGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center;max-width:420px;margin:0 auto;padding:${isMob?'6px 4px':'10px 8px'}">
         <div style="font-size:clamp(0.8rem,3.5vw,0.9rem);color:var(--text-mid);margin-bottom:8px">
-          Runde ${c.round+1}/${c.totalRounds} · ❌ ${c.errors} Fehler
+          ${typeof t!=='undefined'?t('reaction.round'):'Runde'} ${c.round+1}/${c.totalRounds} · ❌ ${c.errors} ${typeof t!=='undefined'?t('math.errors'):'Fehler'}
         </div>
         <div id="reaction-light"
           style="width:clamp(140px,45vw,200px);height:clamp(140px,45vw,200px);border-radius:50%;
@@ -47,7 +47,7 @@ const ReactionGame = {
           ${dotsHTML}
         </div>
         <div style="font-size:clamp(0.72rem,3vw,0.82rem);color:rgba(0,0,0,.35);margin-top:6px">
-          🟢 = Tippen · 🔴 = NICHT tippen
+          ${typeof t!=='undefined'?t('reaction.legend'):'🟢 = Tippen · 🔴 = NICHT tippen'}
         </div>
       </div>`;
   },
@@ -86,7 +86,7 @@ const ReactionGame = {
           c.results[c.round]={result:'wrong',rt:null};c.errors++;
           c.canTap=false;c.round++;
           el.style.background='#E74C3C';el.innerHTML='⏰';
-          if(rtEl)rtEl.textContent='Zu langsam!';
+          if(rtEl)rtEl.textContent=typeof t!=='undefined'?t('reaction.too_slow'):'Zu langsam!';
           this._render();
           setTimeout(()=>this._nextRound(),600);
         },1800);
@@ -108,7 +108,7 @@ const ReactionGame = {
     }else{
       c.results[c.round]={result:'wrong',rt:null};c.errors++;
       if(el){el.style.background='#E74C3C';el.innerHTML='❌';}
-      if(rtEl)rtEl.textContent='Falsch! Nicht tippen!';
+      if(rtEl)rtEl.textContent=typeof t!=='undefined'?t('reaction.dont_tap'):'Falsch! Nicht tippen!';
     }
     c.round++;
     this._render();
@@ -129,8 +129,8 @@ const ReactionGame = {
       const res=typeof r==='object'?r.result:r;
       const rt=typeof r==='object'?r.rt:null;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border-radius:8px;background:${res==='correct'?'rgba(39,174,96,.08)':'rgba(231,76,60,.08)'};margin-bottom:3px">
-        <span style="font-size:clamp(0.82rem,3.8vw,0.92rem);color:var(--text-dark)">Runde ${i+1}</span>
-        <span style="font-size:clamp(0.82rem,3.8vw,0.92rem);color:${res==='correct'?'#27AE60':'#E74C3C'};font-weight:700">${res==='correct'?'✓ '+( rt?rt+' ms':'OK'):'✗ Fehler'}</span>
+        <span style="font-size:clamp(0.82rem,3.8vw,0.92rem);color:var(--text-dark)">${typeof t!=='undefined'?t('reaction.round'):'Runde'} ${i+1}</span>
+        <span style="font-size:clamp(0.82rem,3.8vw,0.92rem);color:${res==='correct'?'#27AE60':'#E74C3C'};font-weight:700">${res==='correct'?'✓ '+( rt?rt+' ms':'OK'):'✗ '+(typeof t!=='undefined'?t('math.errors'):'Fehler')}</span>
       </div>`;
     }).join('');
 
@@ -138,7 +138,7 @@ const ReactionGame = {
       <div style="text-align:center;max-width:420px;margin:0 auto;padding:10px 8px">
         <div style="font-size:clamp(2rem,8vw,2.5rem)">${correct>=7?'⚡🏆':'😅'}</div>
         <div style="font-size:clamp(1.3rem,5.5vw,1.7rem);font-weight:900;color:var(--mountain-dark);margin:6px 0">
-          ${correct}/${c.totalRounds} richtig!
+          ${correct}/${c.totalRounds} ${typeof t!=='undefined'?t('math.correct_n'):'richtig!'}
         </div>
 
         <!-- Stats row -->
@@ -146,17 +146,17 @@ const ReactionGame = {
           <div style="background:#E8F8F5;border-radius:10px;padding:8px 4px;font-size:clamp(0.78rem,3.5vw,0.88rem)">
             <div style="font-size:clamp(1rem,4.5vw,1.3rem)">⚡</div>
             <b style="font-size:clamp(0.9rem,4vw,1.05rem)">${avgRt?avgRt+' ms':'—'}</b>
-            <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">Ø Reaktion</div>
+            <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">${typeof t!=='undefined'?t('reaction.avg'):'Ø Reaktion'}</div>
           </div>
           <div style="background:#FFF5F5;border-radius:10px;padding:8px 4px;font-size:clamp(0.78rem,3.5vw,0.88rem)">
             <div style="font-size:clamp(1rem,4.5vw,1.3rem)">❌</div>
             <b style="font-size:clamp(0.9rem,4vw,1.05rem)">${c.errors}</b>
-            <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">Fehler</div>
+            <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">${typeof t!=='undefined'?t('math.errors'):'Fehler'}</div>
           </div>
           <div style="background:#FFFFF0;border-radius:10px;padding:8px 4px;font-size:clamp(0.78rem,3.5vw,0.88rem)">
             <div style="font-size:clamp(1rem,4.5vw,1.3rem)">⭐</div>
             <b style="font-size:clamp(0.9rem,4vw,1.05rem)">${finalScore}</b>
-            <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">Punkte</div>
+            <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</div>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ const ReactionGame = {
           ${detailRows}
         </div>
 
-        <button class="btn btn-primary btn-full" onclick="ReactionGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="ReactionGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
 

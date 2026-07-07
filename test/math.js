@@ -146,10 +146,10 @@ const MathGame = {
       <div class="math-problem">
         <div class="math-progress-dots">${dotsHTML}</div>
         <div style="font-size:0.8rem;color:var(--text-mid);margin-bottom:8px">
-          Aufgabe ${c.index + 1}/10 &nbsp;·&nbsp; ⏱ ${elapsed}s &nbsp;·&nbsp; ❌ ${c.errors} Fehler
+          ${typeof t!=='undefined'?t('math.task_n'):'Aufgabe'} ${c.index + 1}/10 &nbsp;·&nbsp; ⏱ ${elapsed}s &nbsp;·&nbsp; ❌ ${c.errors} ${typeof t!=='undefined'?t('math.errors'):'Fehler'}
         </div>
         <div class="math-equation">${q.a} ${q.op} ${q.b} = ?</div>
-        ${c.worldId === 1 ? `<div style="font-size:0.75rem;color:var(--sky-deep);margin-top:4px">💡 Mal-Reihe!</div>` : ''}
+        ${c.worldId === 1 ? `<div style="font-size:0.75rem;color:var(--sky-deep);margin-top:4px">${typeof t!=='undefined'?t('math.times_table_hint'):'💡 Mal-Reihe!'}</div>` : ''}
       </div>
       <div class="math-answers" id="math-answers">
         ${allAnswers.map(ans => `
@@ -163,7 +163,7 @@ const MathGame = {
       const el = document.querySelector('.math-problem > div:nth-child(2)');
       if (el) {
         const e2 = Math.round((Date.now() - c.startTime) / 1000);
-        el.textContent = `Aufgabe ${c.index + 1}/10 · ⏱ ${e2}s · ❌ ${c.errors} Fehler`;
+        el.textContent = `${typeof t!=='undefined'?t('math.task_n'):'Aufgabe'} ${c.index + 1}/10 · ⏱ ${e2}s · ❌ ${c.errors} ${typeof t!=='undefined'?t('math.errors'):'Fehler'}`;
       }
     }, 1000);
   },
@@ -222,30 +222,30 @@ const MathGame = {
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:3rem">${passed ? '🌟' : '😅'}</div>
         <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--mountain-dark);margin:10px 0">
-          ${correctCount}/10 richtig!
+          ${correctCount}/10 ${typeof t!=='undefined'?t('math.correct_n'):'richtig!'}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
           <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem">
             <div style="font-size:1.3rem">⏱</div>
-            <b>${totalTimeSec}s</b><br><span style="color:var(--text-mid)">Zeit</span>
+            <b>${totalTimeSec}s</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.time'):'Zeit'}</span>
           </div>
           <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem">
             <div style="font-size:1.3rem">❌</div>
-            <b>${c.errors}</b><br><span style="color:var(--text-mid)">Fehler</span>
+            <b>${c.errors}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span>
           </div>
           <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem">
             <div style="font-size:1.3rem">⭐</div>
-            <b>${finalScore}</b><br><span style="color:var(--text-mid)">Punkte</span>
+            <b>${finalScore}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</span>
           </div>
         </div>
         <div style="color:var(--text-mid);margin-bottom:18px;font-size:0.85rem">
-          ${passed ? 'Super gemacht! 🏆' : 'Mindestens 6/10 für die nächste Aufgabe!'}
+          ${passed ? (typeof t!=='undefined'?t('math.great_job'):'Super gemacht! 🏆') : (typeof t!=='undefined'?t('math.need_6_of_10'):'Mindestens 6/10 für die nächste Aufgabe!')}
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           ${passed
-            ? `<button class="btn btn-primary btn-full" onclick="MathGame._finish(${finalScore},${totalTimeMs},${c.errors})">Weiter ➜</button>`
-            : `<button class="btn btn-secondary btn-full" onclick="MathGame.start(MathGame._lastConfig)">🔄 Nochmal</button>
-               <button class="btn btn-primary btn-full" onclick="MathGame._finish(${finalScore},${totalTimeMs},${c.errors})">Trotzdem weiter ➜</button>`
+            ? `<button class="btn btn-primary btn-full" onclick="MathGame._finish(${finalScore},${totalTimeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>`
+            : `<button class="btn btn-secondary btn-full" onclick="MathGame.start(MathGame._lastConfig)">${typeof t!=='undefined'?t('math.try_again'):'🔄 Nochmal'}</button>
+               <button class="btn btn-primary btn-full" onclick="MathGame._finish(${finalScore},${totalTimeMs},${c.errors})">${typeof t!=='undefined'?t('math.continue_anyway'):'Trotzdem weiter ➜'}</button>`
           }
         </div>
       </div>

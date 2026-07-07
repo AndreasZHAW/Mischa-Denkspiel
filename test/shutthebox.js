@@ -31,9 +31,9 @@ const ShutTheBoxGame = {
 
         <!-- Top bar -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:clamp(0.82rem,3.8vw,0.95rem);font-weight:600;color:var(--text-mid)">
-          <span>🎲 Wurf ${c.rolls}/${c.maxRolls}</span>
-          <span>❌ ${c.errors} Fehler</span>
-          <span>Offen: <b style="color:${openSum>20?'#E74C3C':openSum>10?'#F39C12':'#27AE60'}">${openSum}</b></span>
+          <span>🎲 ${typeof t!=='undefined'?t('stb.roll_n'):'Wurf'} ${c.rolls}/${c.maxRolls}</span>
+          <span>❌ ${c.errors} ${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span>
+          <span>${typeof t!=='undefined'?t('stb.open'):'Offen:'} <b style="color:${openSum>20?'#E74C3C':openSum>10?'#F39C12':'#27AE60'}">${openSum}</b></span>
         </div>
 
         <!-- Number boxes - big touch targets -->
@@ -66,7 +66,7 @@ const ShutTheBoxGame = {
 
         <!-- Instruction -->
         <div style="margin-bottom:14px;font-size:clamp(0.85rem,4vw,1rem);color:var(--text-dark);font-weight:${c.phase==='select'?700:400}">
-          ${c.phase==='roll'?'Würfeln!':c.phase==='bust'?'<span style="color:#E74C3C;font-weight:900">❌ Kein Zug möglich! Spiel endet.</span>':c.phase==='select'?`Wähle Zahlen die zusammen <b>${c.diceSum}</b> ergeben!`:''}
+          ${c.phase==='roll'?(typeof t!=='undefined'?t('stb.roll_dice'):'Würfeln!'):c.phase==='bust'?`<span style="color:#E74C3C;font-weight:900">${typeof t!=='undefined'?t('stb.no_move'):'❌ Kein Zug möglich! Spiel endet.'}</span>`:c.phase==='select'?`${typeof t!=='undefined'?t('stb.choose_sum'):'Wähle Zahlen die zusammen'} <b>${c.diceSum}</b>!`:''}
         </div>
 
         <!-- Buttons -->
@@ -78,7 +78,7 @@ const ShutTheBoxGame = {
                 font-size:clamp(1.1rem,5vw,1.4rem);font-weight:900;cursor:pointer;
                 min-height:clamp(60px,16vw,72px);touch-action:manipulation;
                 box-shadow:0 4px 12px rgba(52,152,219,.4);animation:pulse .8s ease-in-out infinite">
-              🎲 Würfeln!
+              🎲 ${typeof t!=='undefined'?t('stb.roll_dice'):'Würfeln!'}
             </button>
             <style>@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}</style>`:''}
           ${c.phase==='select'&&c.selected.length>0?`
@@ -87,13 +87,13 @@ const ShutTheBoxGame = {
                 padding:clamp(16px,4.5vw,20px) clamp(32px,9vw,44px);border-radius:16px;
                 font-size:clamp(1rem,4.5vw,1.2rem);font-weight:900;cursor:pointer;
                 min-height:54px;touch-action:manipulation;box-shadow:0 4px 12px rgba(39,174,96,.4)">
-              ✅ Schliessen
+              ${typeof t!=='undefined'?t('stb.close'):'✅ Schliessen'}
             </button>
             <button onclick="ShutTheBoxGame._cancel()"
               style="background:rgba(255,255,255,.6);color:var(--text-mid);border:2px solid #E0E6EE;
                 padding:clamp(14px,4vw,18px) clamp(16px,5vw,24px);border-radius:14px;
                 font-size:clamp(0.88rem,4vw,1rem);cursor:pointer;min-height:54px;touch-action:manipulation">
-              ✕ Abbrechen
+              ${typeof t!=='undefined'?t('stb.cancel'):'✕ Abbrechen'}
             </button>`:''}
         </div>
       </div>`;

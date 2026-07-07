@@ -5,6 +5,25 @@
  */
 const ColorMixGame = {
   current: null, _lastConfig: null,
+  // Translate a German color label (with optional emoji prefix) to the current UI language
+  _COLOR_I18N: {
+    'Rot':{en:'Red',fr:'Rouge'}, 'Gelb':{en:'Yellow',fr:'Jaune'}, 'Blau':{en:'Blue',fr:'Bleu'},
+    'Grün':{en:'Green',fr:'Vert'}, 'Orange':{en:'Orange',fr:'Orange'}, 'Lila':{en:'Purple',fr:'Violet'},
+    'Braun':{en:'Brown',fr:'Marron'}, 'Rosa':{en:'Pink',fr:'Rose'}, 'Weiss':{en:'White',fr:'Blanc'},
+    'Schwarz':{en:'Black',fr:'Noir'}, 'Türkis':{en:'Turquoise',fr:'Turquoise'},
+    'Dunkelrot':{en:'Dark red',fr:'Rouge foncé'}, 'Hellblau':{en:'Light blue',fr:'Bleu clair'},
+    'Olivgrün':{en:'Olive green',fr:'Vert olive'}, 'Hellgelb':{en:'Light yellow',fr:'Jaune clair'},
+  },
+  _cl(label) {
+    const cur = (typeof LANG!=='undefined' && LANG._cur) ? LANG._cur : 'de';
+    if (cur==='de'||cur==='de_simple') return label;
+    const m = label.match(/^([^\wÄÖÜäöü]*)\s*([A-ZÄÖÜ][a-zäöüß]+)$/u);
+    if (!m) return label;
+    const [, emoji, word] = m;
+    const entry = this._COLOR_I18N[word];
+    if (!entry || !entry[cur]) return label;
+    return (emoji?emoji+' ':'') + entry[cur];
+  },
   _mixes: [
     { result:'🟢 Grün', resultColor:'#27AE60', a:'🟡 Gelb', aC:'#F1C40F', b:'🔵 Blau', bC:'#3498DB', opts:['🔴 Rot','#E74C3C','🟡 Gelb','#F1C40F','🔵 Blau','#3498DB','⚫ Schwarz','#2C3E50'] },
     { result:'🟠 Orange', resultColor:'#E67E22', a:'🔴 Rot', aC:'#E74C3C', b:'🟡 Gelb', bC:'#F1C40F', opts:['🔴 Rot','#E74C3C','🟡 Gelb','#F1C40F','🔵 Blau','#3498DB','⚪ Weiss','#ECF0F1'] },
@@ -35,13 +54,13 @@ const ColorMixGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center">
         <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-mid);margin-bottom:10px">
-          <span>Frage <b>${c.index+1}/${c.qs.length}</b></span><span>❌ ${c.errors}</span>
+          <span>${typeof t!=='undefined'?t('tf.question_n'):'Frage'} <b>${c.index+1}/${c.qs.length}</b></span><span>❌ ${c.errors}</span>
         </div>
-        <div style="font-size:0.9rem;color:var(--text-mid);margin-bottom:10px">Welche 2 Farben ergeben zusammen...</div>
+        <div style="font-size:0.9rem;color:var(--text-mid);margin-bottom:10px">${typeof t!=='undefined'?t('colormix.which_two'):'Welche 2 Farben ergeben zusammen...'}</div>
         <!-- Result color -->
         <div style="width:120px;height:60px;border-radius:14px;background:${q.resultColor};margin:0 auto 6px;
           box-shadow:0 4px 12px rgba(0,0,0,0.2)"></div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--mountain-dark);margin-bottom:16px">${q.result}?</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--mountain-dark);margin-bottom:16px">${this._cl(q.result)}?</div>
         <!-- Color options -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:min(340px,95vw);margin:0 auto 12px">
           ${opts.map((o,i)=>`
@@ -51,10 +70,10 @@ const ColorMixGame = {
                 font-size:clamp(0.82rem,3.8vw,1rem);font-weight:700;color:${o.color==='#ECF0F1'||o.color==='#F9E79F'||o.color==='#F1C40F'?'#333':'white'};
                 border:4px solid transparent;box-shadow:0 4px 10px rgba(0,0,0,0.15);transition:all 0.15s;text-align:center;
                 text-shadow:${o.color==='#ECF0F1'||o.color==='#F9E79F'?'none':'0 1px 3px rgba(0,0,0,0.3)'}">
-              ${o.label}
+              ${this._cl(o.label)}
             </div>`).join('')}
         </div>
-        <div style="font-size:0.8rem;color:var(--text-mid)">Wähle 2 Farben!</div>
+        <div style="font-size:0.8rem;color:var(--text-mid)">${typeof t!=='undefined'?t('colormix.pick_two'):'Wähle 2 Farben!'}</div>
         <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
           ${Array.from({length:2},(_,i)=>`
             <div style="width:36px;height:36px;border-radius:10px;background:${c.selected[i]?c.currentOpts[c.selected[i]].color:'#E0E6EE'};border:2px solid #DDD"></div>`).join('')}
@@ -95,8 +114,8 @@ const ColorMixGame = {
       const feedbackDiv = document.getElementById('colormix-feedback');
       if(feedbackDiv) {
         feedbackDiv.innerHTML = correct
-          ? '<span style="color:#27AE60;font-size:1.1rem;font-weight:900">✅ Richtig! '+q.a+' + '+q.b+' = '+q.result+'</span>'
-          : '<span style="color:#E74C3C;font-size:1.0rem;font-weight:900">❌ Falsch! Richtig: '+q.a+' + '+q.b+'</span>';
+          ? `<span style="color:#27AE60;font-size:1.1rem;font-weight:900">✅ ${typeof t!=='undefined'?t('tf.correct'):'Richtig!'} ${this._cl(q.a)} + ${this._cl(q.b)} = ${this._cl(q.result)}</span>`
+          : `<span style="color:#E74C3C;font-size:1.0rem;font-weight:900">❌ ${typeof t!=='undefined'?t('colormix.wrong_correct_is'):'Falsch! Richtig:'} ${this._cl(q.a)} + ${this._cl(q.b)}</span>`;
         feedbackDiv.style.opacity='1';
       }
       c.index++;
@@ -111,13 +130,13 @@ const ColorMixGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:3rem">🎨🏆</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">${correct}/${c.qs.length} richtig!</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">${correct}/${c.qs.length} ${typeof t!=='undefined'?t('math.correct_n'):'richtig!'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
-          <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">Zeit</span></div>
-          <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">Fehler</span></div>
-          <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">Punkte</span></div>
+          <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⏱</div><b>${Math.round(timeMs/1000)}s</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.time'):'Zeit'}</span></div>
+          <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span></div>
+          <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem"><div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</span></div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="ColorMixGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="ColorMixGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
   _finish(s,t,e){ if(this.current?.onComplete) this.current.onComplete({rawScore:s,timeMs:t,errors:e,passed:s>=40}); }

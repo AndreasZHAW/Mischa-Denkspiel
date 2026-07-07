@@ -28,8 +28,8 @@ const MemoryGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:0.85rem;color:var(--text-mid)">
         <span>⏱ <span id="mem-time">0s</span></span>
-        <span>Gefunden: <b>${c.matched}/5</b></span>
-        <span>Versuche: <b id="move-count">${c.moves}</b></span>
+        <span>${typeof t!=='undefined'?t('memory.found'):'Gefunden:'} <b>${c.matched}/5</b></span>
+        <span>${typeof t!=='undefined'?t('memory.attempts'):'Versuche:'} <b id="move-count">${c.moves}</b></span>
       </div>
       <div class="memory-grid" id="memory-grid">
         ${c.cards.map((card, i) => this._cardHTML(card, i)).join('')}
@@ -97,19 +97,19 @@ const MemoryGame = {
     document.getElementById('game-area').innerHTML = `
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:3rem">🧠✨</div>
-        <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--mountain-dark);margin:10px 0">Alle Paare gefunden!</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--mountain-dark);margin:10px 0">${typeof t!=='undefined'?t('memory.all_found'):'Alle Paare gefunden!'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
           <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">⏱</div><b>${timeSec}s</b><br><span style="color:var(--text-mid)">Zeit</span>
+            <div style="font-size:1.2rem">⏱</div><b>${timeSec}s</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.time'):'Zeit'}</span>
           </div>
           <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">Fehlversuche</span>
+            <div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('memory.mistakes'):'Fehlversuche'}</span>
           </div>
           <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">Punkte</span>
+            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</span>
           </div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="MemoryGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="MemoryGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
 
