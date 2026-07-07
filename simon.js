@@ -10,16 +10,16 @@ const SimonGame = {
 
   // Welt-Farbthemen: jede Welt hat andere Farben
   _worldColors: {
-    1:  [{c:'#2980B9',n:'Blau'},{c:'#E74C3C',n:'Rot'},{c:'#27AE60',n:'Grün'},{c:'#F39C12',n:'Gelb'}],
-    2:  [{c:'#8E44AD',n:'Lila'},{c:'#E74C3C',n:'Rot'},{c:'#F39C12',n:'Gold'},{c:'#2C3E50',n:'Dunkel'}],
-    3:  [{c:'#3498DB',n:'Blau'},{c:'#1ABC9C',n:'Türkis'},{c:'#F1C40F',n:'Gelb'},{c:'#FF6B9D',n:'Pink'}],
-    4:  [{c:'#E67E22',n:'Orange'},{c:'#27AE60',n:'Grün'},{c:'#E74C3C',n:'Rot'},{c:'#9B59B6',n:'Lila'}],
-    5:  [{c:'#E74C3C',n:'Rot'},{c:'#F39C12',n:'Orange'},{c:'#27AE60',n:'Grün'},{c:'#3498DB',n:'Blau'}],
-    6:  [{c:'#27AE60',n:'Grün'},{c:'#16A085',n:'Dunkelgrün'},{c:'#F1C40F',n:'Gelb'},{c:'#E67E22',n:'Orange'}],
-    7:  [{c:'#D35400',n:'Braun'},{c:'#922B21',n:'Dunkelrot'},{c:'#F39C12',n:'Gold'},{c:'#27AE60',n:'Grün'}],
-    8:  [{c:'#E30613',n:'VfB Rot'},{c:'#FFFFFF',n:'Weiß'},{c:'#2C3E50',n:'Schwarz'},{c:'#F39C12',n:'Gold'}],
-    9:  [{c:'#7F8C8D',n:'Grau'},{c:'#2C3E50',n:'Dunkel'},{c:'#3498DB',n:'Blau'},{c:'#27AE60',n:'Grün'}],
-    10: [{c:'#E74C3C',n:'Rot'},{c:'#F1C40F',n:'Gelb'},{c:'#3498DB',n:'Blau'},{c:'#27AE60',n:'Grün'}],
+    1:  [{c:'#2980B9',n:{de:'Blau',en:'Blue',fr:'Bleu'}},{c:'#E74C3C',n:{de:'Rot',en:'Red',fr:'Rouge'}},{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}},{c:'#F39C12',n:{de:'Gelb',en:'Yellow',fr:'Jaune'}}],
+    2:  [{c:'#8E44AD',n:{de:'Lila',en:'Purple',fr:'Violet'}},{c:'#E74C3C',n:{de:'Rot',en:'Red',fr:'Rouge'}},{c:'#F39C12',n:{de:'Gold',en:'Gold',fr:'Or'}},{c:'#2C3E50',n:{de:'Dunkel',en:'Dark',fr:'Sombre'}}],
+    3:  [{c:'#3498DB',n:{de:'Blau',en:'Blue',fr:'Bleu'}},{c:'#1ABC9C',n:{de:'Türkis',en:'Turquoise',fr:'Turquoise'}},{c:'#F1C40F',n:{de:'Gelb',en:'Yellow',fr:'Jaune'}},{c:'#FF6B9D',n:{de:'Pink',en:'Pink',fr:'Rose'}}],
+    4:  [{c:'#E67E22',n:{de:'Orange',en:'Orange',fr:'Orange'}},{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}},{c:'#E74C3C',n:{de:'Rot',en:'Red',fr:'Rouge'}},{c:'#9B59B6',n:{de:'Lila',en:'Purple',fr:'Violet'}}],
+    5:  [{c:'#E74C3C',n:{de:'Rot',en:'Red',fr:'Rouge'}},{c:'#F39C12',n:{de:'Orange',en:'Orange',fr:'Orange'}},{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}},{c:'#3498DB',n:{de:'Blau',en:'Blue',fr:'Bleu'}}],
+    6:  [{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}},{c:'#16A085',n:{de:'Dunkelgrün',en:'Dark green',fr:'Vert foncé'}},{c:'#F1C40F',n:{de:'Gelb',en:'Yellow',fr:'Jaune'}},{c:'#E67E22',n:{de:'Orange',en:'Orange',fr:'Orange'}}],
+    7:  [{c:'#D35400',n:{de:'Braun',en:'Brown',fr:'Marron'}},{c:'#922B21',n:{de:'Dunkelrot',en:'Dark red',fr:'Rouge foncé'}},{c:'#F39C12',n:{de:'Gold',en:'Gold',fr:'Or'}},{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}}],
+    8:  [{c:'#E30613',n:{de:'VfB Rot',en:'VfB Red',fr:'Rouge VfB'}},{c:'#FFFFFF',n:{de:'Weiß',en:'White',fr:'Blanc'}},{c:'#2C3E50',n:{de:'Schwarz',en:'Black',fr:'Noir'}},{c:'#F39C12',n:{de:'Gold',en:'Gold',fr:'Or'}}],
+    9:  [{c:'#7F8C8D',n:{de:'Grau',en:'Gray',fr:'Gris'}},{c:'#2C3E50',n:{de:'Dunkel',en:'Dark',fr:'Sombre'}},{c:'#3498DB',n:{de:'Blau',en:'Blue',fr:'Bleu'}},{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}}],
+    10: [{c:'#E74C3C',n:{de:'Rot',en:'Red',fr:'Rouge'}},{c:'#F1C40F',n:{de:'Gelb',en:'Yellow',fr:'Jaune'}},{c:'#3498DB',n:{de:'Blau',en:'Blue',fr:'Bleu'}},{c:'#27AE60',n:{de:'Grün',en:'Green',fr:'Vert'}}],
   },
 
   start(config) {
@@ -50,7 +50,7 @@ const SimonGame = {
       <div style="text-align:center">
         <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-mid);margin-bottom:10px">
           <span>Runde <b>${c.round}/${c.maxRounds}</b></span>
-          <span>${c.phase==='watch'?'👀 Schau zu!':'👆 Deine Reihe!'}</span>
+          <span>${c.phase==='watch'?(typeof t!=='undefined'?t('simon.watch'):'👀 Schau zu!'):(typeof t!=='undefined'?t('simon.your_turn'):'👆 Deine Reihe!')}</span>
           <span>❌ ${c.errors}</span>
         </div>
 
@@ -75,7 +75,7 @@ const SimonGame = {
                 box-shadow:0 6px 16px rgba(0,0,0,0.2),inset 0 2px 4px rgba(255,255,255,0.2);
                 user-select:none;-webkit-user-select:none;
                 transition:all 0.15s">
-              ${col.n}
+              ${(typeof LANG!=='undefined' && LANG._cur && col.n[LANG._cur]) ? col.n[LANG._cur] : col.n.de}
             </div>`).join('')}
         </div>
 
@@ -87,7 +87,7 @@ const SimonGame = {
         </div>
 
         <div id="simon-msg" style="margin-top:10px;font-size:0.85rem;color:var(--text-mid);min-height:20px">
-          ${c.phase==='watch'?'Schau dir die Reihenfolge an!':'Tippe in der gleichen Reihenfolge!'}
+          ${c.phase==='watch'?(typeof t!=='undefined'?t('simon.watch_sequence'):'Schau dir die Reihenfolge an!'):(typeof t!=='undefined'?t('simon.repeat_sequence'):'Tippe in der gleichen Reihenfolge!')}
         </div>
       </div>`;
   },
@@ -188,20 +188,20 @@ const SimonGame = {
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:3rem">${c.errors===0?'🧠🏆':c.round>=5?'🧠😊':'🧠😅'}</div>
         <div style="font-family:'Fredoka One',cursive;font-size:1.7rem;color:var(--mountain-dark);margin:10px 0">
-          ${c.round}/${c.maxRounds} Runden geschafft!
+          ${c.round}/${c.maxRounds} ${typeof t!=='undefined'?t('simon.rounds_done'):'Runden geschafft!'}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0">
           <div style="background:#F0F9FF;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">🎯</div><b>${c.round}</b><br><span style="color:var(--text-mid)">Runden</span>
+            <div style="font-size:1.2rem">🎯</div><b>${c.round}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('simon.rounds'):'Runden'}</span>
           </div>
           <div style="background:#FFF5F5;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">Fehler</span>
+            <div style="font-size:1.2rem">❌</div><b>${c.errors}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.errors'):'Fehler'}</span>
           </div>
           <div style="background:#FFFFF0;border-radius:10px;padding:10px;font-size:0.8rem">
-            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">Punkte</span>
+            <div style="font-size:1.2rem">⭐</div><b>${finalScore}</b><br><span style="color:var(--text-mid)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</span>
           </div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="SimonGame._finish(${finalScore},${timeMs},${c.errors})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="SimonGame._finish(${finalScore},${timeMs},${c.errors})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
 

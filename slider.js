@@ -6,12 +6,12 @@ const SliderGame = {
   current: null, _timerInterval: null, _lastConfig: null,
 
   _themes: {
-    1:{bg:'#EBF5FB',tile:'#2980B9',tileGood:'#1A5276',empty:'#D6EAF8',text:'white',label:'🚗 Anreise'},
-    2:{bg:'#F4ECF7',tile:'#8E44AD',tileGood:'#6C3483',empty:'#E8DAEF',text:'white',label:'🏰 Schloss'},
-    3:{bg:'#E9F7EF',tile:'#27AE60',tileGood:'#1E8449',empty:'#D5F5E3',text:'white',label:'🏊 Pool'},
-    4:{bg:'#FEF9E7',tile:'#E67E22',tileGood:'#CA6F1E',empty:'#FDEBD0',text:'white',label:'🎾 Tennis'},
-    5:{bg:'#FDEDEC',tile:'#E74C3C',tileGood:'#B03A2E',empty:'#FADBD8',text:'white',label:'🎲 Kniffel'},
-    default:{bg:'#EBF5FB',tile:'#2980B9',tileGood:'#1A5276',empty:'#D6EAF8',text:'white',label:'🧩 Puzzle'},
+    1:{bg:'#EBF5FB',tile:'#2980B9',tileGood:'#1A5276',empty:'#D6EAF8',text:'white',label:{de:'🚗 Anreise',en:'🚗 Arrival',fr:'🚗 Arrivée'}},
+    2:{bg:'#F4ECF7',tile:'#8E44AD',tileGood:'#6C3483',empty:'#E8DAEF',text:'white',label:{de:'🏰 Schloss',en:'🏰 Castle',fr:'🏰 Château'}},
+    3:{bg:'#E9F7EF',tile:'#27AE60',tileGood:'#1E8449',empty:'#D5F5E3',text:'white',label:{de:'🏊 Pool',en:'🏊 Pool',fr:'🏊 Piscine'}},
+    4:{bg:'#FEF9E7',tile:'#E67E22',tileGood:'#CA6F1E',empty:'#FDEBD0',text:'white',label:{de:'🎾 Tennis',en:'🎾 Tennis',fr:'🎾 Tennis'}},
+    5:{bg:'#FDEDEC',tile:'#E74C3C',tileGood:'#B03A2E',empty:'#FADBD8',text:'white',label:{de:'🎲 Kniffel',en:'🎲 Yahtzee',fr:'🎲 Yahtzee'}},
+    default:{bg:'#EBF5FB',tile:'#2980B9',tileGood:'#1A5276',empty:'#D6EAF8',text:'white',label:{de:'🧩 Puzzle',en:'🧩 Puzzle',fr:'🧩 Puzzle'}},
   },
   _getEmojis(wId){const s={1:['🚗','🗺️','⛽','🚦','🎒','🏔️','🌲','🌸'],2:['🏰','👑','⚔️','🛡️','🗝️','🕯️','🦅','🌹'],3:['🏊','🌞','🏖️','🍦','🐠','🌊','🦀','🐚']};return s[wId]||s[1];},
 
@@ -47,8 +47,8 @@ const SliderGame = {
     document.getElementById('game-area').innerHTML=`
       <div style="text-align:center;padding:8px 4px;max-width:480px;margin:0 auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;font-size:clamp(0.82rem,3.5vw,0.92rem);color:var(--text-mid)">
-          <span style="font-weight:700;color:${t.tile}">${t.label}</span>
-          <span>Züge: <b id="sl-moves" style="color:var(--text-dark)">0</b></span>
+          <span style="font-weight:700;color:${t.tile}">${(typeof LANG!=='undefined' && LANG._cur && t.label[LANG._cur]) ? t.label[LANG._cur] : t.label.de}</span>
+          <span>${typeof window.t!=='undefined'?window.t('slider.moves'):'Züge:'} <b id="sl-moves" style="color:var(--text-dark)">0</b></span>
           <span>⏱ <b id="sl-timer" style="color:var(--text-dark)">0s</b></span>
         </div>
         <div id="sl-board" style="
@@ -59,10 +59,10 @@ const SliderGame = {
           ${c.tiles.map((tile,i)=>this._tileHTML(tile,i,c,CELL,FONT)).join('')}
         </div>
         <div style="font-size:clamp(0.76rem,3vw,0.84rem);color:var(--text-mid);margin-top:8px">
-          Grün = am richtigen Platz ✅ · Tippe auf Nachbarfeld zum Schieben
+          ${typeof window.t!=='undefined'?window.t('slider.hint'):'Grün = am richtigen Platz ✅ · Tippe auf Nachbarfeld zum Schieben'}
         </div>
         <button class="btn btn-secondary" onclick="SliderGame._shuffle()" style="margin-top:10px;font-size:0.88rem;padding:9px 20px">
-          🔀 Neu mischen
+          🔀 ${typeof window.t!=='undefined'?window.t('slider.shuffle'):'Neu mischen'}
         </button>
       </div>`;
     this._attachHandlers();
@@ -196,12 +196,12 @@ const SliderGame = {
     document.getElementById('game-area').innerHTML=`
       <div style="text-align:center;padding:20px;max-width:400px;margin:0 auto">
         <div style="font-size:3rem;margin-bottom:12px">🎉</div>
-        <div style="font-size:1.4rem;font-weight:900;color:var(--mountain-dark);margin-bottom:8px">Puzzle gelöst!</div>
+        <div style="font-size:1.4rem;font-weight:900;color:var(--mountain-dark);margin-bottom:8px">${typeof t!=='undefined'?t('slider.solved'):'Puzzle gelöst!'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0">
-          <div style="background:#E8F8F5;border-radius:10px;padding:10px"><b style="font-size:1.2rem">${c.moves}</b><div style="font-size:.8rem;color:#555">Züge</div></div>
-          <div style="background:#E8F8F5;border-radius:10px;padding:10px"><b style="font-size:1.2rem">${c.elapsed}s</b><div style="font-size:.8rem;color:#555">Zeit</div></div>
+          <div style="background:#E8F8F5;border-radius:10px;padding:10px"><b style="font-size:1.2rem">${c.moves}</b><div style="font-size:.8rem;color:#555">${typeof t!=='undefined'?t('slider.moves_label'):'Züge'}</div></div>
+          <div style="background:#E8F8F5;border-radius:10px;padding:10px"><b style="font-size:1.2rem">${c.elapsed}s</b><div style="font-size:.8rem;color:#555">${typeof t!=='undefined'?t('math.time'):'Zeit'}</div></div>
         </div>
-        <button class="btn btn-primary btn-full" onclick="SliderGame._done(${finalScore},${timeMs})">Weiter ➜</button>
+        <button class="btn btn-primary btn-full" onclick="SliderGame._done(${finalScore},${timeMs})">${typeof t!=='undefined'?t('game.continue'):'Weiter ➜'}</button>
       </div>`;
   },
 

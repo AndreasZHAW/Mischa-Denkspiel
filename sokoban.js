@@ -9,53 +9,53 @@ const SokobanGame = {
     const LEVELS = [
       // Tier 1: Mechanics
       { map:['#######','#     #','#. $@ #','#     #','#######'],
-        name:'Einführung', hint:'Schiebe die Kiste nach links aufs Ziel' },
+        name:{de:'Einführung',en:'Introduction',fr:'Introduction'}, hint:{de:'Schiebe die Kiste nach links aufs Ziel',en:'Push the box left onto the target',fr:'Pousse la caisse vers la gauche sur la cible'} },
       { map:['#########','#   .   #','#   #   #','# $ # @ #','#   #   #','#########'],
-        name:'Hindernis', hint:'Wand im Weg — geh drum herum' },
+        name:{de:'Hindernis',en:'Obstacle',fr:'Obstacle'}, hint:{de:'Wand im Weg — geh drum herum',en:'Wall in the way — go around it',fr:'Un mur bloque le passage — contourne-le'} },
       { map:['##########','## . .  ##','#  $ $  ##','#   @    #','##########'],
-        name:'Engpass', hint:'Zwei Boxen durch den Engpass' },
+        name:{de:'Engpass',en:'Bottleneck',fr:'Goulot d\'étranglement'}, hint:{de:'Zwei Boxen durch den Engpass',en:'Two boxes through the bottleneck',fr:'Deux caisses à travers le passage étroit'} },
       { map:['########','#  .   #','#  $## #','#@ .   #','#  $   #','#      #','########'],
-        name:'L-Knick', hint:'Box um die Ecke dirigieren' },
+        name:{de:'L-Knick',en:'L-Bend',fr:'Coude en L'}, hint:{de:'Box um die Ecke dirigieren',en:'Guide the box around the corner',fr:'Guide la caisse autour du coin'} },
 
       // Tier 2: Order matters
       { map:['##########','#.  #    #','#   # $  #','# . $ @  #','#        #','##########'],
-        name:'Blockade', hint:'Keine Box darf die andere sperren' },
+        name:{de:'Blockade',en:'Blockade',fr:'Blocage'}, hint:{de:'Keine Box darf die andere sperren',en:'No box may block another',fr:'Aucune caisse ne doit bloquer l\'autre'} },
       { map:['##########','#    #   #','# $  .   #','#  ##    #','#  .@$   #','#        #','##########'],
-        name:'Umrunden', hint:'Boxen müssen die Wände umrunden' },
+        name:{de:'Umrunden',en:'Go-Around',fr:'Contournement'}, hint:{de:'Boxen müssen die Wände umrunden',en:'Boxes must go around the walls',fr:'Les caisses doivent contourner les murs'} },
       { map:['###########','#   .  .  #','#  #$# $  #','#   . $@  #','###########'],
-        name:'Gitter', hint:'3 Boxen zwischen Wänden' },
+        name:{de:'Gitter',en:'Grid',fr:'Grille'}, hint:{de:'3 Boxen zwischen Wänden',en:'3 boxes between walls',fr:'3 caisses entre les murs'} },
       { map:['##########','#   @     #','#  $#$  $ #','#  . .  . #','##########'],
-        name:'Wand-Reihe', hint:'3 Boxen — Wand in der Mitte erzwingt Reihenfolge!' },
+        name:{de:'Wand-Reihe',en:'Wall Row',fr:'Rangée de murs'}, hint:{de:'3 Boxen — Wand in der Mitte erzwingt Reihenfolge!',en:'3 boxes — a wall in the middle forces an order!',fr:'3 caisses — un mur au milieu impose un ordre !'} },
 
       // Tier 3: Requires repositioning
       { map:['##########','#   @    #','#   $  . #','#   #    #','#   $ .  #','##########'],
-        name:'Parkplatz', hint:'2 Boxen — erst nach unten, dann zur Seite' },
+        name:{de:'Parkplatz',en:'Parking Spot',fr:'Place de parking'}, hint:{de:'2 Boxen — erst nach unten, dann zur Seite',en:'2 boxes — down first, then sideways',fr:'2 caisses — d\'abord vers le bas, puis sur le côté'} },
       { map:['##########','#  @      #','#  $ $  $ #','#  # .  . #','#  .      #','##########'],
-        name:'Drei Wände', hint:'3 Boxen mit Wand — eine braucht Umweg' },
+        name:{de:'Drei Wände',en:'Three Walls',fr:'Trois murs'}, hint:{de:'3 Boxen mit Wand — eine braucht Umweg',en:'3 boxes with a wall — one needs a detour',fr:'3 caisses avec un mur — l\'une nécessite un détour'} },
       { map:['###########','#   .     #','#  $ $    #','#  .@.    #','#  $ $    #','#   .     #','###########'],
-        name:'Diamant', hint:'4 Boxen im Diamant — Mitte ist die Falle' },
+        name:{de:'Diamant',en:'Diamond',fr:'Diamant'}, hint:{de:'4 Boxen im Diamant — Mitte ist die Falle',en:'4 boxes in a diamond — the middle is the trap',fr:'4 caisses en diamant — le milieu est le piège'} },
       { map:['##########','#   .    #','# $    . #','#  ##$## #','#  .  $  #','#     @  #','##########'],
-        name:'Original', hint:'Klassisches Sokoban-Muster' },
+        name:{de:'Original',en:'Original',fr:'Original'}, hint:{de:'Klassisches Sokoban-Muster',en:'Classic Sokoban pattern',fr:'Motif classique de Sokoban'} },
 
       // Tier 4: Maze navigation
       { map:['###########','#   .  .  #','# # $  $  #','#   @  ## #','# # $  $  #','#   .  .  #','###########'],
-        name:'Labyrinth', hint:'Wände teilen den Raum — jede Kammer einzeln lösen' },
+        name:{de:'Labyrinth',en:'Maze',fr:'Labyrinthe'}, hint:{de:'Wände teilen den Raum — jede Kammer einzeln lösen',en:'Walls divide the room — solve each chamber separately',fr:'Des murs divisent la pièce — résous chaque chambre séparément'} },
       { map:['###########','#         #','# .  $@$  #','#   ###   #','# .  $  $ #','# .     . #','###########'],
-        name:'Schlangenwand', hint:'4 Boxen durch Schlangenpfade' },
+        name:{de:'Schlangenwand',en:'Snake Wall',fr:'Mur serpentin'}, hint:{de:'4 Boxen durch Schlangenpfade',en:'4 boxes through winding paths',fr:'4 caisses à travers des chemins sinueux'} },
       { map:['###########','# .  @  . #','#  $ # $  #','#  #   #  #','#  $ # $  #','# .     . #','###########'],
-        name:'Kreuzwand', hint:'4 Boxen im Kreuz — Reihenfolge ist alles!' },
+        name:{de:'Kreuzwand',en:'Cross Wall',fr:'Mur en croix'}, hint:{de:'4 Boxen im Kreuz — Reihenfolge ist alles!',en:'4 boxes in a cross — order is everything!',fr:'4 caisses en croix — l\'ordre est primordial !'} },
 
       // Tier 5: Expert
       { map:['###########','#  .    .  #','#  $    $  #','#  @####   #','#  $    $  #','#  .    .  #','###########'],
-        name:'Vier Tore', hint:'4 Boxen durch enge Tore — Reihenfolge entscheidend!' },
+        name:{de:'Vier Tore',en:'Four Gates',fr:'Quatre portes'}, hint:{de:'4 Boxen durch enge Tore — Reihenfolge entscheidend!',en:'4 boxes through narrow gates — order matters!',fr:'4 caisses à travers des portes étroites — l\'ordre compte !'} },
       { map:['############','#   .   .  #','#   $   $  #','# ### ###  #','#   $   $  #','#   .@  .  #','############'],
-        name:'Doppel-Tor', hint:'4 Boxen durch zwei enge Tore' },
+        name:{de:'Doppel-Tor',en:'Double Gate',fr:'Double porte'}, hint:{de:'4 Boxen durch zwei enge Tore',en:'4 boxes through two narrow gates',fr:'4 caisses à travers deux portes étroites'} },
       { map:['#############','#     .     #','#  . $$$ .  #','#  $     $  #','#  . . . .  #','#    $ $    #','#     @     #','#############'],
-        name:'Kreis', hint:'7 Boxen im Kreis-Muster' },
+        name:{de:'Kreis',en:'Circle',fr:'Cercle'}, hint:{de:'7 Boxen im Kreis-Muster',en:'7 boxes in a circular pattern',fr:'7 caisses en cercle'} },
       { map:['############','#   .  .   #','#  $    $  #','#  @  ##   #','#  $    $  #','#   .  .   #','############'],
-        name:'Versatz', hint:'4 Boxen versetzt — keine ist direkt vor ihrem Ziel' },
+        name:{de:'Versatz',en:'Offset',fr:'Décalage'}, hint:{de:'4 Boxen versetzt — keine ist direkt vor ihrem Ziel',en:'4 boxes offset — none is directly in front of its target',fr:'4 caisses décalées — aucune n\'est directement devant sa cible'} },
       { map:['###########','# .     . #','#  $   $  #','#  ## ##  #','#  $   $  #','# .  @  . #','###########'],
-        name:'Meister', hint:'4 Boxen, Wände blockieren alles — höchste Schwierigkeit!' },
+        name:{de:'Meister',en:'Master',fr:'Maître'}, hint:{de:'4 Boxen, Wände blockieren alles — höchste Schwierigkeit!',en:'4 boxes, walls block everything — highest difficulty!',fr:'4 caisses, des murs bloquent tout — difficulté maximale !'} },
     ];;
 
     // BFS verify — skip broken levels
@@ -159,15 +159,17 @@ const SokobanGame = {
       ${wide?'flex:1;':'width:100%;'}
       box-shadow:0 4px 0 rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.25)`;
 
+    const _pick = (obj) => (typeof LANG!=='undefined' && LANG._cur && obj[LANG._cur]) ? obj[LANG._cur] : obj.de;
     const render=()=>{
       const lvl=LEVELS[lvIdx];
+      const lvlName=_pick(lvl.name), lvlHint=_pick(lvl.hint);
       const rows=grid.length, cols=Math.max(...grid.map(r=>r.length));
       const cw=cols*TILE, ch=rows*TILE;
       const T=TILE;
 
       el.innerHTML=`<div style="font-family:'Segoe UI',system-ui,sans-serif;user-select:none;-webkit-user-select:none;text-align:center">
         <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-          <span style="color:#FF9F43;font-weight:900;font-size:clamp(1rem,4.5vw,1.15rem);text-shadow:0 1px 3px rgba(0,0,0,.3)">${lvl.name}</span>
+          <span style="color:#FF9F43;font-weight:900;font-size:clamp(1rem,4.5vw,1.15rem);text-shadow:0 1px 3px rgba(0,0,0,.3)">${lvlName}</span>
           <span style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:.78rem;padding:2px 8px;border-radius:20px">Lv ${lvIdx+1}/${LEVELS.length}</span>
           <span style="color:#54D8D8;font-weight:700;font-size:.85rem">🦶 ${moves}</span>
           <span style="color:#2ecc71;font-size:.8rem">✅ ${solved}</span>
@@ -195,9 +197,9 @@ const SokobanGame = {
         <div id="sk-hint-box" style="display:none;color:#FF9F43;font-size:.88rem;margin-top:8px;
           padding:8px 16px;background:rgba(255,159,67,.12);border:1px solid rgba(255,159,67,.3);
           border-radius:10px;max-width:${Math.min(cw,300)}px;margin-left:auto;margin-right:auto">
-          💡 ${lvl.hint}
+          💡 ${lvlHint}
         </div>
-        <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">Pfeiltasten/WASD · Z=Rückgängig · Wischen</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">${typeof t!=='undefined'?t('sokoban.controls'):'Pfeiltasten/WASD · Z=Rückgängig · Wischen'}</div>
       </div>`;
 
       const cv=document.getElementById('skcv');

@@ -20,7 +20,7 @@ const PongGame = {
         <div id="pong-score" style="font-family:monospace;font-weight:900;font-size:1.2rem;color:#fff;min-width:60px">0 : 0</div>
         <div style="flex:1;text-align:center">
           <div id="pong-timer" style="font-size:.82rem;color:#27AE60;font-weight:700">⏱ 60s</div>
-          <div id="pong-next-speed" style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#F39C12">⚡ schneller in 5s</div>
+          <div id="pong-next-speed" style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:#F39C12">${typeof t!=='undefined'?t('pong.faster_in'):'⚡ schneller in'} 5s</div>
         </div>
         <div id="pong-speed-level" style="font-size:.8rem;color:#FFD700;min-width:40px;text-align:right">⚡ Lv1</div>
       </div>
@@ -195,7 +195,7 @@ const PongGame = {
       const tEl=document.getElementById('pong-timer');
       if(tEl){tEl.textContent='⏱ '+Math.ceil(tLeft)+'s';tEl.style.color=tLeft<15?'#E74C3C':tLeft<30?'#F39C12':'#27AE60';}
       const nsEl=document.getElementById('pong-next-speed');
-      if(nsEl){nsEl.textContent='⚡ schneller in '+Math.ceil(nextSpeedIn)+'s';nsEl.style.color=nextSpeedIn<2?'#E74C3C':'#F39C12';}
+      if(nsEl){nsEl.textContent=(typeof t!=='undefined'?t('pong.faster_in'):'⚡ schneller in')+' '+Math.ceil(nextSpeedIn)+'s';nsEl.style.color=nextSpeedIn<2?'#E74C3C':'#F39C12';}
       const slEl=document.getElementById('pong-speed-level');
       if(slEl){slEl.textContent='⚡ Lv'+speedLevel;slEl.style.color=speedLevel>8?'#E74C3C':speedLevel>5?'#F39C12':'#FFD700';}
       // Main timer bar

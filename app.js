@@ -264,20 +264,15 @@ const App = {
     // Apply saved font size immediately (new v262 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
-    // Draw stars on canvas
-    const wmc = document.getElementById('wm-stars');
-    if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
-      wctx.fillStyle='#000'; wctx.fillRect(0,0,wmc.width,wmc.height);
-      for(let i=0;i<200;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height*0.65,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
-      wmc.style.background='transparent';
-    } const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
+    const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
     const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0);
     const hasEnough = mt >= 10;
     this._html(`
-      <div class="mountain-bg">
-        <div class="sky-gradient"></div>
-        <div class="cloud cloud-1"></div><div class="cloud cloud-2"></div><div class="cloud cloud-3"></div>
-        ${mountainSVG()}
+      <div class="mountain-bg" id="welcome-bg">
+        <!-- Black/starfield background matching the Prolog/Intro — no castle
+             here; the castle belongs to the Welt-1 game screens only. -->
+        <div style="position:absolute;inset:0;background:#000"></div>
+        <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
       </div>
       <div class="page">
         <div class="game-logo">
@@ -290,24 +285,14 @@ const App = {
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ ${typeof t!=='undefined'?t('welcome.title'):'Willkommen, Abenteurer'}</div>
 
-          <!-- Welt 1 Box - dark dramatic style -->
-          <div style="background:#EBF5FB;border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px">
-            <div style="font-weight:900;color:#2980B9;font-size:1rem;margin-bottom:6px">🎮 ${typeof t!=='undefined'?t('welcome.world1.title'):'Welt 1 — Denkspiel'}</div>
-            <div style="font-size:1rem;color:#333;line-height:1.6">
-              ${typeof t!=='undefined'?t('welcome.world1.body1'):'Spiele <b>20 verschiedene Spiele</b> und verdiene <b>Mischa Taler (🌀 MT)</b>.'}<br>
-              ${typeof t!=='undefined'?t('welcome.world1.body2'):'Je besser du spielst, desto mehr MT bekommst du (bis 1.5 MT pro Spiel).'}<br>
-              <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world1.games'):'🎯 Dart · 🔢 Rechnen · 🚂 Zug · 🧠 Memory · ⚡ Reaktion · und mehr...'}</span>
-            </div>
+          <!-- Welt 1 Box - dunkel, kurz -->
+          <div style="background:rgba(41,128,185,.15);border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">
+            <div style="font-weight:900;color:#5DADE2;font-size:1.05rem">${typeof t!=='undefined'?t('welcome.world1.short'):'🇫🇷 Welt 1: Frankreich'}</div>
           </div>
 
-          <!-- Welt 2 Box -->
-          <div style="background:#EAFAF1;border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px">
-            <div style="font-weight:900;color:#27AE60;font-size:1rem;margin-bottom:6px">🦁 ${typeof t!=='undefined'?t('welcome.world2.title'):'Welt 2 — Zoo-Empire'}</div>
-            <div style="font-size:1rem;color:#333;line-height:1.6">
-              ${typeof t!=='undefined'?t('welcome.world2.body1'):'Teleportiere für <b>10 🌀 MT</b> in den Zoo.'}<br>
-              ${typeof t!=='undefined'?t('welcome.world2.body2'):'Kaufe Tiere mit der Gondelbahn · Baue Gehege auf · Verdiene automatisch MT.'}<br>
-              <span style="color:#888;font-size:var(--fs-sm)">${typeof t!=='undefined'?t('welcome.world2.feats'):'🚡 Gondelbahn · 🎡 Glücksrad · 🌀 Multiplayer · Slap-System'}</span>
-            </div>
+          <!-- Welt 2 Box - dunkel, kurz -->
+          <div style="background:rgba(39,174,96,.15);border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
+            <div style="font-weight:900;color:#58D68D;font-size:1.05rem">${typeof t!=='undefined'?t('welcome.world2.short'):'🦁 Welt 2: Zoo Empire'}</div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -320,6 +305,13 @@ const App = {
           </div>
         </div>
       </div>`);
+    // Draw twinkling stars on the black welcome background
+    setTimeout(()=>{
+      const wmc = document.getElementById('wm-stars');
+      if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
+        for(let i=0;i<220;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
+      }
+    },0);
   },
 
   // ── TELEPORT TO ZOO ──
@@ -768,7 +760,11 @@ const App = {
   // ---- LOGIN ----
   showLogin() {
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
+      <div class="mountain-bg" id="login-bg">
+        <!-- Black/starfield background matching the Prolog/Intro, same as Welcome -->
+        <div style="position:absolute;inset:0;background:#000"></div>
+        <canvas id="login-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+      </div>
       <div class="page">
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -784,6 +780,13 @@ const App = {
           ${window.MISCHA_TESTMODE?`<div style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="var p=window.location.pathname;var i=p.lastIndexOf('/test');window.location.href=window.location.origin+(i>=0?p.substring(0,i):p.replace(/\\/[^\\/]*$/,''))+'/index.html'" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}
         </div>
       </div>`);
+    // Draw twinkling stars on the black login background (same technique as Welcome)
+    setTimeout(()=>{
+      const c = document.getElementById('login-stars');
+      if(c){ const cx=c.getContext('2d'); c.width=c.offsetWidth||window.innerWidth; c.height=c.offsetHeight||window.innerHeight;
+        for(let i=0;i<220;i++){const x=Math.random()*c.width,y=Math.random()*c.height,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;cx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;cx.beginPath();cx.arc(x,y,s,0,Math.PI*2);cx.fill();}
+      }
+    },0);
     // On the TEST page: prefill name from the live-page redirect and auto-login with admin pw
     if (window.MISCHA_TESTMODE) {
       let tn = '';
@@ -2931,37 +2934,38 @@ function getTaskInstruction(type, worldId) {
   };
   const icon = ICONS[type] || '🎮';
   const INSTRUCTIONS = {
-    dart:        '🎯 <b>Dart!</b><br>Wirf 3 Pfeile auf die Scheibe. Klicke oder tippe auf die Scheibe — je näher zur Mitte, desto mehr Punkte!<br>📱 Handy/Tablet: Das Steuerkreuz rechts neben der Scheibe zum Zielen nutzen, loslassen = Wurf.',
-    math:        '🔢 <b>Rechnen!</b><br>Löse Mathe-Aufgaben so schnell wie möglich. Tippe die richtige Antwort ein und bestätige mit Enter.',
-    reaction:    '⚡ <b>Reaktion!</b><br>Drücke den Knopf so schnell wie möglich, sobald das Signal erscheint. Warte auf grün!',
-    memory:      '🧠 <b>Memory!</b><br>Finde alle Paare! Drehe zwei Karten um — stimmen sie überein, bleiben sie offen.',
-    train:       '🚂 <b>Zug!</b><br>Lenke den Zug ans Ziel. Tippe auf die Weichen, um die Richtung zu ändern.',
-    shutthebox:  '🎲 <b>Shut the Box!</b><br>Würfle und lege Zahlen um, deren Summe der Würfelzahl entspricht. Lege alle Zahlen um!',
-    jenga:       '🏎️ <b>Race — 1km Rennen!</b><br>Fahre 1 km so schnell wie möglich.<br>📱 Mobile: Gas / Bremse / Drehen-Buttons<br>🖥️ Desktop: → Gas · ← Bremse · ↑ Drehen CW · ↓ Drehen CCW<br>Springe über Hügel — Überschlag = Ende!',
-    stunt:       '🏎️ <b>Race — 1km Rennen!</b><br>Fahre 1 km so schnell wie möglich.<br>📱 Mobile: Gas / Bremse / Drehen-Buttons<br>🖥️ Desktop: → Gas · ← Bremse · ↑ Drehen CW · ↓ Drehen CCW<br>Springe über Hügel — Überschlag = Ende!',
-    slider:      '🧩 <b>Schiebepuzzle!</b><br>Schiebe die Teile, bis das Bild vollständig ist. Tippe auf ein Teil neben dem Leerfeld, um es zu verschieben.',
-    wordsearch:  '🔤 <b>Wortsuche!</b><br>Finde alle versteckten Wörter im Buchstabengitter. Wische über die Buchstaben.',
-    typing:      '🟩 <b>Tetris!</b><br>Bewege und drehe fallende Blöcke, um vollständige Reihen zu bilden.<br>📱 Mobile: Buttons zum Steuern<br>🖥️ Desktop: ← → bewegen · ↑ oder Leertaste drehen · ↓ schneller fallen lassen.',
-    balloon:     '🐍 <b>Snake!</b><br>Steuere die Schlange mit den Pfeiltasten oder Wischen. Friss Äpfel, werde länger — berühre nicht dich selbst!',
-    simon:       '🎨 <b>Simon!</b><br>Merke dir die Farbfolge und wiederhole sie. Wird nach jeder Runde länger.',
-    truefalse:   '❓ <b>Wahr oder Falsch?</b><br>Beantworte Fragen mit Wahr oder Falsch. Tippe auf den richtigen Knopf.',
-    anagram:     '🔤 <b>Anagramm!</b><br>Ordne die durcheinander gewürfelten Buchstaben zum richtigen Wort.',
-    colormix:    '🎨 <b>Farben mischen!</b><br>Mische die richtigen Farben, um den gewünschten Farbton zu erreichen.',
-    clock:       '🕐 <b>Uhr!</b><br>Stelle die Uhrzeiger auf die angezeigte Zeit.',
-    flags:       '🌍 <b>Flaggen!</b><br>Erkenne die Flagge und wähle das richtige Land.',
-    hangman:     '🎯 <b>Hangman!</b><br>Errate das versteckte Wort Buchstabe für Buchstabe.',
-    tictactoe:   '❌ <b>Tic-Tac-Toe!</b><br>Setze 3 in einer Reihe gegen den Computer.',
-    weight:      '⚖️ <b>Gewichte!</b><br>Schätze welche Seite der Waage schwerer ist.',
-    basketball:  '🏀 <b>Basketball!</b><br>Wirf den Ball ins Korb — tippe auf den Knopf im richtigen Moment.',
-    emojistory:  '📖 <b>Emoji Story!</b><br>Errate die Geschichte oder den Film hinter den Emojis.',
-    geo:         '🗺️ <b>Geografie!</b><br>Zeige auf die richtige Position auf der Karte.',
-    french:      '🇫🇷 <b>Französisch!</b><br>Übersetze die Wörter von Deutsch nach Französisch.',
-    riddle:      '🧩 <b>Rätsel!</b><br>Löse das Rätsel und tippe deine Antwort ein.',
-    pacman:      '🟡 <b>Pac-Man!</b><br>Friss alle Punkte im Labyrinth! Vermeide die Geister — oder friss sie nach einem Power-Pellet (grosser Punkt).<br>📱 Mobile: 4 Richtungstasten oder Gerät neigen (Button oben)<br>🖥️ Desktop: Pfeiltasten',
-    starwars:    '🚀 <b>Star Wars — Weltraum-Shooter!</b><br>Schiesse die feindlichen Raumschiffe ab, bevor sie landen! Du hast 3 Leben.<br>📱 Mobile: ◀ ▶ zum Bewegen, Schiessen-Button<br>🖥️ Desktop: ← → bewegen, Leertaste schiessen',
-    pong:        '🏓 <b>Pong — Tennis-Klassiker!</b><br>Der Ball wird mit der Zeit SCHNELLER — reagiere rechtzeitig! Erste 7 Punkte gewinnt oder wer nach 60s mehr hat.<br>📱 Mobile: ▲ ▼ Buttons<br>🖥️ Desktop: ↑ ↓ Pfeiltasten',
+    dart:        typeof t!=='undefined'?t('instr.dart'):'🎯 <b>Dart!</b><br>Wirf 3 Pfeile auf die Scheibe. Klicke oder tippe auf die Scheibe — je näher zur Mitte, desto mehr Punkte!<br>📱 Handy/Tablet: Das Steuerkreuz rechts neben der Scheibe zum Zielen nutzen, loslassen = Wurf.',
+    math:        typeof t!=='undefined'?t('instr.math'):'🔢 <b>Rechnen!</b><br>Löse Mathe-Aufgaben so schnell wie möglich. Tippe die richtige Antwort ein und bestätige mit Enter.',
+    reaction:    typeof t!=='undefined'?t('instr.reaction'):'⚡ <b>Reaktion!</b><br>Drücke den Knopf so schnell wie möglich, sobald das Signal erscheint. Warte auf grün!',
+    memory:      typeof t!=='undefined'?t('instr.memory'):'🧠 <b>Memory!</b><br>Finde alle Paare! Drehe zwei Karten um — stimmen sie überein, bleiben sie offen.',
+    train:       typeof t!=='undefined'?t('instr.train'):'🚂 <b>Zug!</b><br>Lenke den Zug ans Ziel. Tippe auf die Weichen, um die Richtung zu ändern.',
+    shutthebox:  typeof t!=='undefined'?t('instr.shutthebox'):'🎲 <b>Shut the Box!</b><br>Würfle und lege Zahlen um, deren Summe der Würfelzahl entspricht. Lege alle Zahlen um!',
+    sokoban:     typeof t!=='undefined'?t('instr.sokoban'):'📦 <b>Sokoban!</b><br>Schiebe die Kisten auf die markierten Zielfelder. Du kannst Kisten nur schieben, nicht ziehen!',
+    jenga:       typeof t!=='undefined'?t('instr.jenga'):'🏎️ <b>Race — 1km Rennen!</b><br>Fahre 1 km so schnell wie möglich.<br>📱 Mobile: Gas / Bremse / Drehen-Buttons<br>🖥️ Desktop: → Gas · ← Bremse · ↑ Drehen CW · ↓ Drehen CCW<br>Springe über Hügel — Überschlag = Ende!',
+    stunt:       typeof t!=='undefined'?t('instr.stunt'):'🏎️ <b>Race — 1km Rennen!</b><br>Fahre 1 km so schnell wie möglich.<br>📱 Mobile: Gas / Bremse / Drehen-Buttons<br>🖥️ Desktop: → Gas · ← Bremse · ↑ Drehen CW · ↓ Drehen CCW<br>Springe über Hügel — Überschlag = Ende!',
+    slider:      typeof t!=='undefined'?t('instr.slider'):'🧩 <b>Schiebepuzzle!</b><br>Schiebe die Teile, bis das Bild vollständig ist. Tippe auf ein Teil neben dem Leerfeld, um es zu verschieben.',
+    wordsearch:  typeof t!=='undefined'?t('instr.wordsearch'):'🔤 <b>Wortsuche!</b><br>Finde alle versteckten Wörter im Buchstabengitter. Wische über die Buchstaben.',
+    typing:      typeof t!=='undefined'?t('instr.typing'):'🟩 <b>Tetris!</b><br>Bewege und drehe fallende Blöcke, um vollständige Reihen zu bilden.<br>📱 Mobile: Buttons zum Steuern<br>🖥️ Desktop: ← → bewegen · ↑ oder Leertaste drehen · ↓ schneller fallen lassen.',
+    balloon:     typeof t!=='undefined'?t('instr.balloon'):'🐍 <b>Snake!</b><br>Steuere die Schlange mit den Pfeiltasten oder Wischen. Friss Äpfel, werde länger — berühre nicht dich selbst!',
+    simon:       typeof t!=='undefined'?t('instr.simon'):'🎨 <b>Simon!</b><br>Merke dir die Farbfolge und wiederhole sie. Wird nach jeder Runde länger.',
+    truefalse:   typeof t!=='undefined'?t('instr.truefalse'):'❓ <b>Wahr oder Falsch?</b><br>Beantworte Fragen mit Wahr oder Falsch. Tippe auf den richtigen Knopf.',
+    anagram:     typeof t!=='undefined'?t('instr.anagram'):'🔤 <b>Anagramm!</b><br>Ordne die durcheinander gewürfelten Buchstaben zum richtigen Wort.',
+    colormix:    typeof t!=='undefined'?t('instr.colormix'):'🎨 <b>Farben mischen!</b><br>Mische die richtigen Farben, um den gewünschten Farbton zu erreichen.',
+    clock:       typeof t!=='undefined'?t('instr.clock'):'🕐 <b>Uhr!</b><br>Stelle die Uhrzeiger auf die angezeigte Zeit.',
+    flags:       typeof t!=='undefined'?t('instr.flags'):'🌍 <b>Flaggen!</b><br>Erkenne die Flagge und wähle das richtige Land.',
+    hangman:     typeof t!=='undefined'?t('instr.hangman'):'🎯 <b>Hangman!</b><br>Errate das versteckte Wort Buchstabe für Buchstabe.',
+    tictactoe:   typeof t!=='undefined'?t('instr.tictactoe'):'❌ <b>Tic-Tac-Toe!</b><br>Setze 3 in einer Reihe gegen den Computer.',
+    weight:      typeof t!=='undefined'?t('instr.weight'):'⚖️ <b>Gewichte!</b><br>Schätze welche Seite der Waage schwerer ist.',
+    basketball:  typeof t!=='undefined'?t('instr.basketball'):'🏀 <b>Basketball!</b><br>Wirf den Ball ins Korb — tippe auf den Knopf im richtigen Moment.',
+    emojistory:  typeof t!=='undefined'?t('instr.emojistory'):'📖 <b>Emoji Story!</b><br>Errate die Geschichte oder den Film hinter den Emojis.',
+    geo:         typeof t!=='undefined'?t('instr.geo'):'🗺️ <b>Geografie!</b><br>Zeige auf die richtige Position auf der Karte.',
+    french:      typeof t!=='undefined'?t('instr.french'):'🇫🇷 <b>Französisch!</b><br>Übersetze die Wörter von Deutsch nach Französisch.',
+    riddle:      typeof t!=='undefined'?t('instr.riddle'):'🧩 <b>Rätsel!</b><br>Löse das Rätsel und tippe deine Antwort ein.',
+    pacman:      typeof t!=='undefined'?t('instr.pacman'):'🟡 <b>Pac-Man!</b><br>Friss alle Punkte im Labyrinth! Vermeide die Geister — oder friss sie nach einem Power-Pellet (grosser Punkt).<br>📱 Mobile: 4 Richtungstasten oder Gerät neigen (Button oben)<br>🖥️ Desktop: Pfeiltasten',
+    starwars:    typeof t!=='undefined'?t('instr.starwars'):'🚀 <b>Star Wars — Weltraum-Shooter!</b><br>Schiesse die feindlichen Raumschiffe ab, bevor sie landen! Du hast 3 Leben.<br>📱 Mobile: ◀ ▶ zum Bewegen, Schiessen-Button<br>🖥️ Desktop: ← → bewegen, Leertaste schiessen',
+    pong:        typeof t!=='undefined'?t('instr.pong'):'🏓 <b>Pong — Tennis-Klassiker!</b><br>Der Ball wird mit der Zeit SCHNELLER — reagiere rechtzeitig! Erste 7 Punkte gewinnt oder wer nach 60s mehr hat.<br>📱 Mobile: ▲ ▼ Buttons<br>🖥️ Desktop: ↑ ↓ Pfeiltasten',
   };
-  const instr = INSTRUCTIONS[type] || `🎮 <b>Los geht's!</b><br>Spiele das Spiel so gut du kannst!`;
+  const instr = INSTRUCTIONS[type] || (typeof t!=='undefined'?t('instr.fallback'):`🎮 <b>Los geht's!</b><br>Spiele das Spiel so gut du kannst!`);
   return `<span style="font-size:1.5rem">${icon}</span><br>${instr}`;
 }
 

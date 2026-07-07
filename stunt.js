@@ -305,7 +305,7 @@ const StuntGame = {
         if(!car._roofLanded){
           car._roofLanded=true;car.roofCount++;
           car.vy=-2.0;car.spin=(car.spin>0?.06:-.06); // gentler bounce
-          car.crashFlash=60;car.crashMsg='💥 CRASH! Neu anfahren...';
+          car.crashFlash=60;car.crashMsg=typeof t!=='undefined'?t('race.crash'):'💥 CRASH! Neu anfahren...';
           // PENALTY: reset gas build-up and speed, need to re-accelerate
           car.gasHeld=0;
           car.cleanTime=0; // start clean timer over
@@ -389,7 +389,7 @@ const StuntGame = {
         const pg=ctx.createLinearGradient(gsx-1,gy-90,gsx+1,gy);pg.addColorStop(0,'#ddd');pg.addColorStop(1,'#888');
         ctx.fillStyle=pg;ctx.fillRect(gsx-1.5,gy-90,3,90);
         ctx.fillStyle='#E74C3C';ctx.beginPath();ctx.moveTo(gsx,gy-90);ctx.lineTo(gsx+40,gy-72);ctx.lineTo(gsx,gy-54);ctx.closePath();ctx.fill();
-        ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='left';ctx.fillText('ZIEL',gsx+5,gy-68);
+        ctx.fillStyle='#fff';ctx.font='bold 9px sans-serif';ctx.textAlign='left';ctx.fillText(typeof t!=='undefined'?t('race.goal'):'ZIEL',gsx+5,gy-68);
         const gg=ctx.createRadialGradient(gsx,gy-72,0,gsx,gy-72,50);
         gg.addColorStop(0,'rgba(231,76,60,.25)');gg.addColorStop(1,'rgba(0,0,0,0)');
         ctx.fillStyle=gg;ctx.beginPath();ctx.arc(gsx,gy-72,50,0,Math.PI*2);ctx.fill();
@@ -447,7 +447,7 @@ const StuntGame = {
         ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(0,H-6,W,6);
         ctx.fillStyle=rg;ctx.fillRect(0,H-6,W*rec,6);
         ctx.fillStyle='rgba(255,255,255,.4)';ctx.font='10px sans-serif';ctx.textAlign='center';
-        ctx.fillText('Anfahren... '+Math.round(rec*100)+'%',W/2,H-9);
+        ctx.fillText((typeof t!=='undefined'?t('race.starting'):'Anfahren...')+' '+Math.round(rec*100)+'%',W/2,H-9);
       }
 
       // Salto flash

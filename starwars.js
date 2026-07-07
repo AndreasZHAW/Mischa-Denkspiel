@@ -28,7 +28,13 @@ const StarWarsGame = {
         localStorage.setItem('_mischa_crash_readable',(readable+'\n'+newLine).slice(-20000));
       }catch(e){}
     };
-    const _swOnErr=(msg,src,line)=>{_swLog('ERROR: '+msg+' (L'+line+')', 'E');};
+    const _swOnErr=(msg,src,line)=>{
+      // Include the real source file — window.onerror is page-global, so an error
+      // thrown by a completely different script while Starwars is running would
+      // otherwise get mislabeled as a Starwars bug with no way to trace it back.
+      const _fname = (src||'').split('/').pop() || '?';
+      _swLog('ERROR: '+msg+' ('+_fname+':L'+line+')', 'E');
+    };
     const _prevOnerr=window.onerror;
     window.onerror=function(m,s,l,c,e){_swOnErr(m,s,l);if(_prevOnerr)return _prevOnerr(m,s,l,c,e);};
 
@@ -479,7 +485,7 @@ const StarWarsGame = {
       ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(11,W*.032)}px monospace`;ctx.textAlign='left';
       ctx.fillStyle='#FFD700';ctx.font='bold 15px Arial';ctx.fillText('⭐ '+score,8,19);
       ctx.textAlign='center';ctx.fillStyle='#FFD700';
-      ctx.fillText('WELLE '+wave+'/18',W/2,19);
+      ctx.fillText((typeof t!=='undefined'?t('starwars.wave'):'WELLE')+' '+wave+'/18',W/2,19);
       ctx.textAlign='right';
       for(let i=0;i<Math.min(lives,5);i++){
         const hx=W-8-i*20,hy=13;
