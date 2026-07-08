@@ -4592,6 +4592,7 @@ const ZP={
   _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;if((z.gondLockUntil||0)>Date.now()){this.toast('🚓 Gondel gesperrt (Polizei)! Noch '+Math.ceil((z.gondLockUntil-Date.now())/60000)+' Min',3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast('❌ Alle Gehege belegt!');return;}if(z.mt<g.a.p){this.toast('❌ Zu wenig MT!');return;}
     // Deduct cost + advance queue
     z.mt-=g.a.p; ZG.gQ.shift(); ZG.gQ.push(ZG._mkG()); ZG._updHUD&&ZG._updHUD(); try{ZS.save&&ZS.save();}catch(e){}
+    try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}
     // EGG: show crack-open animation instead of carry
     if(g.a.isEgg){ this.close('gond'); this._openGondolaEgg(g.a); return; }
     // CARRY mechanic: player must carry the animal to the enclosure (can be slapped → drops)
@@ -4612,7 +4613,7 @@ const ZP={
     }
     ZSound.buy();const rareSound=['ultralegendary','god','mythic','secret'].includes(g.a.r);if(rareSound)setTimeout(()=>ZSound.rare(),300);this.toast('✅ '+g.a.e+' '+g.a.n+' läuft ins Gehege '+(slot+1)+'! 🏃',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${z.mt<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">Kaufen</button></div>`;}).join('');},
-  _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;this.toast('✅ '+u.l);this._rLuck();ZG._updHUD();},
+  _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(z.mt<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;this.toast('✅ '+u.l);this._rLuck();ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
   // INDEX
   _rIndex(){
@@ -5282,7 +5283,7 @@ const ZP={
       ${can?`<button class="btn btng" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:`<button class="btn btnd" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
-  _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();},
+  _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
   // ENCLOSURE
   _rEnc(i){
@@ -7910,6 +7911,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
     ZS.player=main.toLowerCase();
     ZS.isAdmin=ZS.player==='mischa'||ZS.player==='admin'||ZS.player==='bu';
+    // Contest freeze announcement — same popup as the Denkspiel side, shown once per page load
+    try{ if(typeof Contest!=='undefined' && Contest.phase()==='frozen'){ setTimeout(()=>{ try{Contest.showResultPopup();}catch(e){} }, 1200); } }catch(e){}
     // Use character from zoo_users, or fallback to default character
     const charEmoji = u.ch?.e || '🐾';
     const charId = (u.ch?.id && u.ch.id !== 'default') ? u.ch.id : 'runner'; // always have a char

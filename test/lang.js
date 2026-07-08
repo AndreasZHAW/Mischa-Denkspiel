@@ -231,9 +231,9 @@ const STRINGS = {
   'intro.next':            { de:'Weiter ›', en:'Next ›', fr:'Suivant ›' },
   'intro.ch0.label':       { de:'Prolog', en:'Prologue', fr:'Prologue' },
   'intro.ch0.title':       { de:'Irgendwo in der Welt...', en:'Somewhere in the world...', fr:'Quelque part dans le monde...' },
-  'intro.ch0.text':        { de:'Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b>',
-                              en:'The brothers <b>Mischa</b> and <b>Janosch</b><br>always had a big dream...<br><br><b>Their dream: to build the biggest intergalactic zoo...</b><br><br>To do that, they need <b>your help!</b>',
-                              fr:'Les frères <b>Mischa</b> et <b>Janosch</b><br>ont toujours eu un grand rêve...<br><br><b>Leur rêve : construire le plus grand zoo intergalactique...</b><br><br>Pour cela, ils ont besoin de <b>ton aide !</b>' },
+  'intro.ch0.text':        { de:'Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b><br><br>⏳ <b>Achtung:</b> Das Abenteuer dauert nur bis zum <b>14. August 2026, 18 Uhr</b> — wer dann vorne liegt, gewinnt!',
+                              en:'The brothers <b>Mischa</b> and <b>Janosch</b><br>always had a big dream...<br><br><b>Their dream: to build the biggest intergalactic zoo...</b><br><br>To do that, they need <b>your help!</b><br><br>⏳ <b>Heads up:</b> The adventure only runs until <b>August 14, 2026, 6 PM</b> — whoever is in the lead then wins!',
+                              fr:'Les frères <b>Mischa</b> et <b>Janosch</b><br>ont toujours eu un grand rêve...<br><br><b>Leur rêve : construire le plus grand zoo intergalactique...</b><br><br>Pour cela, ils ont besoin de <b>ton aide !</b><br><br>⏳ <b>Attention :</b> L\'aventure ne dure que jusqu\'au <b>14 août 2026, 18h</b> — celui qui sera en tête à ce moment-là gagne !' },
   'intro.ch1.label':       { de:'Die Helden', en:'The Heroes', fr:'Les Héros' },
   'intro.ch1.mischa_desc': { de:'Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.', en:'The Creative One. Resourceful, calm, incredibly smart, a true team player.', fr:'Le Créatif. Ingénieux, calme, incroyablement intelligent, un vrai joueur d\'équipe.' },
   'intro.ch1.janosch_desc':{ de:'Der Starke. Schnell, ehrgeizig, mit Herz.', en:'The Strong One. Fast, ambitious, with heart.', fr:'Le Fort. Rapide, ambitieux, avec du cœur.' },
@@ -504,6 +504,13 @@ const STRINGS = {
   'french.level_basic':        { de:'Stufe: Grundkenntnisse', en:'Level: Basic', fr:'Niveau : Bases' },
   'french.level_intermediate': { de:'Stufe: Mittelstufe', en:'Level: Intermediate', fr:'Niveau : Intermédiaire' },
   'french.level_advanced':     { de:'Stufe: Fortgeschritten', en:'Level: Advanced', fr:'Niveau : Avancé' },
+
+  // ── RANK NOTIFICATIONS ──
+  'rank.now_first':    { de:'🎉 Du bist jetzt Platz 1!', en:'🎉 You\'re now #1!', fr:'🎉 Tu es maintenant 1er !' },
+  'rank.now_place':    { de:'📈 Du bist jetzt Platz {n}!', en:'📈 You\'re now #{n}!', fr:'📈 Tu es maintenant {n}e !' },
+  'rank.now_place_down': { de:'📉 Du bist jetzt Platz {n}.', en:'📉 You\'re now #{n}.', fr:'📉 Tu es maintenant {n}e.' },
+  'rank.you_passed':   { de:'Du hast {name} überholt!', en:'You passed {name}!', fr:'Tu as dépassé {name} !' },
+  'rank.passed_you':   { de:'{name} hat dich überholt!', en:'{name} passed you!', fr:'{name} t\'a dépassé !' },
 };
 
 // Helper: translate shorthand

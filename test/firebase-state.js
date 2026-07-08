@@ -92,6 +92,35 @@ const State = {
     return this._local.getAll();
   },
 
+  // Fetch every player's Zoo economy state (for combined Denkspiel+Zoo leaderboard).
+  // Keyed by lowercase player name (matching the 'zoo_<name>' doc id / localStorage key,
+  // with the 'zoo_' prefix stripped so it lines up with mischa_players' name keys).
+  async getAllZoos() {
+    const result = {};
+    if (this._useCloud()) {
+      try {
+        const snap = await _db.collection('zoos').get();
+        snap.forEach(doc => {
+          const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
+          result[name] = doc.data();
+        });
+      } catch(e) {}
+    }
+    // Also scan local storage (covers players who only ever played offline/local)
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('zoo_')) {
+          const name = k.slice(4);
+          if (!result[name]) {
+            try { result[name] = JSON.parse(localStorage.getItem(k)); } catch(e) {}
+          }
+        }
+      }
+    } catch(e) {}
+    return result;
+  },
+
   // Repair: any task marked done but with mt<=0 or NaN gets minimum 0.2 MT.
   // Fixes legacy saves where the MT calc failed (showed raw score with ⭐ instead of MT).
   _repairPlayerMT(player) {
@@ -1003,4 +1032,293 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 window.State = State;
+
+// ============================================================
+// RANK NOTIFICATIONS — shared between Denkspiel (app.js) and Zoo (zoo.html)
+// ============================================================
+// Checks whether the player's combined global rank (Welt-1 MT + Zoo MT) has
+// moved up or down since the last time we told them, at most once per hour.
+// Plays a short chime on improvement, a bigger fanfare specifically for #1.
+const RankNotify = {
+  async check(playerName) {
+    try {
+      if (!playerName) return;
+      const key = playerName.toLowerCase();
+      const rankKey = 'mischa_notified_rank_' + key;
+      const timeKey = 'mischa_rank_notif_time_' + key;
+
+      const localAll = State._local.getAll() || {};
+      let firebaseAll = {};
+      try {
+        const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
+        if (fb) firebaseAll = fb;
+      } catch(e) {}
+      let zoosAll = {};
+      try {
+        zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]);
+      } catch(e) {}
+      const merged = {...firebaseAll};
+      Object.entries(localAll).forEach(([name, localP]) => {
+        const fbP = firebaseAll[name];
+        if (!fbP) { merged[name] = localP; return; }
+        const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
+        const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
+        const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;
+        const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
+        if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) merged[name] = localP;
+      });
+      const _zooMTFor = (name) => {
+        const z = zoosAll[name?.toLowerCase()];
+        return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
+      };
+      const players = Object.values(merged)
+        .filter(p => p.name && p.name.toLowerCase() !== 'bu')
+        .map(p => ({ name:p.name, _mt: (()=>{const ws=p.worlds?.[1]||p.worlds?.['1']||{}; return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(p.name);})() }))
+        .sort((a,b) => b._mt - a._mt);
+
+      // A player who only ever played the Zoo (no mischa_players entry at all)
+      // still needs to appear in the ranking — add them in if missing.
+      if (!players.some(p => p.name.toLowerCase() === key) && zoosAll[key]) {
+        players.push({ name: playerName, _mt: _zooMTFor(playerName) });
+        players.sort((a,b) => b._mt - a._mt);
+      }
+
+      const myIdx = players.findIndex(p => p.name.toLowerCase() === key);
+      if (myIdx === -1) return;
+      const newRank = myIdx + 1;
+
+      const prevRank = parseInt(localStorage.getItem(rankKey) || '0');
+      if (!prevRank) { localStorage.setItem(rankKey, String(newRank)); return; } // first check, just establish baseline
+
+      if (newRank === prevRank) return; // no change
+
+      const lastNotif = parseInt(localStorage.getItem(timeKey) || '0');
+      const throttled = (Date.now() - lastNotif) < 60*60*1000; // max 1× pro Stunde
+      if (throttled) return; // rank change noted, but we already told them once this hour — wait for next check
+
+      const improved = newRank < prevRank;
+      // Neighbor heuristic: who I likely just passed / who just passed me
+      const neighbor = improved ? players[myIdx+1] : players[myIdx-1];
+      const neighborName = neighbor ? neighbor.name : null;
+
+      localStorage.setItem(rankKey, String(newRank));
+      localStorage.setItem(timeKey, String(Date.now()));
+
+      this._showToast(newRank, improved, neighborName);
+      if (improved) this._playSound(newRank === 1);
+    } catch(e) {}
+  },
+
+  _showToast(newRank, improved, neighborName) {
+    const medal = newRank===1?'🥇':newRank===2?'🥈':newRank===3?'🥉':'📊';
+    const _tt = (key, vars) => {
+      let s = (typeof t!=='undefined' && typeof t==='function') ? t(key) : null;
+      if (!s || s===key) {
+        const fallback = { 'rank.now_first':'🎉 Du bist jetzt Platz 1!', 'rank.now_place':'📈 Du bist jetzt Platz {n}!',
+          'rank.now_place_down':'📉 Du bist jetzt Platz {n}.', 'rank.you_passed':'Du hast {name} überholt!', 'rank.passed_you':'{name} hat dich überholt!' };
+        s = fallback[key] || key;
+      }
+      if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
+      return s;
+    };
+    const headline = improved
+      ? (newRank===1 ? _tt('rank.now_first') : _tt('rank.now_place', {n:newRank}))
+      : _tt('rank.now_place_down', {n:newRank});
+    const sub = neighborName
+      ? (improved ? _tt('rank.you_passed', {name:neighborName}) : _tt('rank.passed_you', {name:neighborName}))
+      : '';
+    const el = document.createElement('div');
+    el.style.cssText = `position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:100000;
+      background:${improved?'linear-gradient(135deg,#27AE60,#1E8449)':'linear-gradient(135deg,#5D6D7E,#34495E)'};
+      color:white;padding:14px 22px;border-radius:16px;font-family:'Fredoka One',cursive,Arial,sans-serif;
+      box-shadow:0 8px 28px rgba(0,0,0,0.35);max-width:min(340px,90vw);text-align:center;
+      opacity:0;transition:all 0.4s ease;pointer-events:none`;
+    el.innerHTML = `<div style="font-size:1.5rem;margin-bottom:2px">${medal}</div>
+      <div style="font-size:1.05rem">${headline}</div>
+      ${sub?`<div style="font-size:0.82rem;font-family:Arial,sans-serif;opacity:.85;margin-top:3px">${sub}</div>`:''}`;
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)'; });
+    setTimeout(()=>{
+      el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(-20px)';
+      setTimeout(()=>el.remove(), 400);
+    }, 5000);
+  },
+
+  _playSound(isFirstPlace) {
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const notes = isFirstPlace
+        ? [[523,.14],[659,.14],[784,.14],[1047,.32]]   // bigger fanfare for #1
+        : [[523,.1],[659,.18]];                          // short chime for any improvement
+      let t = ctx.currentTime;
+      notes.forEach(([freq,dur])=>{
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type='triangle'; o.frequency.setValueAtTime(freq,t);
+        g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(isFirstPlace?0.18:0.12,t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t+dur+0.05);
+        t += dur*0.85;
+      });
+    } catch(e) {}
+  },
+};
+window.RankNotify = RankNotify;
+
+// ============================================================
+// CONTEST COUNTDOWN & FREEZE — shared between Denkspiel and Zoo
+// ============================================================
+// Countdown to 14.08.2026 18:00 (contest deadline). The leaderboard then
+// freezes for 2 days (until 16.08.2026 18:00) on a snapshot taken by
+// whichever client happens to check first after the deadline — there's no
+// server cron here, so the exact freeze moment can lag by however long it
+// takes for someone to open the app after 18:00. After the freeze window,
+// everything resumes live, including whatever was earned during the freeze.
+const Contest = {
+  START: new Date(2026, 7, 14, 18, 0, 0).getTime(),   // 14.08.2026 18:00
+  END:   new Date(2026, 7, 16, 18, 0, 0).getTime(),    // 16.08.2026 18:00 (2 Tage später)
+
+  phase() {
+    const now = Date.now();
+    if (now < this.START) return 'countdown';
+    if (now < this.END) return 'frozen';
+    return 'ended';
+  },
+
+  // Builds the combined (Welt-1 + Zoo) ranked player list — same logic as
+  // RankNotify.check(), factored out so the frozen snapshot can reuse it.
+  async _computeStandings() {
+    const localAll = State._local.getAll() || {};
+    let firebaseAll = {};
+    try {
+      const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),4000))]);
+      if (fb) firebaseAll = fb;
+    } catch(e) {}
+    let zoosAll = {};
+    try {
+      zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),4000))]);
+    } catch(e) {}
+    const merged = {...firebaseAll};
+    Object.entries(localAll).forEach(([name, localP]) => {
+      const fbP = firebaseAll[name];
+      if (!fbP) { merged[name] = localP; return; }
+      const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
+      const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
+      const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;
+      const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
+      if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) merged[name] = localP;
+    });
+    const _zooMTFor = (name) => {
+      const z = zoosAll[name?.toLowerCase()];
+      return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
+    };
+    const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);
+    const players = [...allNames]
+      .filter(name => name && name.toLowerCase() !== 'bu')
+      .map(name => {
+        const p = merged[name];
+        const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
+        const dsMT = (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
+        return { name: p?.name || name, _mt: dsMT + _zooMTFor(name) };
+      })
+      .sort((a,b) => b._mt - a._mt);
+    return players;
+  },
+
+  // Returns the frozen standings, creating the shared snapshot in Firebase
+  // the first time anyone asks for it after the deadline has passed.
+  async getFrozenStandings() {
+    try {
+      if (State._useCloud() && _db) {
+        const doc = await _db.collection('config').doc('contest_result').get();
+        if (doc.exists && doc.data()?.standings) return doc.data().standings;
+      }
+    } catch(e) {}
+    // No snapshot yet — compute and save it now (first client to check wins)
+    const standings = await this._computeStandings();
+    try {
+      if (State._useCloud() && _db) {
+        await _db.collection('config').doc('contest_result').set({
+          standings, snapshotAt: Date.now(),
+        });
+      }
+    } catch(e) {}
+    return standings;
+  },
+
+  // Shows the "🏆 result" popup with the frozen leaderboard + congrats sound.
+  // Safe to call repeatedly (e.g. every app open) — it just re-renders.
+  async showResultPopup() {
+    const standings = await this.getFrozenStandings();
+    const medal = (i) => i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+    const rows = standings.slice(0, 10).map((p,i) => `
+      <div style="display:flex;justify-content:space-between;padding:6px 10px;border-radius:8px;
+        background:${i===0?'rgba(255,215,0,.15)':'rgba(255,255,255,.05)'};margin-bottom:4px;font-size:.92rem">
+        <span>${medal(i)} ${p.name}</span><span style="font-weight:700">🌀 ${p._mt.toFixed(1)} MT</span>
+      </div>`).join('');
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `position:fixed;inset:0;z-index:200000;background:rgba(0,0,0,.75);
+      display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .4s`;
+    overlay.innerHTML = `
+      <div style="background:linear-gradient(135deg,#1a1a3d,#0a0a2e);border:2px solid #FFD700;border-radius:20px;
+        padding:24px 20px;max-width:min(420px,92vw);max-height:85vh;overflow-y:auto;text-align:center;
+        box-shadow:0 0 60px rgba(255,215,0,.3);font-family:'Fredoka One',cursive,Arial,sans-serif">
+        <div style="font-size:2.2rem;margin-bottom:6px">🏆</div>
+        <div style="color:#FFD700;font-size:1.3rem;margin-bottom:4px">Das Ergebnis steht fest!</div>
+        <div style="color:rgba(255,255,255,.6);font-size:.8rem;font-family:Arial,sans-serif;margin-bottom:16px">
+          ${standings[0]?`${standings[0].name} gewinnt mit ${standings[0]._mt.toFixed(1)} MT! 🎉`:''}
+        </div>
+        <div style="text-align:left;color:white;font-family:Arial,sans-serif">${rows}</div>
+        <button onclick="this.closest('div[style*=fixed]').remove()"
+          style="margin-top:16px;background:#FFD700;color:#2C3E50;border:none;padding:10px 24px;
+          border-radius:12px;font-weight:900;cursor:pointer;font-family:Arial,sans-serif">Schliessen</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(()=>{ overlay.style.opacity='1'; });
+    this._playCongratsSound();
+  },
+
+  _playCongratsSound() {
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const notes = [[523,.15],[659,.15],[784,.15],[1047,.15],[1319,.4]]; // bigger fanfare arpeggio
+      let t = ctx.currentTime;
+      notes.forEach(([freq,dur])=>{
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type='triangle'; o.frequency.setValueAtTime(freq,t);
+        g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t+dur+0.05);
+        t += dur*0.8;
+      });
+    } catch(e) {}
+  },
+
+  // Live-updating "days:hours:min:sec" countdown, rendered into the given element.
+  // Call once; it re-renders itself every second until the deadline passes.
+  renderCountdown(el) {
+    if (!el) return;
+    const tick = () => {
+      const diff = this.START - Date.now();
+      if (diff <= 0) { clearInterval(iv); return; }
+      const d = Math.floor(diff/86400000);
+      const h = Math.floor(diff%86400000/3600000);
+      const m = Math.floor(diff%3600000/60000);
+      const s = Math.floor(diff%60000/1000);
+      el.innerHTML = `
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);letter-spacing:1px;margin-bottom:4px">⏳ NOCH ZEIT BIS ZUM STICHTAG</div>
+        <div style="display:flex;gap:10px;justify-content:center;font-family:'Fredoka One',cursive">
+          ${[[d,'Tage'],[h,'Std'],[m,'Min'],[s,'Sek']].map(([v,l])=>`
+            <div style="text-align:center">
+              <div style="font-size:1.6rem;color:#FFD700;font-weight:900;line-height:1">${String(v).padStart(2,'0')}</div>
+              <div style="font-size:.62rem;color:rgba(255,255,255,.4)">${l}</div>
+            </div>`).join('')}
+        </div>`;
+    };
+    tick();
+    const iv = setInterval(tick, 1000);
+  },
+};
+window.Contest = Contest;
 window.initFirebase = initFirebase;

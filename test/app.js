@@ -1087,6 +1087,11 @@ const App = {
   async showWorldMap() {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
+    // Contest freeze announcement — shows once per page load while frozen (14.–16.08.2026)
+    if (typeof Contest!=='undefined' && Contest.phase()==='frozen' && !this._contestPopupShown) {
+      this._contestPopupShown = true;
+      setTimeout(()=>{ try{ Contest.showResultPopup(); }catch(e){} }, 600);
+    }
     // Merge locally saved currentWorld in case Firebase was behind
     if (player) {
       const _appliedSize = FontScale.applyForPlayer(player.name);
@@ -1608,62 +1613,83 @@ const App = {
   // ---- GLOBAL LEADERBOARD ----
   async showGlobalLeaderboard() {
     this._loading('Rangliste laden...');
-    // Load from both Firebase AND local, merge with local priority
-    const localAll = State._local.getAll() || {};
-    let firebaseAll = {};
-    try {
-      const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
-      if (fb) firebaseAll = fb;
-    } catch(e) {}
-    
-    // Merge: for each player, use whichever version has MORE completed tasks
-    const merged = {...firebaseAll};
-    Object.entries(localAll).forEach(([name, localP]) => {
-      const fbP = firebaseAll[name];
-      if (!fbP) { merged[name] = localP; return; }
-      // Count tasks in world 1
-      const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
-      const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
-      const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;
-      const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
-      // Use local if it has more tasks OR newer timestamp
-      if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) {
-        merged[name] = localP;
-      }
-    });
-    
+    const contestPhase = (typeof Contest!=='undefined') ? Contest.phase() : 'ended';
     const player = State.currentPlayer;
-    const players = Object.values(merged)
-      .filter(p => p.name && p.name.toLowerCase() !== 'bu')
-      .map(p => ({
-        ...p,
-        _mt: (() => {
-        const ws = p.worlds?.[1] || p.worlds?.['1'] || p.worlds?.[String(1)] || {};
-        return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
-      })()
-      }))
-      .sort((a,b) => b._mt - a._mt);
+    let players, myMT;
 
-    const myMT = (() => {
-      const ws = player?.worlds?.[1] || player?.worlds?.['1'] || {};
-      return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
-    })();
+    if (contestPhase === 'frozen') {
+      // Use the shared frozen snapshot instead of a live computation
+      players = await Contest.getFrozenStandings();
+      const me = players.find(p => p.name?.toLowerCase() === player?.name?.toLowerCase());
+      myMT = me ? me._mt : 0;
+    } else {
+      // Load from both Firebase AND local, merge with local priority
+      const localAll = State._local.getAll() || {};
+      let firebaseAll = {};
+      try {
+        const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
+        if (fb) firebaseAll = fb;
+      } catch(e) {}
+      // Zoo economy state per player — combined into the ranking alongside Welt-1 MT
+      let zoosAll = {};
+      try {
+        zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]);
+      } catch(e) {}
+
+      // Merge: for each player, use whichever version has MORE completed tasks
+      const merged = {...firebaseAll};
+      Object.entries(localAll).forEach(([name, localP]) => {
+        const fbP = firebaseAll[name];
+        if (!fbP) { merged[name] = localP; return; }
+        // Count tasks in world 1
+        const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
+        const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
+        const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;
+        const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
+        // Use local if it has more tasks OR newer timestamp
+        if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) {
+          merged[name] = localP;
+        }
+      });
+
+      // Helper: Welt-1 MT + Zoo MT for a given player object
+      const _zooMTFor = (name) => {
+        const z = zoosAll[name?.toLowerCase()];
+        return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
+      };
+
+      players = Object.values(merged)
+        .filter(p => p.name && p.name.toLowerCase() !== 'bu')
+        .map(p => ({
+          ...p,
+          _mt: (() => {
+          const ws = p.worlds?.[1] || p.worlds?.['1'] || p.worlds?.[String(1)] || {};
+          return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(p.name);
+        })()
+        }))
+        .sort((a,b) => b._mt - a._mt);
+
+      myMT = (() => {
+        const ws = player?.worlds?.[1] || player?.worlds?.['1'] || {};
+        return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(player?.name);
+      })();
+    }
 
     const rows = players.map((p, i) => {
       const isMe = p.name?.toLowerCase() === player?.name?.toLowerCase();
       const mt = p._mt.toFixed(1);
       const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-      const tasksDone = ((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).filter(t=>t?.done).length;
+      const tasksDone = p.worlds ? ((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).filter(t=>t?.done).length : null;
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:${isMe?'rgba(41,182,246,.12)':'rgba(255,255,255,.04)'};border:${isMe?'1px solid rgba(41,182,246,.3)':'1px solid transparent'}">
         <div style="font-size:1.1rem;min-width:28px;text-align:center">${medal||('<span style="color:rgba(255,255,255,.3);font-size:.85rem">#'+(i+1)+'</span>')}</div>
         <div style="flex:1">
           <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:1.05rem;color:#29B6F6">(Du)</span>':''}</div>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>
+          ${tasksDone!==null?`<div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>`:''}
         </div>
         <div style="text-align:right">
           <div style="font-size:1rem;font-weight:900;color:${parseFloat(mt)>=10?'#27AE60':parseFloat(mt)>=5?'#FFD700':'#E67E22'}">🌀${mt} MT</div>
         </div>
-        ${p.name?.toLowerCase() !== player?.name?.toLowerCase() ? 
+        ${!isMe && contestPhase!=='frozen' ?
           `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:1.18rem;touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
       </div>`;
     }).join('');
@@ -1677,9 +1703,18 @@ const App = {
             <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
             ${player ? `<div style="font-size:1rem;color:#FFD700">Du: 🌀${myMT.toFixed(1)} MT</div>` : ''}
           </div>
+          ${contestPhase==='countdown' ? `<div id="contest-countdown" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center"></div>` : ''}
+          ${contestPhase==='frozen' ? `<div style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:center">
+            <div style="font-size:1.3rem">🏆</div>
+            <div style="color:#FFD700;font-weight:700;font-size:.92rem">Ergebnis fixiert bis 16.08.2026, 18 Uhr</div>
+            <div style="color:rgba(255,255,255,.5);font-size:.72rem;margin-top:2px">Danach geht's mit allem, was zwischenzeitlich verdient wurde, normal weiter.</div>
+          </div>` : ''}
           ${rows || '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>'}
         </div>
       </div>`);
+    if (contestPhase==='countdown' && typeof Contest!=='undefined') {
+      Contest.renderCountdown(document.getElementById('contest-countdown'));
+    }
   },
 
   // ---- KONTOAUSZUG ----
@@ -2822,6 +2857,8 @@ Grund: ${reason}`)) return;
           <button class="btn" style="background:#F5F5F5;color:var(--text-mid);font-size:0.9rem" onclick="App.showWorldMap()">Alle Welten</button>
         </div>
       </div>`);
+    // Check for leaderboard rank changes (fire-and-forget, doesn't block the screen above)
+    if (!wasJoker && typeof RankNotify!=='undefined') RankNotify.check(player.name);
   },
 
   async showResetOffer() {
