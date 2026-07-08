@@ -93,7 +93,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 #hud{position:fixed;inset:0;pointer-events:none;z-index:110}
 #hud.off{display:none!important}
 /* Money - above joystick bottom-left */
-#hm{position:absolute;bottom:140px;left:14px;pointer-events:none}
+#hm{position:absolute;bottom:186px;left:14px;pointer-events:none}
 .mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
 .ms{font-size:.72rem;color:rgba(255,255,255,.8);text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
 /* LEFT sidebar */
@@ -114,9 +114,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .scd{position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:900;color:#FFD700}
 .sn{font-size:.52rem;font-weight:900;color:rgba(255,255,255,.85);text-align:center;max-width:52px;line-height:1.1;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
 /* Joystick BOTTOM LEFT */
-#jzone{position:absolute;bottom:14px;left:12px;width:114px;height:114px;pointer-events:auto;z-index:120}
-#jbase{width:114px;height:114px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
-#jthumb{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.6);border:2px solid rgba(255,255,255,.9);top:35px;left:35px;pointer-events:none;transition:none}
+#jzone{position:absolute;bottom:14px;left:12px;width:160px;height:160px;pointer-events:auto;z-index:120}
+#jbase{width:160px;height:160px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
+#jthumb{position:absolute;width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.6);border:2px solid rgba(255,255,255,.9);top:49px;left:49px;pointer-events:none;transition:none}
 /* Minimap TR */
 #mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
 /* Event timer */
@@ -363,6 +363,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 </div>
 <!-- PANELS -->
 <div class="zp off" id="p-report"><div class="zpi">
+  <button class="pcls" onclick="ZP.close('report')">✕</button>
   <div class="pmenu-title">📢 Frage / Fehler melden</div>
   <div style="padding:4px">
     <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:8px">Schreibe deine Frage oder melde einen Fehler. Der Admin sieht deine Meldung.</div>
@@ -372,6 +373,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </div>
 </div></div>
 <div class="zp off" id="p-sound"><div class="zpi">
+  <button class="pcls" onclick="ZP.close('sound')">✕</button>
   <div class="pmenu-title">🎵 Sound-Einstellungen</div>
   <div id="psound"></div>
 </div></div>
@@ -2197,9 +2199,9 @@ const ZG={
       _lastMX=e.clientX;_lastMY=e.clientY;
     });
     // JOYSTICK - bottom left
-    const base=G('jbase'),thumb=G('jthumb'),R=35;
-    const jmv=(cx,cy)=>{const r=base.getBoundingClientRect();const ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);const d=Math.sqrt(ox*ox+oy*oy),cl=Math.min(d,R);const nx=d>0?(ox/d)*cl:0,ny=d>0?(oy/d)*cl:0;thumb.style.left=(35+nx)+'px';thumb.style.top=(35+ny)+'px';this.joy.dx=nx/R;this.joy.dy=ny/R;this.joy.on=d>4;};
-    const jup=()=>{thumb.style.left='35px';thumb.style.top='35px';this.joy={dx:0,dy:0,on:false};};
+    const base=G('jbase'),thumb=G('jthumb'),R=49,JCENTER=49;
+    const jmv=(cx,cy)=>{const r=base.getBoundingClientRect();const ox=cx-(r.left+r.width/2),oy=cy-(r.top+r.height/2);const d=Math.sqrt(ox*ox+oy*oy),cl=Math.min(d,R);const nx=d>0?(ox/d)*cl:0,ny=d>0?(oy/d)*cl:0;thumb.style.left=(JCENTER+nx)+'px';thumb.style.top=(JCENTER+ny)+'px';this.joy.dx=nx/R;this.joy.dy=ny/R;this.joy.on=d>4;};
+    const jup=()=>{thumb.style.left=JCENTER+'px';thumb.style.top=JCENTER+'px';this.joy={dx:0,dy:0,on:false};};
     base.addEventListener('touchstart',e=>{e.preventDefault();jmv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
     base.addEventListener('touchmove',e=>{e.preventDefault();jmv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
     base.addEventListener('touchend',jup);

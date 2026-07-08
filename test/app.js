@@ -425,7 +425,7 @@ const App = {
         '<span style="display:block;font-size:1.3rem;color:#ffe24a;letter-spacing:5px;text-shadow:0 0 18px rgba(255,210,74,.6);margin-bottom:4px">WELCOME TO THE</span>'+
         '<span style="display:block;font-size:3.4rem;background:linear-gradient(90deg,#4af0ff,#9fd8ff,#4af0ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 50px rgba(74,240,255,.5)">JANOSCH-SPACE-SHIP</span></div>'+
       '<div style="position:absolute;inset:0;z-index:3;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:7%"><div id="bd-speech" style="max-width:80%;background:linear-gradient(135deg,rgba(8,16,40,.94),rgba(2,6,20,.94));border:2px solid #4af0ff;border-radius:14px;padding:13px 22px;color:#fff;text-align:center;box-shadow:0 0 30px rgba(74,240,255,.45);opacity:0;transition:opacity .35s"><div style="font-size:.78rem;letter-spacing:2px;color:#4af0ff;font-weight:800;text-transform:uppercase;margin-bottom:3px">🚀 Janosch</div><div id="bd-msg" style="font-size:1.4rem;font-weight:700;line-height:1.3"></div></div></div>'+
-      '<button id="bd-skip" style="position:absolute;bottom:14px;right:14px;z-index:10;background:rgba(255,255,255,.2);color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer">Überspringen ⏭</button>';
+      '<button id="bd-skip" style="position:absolute;bottom:14px;right:14px;z-index:10;background:rgba(255,255,255,.2);color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer">'+(typeof window.t!=='undefined'?window.t('boarding.skip'):'Überspringen ⏭')+'</button>';
     document.body.appendChild(ov);
     const cv=document.getElementById('bd-cv'),ctx=cv.getContext('2d');
     const music=document.getElementById('bd-music');
@@ -458,10 +458,19 @@ const App = {
       if(f<150){const t=Math.min(1,Math.max(0,(f-40)/70));const px=W*0.10+(rampX-W*0.10)*t;const walking=f>40&&f<105;drawPlayer(px,floorY-4,Math.min(W,H)/560*1.05,walking?f*0.3:0);}
       else if(f<170){const t=(f-150)/20;ctx.globalAlpha=1-t;drawPlayer(rampX,floorY-4,(Math.min(W,H)/560*1.05)*(1-t*0.6),0);ctx.globalAlpha=1;}
       if(f>=8&&!_spoke.w){_spoke.w=1;speak('Welcome to the Janosch Space Ship');}
+      const _bt = (key, vars) => {
+        let s = (typeof window.t!=='undefined') ? window.t(key) : null;
+        if (!s || s===key) {
+          const fb = {'boarding.get_in':'Steig ein, {name}!','boarding.buckle':'Festschnallen — wir fliegen zum Zoo!','boarding.countdown':'Triebwerke an… 3… 2… 1…'};
+          s = fb[key] || key;
+        }
+        if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
+        return s;
+      };
       if(f>=14&&f<46)setSpeech('Welcome to the Janosch-Space-Ship!',true);
-      else if(f>=52&&f<102)setSpeech('Steig ein, '+PLAYER_NAME+'!',true);
-      else if(f>=108&&f<170)setSpeech('Festschnallen — wir fliegen zum Zoo!',true);
-      else if(f>=170)setSpeech('Triebwerke an… 3… 2… 1…',f<200);
+      else if(f>=52&&f<102)setSpeech(_bt('boarding.get_in',{name:PLAYER_NAME}),true);
+      else if(f>=108&&f<170)setSpeech(_bt('boarding.buckle'),true);
+      else if(f>=170)setSpeech(_bt('boarding.countdown'),f<200);
       else setSpeech('',false);
       if(f>195){ctx.fillStyle='rgba(120,200,255,'+((f-195)/12*0.6)+')';ctx.fillRect(0,0,W,H);}
       frame++;
@@ -635,10 +644,10 @@ const App = {
       if(shipScale > 0.05) drawSpaceship(W/2, shipY, shipScale, engineOn);
 
       // Text
-      const phase = frame < 50 ? {t:'🚀 Teleportation startet!', c:'#29B6F6'}
-                  : frame < 100 ? {t:'⭐ Durchs Universum...', c:'#FFD700'}
-                  : frame < 150 ? {t:'🌌 Fast da!', c:'#E91E8C'}
-                  : {t:'🦁 Willkommen im Zoo!', c:'#27AE60'};
+      const phase = frame < 50 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase1'):'🚀 Teleportation startet!', c:'#29B6F6'}
+                  : frame < 100 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase2'):'⭐ Durchs Universum...', c:'#FFD700'}
+                  : frame < 150 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase3'):'🌌 Fast da!', c:'#E91E8C'}
+                  : {t:typeof window.t!=='undefined'?window.t('teleport.phase4'):'🦁 Willkommen im Zoo!', c:'#27AE60'};
       const fade = Math.min(1, (frame%50)/10);
       txt.innerHTML = `
         <div style="font-size:2rem;color:${phase.c};font-weight:900;

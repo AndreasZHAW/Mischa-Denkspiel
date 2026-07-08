@@ -231,9 +231,9 @@ const STRINGS = {
   'intro.next':            { de:'Weiter ›', en:'Next ›', fr:'Suivant ›' },
   'intro.ch0.label':       { de:'Prolog', en:'Prologue', fr:'Prologue' },
   'intro.ch0.title':       { de:'Irgendwo in der Welt...', en:'Somewhere in the world...', fr:'Quelque part dans le monde...' },
-  'intro.ch0.text':        { de:'Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b><br><br>⏳ <b>Achtung:</b> Das Abenteuer dauert nur bis zum <b>14. August 2026, 18 Uhr</b> — wer dann vorne liegt, gewinnt!',
-                              en:'The brothers <b>Mischa</b> and <b>Janosch</b><br>always had a big dream...<br><br><b>Their dream: to build the biggest intergalactic zoo...</b><br><br>To do that, they need <b>your help!</b><br><br>⏳ <b>Heads up:</b> The adventure only runs until <b>August 14, 2026, 6 PM</b> — whoever is in the lead then wins!',
-                              fr:'Les frères <b>Mischa</b> et <b>Janosch</b><br>ont toujours eu un grand rêve...<br><br><b>Leur rêve : construire le plus grand zoo intergalactique...</b><br><br>Pour cela, ils ont besoin de <b>ton aide !</b><br><br>⏳ <b>Attention :</b> L\'aventure ne dure que jusqu\'au <b>14 août 2026, 18h</b> — celui qui sera en tête à ce moment-là gagne !' },
+  'intro.ch0.text':        { de:'Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b>',
+                              en:'The brothers <b>Mischa</b> and <b>Janosch</b><br>always had a big dream...<br><br><b>Their dream: to build the biggest intergalactic zoo...</b><br><br>To do that, they need <b>your help!</b>',
+                              fr:'Les frères <b>Mischa</b> et <b>Janosch</b><br>ont toujours eu un grand rêve...<br><br><b>Leur rêve : construire le plus grand zoo intergalactique...</b><br><br>Pour cela, ils ont besoin de <b>ton aide !</b>' },
   'intro.ch1.label':       { de:'Die Helden', en:'The Heroes', fr:'Les Héros' },
   'intro.ch1.mischa_desc': { de:'Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.', en:'The Creative One. Resourceful, calm, incredibly smart, a true team player.', fr:'Le Créatif. Ingénieux, calme, incroyablement intelligent, un vrai joueur d\'équipe.' },
   'intro.ch1.janosch_desc':{ de:'Der Starke. Schnell, ehrgeizig, mit Herz.', en:'The Strong One. Fast, ambitious, with heart.', fr:'Le Fort. Rapide, ambitieux, avec du cœur.' },
@@ -257,9 +257,9 @@ const STRINGS = {
                               fr:'Mischa et Janosch comptent sur toi.<br><br><b>Tu participes ?</b><br>Fais le premier pas. <b>Maintenant !</b>' },
   'intro.ch5.label':       { de:'Deine Geschichte beginnt', en:'Your story begins', fr:'Ton histoire commence' },
   'intro.ch5.title':       { de:'Bist du bereit?', en:'Are you ready?', fr:'Es-tu prêt ?' },
-  'intro.ch5.text':        { de:'Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b>',
-                              en:'The journey begins.<br>Solve the puzzles. Build the zoo.<br><br><b>Become part of something big.</b>',
-                              fr:'Le voyage commence.<br>Résous les énigmes. Construis le zoo.<br><br><b>Fais partie de quelque chose de grand.</b>' },
+  'intro.ch5.text':        { de:'Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b><br><br>⏳ <b>Achtung:</b> Das Abenteuer dauert nur bis zum <b>14. August 2026, 18 Uhr</b> — wer dann vorne liegt, gewinnt!',
+                              en:'The journey begins.<br>Solve the puzzles. Build the zoo.<br><br><b>Become part of something big.</b><br><br>⏳ <b>Heads up:</b> The adventure only runs until <b>August 14, 2026, 6 PM</b> — whoever is in the lead then wins!',
+                              fr:'Le voyage commence.<br>Résous les énigmes. Construis le zoo.<br><br><b>Fais partie de quelque chose de grand.</b><br><br>⏳ <b>Attention :</b> L\'aventure ne dure que jusqu\'au <b>14 août 2026, 18h</b> — celui qui sera en tête à ce moment-là gagne !' },
   'intro.ch5.btn':         { de:'🚀 Abenteuer starten', en:'🚀 Start Adventure', fr:'🚀 Démarrer l\'Aventure' },
   'intro.end.sub':         { de:'+ Zoo 3D · Das Abenteuer', en:'+ Zoo 3D · The Adventure', fr:'+ Zoo 3D · L\'Aventure' },
   'intro.end.btn':         { de:'▶ Jetzt spielen', en:'▶ Play Now', fr:'▶ Jouer Maintenant' },
@@ -511,6 +511,16 @@ const STRINGS = {
   'rank.now_place_down': { de:'📉 Du bist jetzt Platz {n}.', en:'📉 You\'re now #{n}.', fr:'📉 Tu es maintenant {n}e.' },
   'rank.you_passed':   { de:'Du hast {name} überholt!', en:'You passed {name}!', fr:'Tu as dépassé {name} !' },
   'rank.passed_you':   { de:'{name} hat dich überholt!', en:'{name} passed you!', fr:'{name} t\'a dépassé !' },
+
+  // ── TELEPORT CINEMA ──
+  'teleport.phase1': { de:'🚀 Teleportation startet!', en:'🚀 Teleportation starting!', fr:'🚀 Téléportation en cours !' },
+  'teleport.phase2': { de:'⭐ Durchs Universum...', en:'⭐ Through the universe...', fr:'⭐ À travers l\'univers...' },
+  'teleport.phase3': { de:'🌌 Fast da!', en:'🌌 Almost there!', fr:'🌌 Presque arrivé !' },
+  'teleport.phase4': { de:'🦁 Willkommen im Zoo!', en:'🦁 Welcome to the Zoo!', fr:'🦁 Bienvenue au Zoo !' },
+  'boarding.skip':    { de:'Überspringen ⏭', en:'Skip ⏭', fr:'Passer ⏭' },
+  'boarding.get_in':  { de:'Steig ein, {name}!', en:'Get in, {name}!', fr:'Monte, {name} !' },
+  'boarding.buckle':  { de:'Festschnallen — wir fliegen zum Zoo!', en:'Buckle up — we\'re flying to the Zoo!', fr:'Attache ta ceinture — direction le Zoo !' },
+  'boarding.countdown': { de:'Triebwerke an… 3… 2… 1…', en:'Engines on… 3… 2… 1…', fr:'Moteurs allumés… 3… 2… 1…' },
 };
 
 // Helper: translate shorthand

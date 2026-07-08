@@ -257,9 +257,9 @@ const STRINGS = {
                               fr:'Mischa et Janosch comptent sur toi.<br><br><b>Tu participes ?</b><br>Fais le premier pas. <b>Maintenant !</b>' },
   'intro.ch5.label':       { de:'Deine Geschichte beginnt', en:'Your story begins', fr:'Ton histoire commence' },
   'intro.ch5.title':       { de:'Bist du bereit?', en:'Are you ready?', fr:'Es-tu prêt ?' },
-  'intro.ch5.text':        { de:'Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b>',
-                              en:'The journey begins.<br>Solve the puzzles. Build the zoo.<br><br><b>Become part of something big.</b>',
-                              fr:'Le voyage commence.<br>Résous les énigmes. Construis le zoo.<br><br><b>Fais partie de quelque chose de grand.</b>' },
+  'intro.ch5.text':        { de:'Die Reise beginnt.<br>Lös die Rätsel. Bau den Zoo.<br><br><b>Werde Teil von etwas Grossem.</b><br><br>⏳ <b>Achtung:</b> Das Abenteuer dauert nur bis zum <b>14. August 2026, 18 Uhr</b> — wer dann vorne liegt, gewinnt!',
+                              en:'The journey begins.<br>Solve the puzzles. Build the zoo.<br><br><b>Become part of something big.</b><br><br>⏳ <b>Heads up:</b> The adventure only runs until <b>August 14, 2026, 6 PM</b> — whoever is in the lead then wins!',
+                              fr:'Le voyage commence.<br>Résous les énigmes. Construis le zoo.<br><br><b>Fais partie de quelque chose de grand.</b><br><br>⏳ <b>Attention :</b> L\'aventure ne dure que jusqu\'au <b>14 août 2026, 18h</b> — celui qui sera en tête à ce moment-là gagne !' },
   'intro.ch5.btn':         { de:'🚀 Abenteuer starten', en:'🚀 Start Adventure', fr:'🚀 Démarrer l\'Aventure' },
   'intro.end.sub':         { de:'+ Zoo 3D · Das Abenteuer', en:'+ Zoo 3D · The Adventure', fr:'+ Zoo 3D · L\'Aventure' },
   'intro.end.btn':         { de:'▶ Jetzt spielen', en:'▶ Play Now', fr:'▶ Jouer Maintenant' },
@@ -504,6 +504,23 @@ const STRINGS = {
   'french.level_basic':        { de:'Stufe: Grundkenntnisse', en:'Level: Basic', fr:'Niveau : Bases' },
   'french.level_intermediate': { de:'Stufe: Mittelstufe', en:'Level: Intermediate', fr:'Niveau : Intermédiaire' },
   'french.level_advanced':     { de:'Stufe: Fortgeschritten', en:'Level: Advanced', fr:'Niveau : Avancé' },
+
+  // ── RANK NOTIFICATIONS ──
+  'rank.now_first':    { de:'🎉 Du bist jetzt Platz 1!', en:'🎉 You\'re now #1!', fr:'🎉 Tu es maintenant 1er !' },
+  'rank.now_place':    { de:'📈 Du bist jetzt Platz {n}!', en:'📈 You\'re now #{n}!', fr:'📈 Tu es maintenant {n}e !' },
+  'rank.now_place_down': { de:'📉 Du bist jetzt Platz {n}.', en:'📉 You\'re now #{n}.', fr:'📉 Tu es maintenant {n}e.' },
+  'rank.you_passed':   { de:'Du hast {name} überholt!', en:'You passed {name}!', fr:'Tu as dépassé {name} !' },
+  'rank.passed_you':   { de:'{name} hat dich überholt!', en:'{name} passed you!', fr:'{name} t\'a dépassé !' },
+
+  // ── TELEPORT CINEMA ──
+  'teleport.phase1': { de:'🚀 Teleportation startet!', en:'🚀 Teleportation starting!', fr:'🚀 Téléportation en cours !' },
+  'teleport.phase2': { de:'⭐ Durchs Universum...', en:'⭐ Through the universe...', fr:'⭐ À travers l\'univers...' },
+  'teleport.phase3': { de:'🌌 Fast da!', en:'🌌 Almost there!', fr:'🌌 Presque arrivé !' },
+  'teleport.phase4': { de:'🦁 Willkommen im Zoo!', en:'🦁 Welcome to the Zoo!', fr:'🦁 Bienvenue au Zoo !' },
+  'boarding.skip':    { de:'Überspringen ⏭', en:'Skip ⏭', fr:'Passer ⏭' },
+  'boarding.get_in':  { de:'Steig ein, {name}!', en:'Get in, {name}!', fr:'Monte, {name} !' },
+  'boarding.buckle':  { de:'Festschnallen — wir fliegen zum Zoo!', en:'Buckle up — we\'re flying to the Zoo!', fr:'Attache ta ceinture — direction le Zoo !' },
+  'boarding.countdown': { de:'Triebwerke an… 3… 2… 1…', en:'Engines on… 3… 2… 1…', fr:'Moteurs allumés… 3… 2… 1…' },
 };
 
 // Helper: translate shorthand
