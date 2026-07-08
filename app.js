@@ -41,7 +41,7 @@ const GameLog = {
       <b style="color:#FFD700;font-size:14px">📋 Game Log (${stored.length} Einträge)</b>
       <div style="display:flex;gap:8px">
         <button onclick="GameLog.clear();this.closest('div[style]').remove()" style="background:#E74C3C;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">🗑️ Löschen</button>
-        <button onclick="navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(stored).replace(/'/g,"\'")}));alert('Kopiert!')" style="background:#3498DB;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">📋 Kopieren</button>
+        <button onclick="navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(stored).replace(/'/g,"\'")}));showAlert('Kopiert!')" style="background:#3498DB;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">📋 Kopieren</button>
         <button onclick="this.closest('div[style]').remove()" style="background:#555;border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">✕ ${typeof t!=='undefined'?t('worldmap.close'):'Schliessen'}</button>
       </div>
     </div>
@@ -317,7 +317,7 @@ const App = {
   // ── TELEPORT TO ZOO ──
   async teleportToZoo() {
     const p = State.currentPlayer;
-    if (!p) { alert('Bitte erst anmelden!'); return; }
+    if (!p) { showAlert('Bitte erst anmelden!'); return; }
     // Use real MT from LOCAL player (don't trust cloud which may be stale)
     const _localP = State._local.get(p.name) || p;
     const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
@@ -326,7 +326,7 @@ const App = {
     // Once unlocked (visited before), gate stays open permanently
     const _playerKey = p.name.toLowerCase();
     const _hasUnlocked = localStorage.getItem('zoo_unlocked_' + _playerKey) === '1';
-    if (!_hasUnlocked && mt < cost) { alert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
+    if (!_hasUnlocked && mt < cost) { showAlert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
     // Remember unlock permanently
     if (mt >= cost) localStorage.setItem('zoo_unlocked_' + _playerKey, '1');
     if (!confirm('🦁 In den Zoo teleportieren?')) return;
@@ -710,7 +710,7 @@ const App = {
 
   // ---- PROFILE ----
   showProfile() {
-    if (!this.selectedChar) { alert('Bitte Charakter wählen!'); return; }
+    if (!this.selectedChar) { showAlert('Bitte Charakter wählen!'); return; }
     const ch = CHARACTERS.find(c => c.id === this.selectedChar);
     const yr = new Date().getFullYear();
     // Years from current-5 down to 1940
@@ -1217,9 +1217,9 @@ const App = {
     window.location.href = 'admin.html';
   },
   showPersonality(){
-    if(typeof Personality==='undefined'){ alert('❌ Persönlichkeits-Modul nicht geladen! Bitte Seite neu laden.'); return; }
+    if(typeof Personality==='undefined'){ showAlert('❌ Persönlichkeits-Modul nicht geladen! Bitte Seite neu laden.'); return; }
     try{ Personality.show(); }
-    catch(e){ alert('❌ Fehler beim Öffnen: '+e.message); console.error(e); }
+    catch(e){ showAlert('❌ Fehler beim Öffnen: '+e.message); console.error(e); }
   },
   _logout() {
     State.logout();
@@ -1860,7 +1860,7 @@ const App = {
     const activeTask = ws.tasks.findIndex(t=>!t||!t.done);
     if (activeTask<0) return;
     const rem = State.getJokersRemaining(player, worldId);
-    if (rem === 0) { alert('Keine Joker mehr in dieser Welt!'); return; }
+    if (rem === 0) { showAlert('Keine Joker mehr in dieser Welt!'); return; }
     if (confirm(`🃏 Joker einsetzen?\nNoch ${rem} Joker in dieser Welt.\nDie aktuelle Aufgabe zählt als geschafft.`)) {
       await State.useJoker(player.name, worldId, activeTask);
       this.showWorld(worldId);
@@ -2239,7 +2239,7 @@ const App = {
 
   _loadImg(file) {
     if(!file) return;
-    if(file.size > 3*1024*1024) { alert('Bild zu groß! Bitte max. 3MB.'); return; }
+    if(file.size > 3*1024*1024) { showAlert('Bild zu groß! Bitte max. 3MB.'); return; }
     const reader = new FileReader();
     reader.onload = e => {
       // Compress to max 800px wide, quality 0.7
@@ -2278,9 +2278,9 @@ const App = {
 
   async _sendReport(playerName) {
     const reason = this._selectedReportReason;
-    if(!reason) { alert('Bitte Grund wählen.'); return; }
+    if(!reason) { showAlert('Bitte Grund wählen.'); return; }
     const desc = (document.getElementById('rdesc')?.value||'').trim();
-    if(desc.length < 5) { alert('Bitte Beschreibung ausfüllen.'); return; }
+    if(desc.length < 5) { showAlert('Bitte Beschreibung ausfüllen.'); return; }
     const reporter = State.currentPlayer?.name||'?';
     const btn = document.getElementById('rsend');
     if(btn) { btn.disabled=true; btn.textContent='Wird gesendet...'; }
@@ -2330,7 +2330,7 @@ const App = {
   async showAdminReports() {
     const player = State.currentPlayer;
     const name = player?.name?.toLowerCase()||'';
-    if (!player || (name !== 'bu' && name !== 'mischa' && name !== 'admin')) { alert('Kein Zugriff.'); return; }
+    if (!player || (name !== 'bu' && name !== 'mischa' && name !== 'admin')) { showAlert('Kein Zugriff.'); return; }
     this._loading('Lade Meldungen...');
     let reports = [];
     let zooReports = [];
@@ -2425,7 +2425,7 @@ const App = {
 
   async _openReport(reportId) {
     const r = (window._rCache||{})[reportId];
-    if(!r) { alert('Nicht gefunden.'); return; }
+    if(!r) { showAlert('Nicht gefunden.'); return; }
     // Load image from separate collection if needed
     let imageB64 = r.imageB64 || null;
     if(!imageB64 && r.imageDocId && typeof _db !== 'undefined' && _db) {
@@ -2580,7 +2580,7 @@ const App = {
       if(typeof _db!=='undefined'&&_db) await _db.collection('player_reports').doc(reportId).update({status});
       if(window._rCache?.[reportId]) window._rCache[reportId].status = status;
       await this._openReport(reportId);
-    } catch(e) { alert('Fehler: '+e.message); }
+    } catch(e) { showAlert('Fehler: '+e.message); }
   },
 
   async _doBan(playerName, reportId, who) {
@@ -2598,17 +2598,17 @@ Grund: ${reason}`)) return;
         });
         if(who==='reported') await _db.collection('player_reports').doc(reportId).update({status:'resolved'});
       }
-      alert(`✅ ${playerName} gesperrt${dur===0?' (permanent)':' für '+(dur/3600000<24?dur/3600000+'h':dur/86400000+'d')}.`);
+      showAlert(`✅ ${playerName} gesperrt${dur===0?' (permanent)':' für '+(dur/3600000<24?dur/3600000+'h':dur/86400000+'d')}.`);
       this.showAdminReports();
-    } catch(e) { alert('Fehler: '+e.message); }
+    } catch(e) { showAlert('Fehler: '+e.message); }
   },
 
   async _doUnban(playerName) {
     if(!confirm(`Sperrung von "${playerName}" aufheben?`)) return;
     try {
       if(typeof _db!=='undefined'&&_db) await _db.collection('player_bans').doc(playerName.toLowerCase()).delete();
-      alert(`✅ ${playerName} freigegeben.`);
-    } catch(e) { alert('Fehler: '+e.message); }
+      showAlert(`✅ ${playerName} freigegeben.`);
+    } catch(e) { showAlert('Fehler: '+e.message); }
   },
 
 

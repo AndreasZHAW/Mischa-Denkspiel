@@ -571,13 +571,13 @@ function _showDenkspielAnnouncement(ann){
 function _annMarkSeenD(id){const s=JSON.parse(localStorage.getItem('zoo_ann_seen')||'[]');if(!s.includes(id)){s.push(id);if(s.length>10)s.shift();}localStorage.setItem('zoo_ann_seen',JSON.stringify(s));}
 async function _annNotifyD(id,title,eventTs){
   _annMarkSeenD(id); document.getElementById('ann-modal-d')?.remove();
-  if(!('Notification' in window)){alert('❌ Benachrichtigungen nicht unterstützt.');return;}
+  if(!('Notification' in window)){showAlert('❌ Benachrichtigungen nicht unterstützt.');return;}
   const perm=await Notification.requestPermission();
-  if(perm!=='granted'){alert('❌ Nicht erlaubt.');return;}
+  if(perm!=='granted'){showAlert('❌ Nicht erlaubt.');return;}
   const delay=eventTs-5*60*1000-Date.now();
-  if(delay<0){alert('⏰ Zu spät für Erinnerung!');return;}
+  if(delay<0){showAlert('⏰ Zu spät für Erinnerung!');return;}
   setTimeout(()=>{try{new Notification('🎮 '+title,{body:'In 5 Minuten: '+title});}catch(e){}},delay);
-  alert('✅ Erinnerung gesetzt! Du wirst 5 Min vorher benachrichtigt.');
+  showAlert('✅ Erinnerung gesetzt! Du wirst 5 Min vorher benachrichtigt.');
 }
 </script>
 </body>

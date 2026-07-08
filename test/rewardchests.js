@@ -211,7 +211,7 @@ const RewardChests = {
     this._animState=animState;
     if(isHell){ this._renderOpenAnim(); }
     else {
-      if(this._hasFreeSlot&&!this._hasFreeSlot()&&this._hasZoo()){ alert('🦁 Du brauchst mehr Platz in deinem Zoo!'); return; }
+      if(this._hasFreeSlot&&!this._hasFreeSlot()&&this._hasZoo()){ showAlert('🦁 Du brauchst mehr Platz in deinem Zoo!'); return; }
       this._renderOpenAnim();
     }
   },

@@ -1321,4 +1321,32 @@ const Contest = {
   },
 };
 window.Contest = Contest;
+
+// ============================================================
+// CUSTOM ALERT — replaces native alert() so the browser's own
+// "Auf <site> wird Folgendes angezeigt:" chrome never shows up.
+// ============================================================
+window.showAlert = function(message) {
+  try {
+    const existing = document.getElementById('custom-alert-overlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'custom-alert-overlay';
+    overlay.style.cssText = `position:fixed;inset:0;z-index:300000;background:rgba(0,0,0,.55);
+      display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s`;
+    overlay.innerHTML = `
+      <div style="background:linear-gradient(135deg,#1a1a3d,#0a0a2e);border:1.5px solid rgba(255,215,0,.4);
+        border-radius:16px;padding:20px 22px;max-width:min(360px,90vw);text-align:center;
+        box-shadow:0 10px 40px rgba(0,0,0,.5);font-family:Arial,sans-serif">
+        <div style="color:#fff;font-size:.95rem;line-height:1.5;white-space:pre-line;margin-bottom:16px">${message}</div>
+        <button id="custom-alert-ok" style="background:#FFD700;color:#2C3E50;border:none;padding:9px 28px;
+          border-radius:10px;font-weight:900;cursor:pointer;font-size:.92rem">OK</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => { overlay.style.opacity='0'; setTimeout(()=>overlay.remove(), 250); };
+    overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+    overlay.querySelector('#custom-alert-ok').addEventListener('click', close);
+    requestAnimationFrame(()=>{ overlay.style.opacity='1'; });
+  } catch(e) { /* last-resort fallback */ try{ alert(message); }catch(e2){} }
+};
 window.initFirebase = initFirebase;
