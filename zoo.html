@@ -6781,6 +6781,34 @@ const ZAdmin = {
     this._loadPlayersTab();
   },
 
+  async bulkDeleteExcept(){
+    const raw=(document.getElementById('padmin-keep-names')?.value||'').trim();
+    if(!raw){ZP.toast('❗ Bitte mindestens einen Namen eingeben, der bleiben soll!',2500);return;}
+    const keep=raw.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+    keep.push(ZS.player?.toLowerCase()); // never delete yourself (the admin doing this)
+    let players=[];
+    try{ players = await this._fetchAllPlayers(); }catch(e){ ZP.toast('⚠️ Firebase nicht verfügbar.',2500); return; }
+    const toDelete = players.filter(p => !keep.includes(p.name.toLowerCase()));
+    if(!toDelete.length){ ZP.toast('✅ Niemand zu löschen — alle sind auf der Liste.',2500); return; }
+    if(!confirm('⚠️ Wirklich '+toDelete.length+' Spieler KOMPLETT löschen (Zoo + Denkspiel-Account)?\n\n'+toDelete.map(p=>p.name).join(', ')+'\n\nBleiben: '+raw))return;
+    let done=0;
+    for(const p of toDelete){
+      const k='zoo_'+p.name.toLowerCase();
+      try{
+        if(typeof _db!=='undefined'&&_db){
+          await _db.collection('zoos').doc(k).delete().catch(()=>{});
+          await _db.collection('zoo_players').doc(p.name.toLowerCase()).delete().catch(()=>{});
+        }
+      }catch(e){}
+      try{ localStorage.removeItem(k); }catch(e){}
+      try{ if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(p.name); }catch(e){}
+      done++;
+    }
+    ZP.toast('🗑️ '+done+' Spieler komplett gelöscht.',3000);
+    this.loadPlayers();
+    this._loadPlayersTab();
+  },
+
   // ── GLOBAL TIMER (visible to all players, persisted in Firebase) ──
   async startTimer(){
     const title=(document.getElementById('padmin-timer-title')?.value||'').trim()||'⏱️ Timer';
@@ -9304,6 +9332,14 @@ window.ZooEvents = ZooEvents;
         <div class="padmin-tab" id="padmin-tab-spieler" style="display:none">
           <div class="padmin-section-title">👥 Spieler-Verwaltung</div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Grün = gerade online (aktiv in den letzten 20s) · Rot = offline</div>
+
+          <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);border-radius:10px;padding:10px;margin-bottom:14px">
+            <div style="font-size:.78rem;font-weight:700;color:#e74c3c;margin-bottom:6px">🗑️ Alle löschen — ausser:</div>
+            <input id="padmin-keep-names" placeholder="Namen mit Komma trennen, z.B. Andi, Bu, J.t"
+              style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:7px 9px;border-radius:8px;font-size:.8rem;box-sizing:border-box;margin-bottom:8px">
+            <button onclick="ZAdmin.bulkDeleteExcept()" style="width:100%;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:9px;border-radius:8px;font-weight:900;cursor:pointer;font-size:.82rem">🗑️ Alle ausser diesen Namen löschen</button>
+          </div>
+
           <div id="padmin-players-table" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
 
