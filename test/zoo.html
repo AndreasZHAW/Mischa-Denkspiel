@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v267 -->
+<!-- ZOO v268 -->
 <html lang="de">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <script>
 // FONT SYSTEM v267: apply saved size IMMEDIATELY, before first paint (avoids flash + Android override)
 (function(){
@@ -230,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=267"></script>
-<script src="rewardchests.js?v=267"></script>
-<script src="personality.js?v=267"></script>
+<script src="lang.js?v=268"></script>
+<script src="rewardchests.js?v=268"></script>
+<script src="personality.js?v=268"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v267','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v268','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -465,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=267"></script>
+<script src="firebase-state.js?v=268"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1151,6 +1153,7 @@ const ZG={
     this._ivs.push(setInterval(()=>this._updateTimeOfDay(),5*60000));
     this._ivs.push(setInterval(()=>ZS.save(),15000));
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
+    this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),3000));
     this._gondTick();
     for(let i=0;i<3;i++)this.gQ.push(this._mkG());
@@ -6309,10 +6312,12 @@ const ZAdmin = {
     if(tab==='tiere')this._populateAnimalGrid();
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
     if(tab==='einst')this._populateEvents();
-    if(tab==='cal')this._renderCalTable();
+    if(tab==='cal')this._loadCalFromFirebase();
     if(tab==='announce')ZP._loadAnnStatus();
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
+    if(tab==='timer')this._loadTimerStatus();
+    if(tab==='spieler')this._loadPlayersTab();
   },
   _populateAnimalGrid(){
     const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
@@ -6557,6 +6562,59 @@ const ZAdmin = {
     setTimeout(()=>document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border='2px solid transparent';}),3000);
   },
   revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
+  async _loadCalFromFirebase(){
+    const statusEl=document.getElementById('cal-status');
+    if(statusEl)statusEl.textContent='⏳ Lade Firebase-Daten...';
+    if(typeof _db==='undefined'||!_db){ if(statusEl)statusEl.textContent='⚠️ Firebase nicht verbunden — nur lokale Daten'; this._renderCalTable(); return; }
+    try{
+      const doc=await _db.collection('calibration').doc('scores').get();
+      if(doc.exists){
+        const fbCal=doc.data()||{};
+        let localCal={};
+        try{localCal=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
+        Object.keys(fbCal).forEach(key=>{
+          if(Array.isArray(fbCal[key])){
+            const fbArr=fbCal[key], localArr=localCal[key]||[];
+            localCal[key]=fbArr.length>=localArr.length?fbArr:localArr;
+          }
+        });
+        localStorage.setItem('cal_data_v3',JSON.stringify(localCal));
+      }
+    }catch(e){}
+    const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+    const recs=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+    let loadedCount=0, errMsgs=[];
+    try{
+      const snap=await _db.collection('score_records').limit(800).get();
+      snap.forEach(d=>{
+        const r=d.data();
+        const gId=r.game||GAME_IDS[r.gameIdx]||'unknown';
+        if(!recs[gId])recs[gId]=[];
+        if(!recs[gId].find(x=>x.ts===r.ts&&x.player===r.player)){
+          recs[gId].push({date:r.date||new Date(r.ts||Date.now()).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),player:r.player,device:r.device,game:gId,gameIdx:r.gameIdx,score:r.score,mt:r.mt||0,ts:r.ts||0,dbg:r.dbg||null});
+          loadedCount++;
+        }
+      });
+    }catch(e){errMsgs.push('score_records: '+e.message);}
+    try{
+      const snap=await _db.collection('calibration_records').limit(800).get();
+      snap.forEach(d=>{
+        const r=d.data();
+        const gId=GAME_IDS[r.gameIdx]||'unknown';
+        if(!recs[gId])recs[gId]=[];
+        if(!recs[gId].find(x=>x.ts===r.ts&&x.player===r.player)){
+          recs[gId].push({date:r.tsStr||new Date(r.ts||Date.now()).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}),player:r.player,device:r.device,game:gId,gameIdx:r.gameIdx,score:r.rawScore,mt:0,ts:r.ts||0});
+          loadedCount++;
+        }
+      });
+    }catch(e){errMsgs.push('cal_records: '+e.message);}
+    Object.keys(recs).forEach(g=>recs[g].sort((a,b)=>(b.ts||0)-(a.ts||0)));
+    localStorage.setItem('admin_score_records',JSON.stringify(recs));
+    if(statusEl){
+      statusEl.textContent=errMsgs.length?'⚠️ '+errMsgs.join(' | '):'✓ '+loadedCount+' neue Einträge geladen · '+new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'});
+    }
+    this._renderCalTable();
+  },
   _renderCalTable(){
     const el=document.getElementById('padmin-cal-table');if(!el)return;
     const devFilter=document.getElementById('cal-dev-filter')?.value||'all';
@@ -6565,23 +6623,30 @@ const ZAdmin = {
     const gl=window.GAME_LIST||[];
     const DEVS=devFilter==='all'?['desktop','ipad','iphone','android']:[devFilter];
     const DEV_ICONS={desktop:'🖥️',ipad:'📱iPad',iphone:'📱Phone',android:'🤖'};
-    const devCols=DEVS.map(d=>`<th colspan="3" style="padding:4px 6px;text-align:center;border-left:1px solid rgba(255,255,255,.1)">${DEV_ICONS[d]}</th>`).join('');
-    const devSubCols=DEVS.map(()=>`<th style="padding:3px 4px;color:#E74C3C;font-size:.6rem">Min</th><th style="padding:3px 4px;color:#FFD700;font-size:.6rem">Ø</th><th style="padding:3px 4px;color:#27AE60;font-size:.6rem">Max</th>`).join('');
+    const devCols=DEVS.map(d=>`<th colspan="4" style="padding:4px 6px;text-align:center;border-left:1px solid rgba(255,255,255,.1)">${DEV_ICONS[d]}</th>`).join('');
+    const devSubCols=DEVS.map(()=>`<th style="padding:3px 4px;color:#E74C3C;font-size:.6rem">Min</th><th style="padding:3px 4px;color:#FFD700;font-size:.6rem">Ø</th><th style="padding:3px 4px;color:#27AE60;font-size:.6rem">Max</th><th style="padding:3px 4px;color:rgba(255,255,255,.4);font-size:.6rem">Detail</th>`).join('');
     const rows=gl.map((game,i)=>{
       const devCells=DEVS.map(d=>{
         const key=i+'_'+d;
         const scores=calStore[key]||[];
-        if(!scores.length)return`<td colspan="3" style="text-align:center;color:#444;padding:4px">—</td>`;
+        if(!scores.length)return`<td colspan="4" style="text-align:center;color:#444;padding:4px">—</td>`;
         const minS=Math.min(...scores),maxS=Math.max(...scores);
         const avgS=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
         return`<td style="text-align:center;padding:3px 4px;color:#E74C3C">${minS}</td>
           <td style="text-align:center;padding:3px 4px;color:#FFD700">${avgS}<br><span style="font-size:.6rem;color:rgba(255,255,255,.3)">(${scores.length}×)</span></td>
-          <td style="text-align:center;padding:3px 4px;color:#27AE60">${maxS}
-            <button onclick="ZAdmin._editCalGame(${i},'${d}')" style="background:none;border:none;cursor:pointer;font-size:.55rem;opacity:.5" title="Bearbeiten">✏️</button>
+          <td style="text-align:center;padding:3px 4px;color:#27AE60">${maxS}</td>
+          <td style="text-align:center;padding:2px 3px">
+            <button onclick="ZAdmin._showCalDetail(${i},'${d}','${(game.name||'').replace(/'/g,"\\'")}')" style="background:rgba(52,152,219,.2);border:1px solid #3498DB;color:#3498DB;padding:2px 5px;border-radius:4px;font-size:.62rem;cursor:pointer">🔍</button>
+            <button onclick="ZAdmin._editCalGame(${i},'${d}')" style="background:none;border:1px solid rgba(255,255,255,.2);padding:2px 4px;border-radius:4px;cursor:pointer;color:rgba(255,255,255,.4);font-size:.62rem">✏️</button>
           </td>`;
       }).join('');
       return`<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-        <td style="padding:4px 6px;font-size:.75rem">${game.icon} ${game.name}</td>
+        <td style="padding:4px 6px;font-size:.75rem">
+          <div style="display:flex;align-items:center;gap:4px">
+            <span>${game.icon||''} ${game.name||''}</span>
+            <button onclick="ZAdmin._deleteGameCal(${i})" title="Alle Scores für dieses Spiel löschen" style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:2px 6px;border-radius:4px;font-size:.6rem;cursor:pointer;flex-shrink:0;font-weight:700">🗑️</button>
+          </div>
+        </td>
         ${devCells}
       </tr>`;
     }).join('');
@@ -6591,7 +6656,126 @@ const ZAdmin = {
         <tr>${'<th></th>'+devSubCols}</tr>
       </thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table>
+    <div style="margin-top:8px;font-size:.65rem;color:rgba(255,255,255,.3)">${Object.keys(calStore).length} Einträge · Aktualisiert: ${new Date().toLocaleTimeString('de-CH',{timeZone:'Europe/Zurich'})}</div>`;
+  },
+  async _showCalDetail(gameIdx,dev,gameName){
+    const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+    const gId=GAME_IDS[gameIdx]||'unknown';
+    let calStore={};
+    try{calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
+    const key=gameIdx+'_'+dev;
+    const scores=calStore[key]||[];
+    const records=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+    let richRecs=(records[gId]||[]).filter(r=>dev==='all'||!r.device||(r.device&&r.device.toLowerCase().includes(dev)));
+    let panel=document.getElementById('cal-detail-panel');
+    if(!panel)return;
+    panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b id="cal-detail-title" style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (lädt...)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div><div style="color:#888;text-align:center;padding:12px">⏳ Lade Firebase-Daten...</div>`;
+    panel.style.display='block';
+    panel.dataset.gameName=gameName;
+    if(typeof _db!=='undefined'&&_db){
+      try{
+        const fbSnap=await _db.collection('score_records').limit(300).get();
+        fbSnap.forEach(d=>{
+          const dd=d.data();
+          if(dd.game===gId&&!richRecs.find(r=>r.ts&&r.ts===dd.ts&&r.player===dd.player))richRecs.push(dd);
+        });
+      }catch(e){}
+    }
+    let detailParts=[];
+    if(richRecs.length){
+      const rows=richRecs.sort((a,b)=>(b.ts||0)-(a.ts||0)).map((r,ri)=>
+        `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+          <td style="padding:4px 6px;color:rgba(255,255,255,.65);font-size:.72rem">${r.date||'?'}</td>
+          <td style="padding:4px 6px;color:#4af;font-size:.78rem">${r.player||'?'}</td>
+          <td style="padding:4px 6px;font-size:.72rem">${r.device||'?'}</td>
+          <td style="padding:4px 6px;color:#FFD700;font-weight:700">${r.score||0}</td>
+          <td style="padding:4px 6px;color:#27AE60">${r.mt&&r.mt>0?(+r.mt).toFixed(1)+' MT':'—'}</td>
+          <td style="padding:2px 4px"><button onclick="ZAdmin._deletePlayRecord(${gameIdx},'${dev}',${ri})" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.5);color:#E74C3C;padding:1px 6px;border-radius:4px;font-size:.68rem;cursor:pointer">✕</button></td>
+        </tr>`).join('');
+      detailParts.push(`<div style="margin-bottom:10px">
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:5px">📋 ${richRecs.length} Einzelspiele</div>
+        <table style="width:100%;border-collapse:collapse;font-size:.75rem">
+          <thead><tr style="color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.1)"><th style="padding:3px 6px;text-align:left">Datum</th><th style="padding:3px 6px">Spieler</th><th style="padding:3px 6px">Gerät</th><th style="padding:3px 6px">Score</th><th style="padding:3px 6px">MT</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>`);
+    }
+    if(scores.length){
+      const scoresHtml=scores.map((s,si)=>
+        `<span style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);padding:3px 7px;border-radius:5px;margin:2px;color:${s>=80?'#27AE60':s>=50?'#FFD700':'#E74C3C'};font-size:.82rem">${s}<button onclick="ZAdmin._deleteCalScore(${gameIdx},'${dev}',${si})" style="background:none;border:none;color:rgba(255,100,100,.8);cursor:pointer;font-size:.8rem;padding:0 0 0 3px">✕</button></span>`).join('');
+      detailParts.push(`<div style="border-top:1px solid rgba(255,255,255,.08);padding-top:8px;margin-top:2px">
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:5px">📊 ${scores.length} Kalibrierungswerte</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${scoresHtml}</div>
+        <button onclick="ZAdmin._deleteAllCalScores(${gameIdx},'${dev}')" style="background:rgba(231,76,60,.2);border:1px solid #E74C3C;color:#E74C3C;padding:3px 10px;border-radius:5px;font-size:.72rem;cursor:pointer">🗑️ Alle Cal-Werte löschen</button>
+      </div>`);
+    }
+    const detailHTML=detailParts.length?detailParts.join(''):'<div style="color:#888;padding:12px;text-align:center">Keine Daten verfügbar</div>';
+    const totalPlays=scores.length+(richRecs.length?' ('+richRecs.length+' Einzel)':'');
+    panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (${totalPlays} Spiele)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div>${detailHTML}`;
+  },
+  _deleteGameCal(gameIdx){
+    if(!confirm('ALLE Scores für dieses Spiel löschen (alle Geräte)?'))return;
+    let cal={};
+    try{cal=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
+    const keysToDelete=Object.keys(cal).filter(k=>k.startsWith(gameIdx+'_'));
+    keysToDelete.forEach(k=>{cal[k]=[];});
+    try{localStorage.setItem('cal_data_v3',JSON.stringify(cal));}catch(e){}
+    if(typeof _db!=='undefined'&&_db){
+      const updates={};
+      keysToDelete.forEach(k=>{updates[k]=[];});
+      _db.collection('calibration').doc('scores').set(updates,{merge:true}).catch(()=>{});
+    }
+    this._renderCalTable();
+    const panel=document.getElementById('cal-detail-panel');
+    if(panel)panel.style.display='none';
+  },
+  _deleteCalScore(gameIdx,dev,scoreIdx){
+    let calStore={};
+    try{calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
+    const key=gameIdx+'_'+dev;
+    const scores=(calStore[key]||[]);
+    if(scoreIdx>=0&&scoreIdx<scores.length){
+      scores.splice(scoreIdx,1);
+      calStore[key]=scores;
+      try{localStorage.setItem('cal_data_v3',JSON.stringify(calStore));}catch(e){}
+      if(typeof _db!=='undefined'&&_db){_db.collection('calibration').doc('scores').set({[key]:scores},{merge:true}).catch(()=>{});}
+      const panel=document.getElementById('cal-detail-panel');
+      const gameName=panel?.dataset.gameName||'';
+      this._showCalDetail(gameIdx,dev,gameName);
+      this._renderCalTable();
+    }
+  },
+  _deletePlayRecord(gameIdx,dev,recordIdx){
+    const GAME_IDS=['dart','french','math','sokoban','shutthebox','memory','anagram','simon','wordsearch','reaction','colormix','slider','tetris','balloon','stunt','pacman','math2','starwars','truefalse','pong'];
+    const gId=GAME_IDS[gameIdx]||'unknown';
+    try{
+      const recs=JSON.parse(localStorage.getItem('admin_score_records')||'{}');
+      if(recs[gId]&&recs[gId][recordIdx]!==undefined){
+        recs[gId].splice(recordIdx,1);
+        localStorage.setItem('admin_score_records',JSON.stringify(recs));
+      }
+    }catch(e){}
+    const panel=document.getElementById('cal-detail-panel');
+    const gameName=panel?.dataset.gameName||'';
+    this._showCalDetail(gameIdx,dev,gameName);
+  },
+  _deleteAllCalScores(gameIdx,dev){
+    if(!confirm('Alle Cal-Werte für diesen Eintrag löschen?'))return;
+    let calStore={};
+    try{calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
+    const key=gameIdx+'_'+dev;
+    calStore[key]=[];
+    try{localStorage.setItem('cal_data_v3',JSON.stringify(calStore));}catch(e){}
+    if(typeof _db!=='undefined'&&_db){_db.collection('calibration').doc('scores').set({[key]:[]},{merge:true}).catch(()=>{});}
+    const panel=document.getElementById('cal-detail-panel');
+    if(panel)panel.style.display='none';
+    this._renderCalTable();
+  },
+  _exportCal(){
+    const data=localStorage.getItem('cal_data_v3')||'{}';
+    const b=new Blob([data],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download='cal-'+Date.now()+'.json';a.click();
   },
   _editCalGame(gameIdx,dev){
     let calStore={};try{calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
@@ -6604,12 +6788,14 @@ const ZAdmin = {
     if(!newVal.trim()){delete calStore[key];}
     else{calStore[key]=newVal.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n)&&n>0);}
     localStorage.setItem('cal_data_v3',JSON.stringify(calStore));
+    if(typeof _db!=='undefined'&&_db){_db.collection('calibration').doc('scores').set({[key]:calStore[key]||[]},{merge:true}).catch(()=>{});}
     ZP.toast('✅ Kalibrierung gespeichert',1500);
     this._renderCalTable();
   },
   _clearAllCal(){
     if(!confirm('Alle Kalibrierungsdaten löschen?'))return;
     localStorage.removeItem('cal_data_v3');
+    if(typeof _db!=='undefined'&&_db){_db.collection('calibration').doc('scores').set({}).catch(()=>{});}
     ZP.toast('🗑️ Kalibrierung gelöscht',1500);
     this._renderCalTable();
   },
@@ -6666,41 +6852,60 @@ const ZAdmin = {
     if(el)el.style.display='none';
   },
   
+  async _fetchAllPlayers(){
+    // "Online" comes from the live position feed (zoo_players, updated every few seconds
+    // while someone is actually in the 3D world). "All players" comes from the zoos
+    // collection — every player who's ever saved a zoo has a doc there.
+    if(typeof _db==='undefined'||!_db)throw new Error('no db');
+    const [posSnap, zoosSnap] = await Promise.all([
+      _db.collection('zoo_players').get(),
+      _db.collection('zoos').get(),
+    ]);
+    const onlineNames = new Set();
+    posSnap.forEach(doc=>{
+      const d=doc.data();
+      if(d.name && Date.now()-d.t<20000) onlineNames.add(d.name.toLowerCase());
+    });
+    const players=[];
+    zoosSnap.forEach(doc=>{
+      const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
+      if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
+    });
+    players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
+    return players;
+  },
+
+  // ── Sidebar list: quick target-picker for spawning etc. (kept simple: icon + name) ──
   async loadPlayers(){
     const list=document.getElementById('padmin-playerlist');
     if(!list)return;
     list.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.7rem">Lade...</div>';
     try{
-      if(typeof _db==='undefined'||!_db)throw new Error('no db');
-      const snap=await _db.collection('zoo_players').get();
-      const players=[];
-      snap.forEach(doc=>{
-        const d=doc.data();
-        if(d.name&&d.name.toLowerCase()!==ZS.player?.toLowerCase()&&Date.now()-d.t<20000)
-          players.push(d);
-      });
+      const players = await this._fetchAllPlayers();
       this._renderPlayers(players);
     }catch(e){
       // Fallback: use locally visible players from ZG.otherPl
       const fallback=Object.values(ZG.otherPl||{});
       if(fallback.length>0){
-        this._renderPlayers(fallback.map(p=>({name:p.name,char:p.char||'🧭',x:p.x,z:p.z,t:Date.now()})));
+        this._renderPlayers(fallback.map(p=>({name:p.name,char:p.char||'🧭',online:true})));
       } else {
         list.innerHTML='<div style="color:rgba(255,165,0,.8);font-size:.7rem">⚠️ Firebase nicht verfügbar. Spieler müssen sichtbar sein (Multiplayer aktiv).</div>';
       }
     }
   },
-  
+
   _renderPlayers(players){
     const list=document.getElementById('padmin-playerlist');
     if(!list)return;
     list.innerHTML='';
-    if(!players.length){list.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.7rem">Keine Spieler online</div>';return;}
+    if(!players.length){list.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.7rem">Keine Spieler gefunden</div>';return;}
     players.forEach(p=>{
       const d=document.createElement('div');
       d.className='padmin-player';
       d.dataset.name=p.name;
-      d.innerHTML=`<span style="font-size:1.1rem">${p.char||'🧭'}</span><span>${p.name}</span>`;
+      d.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 2px;cursor:pointer';
+      d.innerHTML=`<span style="font-size:1.1rem">${p.char||'🧭'}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>`;
       d.onclick=()=>this.selectPlayer(p.name, p.char);
       // Long press to visit zoo
       let lt=0;
@@ -6708,6 +6913,131 @@ const ZAdmin = {
       d.ontouchend=()=>{if(Date.now()-lt>500)visitZoo(p.name);};
       list.appendChild(d);
     });
+  },
+
+  // ── "👥 Spieler" tab: full management view (online/offline + delete), plenty of room ──
+  async _loadPlayersTab(){
+    const el=document.getElementById('padmin-players-table');
+    if(!el)return;
+    el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Lade...</div>';
+    let players=[];
+    try{
+      players = await this._fetchAllPlayers();
+    }catch(e){
+      el.innerHTML='<div style="color:rgba(255,165,0,.8);font-size:.8rem">⚠️ Firebase nicht verfügbar.</div>';
+      return;
+    }
+    if(!players.length){ el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Keine Spieler gefunden.</div>'; return; }
+    el.innerHTML = players.map(p=>{
+      const nameEsc=p.name.replace(/'/g,"\\'");
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05)">
+        <span style="font-size:1.3rem">${p.char||'🧭'}</span>
+        <span style="flex:1;font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+        <span style="font-size:.72rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};min-width:52px;text-align:center;background:${p.online?'rgba(46,204,64,.12)':'rgba(231,76,60,.12)'};padding:3px 8px;border-radius:20px">${p.online?'online':'offline'}</span>
+        <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.78rem">🎯</button>
+        <button onclick="ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.78rem">🗑️</button>
+      </div>`;
+    }).join('');
+  },
+
+  async deletePlayer(name){
+    if(!confirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)'))return;
+    const k='zoo_'+name.toLowerCase();
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        await _db.collection('zoos').doc(k).delete().catch(()=>{});
+        await _db.collection('zoo_players').doc(name.toLowerCase()).delete().catch(()=>{});
+      }
+    }catch(e){}
+    try{ localStorage.removeItem(k); }catch(e){}
+    // Also remove the Denkspiel account (mischa_players) so they disappear from the leaderboard too
+    try{ if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(name); }catch(e){}
+    if(this.target?.name?.toLowerCase()===name.toLowerCase()){
+      this.target=null;
+      const el=document.getElementById('padmin-target-display');
+      if(el)el.textContent='Spieler auswählen →';
+    }
+    ZP.toast('🗑️ '+name+' komplett gelöscht (Zoo + Denkspiel).',2500);
+    this.loadPlayers();
+    this._loadPlayersTab();
+  },
+
+  async bulkDeleteExcept(){
+    const raw=(document.getElementById('padmin-keep-names')?.value||'').trim();
+    if(!raw){ZP.toast('❗ Bitte mindestens einen Namen eingeben, der bleiben soll!',2500);return;}
+    const keep=raw.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+    keep.push(ZS.player?.toLowerCase()); // never delete yourself (the admin doing this)
+    let players=[];
+    try{ players = await this._fetchAllPlayers(); }catch(e){ ZP.toast('⚠️ Firebase nicht verfügbar.',2500); return; }
+    const toDelete = players.filter(p => !keep.includes(p.name.toLowerCase()));
+    if(!toDelete.length){ ZP.toast('✅ Niemand zu löschen — alle sind auf der Liste.',2500); return; }
+    if(!confirm('⚠️ Wirklich '+toDelete.length+' Spieler KOMPLETT löschen (Zoo + Denkspiel-Account)?\n\n'+toDelete.map(p=>p.name).join(', ')+'\n\nBleiben: '+raw))return;
+    let done=0;
+    for(const p of toDelete){
+      const k='zoo_'+p.name.toLowerCase();
+      try{
+        if(typeof _db!=='undefined'&&_db){
+          await _db.collection('zoos').doc(k).delete().catch(()=>{});
+          await _db.collection('zoo_players').doc(p.name.toLowerCase()).delete().catch(()=>{});
+        }
+      }catch(e){}
+      try{ localStorage.removeItem(k); }catch(e){}
+      try{ if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(p.name); }catch(e){}
+      done++;
+    }
+    ZP.toast('🗑️ '+done+' Spieler komplett gelöscht.',3000);
+    this.loadPlayers();
+    this._loadPlayersTab();
+  },
+
+  // ── GLOBAL TIMER (visible to all players, persisted in Firebase) ──
+  async startTimer(){
+    const title=(document.getElementById('padmin-timer-title')?.value||'').trim()||'⏱️ Timer';
+    const min=parseInt(document.getElementById('padmin-timer-min')?.value||'0')||0;
+    const sec=parseInt(document.getElementById('padmin-timer-sec')?.value||'0')||0;
+    const durationMs=(min*60+sec)*1000;
+    if(durationMs<=0){ZP.toast('❗ Bitte eine Dauer eingeben!',2000);return;}
+    const animType=document.querySelector('input[name="padmin-timer-anim"]:checked')?.value||'clock';
+    const timer={
+      title, endsAt: Date.now()+durationMs, animType,
+      adminChar: ZS.char?.e || '🧑', adminName: ZS.player,
+      active: true, startedAt: Date.now(), id: Date.now().toString(),
+    };
+    try{
+      if(typeof _db!=='undefined'&&_db) await _db.collection('config').doc('zoo_timer').set(timer);
+    }catch(e){}
+    try{ localStorage.setItem('zoo_timer', JSON.stringify(timer)); }catch(e){}
+    ZP.toast('⏱️ Timer gestartet: "'+title+'" ('+min+'m '+sec+'s)',2500);
+    this._loadTimerStatus();
+  },
+
+  async stopTimer(){
+    try{
+      if(typeof _db!=='undefined'&&_db) await _db.collection('config').doc('zoo_timer').set({active:false});
+    }catch(e){}
+    try{ localStorage.removeItem('zoo_timer'); }catch(e){}
+    ZP.toast('⏹️ Timer gestoppt.',2000);
+    this._loadTimerStatus();
+    if(typeof ZTimer!=='undefined') ZTimer.hide();
+  },
+
+  async _loadTimerStatus(){
+    const el=document.getElementById('padmin-timer-status');
+    if(!el)return;
+    let timer=null;
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        const s=await _db.collection('config').doc('zoo_timer').get();
+        if(s.exists) timer=s.data();
+      }
+    }catch(e){}
+    if(!timer){ try{timer=JSON.parse(localStorage.getItem('zoo_timer')||'null');}catch(e){} }
+    if(timer && timer.active && timer.endsAt>Date.now()){
+      const left=Math.ceil((timer.endsAt-Date.now())/1000);
+      el.innerHTML=`🟢 Läuft: "${timer.title}" — noch ${Math.floor(left/60)}m ${left%60}s`;
+    } else {
+      el.innerHTML='⚪ Kein Timer aktiv.';
+    }
   },
   
   filterPlayers(q){
@@ -6780,6 +7110,38 @@ const ZAdmin = {
     return true;
   },
   
+  async giftPlayer(){
+    if(!this.target?.name){ ZP.toast('❗ Bitte zuerst einen Spieler als Ziel auswählen!',2500); return; }
+    const name=this.target.name;
+    const type=document.getElementById('padmin-gift-type')?.value||'mt';
+    const amount=parseFloat(document.getElementById('padmin-gift-amount')?.value||'0');
+    if(!amount||isNaN(amount)||amount===0){ ZP.toast('❗ Bitte eine gültige Anzahl eingeben!',2500); return; }
+    if(typeof _db==='undefined'||!_db){ ZP.toast('⚠️ Firebase nicht verbunden!',2500); return; }
+    try{
+      if(type==='mt'){
+        // MT goes straight into the Denkspiel account (mischa_players)
+        const ref=_db.collection('mischa_players').doc(name);
+        const doc=await ref.get();
+        if(!doc.exists){ ZP.toast('❌ Denkspiel-Account nicht gefunden: '+name,2500); return; }
+        const data=doc.data();
+        data.adminBonusMt=(data.adminBonusMt||0)+amount;
+        data.totalScore=(data.totalScore||0)+amount;
+        await ref.set(data,{merge:true});
+        ZP.toast('✅ '+amount+' MT an '+name+' vergeben (Denkspiel)! Neuer Stand: '+(data.totalScore||0).toFixed(1)+' MT',3000);
+      } else {
+        // Tokens go directly into the zoo document
+        const zooKey='zoo_'+name.toLowerCase();
+        const zref=_db.collection('zoos').doc(zooKey);
+        const zdoc=await zref.get();
+        if(!zdoc.exists){ ZP.toast('⚠️ '+name+' hat noch keinen Zoo — Tokens können erst vergeben werden, sobald der Zoo einmal besucht wurde.',3500); return; }
+        const zoo=zdoc.data();
+        zoo.tokens=(zoo.tokens||0)+amount;
+        await zref.set(zoo);
+        ZP.toast('✅ '+amount+' Gold-Tokens an '+name+' vergeben! Neuer Stand: '+zoo.tokens,3000);
+      }
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
+  },
+
   freeze(){ if(!this._send('freeze'))return; ZP.toast('❄️ '+this.target.name+' eingefroren für 10s!',2000); },
   launch(){ if(!this._send('launch'))return; ZP.toast('🚀 '+this.target.name+' hochgeschleudert!',2000); },
   jail(){ if(!this._send('jail'))return; ZP.toast('🏛️ '+this.target.name+' für 10s eingesperrt!',2000); },
@@ -7071,6 +7433,134 @@ const ZAdmin = {
   },
 };
 window.ZAdmin=ZAdmin;
+
+// ══ GLOBAL TIMER (shown to every player, admin-controlled, persisted in Firebase) ══
+const ZTimer = {
+  _cached: null,
+  _lastFetch: 0,
+  _playedFor: null, // id of the timer whose completion animation we already played
+
+  async tick(){
+    const now=Date.now();
+    if(now-this._lastFetch>5000){
+      this._lastFetch=now;
+      try{
+        if(typeof _db!=='undefined'&&_db){
+          const s=await _db.collection('config').doc('zoo_timer').get();
+          this._cached = s.exists ? s.data() : null;
+        } else {
+          this._cached = JSON.parse(localStorage.getItem('zoo_timer')||'null');
+        }
+      }catch(e){}
+    }
+    const timer=this._cached;
+    if(!timer || !timer.active){ this.hide(); return; }
+    const left=timer.endsAt-Date.now();
+    if(left>0){
+      this._show(timer, left);
+    } else if(this._playedFor!==timer.id){
+      this._playedFor=timer.id;
+      this._complete(timer);
+    }
+  },
+
+  _show(timer, leftMs){
+    let el=document.getElementById('ztimer-box');
+    if(!el){
+      el=document.createElement('div');
+      el.id='ztimer-box';
+      el.style.cssText='position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9000;text-align:center;color:#fff;pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,.8),0 0 12px rgba(0,0,0,.6);font-family:Arial,sans-serif';
+      document.body.appendChild(el);
+    }
+    const s=Math.max(0,Math.ceil(leftMs/1000));
+    const m=Math.floor(s/60), ss=s%60;
+    el.innerHTML=`<div style="font-size:.95rem;font-weight:900">${timer.title||'⏱️ Timer'}</div>
+      <div style="font-size:1.4rem;font-weight:900;letter-spacing:1px">${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}</div>`;
+  },
+
+  hide(){
+    const el=document.getElementById('ztimer-box');
+    if(el)el.remove();
+  },
+
+  _complete(timer){
+    this.hide();
+    if(timer.animType==='crown'){
+      this._crownAnim(timer);
+    } else {
+      this._clockAnim(timer);
+    }
+  },
+
+  _clockAnim(timer){
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s';
+    ov.innerHTML=`<div style="text-align:center">
+      <div id="ztimer-clock" style="font-size:5rem;transition:transform .15s">🕐</div>
+      <div style="color:#fff;font-family:Arial,sans-serif;font-weight:900;font-size:1.1rem;margin-top:8px">${timer.title||'⏱️ Timer'} — Zeit abgelaufen!</div>
+    </div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>ov.style.opacity='1');
+    const clockEl=ov.querySelector('#ztimer-clock');
+    const faces=['🕐','🕑','🕒','🕓','🕔','🕕','🕖','🕗','🕘','🕙','🕚','🕛'];
+    let i=0;
+    const tickIv=setInterval(()=>{
+      i=(i+1)%faces.length;
+      if(clockEl){clockEl.textContent=faces[i];clockEl.style.transform='scale(1.15)';setTimeout(()=>{if(clockEl)clockEl.style.transform='scale(1)';},80);}
+      try{this._sndTick();}catch(e){}
+    },160);
+    setTimeout(()=>{
+      clearInterval(tickIv);
+      if(clockEl)clockEl.textContent='🔔';
+      try{this._sndBell();}catch(e){}
+      setTimeout(()=>{ ov.style.opacity='0'; setTimeout(()=>ov.remove(),400); },1400);
+    },2400);
+  },
+
+  _crownAnim(timer){
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s';
+    ov.innerHTML=`<div style="text-align:center;position:relative">
+      <div style="font-size:5rem;position:relative;display:inline-block">
+        ${timer.adminChar||'🧑'}
+        <div id="ztimer-crown" style="position:absolute;left:50%;top:-10px;transform:translate(-50%,-40px) scale(0.5);opacity:0;font-size:2.4rem;transition:all .5s cubic-bezier(.34,1.56,.64,1)">👑</div>
+      </div>
+      <div style="color:#fff;font-family:Arial,sans-serif;font-weight:900;font-size:1.1rem;margin-top:8px">${timer.title||'⏱️ Timer'} — ${timer.adminName||'Admin'} bekommt die Krone! 👑</div>
+    </div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>{
+      ov.style.opacity='1';
+      setTimeout(()=>{
+        const c=ov.querySelector('#ztimer-crown');
+        if(c){ c.style.transform='translate(-50%,0) scale(1)'; c.style.opacity='1'; }
+        try{this._sndBell();}catch(e){}
+      },300);
+    });
+    setTimeout(()=>{ ov.style.opacity='0'; setTimeout(()=>ov.remove(),400); },3200);
+  },
+
+  _sndTick(){
+    try{
+      const ctx=new (window.AudioContext||window.webkitAudioContext)();
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='square';o.frequency.setValueAtTime(1000,ctx.currentTime);
+      g.gain.setValueAtTime(0.06,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.05);
+      o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.06);
+    }catch(e){}
+  },
+  _sndBell(){
+    try{
+      const ctx=new (window.AudioContext||window.webkitAudioContext)();
+      [880,1108,1318].forEach((freq,i)=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.type='sine';o.frequency.setValueAtTime(freq,ctx.currentTime);
+        g.gain.setValueAtTime(0.18,ctx.currentTime+i*0.08);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.08+0.9);
+        o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*0.08);o.stop(ctx.currentTime+i*0.08+1);
+      });
+    }catch(e){}
+  },
+};
+window.ZTimer=ZTimer;
 
 // Handle incoming admin events (for target player)
 function _handleAdminEvent(d){
@@ -7935,6 +8425,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
     ZS.player=main.toLowerCase();
     ZS.isAdmin=ZS.player==='mischa'||ZS.player==='admin'||ZS.player==='bu';
+    // Quick admin shortcut from Welt 1: ?openadmin=1 opens the panel immediately,
+    // without waiting for the full 3D scene (Three.js) to finish loading.
+    if(ZS.isAdmin && new URLSearchParams(window.location.search).get('openadmin')==='1'){
+      setTimeout(()=>{ try{ ZAdmin.open(); }catch(e){} }, 300);
+    }
     // Contest freeze announcement — same popup as the Denkspiel side, shown once per page load
     try{ if(typeof Contest!=='undefined' && Contest.phase()==='frozen'){ setTimeout(()=>{ try{Contest.showResultPopup();}catch(e){} }, 1200); } }catch(e){}
     // Use character from zoo_users, or fallback to default character
@@ -8747,6 +9242,8 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="news" onclick="ZAdmin.switchTab('news')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#27AE60;display:flex;align-items:center;gap:6px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:6px">📰 Update-News</div>
           <div class="padmin-tab-btn" data-tab="reports" onclick="ZAdmin.switchTab('reports')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">📋 Meldungen</div>
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
+          <div class="padmin-tab-btn" data-tab="spieler" onclick="ZAdmin.switchTab('spieler')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">👥 Spieler</div>
+          <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#e67e22;display:flex;align-items:center;gap:6px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px">⏱️ Timer</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
           <div class="padmin-tab-btn" data-tab="belohnungen" onclick="ZAdmin.switchTab('belohnungen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎁 Belohnungen</div>
@@ -8914,6 +9411,18 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#1ABC9C" onclick="ZAdmin.bring()">⭕ Herbringen</button>
           </div>
           <div style="margin-top:8px;font-size:.68rem;color:rgba(255,255,255,.3);text-align:center">Aktionen: 120s Cooldown</div>
+
+          <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,.1);padding-top:12px">
+            <div class="padmin-section-title" style="font-size:.85rem">🎁 MT / Tokens verschenken (Ziel auswählen!)</div>
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+              <select id="padmin-gift-type" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.78rem">
+                <option value="mt">🌀 Denkspiel-MT</option>
+                <option value="token">🥇 Gold-Tokens (Zoo)</option>
+              </select>
+              <input id="padmin-gift-amount" type="number" placeholder="Anzahl" style="width:90px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.78rem">
+            </div>
+            <button class="padmin-btn" style="background:linear-gradient(135deg,#f1c40f,#f39c12);color:#2c3e50;width:100%" onclick="ZAdmin.giftPlayer()">🎁 Verschenken</button>
+          </div>
         </div>
         <!-- TAB: SHOP/RABATT -->
         <div class="padmin-tab" id="padmin-tab-shop" style="display:none">
@@ -9044,12 +9553,59 @@ window.ZooEvents = ZooEvents;
               <option value="android">🤖 Android</option>
             </select>
             <button class="padmin-btn" style="background:#E74C3C;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._clearAllCal()">🗑️ Alle löschen</button>
-            <button class="padmin-btn" style="background:#3498DB;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._renderCalTable()">🔄 Aktualisieren</button>
+            <button class="padmin-btn" style="background:#3498DB;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._loadCalFromFirebase()">🔄 Von Firebase laden</button>
+            <button class="padmin-btn" style="background:#9B59B6;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._exportCal()">📥 Export</button>
           </div>
+          <div id="cal-status" style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:6px"></div>
           <div id="padmin-cal-table" style="overflow-x:auto;font-size:.72rem"></div>
+          <div id="cal-detail-panel" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:10000;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;max-width:700px;width:90%;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.6)"></div>
         </div>
 
         <!-- TAB: ANKÜNDIGUNG -->
+        <div class="padmin-tab" id="padmin-tab-spieler" style="display:none">
+          <div class="padmin-section-title">👥 Spieler-Verwaltung</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Grün = gerade online (aktiv in den letzten 20s) · Rot = offline</div>
+
+          <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);border-radius:10px;padding:10px;margin-bottom:14px">
+            <div style="font-size:.78rem;font-weight:700;color:#e74c3c;margin-bottom:6px">🗑️ Alle löschen — ausser:</div>
+            <input id="padmin-keep-names" placeholder="Namen mit Komma trennen, z.B. Andi, Bu, J.t"
+              style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:7px 9px;border-radius:8px;font-size:.8rem;box-sizing:border-box;margin-bottom:8px">
+            <button onclick="ZAdmin.bulkDeleteExcept()" style="width:100%;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:9px;border-radius:8px;font-weight:900;cursor:pointer;font-size:.82rem">🗑️ Alle ausser diesen Namen löschen</button>
+          </div>
+
+          <div id="padmin-players-table" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <div class="padmin-tab" id="padmin-tab-timer" style="display:none">
+          <div class="padmin-section-title">⏱️ Timer für alle Spieler</div>
+          <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:12px">
+            <label style="display:block;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:4px">Titel (z.B. "Admin-Missbrauch")</label>
+            <input id="padmin-timer-title" placeholder="Timer-Titel..." maxlength="40"
+              style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 10px;border-radius:8px;font-size:.85rem;box-sizing:border-box;margin-bottom:10px">
+            <label style="display:block;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:4px">Dauer</label>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <input id="padmin-timer-min" type="number" min="0" max="999" placeholder="Min" value="5"
+                style="width:70px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.85rem;text-align:center">
+              <input id="padmin-timer-sec" type="number" min="0" max="59" placeholder="Sek" value="0"
+                style="width:70px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.85rem;text-align:center">
+            </div>
+            <label style="display:block;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:6px">Animation wenn abgelaufen</label>
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:.8rem;color:#fff;cursor:pointer">
+                <input type="radio" name="padmin-timer-anim" value="clock" checked style="cursor:pointer">🕐 Uhr tickt + Glocke
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:.8rem;color:#fff;cursor:pointer">
+                <input type="radio" name="padmin-timer-anim" value="crown" style="cursor:pointer">👑 Krone für Admin
+              </label>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button onclick="ZAdmin.startTimer()" style="flex:1;background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;padding:10px;border-radius:10px;font-weight:900;cursor:pointer;font-size:.85rem">▶️ Timer starten</button>
+              <button onclick="ZAdmin.stopTimer()" style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);color:#e74c3c;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer;font-size:.85rem">⏹️ Stop</button>
+            </div>
+            <div id="padmin-timer-status" style="margin-top:10px;font-size:.78rem;color:rgba(255,255,255,.5)"></div>
+          </div>
+        </div>
+
         <div class="padmin-tab" id="padmin-tab-announce" style="display:none">
           <div class="padmin-section-title">📢 Event-Ankündigung</div>
 

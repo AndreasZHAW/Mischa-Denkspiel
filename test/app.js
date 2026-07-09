@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v267';
+const APP_VERSION = 'v268';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v267 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v268 · 2026-07-09</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -1228,6 +1228,7 @@ const App = {
           <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
+            ${['mischa','admin','bu'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
             <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,.5);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:1.5px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
             <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:1.5px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
@@ -1304,8 +1305,8 @@ const App = {
   },
 
   goToAdmin() {
-    try { sessionStorage.setItem('mischa_admin_auto','1'); } catch(e){}
-    window.location.href = 'admin.html';
+    // admin.html was retired — everything moved into the Zoo's own admin panel.
+    window.location.href = 'zoo.html?autostart=1&openadmin=1';
   },
   showPersonality(){
     if(typeof Personality==='undefined'){ showAlert('❌ Persönlichkeits-Modul nicht geladen! Bitte Seite neu laden.'); return; }
@@ -1635,9 +1636,10 @@ const App = {
       // Load from both Firebase AND local, merge with local priority
       const localAll = State._local.getAll() || {};
       let firebaseAll = {};
+      let firebaseFetchOk = false;
       try {
         const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
-        if (fb) firebaseAll = fb;
+        if (fb) { firebaseAll = fb; firebaseFetchOk = true; }
       } catch(e) {}
       // Zoo economy state per player — combined into the ranking alongside Welt-1 MT
       let zoosAll = {};
@@ -1649,7 +1651,15 @@ const App = {
       const merged = {...firebaseAll};
       Object.entries(localAll).forEach(([name, localP]) => {
         const fbP = firebaseAll[name];
-        if (!fbP) { merged[name] = localP; return; }
+        if (!fbP) {
+          // Player missing from the Firebase result. Only fall back to the local cache
+          // if the Firebase fetch itself actually failed (offline/timeout) — otherwise
+          // this player was deliberately deleted from the cloud, and stale local data
+          // (which never gets cleared automatically on OTHER devices) shouldn't
+          // resurrect them in the ranking.
+          if (!firebaseFetchOk) { merged[name] = localP; }
+          return;
+        }
         // Count tasks in world 1
         const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
         const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
