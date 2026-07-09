@@ -1228,6 +1228,7 @@ const App = {
           <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
+            ${['mischa','admin','bu'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
             <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,.5);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:1.5px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
             <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:1.5px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
@@ -1304,8 +1305,8 @@ const App = {
   },
 
   goToAdmin() {
-    try { sessionStorage.setItem('mischa_admin_auto','1'); } catch(e){}
-    window.location.href = 'admin.html';
+    // admin.html was retired — everything moved into the Zoo's own admin panel.
+    window.location.href = 'zoo.html?autostart=1&openadmin=1';
   },
   showPersonality(){
     if(typeof Personality==='undefined'){ showAlert('❌ Persönlichkeits-Modul nicht geladen! Bitte Seite neu laden.'); return; }
