@@ -1049,9 +1049,10 @@ const RankNotify = {
 
       const localAll = State._local.getAll() || {};
       let firebaseAll = {};
+      let firebaseFetchOk = false;
       try {
         const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
-        if (fb) firebaseAll = fb;
+        if (fb) { firebaseAll = fb; firebaseFetchOk = true; }
       } catch(e) {}
       let zoosAll = {};
       try {
@@ -1060,7 +1061,7 @@ const RankNotify = {
       const merged = {...firebaseAll};
       Object.entries(localAll).forEach(([name, localP]) => {
         const fbP = firebaseAll[name];
-        if (!fbP) { merged[name] = localP; return; }
+        if (!fbP) { if (!firebaseFetchOk) { merged[name] = localP; } return; }
         const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
         const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
         const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;
@@ -1190,9 +1191,10 @@ const Contest = {
   async _computeStandings() {
     const localAll = State._local.getAll() || {};
     let firebaseAll = {};
+    let firebaseFetchOk = false;
     try {
       const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),4000))]);
-      if (fb) firebaseAll = fb;
+      if (fb) { firebaseAll = fb; firebaseFetchOk = true; }
     } catch(e) {}
     let zoosAll = {};
     try {
@@ -1201,7 +1203,7 @@ const Contest = {
     const merged = {...firebaseAll};
     Object.entries(localAll).forEach(([name, localP]) => {
       const fbP = firebaseAll[name];
-      if (!fbP) { merged[name] = localP; return; }
+      if (!fbP) { if (!firebaseFetchOk) { merged[name] = localP; } return; }
       const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
       const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
       const localDone = (localWs.tasks||[]).filter(t=>t?.done).length;

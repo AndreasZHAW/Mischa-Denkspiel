@@ -1636,9 +1636,10 @@ const App = {
       // Load from both Firebase AND local, merge with local priority
       const localAll = State._local.getAll() || {};
       let firebaseAll = {};
+      let firebaseFetchOk = false;
       try {
         const fb = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r(null),3000))]);
-        if (fb) firebaseAll = fb;
+        if (fb) { firebaseAll = fb; firebaseFetchOk = true; }
       } catch(e) {}
       // Zoo economy state per player — combined into the ranking alongside Welt-1 MT
       let zoosAll = {};
@@ -1650,7 +1651,15 @@ const App = {
       const merged = {...firebaseAll};
       Object.entries(localAll).forEach(([name, localP]) => {
         const fbP = firebaseAll[name];
-        if (!fbP) { merged[name] = localP; return; }
+        if (!fbP) {
+          // Player missing from the Firebase result. Only fall back to the local cache
+          // if the Firebase fetch itself actually failed (offline/timeout) — otherwise
+          // this player was deliberately deleted from the cloud, and stale local data
+          // (which never gets cleared automatically on OTHER devices) shouldn't
+          // resurrect them in the ranking.
+          if (!firebaseFetchOk) { merged[name] = localP; }
+          return;
+        }
         // Count tasks in world 1
         const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
         const fbWs = fbP.worlds?.['1'] || fbP.worlds?.[1] || {};
