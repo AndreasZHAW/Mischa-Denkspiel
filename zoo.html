@@ -3946,8 +3946,25 @@ const ZG={
   const tr=(cmd.traitIds||[]).map(tid=>TRAITS.find(t=>t.id===tid)).filter(Boolean);
   // If admin already wrote the animal to the zoo doc, don't add a duplicate — just reload+show message
   if(cmd.alreadyPlaced){
-    // Reload zoo state from cloud to pick up the admin-placed animal, then refresh enclosures
-    ZS.load().then(()=>{this._encs&&this._encs();}).catch(()=>{});
+    // Reload zoo state from cloud to pick up the admin-placed animal, then refresh enclosures.
+    // Safety net: a periodic autosave (every 15s) can race with this — if OUR stale local
+    // save happens to land between the admin's write and this reload, the gift can get wiped
+    // before we ever see it. So after reloading, verify the animal is actually present; if
+    // it somehow isn't, place it ourselves (same safe path as the non-alreadyPlaced branch)
+    // so the gift is never silently lost.
+    ZS.load().then(()=>{
+      this._encs&&this._encs();
+      const z2=ZS.zoo;
+      const present = z2 && Array.isArray(z2.enc) && z2.enc.some(e=>e&&e.animal&&e.animal.id===cmd.animalId);
+      if(z2 && !present){
+        const slot=z2.enc.findIndex(e=>!e);
+        if(slot>=0){
+          z2.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};
+          this._encs&&this._encs();
+          ZS.save&&ZS.save();
+        }
+      }
+    }).catch(()=>{});
   } else {
     const slot=z.enc.findIndex(e=>!e);
     if(slot>=0){

@@ -1,21 +1,21 @@
-// Shared reward chest system — Denkspiel + Zoo (v262)
+// Shared reward chest system — Denkspiel + Zoo (v267)
 const RewardChests = {
   // ── TIER CONFIG ──
   // hell = chance for hell chest (rolled first)
   // upChance = per-click upgrade probability (Brawl-Stars style)
   TIERS: [
-    {min:5,   name:'5 MIN TRUHE',   color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.08,  upChance:0.40},
-    {min:10,  name:'10 MIN TRUHE',  color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.06,  upChance:0.50},
-    {min:30,  name:'30 MIN TRUHE',  color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.04,  upChance:0.60},
-    {min:60,  name:'60 MIN TRUHE',  color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.02,  upChance:0.72},
-    {min:120, name:'120 MIN TRUHE', color:'#ffd700', glow:'rgba(255,215,0,.7)',   hell:0.008, upChance:0.85},
+    {min:5,   name:'5 MIN TRUHE',   color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.08,  upChance:0.10},
+    {min:10,  name:'10 MIN TRUHE',  color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.06,  upChance:0.15},
+    {min:30,  name:'30 MIN TRUHE',  color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.04,  upChance:0.20},
+    {min:60,  name:'60 MIN TRUHE',  color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.02,  upChance:0.28},
+    {min:120, name:'120 MIN TRUHE', color:'#ffd700', glow:'rgba(255,215,0,.7)',   hell:0.008, upChance:0.38},
   ],
   TIERS2: [
-    {min:5,   name:'5 MIN TRUHE+',  color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.06,  upChance:0.50},
-    {min:10,  name:'10 MIN TRUHE+', color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.04,  upChance:0.60},
-    {min:30,  name:'30 MIN TRUHE+', color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.02,  upChance:0.72},
-    {min:60,  name:'60 MIN TRUHE+', color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.008, upChance:0.85},
-    {min:120, name:'120 MIN TRUHE+',color:'#9b59ff', glow:'rgba(155,89,255,.8)',  hell:0.0,   upChance:0.92, space:true},
+    {min:5,   name:'5 MIN TRUHE+',  color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.06,  upChance:0.13},
+    {min:10,  name:'10 MIN TRUHE+', color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.04,  upChance:0.19},
+    {min:30,  name:'30 MIN TRUHE+', color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.02,  upChance:0.25},
+    {min:60,  name:'60 MIN TRUHE+', color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.008, upChance:0.33},
+    {min:120, name:'120 MIN TRUHE+',color:'#9b59ff', glow:'rgba(155,89,255,.8)',  hell:0.0,   upChance:0.45, space:true},
   ],
   // Rarity tiers (index 0-4)
   RARITIES:[
