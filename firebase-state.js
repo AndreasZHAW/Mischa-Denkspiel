@@ -1334,6 +1334,46 @@ window.Contest = Contest;
 // "if(!confirm(...)) return;" fail invisibly with no error at all.
 // Usage: if (!(await showConfirm('Really?'))) return;
 // ============================================================
+// ============================================================
+// CUSTOM PASSWORD PROMPT — Promise-based, returns the entered string,
+// or null if cancelled. Used for the admin-login gate (avoids native
+// prompt(), which some environments silently block).
+// ============================================================
+window.showPasswordPrompt = function(title, message) {
+  return new Promise((resolve) => {
+    try {
+      const existing = document.getElementById('custom-pw-overlay');
+      if (existing) existing.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'custom-pw-overlay';
+      overlay.style.cssText = `position:fixed;inset:0;z-index:300000;background:rgba(0,0,0,.65);
+        display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s`;
+      overlay.innerHTML = `
+        <div style="background:linear-gradient(135deg,#1a1a3d,#0a0a2e);border:1.5px solid rgba(255,215,0,.4);
+          border-radius:16px;padding:20px 22px;max-width:min(360px,90vw);text-align:center;
+          box-shadow:0 10px 40px rgba(0,0,0,.5);font-family:Arial,sans-serif">
+          <div style="color:#FFD700;font-weight:900;font-size:1.05rem;margin-bottom:6px">${title||'Passwort'}</div>
+          <div style="color:#fff;font-size:.88rem;margin-bottom:14px">${message||'Bitte Passwort eingeben:'}</div>
+          <input id="custom-pw-input" type="password" autocomplete="off" style="width:100%;box-sizing:border-box;
+            background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.25);padding:10px 12px;
+            border-radius:10px;font-size:1rem;margin-bottom:14px;text-align:center">
+          <div style="display:flex;gap:10px">
+            <button id="custom-pw-cancel" style="flex:1;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:9px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.88rem">Abbrechen</button>
+            <button id="custom-pw-ok" style="flex:1;background:#FFD700;color:#2C3E50;border:none;padding:9px;border-radius:10px;font-weight:900;cursor:pointer;font-size:.88rem">OK</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const input = overlay.querySelector('#custom-pw-input');
+      const finish = (result) => { overlay.style.opacity='0'; setTimeout(()=>overlay.remove(), 250); resolve(result); };
+      overlay.addEventListener('click', (e)=>{ if(e.target===overlay) finish(null); });
+      overlay.querySelector('#custom-pw-cancel').addEventListener('click', ()=>finish(null));
+      overlay.querySelector('#custom-pw-ok').addEventListener('click', ()=>finish(input.value));
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') finish(input.value); if(e.key==='Escape') finish(null); });
+      requestAnimationFrame(()=>{ overlay.style.opacity='1'; input.focus(); });
+    } catch(e) { try{ resolve(prompt(message)); }catch(e2){ resolve(null); } }
+  });
+};
+
 window.showConfirm = function(message) {
   return new Promise((resolve) => {
     try {

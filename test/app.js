@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v272';
+const APP_VERSION = 'v273';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v272 · 2026-07-09</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v273 · 2026-07-09</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1172,7 +1172,7 @@ const App = {
     }
     if (player && !player.worlds) player.worlds = {};
     const _isRef = player.name.toLowerCase() === 'janoschtest';
-    const _isAdmin = player.name.toLowerCase() === 'bu';
+    const _isAdmin = ['mischa','admin'].includes(player.name.toLowerCase());
     // Bu gets displayed with special black/gold style
     // Avatar from Personality module (if any)
     const _avatarHTML = (typeof Personality!=='undefined') ? Personality.getAvatarHTML(36) : '';
@@ -1230,7 +1230,7 @@ const App = {
           <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
             <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
             ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
-            ${['mischa','admin','bu'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
+            ${['mischa','admin'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
             <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,.5);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
             <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:1.5px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
             <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:1.5px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
@@ -2464,7 +2464,7 @@ const App = {
   async showAdminReports() {
     const player = State.currentPlayer;
     const name = player?.name?.toLowerCase()||'';
-    if (!player || (name !== 'bu' && name !== 'mischa' && name !== 'admin')) { showAlert('Kein Zugriff.'); return; }
+    if (!player || (name !== 'mischa' && name !== 'admin')) { showAlert('Kein Zugriff.'); return; }
     this._loading('Lade Meldungen...');
     let reports = [];
     let zooReports = [];

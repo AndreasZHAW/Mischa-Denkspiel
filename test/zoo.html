@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v272 -->
+<!-- ZOO v273 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=272"></script>
-<script src="rewardchests.js?v=272"></script>
-<script src="personality.js?v=272"></script>
+<script src="lang.js?v=273"></script>
+<script src="rewardchests.js?v=273"></script>
+<script src="personality.js?v=273"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v272','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v273','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=272"></script>
+<script src="firebase-state.js?v=273"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -968,9 +968,9 @@ const ZA={
     const e=G('zerr');
     console.log('[ZA.login] name='+n+' pw_len='+(p?p.length:0));
     if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
-    if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin'||k==='bu';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
+    if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
         // If pw was 'auto' (from teleport), update to user's chosen password
-        if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin'||k==='bu';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
+        if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
@@ -4388,7 +4388,7 @@ const ZP={
     setTimeout(()=>{document.addEventListener('click',function _cl(e){if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',_cl);}},true);},100);
   },
 
-  open(p){
+  async open(p){
     // Close all others first
     ['gond','index','shop','reb','enc','menu','adm','sound','report'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
@@ -4402,10 +4402,9 @@ const ZP={
     if(p==='report')this._rReport();
     if(p==='adm'){
       if(!ZS.isAdmin){
-        const pw=prompt('Admin-Passwort:');
-        // Check against firebase-state checkAdmin OR fallback
-        const valid = pw==='mischa2024'||pw==='mischa'||pw==='admin'||(typeof State!=='undefined'&&State.checkAdmin&&State.checkAdmin(pw));
-        if(valid){ZS.isAdmin=true;}else{this.toast('❌ Falsches Passwort!',2000);return;}
+        const pw=await showPasswordPrompt('🔧 Admin-Zugang','Admin-Passwort eingeben:');
+        const valid = pw==='mischa2024';
+        if(valid){ZS.isAdmin=true;}else{if(pw!==null)this.toast('❌ Falsches Passwort!',2000);hide('p-adm');return;}
       }
       this._rAdm();
     }
@@ -7057,7 +7056,7 @@ const ZAdmin = {
     const v=val.trim();
     if(!v) return;
     // Admin codes
-    const adminCodes=['mischa2024','bu','admin2024'];
+    const adminCodes=['mischa2024'];
     if(adminCodes.includes(v.toLowerCase())){
       ZAdmin._hasAccess=true;
       ZP.close('shop');
@@ -8252,8 +8251,8 @@ const ZooLock = {
     // Check if moving toward a locked zone
     for (const [playerName, op] of Object.entries(ZG.otherPl)) {
       if (!op.locked || op.lockedUntil < Date.now()) continue;
-      // Bu/admin bypass
-      if (ZS.player?.toLowerCase()==='bu' || ZS.isAdmin) continue;
+      // Admin bypass
+      if (ZS.isAdmin) continue;
       // Find zone
       const zones = ZG.ZONES || [];
       const zone = zones[op.zoneIdx || 0] || zones[0];
@@ -8404,6 +8403,25 @@ const RARITY_NAME={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legend
 
 // Boot
 document.addEventListener('DOMContentLoaded',()=>{
+  // Universal password-gated admin access (works with or without an existing
+  // Denkspiel session) — triggered by the "🔧 Admin-Login" button on the
+  // Welcome screen (zoo.html?openadmin=1). If the player isn't already
+  // recognized as admin by name, ask for the admin password instead.
+  (async()=>{
+    if(new URLSearchParams(window.location.search).get('openadmin')!=='1')return;
+    if(ZS.isAdmin)return; // already admin by name — the normal flow below will open the panel
+    const pw = await showPasswordPrompt('🔧 Admin-Login', 'Admin-Passwort eingeben:');
+    if(pw==='mischa2024'){
+      ZS.isAdmin=true;
+      if(!ZS.player){
+        const main=sessionStorage.getItem('mischa_current')||localStorage.getItem('mischa_current_backup');
+        ZS.player=(main||'admin').toLowerCase();
+      }
+      setTimeout(()=>{ try{ ZAdmin.open(); }catch(e){} }, 400);
+    } else if(pw!==null){
+      setTimeout(()=>{ try{ showAlert('❌ Falsches Passwort!'); }catch(e){} }, 100);
+    }
+  })();
   // Restore discount if still active
   try{
     const d=JSON.parse(localStorage.getItem('zoo_admin_discount')||'null');
@@ -8424,7 +8442,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       localStorage.setItem('zoo_users',JSON.stringify(us));
     }
     ZS.player=main.toLowerCase();
-    ZS.isAdmin=ZS.player==='mischa'||ZS.player==='admin'||ZS.player==='bu';
+    ZS.isAdmin=ZS.player==='mischa'||ZS.player==='admin';
     // Quick admin shortcut from Welt 1: ?openadmin=1 opens the panel immediately,
     // without waiting for the full 3D scene (Three.js) to finish loading.
     if(ZS.isAdmin && new URLSearchParams(window.location.search).get('openadmin')==='1'){
