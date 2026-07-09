@@ -1328,6 +1328,41 @@ window.Contest = Contest;
 // CUSTOM ALERT — replaces native alert() so the browser's own
 // "Auf <site> wird Folgendes angezeigt:" chrome never shows up.
 // ============================================================
+// ============================================================
+// CUSTOM CONFIRM — replaces native confirm(), which some mobile
+// browsers/PWA contexts silently block or auto-reject, making
+// "if(!confirm(...)) return;" fail invisibly with no error at all.
+// Usage: if (!(await showConfirm('Really?'))) return;
+// ============================================================
+window.showConfirm = function(message) {
+  return new Promise((resolve) => {
+    try {
+      const existing = document.getElementById('custom-confirm-overlay');
+      if (existing) existing.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'custom-confirm-overlay';
+      overlay.style.cssText = `position:fixed;inset:0;z-index:300000;background:rgba(0,0,0,.6);
+        display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s`;
+      overlay.innerHTML = `
+        <div style="background:linear-gradient(135deg,#1a1a3d,#0a0a2e);border:1.5px solid rgba(255,215,0,.4);
+          border-radius:16px;padding:20px 22px;max-width:min(380px,90vw);text-align:center;
+          box-shadow:0 10px 40px rgba(0,0,0,.5);font-family:Arial,sans-serif">
+          <div style="color:#fff;font-size:.95rem;line-height:1.5;white-space:pre-line;margin-bottom:18px">${message}</div>
+          <div style="display:flex;gap:10px">
+            <button id="custom-confirm-cancel" style="flex:1;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:9px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.88rem">Abbrechen</button>
+            <button id="custom-confirm-ok" style="flex:1;background:#E74C3C;color:#fff;border:none;padding:9px;border-radius:10px;font-weight:900;cursor:pointer;font-size:.88rem">OK</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const finish = (result) => { overlay.style.opacity='0'; setTimeout(()=>overlay.remove(), 250); resolve(result); };
+      overlay.addEventListener('click', (e)=>{ if(e.target===overlay) finish(false); });
+      overlay.querySelector('#custom-confirm-cancel').addEventListener('click', ()=>finish(false));
+      overlay.querySelector('#custom-confirm-ok').addEventListener('click', ()=>finish(true));
+      requestAnimationFrame(()=>{ overlay.style.opacity='1'; });
+    } catch(e) { try{ resolve(confirm(message)); }catch(e2){ resolve(false); } }
+  });
+};
+
 window.showAlert = function(message) {
   try {
     const existing = document.getElementById('custom-alert-overlay');

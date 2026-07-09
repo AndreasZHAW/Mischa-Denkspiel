@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v270 -->
+<!-- ZOO v271 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=270"></script>
-<script src="rewardchests.js?v=270"></script>
-<script src="personality.js?v=270"></script>
+<script src="lang.js?v=271"></script>
+<script src="rewardchests.js?v=271"></script>
+<script src="personality.js?v=271"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v270','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v271','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=270"></script>
+<script src="firebase-state.js?v=271"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -980,7 +980,7 @@ const ZA={
     const _ls = document.getElementById('zoo-load-status');
     if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
     await ZS.load();
-    if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!confirm('Privaten Server starten? Kostet 1.000.000 MT'))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
+    if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!(await showConfirm('Privaten Server starten? Kostet 1.000.000 MT')))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');show('hud');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
@@ -4341,8 +4341,8 @@ const ZP={
     rb.id = 'z-report-btn';
     rb.style.cssText = 'position:fixed;bottom:80px;right:12px;background:rgba(231,76,60,.85);color:#fff;padding:6px 12px;border-radius:20px;font-size:.78rem;cursor:pointer;z-index:9999;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.4)';
     rb.textContent = '⚑ ' + playerName + ' melden';
-    rb.onclick = () => {
-      if(!confirm('Spieler "'+playerName+'" melden wegen: '+reason+'?')) return;
+    rb.onclick = async () => {
+      if(!(await showConfirm('Spieler "'+playerName+'" melden wegen: '+reason+'?'))) return;
       rb.remove();
       if(typeof _db!=='undefined'&&_db) {
         _db.collection('player_reports').add({
@@ -5104,8 +5104,8 @@ const ZP={
     }catch(e){return[];}
   },
 
-  _deleteQuestion(game,level,idx){
-    if(!confirm('Frage '+idx+' löschen?'))return;
+  async _deleteQuestion(game,level,idx){
+    if(!(await showConfirm('Frage '+idx+' löschen?')))return;
     const key='admin_q_deleted_'+game+'_'+level;
     const deleted=JSON.parse(localStorage.getItem(key)||'[]');
     if(!deleted.includes(idx))deleted.push(idx);
@@ -5310,7 +5310,7 @@ const ZP={
       ${can?`<button class="btn btng" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:`<button class="btn btnd" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
-  _doReb(){if(!confirm('Wirklich? Fast alle Tiere und MT verlieren!'))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
+  async _doReb(){if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
   // ENCLOSURE
   _rEnc(i){
@@ -6537,7 +6537,7 @@ const ZAdmin = {
     }catch(e){}
   },
   async _clearAllReports(){
-    if(!confirm('Wirklich ALLE Meldungen löschen?'))return;
+    if(!(await showConfirm('Wirklich ALLE Meldungen löschen?')))return;
     try{
       localStorage.setItem('zoo_reports','[]');
       if(typeof _db!=='undefined'&&State._useCloud()){
@@ -6713,8 +6713,8 @@ const ZAdmin = {
     const totalPlays=scores.length+(richRecs.length?' ('+richRecs.length+' Einzel)':'');
     panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#FFD700;font-size:.92rem">${gameName} — ${dev} (${totalPlays} Spiele)</b><button onclick="document.getElementById('cal-detail-panel').style.display='none'" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem">✕</button></div>${detailHTML}`;
   },
-  _deleteGameCal(gameIdx){
-    if(!confirm('ALLE Scores für dieses Spiel löschen (alle Geräte)?'))return;
+  async _deleteGameCal(gameIdx){
+    if(!(await showConfirm('ALLE Scores für dieses Spiel löschen (alle Geräte)?')))return;
     let cal={};
     try{cal=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
     const keysToDelete=Object.keys(cal).filter(k=>k.startsWith(gameIdx+'_'));
@@ -6759,8 +6759,8 @@ const ZAdmin = {
     const gameName=panel?.dataset.gameName||'';
     this._showCalDetail(gameIdx,dev,gameName);
   },
-  _deleteAllCalScores(gameIdx,dev){
-    if(!confirm('Alle Cal-Werte für diesen Eintrag löschen?'))return;
+  async _deleteAllCalScores(gameIdx,dev){
+    if(!(await showConfirm('Alle Cal-Werte für diesen Eintrag löschen?')))return;
     let calStore={};
     try{calStore=JSON.parse(localStorage.getItem('cal_data_v3')||'{}');}catch(e){}
     const key=gameIdx+'_'+dev;
@@ -6792,8 +6792,8 @@ const ZAdmin = {
     ZP.toast('✅ Kalibrierung gespeichert',1500);
     this._renderCalTable();
   },
-  _clearAllCal(){
-    if(!confirm('Alle Kalibrierungsdaten löschen?'))return;
+  async _clearAllCal(){
+    if(!(await showConfirm('Alle Kalibrierungsdaten löschen?')))return;
     localStorage.removeItem('cal_data_v3');
     if(typeof _db!=='undefined'&&_db){_db.collection('calibration').doc('scores').set({}).catch(()=>{});}
     ZP.toast('🗑️ Kalibrierung gelöscht',1500);
@@ -6941,7 +6941,7 @@ const ZAdmin = {
   },
 
   async deletePlayer(name){
-    if(!confirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)'))return;
+    if(!(await showConfirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)')))return;
     const k='zoo_'+name.toLowerCase();
     try{
       if(typeof _db!=='undefined'&&_db){
@@ -6971,7 +6971,7 @@ const ZAdmin = {
     try{ players = await this._fetchAllPlayers(); }catch(e){ ZP.toast('⚠️ Firebase nicht verfügbar.',2500); return; }
     const toDelete = players.filter(p => !keep.includes(p.name.toLowerCase()));
     if(!toDelete.length){ ZP.toast('✅ Niemand zu löschen — alle sind auf der Liste.',2500); return; }
-    if(!confirm('⚠️ Wirklich '+toDelete.length+' Spieler KOMPLETT löschen (Zoo + Denkspiel-Account)?\n\n'+toDelete.map(p=>p.name).join(', ')+'\n\nBleiben: '+raw))return;
+    if(!(await showConfirm('⚠️ Wirklich '+toDelete.length+' Spieler KOMPLETT löschen (Zoo + Denkspiel-Account)?\n\n'+toDelete.map(p=>p.name).join(', ')+'\n\nBleiben: '+raw)))return;
     let done=0;
     for(const p of toDelete){
       const k='zoo_'+p.name.toLowerCase();
@@ -8460,8 +8460,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     show('s-login');
   }
   // Back button handler
-  window.addEventListener('popstate',()=>{
-    if(confirm('Zoo verlassen?')){
+  window.addEventListener('popstate',async ()=>{
+    if(await showConfirm('Zoo verlassen?')){
       sessionStorage.setItem('from_game','1');
       window.location.href='index.html';
     } else { history.pushState(null,'',''); }

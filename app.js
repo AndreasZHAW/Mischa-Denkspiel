@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v270';
+const APP_VERSION = 'v271';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v270 · 2026-07-09</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v271 · 2026-07-09</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -394,7 +394,7 @@ const App = {
     if (!_hasUnlocked && mt < cost) { showAlert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
     // Remember unlock permanently
     if (mt >= cost) localStorage.setItem('zoo_unlocked_' + _playerKey, '1');
-    if (!confirm('🦁 In den Zoo teleportieren?')) return;
+    if (!(await showConfirm('🦁 In den Zoo teleportieren?'))) return;
     // Zoo is FREE once unlocked - no MT deduction
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());
     if(window.MISCHA_TESTMODE){try{sessionStorage.setItem('mischa_testmode','1');}catch(e){}}
@@ -1834,8 +1834,8 @@ const App = {
     this.showKontoauszug(); // refresh
   },
 
-  _calClearDev(dev) {
-    if (!confirm('Alle Kalibrierungsdaten für '+dev+' löschen?')) return;
+  async _calClearDev(dev) {
+    if (!(await showConfirm('Alle Kalibrierungsdaten für '+dev+' löschen?'))) return;
     const calStore = JSON.parse(localStorage.getItem('cal_data_v3')||'{}');
     Object.keys(calStore).forEach(k=>{ if(k.endsWith('_'+dev)) delete calStore[k]; });
     localStorage.setItem('cal_data_v3', JSON.stringify(calStore));
@@ -1996,7 +1996,7 @@ const App = {
     if (activeTask<0) return;
     const rem = State.getJokersRemaining(player, worldId);
     if (rem === 0) { showAlert('Keine Joker mehr in dieser Welt!'); return; }
-    if (confirm(`🃏 Joker einsetzen?\nNoch ${rem} Joker in dieser Welt.\nDie aktuelle Aufgabe zählt als geschafft.`)) {
+    if (await showConfirm(`🃏 Joker einsetzen?\nNoch ${rem} Joker in dieser Welt.\nDie aktuelle Aufgabe zählt als geschafft.`)) {
       await State.useJoker(player.name, worldId, activeTask);
       this.showWorld(worldId);
     }
@@ -2722,8 +2722,8 @@ const App = {
     const selectId = who === 'reported' ? 'ban-dur-reported' : 'ban-dur-reporter';
     const dur = parseInt(document.getElementById(selectId)?.value||'86400000');
     const reason = document.getElementById('ban-reason-txt')?.value||'Regelverstoß';
-    if(!confirm(`"${playerName}" sperren?
-Grund: ${reason}`)) return;
+    if(!(await showConfirm(`"${playerName}" sperren?
+Grund: ${reason}`))) return;
     try {
       if(typeof _db!=='undefined'&&_db) {
         await _db.collection('player_bans').doc(playerName.toLowerCase()).set({
@@ -2739,7 +2739,7 @@ Grund: ${reason}`)) return;
   },
 
   async _doUnban(playerName) {
-    if(!confirm(`Sperrung von "${playerName}" aufheben?`)) return;
+    if(!(await showConfirm(`Sperrung von "${playerName}" aufheben?`))) return;
     try {
       if(typeof _db!=='undefined'&&_db) await _db.collection('player_bans').doc(playerName.toLowerCase()).delete();
       showAlert(`✅ ${playerName} freigegeben.`);
@@ -2819,10 +2819,10 @@ Grund: ${reason}`)) return;
     }
   },
 
-  _confirmLeave(worldId) {
+  async _confirmLeave(worldId) {
     this._zoomLevel = 1; // Reset zoom on leave
     if(typeof SokobanGame !== 'undefined' && SokobanGame._cleanup) SokobanGame._cleanup();
-    if (confirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.')) {
+    if (await showConfirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.')) {
       // Stop any running timers in games
       try { clearInterval(MemoryGame._timerInterval); } catch(e){}
       try { clearInterval(DifferencesGame._timerInterval); } catch(e){}
@@ -2834,7 +2834,7 @@ Grund: ${reason}`)) return;
   async useJokerInGame(worldId, taskIndex) {
     const player = await State.refreshCurrentPlayer();
     if (State.getJokersRemaining(player, worldId) === 0) return;
-    if (confirm('🃏 Joker einsetzen? Aufgabe zählt als geschafft!')) {
+    if (await showConfirm('🃏 Joker einsetzen? Aufgabe zählt als geschafft!')) {
       await State.useJoker(player.name, worldId, taskIndex);
       this._showTaskComplete(worldId, taskIndex, { rawScore:0, timeMs:0, errors:0, passed:true }, true);
     }
