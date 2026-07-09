@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v271';
+const APP_VERSION = 'v272';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,8 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v271 · 2026-07-09</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v272 · 2026-07-09</p>
+          <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -364,9 +365,7 @@ const App = {
               <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
-            <div style="text-align:center;margin-top:2px">
-              <a href="javascript:void(0)" onclick="window.location.href='zoo.html?openadmin=1'" style="color:rgba(255,255,255,.35);font-size:.72rem;text-decoration:none">🔧 Admin</a>
-            </div>
+            <button onclick="window.location.href='zoo.html?openadmin=1'" style="background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);color:#FFD700;padding:9px 14px;border-radius:12px;font-weight:700;cursor:pointer;font-size:.85rem;margin-top:2px">🔧 Admin-Login</button>
           </div>
         </div>
       </div>`);
