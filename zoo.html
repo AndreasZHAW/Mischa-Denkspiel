@@ -6717,11 +6717,17 @@ const ZAdmin = {
       const d=document.createElement('div');
       d.className='padmin-player';
       d.dataset.name=p.name;
-      d.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 2px';
-      d.innerHTML=`<span style="font-size:1.1rem;cursor:pointer" onclick="ZAdmin.selectPlayer('${p.name.replace(/'/g,"\\'")}','${(p.char||'🧭')}')">${p.char||'🧭'}</span>
-        <span style="flex:1;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onclick="ZAdmin.selectPlayer('${p.name.replace(/'/g,"\\'")}','${(p.char||'🧭')}')">${p.name}</span>
-        <span style="font-size:.6rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};white-space:nowrap">${p.online?'online':'offline'}</span>
-        <button onclick="event.stopPropagation();ZAdmin.deletePlayer('${p.name.replace(/'/g,"\\'")}')" title="Spieler löschen" style="background:none;border:none;color:rgba(231,76,60,.6);cursor:pointer;font-size:.85rem;padding:2px 4px">🗑️</button>`;
+      d.style.cssText='display:flex;flex-direction:column;gap:2px;padding:5px 4px;border-radius:6px;background:rgba(255,255,255,.03)';
+      const nameEsc=p.name.replace(/'/g,"\\'");
+      d.innerHTML=`
+        <div style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')">
+          <span style="font-size:1.1rem;flex-shrink:0">${p.char||'🧭'}</span>
+          <span style="font-size:.78rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff">${p.name}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-left:2px">
+          <span style="font-size:.62rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'}">${p.online?'online':'offline'}</span>
+          <button onclick="event.stopPropagation();ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:none;border:none;color:rgba(231,76,60,.6);cursor:pointer;font-size:.85rem;padding:2px 4px">🗑️</button>
+        </div>`;
       // Long press (on the name/icon area) to visit zoo
       let lt=0;
       d.ontouchstart=()=>lt=Date.now();
