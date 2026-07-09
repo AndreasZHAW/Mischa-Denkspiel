@@ -21,6 +21,7 @@
     min-width: 82px !important;
     border-radius: 14px !important;
     padding: 6px 4px !important;
+    overflow: hidden !important;
   }
   .task-btn .task-icon { 
     font-size: 34px !important; 
@@ -31,6 +32,16 @@
     font-size: 15px !important; 
     line-height: 1.2 !important;
     font-weight: 700 !important;
+    /* FIX: long names (e.g. "Shut the Box") wrapping to 2 lines used to grow
+       the WHOLE grid row taller (CSS Grid rows share height with the tallest
+       cell). Clamp to 2 lines + hide overflow so every tile stays the same
+       square size regardless of name length. */
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    max-height: 2.4em !important;
+    text-align: center !important;
   }
   .task-grid {
     grid-template-columns: repeat(4, 1fr) !important;

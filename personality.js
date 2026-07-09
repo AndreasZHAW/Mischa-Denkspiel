@@ -1,4 +1,4 @@
-// Personality module — color + avatar customization (v262)
+// Personality module — color + avatar customization (v267)
 const Personality = {
   // ── COLOR PALETTE ── (10×10 grid like the user's reference image)
   COLORS: [
@@ -85,8 +85,8 @@ const Personality = {
       //  with the personality color, and only pages with their own opaque black overlay div
       //  masked it. Pages without one — like the profile screen — showed the raw tint through.)
       // Tint only the decorative sky-gradient divs (castle scenes) — NOT the plain
-      // solid-black covering div used by the Worldmap/profile screen (#wm-bg), which
-      // also happens to be .mountain-bg's first child. Targeting :first-child
+      // solid-black covering divs used by Welcome/Login/Worldmap (#welcome-bg, #login-bg,
+      // #wm-bg), which also happen to be .mountain-bg's first child. Targeting :first-child
       // generically was the remaining cause of the "still red instead of black" bug there.
       '.mountain-bg > div.sky-gradient{background:'+bgGrad+' !important}'+
       // The final dark fade-overlay too

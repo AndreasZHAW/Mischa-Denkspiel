@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v262';
+const APP_VERSION = 'v268';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -96,7 +96,7 @@ const STICKMAN_COLORS = [
 // ============================================================
 // APP
 // ============================================================
-// ══ FONT SCALE SYSTEM v262 — REBUILT FOR RELIABILITY ══
+// ══ FONT SCALE SYSTEM v267 — REBUILT FOR RELIABILITY ══
 // Design goals:
 //  1. ONE single global storage key — no device-fingerprint, no per-player key.
 //     (Fingerprints changed silently when Android's display-density setting changed,
@@ -233,10 +233,10 @@ const FontScale = {
   // "tested" flag — still per-device-ish but harmless if it resets occasionally
   // (only gates a one-time hint UI, never destroys the actual font choice).
   testDone() {
-    try { return localStorage.getItem('mischa_font_tested_v262') === '1'; } catch(e) { return false; }
+    try { return localStorage.getItem('mischa_font_tested_v267') === '1'; } catch(e) { return false; }
   },
   markTested() {
-    try { localStorage.setItem('mischa_font_tested_v262', '1'); } catch(e) {}
+    try { localStorage.setItem('mischa_font_tested_v267', '1'); } catch(e) {}
   },
 };
 window.FontScale = FontScale;
@@ -259,13 +259,74 @@ const App = {
       </div></div>`);
   },
 
+  // ── BACKGROUND COLOR DIAGNOSTIC ──
+  // Shows the ACTUAL computed colors the browser is using, right on the
+  // affected page, so we stop guessing and see real data from the device.
+  _showBgDiagnostic() {
+    const rows = [];
+    const check = (label, el) => {
+      if (!el) { rows.push([label, '❌ Element nicht gefunden']); return; }
+      const cs = window.getComputedStyle(el);
+      rows.push([label + ' background-color', cs.backgroundColor]);
+      rows.push([label + ' background-image', cs.backgroundImage.slice(0,60)]);
+      if (cs.filter && cs.filter !== 'none') rows.push([label + ' filter', cs.filter]);
+      if (cs.mixBlendMode && cs.mixBlendMode !== 'normal') rows.push([label + ' mix-blend-mode', cs.mixBlendMode]);
+      if (cs.opacity && cs.opacity !== '1') rows.push([label + ' opacity', cs.opacity]);
+    };
+    check('html', document.documentElement);
+    check('body', document.body);
+    check('#app (container)', document.getElementById('app'));
+    check('.mountain-bg (first)', document.querySelector('.mountain-bg'));
+    check('#wm-bg', document.getElementById('wm-bg'));
+    check('#welcome-bg', document.getElementById('welcome-bg'));
+    check('.page', document.querySelector('.page'));
+    // Meta theme-color (affects browser chrome, not page, but worth logging)
+    const meta = document.querySelector('meta[name="theme-color"]');
+    rows.push(['<meta theme-color>', meta ? meta.content : '❌ nicht gefunden']);
+    // Device info
+    rows.push(['devicePixelRatio', window.devicePixelRatio]);
+    rows.push(['prefers-color-scheme: dark', window.matchMedia('(prefers-color-scheme: dark)').matches]);
+    rows.push(['User-Agent', navigator.userAgent.slice(0,80)]);
+
+    // ── STACK CHECK: every element sitting at the screen's center point ──
+    // This reveals any hidden overlay (semi-transparent color filter, extra
+    // div, etc.) between the black background and what the eye sees —
+    // without this, we'd only ever see the ONE element we guessed to check.
+    rows.push(['── STACK @ screen center ──', '']);
+    try {
+      const cx = window.innerWidth/2, cy = window.innerHeight/2;
+      const stack = document.elementsFromPoint(cx, cy);
+      stack.slice(0,8).forEach((el,i) => {
+        const cs = window.getComputedStyle(el);
+        const tag = el.tagName.toLowerCase() + (el.id?'#'+el.id:'') + (el.className&&typeof el.className==='string'?'.'+el.className.split(' ').slice(0,2).join('.'):'');
+        rows.push([`  [${i}] ${tag}`, `bg:${cs.backgroundColor} | filter:${cs.filter!=='none'?cs.filter:'-'} | opacity:${cs.opacity}`]);
+      });
+    } catch(e) { rows.push(['Stack-Check Fehler', e.message]); }
+
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.92);color:#0f0;font-family:monospace;font-size:.72rem;padding:16px;overflow-y:auto;box-sizing:border-box';
+    ov.innerHTML = '<div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px">🔍 Hintergrund-Diagnose</div>' +
+      rows.map(([k,v]) => `<div style="margin-bottom:6px;word-break:break-all"><span style="color:#7FDBFF">${k}:</span> ${v}</div>`).join('') +
+      '<button onclick="this.parentElement.remove()" style="margin-top:16px;background:#FFD700;color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:900;cursor:pointer">Schliessen</button>' +
+      '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(this.parentElement.innerText);this.textContent=\'Kopiert!\'" style="margin-top:16px;margin-left:8px;background:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:900;cursor:pointer">📋 Kopieren</button>';
+    document.body.appendChild(ov);
+  },
+
   // ---- WELCOME ----
   showWelcome() {
-    // Apply saved font size immediately (new v262 single-key system)
+    // Apply saved font size immediately (new v267 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
 
-    const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
-    const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0);
+    // Draw stars on canvas
+    const wmc = document.getElementById('wm-stars');
+    if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
+      wctx.fillStyle='#000'; wctx.fillRect(0,0,wmc.width,wmc.height);
+      for(let i=0;i<200;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height*0.65,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
+      wmc.style.background='transparent';
+    } const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
+    // One-time language bonus (granted once at registration) counts toward the visible MT total.
+    const _langBonusMT = State.currentPlayer?.langBonusMT || 0;
+    const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0) + _langBonusMT;
     const hasEnough = mt >= 10;
     this._html(`
       <div class="mountain-bg" id="welcome-bg">
@@ -274,12 +335,13 @@ const App = {
         <div style="position:absolute;inset:0;background:#000"></div>
         <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
       </div>
+      ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
       <div class="page">
         <div class="game-logo">
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v262 · 2026-05-24</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v268 · 2026-07-09</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -305,7 +367,7 @@ const App = {
           </div>
         </div>
       </div>`);
-    // Draw twinkling stars on the black welcome background
+    // Draw stars on the black welcome background (canvas now exists in DOM)
     setTimeout(()=>{
       const wmc = document.getElementById('wm-stars');
       if(wmc){ const wctx=wmc.getContext('2d'); wmc.width=wmc.offsetWidth||window.innerWidth; wmc.height=wmc.offsetHeight||window.innerHeight;
@@ -764,6 +826,37 @@ const App = {
     State.setCurrentPlayer(player);
     FontScale.applyForPlayer(player?.name||'');
     this.showWorldMap();
+    // One-time language bonus popup (only right after registration)
+    if (player.langBonusGranted) {
+      const langKey = player.langBonusGranted; // 'en' or 'fr'
+      const langName = (typeof t!=='undefined') ? t('lang.name.'+langKey) : ({en:'Englisch',fr:'Französisch'}[langKey]||langKey);
+      setTimeout(() => App._showLangBonusPopup(player.langBonusMT||1, langName), 600);
+      // Clear the flag so it never shows again for this player
+      player.langBonusGranted = null;
+      State.savePlayer && State.savePlayer(player);
+    }
+  },
+
+  _showLangBonusPopup(amount, langName) {
+    const T = (k,fb) => (typeof t!=='undefined' ? t(k) : fb);
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+    ov.onclick = (e) => { if(e.target===ov) ov.remove(); };
+    const card = document.createElement('div');
+    card.style.cssText = 'background:linear-gradient(135deg,#1a4a1a,#134d13);border:2px solid #FFD700;border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 0 40px rgba(255,215,0,.3)';
+    card.innerHTML = `
+      <div style="font-size:2.4rem;margin-bottom:8px">🎉</div>
+      <div style="color:#FFD700;font-weight:900;font-size:1.1rem;margin-bottom:10px">${T('langbonus.title','Sprach-Bonus erhalten!')}</div>
+      <div style="color:#fff;font-size:.92rem;line-height:1.5;margin-bottom:18px">
+        ${T('langbonus.body','Weil du {lang} gewählt hast, bekommst du einmalig').replace('{lang}','<b>'+langName+'</b>')}<br>
+        <span style="color:#FFD700;font-weight:900;font-size:1.2rem">+${amount} 🌀 MT</span><br>
+        ${T('langbonus.gift','geschenkt!')}
+      </div>
+      <button style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:12px 32px;border-radius:12px;font-weight:900;font-size:.95rem;cursor:pointer">${T('langbonus.btn','Super, danke!')}</button>
+    `;
+    card.querySelector('button').onclick = () => ov.remove();
+    ov.appendChild(card);
+    document.body.appendChild(ov);
   },
 
   // ---- LOGIN ----
@@ -1105,16 +1198,19 @@ const App = {
     } catch(_e) { mt = 0; }
 
     this._html(`
+      ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
       <div class="mountain-bg" id="wm-bg">
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,#020008 0%,#060015 30%,#0a001f 55%,#120028 75%,#1e0035 90%,#120020 100%)"></div>
+        <!-- Pure black background, matching the Intro's aesthetic (was a
+             dark-purple gradient that photographed/rendered as brownish on
+             some Android screens) -->
+        <div style="position:absolute;inset:0;background:#000"></div>
         <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 35% at 25% 18%,rgba(70,0,110,.3),transparent),radial-gradient(ellipse 50% 25% at 75% 35%,rgba(0,15,70,.25),transparent)"></div>
         <div style="position:absolute;top:5%;right:12%;width:46px;height:46px">
           <div style="width:46px;height:46px;border-radius:50%;background:#fffbe0;box-shadow:0 0 18px rgba(255,245,200,.5)"></div>
-          <div style="position:absolute;top:5px;right:-7px;width:38px;height:38px;border-radius:50%;background:#020008"></div>
+          <div style="position:absolute;top:5px;right:-7px;width:38px;height:38px;border-radius:50%;background:#000"></div>
         </div>
         ${mountainSVG(true)}
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,10,.65) 100%)"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.75) 100%)"></div>
       </div>
       <div class="page" style="padding-top:16px;padding-left:4px;padding-right:4px;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden">
         <!-- Header -->
@@ -1129,17 +1225,14 @@ const App = {
               <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:1rem;padding:4px 12px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
             </div>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">🌍 Rangliste</button>
-            ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:2px solid #E74C3C;color:#E74C3C;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">⚑ Meldungen</button>` : ''}
-            <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,.5);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
-            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:2px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
-            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:2px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
-
-
-
-            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,.3);color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px" title="Spielprotokoll anzeigen">${typeof t!=='undefined'?t('wm.log'):'📋 Log'}</button>
-            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:2px solid white;color:white;padding:0.562remrem 1.000remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1.1rem;min-height:48px">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
+            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
+            ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
+            <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,.5);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
+            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:1.5px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
+            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:1.5px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
+            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,.3);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Spielprotokoll anzeigen">${typeof t!=='undefined'?t('wm.log'):'📋 Log'}</button>
+            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:1.5px solid white;color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
           </div>
         </div>
 
@@ -1151,19 +1244,12 @@ const App = {
           </div>
         </div>
 
-        <!-- Belohnungen / Truhen -->
-        ${window.MISCHA_TESTMODE ? `
-        <div style="margin-bottom:12px">
-          <button id="reward-btn" onclick="RewardChests.open()" style="position:relative;width:100%;background:linear-gradient(135deg,#FFA500,#FF6B00);color:#1a1a2e;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(255,140,0,.4)">
-            ${typeof t!=='undefined'?t('wm.rewards_btn'):'🎁 Belohnungen abholen'}
-            <span id="reward-badge" style="display:none;position:absolute;top:-8px;right:14px;background:#E74C3C;color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;text-align:center;font-size:1.05rem;font-weight:900;box-shadow:0 0 10px rgba(231,76,60,.9);animation:bounce 1s infinite">!</span>
-          </button>
-        </div>
+        <!-- Belohnungen/Truhen wurden entfernt: gehören nur zu Welt 2 (Zoo), nicht zur Weltkarte -->
         <div style="margin-bottom:12px">
           <button onclick="App.showPersonality()" style="width:100%;background:linear-gradient(135deg,#FF6FB5,#9B59B6);color:#fff;border:none;padding:13px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(155,89,182,.4)">
             ${typeof t!=='undefined'?t('worldmap.personality'):'🎨 Persönlichkeit (Farbe + Avatar)'}
           </button>
-        </div>` : ''}
+        </div>
 
         <!-- Teleport Button -->
         ${mt>=10 ? `
@@ -1297,7 +1383,7 @@ const App = {
             <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
               Schritt ${s+1} von ${SIZES.length} — ${size}px
             </p>
-            <p style="color:rgba(255,255,255,.3);font-size:0.875remrem;margin:3px 0 0">
+            <p style="color:rgba(255,255,255,.3);font-size:0.875rem;margin:3px 0 0">
               Systemschrift: ${sysSize}px · DPR: ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
             </p>
           </div>
@@ -1348,7 +1434,7 @@ const App = {
             </button>` : ''}
             <button onclick="App.showWorldMap()"
               style="background:none;color:rgba(255,255,255,.3);border:none;
-                     padding:10px;font-size:1.000remrem;cursor:pointer;margin-top:4px">
+                     padding:10px;font-size:1.000rem;cursor:pointer;margin-top:4px">
               Überspringen (Standardgrösse beibehalten)
             </button>
           </div>
@@ -1434,10 +1520,10 @@ const App = {
         <div style="text-align:center;margin-bottom:28px">
           <div style="font-size:3rem;margin-bottom:8px">👁</div>
           <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Schriftgrösse optimieren</h2>
-          <p style="color:rgba(255,255,255,.5);font-size:1.000remrem;margin:0">
+          <p style="color:rgba(255,255,255,.5);font-size:1.000rem;margin:0">
             Schritt ${step+1} von ${SIZES.length} — ${size}px
           </p>
-          <p style="color:rgba(255,255,255,.3);font-size:0.812remrem;margin:3px 0 0">
+          <p style="color:rgba(255,255,255,.3);font-size:0.812rem;margin:3px 0 0">
             System: ${sysSize}px · DPR ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
           </p>
         </div>
@@ -1821,35 +1907,36 @@ const App = {
     }
 
     this._html(`
+      ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
       <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
       <div class="page" style="padding-top:14px">
         
             <div class="world-banner ${world.bannerClass}" style="margin-bottom:10px">
           <span class="banner-icon">${world.icon}</span>
           <div class="banner-title">${world.name}</div>
-          <div class="banner-sub">${done}/20 geschafft · 🌀${(ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
+          <div class="banner-sub">${done}/20 ${typeof t!=='undefined'?t('gamelist.done_of20'):'geschafft'} · 🌀${(ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
         </div>
 
 
-        <div class="card" style="max-width:100%;padding:1.000remrem;box-sizing:border-box">
+        <div class="card" style="max-width:100%;padding:1.000rem;box-sizing:border-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">◀ Welten</button>
+            <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">${typeof t!=='undefined'?t('gamelist.back'):'◀ Welten'}</button>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">🌍 Rangliste</button>
-              <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">📊 Kontoauszug</button>
-              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500remrem 0.750remrem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">👗 Kleider</button>
+              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
+              <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
+              <button onclick="Wardrobe.open()" style="background:rgba(255,215,0,0.1);border:2px solid rgba(255,215,0,0.5);color:#FFD700;padding:0.500rem 0.750rem;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem;min-height:40px">${typeof t!=='undefined'?t('gamelist.wardrobe'):'👗 Kleider'}</button>
             </div>
           </div>
 
           ${window._showEyeTestHint ? `<div onclick="App.showEyeTest()" style="background:linear-gradient(135deg,rgba(100,200,255,.14),rgba(41,182,246,.08));border:1.5px solid rgba(100,200,255,.4);border-radius:12px;padding:10px 14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:10px">
             <span style="font-size:1.4rem">👁</span>
             <div style="flex:1">
-              <div style="font-weight:900;color:rgba(180,240,255,1)">Schrift zu klein?</div>
-              <div style="color:rgba(255,255,255,.5);font-size:.82rem">Schrift optimieren — 10 Stufen, ~30 Sek.</div>
+              <div style="font-weight:900;color:rgba(180,240,255,1)">${typeof t!=='undefined'?t('gamelist.font_hint_t'):'Schrift zu klein?'}</div>
+              <div style="color:rgba(255,255,255,.5);font-size:.82rem">${typeof t!=='undefined'?t('gamelist.font_hint_b'):'Schrift optimieren — 10 Stufen, ~30 Sek.'}</div>
             </div>
             <span style="color:rgba(100,200,255,.7)">›</span>
           </div>` : ''}
-          <div style="font-size:1rem;color:var(--text-mid);margin-bottom:8px">Tippe auf die nächste Aufgabe:</div>
+          <div style="font-size:1rem;color:var(--text-mid);margin-bottom:8px">${typeof t!=='undefined'?t('gamelist.next_task'):'Tippe auf die nächste Aufgabe:'}</div>
 
           ${_isRefW ? '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);border-radius:10px;padding:10px;margin-bottom:10px;font-size:1rem;color:#fff"><b style="color:#E74C3C">&#128302; Kalibrierung:</b> '+calCount+'/20 Spiele &middot; '+runsCount+' Durchgang'+(runsCount>=3?' &middot; ✅ Vollständig':runsCount>0?' &middot; '+Math.round(calCount/20*100)+'%':'')+'</div>' : ''}
       <div class="task-grid">
@@ -1880,9 +1967,9 @@ const App = {
 
           <div style="margin-top:12px">
             <div class="progress-bar-wrap">
-              <div class="progress-bar-fill" style="width:${done*10}%"></div>
+              <div class="progress-bar-fill" style="width:${done*5}%"></div>
             </div>
-            <div style="text-align:center;font-size:0.95rem;color:var(--text-mid)">${done}/10 Aufgaben</div>
+            <div style="text-align:center;font-size:0.95rem;color:var(--text-mid)">${done}/20 ${typeof t!=='undefined'?t('gamelist.done_of20'):'geschafft'}</div>
           </div>
         </div>
       </div>`);

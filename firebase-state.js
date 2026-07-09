@@ -205,9 +205,14 @@ const State = {
     if (nameLc === 'bu' && password !== 'mischa2026') return null;
     const existing = await this.getPlayer(name);
     if (existing) return null; // Player already exists
-    // Language bonus: +1 MT for non-German UI languages (not de_simple — still German)
+    // Language bonus: +1 MT, ONCE, for non-German UI languages (not de_simple — still German).
+    // Stored in its own field (not totalScore) so it's clearly a one-time bonus,
+    // and the World Map adds it into the visible Welt-1 MT total.
     let _langBonus = 0;
-    try { if (typeof LANG !== 'undefined') _langBonus = LANG.getBonus(); } catch(e) {}
+    let _langBonusLang = null;
+    try {
+      if (typeof LANG !== 'undefined') { _langBonus = LANG.getBonus(); _langBonusLang = LANG._cur; }
+    } catch(e) {}
     const player = {
       name, password,
       birthYear: parseInt(birthYear),
@@ -215,7 +220,9 @@ const State = {
       characterColor: characterColor || null,
       currentWorld: 1,
       worlds: this._emptyWorlds(),
-      totalScore: _langBonus,
+      totalScore: 0,
+      langBonusMT: _langBonus,
+      langBonusGranted: _langBonus > 0 ? _langBonusLang : null, // used to show the one-time popup
       createdAt: Date.now(),
     };
     await this.savePlayer(player);
@@ -1025,12 +1032,13 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 window.State = State;
-window.initFirebase = initFirebase;
 
 // ============================================================
-// CUSTOM ALERT — replaces native alert() so the browser's own
-// "Auf <site> wird Folgendes angezeigt:" chrome never shows up.
+// RANK NOTIFICATIONS — shared between Denkspiel (app.js) and Zoo (zoo.html)
 // ============================================================
+// Checks whether the player's combined global rank (Welt-1 MT + Zoo MT) has
+// moved up or down since the last time we told them, at most once per hour.
+// Plays a short chime on improvement, a bigger fanfare specifically for #1.
 const RankNotify = {
   async check(playerName) {
     try {
@@ -1314,6 +1322,10 @@ const Contest = {
 };
 window.Contest = Contest;
 
+// ============================================================
+// CUSTOM ALERT — replaces native alert() so the browser's own
+// "Auf <site> wird Folgendes angezeigt:" chrome never shows up.
+// ============================================================
 window.showAlert = function(message) {
   try {
     const existing = document.getElementById('custom-alert-overlay');
@@ -1337,3 +1349,4 @@ window.showAlert = function(message) {
     requestAnimationFrame(()=>{ overlay.style.opacity='1'; });
   } catch(e) { /* last-resort fallback */ try{ alert(message); }catch(e2){} }
 };
+window.initFirebase = initFirebase;
