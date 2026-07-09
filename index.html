@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<script>window.MISCHA_TESTMODE=true;</script>
+<script>window.MISCHA_TESTMODE = /\/test\//.test(window.location.pathname) || /\/test$/.test(window.location.pathname);</script>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -215,37 +215,37 @@
     });
   </script>
   <!-- Core -->
-  <script src="worlds.js?v=268"></script>
-  <script src="firebase-state.js?v=268"></script>
+  <script src="worlds.js?v=269"></script>
+  <script src="firebase-state.js?v=269"></script>
   <!-- Games -->
-  <script src="math.js?v=268"></script>
-  <script src="reaction.js?v=268"></script>
-  <script src="memory.js?v=268"></script>
-  <script src="sokoban.js?v=268"></script>
-  <script src="shutthebox.js?v=268"></script>
-  <script src="jenga.js?v=268"></script>
-  <script src="slider.js?v=268"></script>
-  <script src="wordsearch.js?v=268"></script>
-  <script src="typing.js?v=268"></script>
-  <script src="balloon.js?v=268"></script>
-  <script src="simon.js?v=268"></script>
-  <script src="truefalse.js?v=268"></script>
-  <script src="dart.js?v=268"></script>
-  <script src="pacman.js?v=268"></script>
-  <script src="starwars.js?v=268"></script>
-  <script src="pong2.js?v=268"></script>
-  <script src="tetris.js?v=268"></script>
-  <script src="stunt.js?v=268"></script>
-  <script src="anagram.js?v=268"></script>
-  <script src="colormix.js?v=268"></script>
-  <script src="minigames.js?v=268"></script>
-  <script src="shop.js?v=268"></script>
+  <script src="math.js?v=269"></script>
+  <script src="reaction.js?v=269"></script>
+  <script src="memory.js?v=269"></script>
+  <script src="sokoban.js?v=269"></script>
+  <script src="shutthebox.js?v=269"></script>
+  <script src="jenga.js?v=269"></script>
+  <script src="slider.js?v=269"></script>
+  <script src="wordsearch.js?v=269"></script>
+  <script src="typing.js?v=269"></script>
+  <script src="balloon.js?v=269"></script>
+  <script src="simon.js?v=269"></script>
+  <script src="truefalse.js?v=269"></script>
+  <script src="dart.js?v=269"></script>
+  <script src="pacman.js?v=269"></script>
+  <script src="starwars.js?v=269"></script>
+  <script src="pong2.js?v=269"></script>
+  <script src="tetris.js?v=269"></script>
+  <script src="stunt.js?v=269"></script>
+  <script src="anagram.js?v=269"></script>
+  <script src="colormix.js?v=269"></script>
+  <script src="minigames.js?v=269"></script>
+  <script src="shop.js?v=269"></script>
   <!-- App -->
-  <script src="french.js?v=268"></script>
-<script src="lang.js?v=268"></script>
-  <script src="rewardchests.js?v=268"></script>
-  <script src="personality.js?v=268"></script>
-  <script src="app.js?v=268"></script>
+  <script src="french.js?v=269"></script>
+<script src="lang.js?v=269"></script>
+  <script src="rewardchests.js?v=269"></script>
+  <script src="personality.js?v=269"></script>
+  <script src="app.js?v=269"></script>
   <script>
     // Prevent double-tap zoom on touch devices
     let _lastTouch = 0;
@@ -347,7 +347,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v268 wird geladen...';
+      if(vEl) vEl.textContent = 'v269 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)
