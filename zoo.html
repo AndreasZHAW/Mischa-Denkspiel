@@ -6317,6 +6317,7 @@ const ZAdmin = {
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
     if(tab==='timer')this._loadTimerStatus();
+    if(tab==='spieler')this._loadPlayersTab();
   },
   _populateAnimalGrid(){
     const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
@@ -6670,32 +6671,37 @@ const ZAdmin = {
     if(el)el.style.display='none';
   },
   
+  async _fetchAllPlayers(){
+    // "Online" comes from the live position feed (zoo_players, updated every few seconds
+    // while someone is actually in the 3D world). "All players" comes from the zoos
+    // collection — every player who's ever saved a zoo has a doc there.
+    if(typeof _db==='undefined'||!_db)throw new Error('no db');
+    const [posSnap, zoosSnap] = await Promise.all([
+      _db.collection('zoo_players').get(),
+      _db.collection('zoos').get(),
+    ]);
+    const onlineNames = new Set();
+    posSnap.forEach(doc=>{
+      const d=doc.data();
+      if(d.name && Date.now()-d.t<20000) onlineNames.add(d.name.toLowerCase());
+    });
+    const players=[];
+    zoosSnap.forEach(doc=>{
+      const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
+      if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
+    });
+    players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
+    return players;
+  },
+
+  // ── Sidebar list: quick target-picker for spawning etc. (kept simple: icon + name) ──
   async loadPlayers(){
     const list=document.getElementById('padmin-playerlist');
     if(!list)return;
     list.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.7rem">Lade...</div>';
     try{
-      if(typeof _db==='undefined'||!_db)throw new Error('no db');
-      // "Online" comes from the live position feed (zoo_players, updated every few seconds
-      // while someone is actually in the 3D world). "All players" comes from the zoos
-      // collection — every player who's ever saved a zoo has a doc there.
-      const [posSnap, zoosSnap] = await Promise.all([
-        _db.collection('zoo_players').get(),
-        _db.collection('zoos').get(),
-      ]);
-      const onlineNames = new Set();
-      posSnap.forEach(doc=>{
-        const d=doc.data();
-        if(d.name && Date.now()-d.t<20000) onlineNames.add(d.name.toLowerCase());
-      });
-      const players=[];
-      zoosSnap.forEach(doc=>{
-        const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
-        if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
-        const z=doc.data()||{};
-        players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
-      });
-      players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
+      const players = await this._fetchAllPlayers();
       this._renderPlayers(players);
     }catch(e){
       // Fallback: use locally visible players from ZG.otherPl
@@ -6707,7 +6713,7 @@ const ZAdmin = {
       }
     }
   },
-  
+
   _renderPlayers(players){
     const list=document.getElementById('padmin-playerlist');
     if(!list)return;
@@ -6717,18 +6723,10 @@ const ZAdmin = {
       const d=document.createElement('div');
       d.className='padmin-player';
       d.dataset.name=p.name;
-      d.style.cssText='display:flex;flex-direction:column;gap:2px;padding:5px 4px;border-radius:6px;background:rgba(255,255,255,.03)';
-      const nameEsc=p.name.replace(/'/g,"\\'");
-      d.innerHTML=`
-        <div style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')">
-          <span style="font-size:1.1rem;flex-shrink:0">${p.char||'🧭'}</span>
-          <span style="font-size:.78rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff">${p.name}</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-left:2px">
-          <span style="font-size:.62rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'}">${p.online?'online':'offline'}</span>
-          <button onclick="event.stopPropagation();ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:none;border:none;color:rgba(231,76,60,.6);cursor:pointer;font-size:.85rem;padding:2px 4px">🗑️</button>
-        </div>`;
-      // Long press (on the name/icon area) to visit zoo
+      d.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 2px;cursor:pointer';
+      d.innerHTML=`<span style="font-size:1.1rem">${p.char||'🧭'}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>`;
+      d.onclick=()=>this.selectPlayer(p.name, p.char);
+      // Long press to visit zoo
       let lt=0;
       d.ontouchstart=()=>lt=Date.now();
       d.ontouchend=()=>{if(Date.now()-lt>500)visitZoo(p.name);};
@@ -6736,8 +6734,33 @@ const ZAdmin = {
     });
   },
 
+  // ── "👥 Spieler" tab: full management view (online/offline + delete), plenty of room ──
+  async _loadPlayersTab(){
+    const el=document.getElementById('padmin-players-table');
+    if(!el)return;
+    el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Lade...</div>';
+    let players=[];
+    try{
+      players = await this._fetchAllPlayers();
+    }catch(e){
+      el.innerHTML='<div style="color:rgba(255,165,0,.8);font-size:.8rem">⚠️ Firebase nicht verfügbar.</div>';
+      return;
+    }
+    if(!players.length){ el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Keine Spieler gefunden.</div>'; return; }
+    el.innerHTML = players.map(p=>{
+      const nameEsc=p.name.replace(/'/g,"\\'");
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05)">
+        <span style="font-size:1.3rem">${p.char||'🧭'}</span>
+        <span style="flex:1;font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+        <span style="font-size:.72rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};min-width:52px;text-align:center;background:${p.online?'rgba(46,204,64,.12)':'rgba(231,76,60,.12)'};padding:3px 8px;border-radius:20px">${p.online?'online':'offline'}</span>
+        <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.78rem">🎯</button>
+        <button onclick="ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.78rem">🗑️</button>
+      </div>`;
+    }).join('');
+  },
+
   async deletePlayer(name){
-    if(!confirm('⚠️ Wirklich «'+name+'» komplett aus dem Zoo löschen?\n(Alle Tiere, MT, Fortschritt — kann nicht rückgängig gemacht werden!)'))return;
+    if(!confirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)'))return;
     const k='zoo_'+name.toLowerCase();
     try{
       if(typeof _db!=='undefined'&&_db){
@@ -6746,13 +6769,16 @@ const ZAdmin = {
       }
     }catch(e){}
     try{ localStorage.removeItem(k); }catch(e){}
+    // Also remove the Denkspiel account (mischa_players) so they disappear from the leaderboard too
+    try{ if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(name); }catch(e){}
     if(this.target?.name?.toLowerCase()===name.toLowerCase()){
       this.target=null;
       const el=document.getElementById('padmin-target-display');
       if(el)el.textContent='Spieler auswählen →';
     }
-    ZP.toast('🗑️ '+name+' aus dem Zoo gelöscht.',2500);
+    ZP.toast('🗑️ '+name+' komplett gelöscht (Zoo + Denkspiel).',2500);
     this.loadPlayers();
+    this._loadPlayersTab();
   },
 
   // ── GLOBAL TIMER (visible to all players, persisted in Firebase) ──
@@ -8970,6 +8996,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="news" onclick="ZAdmin.switchTab('news')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#27AE60;display:flex;align-items:center;gap:6px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:6px">📰 Update-News</div>
           <div class="padmin-tab-btn" data-tab="reports" onclick="ZAdmin.switchTab('reports')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">📋 Meldungen</div>
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
+          <div class="padmin-tab-btn" data-tab="spieler" onclick="ZAdmin.switchTab('spieler')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">👥 Spieler</div>
           <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#e67e22;display:flex;align-items:center;gap:6px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px">⏱️ Timer</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
@@ -9274,6 +9301,12 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: ANKÜNDIGUNG -->
+        <div class="padmin-tab" id="padmin-tab-spieler" style="display:none">
+          <div class="padmin-section-title">👥 Spieler-Verwaltung</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Grün = gerade online (aktiv in den letzten 20s) · Rot = offline</div>
+          <div id="padmin-players-table" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
         <div class="padmin-tab" id="padmin-tab-timer" style="display:none">
           <div class="padmin-section-title">⏱️ Timer für alle Spieler</div>
           <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:12px">
