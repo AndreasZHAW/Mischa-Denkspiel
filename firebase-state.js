@@ -1411,6 +1411,51 @@ window.showConfirm = function(message) {
 // incognito mode, a different browser, or a different device all produce
 // a fresh ID. Still useful to stop a quick "just retype a new name".
 // ============================================================
+// ============================================================
+// PLAYTIME & LOGIN TRACKING — shared between Denkspiel (app.js) and Zoo
+// (zoo.html). Tracks: how many times logged in, when last, and total
+// session time. Stored separately per world (mischa_players / zoos docs)
+// since a player might have very different history in each; the Admin
+// Panel sums/merges them for a combined view.
+// ============================================================
+const PlayTime = {
+  _intervals: {},
+
+  // Call once, right after a successful login, before starting tracking.
+  async recordLogin(kind, name) {
+    try {
+      if (typeof _db === 'undefined' || !_db) return;
+      const col = kind === 'zoo' ? 'zoos' : 'mischa_players';
+      const key = kind === 'zoo' ? 'zoo_' + name.toLowerCase() : name.toLowerCase();
+      const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+        ? firebase.firestore.FieldValue.increment(1) : 1;
+      await _db.collection(col).doc(key).set({
+        loginCount: inc,
+        lastLogin: Date.now(),
+      }, { merge: true });
+    } catch(e) {}
+  },
+
+  // Starts a periodic accumulator that adds elapsed seconds to totalPlaytimeSec
+  // every 60s while this tab/session stays open. Call once after login.
+  startTracking(kind, name) {
+    try {
+      const col = kind === 'zoo' ? 'zoos' : 'mischa_players';
+      const key = kind === 'zoo' ? 'zoo_' + name.toLowerCase() : name.toLowerCase();
+      if (this._intervals[key]) return; // already tracking
+      this._intervals[key] = setInterval(async () => {
+        try {
+          if (typeof _db === 'undefined' || !_db) return;
+          const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+            ? firebase.firestore.FieldValue.increment(60) : 60;
+          await _db.collection(col).doc(key).set({ totalPlaytimeSec: inc }, { merge: true });
+        } catch(e) {}
+      }, 60000);
+    } catch(e) {}
+  },
+};
+window.PlayTime = PlayTime;
+
 window.getDeviceId = function() {
   try {
     let id = localStorage.getItem('mischa_device_id');

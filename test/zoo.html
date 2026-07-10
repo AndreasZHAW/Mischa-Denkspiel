@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v276 -->
+<!-- ZOO v277 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=276"></script>
-<script src="rewardchests.js?v=276"></script>
-<script src="personality.js?v=276"></script>
+<script src="lang.js?v=277"></script>
+<script src="rewardchests.js?v=277"></script>
+<script src="personality.js?v=277"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v276','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v277','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=276"></script>
+<script src="firebase-state.js?v=277"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -978,7 +978,7 @@ const ZA={
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
   _personalityAvatar(){try{if(!ZS.player)return '';const pk=Object.keys(localStorage).find(k=>k.startsWith('mischa_personality_')&&k.includes(ZS.player.toLowerCase()));if(pk){const d=JSON.parse(localStorage.getItem(pk)||'{}');if(d&&d.face)return d.face+(d.hat||'')+(d.glasses||'');}}catch(e){}return ZS.char?.e||'';},
-  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;},
+  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}},
   async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
     const _ls = document.getElementById('zoo-load-status');
     if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
@@ -6882,20 +6882,27 @@ const ZAdmin = {
       if(namesSeen.has(name.toLowerCase())) return;
       namesSeen.add(name.toLowerCase());
       const zd=doc.data()||{};
-      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: zd.deviceId||null });
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: zd.deviceId||null,
+        loginCount: zd.loginCount||0, lastLogin: zd.lastLogin||0, playtimeSec: zd.totalPlaytimeSec||0 });
     });
     mpSnap.forEach(doc=>{
       const d=doc.data()||{};
       const name = d.name || doc.id;
       if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
       if(namesSeen.has(name.toLowerCase())){
-        // Already added from zoos — fill in deviceId if we didn't have one yet
+        // Already added from zoos — merge stats from the Denkspiel side too
         const existing = players.find(p=>p.name.toLowerCase()===name.toLowerCase());
-        if(existing && !existing.deviceId && d.deviceId) existing.deviceId = d.deviceId;
+        if(existing){
+          if(!existing.deviceId && d.deviceId) existing.deviceId = d.deviceId;
+          existing.loginCount = (existing.loginCount||0) + (d.loginCount||0);
+          existing.playtimeSec = (existing.playtimeSec||0) + (d.totalPlaytimeSec||0);
+          existing.lastLogin = Math.max(existing.lastLogin||0, d.lastLogin||0);
+        }
         return;
       }
       namesSeen.add(name.toLowerCase());
-      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: d.deviceId||null });
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: d.deviceId||null,
+        loginCount: d.loginCount||0, lastLogin: d.lastLogin||0, playtimeSec: d.totalPlaytimeSec||0 });
     });
     players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
     return players;
@@ -6956,11 +6963,16 @@ const ZAdmin = {
     const countLine = `<div style="font-size:.75rem;color:rgba(255,215,0,.8);margin-bottom:10px;padding:6px 10px;background:rgba(255,215,0,.08);border-radius:8px">📊 ${players.length} Spieler insgesamt geladen (Zoo + Denkspiel zusammen)</div>`;
     el.innerHTML = countLine + players.map(p=>{
       const nameEsc=p.name.replace(/'/g,"\\'");
+      const hrs = ((p.playtimeSec||0)/3600).toFixed(1);
+      const lastLoginStr = p.lastLogin ? new Date(p.lastLogin).toLocaleString('de-CH',{timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
       return `<div style="padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05);margin-bottom:2px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <span style="font-size:1.3rem">${p.char||'🧭'}</span>
           <span style="flex:1;font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
           <span style="font-size:.72rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};min-width:52px;text-align:center;background:${p.online?'rgba(46,204,64,.12)':'rgba(231,76,60,.12)'};padding:3px 8px;border-radius:20px">${p.online?'online':'offline'}</span>
+        </div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:8px">
+          🔑 ${p.loginCount||0}× eingeloggt · 🕓 zuletzt: ${lastLoginStr} · ⏱️ ${hrs}h Gesamtspielzeit
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🎯 Ziel</button>

@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v276';
+const APP_VERSION = 'v277';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v276 · 2026-07-09</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v277 · 2026-07-10</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -827,6 +827,7 @@ const App = {
     if (!player) { this.showProfile(); setTimeout(()=>{ const e=document.getElementById('p-err'); if(e){e.textContent=`Name "${name}" bereits vergeben!`;e.style.display='block';}},50); return; }
     State.setCurrentPlayer(player);
     FontScale.applyForPlayer(player?.name||'');
+    try{ if(typeof PlayTime!=='undefined'&&player?.name){ PlayTime.recordLogin('ds',player.name); PlayTime.startTracking('ds',player.name); } }catch(e){}
     this.showWorldMap();
     // One-time language bonus popup (only right after registration)
     if (player.langBonusGranted) {
@@ -999,6 +1000,7 @@ const App = {
     FontScale.applyForPlayer(State.currentPlayer?.name||'');
     if(typeof Personality!=='undefined')Personality.init();
       if(typeof LANG!=='undefined')LANG.load();
+    try{ if(typeof PlayTime!=='undefined'&&State.currentPlayer?.name){ PlayTime.recordLogin('ds',State.currentPlayer.name); PlayTime.startTracking('ds',State.currentPlayer.name); } }catch(e){}
     this.showWorldMap();
   },
 
