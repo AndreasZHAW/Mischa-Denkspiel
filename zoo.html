@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v279 -->
+<!-- ZOO v280 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=279"></script>
-<script src="rewardchests.js?v=279"></script>
-<script src="personality.js?v=279"></script>
+<script src="lang.js?v=280"></script>
+<script src="rewardchests.js?v=280"></script>
+<script src="personality.js?v=280"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v279','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v280','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=279"></script>
+<script src="firebase-state.js?v=280"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8515,27 +8515,28 @@ const RARITY_NAME={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legend
 
 
 // Boot
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded',async()=>{
   // Universal password-gated admin access (works with or without an existing
   // Denkspiel session) — triggered by the "🔧 Admin-Login" button on the
-  // Welcome screen (zoo.html?openadmin=1). If the player isn't already
-  // recognized as admin by name, ask for the admin password instead.
-  (async()=>{
-    if(new URLSearchParams(window.location.search).get('openadmin')!=='1')return;
-    if(ZS.isAdmin)return; // already admin by name — the normal flow below will open the panel
+  // Welcome screen (zoo.html?openadmin=1). This is a PURE admin-only entry:
+  // it deliberately skips the entire normal Zoo/player bootstrap below (no
+  // character, no 3D world, no MT ticks, no playtime/login tracking) — going
+  // through the password should never look like "being a player" in any way.
+  if(new URLSearchParams(window.location.search).get('openadmin')==='1' && !ZS.isAdmin){
     const pw = await showPasswordPrompt('🔧 Admin-Login', 'Admin-Passwort eingeben:');
     if(pw==='mischa2024'){
       ZS.isAdmin=true;
-      // Deliberately do NOT inherit any stored/leftover player name here — the
-      // password-only entry point should never impersonate a real player account
-      // (that previously caused a real player to get silently self-protected
-      // from bulk-deletion just because their name was still cached locally).
-      if(!ZS.player) ZS.player='admin';
-      setTimeout(()=>{ try{ ZAdmin.open(); }catch(e){} }, 400);
+      ZS.player='admin'; // a label only — never saved as a real player/zoo doc
+      // Hide whatever the default login/world screens are — the admin panel
+      // (a fixed full-screen overlay) will cover the rest, but this avoids any
+      // flash of unrelated UI underneath while it opens.
+      document.querySelectorAll('#s-login,#s-char,#s-mode,#s-world').forEach(el=>{ if(el) el.style.display='none'; });
+      setTimeout(()=>{ try{ ZAdmin.open(); }catch(e){} }, 300);
     } else if(pw!==null){
-      setTimeout(()=>{ try{ showAlert('❌ Falsches Passwort!'); }catch(e){} }, 100);
+      showAlert('❌ Falsches Passwort!');
     }
-  })();
+    return; // stop here — do NOT fall through to the normal Zoo bootstrap below
+  }
   // Restore discount if still active
   try{
     const d=JSON.parse(localStorage.getItem('zoo_admin_discount')||'null');
