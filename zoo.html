@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v273 -->
+<!-- ZOO v274 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=273"></script>
-<script src="rewardchests.js?v=273"></script>
-<script src="personality.js?v=273"></script>
+<script src="lang.js?v=274"></script>
+<script src="rewardchests.js?v=274"></script>
+<script src="personality.js?v=274"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v273','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v274','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=273"></script>
+<script src="firebase-state.js?v=274"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6853,22 +6853,37 @@ const ZAdmin = {
   
   async _fetchAllPlayers(){
     // "Online" comes from the live position feed (zoo_players, updated every few seconds
-    // while someone is actually in the 3D world). "All players" comes from the zoos
-    // collection — every player who's ever saved a zoo has a doc there.
+    // while someone is actually in the 3D world). "All players" now combines BOTH the
+    // zoos collection (anyone who's ever visited the Zoo) AND mischa_players (anyone
+    // with a Denkspiel/Welt-1 account) — a player who only ever played Welt 1 and never
+    // visited the Zoo previously never showed up here at all, so they could never be
+    // deleted even though they still appeared on the combined leaderboard.
     if(typeof _db==='undefined'||!_db)throw new Error('no db');
-    const [posSnap, zoosSnap] = await Promise.all([
+    const [posSnap, zoosSnap, mpSnap] = await Promise.all([
       _db.collection('zoo_players').get(),
       _db.collection('zoos').get(),
+      _db.collection('mischa_players').get(),
     ]);
     const onlineNames = new Set();
     posSnap.forEach(doc=>{
       const d=doc.data();
       if(d.name && Date.now()-d.t<20000) onlineNames.add(d.name.toLowerCase());
     });
+    const namesSeen = new Set();
     const players=[];
     zoosSnap.forEach(doc=>{
       const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
       if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
+      if(namesSeen.has(name.toLowerCase())) return;
+      namesSeen.add(name.toLowerCase());
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
+    });
+    mpSnap.forEach(doc=>{
+      const d=doc.data()||{};
+      const name = d.name || doc.id;
+      if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
+      if(namesSeen.has(name.toLowerCase())) return;
+      namesSeen.add(name.toLowerCase());
       players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
     });
     players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
@@ -6927,7 +6942,8 @@ const ZAdmin = {
       return;
     }
     if(!players.length){ el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Keine Spieler gefunden.</div>'; return; }
-    el.innerHTML = players.map(p=>{
+    const countLine = `<div style="font-size:.75rem;color:rgba(255,215,0,.8);margin-bottom:10px;padding:6px 10px;background:rgba(255,215,0,.08);border-radius:8px">📊 ${players.length} Spieler insgesamt geladen (Zoo + Denkspiel zusammen)</div>`;
+    el.innerHTML = countLine + players.map(p=>{
       const nameEsc=p.name.replace(/'/g,"\\'");
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05)">
         <span style="font-size:1.3rem">${p.char||'🧭'}</span>
@@ -6965,12 +6981,15 @@ const ZAdmin = {
     const raw=(document.getElementById('padmin-keep-names')?.value||'').trim();
     if(!raw){ZP.toast('❗ Bitte mindestens einen Namen eingeben, der bleiben soll!',2500);return;}
     const keep=raw.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
-    keep.push(ZS.player?.toLowerCase()); // never delete yourself (the admin doing this)
+    const selfName = ZS.player?.toLowerCase();
+    const selfAutoProtected = selfName && !keep.includes(selfName);
+    if(selfAutoProtected) keep.push(selfName); // never delete the account you're currently using — see note below
     let players=[];
     try{ players = await this._fetchAllPlayers(); }catch(e){ ZP.toast('⚠️ Firebase nicht verfügbar.',2500); return; }
     const toDelete = players.filter(p => !keep.includes(p.name.toLowerCase()));
     if(!toDelete.length){ ZP.toast('✅ Niemand zu löschen — alle sind auf der Liste.',2500); return; }
-    if(!(await showConfirm('⚠️ Wirklich '+toDelete.length+' Spieler KOMPLETT löschen (Zoo + Denkspiel-Account)?\n\n'+toDelete.map(p=>p.name).join(', ')+'\n\nBleiben: '+raw)))return;
+    const selfNote = selfAutoProtected ? '\n\n(Dein eigener Account «'+ZS.player+'», mit dem du gerade eingeloggt bist, wurde automatisch verschont, auch wenn er nicht in der Liste stand — sonst wärst du mitten in der Aktion ausgeloggt worden.)' : '';
+    if(!(await showConfirm('⚠️ Wirklich '+toDelete.length+' Spieler KOMPLETT löschen (Zoo + Denkspiel-Account)?\n\n'+toDelete.map(p=>p.name).join(', ')+'\n\nBleiben: '+raw+selfNote)))return;
     let done=0;
     for(const p of toDelete){
       const k='zoo_'+p.name.toLowerCase();
