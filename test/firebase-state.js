@@ -1378,6 +1378,45 @@ window.showPasswordPrompt = function(title, message) {
   });
 };
 
+// ============================================================
+// CUSTOM NUMBER PROMPT — like showPasswordPrompt, but a plain number input
+// with a pre-filled default value. Returns the number, or null if cancelled.
+// ============================================================
+window.showNumberPrompt = function(title, message, defaultValue) {
+  return new Promise((resolve) => {
+    try {
+      const existing = document.getElementById('custom-num-overlay');
+      if (existing) existing.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'custom-num-overlay';
+      overlay.style.cssText = `position:fixed;inset:0;z-index:300000;background:rgba(0,0,0,.65);
+        display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s`;
+      overlay.innerHTML = `
+        <div style="background:linear-gradient(135deg,#1a1a3d,#0a0a2e);border:1.5px solid rgba(255,215,0,.4);
+          border-radius:16px;padding:20px 22px;max-width:min(360px,90vw);text-align:center;
+          box-shadow:0 10px 40px rgba(0,0,0,.5);font-family:Arial,sans-serif">
+          <div style="color:#FFD700;font-weight:900;font-size:1.05rem;margin-bottom:6px">${title||'Wert eingeben'}</div>
+          <div style="color:#fff;font-size:.88rem;margin-bottom:14px">${message||''}</div>
+          <input id="custom-num-input" type="number" step="any" value="${defaultValue!=null?defaultValue:0}" style="width:100%;box-sizing:border-box;
+            background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.25);padding:10px 12px;
+            border-radius:10px;font-size:1rem;margin-bottom:14px;text-align:center">
+          <div style="display:flex;gap:10px">
+            <button id="custom-num-cancel" style="flex:1;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:9px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.88rem">Abbrechen</button>
+            <button id="custom-num-ok" style="flex:1;background:#FFD700;color:#2C3E50;border:none;padding:9px;border-radius:10px;font-weight:900;cursor:pointer;font-size:.88rem">OK</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const input = overlay.querySelector('#custom-num-input');
+      const finish = (result) => { overlay.style.opacity='0'; setTimeout(()=>overlay.remove(), 250); resolve(result); };
+      overlay.addEventListener('click', (e)=>{ if(e.target===overlay) finish(null); });
+      overlay.querySelector('#custom-num-cancel').addEventListener('click', ()=>finish(null));
+      overlay.querySelector('#custom-num-ok').addEventListener('click', ()=>finish(parseFloat(input.value)));
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') finish(parseFloat(input.value)); if(e.key==='Escape') finish(null); });
+      requestAnimationFrame(()=>{ overlay.style.opacity='1'; input.focus(); input.select(); });
+    } catch(e) { try{ const v=prompt(message,defaultValue); resolve(v===null?null:parseFloat(v)); }catch(e2){ resolve(null); } }
+  });
+};
+
 window.showConfirm = function(message) {
   return new Promise((resolve) => {
     try {

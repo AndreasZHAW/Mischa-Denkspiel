@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v282 -->
+<!-- ZOO v284 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=282"></script>
-<script src="rewardchests.js?v=282"></script>
-<script src="personality.js?v=282"></script>
+<script src="lang.js?v=284"></script>
+<script src="rewardchests.js?v=284"></script>
+<script src="personality.js?v=284"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v282','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v284','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -288,6 +288,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
+<div class="hb" onclick="ZP.showZooRangliste()"><div class="hbb" style="background:rgba(255,215,0,.85)">🏆</div><div class="hbl">Rangliste</div></div>
 <div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl" data-i18n="zoo.sound">Sound</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
@@ -364,6 +365,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </div>
 </div>
 <!-- PANELS -->
+<div class="zp off" id="p-rank"><div class="zpi">
+  <button class="pcls" onclick="ZP.close('rank')">✕</button>
+  <div class="pmenu-title">🏆 Rangliste (Welt 1 + Zoo)</div>
+  <div id="p-rank-content" style="max-height:60vh;overflow-y:auto"></div>
+</div></div>
+
 <div class="zp off" id="p-report"><div class="zpi">
   <button class="pcls" onclick="ZP.close('report')">✕</button>
   <div class="pmenu-title">📢 Frage / Fehler melden</div>
@@ -467,7 +474,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=282"></script>
+<script src="firebase-state.js?v=284"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1007,7 +1014,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm','sound','report'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -4360,6 +4367,30 @@ const ZP={
   },
   toast(msg,ms=2500){const t=G('zt');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
 
+  async showZooRangliste(){
+    this.open('rank');
+    const el=document.getElementById('p-rank-content');
+    if(!el)return;
+    el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.5)">⏳ Lade...</div>';
+    let standings=[];
+    try{
+      if(typeof Contest!=='undefined' && Contest._computeStandings){
+        standings = await Contest._computeStandings();
+      }
+    }catch(e){}
+    if(!standings.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.4)">Keine Spieler gefunden.</div>'; return; }
+    const medals=['🥇','🥈','🥉'];
+    const myName = ZS.player?.toLowerCase();
+    el.innerHTML = standings.map((p,i)=>{
+      const isMe = p.name?.toLowerCase()===myName;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:4px;background:${isMe?'rgba(41,182,246,.15)':'rgba(255,255,255,.04)'}">
+        <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
+        <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${isMe?' (Du)':''}</span>
+        <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
+      </div>`;
+    }).join('');
+  },
+
   // Celebratory overlay shown to a player when an admin gifts them MT —
   // shows the admin's own character "handing over" the gift.
   _giftAnim(amount, unit, adminChar){
@@ -4425,7 +4456,7 @@ const ZP={
 
   async open(p){
     // Close all others first
-    ['gond','index','shop','reb','enc','menu','adm','sound','report'].forEach(x=>{if(x!==p)hide('p-'+x);});
+    ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
     if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
@@ -7069,22 +7100,49 @@ const ZAdmin = {
   },
 
   async resetScore(name){
-    if(!(await showConfirm('🔄 Punktestand von «'+name+'» wirklich auf 0 setzen?\n(Welt-1-Fortschritt UND Zoo-MT — Tiere/Fortschritt im Zoo selbst bleiben erhalten, nur der MT-Stand wird geleert.)')))return;
+    const targetVal = await showNumberPrompt('🔄 Punktestand setzen', 'Auf welchen Wert soll «'+name+'»\'s GESAMT-Punktestand (Welt 1 + Zoo zusammen) gesetzt werden? (normalerweise 0)', 0);
+    if(targetVal===null || isNaN(targetVal)) return;
+    if(!(await showConfirm('🔄 Punktestand von «'+name+'» wirklich auf '+targetVal+' setzen?\n(Welt-1-Fortschritt UND Zoo-MT werden geleert, der Zielwert kommt komplett in eines der beiden Konten — UND alle Tiere im Zoo werden entfernt!)')))return;
     const notes = [];
     let dsOk = false, zooOk = false;
-    try{
-      if(typeof State!=='undefined' && State.getPlayer){
-        const p = await State.getPlayer(name);
-        if(!p){ notes.push('⚠️ Kein Welt-1-Account für «'+name+'» gefunden.'); }
-        else { await State.resetPlayerProgress(name); dsOk = true; }
-      }
-    }catch(e){ notes.push('❌ Welt-1-Reset fehlgeschlagen: '+e.message); }
+    // Decide up front where the target value goes, so it's never counted twice:
+    // prefer the Zoo (a plain numeric field, no side effects), and only fall
+    // back to Welt 1 if the player has no Zoo account to hold it at all.
+    let hasZooAccount = false;
     try{
       if(typeof _db!=='undefined'&&_db){
         const k='zoo_'+name.toLowerCase();
         const zdoc=await _db.collection('zoos').doc(k).get();
-        if(!zdoc.exists){ notes.push('ℹ️ Kein Zoo-Account für «'+name+'» gefunden.'); }
-        else { await _db.collection('zoos').doc(k).update({mt:0}); zooOk = true; }
+        hasZooAccount = zdoc.exists;
+      }
+    }catch(e){}
+    try{
+      if(typeof State!=='undefined' && State.getPlayer){
+        const p = await State.getPlayer(name);
+        if(!p){ notes.push('⚠️ Kein Welt-1-Account für «'+name+'» gefunden.'); }
+        else {
+          p.currentWorld = 1;
+          p.worlds = State._emptyWorlds();
+          const dsShare = hasZooAccount ? 0 : targetVal; // only carries the value if there's no Zoo account to hold it
+          p.totalScore = dsShare;
+          if(dsShare){
+            const ws = p.worlds['1']||p.worlds[1];
+            if(ws && Array.isArray(ws.tasks) && ws.tasks.length){
+              ws.tasks[0] = {...ws.tasks[0], done:true, mt:dsShare};
+            }
+          }
+          await State.savePlayer(p);
+          dsOk = true;
+        }
+      }
+    }catch(e){ notes.push('❌ Welt-1-Reset fehlgeschlagen: '+e.message); }
+    try{
+      if(typeof _db!=='undefined'&&_db && hasZooAccount){
+        const k='zoo_'+name.toLowerCase();
+        await _db.collection('zoos').doc(k).update({mt:targetVal, enc:Array(5).fill(null)});
+        zooOk = true;
+      } else if(!hasZooAccount){
+        notes.push('ℹ️ Kein Zoo-Account für «'+name+'» gefunden — Zielwert wurde komplett in Welt 1 gesetzt.');
       }
     }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
     // Verify by reading back what's actually stored now, rather than assuming success
@@ -7095,7 +7153,7 @@ const ZAdmin = {
       if(p) verifyMsg = ' Aktueller Stand jetzt: 🌀'+(p.currentMt||0).toFixed(1)+' MT.';
     }catch(e){}
     if(dsOk || zooOk){
-      ZP.toast('🔄 Punktestand von «'+name+'» zurückgesetzt.'+verifyMsg+(notes.length?'\n'+notes.join('\n'):''), 4000);
+      ZP.toast('🔄 Punktestand von «'+name+'» auf '+targetVal+' gesetzt, Zoo-Tiere entfernt.'+verifyMsg+(notes.length?'\n'+notes.join('\n'):''), 4000);
     } else {
       ZP.toast('❌ Reset fehlgeschlagen — kein Account gefunden oder Fehler:\n'+notes.join('\n'), 4000);
     }
