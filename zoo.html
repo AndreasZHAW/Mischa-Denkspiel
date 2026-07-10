@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v281 -->
+<!-- ZOO v282 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=281"></script>
-<script src="rewardchests.js?v=281"></script>
-<script src="personality.js?v=281"></script>
+<script src="lang.js?v=282"></script>
+<script src="rewardchests.js?v=282"></script>
+<script src="personality.js?v=282"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v281','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v282','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=281"></script>
+<script src="firebase-state.js?v=282"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3986,7 +3986,7 @@ const ZG={
   ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">🎁</div><div style="font-size:1rem;padding:0 10px">'+(cmd.spawnMsg||('Mischa hat dir '+a.e+' '+a.n+' geschenkt!'))+'</div>';
   document.body.appendChild(ann);
   setTimeout(()=>ann.remove(),5000);
-}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
+}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='mt_gift_anim'){ try{ZP._giftAnim(cmd.amount,cmd.unit||'MT',cmd.adminChar||'🧑');}catch(e){} }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
       const pollDiv=document.createElement('div');
@@ -4359,6 +4359,38 @@ const ZP={
     setTimeout(()=>rb.remove(), 5000);
   },
   toast(msg,ms=2500){const t=G('zt');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
+
+  // Celebratory overlay shown to a player when an admin gifts them MT —
+  // shows the admin's own character "handing over" the gift.
+  _giftAnim(amount, unit, adminChar){
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s';
+    ov.innerHTML=`<div style="text-align:center">
+      <div style="font-size:4.5rem;position:relative;display:inline-block">
+        ${adminChar||'🧑'}
+        <div id="gift-anim-icon" style="position:absolute;left:50%;bottom:-6px;transform:translate(-50%,10px) scale(0.4);opacity:0;font-size:2.6rem;transition:all .5s cubic-bezier(.34,1.56,.64,1)">🌀</div>
+      </div>
+      <div style="color:#fff;font-family:Arial,sans-serif;font-weight:900;font-size:1.2rem;margin-top:10px;text-shadow:0 2px 8px rgba(0,0,0,.6)">Admin schenkt dir ${(+amount).toFixed(1)} ${unit}! 🎁</div>
+    </div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>{
+      ov.style.opacity='1';
+      setTimeout(()=>{
+        const ic=ov.querySelector('#gift-anim-icon');
+        if(ic){ ic.style.transform='translate(-50%,0) scale(1)'; ic.style.opacity='1'; }
+        try{
+          const ctx=new (window.AudioContext||window.webkitAudioContext)();
+          [659,880,1108].forEach((freq,i)=>{
+            const o=ctx.createOscillator(),g=ctx.createGain();
+            o.type='triangle';o.frequency.setValueAtTime(freq,ctx.currentTime);
+            g.gain.setValueAtTime(0.15,ctx.currentTime+i*0.09);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.09+0.7);
+            o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*0.09);o.stop(ctx.currentTime+i*0.09+0.8);
+          });
+        }catch(e){}
+      },250);
+    });
+    setTimeout(()=>{ ov.style.opacity='0'; setTimeout(()=>ov.remove(),400); },3200);
+  },
   _showStationMenu(){
     // Remove existing menu if any
     const existing=document.getElementById('station-menu');
@@ -7222,6 +7254,15 @@ const ZAdmin = {
     return true;
   },
   
+  async _broadcastGiftAnim(name, amount, unit){
+    try{
+      const cmd={type:'mt_gift_anim', target:name.toLowerCase(), amount, unit,
+        adminChar: ZS.char?.e || '🧑', id:Date.now().toString(), exp:Date.now()+60000};
+      try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
+      if(typeof _db!=='undefined'&&_db) await _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
+    }catch(e){}
+  },
+
   async giftPlayer(){
     if(!this.target?.name){ ZP.toast('❗ Bitte zuerst einen Spieler als Ziel auswählen!',2500); return; }
     const name=this.target.name;
@@ -7240,6 +7281,7 @@ const ZAdmin = {
         data.totalScore=(data.totalScore||0)+amount;
         await ref.set(data,{merge:true});
         ZP.toast('✅ '+amount+' MT an '+name+' vergeben (Denkspiel)! Neuer Stand: '+(data.totalScore||0).toFixed(1)+' MT',3000);
+        this._broadcastGiftAnim(name, amount, 'MT');
       } else {
         // Tokens go directly into the zoo document
         const zooKey='zoo_'+name.toLowerCase();
@@ -7250,6 +7292,7 @@ const ZAdmin = {
         zoo.tokens=(zoo.tokens||0)+amount;
         await zref.set(zoo);
         ZP.toast('✅ '+amount+' Gold-Tokens an '+name+' vergeben! Neuer Stand: '+zoo.tokens,3000);
+        this._broadcastGiftAnim(name, amount, 'Gold-Tokens');
       }
     }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
   },
