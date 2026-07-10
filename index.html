@@ -216,37 +216,37 @@
     });
   </script>
   <!-- Core -->
-  <script src="worlds.js?v=280"></script>
-  <script src="firebase-state.js?v=280"></script>
+  <script src="worlds.js?v=281"></script>
+  <script src="firebase-state.js?v=281"></script>
   <!-- Games -->
-  <script src="math.js?v=280"></script>
-  <script src="reaction.js?v=280"></script>
-  <script src="memory.js?v=280"></script>
-  <script src="sokoban.js?v=280"></script>
-  <script src="shutthebox.js?v=280"></script>
-  <script src="jenga.js?v=280"></script>
-  <script src="slider.js?v=280"></script>
-  <script src="wordsearch.js?v=280"></script>
-  <script src="typing.js?v=280"></script>
-  <script src="balloon.js?v=280"></script>
-  <script src="simon.js?v=280"></script>
-  <script src="truefalse.js?v=280"></script>
-  <script src="dart.js?v=280"></script>
-  <script src="pacman.js?v=280"></script>
-  <script src="starwars.js?v=280"></script>
-  <script src="pong2.js?v=280"></script>
-  <script src="tetris.js?v=280"></script>
-  <script src="stunt.js?v=280"></script>
-  <script src="anagram.js?v=280"></script>
-  <script src="colormix.js?v=280"></script>
-  <script src="minigames.js?v=280"></script>
-  <script src="shop.js?v=280"></script>
+  <script src="math.js?v=281"></script>
+  <script src="reaction.js?v=281"></script>
+  <script src="memory.js?v=281"></script>
+  <script src="sokoban.js?v=281"></script>
+  <script src="shutthebox.js?v=281"></script>
+  <script src="jenga.js?v=281"></script>
+  <script src="slider.js?v=281"></script>
+  <script src="wordsearch.js?v=281"></script>
+  <script src="typing.js?v=281"></script>
+  <script src="balloon.js?v=281"></script>
+  <script src="simon.js?v=281"></script>
+  <script src="truefalse.js?v=281"></script>
+  <script src="dart.js?v=281"></script>
+  <script src="pacman.js?v=281"></script>
+  <script src="starwars.js?v=281"></script>
+  <script src="pong2.js?v=281"></script>
+  <script src="tetris.js?v=281"></script>
+  <script src="stunt.js?v=281"></script>
+  <script src="anagram.js?v=281"></script>
+  <script src="colormix.js?v=281"></script>
+  <script src="minigames.js?v=281"></script>
+  <script src="shop.js?v=281"></script>
   <!-- App -->
-  <script src="french.js?v=280"></script>
-<script src="lang.js?v=280"></script>
-  <script src="rewardchests.js?v=280"></script>
-  <script src="personality.js?v=280"></script>
-  <script src="app.js?v=280"></script>
+  <script src="french.js?v=281"></script>
+<script src="lang.js?v=281"></script>
+  <script src="rewardchests.js?v=281"></script>
+  <script src="personality.js?v=281"></script>
+  <script src="app.js?v=281"></script>
   <script>
     // Prevent double-tap zoom on touch devices
     let _lastTouch = 0;
@@ -348,7 +348,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v280 wird geladen...';
+      if(vEl) vEl.textContent = 'v281 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
       // STEP 1: Show welcome immediately (never block on network)
@@ -552,7 +552,7 @@ function _showDenkspielAnnouncement(ann){
   ov.innerHTML=
     '<div style="background:#0a0a0a;border-radius:20px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8)">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1)">'+
-        '<button onclick="document.getElementById('ann-modal-d').remove()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%">✕</button>'+
+        '<button id="ann-modal-d-close-x" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%">✕</button>'+
         '<span style="color:#fff;font-weight:700;font-size:1rem">Event beitreten</span>'+
         '<div style="width:32px"></div>'+
       '</div>'+
@@ -563,11 +563,20 @@ function _showDenkspielAnnouncement(ann){
       '</div>'+
       '<div style="padding:0 20px 20px">'+
         '<div style="font-weight:700;font-size:1rem;color:#fff;margin-bottom:14px">'+esc(ann.title)+'</div>'+
-        (ann.eventTs?'<button onclick="_annNotifyD(''+ann.id+'',''+esc(ann.title)+'','+ann.eventTs+')" style="width:100%;background:#3478f6;color:#fff;border:none;padding:16px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">Benachrichtigen</button>':'')+
-        '<button onclick="document.getElementById('ann-modal-d').remove();_annMarkSeenD(''+ann.id+'')" style="width:100%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:none;padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:8px">Schliessen</button>'+
+        (ann.eventTs?'<button id="ann-modal-d-notify" style="width:100%;background:#3478f6;color:#fff;border:none;padding:16px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer">Benachrichtigen</button>':'')+
+        '<button id="ann-modal-d-close-btn" style="width:100%;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:none;padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer;margin-top:8px">Schliessen</button>'+
       '</div>'+
     '</div>';
   document.body.appendChild(ov);
+  // Event handlers attached via addEventListener (not inline onclick strings) —
+  // sidesteps the whole class of quote-escaping bugs from building nested
+  // quoted JS inside a quoted HTML attribute inside a quoted JS string.
+  const closeX = document.getElementById('ann-modal-d-close-x');
+  if(closeX) closeX.addEventListener('click', ()=>{ document.getElementById('ann-modal-d')?.remove(); });
+  const closeBtn = document.getElementById('ann-modal-d-close-btn');
+  if(closeBtn) closeBtn.addEventListener('click', ()=>{ document.getElementById('ann-modal-d')?.remove(); _annMarkSeenD(ann.id); });
+  const notifyBtn = document.getElementById('ann-modal-d-notify');
+  if(notifyBtn) notifyBtn.addEventListener('click', ()=>{ _annNotifyD(ann.id, ann.title, ann.eventTs); });
 }
 function _annMarkSeenD(id){const s=JSON.parse(localStorage.getItem('zoo_ann_seen')||'[]');if(!s.includes(id)){s.push(id);if(s.length>10)s.shift();}localStorage.setItem('zoo_ann_seen',JSON.stringify(s));}
 async function _annNotifyD(id,title,eventTs){

@@ -469,6 +469,12 @@ const StarWarsGame = {
         }catch(ex){console.warn('explosion draw error:',ex.message);}
       });
 
+      // Draw floating score popups
+      popups = popups.filter(p => { p.t--; if(p.t<0) return false; p.y-=0.55;
+        ctx.save(); ctx.globalAlpha=Math.min(1,p.t/12); ctx.font='bold 14px Arial';
+        ctx.fillStyle=p.col||'#FFD700'; ctx.textAlign='center';
+        ctx.fillText(p.txt, p.x, p.y); ctx.restore(); return true; });
+
       // Fire mode indicator
       if(fireMode!=='single'){
         const modeCol=fireMode==='penta'?'rgba(255,69,0,.25)':fireMode==='triple'?'rgba(255,215,0,.18)':'rgba(255,105,180,.18)';
@@ -498,9 +504,4 @@ const StarWarsGame = {
     loop();
   }
 };
-window.StarWarsGame=StarWarsGame;// Draw floating score popups
-      popups = popups.filter(p => { p.t--; if(p.t<0) return false; p.y-=0.55;
-        ctx.save(); ctx.globalAlpha=Math.min(1,p.t/12); ctx.font='bold 14px Arial';
-        ctx.fillStyle=p.col||'#FFD700'; ctx.textAlign='center';
-        ctx.fillText(p.txt, p.x, p.y); ctx.restore(); return true; });
-      
+window.StarWarsGame=StarWarsGame;
