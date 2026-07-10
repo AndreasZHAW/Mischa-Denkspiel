@@ -182,7 +182,8 @@ const State = {
 
   async savePlayer(player) {
     const key = player.name.toLowerCase();
-    const data = { ...player, updatedAt: Date.now() };
+    let deviceId; try{ deviceId = window.getDeviceId && window.getDeviceId(); }catch(e){}
+    const data = { ...player, updatedAt: Date.now(), ...(deviceId?{deviceId}:{}) };
     this._local.save(data); // Always save locally FIRST (instant)
     this.currentPlayer = data; // Update in-memory state immediately
     if (this._useCloud()) {
@@ -1073,7 +1074,7 @@ const RankNotify = {
         return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
       };
       const players = Object.values(merged)
-        .filter(p => p.name && p.name.toLowerCase() !== 'bu')
+        .filter(p => p.name)
         .map(p => ({ name:p.name, _mt: (()=>{const ws=p.worlds?.[1]||p.worlds?.['1']||{}; return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(p.name);})() }))
         .sort((a,b) => b._mt - a._mt);
 
@@ -1216,7 +1217,7 @@ const Contest = {
     };
     const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);
     const players = [...allNames]
-      .filter(name => name && name.toLowerCase() !== 'bu')
+      .filter(name => name)
       .map(name => {
         const p = merged[name];
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
@@ -1401,6 +1402,35 @@ window.showConfirm = function(message) {
       requestAnimationFrame(()=>{ overlay.style.opacity='1'; });
     } catch(e) { try{ resolve(confirm(message)); }catch(e2){ resolve(false); } }
   });
+};
+
+// ============================================================
+// DEVICE ID — a random identifier persisted in localStorage, so a player
+// can be recognized (and banned) across name changes on the SAME browser.
+// This is a soft deterrent, not a hard guarantee: clearing site data,
+// incognito mode, a different browser, or a different device all produce
+// a fresh ID. Still useful to stop a quick "just retype a new name".
+// ============================================================
+window.getDeviceId = function() {
+  try {
+    let id = localStorage.getItem('mischa_device_id');
+    if (!id) {
+      id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12);
+      localStorage.setItem('mischa_device_id', id);
+    }
+    return id;
+  } catch(e) { return null; }
+};
+
+// Checks whether the CURRENT device is on the ban list. Call at login time
+// (both Denkspiel and Zoo) before letting someone in.
+window.checkDeviceBanned = async function() {
+  try {
+    const id = window.getDeviceId();
+    if (!id || typeof _db === 'undefined' || !_db) return null;
+    const doc = await _db.collection('banned_devices').doc(id).get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) { return null; }
 };
 
 window.showAlert = function(message) {

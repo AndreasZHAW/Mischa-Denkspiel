@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v274 -->
+<!-- ZOO v276 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=274"></script>
-<script src="rewardchests.js?v=274"></script>
-<script src="personality.js?v=274"></script>
+<script src="lang.js?v=276"></script>
+<script src="rewardchests.js?v=276"></script>
+<script src="personality.js?v=276"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v274','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v276','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=274"></script>
+<script src="firebase-state.js?v=276"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -879,7 +879,7 @@ const ZS={
   maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
   lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
-  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
+  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
   async load(){
     const k='zoo_'+this.player.toLowerCase();
     try{if(State._useCloud()){const s=await _db.collection('zoos').doc(k).get();if(s.exists){this.zoo=s.data();this._fix();return;}}}catch(e){}
@@ -962,13 +962,16 @@ const ZS={
 // ═══ AUTH ═══
 const ZA={
   _c:null,
-  login(){
+  async login(){
     const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,'');
     const p=G('zpw')?.value.trim();
     const e=G('zerr');
     console.log('[ZA.login] name='+n+' pw_len='+(p?p.length:0));
     if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
-    if(!p){e.textContent='Passwort fehlt!';return;}const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
+    if(!p){e.textContent='Passwort fehlt!';return;}
+    const banned = await (window.checkDeviceBanned&&window.checkDeviceBanned());
+    if(banned){e.textContent='🚫 Dieses Gerät ist gesperrt.'+(banned.reason?' Grund: '+banned.reason:'');return;}
+    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
         // If pw was 'auto' (from teleport), update to user's chosen password
         if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
@@ -2524,7 +2527,7 @@ const ZG={
           // Build leaderboard from mischa_players
           _db.collection('mischa_players').get().then(snap=>{
             const players=[];
-            snap.forEach(d=>{const p=d.data();if(p.name&&p.name.toLowerCase()!=='bu')players.push(p);});
+            snap.forEach(d=>{const p=d.data();if(p.name)players.push(p);});
             players.sort((a,b)=>{
               const getMT=p=>((p.worlds?.['1']||p.worlds?.[1]||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0);
               return getMT(b)-getMT(a);
@@ -6845,6 +6848,8 @@ const ZAdmin = {
   open(){
     const el=document.getElementById('padmin-wrap');
     if(el){el.style.display='flex';this.loadPlayers();this.switchTab('tiere');SECRETS.trackAdminOpen&&SECRETS.trackAdminOpen();}
+    const la=document.getElementById('padmin-loggedas');
+    if(la)la.textContent='eingeloggt als: '+(ZS.player||'?');
   },
   close(){
     const el=document.getElementById('padmin-wrap');
@@ -6876,15 +6881,21 @@ const ZAdmin = {
       if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
       if(namesSeen.has(name.toLowerCase())) return;
       namesSeen.add(name.toLowerCase());
-      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
+      const zd=doc.data()||{};
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: zd.deviceId||null });
     });
     mpSnap.forEach(doc=>{
       const d=doc.data()||{};
       const name = d.name || doc.id;
       if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
-      if(namesSeen.has(name.toLowerCase())) return;
+      if(namesSeen.has(name.toLowerCase())){
+        // Already added from zoos — fill in deviceId if we didn't have one yet
+        const existing = players.find(p=>p.name.toLowerCase()===name.toLowerCase());
+        if(existing && !existing.deviceId && d.deviceId) existing.deviceId = d.deviceId;
+        return;
+      }
       namesSeen.add(name.toLowerCase());
-      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()) });
+      players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: d.deviceId||null });
     });
     players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
     return players;
@@ -6945,12 +6956,18 @@ const ZAdmin = {
     const countLine = `<div style="font-size:.75rem;color:rgba(255,215,0,.8);margin-bottom:10px;padding:6px 10px;background:rgba(255,215,0,.08);border-radius:8px">📊 ${players.length} Spieler insgesamt geladen (Zoo + Denkspiel zusammen)</div>`;
     el.innerHTML = countLine + players.map(p=>{
       const nameEsc=p.name.replace(/'/g,"\\'");
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05)">
-        <span style="font-size:1.3rem">${p.char||'🧭'}</span>
-        <span style="flex:1;font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
-        <span style="font-size:.72rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};min-width:52px;text-align:center;background:${p.online?'rgba(46,204,64,.12)':'rgba(231,76,60,.12)'};padding:3px 8px;border-radius:20px">${p.online?'online':'offline'}</span>
-        <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.78rem">🎯</button>
-        <button onclick="ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.78rem">🗑️</button>
+      return `<div style="padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.05);margin-bottom:2px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:1.3rem">${p.char||'🧭'}</span>
+          <span style="flex:1;font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+          <span style="font-size:.72rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};min-width:52px;text-align:center;background:${p.online?'rgba(46,204,64,.12)':'rgba(231,76,60,.12)'};padding:3px 8px;border-radius:20px">${p.online?'online':'offline'}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🎯 Ziel</button>
+          <button onclick="ZAdmin.resetScore('${nameEsc}')" title="Punktestand auf 0 setzen" style="background:rgba(241,196,15,.15);border:1px solid rgba(241,196,15,.35);color:#f1c40f;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Reset</button>
+          <button onclick="ZAdmin.banDevice('${nameEsc}')" title="Gerät sperren (auch unter neuem Namen blockiert)" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.35);color:#9b59b6;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔒 Gerät</button>
+          <button onclick="ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🗑️ Löschen</button>
+        </div>
       </div>`;
     }).join('');
   },
@@ -6973,6 +6990,43 @@ const ZAdmin = {
       if(el)el.textContent='Spieler auswählen →';
     }
     ZP.toast('🗑️ '+name+' komplett gelöscht (Zoo + Denkspiel).',2500);
+    this.loadPlayers();
+    this._loadPlayersTab();
+  },
+
+  async banDevice(name){
+    const players = await this._fetchAllPlayers().catch(()=>[]);
+    const p = players.find(pl=>pl.name.toLowerCase()===name.toLowerCase());
+    if(!p || !p.deviceId){
+      ZP.toast('⚠️ Für «'+name+'» ist keine Geräte-ID bekannt (evtl. sehr alter Account, vor diesem Feature erstellt).',3500);
+      return;
+    }
+    if(!(await showConfirm('🔒 Gerät von «'+name+'» sperren?\nJeder neue Name von diesem Gerät/Browser wird dann ebenfalls blockiert.\n(Der Name selbst bleibt unangetastet — nur zum Löschen extra klicken.)')))return;
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        await _db.collection('banned_devices').doc(p.deviceId).set({
+          reason:'Gesperrt via «'+name+'»', bannedAt:Date.now(), bannedBy:ZS.player||'admin', lastKnownName:name,
+        });
+      }
+      ZP.toast('🔒 Gerät gesperrt.',2500);
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
+  },
+
+  async resetScore(name){
+    if(!(await showConfirm('🔄 Punktestand von «'+name+'» wirklich auf 0 setzen?\n(Welt-1-Fortschritt UND Zoo-MT — Tiere/Fortschritt im Zoo selbst bleiben erhalten, nur der MT-Stand wird geleert.)')))return;
+    try{
+      if(typeof State!=='undefined' && State.resetPlayerProgress) await State.resetPlayerProgress(name);
+    }catch(e){}
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        const k='zoo_'+name.toLowerCase();
+        const zdoc=await _db.collection('zoos').doc(k).get();
+        if(zdoc.exists){
+          await _db.collection('zoos').doc(k).update({mt:0});
+        }
+      }
+    }catch(e){}
+    ZP.toast('🔄 Punktestand von «'+name+'» zurückgesetzt.',2500);
     this.loadPlayers();
     this._loadPlayersTab();
   },
@@ -8432,10 +8486,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     const pw = await showPasswordPrompt('🔧 Admin-Login', 'Admin-Passwort eingeben:');
     if(pw==='mischa2024'){
       ZS.isAdmin=true;
-      if(!ZS.player){
-        const main=sessionStorage.getItem('mischa_current')||localStorage.getItem('mischa_current_backup');
-        ZS.player=(main||'admin').toLowerCase();
-      }
+      // Deliberately do NOT inherit any stored/leftover player name here — the
+      // password-only entry point should never impersonate a real player account
+      // (that previously caused a real player to get silently self-protected
+      // from bulk-deletion just because their name was still cached locally).
+      if(!ZS.player) ZS.player='admin';
       setTimeout(()=>{ try{ ZAdmin.open(); }catch(e){} }, 400);
     } else if(pw!==null){
       setTimeout(()=>{ try{ showAlert('❌ Falsches Passwort!'); }catch(e){} }, 100);
@@ -9261,6 +9316,7 @@ window.ZooEvents = ZooEvents;
     <div style="background:linear-gradient(135deg,#1a0a2e,#2c1a4e);padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #FFD700;flex-shrink:0">
       <span style="font-size:1.4rem">👑</span>
       <span style="font-family:Arial,sans-serif;font-size:1.3rem;color:#FFD700">ADMIN PANEL</span>
+      <span id="padmin-loggedas" style="font-size:.68rem;color:rgba(255,255,255,.35);font-family:Arial,sans-serif"></span>
       <div id="padmin-target-display" style="flex:1;font-size:.8rem;color:#29B6F6;text-align:center">Spieler auswählen →</div>
       <button onclick="ZAdmin.close()" style="background:#E74C3C;color:white;border:none;border-radius:8px;padding:7px 14px;font-weight:900;font-size:1rem;cursor:pointer">✕</button>
     </div>
