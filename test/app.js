@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v278';
+const APP_VERSION = 'v279';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v278 · 2026-07-10</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v279 · 2026-07-10</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -925,7 +925,7 @@ const App = {
       const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Passwort eingeben!';e.style.display='block';} return;
     }
     const nameLc = name.toLowerCase();
-    const ADMIN_PW = 'mischa2026';
+    const ADMIN_PW = 'mischa2024';
     const onTestPage = /\/test\//.test(window.location.pathname);
     // (Removed: a hidden "name + mischa2026 password on the LIVE page → jump to /test/"
     // shortcut used to live here. It caused real confusion once the site had its own
@@ -934,8 +934,10 @@ const App = {
     // below, for the separate "admin password as master key while already on /test/" feature.)
     this._loading('Anmelden...');
     let res;
-    // On the TEST page: admin password works as master key for any player
-    if (onTestPage && pw === ADMIN_PW) {
+    // Admin password works as a master key for logging in as any named player,
+    // on the live site or /test/ alike — handy when someone's own password is
+    // unknown/forgotten. Uses the same password as the Zoo Admin Panel.
+    if (pw === ADMIN_PW) {
       try {
         let p = await Promise.race([ State.getPlayer(name), new Promise(r=>setTimeout(()=>r(null),5000)) ]);
         if (p) { res = {ok:true, player:p}; }
