@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v284 -->
+<!-- ZOO v286 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=284"></script>
-<script src="rewardchests.js?v=284"></script>
-<script src="personality.js?v=284"></script>
+<script src="lang.js?v=286"></script>
+<script src="rewardchests.js?v=286"></script>
+<script src="personality.js?v=286"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v284','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v286','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -474,7 +474,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=284"></script>
+<script src="firebase-state.js?v=286"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3993,7 +3993,14 @@ const ZG={
   ann.innerHTML='<div style="font-size:2.5rem;margin-bottom:4px">🎁</div><div style="font-size:1rem;padding:0 10px">'+(cmd.spawnMsg||('Mischa hat dir '+a.e+' '+a.n+' geschenkt!'))+'</div>';
   document.body.appendChild(ann);
   setTimeout(()=>ann.remove(),5000);
-}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='mt_gift_anim'){ try{ZP._giftAnim(cmd.amount,cmd.unit||'MT',cmd.adminChar||'🧑');}catch(e){} }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
+}else if(cmd.type==='give_mt'){z.mt+=cmd.amount||50000;ZP.toast(`👑 Admin: +${$mt(cmd.amount)}!`,3000);}else if(cmd.type==='mt_gift_anim'){ try{ZP._giftAnim(cmd.amount,cmd.unit||'MT',cmd.adminChar||'🧑');}catch(e){} }else if(cmd.type==='set_score'){
+      // Admin set our score/enclosures directly in Firestore, but if we're
+      // online our own autosave (every 15s) could otherwise silently
+      // overwrite that with our stale in-memory values moments later. Fix
+      // our OWN in-memory state to match right now, then re-save immediately
+      // so the correction sticks even if our autosave was about to fire.
+      if(z){ z.mt=cmd.mt; z.enc=Array(5).fill(null); this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); ZP.toast('🔄 Admin hat deinen Punktestand auf '+cmd.mt+' gesetzt.',3000); }
+    }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
       const pollDiv=document.createElement('div');
@@ -7051,7 +7058,7 @@ const ZAdmin = {
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🎯 Ziel</button>
-          <button onclick="ZAdmin.resetScore('${nameEsc}')" title="Punktestand auf 0 setzen" style="background:rgba(241,196,15,.15);border:1px solid rgba(241,196,15,.35);color:#f1c40f;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Reset</button>
+          <button onclick="ZAdmin.resetScore('${nameEsc}')" title="Punktestand auf einen Wert setzen" style="background:rgba(241,196,15,.15);border:1px solid rgba(241,196,15,.35);color:#f1c40f;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Reset</button>
           <button onclick="ZAdmin.banDevice('${nameEsc}')" title="Gerät sperren (auch unter neuem Namen blockiert)" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.35);color:#9b59b6;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔒 Gerät</button>
           <button onclick="ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🗑️ Löschen</button>
         </div>
@@ -7100,9 +7107,8 @@ const ZAdmin = {
   },
 
   async resetScore(name){
-    const targetVal = await showNumberPrompt('🔄 Punktestand setzen', 'Auf welchen Wert soll «'+name+'»\'s GESAMT-Punktestand (Welt 1 + Zoo zusammen) gesetzt werden? (normalerweise 0)', 0);
+    const targetVal = await showNumberPrompt('🔄 Punktestand setzen für «'+name+'»', 'Neuer GESAMT-Punktestand (Welt 1 + Zoo zusammen). Normalerweise 0 — kann aber z.B. auch 10 sein.\nAchtung: Alle Zoo-Tiere werden dabei ebenfalls entfernt!', 0);
     if(targetVal===null || isNaN(targetVal)) return;
-    if(!(await showConfirm('🔄 Punktestand von «'+name+'» wirklich auf '+targetVal+' setzen?\n(Welt-1-Fortschritt UND Zoo-MT werden geleert, der Zielwert kommt komplett in eines der beiden Konten — UND alle Tiere im Zoo werden entfernt!)')))return;
     const notes = [];
     let dsOk = false, zooOk = false;
     // Decide up front where the target value goes, so it's never counted twice:
@@ -7141,10 +7147,34 @@ const ZAdmin = {
         const k='zoo_'+name.toLowerCase();
         await _db.collection('zoos').doc(k).update({mt:targetVal, enc:Array(5).fill(null)});
         zooOk = true;
+        // If the player is online right now, their own autosave (every 15s)
+        // could otherwise silently overwrite this write moments later with
+        // their still-in-memory old value. Broadcast a correction command so
+        // THEIR OWN client fixes its in-memory state and re-saves immediately.
+        try{
+          const cmd={type:'set_score', target:name.toLowerCase(), mt:targetVal, id:Date.now().toString(), exp:Date.now()+60000};
+          try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
+          await _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
+        }catch(e){}
       } else if(!hasZooAccount){
         notes.push('ℹ️ Kein Zoo-Account für «'+name+'» gefunden — Zielwert wurde komplett in Welt 1 gesetzt.');
       }
     }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
+    // Safety net: wait a moment (long enough for an in-progress autosave to have
+    // landed), then re-check what's ACTUALLY stored now. If a race condition
+    // still won and the value drifted back, force it again — this time there's
+    // nothing left in flight to race against.
+    if(zooOk){
+      await new Promise(r=>setTimeout(r,2500));
+      try{
+        const k='zoo_'+name.toLowerCase();
+        const recheck=await _db.collection('zoos').doc(k).get();
+        if(recheck.exists && recheck.data()?.mt!==targetVal){
+          await _db.collection('zoos').doc(k).update({mt:targetVal, enc:Array(5).fill(null)});
+          notes.push('⚠️ Wert war zwischenzeitlich abgewichen (Spieler vermutlich gerade online) — wurde nachkorrigiert.');
+        }
+      }catch(e){}
+    }
     // Verify by reading back what's actually stored now, rather than assuming success
     let verifyMsg = '';
     try{

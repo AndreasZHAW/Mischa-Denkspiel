@@ -1397,7 +1397,7 @@ window.showNumberPrompt = function(title, message, defaultValue) {
           box-shadow:0 10px 40px rgba(0,0,0,.5);font-family:Arial,sans-serif">
           <div style="color:#FFD700;font-weight:900;font-size:1.05rem;margin-bottom:6px">${title||'Wert eingeben'}</div>
           <div style="color:#fff;font-size:.88rem;margin-bottom:14px">${message||''}</div>
-          <input id="custom-num-input" type="number" step="any" value="${defaultValue!=null?defaultValue:0}" style="width:100%;box-sizing:border-box;
+          <input id="custom-num-input" type="text" inputmode="decimal" value="${defaultValue!=null?defaultValue:0}" style="width:100%;box-sizing:border-box;
             background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.25);padding:10px 12px;
             border-radius:10px;font-size:1rem;margin-bottom:14px;text-align:center">
           <div style="display:flex;gap:10px">
@@ -1410,9 +1410,9 @@ window.showNumberPrompt = function(title, message, defaultValue) {
       const finish = (result) => { overlay.style.opacity='0'; setTimeout(()=>overlay.remove(), 250); resolve(result); };
       overlay.addEventListener('click', (e)=>{ if(e.target===overlay) finish(null); });
       overlay.querySelector('#custom-num-cancel').addEventListener('click', ()=>finish(null));
-      overlay.querySelector('#custom-num-ok').addEventListener('click', ()=>finish(parseFloat(input.value)));
-      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') finish(parseFloat(input.value)); if(e.key==='Escape') finish(null); });
-      requestAnimationFrame(()=>{ overlay.style.opacity='1'; input.focus(); input.select(); });
+      overlay.querySelector('#custom-num-ok').addEventListener('click', ()=>finish(parseFloat(input.value.replace(',','.'))));
+      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') finish(parseFloat(input.value.replace(',','.'))); if(e.key==='Escape') finish(null); });
+      requestAnimationFrame(()=>{ overlay.style.opacity='1'; input.focus(); try{input.select();}catch(e){} });
     } catch(e) { try{ const v=prompt(message,defaultValue); resolve(v===null?null:parseFloat(v)); }catch(e2){ resolve(null); } }
   });
 };
