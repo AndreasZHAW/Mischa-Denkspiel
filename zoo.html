@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v277 -->
+<!-- ZOO v278 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=277"></script>
-<script src="rewardchests.js?v=277"></script>
-<script src="personality.js?v=277"></script>
+<script src="lang.js?v=278"></script>
+<script src="rewardchests.js?v=278"></script>
+<script src="personality.js?v=278"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v277','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v278','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -467,7 +467,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=277"></script>
+<script src="firebase-state.js?v=278"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6874,8 +6874,16 @@ const ZAdmin = {
       const d=doc.data();
       if(d.name && Date.now()-d.t<20000) onlineNames.add(d.name.toLowerCase());
     });
+    mpSnap.forEach(doc=>{
+      const d=doc.data();
+      if(d && d.lastActive && Date.now()-d.lastActive<20000){
+        const nm = d.name || doc.id;
+        if(nm) onlineNames.add(nm.toLowerCase());
+      }
+    });
     const namesSeen = new Set();
     const players=[];
+    const _dsMT = (d) => { const ws=d?.worlds?.[1]||d?.worlds?.['1']||{}; return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0); };
     zoosSnap.forEach(doc=>{
       const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
       if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
@@ -6883,12 +6891,14 @@ const ZAdmin = {
       namesSeen.add(name.toLowerCase());
       const zd=doc.data()||{};
       players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: zd.deviceId||null,
-        loginCount: zd.loginCount||0, lastLogin: zd.lastLogin||0, playtimeSec: zd.totalPlaytimeSec||0 });
+        loginCount: zd.loginCount||0, lastLogin: zd.lastLogin||0, playtimeSec: zd.totalPlaytimeSec||0,
+        currentMt: (typeof zd.mt==='number'&&isFinite(zd.mt)?zd.mt:0) });
     });
     mpSnap.forEach(doc=>{
       const d=doc.data()||{};
       const name = d.name || doc.id;
       if(!name || name.toLowerCase()===ZS.player?.toLowerCase()) return;
+      const dsMt = _dsMT(d);
       if(namesSeen.has(name.toLowerCase())){
         // Already added from zoos — merge stats from the Denkspiel side too
         const existing = players.find(p=>p.name.toLowerCase()===name.toLowerCase());
@@ -6897,12 +6907,14 @@ const ZAdmin = {
           existing.loginCount = (existing.loginCount||0) + (d.loginCount||0);
           existing.playtimeSec = (existing.playtimeSec||0) + (d.totalPlaytimeSec||0);
           existing.lastLogin = Math.max(existing.lastLogin||0, d.lastLogin||0);
+          existing.currentMt = (existing.currentMt||0) + dsMt;
         }
         return;
       }
       namesSeen.add(name.toLowerCase());
       players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: d.deviceId||null,
-        loginCount: d.loginCount||0, lastLogin: d.lastLogin||0, playtimeSec: d.totalPlaytimeSec||0 });
+        loginCount: d.loginCount||0, lastLogin: d.lastLogin||0, playtimeSec: d.totalPlaytimeSec||0,
+        currentMt: dsMt });
     });
     players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
     return players;
@@ -6972,7 +6984,7 @@ const ZAdmin = {
           <span style="font-size:.72rem;font-weight:900;color:${p.online?'#2ecc40':'#e74c3c'};min-width:52px;text-align:center;background:${p.online?'rgba(46,204,64,.12)':'rgba(231,76,60,.12)'};padding:3px 8px;border-radius:20px">${p.online?'online':'offline'}</span>
         </div>
         <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:8px">
-          🔑 ${p.loginCount||0}× eingeloggt · 🕓 zuletzt: ${lastLoginStr} · ⏱️ ${hrs}h Gesamtspielzeit
+          🌀 ${(p.currentMt||0).toFixed(1)} MT aktuell · 🔑 ${p.loginCount||0}× eingeloggt · 🕓 zuletzt: ${lastLoginStr} · ⏱️ ${hrs}h Gesamtspielzeit
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🎯 Ziel</button>
@@ -7026,19 +7038,35 @@ const ZAdmin = {
 
   async resetScore(name){
     if(!(await showConfirm('🔄 Punktestand von «'+name+'» wirklich auf 0 setzen?\n(Welt-1-Fortschritt UND Zoo-MT — Tiere/Fortschritt im Zoo selbst bleiben erhalten, nur der MT-Stand wird geleert.)')))return;
+    const notes = [];
+    let dsOk = false, zooOk = false;
     try{
-      if(typeof State!=='undefined' && State.resetPlayerProgress) await State.resetPlayerProgress(name);
-    }catch(e){}
+      if(typeof State!=='undefined' && State.getPlayer){
+        const p = await State.getPlayer(name);
+        if(!p){ notes.push('⚠️ Kein Welt-1-Account für «'+name+'» gefunden.'); }
+        else { await State.resetPlayerProgress(name); dsOk = true; }
+      }
+    }catch(e){ notes.push('❌ Welt-1-Reset fehlgeschlagen: '+e.message); }
     try{
       if(typeof _db!=='undefined'&&_db){
         const k='zoo_'+name.toLowerCase();
         const zdoc=await _db.collection('zoos').doc(k).get();
-        if(zdoc.exists){
-          await _db.collection('zoos').doc(k).update({mt:0});
-        }
+        if(!zdoc.exists){ notes.push('ℹ️ Kein Zoo-Account für «'+name+'» gefunden.'); }
+        else { await _db.collection('zoos').doc(k).update({mt:0}); zooOk = true; }
       }
+    }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
+    // Verify by reading back what's actually stored now, rather than assuming success
+    let verifyMsg = '';
+    try{
+      const players = await this._fetchAllPlayers();
+      const p = players.find(pl=>pl.name.toLowerCase()===name.toLowerCase());
+      if(p) verifyMsg = ' Aktueller Stand jetzt: 🌀'+(p.currentMt||0).toFixed(1)+' MT.';
     }catch(e){}
-    ZP.toast('🔄 Punktestand von «'+name+'» zurückgesetzt.',2500);
+    if(dsOk || zooOk){
+      ZP.toast('🔄 Punktestand von «'+name+'» zurückgesetzt.'+verifyMsg+(notes.length?'\n'+notes.join('\n'):''), 4000);
+    } else {
+      ZP.toast('❌ Reset fehlgeschlagen — kein Account gefunden oder Fehler:\n'+notes.join('\n'), 4000);
+    }
     this.loadPlayers();
     this._loadPlayersTab();
   },

@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v277';
+const APP_VERSION = 'v278';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v277 · 2026-07-10</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v278 · 2026-07-10</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -924,17 +924,14 @@ const App = {
     if (!pw) {
       const e=document.getElementById('l-err'); if(e){e.textContent='Bitte Passwort eingeben!';e.style.display='block';} return;
     }
-    // Special player shortcuts
     const nameLc = name.toLowerCase();
     const ADMIN_PW = 'mischa2026';
     const onTestPage = /\/test\//.test(window.location.pathname);
-    // TEST-MAP ACCESS: name + admin password on the LIVE page → go to /test/ environment
-    if (pw === ADMIN_PW && !onTestPage && nameLc !== 'bu') {
-      try { sessionStorage.setItem('testmap_name', name); } catch(e) {}
-      // Redirect to the test environment (same repo, /test/ subfolder)
-      window.location.href = 'test/index.html';
-      return;
-    }
+    // (Removed: a hidden "name + mischa2026 password on the LIVE page → jump to /test/"
+    // shortcut used to live here. It caused real confusion once the site had its own
+    // separate admin password system, so it's gone — logging in on the live page always
+    // stays on the live page now. The ADMIN_PW/onTestPage constants above are still used
+    // below, for the separate "admin password as master key while already on /test/" feature.)
     this._loading('Anmelden...');
     let res;
     // On the TEST page: admin password works as master key for any player

@@ -182,7 +182,10 @@ const State = {
 
   async savePlayer(player) {
     const key = player.name.toLowerCase();
-    let deviceId; try{ deviceId = window.getDeviceId && window.getDeviceId(); }catch(e){}
+    // Only attach a device ID if this player doesn't already have one recorded —
+    // otherwise an admin action (e.g. resetting someone else's score) would end up
+    // stamping the ADMIN's own device ID over the target player's real one.
+    let deviceId; if(!player.deviceId){ try{ deviceId = window.getDeviceId && window.getDeviceId(); }catch(e){} }
     const data = { ...player, updatedAt: Date.now(), ...(deviceId?{deviceId}:{}) };
     this._local.save(data); // Always save locally FIRST (instant)
     this.currentPlayer = data; // Update in-memory state immediately
@@ -1451,6 +1454,16 @@ const PlayTime = {
           await _db.collection(col).doc(key).set({ totalPlaytimeSec: inc }, { merge: true });
         } catch(e) {}
       }, 60000);
+      // Separate, faster heartbeat so the admin panel's "online now" check also
+      // recognizes Welt-1 (Denkspiel) activity — previously "online" only ever
+      // reflected being physically inside the Zoo's 3D world (zoo_players pings),
+      // so a player actively doing Welt-1 tasks looked permanently offline.
+      if (kind === 'ds' && !this._heartbeats) this._heartbeats = {};
+      if (kind === 'ds' && !this._heartbeats[key]) {
+        const ping = async () => { try{ if(typeof _db!=='undefined'&&_db) await _db.collection('mischa_players').doc(key).set({lastActive:Date.now()},{merge:true}); }catch(e){} };
+        ping();
+        this._heartbeats[key] = setInterval(ping, 15000);
+      }
     } catch(e) {}
   },
 };
