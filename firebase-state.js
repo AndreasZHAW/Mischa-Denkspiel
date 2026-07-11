@@ -106,14 +106,24 @@ const State = {
         });
       } catch(e) {}
     }
-    // Also scan local storage (covers players who only ever played offline/local)
+    // Also scan local storage (covers players who only ever played offline/local).
+    // IMPORTANT: "zoo_" is also used as a prefix for lots of NON-player data —
+    // zoo_users, zoo_cmd_h, zoo_admin_cmd, zoo_admin_discount, zoo_news_seen,
+    // zoo_ann_seen, zoo_secret_admin, zoo_timer, zoo_unlocked_<name>, and more.
+    // Blindly trusting every "zoo_*" key as a player save turned all of those
+    // into fake "players" showing up in the leaderboard with garbage MT values.
+    // A real zoo save always has an `enc` array (the 5 enclosure slots), so use
+    // that as a structural check before accepting a key as player data.
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.startsWith('zoo_')) {
           const name = k.slice(4);
           if (!result[name]) {
-            try { result[name] = JSON.parse(localStorage.getItem(k)); } catch(e) {}
+            try {
+              const parsed = JSON.parse(localStorage.getItem(k));
+              if (parsed && Array.isArray(parsed.enc)) result[name] = parsed;
+            } catch(e) {}
           }
         }
       }

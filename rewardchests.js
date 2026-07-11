@@ -192,8 +192,7 @@ const RewardChests = {
         '<div style="color:rgba(255,255,255,.55);font-size:.85rem">Spielzeit: '+Math.floor(this._minsPlayed())+' Min</div>'+
         (round<2?'<div style="color:#FFD700;font-size:.8rem;margin-top:4px;font-weight:700">✨ Alle öffnen → VIEL bessere Runde 2!</div>':'<div style="color:#9b59ff;font-size:.8rem;margin-top:4px;font-weight:700">🌌 Runde '+round+' — stärkere Truhen!</div>')+
       '</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 20px;max-width:900px;margin:0 auto">'+cards+'</div>'+
-      '<div style="text-align:center;padding:0 14px 30px"><button onclick="RewardChests._ffTest()" style="background:rgba(255,107,0,.25);border:1px dashed #ff6b00;color:#ff6b00;padding:8px 16px;border-radius:10px;font-size:.8rem;cursor:pointer;font-weight:700">🧪 +130 Min vorspulen (Test)</button></div>';
+      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 20px;max-width:900px;margin:0 auto">'+cards+'</div>';
     document.body.appendChild(ov);
   },
   _ffTest(){ try{ sessionStorage.setItem('mischa_session_start',String(this._startTs()-130*60000)); }catch(e){} this.open(); this.updateBadge(); },
