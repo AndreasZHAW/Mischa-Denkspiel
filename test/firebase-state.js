@@ -1084,11 +1084,11 @@ const RankNotify = {
       });
       const _zooMTFor = (name) => {
         const z = zoosAll[name?.toLowerCase()];
-        return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
+        return sanitizeMT(z && z.mt);
       };
       const players = Object.values(merged)
         .filter(p => p.name)
-        .map(p => ({ name:p.name, _mt: (()=>{const ws=p.worlds?.[1]||p.worlds?.['1']||{}; return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(p.name);})() }))
+        .map(p => ({ name:p.name, _mt: (()=>{const ws=p.worlds?.[1]||p.worlds?.['1']||{}; const dsSum=sanitizeMT((ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0)); return sanitizeMT(dsSum + _zooMTFor(p.name));})() }))
         .sort((a,b) => b._mt - a._mt);
 
       // A player who only ever played the Zoo (no mischa_players entry at all)
@@ -1226,7 +1226,7 @@ const Contest = {
     });
     const _zooMTFor = (name) => {
       const z = zoosAll[name?.toLowerCase()];
-      return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
+      return sanitizeMT(z && z.mt);
     };
     const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);
     const players = [...allNames]
@@ -1235,7 +1235,7 @@ const Contest = {
         const p = merged[name];
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
         const dsMT = (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
-        return { name: p?.name || name, _mt: dsMT + _zooMTFor(name) };
+        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name)) };
       })
       .sort((a,b) => b._mt - a._mt);
     return players;
@@ -1517,6 +1517,19 @@ const PlayTime = {
   },
 };
 window.PlayTime = PlayTime;
+
+// ============================================================
+// MT SANITY CAP — a defensive ceiling used everywhere MT gets summed for
+// rankings. Guards against corrupted Firestore values (bad writes, bugs,
+// manual tampering) silently winning leaderboards with impossible numbers.
+// Generous relative to real player balances today; tighten this once the
+// planned rarity-vs-earnrate rebalance ships and typical maximums are lower.
+// ============================================================
+window.MT_SANITY_CAP = 10000000; // 10 million
+window.sanitizeMT = function(v) {
+  if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
+  return v > window.MT_SANITY_CAP ? 0 : v;
+};
 
 window.getDeviceId = function() {
   try {

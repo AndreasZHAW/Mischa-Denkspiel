@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v287';
+const APP_VERSION = 'v288';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v287 · 2026-07-10</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v288 · 2026-07-11</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1691,7 +1691,7 @@ const App = {
       // Helper: Welt-1 MT + Zoo MT for a given player object
       const _zooMTFor = (name) => {
         const z = zoosAll[name?.toLowerCase()];
-        return (z && typeof z.mt === 'number' && isFinite(z.mt)) ? z.mt : 0;
+        return sanitizeMT(z && z.mt);
       };
 
       players = Object.values(merged)
@@ -1700,14 +1700,16 @@ const App = {
           ...p,
           _mt: (() => {
           const ws = p.worlds?.[1] || p.worlds?.['1'] || p.worlds?.[String(1)] || {};
-          return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(p.name);
+          const dsSum = sanitizeMT((ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0));
+          return sanitizeMT(dsSum + _zooMTFor(p.name));
         })()
         }))
         .sort((a,b) => b._mt - a._mt);
 
       myMT = (() => {
         const ws = player?.worlds?.[1] || player?.worlds?.['1'] || {};
-        return (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0) + _zooMTFor(player?.name);
+        const dsSum = sanitizeMT((ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0));
+        return sanitizeMT(dsSum + _zooMTFor(player?.name));
       })();
     }
 
