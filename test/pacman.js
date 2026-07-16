@@ -1,4 +1,8 @@
-// PAC-MAN - grid-based, buttons + gyroscope tilt
+// BOMBER-style game (formerly Pac-Man) — Dynablaster-inspired.
+// Goal: destroy all ghosts with bombs (not collect all dots).
+// Power stones extend your bomb's blast length. Killing a ghost also
+// bumps your blast length by 1. Ghosts wander the maze; the "cage"
+// in the middle now has a hole so they actually come out.
 const PacmanGame = {
   start({onComplete}) {
     const el = document.getElementById('game-area');
@@ -6,27 +10,30 @@ const PacmanGame = {
     if(typeof GameLog!=='undefined')GameLog.log('pacman','start()');
 
     const CELL=24, COLS=19, ROWS=21;
+    // Legend: 1=wall (indestructible), 0=floor, 2=power stone (extends blast),
+    // 3=floor (was 3 before too, kept for compatibility). Cage in the middle
+    // now has an actual exit (row 7 col 9 opened up) so ghosts can leave.
     const MAZE_TEMPLATE = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-      [1,2,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,2,1],
-      [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-      [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
-      [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
-      [1,1,1,1,0,1,1,1,3,3,3,1,1,1,0,1,1,1,1],
-      [1,1,1,1,0,1,3,3,3,3,3,3,3,1,0,1,1,1,1],
-      [1,1,1,1,0,1,3,1,1,3,1,1,3,1,0,1,1,1,1],
-      [3,3,3,3,0,3,3,1,3,3,3,1,3,3,0,3,3,3,3],
-      [1,1,1,1,0,1,3,1,1,1,1,1,3,1,0,1,1,1,1],
-      [1,1,1,1,0,1,3,3,3,3,3,3,3,1,0,1,1,1,1],
-      [1,1,1,1,0,1,3,1,1,1,1,1,3,1,0,1,1,1,1],
-      [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-      [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
-      [1,2,0,1,0,0,0,0,0,3,0,0,0,0,0,1,0,2,1],
-      [1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1],
-      [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
-      [1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1],
+      [1,2,0,0,0,1,1,0,0,1,0,0,1,1,0,0,0,2,1],
+      [1,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1],
+      [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+      [1,0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,1],
+      [1,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,1],
+      [1,0,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1],
+      [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+      [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+      [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+      [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+      [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
+      [1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1],
+      [1,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,1],
+      [1,2,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,2,1],
+      [1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
@@ -49,52 +56,64 @@ const PacmanGame = {
           </label>
         </div>` : ''}
         <canvas id="pccv" width="${W}" height="${H}" style="background:#000;border-radius:6px;max-width:min(${W}px,92vw)"></canvas>
-        <div id="pc-btns" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:150px">
+        <div id="pc-btns" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:180px">
           <div></div>
           <button class="pc-btn" data-d="up" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▲</button>
-          <div></div>
+          <button id="pc-bomb" style="background:#c0392b;color:#fff;border:1px solid #e74c3c;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">💣</button>
           <button class="pc-btn" data-d="left" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">◀</button>
           <button class="pc-btn" data-d="down" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▼</button>
           <button class="pc-btn" data-d="right" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▶</button>
         </div>
-        ${isTouch ? `<div id="pc-tilt-hint" style="display:none;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.4);text-align:center">${typeof t!=='undefined'?t('snake.tilt_hint'):'📱 Gerät neigen zum Steuern'}</div>` : ''}
+        ${isTouch ? `<div id="pc-tilt-hint" style="display:none;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.4);text-align:center">${typeof t!=='undefined'?t('snake.tilt_hint'):'📱 Gerät neigen zum Steuern · 💣 legt Bombe'}</div>` : ''}
       </div>`;
 
     const cv = document.getElementById('pccv');
     const ctx = cv.getContext('2d');
     let maze = MAZE_TEMPLATE.map(r => [...r]);
-    let totalDots = maze.flat().filter(c => c===0||c===2).length;
-    let eaten=0, score=0, lives=3, powered=0, running=true;
-    let tStart=Date.now(), animId, frameN=0;
-    let px=9, py=16, wantDx=1, wantDy=0, curDx=1, curDy=0, subX=0, subY=0;
-    const SPEED=0.12;
+    let running=true, tStart=Date.now(), animId, frameN=0;
+    // Player: uses fractional tile position for smooth grid movement
+    let px=1, py=1, wantDx=0, wantDy=0, curDx=0, curDy=0, subX=0, subY=0;
+    const SPEED=0.14;
     let useTilt = false;
+    let bombRange = 2;            // starting blast length (each direction)
+    let maxBombs = 1;             // active bombs allowed
+    let score = 0, ghostsKilled = 0;
 
+    // BOMBS: {x, y, timer, range, exploding, expTimer}
+    let bombs = [];
+    // BLAST TILES currently on fire: {x, y, ttl}
+    let blasts = [];
+
+    // GHOSTS — start spread across the map, no fixed cage anymore.
+    // Slightly slower than player so player can outrun them.
+    const GHOST_SPEED = 0.08;
     let ghosts = [
-      {x:8,y:9,tx:0,ty:0,scared:false,col:'#FF4444'},
-      {x:9,y:9,tx:0,ty:0,scared:false,col:'#FFB8FF'},
-      {x:10,y:9,tx:0,ty:0,scared:false,col:'#00FFFF'},
+      {x:9,  y:7,  subX:0, subY:0, dx:1, dy:0, col:'#FF4444', alive:true},
+      {x:9,  y:11, subX:0, subY:0, dx:-1,dy:0, col:'#FFB8FF', alive:true},
+      {x:5,  y:10, subX:0, subY:0, dx:0, dy:1, col:'#00FFFF', alive:true},
+      {x:13, y:10, subX:0, subY:0, dx:0, dy:-1,col:'#FFA500', alive:true},
     ];
+    const totalGhosts = ghosts.length;
 
-    const can = (gx,gy) => maze[gy]?.[gx] !== 1;
+    // A cell is walkable if it's floor OR power stone (NOT a wall, NOT a bomb).
+    const isWall = (gx,gy) => (maze[gy]?.[gx] === 1);
+    const hasBomb = (gx,gy) => bombs.some(b => b.x===gx && b.y===gy && !b.exploding);
+    const canPlayerEnter = (gx,gy) => !isWall(gx,gy) && !hasBomb(gx,gy);
+    const canGhostEnter = (gx,gy) => !isWall(gx,gy) && !hasBomb(gx,gy);
 
     // ── MODE TOGGLE (tilt vs buttons) ──
     const modeBtn = document.getElementById('pc-mode-btn');
     const btnsDiv = document.getElementById('pc-btns');
     const tiltHint = document.getElementById('pc-tilt-hint');
-
     const tiltOpts = document.getElementById('pc-tilt-opts');
-    const tiltOptions = document.getElementById('pc-tilt-options');
     if(modeBtn) modeBtn.addEventListener('click', () => {
       useTilt = !useTilt;
       modeBtn.textContent = useTilt ? (typeof t!=='undefined'?t('snake.mode_tilt'):'📱 Neigen') : (typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten');
       modeBtn.style.background = useTilt ? '#8e44ad' : '#2c3e50';
-      if(btnsDiv) btnsDiv.style.display = useTilt ? 'none' : 'grid';
+      // Note: keep the bomb button visible even in tilt mode — tilt only handles movement
       if(tiltHint) tiltHint.style.display = useTilt ? 'block' : 'none';
-      if(tiltOptions) tiltOptions.style.display = useTilt ? 'flex' : 'none';
       if(tiltOpts) tiltOpts.style.display = useTilt ? 'flex' : 'none';
       if(useTilt && typeof DeviceMotionEvent !== 'undefined') {
-        // Request permission on iOS 13+
         if(typeof DeviceMotionEvent.requestPermission === 'function') {
           DeviceMotionEvent.requestPermission().then(r => {
             if(r!=='granted'){ useTilt=false; modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten'; }
@@ -110,7 +129,6 @@ const PacmanGame = {
       const g = e.accelerationIncludingGravity || e.acceleration || {};
       let tx = g.x || 0;
       let ty = g.y || 0;
-      // Apply reverse settings
       const revX = document.getElementById('pc-rev-x')?.checked;
       const revY = document.getElementById('pc-rev-y')?.checked;
       if(revX) tx = -tx;
@@ -132,124 +150,263 @@ const PacmanGame = {
     document.querySelectorAll('.pc-btn').forEach(b => {
       b.addEventListener('pointerdown', e => {
         e.preventDefault();
-        if(useTilt) return;
         const [ddx,ddy] = DIRS[b.dataset.d];
         wantDx=ddx; wantDy=ddy;
       });
     });
+
+    // ── BOMB PLACEMENT ──
+    const placeBomb = () => {
+      // Can't stack bombs on same tile; can't exceed active-bomb limit
+      const activeBombs = bombs.filter(b => !b.exploding).length;
+      if (activeBombs >= maxBombs) return;
+      if (hasBomb(px,py)) return;
+      bombs.push({x:px, y:py, timer:120, range:bombRange, exploding:false, expTimer:0});
+    };
+    const bombBtn = document.getElementById('pc-bomb');
+    if(bombBtn) bombBtn.addEventListener('pointerdown', e => { e.preventDefault(); placeBomb(); });
+
     const onKey = e => {
       const map={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
-      if(map[e.key]){wantDx=map[e.key][0];wantDy=map[e.key][1];}
+      if(map[e.key]){ wantDx=map[e.key][0]; wantDy=map[e.key][1]; }
+      if(e.key===' ' || e.key==='Enter') { e.preventDefault(); placeBomb(); }
     };
     window.addEventListener('keydown', onKey);
 
-    const end = (won) => {
+    const cleanup = () => {
       running=false; cancelAnimationFrame(animId);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('devicemotion', onMotion);
-      onComplete({rawScore:Math.min(100,Math.round(eaten/(totalDots||1)*100)),timeMs:Date.now()-tStart,errors:lives<3?1:0,passed:won||score>200});
     };
 
-    const moveGhost = (g) => {
-      const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
-      const valid=dirs.filter(([dx,dy])=>can(g.x+dx,g.y+dy)&&!(dx===-g.tx&&dy===-g.ty));
-      if(!valid.length)return;
-      let best=valid[Math.floor(Math.random()*valid.length)];
-      if(!g.scared&&Math.random()>0.3){
-        let minD=999;
-        valid.forEach(([dx,dy])=>{const d=Math.abs(g.x+dx-px)+Math.abs(g.y+dy-py);if(d<minD){minD=d;best=[dx,dy];}});
+    const end = (won) => {
+      cleanup();
+      // Raw score scales with how many ghosts you got. Full clear = 100.
+      const rawScore = Math.min(100, Math.round((ghostsKilled/totalGhosts)*100));
+      onComplete({
+        rawScore,
+        timeMs: Date.now()-tStart,
+        errors: 0,
+        passed: won,
+      });
+    };
+
+    // ── BOMB EXPLOSION LOGIC ──
+    const triggerBomb = (b) => {
+      if (b.exploding) return;
+      b.exploding = true;
+      b.expTimer = 25;
+      // Central blast tile
+      blasts.push({x:b.x, y:b.y, ttl:25});
+      // Four directions, extending outward until blocked by a wall
+      const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+      for (const [dx,dy] of dirs) {
+        for (let step=1; step<=b.range; step++) {
+          const tx = b.x + dx*step, ty = b.y + dy*step;
+          if (isWall(tx,ty)) break; // walls block the blast
+          blasts.push({x:tx, y:ty, ttl:25});
+          // Chain-explode: if another (unexploded) bomb is on this tile, ignite it
+          const chain = bombs.find(other => other.x===tx && other.y===ty && !other.exploding);
+          if (chain) chain.timer = 1;
+        }
       }
-      [g.tx,g.ty]=[best[0],best[1]];
-      g.x+=best[0]; g.y+=best[1];
     };
 
     const loop = () => {
       if(!running) return;
       frameN++;
 
-      // Move pacman
-      // Try to switch to wanted direction first
-      if(can(px+wantDx,py+wantDy)){curDx=wantDx;curDy=wantDy;}
-      // Only move if path is clear
+      // ── PLAYER MOVEMENT (grid-snap with smooth interp) ──
+      if(canPlayerEnter(px+wantDx,py+wantDy)){curDx=wantDx;curDy=wantDy;}
       if(curDx!==0||curDy!==0){
-        if(!can(px+curDx,py+curDy)){
-          // Wall ahead: STOP immediately, don't slide
+        if(!canPlayerEnter(px+curDx,py+curDy)){
           curDx=0;curDy=0;subX=0;subY=0;
         } else {
           subX+=curDx*SPEED; subY+=curDy*SPEED;
           if(Math.abs(subX)>=1||Math.abs(subY)>=1){
             px+=curDx; py+=curDy;
-            // Clamp to maze bounds
             px=Math.max(0,Math.min(COLS-1,px));
             py=Math.max(0,Math.min(ROWS-1,py));
             subX=0;subY=0;
-            const c=maze[py][px];
-            if(c===0){maze[py][px]=3;score+=10;eaten++;}
-            else if(c===2){maze[py][px]=3;score+=50;eaten++;powered=80;ghosts.forEach(g=>g.scared=true);}
+            // Collect power stone
+            if(maze[py][px]===2){
+              maze[py][px]=0;
+              bombRange++;
+              score+=50;
+            }
           }
         }
       }
 
-      if(frameN%15===0) ghosts.forEach(g=>moveGhost(g));
-      if(powered>0){powered--;if(powered===0)ghosts.forEach(g=>g.scared=false);}
-
-      for(const g of ghosts){
-        if(g.x===px&&g.y===py){
-          if(g.scared){g.scared=false;g.x=9;g.y=9;score+=200;g.tx=0;g.ty=0;}
-          else{lives--;if(lives<=0){end(false);return;}px=9;py=16;curDx=1;curDy=0;wantDx=1;wantDy=0;}
+      // ── GHOST MOVEMENT ──
+      for (const g of ghosts) {
+        if (!g.alive) continue;
+        // Only decide new direction when perfectly aligned on a tile
+        if (g.subX === 0 && g.subY === 0) {
+          // Options: keep going, or turn (never straight-reverse unless forced)
+          const opts = [[1,0],[-1,0],[0,1],[0,-1]]
+            .filter(([dx,dy]) => canGhostEnter(g.x+dx, g.y+dy) && !(dx===-g.dx && dy===-g.dy));
+          const allOpts = [[1,0],[-1,0],[0,1],[0,-1]]
+            .filter(([dx,dy]) => canGhostEnter(g.x+dx, g.y+dy));
+          const choices = opts.length ? opts : allOpts;
+          if (choices.length) {
+            // 40% chance: chase player. Otherwise random for unpredictability.
+            let pick = choices[Math.floor(Math.random()*choices.length)];
+            if (Math.random() < 0.4) {
+              let best = pick, bestD = Infinity;
+              for (const [dx,dy] of choices) {
+                const d = Math.abs((g.x+dx)-px) + Math.abs((g.y+dy)-py);
+                if (d < bestD) { bestD = d; best = [dx,dy]; }
+              }
+              pick = best;
+            }
+            g.dx = pick[0]; g.dy = pick[1];
+          } else {
+            g.dx = 0; g.dy = 0;
+          }
+        }
+        // Advance ghost
+        if (g.dx !== 0 || g.dy !== 0) {
+          if (!canGhostEnter(g.x+g.dx, g.y+g.dy)) {
+            g.dx = 0; g.dy = 0; g.subX = 0; g.subY = 0;
+          } else {
+            g.subX += g.dx * GHOST_SPEED;
+            g.subY += g.dy * GHOST_SPEED;
+            if (Math.abs(g.subX) >= 1 || Math.abs(g.subY) >= 1) {
+              g.x += g.dx; g.y += g.dy;
+              g.x = Math.max(0, Math.min(COLS-1, g.x));
+              g.y = Math.max(0, Math.min(ROWS-1, g.y));
+              g.subX = 0; g.subY = 0;
+            }
+          }
         }
       }
-      if(eaten>=totalDots){end(true);return;}
-      if(Date.now()-tStart>90000){end(false);return;}
 
-      // Draw
-      ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-      for(let ry=0;ry<ROWS;ry++) for(let rx=0;rx<COLS;rx++){
-        const c=maze[ry][rx];
-        if(c===1){
-          ctx.fillStyle='#1a1aff';ctx.fillRect(rx*CELL,ry*CELL,CELL,CELL);
-          ctx.fillStyle='#0000aa';ctx.fillRect(rx*CELL+2,ry*CELL+2,CELL-4,CELL-4);
-        } else if(c===0){
-          ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(rx*CELL+CELL/2,ry*CELL+CELL/2,2,0,Math.PI*2);ctx.fill();
-        } else if(c===2){
-          const p=0.7+0.3*Math.sin(frameN*0.15);
-          ctx.fillStyle=`rgba(255,200,0,${p})`;ctx.beginPath();ctx.arc(rx*CELL+CELL/2,ry*CELL+CELL/2,5,0,Math.PI*2);ctx.fill();
+      // ── BOMBS TICK ──
+      for (const b of bombs) {
+        if (b.exploding) {
+          b.expTimer--;
+        } else {
+          b.timer--;
+          if (b.timer <= 0) triggerBomb(b);
         }
       }
-      ghosts.forEach(g=>{
-        ctx.fillStyle=g.scared?(frameN%20<10?'#0000ff':'#fff'):g.col;
-        ctx.beginPath();ctx.arc(g.x*CELL+CELL/2,g.y*CELL+CELL/2,CELL/2-2,Math.PI,0);
-        ctx.lineTo(g.x*CELL+CELL-2,g.y*CELL+CELL/2+4);
-        for(let i=0;i<3;i++)ctx.lineTo(g.x*CELL+CELL-2-i*(CELL-4)/3,g.y*CELL+CELL/2+(i%2===0?4:0));
-        ctx.lineTo(g.x*CELL+2,g.y*CELL+CELL/2+4);ctx.closePath();ctx.fill();
-        if(!g.scared){
-          ctx.fillStyle='#fff';
-          ctx.beginPath();ctx.arc(g.x*CELL+CELL/2-3,g.y*CELL+CELL/2-2,3,0,Math.PI*2);ctx.fill();
-          ctx.beginPath();ctx.arc(g.x*CELL+CELL/2+4,g.y*CELL+CELL/2-2,3,0,Math.PI*2);ctx.fill();
-        }
-      });
-      const rawDX=(px+subX)*CELL+CELL/2, rawDY=(py+subY)*CELL+CELL/2;
-      const dx=Math.max(CELL/2,Math.min(W-CELL/2,rawDX));
-      const dy=Math.max(CELL/2,Math.min(H-CELL/2,rawDY));
-      const ma=Math.abs(Math.sin(frameN*0.2))*0.4, fa=Math.atan2(curDy,curDx);
-      ctx.fillStyle='#FFD700';ctx.beginPath();
-      ctx.moveTo(dx,dy);ctx.arc(dx,dy,CELL/2-2,fa+ma,fa+Math.PI*2-ma);ctx.closePath();ctx.fill();
 
-      // Tilt indicator when using gyro
-      if(useTilt && isTouch){
-        ctx.fillStyle='rgba(142,68,173,.6)';ctx.fillRect(0,H-28,W,28);
-        ctx.fillStyle='#fff';ctx.font='11px monospace';ctx.textAlign='center';
-        const arw=['←','→','↑','↓'];
-        const di=Math.abs(tiltX)>Math.abs(tiltY)?(tiltX<-3?0:tiltX>3?1:-1):(tiltY<-3?2:tiltY>3?3:-1);
-        ctx.fillText((typeof t!=='undefined'?t('snake.mode_tilt'):'📱 Neigen')+': '+(di>=0?arw[di]:(typeof t!=='undefined'?t('pacman.hold_steady'):'gerade halten')),W/2,H-10);
+      // ── BLAST TILES TICK + HITBOX ──
+      for (const bl of blasts) bl.ttl--;
+      // Kill ghosts standing on blast
+      for (const g of ghosts) {
+        if (!g.alive) continue;
+        if (blasts.some(bl => bl.x===g.x && bl.y===g.y && bl.ttl>0)) {
+          g.alive = false;
+          ghostsKilled++;
+          score += 200;
+          bombRange++; // reward: bigger bombs next time
+        }
+      }
+      // Player killed by blast → game over
+      if (blasts.some(bl => bl.x===px && bl.y===py && bl.ttl>0)) {
+        end(false);
+        return;
+      }
+      // Player killed by touching a live ghost
+      for (const g of ghosts) {
+        if (!g.alive) continue;
+        if (g.x===px && g.y===py) { end(false); return; }
       }
 
-      ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,H-28,W,28);
-      ctx.fillStyle='#FFD700';ctx.font='bold 13px monospace';ctx.textAlign='left';
-      ctx.fillText('Score: '+score,6,H-10);
-      ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText('❤️'.repeat(lives),W/2,H-10);
-      if(powered>0){ctx.fillStyle='#0099ff';ctx.fillText('POWER!',W*0.82,H-10);}
-      animId=requestAnimationFrame(loop);
+      // Cleanup finished bombs and expired blasts
+      bombs = bombs.filter(b => !(b.exploding && b.expTimer <= 0));
+      blasts = blasts.filter(bl => bl.ttl > 0);
+
+      // Win condition: all ghosts dead
+      if (ghosts.every(g => !g.alive)) { end(true); return; }
+      // Time limit
+      if (Date.now() - tStart > 120000) { end(false); return; }
+
+      // ── DRAW ──
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+      for (let ry=0; ry<ROWS; ry++) {
+        for (let rx=0; rx<COLS; rx++) {
+          const c = maze[ry][rx];
+          if (c===1) {
+            ctx.fillStyle='#1a1aff'; ctx.fillRect(rx*CELL, ry*CELL, CELL, CELL);
+            ctx.fillStyle='#0000aa'; ctx.fillRect(rx*CELL+2, ry*CELL+2, CELL-4, CELL-4);
+          } else if (c===2) {
+            // Power stone (extends bomb blast)
+            const p = 0.6 + 0.4*Math.sin(frameN*0.15);
+            ctx.fillStyle = `rgba(255,120,255,${p})`;
+            ctx.beginPath(); ctx.arc(rx*CELL+CELL/2, ry*CELL+CELL/2, CELL/2-4, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth=1.5; ctx.stroke();
+          }
+        }
+      }
+
+      // Draw blasts (before bombs so bomb icon stays visible on center tile)
+      for (const bl of blasts) {
+        const alpha = Math.min(1, bl.ttl/15);
+        ctx.fillStyle = `rgba(255,180,40,${alpha*0.85})`;
+        ctx.fillRect(bl.x*CELL+2, bl.y*CELL+2, CELL-4, CELL-4);
+        ctx.fillStyle = `rgba(255,255,255,${alpha*0.6})`;
+        ctx.fillRect(bl.x*CELL+CELL/2-3, bl.y*CELL+CELL/2-3, 6, 6);
+      }
+      // Draw bombs
+      for (const b of bombs) {
+        if (b.exploding) continue;
+        const pulse = 0.75 + 0.25*Math.sin(frameN*0.4);
+        const r = (CELL/2-3) * pulse;
+        ctx.fillStyle='#111';
+        ctx.beginPath(); ctx.arc(b.x*CELL+CELL/2, b.y*CELL+CELL/2, r, 0, Math.PI*2); ctx.fill();
+        // Fuse
+        ctx.strokeStyle='#f80'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(b.x*CELL+CELL/2+r*0.4, b.y*CELL+CELL/2-r*0.4);
+        ctx.lineTo(b.x*CELL+CELL/2+r*0.8, b.y*CELL+CELL/2-r*0.9); ctx.stroke();
+        // Spark
+        if (frameN%6<3) { ctx.fillStyle='#ff0'; ctx.beginPath(); ctx.arc(b.x*CELL+CELL/2+r*0.8, b.y*CELL+CELL/2-r*0.9, 2, 0, Math.PI*2); ctx.fill(); }
+      }
+
+      // Draw ghosts
+      for (const g of ghosts) {
+        if (!g.alive) continue;
+        const gx = (g.x+g.subX)*CELL + CELL/2;
+        const gy = (g.y+g.subY)*CELL + CELL/2;
+        ctx.fillStyle = g.col;
+        ctx.beginPath(); ctx.arc(gx, gy, CELL/2-2, Math.PI, 0);
+        ctx.lineTo(gx+CELL/2-2, gy+4);
+        for(let i=0;i<3;i++) ctx.lineTo(gx+CELL/2-2-i*(CELL-4)/3, gy+(i%2===0?4:0));
+        ctx.lineTo(gx-CELL/2+2, gy+4); ctx.closePath(); ctx.fill();
+        ctx.fillStyle='#fff';
+        ctx.beginPath(); ctx.arc(gx-3, gy-2, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(gx+4, gy-2, 3, 0, Math.PI*2); ctx.fill();
+      }
+
+      // Draw player (bomber character — yellow with helmet)
+      const rawDX = (px+subX)*CELL + CELL/2;
+      const rawDY = (py+subY)*CELL + CELL/2;
+      const dx = Math.max(CELL/2, Math.min(W-CELL/2, rawDX));
+      const dy = Math.max(CELL/2, Math.min(H-CELL/2, rawDY));
+      // Body
+      ctx.fillStyle='#FFD700';
+      ctx.beginPath(); ctx.arc(dx, dy, CELL/2-3, 0, Math.PI*2); ctx.fill();
+      // Helmet
+      ctx.fillStyle='#3498db';
+      ctx.beginPath(); ctx.arc(dx, dy-3, CELL/2-4, Math.PI, 0); ctx.fill();
+      // Eyes
+      ctx.fillStyle='#000';
+      ctx.beginPath(); ctx.arc(dx-3, dy+1, 1.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(dx+3, dy+1, 1.5, 0, Math.PI*2); ctx.fill();
+
+      // HUD
+      ctx.fillStyle='rgba(0,0,0,.75)'; ctx.fillRect(0, H-28, W, 28);
+      ctx.fillStyle='#FFD700'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+      ctx.fillText('Score: '+score, 6, H-10);
+      ctx.textAlign='center'; ctx.fillStyle='#fff';
+      const alive = ghosts.filter(g=>g.alive).length;
+      ctx.fillText('👻 '+alive+'/'+totalGhosts, W/2, H-10);
+      ctx.textAlign='right'; ctx.fillStyle='#ff0';
+      ctx.fillText('💥 '+bombRange, W-6, H-10);
+
+      animId = requestAnimationFrame(loop);
     };
     loop();
   }

@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v288';
+const APP_VERSION = 'v294';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -341,7 +341,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v288 · 2026-07-11</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v294 · 2026-07-16</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1699,16 +1699,16 @@ const App = {
         .map(p => ({
           ...p,
           _mt: (() => {
-          const ws = p.worlds?.[1] || p.worlds?.['1'] || p.worlds?.[String(1)] || {};
-          const dsSum = sanitizeMT((ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0));
+          // dsMTFor handles both task rewards AND the one-time language bonus,
+          // then we sanitize + add zoo MT for the combined leaderboard total.
+          const dsSum = sanitizeMT(dsMTFor(p));
           return sanitizeMT(dsSum + _zooMTFor(p.name));
         })()
         }))
         .sort((a,b) => b._mt - a._mt);
 
       myMT = (() => {
-        const ws = player?.worlds?.[1] || player?.worlds?.['1'] || {};
-        const dsSum = sanitizeMT((ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0));
+        const dsSum = sanitizeMT(dsMTFor(player));
         return sanitizeMT(dsSum + _zooMTFor(player?.name));
       })();
     }
@@ -1767,8 +1767,9 @@ const App = {
     const gl = window.GAME_LIST || [];
     const isRef = false;
 
-    // Calculate total MT
-    const totalMT = tasks.reduce((s,t) => s + (t?.mt || 0), 0);
+    // Calculate total MT (including one-time language bonus, if any — same as World Map)
+    const langBonus = (typeof player.langBonusMT === 'number' && isFinite(player.langBonusMT)) ? player.langBonusMT : 0;
+    const totalMT = tasks.reduce((s,t) => s + (t?.mt || 0), 0) + langBonus;
     const doneTasks = tasks.filter(t => t?.done).length;
 
     // Build rows
@@ -1828,6 +1829,13 @@ const App = {
                   <th style="padding:5px 6px;text-align:center;font-size:0.9rem">Score</th>
                 </tr>
               </thead>
+              <tbody>
+                ${langBonus > 0 ? `<tr style="border-bottom:1px solid rgba(255,255,255,.05);background:rgba(39,174,96,.05)">
+                  <td style="padding:5px 6px;font-size:0.92rem">🌐 Sprachbonus</td>
+                  <td style="padding:5px 6px;text-align:center"><span style="color:#27AE60;font-weight:700">${langBonus.toFixed(1)}</span></td>
+                  <td style="padding:5px 6px;text-align:center;font-size:0.82rem;color:rgba(255,255,255,.5)">einmalig</td>
+                  <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.5);font-size:0.9rem">—</td>
+                </tr>` : ''}
               <tbody>${tableRows}</tbody>
             </table>
           </div>
@@ -1875,7 +1883,8 @@ const App = {
     });
     const rows = allRows.filter(r => r.done).sort((a,b) => b.mt - a.mt);
     const unplayedRows = allRows.filter(r => !r.done);
-    const totalMT = rows.reduce((s,r)=>s+r.mt,0);
+    const langBonus = (typeof player.langBonusMT === 'number' && isFinite(player.langBonusMT)) ? player.langBonusMT : 0;
+    const totalMT = rows.reduce((s,r)=>s+r.mt,0) + langBonus;
     const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:1rem">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:1rem">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:0.95rem">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
     this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:Arial,sans-serif;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:0.95rem;color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:1rem"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
   },
@@ -1883,6 +1892,26 @@ const App = {
   // ---- WORLD VIEW ----
   async showWorld(worldId) {
     this._loading('Welt laden...');
+    console.log('[showWorld] start, worldId=', worldId);
+    // Safety net: if this whole method hangs for any reason, kick user back
+    // to the world map after 8s so they aren't stuck on the loading screen.
+    const _safetyTimer = setTimeout(()=>{
+      console.warn('[showWorld] SAFETY TIMEOUT — falling back to world map');
+      try{ this.showWorldMap(); }catch(e){}
+    }, 8000);
+    try {
+      await this._showWorldInner(worldId);
+    } catch(e) {
+      console.error('[showWorld] failed with:', e);
+      showAlert('❌ Fehler beim Laden der Welt: '+(e?.message||e)+'\n\nZurück zur Weltkarte.');
+      this.showWorldMap();
+    } finally {
+      clearTimeout(_safetyTimer);
+    }
+  },
+
+  async _showWorldInner(worldId) {
+    console.log('[showWorld] refreshing player...');
     // 3s timeout - use cached player if Firebase is slow
     let player = null;
     try {
@@ -3119,7 +3148,7 @@ function getTaskInstruction(type, worldId) {
     geo:         typeof t!=='undefined'?t('instr.geo'):'🗺️ <b>Geografie!</b><br>Zeige auf die richtige Position auf der Karte.',
     french:      typeof t!=='undefined'?t('instr.french'):'🇫🇷 <b>Französisch!</b><br>Übersetze die Wörter von Deutsch nach Französisch.',
     riddle:      typeof t!=='undefined'?t('instr.riddle'):'🧩 <b>Rätsel!</b><br>Löse das Rätsel und tippe deine Antwort ein.',
-    pacman:      typeof t!=='undefined'?t('instr.pacman'):'🟡 <b>Pac-Man!</b><br>Friss alle Punkte im Labyrinth! Vermeide die Geister — oder friss sie nach einem Power-Pellet (grosser Punkt).<br>📱 Mobile: 4 Richtungstasten oder Gerät neigen (Button oben)<br>🖥️ Desktop: Pfeiltasten',
+    pacman:      typeof t!=='undefined'?t('instr.pacman'):'🎯 <b>Bomber!</b><br>Zerstöre ALLE Geister mit deinen Bomben. 💣 legt eine Bombe — sie explodiert nach 2 Sekunden in vier Richtungen. Wände blocken den Strahl. Sammle magische Steine 💎 (oder töte Geister), um den Bomben-Strahl zu verlängern!<br>📱 Mobil: Richtungstasten + 💣-Knopf, oder Gerät neigen<br>🖥️ Desktop: Pfeiltasten + Leertaste',
     starwars:    typeof t!=='undefined'?t('instr.starwars'):'🚀 <b>Star Wars — Weltraum-Shooter!</b><br>Schiesse die feindlichen Raumschiffe ab, bevor sie landen! Du hast 3 Leben.<br>📱 Mobile: ◀ ▶ zum Bewegen, Schiessen-Button<br>🖥️ Desktop: ← → bewegen, Leertaste schiessen',
     pong:        typeof t!=='undefined'?t('instr.pong'):'🏓 <b>Pong — Tennis-Klassiker!</b><br>Der Ball wird mit der Zeit SCHNELLER — reagiere rechtzeitig! Erste 7 Punkte gewinnt oder wer nach 60s mehr hat.<br>📱 Mobile: ▲ ▼ Buttons<br>🖥️ Desktop: ↑ ↓ Pfeiltasten',
   };

@@ -1088,7 +1088,7 @@ const RankNotify = {
       };
       const players = Object.values(merged)
         .filter(p => p.name)
-        .map(p => ({ name:p.name, _mt: (()=>{const ws=p.worlds?.[1]||p.worlds?.['1']||{}; const dsSum=sanitizeMT((ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0)); return sanitizeMT(dsSum + _zooMTFor(p.name));})() }))
+        .map(p => ({ name:p.name, _mt: sanitizeMT(sanitizeMT(dsMTFor(p)) + _zooMTFor(p.name)) }))
         .sort((a,b) => b._mt - a._mt);
 
       // A player who only ever played the Zoo (no mischa_players entry at all)
@@ -1190,8 +1190,8 @@ window.RankNotify = RankNotify;
 // takes for someone to open the app after 18:00. After the freeze window,
 // everything resumes live, including whatever was earned during the freeze.
 const Contest = {
-  START: new Date(2026, 6, 10, 22, 0, 0).getTime(),   // TEMP TEST VALUE: 10.07.2026 22:00 — remind to revert to 14.08.2026 18:00!
-  END:   new Date(2026, 6, 12, 22, 0, 0).getTime(),    // TEMP TEST VALUE: 12.07.2026 22:00 (2 Tage später) — remind to revert to 16.08.2026 18:00!
+  START: new Date(2026, 6, 19, 21, 0, 0).getTime(),   // TEMP TEST VALUE: 19.07.2026 21:00 — remind to revert to 14.08.2026 18:00!
+  END:   new Date(2026, 6, 21, 21, 0, 0).getTime(),    // TEMP TEST VALUE: 21.07.2026 21:00 (2 Tage später) — remind to revert to 16.08.2026 18:00!
 
   phase() {
     const now = Date.now();
@@ -1234,7 +1234,7 @@ const Contest = {
       .map(name => {
         const p = merged[name];
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
-        const dsMT = (ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt!=null?t.mt:0),0);
+        const dsMT = dsMTFor(p);
         return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name)) };
       })
       .sort((a,b) => b._mt - a._mt);
@@ -1247,10 +1247,16 @@ const Contest = {
     try {
       if (State._useCloud() && _db) {
         const doc = await _db.collection('config').doc('contest_result').get();
-        if (doc.exists && doc.data()?.standings) return doc.data().standings;
+        if (doc.exists && doc.data()?.standings) {
+          // Guard against a stale snapshot from a previous (test-)deadline —
+          // if the saved snapshot pre-dates our current END, it belonged to an
+          // older contest cycle. Discard it and compute a fresh one.
+          const snapAt = doc.data().snapshotAt || 0;
+          if (snapAt >= this.END) return doc.data().standings;
+        }
       }
     } catch(e) {}
-    // No snapshot yet — compute and save it now (first client to check wins)
+    // No valid snapshot yet — compute and save it now (first client to check wins)
     const standings = await this._computeStandings();
     try {
       if (State._useCloud() && _db) {
@@ -1529,6 +1535,18 @@ window.MT_SANITY_CAP = 10000000; // 10 million
 window.sanitizeMT = function(v) {
   if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
   return v > window.MT_SANITY_CAP ? 0 : v;
+};
+
+// Sum a player's Welt-1 MT — from completed task rewards PLUS the one-time
+// language bonus. This is a small helper because the bonus was previously
+// invisible everywhere except the player's own world map (it was correctly
+// saved on the player record but never added into any leaderboard total).
+window.dsMTFor = function(p) {
+  if (!p) return 0;
+  const ws = p.worlds?.['1'] || p.worlds?.[1] || {};
+  const taskSum = (ws.tasks||[]).reduce((s,t)=> s + (t && typeof t.mt === 'number' && isFinite(t.mt) ? t.mt : 0), 0);
+  const bonus = (typeof p.langBonusMT === 'number' && isFinite(p.langBonusMT)) ? p.langBonusMT : 0;
+  return taskSum + bonus;
 };
 
 window.getDeviceId = function() {

@@ -12,48 +12,22 @@ const SokobanGame = {
         name:{de:'Einführung',en:'Introduction',fr:'Introduction'}, hint:{de:'Schiebe die Kiste nach links aufs Ziel',en:'Push the box left onto the target',fr:'Pousse la caisse vers la gauche sur la cible'} },
       { map:['#########','#   .   #','#   #   #','# $ # @ #','#   #   #','#########'],
         name:{de:'Hindernis',en:'Obstacle',fr:'Obstacle'}, hint:{de:'Wand im Weg — geh drum herum',en:'Wall in the way — go around it',fr:'Un mur bloque le passage — contourne-le'} },
-      { map:['##########','## . .  ##','#  $ $  ##','#   @    #','##########'],
-        name:{de:'Engpass',en:'Bottleneck',fr:'Goulot d\'étranglement'}, hint:{de:'Zwei Boxen durch den Engpass',en:'Two boxes through the bottleneck',fr:'Deux caisses à travers le passage étroit'} },
       { map:['########','#  .   #','#  $## #','#@ .   #','#  $   #','#      #','########'],
         name:{de:'L-Knick',en:'L-Bend',fr:'Coude en L'}, hint:{de:'Box um die Ecke dirigieren',en:'Guide the box around the corner',fr:'Guide la caisse autour du coin'} },
 
       // Tier 2: Order matters
-      { map:['##########','#.  #    #','#   # $  #','# . $ @  #','#        #','##########'],
-        name:{de:'Blockade',en:'Blockade',fr:'Blocage'}, hint:{de:'Keine Box darf die andere sperren',en:'No box may block another',fr:'Aucune caisse ne doit bloquer l\'autre'} },
       { map:['##########','#    #   #','# $  .   #','#  ##    #','#  .@$   #','#        #','##########'],
         name:{de:'Umrunden',en:'Go-Around',fr:'Contournement'}, hint:{de:'Boxen müssen die Wände umrunden',en:'Boxes must go around the walls',fr:'Les caisses doivent contourner les murs'} },
-      { map:['###########','#   .  .  #','#  #$# $  #','#   . $@  #','###########'],
-        name:{de:'Gitter',en:'Grid',fr:'Grille'}, hint:{de:'3 Boxen zwischen Wänden',en:'3 boxes between walls',fr:'3 caisses entre les murs'} },
-      { map:['##########','#   @     #','#  $#$  $ #','#  . .  . #','##########'],
-        name:{de:'Wand-Reihe',en:'Wall Row',fr:'Rangée de murs'}, hint:{de:'3 Boxen — Wand in der Mitte erzwingt Reihenfolge!',en:'3 boxes — a wall in the middle forces an order!',fr:'3 caisses — un mur au milieu impose un ordre !'} },
-
-      // Tier 3: Requires repositioning
-      { map:['##########','#   @    #','#   $  . #','#   #    #','#   $ .  #','##########'],
-        name:{de:'Parkplatz',en:'Parking Spot',fr:'Place de parking'}, hint:{de:'2 Boxen — erst nach unten, dann zur Seite',en:'2 boxes — down first, then sideways',fr:'2 caisses — d\'abord vers le bas, puis sur le côté'} },
       { map:['##########','#  @      #','#  $ $  $ #','#  # .  . #','#  .      #','##########'],
         name:{de:'Drei Wände',en:'Three Walls',fr:'Trois murs'}, hint:{de:'3 Boxen mit Wand — eine braucht Umweg',en:'3 boxes with a wall — one needs a detour',fr:'3 caisses avec un mur — l\'une nécessite un détour'} },
-      { map:['###########','#   .     #','#  $ $    #','#  .@.    #','#  $ $    #','#   .     #','###########'],
-        name:{de:'Diamant',en:'Diamond',fr:'Diamant'}, hint:{de:'4 Boxen im Diamant — Mitte ist die Falle',en:'4 boxes in a diamond — the middle is the trap',fr:'4 caisses en diamant — le milieu est le piège'} },
       { map:['##########','#   .    #','# $    . #','#  ##$## #','#  .  $  #','#     @  #','##########'],
         name:{de:'Original',en:'Original',fr:'Original'}, hint:{de:'Klassisches Sokoban-Muster',en:'Classic Sokoban pattern',fr:'Motif classique de Sokoban'} },
 
       // Tier 4: Maze navigation
       { map:['###########','#   .  .  #','# # $  $  #','#   @  ## #','# # $  $  #','#   .  .  #','###########'],
         name:{de:'Labyrinth',en:'Maze',fr:'Labyrinthe'}, hint:{de:'Wände teilen den Raum — jede Kammer einzeln lösen',en:'Walls divide the room — solve each chamber separately',fr:'Des murs divisent la pièce — résous chaque chambre séparément'} },
-      { map:['###########','#         #','# .  $@$  #','#   ###   #','# .  $  $ #','# .     . #','###########'],
-        name:{de:'Schlangenwand',en:'Snake Wall',fr:'Mur serpentin'}, hint:{de:'4 Boxen durch Schlangenpfade',en:'4 boxes through winding paths',fr:'4 caisses à travers des chemins sinueux'} },
-      { map:['###########','# .  @  . #','#  $ # $  #','#  #   #  #','#  $ # $  #','# .     . #','###########'],
-        name:{de:'Kreuzwand',en:'Cross Wall',fr:'Mur en croix'}, hint:{de:'4 Boxen im Kreuz — Reihenfolge ist alles!',en:'4 boxes in a cross — order is everything!',fr:'4 caisses en croix — l\'ordre est primordial !'} },
-
-      // Tier 5: Expert
       { map:['###########','#  .    .  #','#  $    $  #','#  @####   #','#  $    $  #','#  .    .  #','###########'],
         name:{de:'Vier Tore',en:'Four Gates',fr:'Quatre portes'}, hint:{de:'4 Boxen durch enge Tore — Reihenfolge entscheidend!',en:'4 boxes through narrow gates — order matters!',fr:'4 caisses à travers des portes étroites — l\'ordre compte !'} },
-      { map:['############','#   .   .  #','#   $   $  #','# ### ###  #','#   $   $  #','#   .@  .  #','############'],
-        name:{de:'Doppel-Tor',en:'Double Gate',fr:'Double porte'}, hint:{de:'4 Boxen durch zwei enge Tore',en:'4 boxes through two narrow gates',fr:'4 caisses à travers deux portes étroites'} },
-      { map:['#############','#     .     #','#  . $$$ .  #','#  $     $  #','#  . . . .  #','#    $ $    #','#     @     #','#############'],
-        name:{de:'Kreis',en:'Circle',fr:'Cercle'}, hint:{de:'7 Boxen im Kreis-Muster',en:'7 boxes in a circular pattern',fr:'7 caisses en cercle'} },
-      { map:['############','#   .  .   #','#  $    $  #','#  @  ##   #','#  $    $  #','#   .  .   #','############'],
-        name:{de:'Versatz',en:'Offset',fr:'Décalage'}, hint:{de:'4 Boxen versetzt — keine ist direkt vor ihrem Ziel',en:'4 boxes offset — none is directly in front of its target',fr:'4 caisses décalées — aucune n\'est directement devant sa cible'} },
       { map:['###########','# .     . #','#  $   $  #','#  ## ##  #','#  $   $  #','# .  @  . #','###########'],
         name:{de:'Meister',en:'Master',fr:'Maître'}, hint:{de:'4 Boxen, Wände blockieren alles — höchste Schwierigkeit!',en:'4 boxes, walls block everything — highest difficulty!',fr:'4 caisses, des murs bloquent tout — difficulté maximale !'} },
     ];;

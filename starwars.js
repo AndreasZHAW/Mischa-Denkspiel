@@ -60,6 +60,7 @@ const StarWarsGame = {
     let ship={x:W/2,y:H-70,w:28,h:22};
     let bullets=[], enemies=[], explosions=[], powerups=[], stars=[], popups=[];
     let score=0, lives=3, wave=1, running=true, tStart=Date.now(), animId, tick=0;
+    let kills=0, bossKills=0; // finer scoring: raw kill count feeds the reward curve
     let fireMode='single', fireModeTimer=0;
 
     // Starfield
@@ -67,7 +68,11 @@ const StarWarsGame = {
       s:Math.random()*1.8+.3,spd:.3+Math.random()*.8,bright:Math.random()});
 
     const spawnWave=()=>{
-      const speed=0.35+wave*0.08; // wave 8=0.99, wave 13=1.39 (very gentle)
+      // Speed increases up to wave 10, then flattens — otherwise wave 11+ becomes
+      // unplayably fast. The formations still change, so difficulty keeps rising
+      // via patterns/HP/count, not raw speed.
+      const cappedWave = Math.min(wave, 10);
+      const speed=0.35+cappedWave*0.06;
       // Wave-specific formations for variety
       if(wave<=3){
         // Classic grid
@@ -241,9 +246,18 @@ const StarWarsGame = {
       document.removeEventListener('pointerup',ptrUpHandler);
       if(rfInt)clearInterval(rfInt);
       window.onerror=_prevOnerr; // restore
-      const _finalRaw=Math.min(100,Math.max(5,Math.round(wave/18*70+score/30000*30)));
-      _swLog('Game ended: wave='+wave+'/18 lives='+lives+' score='+score+' rawScore='+_finalRaw+' won='+won);
-      onComplete({rawScore:Math.min(100,Math.max(5,Math.round(wave/18*70+score/30000*30))),timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||score>=150});
+      // Fine-grained scoring so every kill counts and the range spreads nicely:
+      //   • each ordinary kill: 0.4 points
+      //   • each boss kill: extra +2 points on top
+      //   • each fully-cleared wave: +3 points (progression bonus)
+      //   • hidden survival bonus: +1 per remaining life at the end
+      // Calibrated so a wave-2 finish gives ~8, wave-6 gives ~40, wave-10 ~70,
+      // and hitting 100 needs wave 13+ with lots of kills — no more MT plateau at 1.
+      const wavesCleared = Math.max(0, wave - 1);
+      const raw = Math.round(kills * 0.4 + bossKills * 2 + wavesCleared * 3 + Math.max(0,lives));
+      const _finalRaw = Math.min(100, Math.max(0, raw));
+      _swLog('Game ended: wave='+wave+'/18 kills='+kills+' bosses='+bossKills+' lives='+lives+' score='+score+' rawScore='+_finalRaw+' won='+won);
+      onComplete({rawScore:_finalRaw,timeMs:Date.now()-tStart,errors:0,passed:wave>=3||won||kills>=8});
     };
 
     // ── DRAWING HELPERS ──
@@ -365,12 +379,13 @@ const StarWarsGame = {
       });
       if(edgeHit){enemies.forEach(e=>{if(e.dy===0){e.dx*=-1;e.y+=3;}});} // 3px drop (was 10)
 
-      // Enemy fire
+      // Enemy fire — same wave cap as movement so wave 11+ isn't a bullet storm
       efTick++;
-      if(efTick>Math.max(40,90-wave*5)&&enemies.length){
+      const _wCap = Math.min(wave, 10);
+      if(efTick>Math.max(40,90-_wCap*5)&&enemies.length){
         efTick=0;
         const en=enemies[Math.floor(Math.random()*enemies.length)];
-        bullets.push({x:en.x,y:en.y+10,dy:3+wave*.3,dx:0,enemy:true});
+        bullets.push({x:en.x,y:en.y+10,dy:3+_wCap*.3,dx:0,enemy:true});
       }
 
       // Collisions
@@ -380,7 +395,7 @@ const StarWarsGame = {
           enemies=enemies.filter(e=>{
             if(!hit&&Math.abs(b.x-e.x)<16&&Math.abs(b.y-e.y)<16){
               e.hp--;hit=true;
-              if(e.hp<=0){const pts=10*(e.type+1)+(wave-1)*5+(e.isBoss?30:0);score+=pts;popups.push({x:e.x,y:e.y,t:40,txt:'+'+pts,col:'#FFD700'});explosions.push({x:e.x,y:e.y,t:18,r:20,col:'#ff8800'});return false;}
+              if(e.hp<=0){const pts=10*(e.type+1)+(wave-1)*5+(e.isBoss?30:0);score+=pts;kills++;if(e.isBoss)bossKills++;popups.push({x:e.x,y:e.y,t:40,txt:'+'+pts,col:'#FFD700'});explosions.push({x:e.x,y:e.y,t:18,r:20,col:'#ff8800'});return false;}
             }return true;
           });
           return !hit;
