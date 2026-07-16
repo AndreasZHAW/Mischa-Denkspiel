@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v294';
+const APP_VERSION = 'v296';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -325,7 +325,16 @@ const App = {
       wmc.style.background='transparent';
     } const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
     // One-time language bonus (granted once at registration) counts toward the visible MT total.
-    const _langBonusMT = State.currentPlayer?.langBonusMT || 0;
+    // Fallback: if the in-memory currentPlayer object doesn't have the field yet
+    // (can happen right after a fresh login before Firebase refresh completed),
+    // look it up from the local save — the value gets written there at registration.
+    let _langBonusMT = State.currentPlayer?.langBonusMT || 0;
+    if (!_langBonusMT && State.currentPlayer?.name && State._local) {
+      try {
+        const _lp = State._local.get(State.currentPlayer.name);
+        if (_lp && typeof _lp.langBonusMT === 'number') _langBonusMT = _lp.langBonusMT || 0;
+      } catch(e) {}
+    }
     const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0) + _langBonusMT;
     const hasEnough = mt >= 10;
     this._html(`
@@ -341,7 +350,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v294 · 2026-07-16</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v296 · 2026-07-16</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1923,6 +1932,8 @@ const App = {
       player = State.currentPlayer || null;
     }
     if (!player) { this.showWelcome(); return; }
+    // Defensive: if player object is somehow malformed (missing name), don't crash — bounce to welcome
+    if (!player.name) { console.warn('[showWorld] player missing name field, back to welcome'); this.showWelcome(); return; }
     const world = WORLDS.find(w=>w.id===worldId);
     // Normalize worlds: handle both array-of-ids and object format
     let ws = null;
@@ -1943,7 +1954,7 @@ const App = {
     const ch = this._char(player);
     
     // Janoschtest: get calibration status
-    const _isRefW = player.name.toLowerCase() === 'janoschtest';
+    const _isRefW = (player.name || '').toLowerCase() === 'janoschtest';
     let calStatus = '';
     // Declare outside if-block so template can access them
     let calCount = 0, runsCount = 0, lastRun = null, lastRunGames = 0;

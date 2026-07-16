@@ -79,14 +79,29 @@ const PacmanGame = {
     let maxBombs = 1;             // active bombs allowed
     let score = 0, ghostsKilled = 0;
 
+    // GRACE PERIOD: first 8 seconds are a warm-up. Ghosts don't move, player
+    // is invulnerable to ghost touch. Gives time to learn the controls before
+    // the chaos starts.
+    const GRACE_MS = 8000;
+    // SAFE ZONE: an L-shaped corner in the top-left where ghosts can never
+    // enter, so even after the grace period ends the player has a fallback
+    // retreat spot they can trust. Radius 3 tiles from origin (1,1).
+    const isSafeZone = (gx,gy) => (gx <= 3 && gy <= 3);
+    // Ghosts start slower, ramp up gradually so the difficulty doesn't spike.
+    // Base speed 0.06, +0.005 per elapsed second after grace, capped at 0.09.
+    const ghostSpeedNow = () => {
+      const elapsedAfterGrace = Math.max(0, Date.now() - tStart - GRACE_MS);
+      const secs = elapsedAfterGrace / 1000;
+      return Math.min(0.09, 0.06 + secs * 0.0015);
+    };
+
     // BOMBS: {x, y, timer, range, exploding, expTimer}
     let bombs = [];
     // BLAST TILES currently on fire: {x, y, ttl}
     let blasts = [];
 
-    // GHOSTS — start spread across the map, no fixed cage anymore.
+    // GHOSTS — start spread across the map, well away from the top-left safe zone.
     // Slightly slower than player so player can outrun them.
-    const GHOST_SPEED = 0.08;
     let ghosts = [
       {x:9,  y:7,  subX:0, subY:0, dx:1, dy:0, col:'#FF4444', alive:true},
       {x:9,  y:11, subX:0, subY:0, dx:-1,dy:0, col:'#FFB8FF', alive:true},
@@ -99,7 +114,9 @@ const PacmanGame = {
     const isWall = (gx,gy) => (maze[gy]?.[gx] === 1);
     const hasBomb = (gx,gy) => bombs.some(b => b.x===gx && b.y===gy && !b.exploding);
     const canPlayerEnter = (gx,gy) => !isWall(gx,gy) && !hasBomb(gx,gy);
-    const canGhostEnter = (gx,gy) => !isWall(gx,gy) && !hasBomb(gx,gy);
+    // Ghosts additionally cannot step into the top-left safe zone — this is
+    // the "training corner" the player can always retreat to.
+    const canGhostEnter = (gx,gy) => !isWall(gx,gy) && !hasBomb(gx,gy) && !isSafeZone(gx,gy);
 
     // ── MODE TOGGLE (tilt vs buttons) ──
     const modeBtn = document.getElementById('pc-mode-btn');
@@ -215,6 +232,7 @@ const PacmanGame = {
     const loop = () => {
       if(!running) return;
       frameN++;
+      const grace = (Date.now() - tStart) < GRACE_MS;
 
       // ── PLAYER MOVEMENT (grid-snap with smooth interp) ──
       if(canPlayerEnter(px+wantDx,py+wantDy)){curDx=wantDx;curDy=wantDy;}
@@ -238,8 +256,8 @@ const PacmanGame = {
         }
       }
 
-      // ── GHOST MOVEMENT ──
-      for (const g of ghosts) {
+      // ── GHOST MOVEMENT (frozen during grace period) ──
+      if (!grace) for (const g of ghosts) {
         if (!g.alive) continue;
         // Only decide new direction when perfectly aligned on a tile
         if (g.subX === 0 && g.subY === 0) {
@@ -270,8 +288,9 @@ const PacmanGame = {
           if (!canGhostEnter(g.x+g.dx, g.y+g.dy)) {
             g.dx = 0; g.dy = 0; g.subX = 0; g.subY = 0;
           } else {
-            g.subX += g.dx * GHOST_SPEED;
-            g.subY += g.dy * GHOST_SPEED;
+            const _gs = ghostSpeedNow();
+            g.subX += g.dx * _gs;
+            g.subY += g.dy * _gs;
             if (Math.abs(g.subX) >= 1 || Math.abs(g.subY) >= 1) {
               g.x += g.dx; g.y += g.dy;
               g.x = Math.max(0, Math.min(COLS-1, g.x));
@@ -282,8 +301,8 @@ const PacmanGame = {
         }
       }
 
-      // ── BOMBS TICK ──
-      for (const b of bombs) {
+      // ── BOMBS TICK (frozen during grace period so player can safely test) ──
+      if (!grace) for (const b of bombs) {
         if (b.exploding) {
           b.expTimer--;
         } else {
@@ -304,13 +323,13 @@ const PacmanGame = {
           bombRange++; // reward: bigger bombs next time
         }
       }
-      // Player killed by blast → game over
-      if (blasts.some(bl => bl.x===px && bl.y===py && bl.ttl>0)) {
+      // Player killed by blast → game over (skipped during grace period)
+      if (!grace && blasts.some(bl => bl.x===px && bl.y===py && bl.ttl>0)) {
         end(false);
         return;
       }
-      // Player killed by touching a live ghost
-      for (const g of ghosts) {
+      // Player killed by touching a live ghost (skipped during grace period)
+      if (!grace) for (const g of ghosts) {
         if (!g.alive) continue;
         if (g.x===px && g.y===py) { end(false); return; }
       }
@@ -338,6 +357,11 @@ const PacmanGame = {
             ctx.fillStyle = `rgba(255,120,255,${p})`;
             ctx.beginPath(); ctx.arc(rx*CELL+CELL/2, ry*CELL+CELL/2, CELL/2-4, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#fff'; ctx.lineWidth=1.5; ctx.stroke();
+          }
+          // Safe-zone tint: gentle green wash over floor tiles ghosts can't enter
+          if (c !== 1 && isSafeZone(rx, ry)) {
+            ctx.fillStyle = 'rgba(60,180,80,0.15)';
+            ctx.fillRect(rx*CELL, ry*CELL, CELL, CELL);
           }
         }
       }
@@ -395,6 +419,20 @@ const PacmanGame = {
       ctx.fillStyle='#000';
       ctx.beginPath(); ctx.arc(dx-3, dy+1, 1.5, 0, Math.PI*2); ctx.fill();
       ctx.beginPath(); ctx.arc(dx+3, dy+1, 1.5, 0, Math.PI*2); ctx.fill();
+
+      // Grace-period overlay: big centered countdown so player knows they're safe
+      if (grace) {
+        const remaining = Math.ceil((GRACE_MS - (Date.now()-tStart))/1000);
+        ctx.fillStyle='rgba(0,0,0,.55)';
+        ctx.fillRect(0, H/2-46, W, 84);
+        ctx.textAlign='center';
+        ctx.fillStyle='#2ecc40'; ctx.font='bold 16px Arial';
+        ctx.fillText('🛡️ Übung — Geister eingefroren', W/2, H/2-22);
+        ctx.fillStyle='#fff'; ctx.font='bold 32px Arial';
+        ctx.fillText('Start in ' + remaining, W/2, H/2+10);
+        ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='11px Arial';
+        ctx.fillText('Bewege dich und lerne die Steuerung. Grüner Bereich ist immer sicher.', W/2, H/2+30);
+      }
 
       // HUD
       ctx.fillStyle='rgba(0,0,0,.75)'; ctx.fillRect(0, H-28, W, 28);
