@@ -33,14 +33,14 @@ const LANG = {
   
   // Flag/icon for current language
   flag() {
-    return {de:'🇩🇪', de_simple:'👴', en:'🇬🇧', fr:'🇫🇷'}[this._cur] || '🇩🇪';
+    return {de:'😎', de_simple:'🇩🇪', en:'🇬🇧', fr:'🇫🇷'}[this._cur] || '🇩🇪';
   },
   
   // Language selector HTML
   selectorHTML(small) {
     const langs = [
-      {id:'de',        flag:'🇩🇪', name:'Deutsch'},
-      {id:'de_simple',  flag:'👴', name:'Deutsch (einfach)'},
+      {id:'de',        flag:'😎', name:'Jugendsprache'},
+      {id:'de_simple',  flag:'🇩🇪', name:'Deutsch'},
       {id:'en',        flag:'🇬🇧', name:'English'},
       {id:'fr',        flag:'🇫🇷', name:'Français'},
     ];

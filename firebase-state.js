@@ -95,6 +95,31 @@ const State = {
   // Fetch every player's Zoo economy state (for combined Denkspiel+Zoo leaderboard).
   // Keyed by lowercase player name (matching the 'zoo_<name>' doc id / localStorage key,
   // with the 'zoo_' prefix stripped so it lines up with mischa_players' name keys).
+  // Cheap single-player lookup (vs. getAllZoos() which pulls the entire
+  // collection) — used wherever we just need one player's zoo balance,
+  // e.g. combining Denkspiel MT + Zoo MT for the World Map / Kontoauszug.
+  async getZoo(name) {
+    if (!name) return null;
+    const key = 'zoo_' + name.toLowerCase();
+    if (this._useCloud()) {
+      try {
+        const doc = await Promise.race([
+          _db.collection('zoos').doc(key).get(),
+          new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+        ]);
+        if (doc.exists) return doc.data();
+      } catch(e) {}
+    }
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.enc)) return parsed;
+      }
+    } catch(e) {}
+    return null;
+  },
+
   async getAllZoos() {
     const result = {};
     if (this._useCloud()) {
@@ -1557,6 +1582,26 @@ window.dsMTFor = function(p) {
   const taskSum = (ws.tasks||[]).reduce((s,t)=> s + (t && typeof t.mt === 'number' && isFinite(t.mt) ? t.mt : 0), 0);
   const bonus = (typeof p.langBonusMT === 'number' && isFinite(p.langBonusMT)) ? p.langBonusMT : 0;
   return taskSum + bonus;
+};
+
+// Combined balance: Welt-1 MT (tasks + language bonus) PLUS Zoo MT — the
+// single unified number that should now show everywhere (World Map, Zoo,
+// Kontoauszug, Geldbeutel, leaderboard), matching how the leaderboard has
+// always combined the two. Same deviceId ownership check as the leaderboard:
+// only add the zoo balance if it was genuinely saved from the same device as
+// the Denkspiel account, so an unrelated name-collision zoo save from someone
+// else never leaks into this player's total.
+window.combinedMTFor = async function(player) {
+  const ds = window.sanitizeMT ? window.sanitizeMT(dsMTFor(player)) : dsMTFor(player);
+  if (!player?.name) return ds;
+  try {
+    const zoo = await State.getZoo(player.name);
+    if (zoo && player.deviceId && zoo.deviceId && player.deviceId === zoo.deviceId) {
+      const zooMT = window.sanitizeMT ? window.sanitizeMT(zoo.mt) : (zoo.mt||0);
+      return ds + zooMT;
+    }
+  } catch(e) {}
+  return ds;
 };
 
 window.getDeviceId = function() {
