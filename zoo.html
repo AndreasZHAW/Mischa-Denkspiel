@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v302 -->
+<!-- ZOO v303 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=302"></script>
-<script src="rewardchests.js?v=302"></script>
-<script src="personality.js?v=302"></script>
+<script src="lang.js?v=303"></script>
+<script src="rewardchests.js?v=303"></script>
+<script src="personality.js?v=303"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v302','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v303','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -474,7 +474,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=302"></script>
+<script src="firebase-state.js?v=303"></script>
+<script src="worlds.js?v=303"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -7108,21 +7109,49 @@ const ZAdmin = {
   async deletePlayer(name){
     if(!(await showConfirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)')))return;
     const k='zoo_'+name.toLowerCase();
+    let zooDeleteFailed=false, playerDeleteFailed=false;
     try{
       if(typeof _db!=='undefined'&&_db){
-        await _db.collection('zoos').doc(k).delete().catch(()=>{});
+        await _db.collection('zoos').doc(k).delete().catch(()=>{ zooDeleteFailed=true; });
         await _db.collection('zoo_players').doc(name.toLowerCase()).delete().catch(()=>{});
+        // Verify the zoo doc is REALLY gone — Firestore delete() can fail
+        // silently (network hiccup, rules, etc). Trusting it blindly meant
+        // the admin saw "completely deleted" while the old zoo balance (and
+        // its MT) quietly survived, only to resurface if the same name was
+        // ever reused. Retry once if it's still there.
+        try{
+          const check=await _db.collection('zoos').doc(k).get();
+          if(check.exists){
+            zooDeleteFailed=true;
+            await _db.collection('zoos').doc(k).delete().catch(()=>{});
+            const recheck=await _db.collection('zoos').doc(k).get();
+            zooDeleteFailed = recheck.exists;
+          } else {
+            zooDeleteFailed=false;
+          }
+        }catch(e){ /* couldn't verify — leave zooDeleteFailed as whatever the first attempt reported */ }
       }
     }catch(e){}
     try{ localStorage.removeItem(k); }catch(e){}
     // Also remove the Denkspiel account (mischa_players) so they disappear from the leaderboard too
-    try{ if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(name); }catch(e){}
+    try{
+      if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(name);
+      // Verify that one too
+      if(typeof State!=='undefined' && State.getPlayer){
+        const stillThere = await State.getPlayer(name).catch(()=>null);
+        playerDeleteFailed = !!stillThere;
+      }
+    }catch(e){ playerDeleteFailed=true; }
     if(this.target?.name?.toLowerCase()===name.toLowerCase()){
       this.target=null;
       const el=document.getElementById('padmin-target-display');
       if(el)el.textContent='Spieler auswählen →';
     }
-    ZP.toast('🗑️ '+name+' komplett gelöscht (Zoo + Denkspiel).',2500);
+    if(zooDeleteFailed || playerDeleteFailed){
+      ZP.toast('⚠️ '+name+': Löschen teilweise fehlgeschlagen'+(zooDeleteFailed?' (Zoo-Konto besteht noch)':'')+(playerDeleteFailed?' (Denkspiel-Account besteht noch)':'')+'. Bitte nochmal versuchen!',5000);
+    } else {
+      ZP.toast('🗑️ '+name+' komplett gelöscht (Zoo + Denkspiel).',2500);
+    }
     this.loadPlayers();
     this._loadPlayersTab();
   },

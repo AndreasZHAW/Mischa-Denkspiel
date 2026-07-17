@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v302';
+const APP_VERSION = 'v303';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v302 · 2026-07-17</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v303 · 2026-07-17</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1760,7 +1760,7 @@ const App = {
           ${contestPhase==='countdown' ? `<div id="contest-countdown" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center"></div>` : ''}
           ${contestPhase==='frozen' ? `<div style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:center">
             <div style="font-size:1.3rem">🏆</div>
-            <div style="color:#FFD700;font-weight:700;font-size:.92rem">Ergebnis fixiert bis 16.08.2026, 18 Uhr</div>
+            <div style="color:#FFD700;font-weight:700;font-size:.92rem">Ergebnis fixiert bis ${(typeof Contest!=='undefined' && Contest.END) ? new Date(Contest.END).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'}) + ', ' + new Date(Contest.END).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '—'}</div>
             <div style="color:rgba(255,255,255,.5);font-size:.72rem;margin-top:2px">Danach geht's mit allem, was zwischenzeitlich verdient wurde, normal weiter.</div>
           </div>` : ''}
           ${rows || '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>'}
@@ -2278,7 +2278,15 @@ const App = {
               // These are ALL previous scores (current score not yet added)
               if(!scores.length) return 1.0; // First play always 1 MT
               const minS=Math.min(...scores),maxS=Math.max(...scores),avgS=scores.reduce((a,b)=>a+b,0)/scores.length;
-              if(maxS===minS) return raw>=avgS?1.2:0.8;
+              if(maxS===minS){
+                // Same fix as completeTask: synthesize a spread instead of a
+                // crude 1.2/0.8 coin-flip when all prior scores are identical.
+                const synthMin=Math.max(0,minS*0.5), synthMax=Math.max(minS*1.5,minS+20);
+                if(raw<=synthMin) return 0.0;
+                if(raw>=synthMax) return 2.0;
+                if(raw<minS) return synthMin<minS ? (raw-synthMin)/(minS-synthMin) : 1.0;
+                return synthMax>minS ? 1+(raw-minS)/(synthMax-minS) : 1.0;
+              }
               if(raw<=minS) return 0.0;
               if(raw>=maxS) return 2.0;
               return raw<avgS ? (raw-minS)/(avgS-minS) : 1+(raw-avgS)/(maxS-avgS);

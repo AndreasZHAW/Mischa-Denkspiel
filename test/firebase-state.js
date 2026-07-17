@@ -431,8 +431,19 @@ const State = {
         if (isNaN(minS)||isNaN(maxS)||isNaN(avgS)||isNaN(raw)) {
           mtEarned = 1.0;
         } else if (maxS <= minS || maxS === minS) {
-          // All scores identical: compare to average (or just give 1.0)
-          mtEarned = raw >= (avgS||maxS) ? 1.0 : 0.8;
+          // Not enough variety in the calibration pool yet (all previous
+          // scores happen to be identical) — this is VERY common early in a
+          // game+device key's history and was previously a crude coin-flip
+          // (1.0 if raw>=avg else 0.8), causing a huge cluster of results to
+          // land on exactly 1.0/0.8 instead of a real spread. Instead,
+          // synthesize a reasonable spread around the single known value so
+          // the interpolation still works smoothly.
+          const synthMin = Math.max(0, minS * 0.5);
+          const synthMax = Math.max(minS * 1.5, minS + 20);
+          if (raw <= synthMin) mtEarned = 0.2;
+          else if (raw >= synthMax) mtEarned = 2.0;
+          else if (raw < minS) mtEarned = (synthMin < minS) ? 0.2 + (raw - synthMin) / (minS - synthMin) * 0.8 : 1.0;
+          else mtEarned = (synthMax > minS) ? 1.0 + (raw - minS) / (synthMax - minS) : 1.0;
         } else if (raw <= minS) {
           mtEarned = 0.2;
         } else if (raw >= maxS) {
