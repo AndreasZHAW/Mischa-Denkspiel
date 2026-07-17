@@ -172,28 +172,41 @@ const TrueFalseGame = {
     const { worldId = 1, ageGroup = 'einfach', onComplete } = config;
     TrueFalseGame._lastConfig = config;
     const pool = this._questions[worldId] || this._questions[1];
-    // Age-based difficulty: strictly separate question pools
+    // Age-based difficulty: strictly separate question pools.
+    // NOTE: each pool only has ~10 questions, so filtering down to a
+    // percentage (30%/40%/60%) can leave FEWER than 10 candidates. Padding
+    // via reshuffled repeats guarantees a full 10-question round even when
+    // the age-appropriate subset is small — better than silently serving
+    // fewer questions than promised.
+    const padTo10 = (arr) => {
+      if (!arr.length) return [];
+      let result = [];
+      while (result.length < 10) {
+        result = result.concat([...arr].sort(()=>Math.random()-0.5));
+      }
+      return result.slice(0,10);
+    };
     let questions;
     const hard = this._hardQuestions?.[worldId] || [];
     if(ageGroup === 'schwer') {
       // Adults 18+: use ONLY hard questions (if enough), else fill with pool
       if(hard.length >= 10) {
-        questions = [...hard].sort(()=>Math.random()-0.5).slice(0,10);
+        questions = padTo10(hard);
       } else {
         // Not enough hard → filter pool to medium+ difficulty + add hard
         const medPool = pool.filter((_,i)=>i>=pool.length*0.6); // last 40% = harder ones
-        questions = [...medPool,...hard].sort(()=>Math.random()-0.5).slice(0,10);
+        questions = padTo10([...medPool,...hard]);
       }
     } else if(ageGroup === 'mittel') {
       // Teens 14-18: mix medium from pool + some hard
       const medPool = pool.filter((_,i)=>i>=pool.length*0.4);
-      questions = [...medPool,...hard.slice(0,5)].sort(()=>Math.random()-0.5).slice(0,10);
+      questions = padTo10([...medPool,...hard.slice(0,5)]);
     } else if(ageGroup === 'einfach') {
       // Kids 10-14: first 60% of pool
-      questions = [...pool.slice(0,Math.ceil(pool.length*0.6))].sort(()=>Math.random()-0.5).slice(0,10);
+      questions = padTo10(pool.slice(0,Math.ceil(pool.length*0.6)));
     } else {
       // sehr_einfach: first 30% of pool
-      questions = [...pool.slice(0,Math.ceil(pool.length*0.3))].sort(()=>Math.random()-0.5).slice(0,10);
+      questions = padTo10(pool.slice(0,Math.ceil(pool.length*0.3)));
     }
     console.log('[TF] worldId='+worldId+' ageGroup='+ageGroup+' pool='+questions.length);
     this.current = {

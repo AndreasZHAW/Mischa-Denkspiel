@@ -88,11 +88,12 @@ const PacmanGame = {
     // retreat spot they can trust. Radius 3 tiles from origin (1,1).
     const isSafeZone = (gx,gy) => (gx <= 3 && gy <= 3);
     // Ghosts start slower, ramp up gradually so the difficulty doesn't spike.
-    // Base speed 0.06, +0.005 per elapsed second after grace, capped at 0.09.
+    // Base speed 0.035, +0.0008 per elapsed second after grace, capped at 0.055.
+    // (Lowered again per user feedback — still felt too fast at 0.045-0.07.)
     const ghostSpeedNow = () => {
       const elapsedAfterGrace = Math.max(0, Date.now() - tStart - GRACE_MS);
       const secs = elapsedAfterGrace / 1000;
-      return Math.min(0.09, 0.06 + secs * 0.0015);
+      return Math.min(0.055, 0.035 + secs * 0.0008);
     };
 
     // BOMBS: {x, y, timer, range, exploding, expTimer}
@@ -204,7 +205,14 @@ const PacmanGame = {
         rawScore,
         timeMs: Date.now()-tStart,
         errors: 0,
-        passed: won,
+        // IMPORTANT: "passed" isn't just "did you win" here — the global
+        // reward calculation gives a flat 0.2 MT whenever passed=false,
+        // completely ignoring rawScore. That meant dying after destroying
+        // 1, 2, or 3 ghosts still only paid the same 0.2 MT as destroying
+        // none. Since every kill should count, treat any run with at least
+        // one kill as "passed" so the real rawScore-based reward applies —
+        // only a total wipe with zero kills still falls back to the floor.
+        passed: won || ghostsKilled > 0,
       });
     };
 
