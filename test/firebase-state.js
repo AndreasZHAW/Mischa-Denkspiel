@@ -1082,13 +1082,20 @@ const RankNotify = {
         const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
         if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) merged[name] = localP;
       });
-      const _zooMTFor = (name) => {
+      // Cross-check zoo record ownership by deviceId (see explanation in
+      // showGlobalLeaderboard in app.js) — a name match alone isn't proof
+      // the zoo save actually belongs to this Denkspiel player.
+      const _zooMTFor = (playerObj) => {
+        const name = typeof playerObj === 'string' ? playerObj : playerObj?.name;
         const z = zoosAll[name?.toLowerCase()];
-        return sanitizeMT(z && z.mt);
+        if (!z) return 0;
+        const pDeviceId = typeof playerObj === 'object' ? playerObj?.deviceId : null;
+        if (pDeviceId && z.deviceId && pDeviceId !== z.deviceId) return 0;
+        return sanitizeMT(z.mt);
       };
       const players = Object.values(merged)
         .filter(p => p.name)
-        .map(p => ({ name:p.name, _mt: sanitizeMT(sanitizeMT(dsMTFor(p)) + _zooMTFor(p.name)) }))
+        .map(p => ({ name:p.name, _mt: sanitizeMT(sanitizeMT(dsMTFor(p)) + _zooMTFor(p)) }))
         .sort((a,b) => b._mt - a._mt);
 
       // A player who only ever played the Zoo (no mischa_players entry at all)
@@ -1224,9 +1231,11 @@ const Contest = {
       const fbDone = (fbWs.tasks||[]).filter(t=>t?.done).length;
       if (localDone > fbDone || (localP.updatedAt||0) > (fbP.updatedAt||0)) merged[name] = localP;
     });
-    const _zooMTFor = (name) => {
+    const _zooMTFor = (name, playerObj) => {
       const z = zoosAll[name?.toLowerCase()];
-      return sanitizeMT(z && z.mt);
+      if (!z) return 0;
+      if (playerObj?.deviceId && z.deviceId && playerObj.deviceId !== z.deviceId) return 0;
+      return sanitizeMT(z.mt);
     };
     const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);
     const players = [...allNames]
@@ -1235,7 +1244,7 @@ const Contest = {
         const p = merged[name];
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
         const dsMT = dsMTFor(p);
-        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name)) };
+        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name, p)) };
       })
       .sort((a,b) => b._mt - a._mt);
     return players;

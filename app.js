@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v296';
+const APP_VERSION = 'v297';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -350,7 +350,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v296 · 2026-07-16</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v297 · 2026-07-16</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1697,10 +1697,23 @@ const App = {
         }
       });
 
-      // Helper: Welt-1 MT + Zoo MT for a given player object
-      const _zooMTFor = (name) => {
+      // Helper: Welt-1 MT + Zoo MT for a given player object.
+      // IMPORTANT: matching a zoo record to a Denkspiel player is done by NAME
+      // ONLY (there's no shared account ID). If a totally different person (or
+      // stale test data) ever created a zoo save under the same name, that MT
+      // would get silently glued onto this player's total. To guard against
+      // that, we only add the zoo MT when the zoo record's deviceId matches
+      // this player's deviceId — i.e. it was actually saved from the same
+      // device. If either side predates device-ID tracking (older accounts),
+      // we fall back to trusting the name match as before.
+      const _zooMTForChecked = (playerObj) => {
+        const name = playerObj?.name;
         const z = zoosAll[name?.toLowerCase()];
-        return sanitizeMT(z && z.mt);
+        if (!z) return 0;
+        if (playerObj?.deviceId && z.deviceId && playerObj.deviceId !== z.deviceId) {
+          return 0; // different device → not actually this player's zoo save
+        }
+        return sanitizeMT(z.mt);
       };
 
       players = Object.values(merged)
@@ -1711,14 +1724,14 @@ const App = {
           // dsMTFor handles both task rewards AND the one-time language bonus,
           // then we sanitize + add zoo MT for the combined leaderboard total.
           const dsSum = sanitizeMT(dsMTFor(p));
-          return sanitizeMT(dsSum + _zooMTFor(p.name));
+          return sanitizeMT(dsSum + _zooMTForChecked(p));
         })()
         }))
         .sort((a,b) => b._mt - a._mt);
 
       myMT = (() => {
         const dsSum = sanitizeMT(dsMTFor(player));
-        return sanitizeMT(dsSum + _zooMTFor(player?.name));
+        return sanitizeMT(dsSum + _zooMTForChecked(player));
       })();
     }
 
