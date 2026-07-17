@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v297';
+const APP_VERSION = 'v298';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -350,7 +350,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v297 · 2026-07-16</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v298 · 2026-07-17</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1309,7 +1309,7 @@ const App = {
                 <div class="world-info">
                   <div class="world-name" style="font-size:1.2rem;font-weight:900;color:#1a3a6e">${world.name}${world.subtitle?` <span style="font-size:0.92rem;font-weight:500;color:#555">· ${world.subtitle}</span>`:''}</div>
                   <div class="world-desc" style="font-size:1rem;font-weight:500">${world.difficulty}</div>
-                  <div class="world-progress" style="font-size:0.97rem;font-weight:600">${done}/${ws.tasks.length} ${typeof t!=='undefined'?t('wm.games_done'):'Spiele ✓'} · 🌀 ${(ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0).toFixed(1)} MT</div>
+                  <div class="world-progress" style="font-size:0.97rem;font-weight:600">${done}/${ws.tasks.length} ${typeof t!=='undefined'?t('wm.games_done'):'Spiele ✓'} · 🌀 ${((ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0) + (world.id===1 ? (player.langBonusMT||0) : 0)).toFixed(1)} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
@@ -2302,6 +2302,7 @@ const App = {
         case 'truefalse':   TrueFalseGame.start({ worldId, ageGroup, onComplete }); break;
         case 'dart':        DartGame.start({ onComplete }); break;
         case 'pacman':      PacmanGame.start({ onComplete }); break;
+        case 'catapult':    CatapultGame.start({ onComplete }); break;
         case 'starwars':    StarWarsGame.start({ onComplete }); break;
         case 'pong':        PongGame.start({ onComplete }); break;
         case 'tetris':      TetrisGame.start({ onComplete }); break;
@@ -3173,6 +3174,7 @@ function getTaskInstruction(type, worldId) {
     french:      typeof t!=='undefined'?t('instr.french'):'🇫🇷 <b>Französisch!</b><br>Übersetze die Wörter von Deutsch nach Französisch.',
     riddle:      typeof t!=='undefined'?t('instr.riddle'):'🧩 <b>Rätsel!</b><br>Löse das Rätsel und tippe deine Antwort ein.',
     pacman:      typeof t!=='undefined'?t('instr.pacman'):'🎯 <b>Bomber!</b><br>Zerstöre ALLE Geister mit deinen Bomben. 💣 legt eine Bombe — sie explodiert nach 2 Sekunden in vier Richtungen. Wände blocken den Strahl. Sammle magische Steine 💎 (oder töte Geister), um den Bomben-Strahl zu verlängern!<br>📱 Mobil: Richtungstasten + 💣-Knopf, oder Gerät neigen<br>🖥️ Desktop: Pfeiltasten + Leertaste',
+    catapult:    typeof t!=='undefined'?t('instr.catapult'):'🥐 <b>Croissant-Schleuder!</b><br>Ziehe die Schleuder zurück und lass los, um zu schiessen! Triff die Croissants 🥐 und Baguettes 🥖 — bewegte Ziele bringen mehr Punkte als stehende. Du hast 10 Schüsse.<br>📱 Mobile: mit dem Finger ziehen<br>🖥️ Desktop: mit der Maus ziehen',
     starwars:    typeof t!=='undefined'?t('instr.starwars'):'🚀 <b>Star Wars — Weltraum-Shooter!</b><br>Schiesse die feindlichen Raumschiffe ab, bevor sie landen! Du hast 3 Leben.<br>📱 Mobile: ◀ ▶ zum Bewegen, Schiessen-Button<br>🖥️ Desktop: ← → bewegen, Leertaste schiessen',
     pong:        typeof t!=='undefined'?t('instr.pong'):'🏓 <b>Pong — Tennis-Klassiker!</b><br>Der Ball wird mit der Zeit SCHNELLER — reagiere rechtzeitig! Erste 7 Punkte gewinnt oder wer nach 60s mehr hat.<br>📱 Mobile: ▲ ▼ Buttons<br>🖥️ Desktop: ↑ ↓ Pfeiltasten',
   };

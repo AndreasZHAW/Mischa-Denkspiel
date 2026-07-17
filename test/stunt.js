@@ -294,13 +294,15 @@ const StuntGame = {
       }
       if(car.onGround)car._tiltBonus=false;
 
-      // CRASH DETECTION: landing on roof
-      // Crash when upside-down RELATIVE TO TERRAIN SLOPE
-      // This prevents false crashes on steep hills
+      // CRASH DETECTION: landing too tilted (relative to terrain slope)
+      // normRelative=0 means perfectly aligned with the slope (upright landing),
+      // =PI means fully upside-down. Previously only the last ~50° before full
+      // inversion counted as a crash (i.e. you could land up to ~130° tilted
+      // and still be fine) — way too forgiving, players basically never crashed.
+      // Now: land more than 55° off-level (in either direction) and you crash.
       const normRelative=((norm-terrAng+Math.PI*3)%(Math.PI*2))-Math.PI; // angle diff from slope
-      // normRelative=0 means aligned with slope (normal), =PI means inverted relative to slope
-      const relFromInverted=Math.abs(Math.abs(normRelative)-Math.PI);
-      const upside=relFromInverted<Math.PI*0.28; // within ~50° of inverted relative to slope
+      const tiltOffLevel=Math.abs(normRelative); // 0 = perfectly level, PI = fully inverted
+      const upside=tiltOffLevel>Math.PI*0.305; // ~55° tolerance (was ~130°)
       if(car.onGround&&upside){
         if(!car._roofLanded){
           car._roofLanded=true;car.roofCount++;
