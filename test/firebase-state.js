@@ -1084,13 +1084,14 @@ const RankNotify = {
       });
       // Cross-check zoo record ownership by deviceId (see explanation in
       // showGlobalLeaderboard in app.js) — a name match alone isn't proof
-      // the zoo save actually belongs to this Denkspiel player.
+      // the zoo save actually belongs to this Denkspiel player. Strict
+      // opt-in: only trust it when BOTH sides have a deviceId and they match.
       const _zooMTFor = (playerObj) => {
         const name = typeof playerObj === 'string' ? playerObj : playerObj?.name;
         const z = zoosAll[name?.toLowerCase()];
         if (!z) return 0;
         const pDeviceId = typeof playerObj === 'object' ? playerObj?.deviceId : null;
-        if (pDeviceId && z.deviceId && pDeviceId !== z.deviceId) return 0;
+        if (!pDeviceId || !z.deviceId || pDeviceId !== z.deviceId) return 0;
         return sanitizeMT(z.mt);
       };
       const players = Object.values(merged)
@@ -1234,7 +1235,7 @@ const Contest = {
     const _zooMTFor = (name, playerObj) => {
       const z = zoosAll[name?.toLowerCase()];
       if (!z) return 0;
-      if (playerObj?.deviceId && z.deviceId && playerObj.deviceId !== z.deviceId) return 0;
+      if (!playerObj?.deviceId || !z.deviceId || playerObj.deviceId !== z.deviceId) return 0;
       return sanitizeMT(z.mt);
     };
     const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);

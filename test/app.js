@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v298';
+const APP_VERSION = 'v299';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -324,18 +324,10 @@ const App = {
       for(let i=0;i<200;i++){const x=Math.random()*wmc.width,y=Math.random()*wmc.height*0.65,s=Math.random()*1.8+0.2,b=Math.random()*0.7+0.3;wctx.fillStyle=`rgba(255,255,${Math.floor(200+Math.random()*55)},${b})`;wctx.beginPath();wctx.arc(x,y,s,0,Math.PI*2);wctx.fill();}
       wmc.style.background='transparent';
     } const _ws = State.currentPlayer?.worlds?.[1] || State.currentPlayer?.worlds?.['1'] || {};
-    // One-time language bonus (granted once at registration) counts toward the visible MT total.
-    // Fallback: if the in-memory currentPlayer object doesn't have the field yet
-    // (can happen right after a fresh login before Firebase refresh completed),
-    // look it up from the local save — the value gets written there at registration.
-    let _langBonusMT = State.currentPlayer?.langBonusMT || 0;
-    if (!_langBonusMT && State.currentPlayer?.name && State._local) {
-      try {
-        const _lp = State._local.get(State.currentPlayer.name);
-        if (_lp && typeof _lp.langBonusMT === 'number') _langBonusMT = _lp.langBonusMT || 0;
-      } catch(e) {}
-    }
-    const mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0) + _langBonusMT;
+    // Use the same canonical dsMTFor helper everywhere (world card, pill,
+    // leaderboard) so this screen can never disagree with the others.
+    let mt = 0;
+    try { mt = (typeof dsMTFor === 'function') ? dsMTFor(State.currentPlayer) : (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0); } catch(_e) { mt = (_ws.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0); }
     const hasEnough = mt >= 10;
     this._html(`
       <div class="mountain-bg" id="welcome-bg">
@@ -350,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v298 · 2026-07-17</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v299 · 2026-07-17</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1215,12 +1207,16 @@ const App = {
     // Check for admin messages to this player
     this._checkAdminMessages(player.name);
 
-    // Calculate total MT from LOCAL player data (most reliable)
+    // Calculate total MT — use the SAME canonical helper (dsMTFor) as the
+    // world card below and the leaderboard use, instead of a separate
+    // re-read from local storage. The old approach re-fetched from
+    // State._local, which can lag behind the in-memory `player` object
+    // (e.g. right after registration, before the language bonus was
+    // persisted locally) — causing the pill to disagree with the world
+    // card and leaderboard on the exact same screen.
     let mt = 0;
     try {
-      const _localForMt = State._local.get(player.name) || player;
-      const _wsmt = _localForMt.worlds?.['1'] || _localForMt.worlds?.[1] || {};
-      mt = (Array.isArray(_wsmt.tasks) ? _wsmt.tasks : []).reduce((s, t) => s + (t && typeof t.mt === 'number' ? t.mt : 0), 0);
+      mt = (typeof dsMTFor === 'function') ? dsMTFor(player) : 0;
     } catch(_e) { mt = 0; }
 
     this._html(`
@@ -1702,16 +1698,18 @@ const App = {
       // ONLY (there's no shared account ID). If a totally different person (or
       // stale test data) ever created a zoo save under the same name, that MT
       // would get silently glued onto this player's total. To guard against
-      // that, we only add the zoo MT when the zoo record's deviceId matches
-      // this player's deviceId — i.e. it was actually saved from the same
-      // device. If either side predates device-ID tracking (older accounts),
-      // we fall back to trusting the name match as before.
+      // that, we only add the zoo MT when we can POSITIVELY CONFIRM it's the
+      // same device: both the player record and the zoo record need a
+      // deviceId, and they need to match. If either side is missing a
+      // deviceId (e.g. an old record from before device tracking existed),
+      // we do NOT add it — better to under-count a legacy edge case than to
+      // keep leaking unrelated MT into fresh players' totals.
       const _zooMTForChecked = (playerObj) => {
         const name = playerObj?.name;
         const z = zoosAll[name?.toLowerCase()];
         if (!z) return 0;
-        if (playerObj?.deviceId && z.deviceId && playerObj.deviceId !== z.deviceId) {
-          return 0; // different device → not actually this player's zoo save
+        if (!playerObj?.deviceId || !z.deviceId || playerObj.deviceId !== z.deviceId) {
+          return 0; // ownership not positively confirmed → exclude
         }
         return sanitizeMT(z.mt);
       };
