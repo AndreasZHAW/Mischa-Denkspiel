@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v303 -->
+<!-- ZOO v305 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=303"></script>
-<script src="rewardchests.js?v=303"></script>
-<script src="personality.js?v=303"></script>
+<script src="lang.js?v=305"></script>
+<script src="rewardchests.js?v=305"></script>
+<script src="personality.js?v=305"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v303','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v305','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -273,6 +273,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <!-- ZOO -->
 <div id="s-zoo" class="scr off">
 <canvas id="zc"></canvas>
+<div id="znews-stack" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:850;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;max-width:94vw"></div>
 <div id="hud" class="off">
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
@@ -282,7 +283,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   style="width:36px;height:36px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.6);font-size:.9rem;cursor:pointer;margin-bottom:4px;display:flex;align-items:center;justify-content:center;transition:all .2s"
   title="HUD minimieren/maximieren">⊟</button>
 
-<div class="hb" onclick="ZP._openProfile()"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl" data-i18n="zoo.profile">Profil</div></div>
+<div class="hb" onclick="ZP._openProfile()" style="display:none"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl" data-i18n="zoo.profile">Profil</div></div>
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
@@ -474,8 +475,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=303"></script>
-<script src="worlds.js?v=303"></script>
+<script src="firebase-state.js?v=305"></script>
+<script src="worlds.js?v=305"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -876,7 +877,13 @@ function rTr(ev){
   return got.slice(0,5);
 }
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;return e;}
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;
+  // EARLY GAME PACING: with just the first animal and no rebirth yet, income
+  // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
+  // that to roughly 7 minutes so the very beginning isn't instantly rushed —
+  // normal speed resumes automatically once a second animal is placed.
+  if(!(z.reb>0) && (z.enc||[]).filter(x=>x&&x.animal).length<=1) e*=0.127;
+  return e;}
 function sB(s){return s?`<span class="tb ${s.c}">${s.n}</span>`:'';}
 function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).join('');}
 
@@ -903,6 +910,9 @@ const ZS={
         sessionStorage.removeItem('zoo_teleport_mt');
       }
       this._fix();
+      // Genuinely brand-new player (no cloud save, no local save either) —
+      // announce their arrival to everyone else currently in the zoo.
+      if(!l){ try{ ZNews.push('new_player'); }catch(e){} }
     }
     // Pick up admin-granted tokens/MT from mischa_players (giftPlayer), and
     // cache the Denkspiel-side MT total here so the HUD can show a combined
@@ -1028,7 +1038,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();try{if(ZNews._unsub)ZNews._unsub();}catch(e){}['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -1185,6 +1195,7 @@ const ZG={
     {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x; this.pl.z=_z.z+12;}
     this.yaw=Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this._updHUD(); this._updWBar();
+    try{ ZNews.init(); }catch(e){}
     // Position camera - player starts at THEIR OWN zone entrance facing station
     {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x; this.pl.z=_z.z+12;}
     this.pl.y = 1.7;
@@ -1294,6 +1305,7 @@ const ZG={
       z.enc[c.slot] = {animal:{...c.animal},shiny:c.shiny,traits:c.traits||[],xm:1,addedAt:Date.now(),sl:0};
       this._encs();
       ZP.toast('🏠 '+c.animal.e+' '+c.animal.n+' hat Gehege '+(c.slot+1)+' erreicht!',2500);
+      try{ ZNews.push('animal_arrived', {animal:c.animal.n, emoji:c.animal.e}); }catch(e){}
     }
     this._updCarryHUD();
   },
@@ -4347,6 +4359,7 @@ const LW={
       ZG._encs();
       ZG._animalWalk(p.animal,slot);
       ZP.toast('🎉 '+p.animal.e+' '+p.animal.n+' gewonnen! '+( p.exclusive?'(Exklusiv!)':''),4000);
+      try{ ZNews.push('jackpot_animal', {animal:p.animal.n, emoji:p.animal.e}); }catch(e){}
       if(p.exclusive){
         // Flash special exclusive announcement
         const ex=document.createElement('div');
@@ -4362,9 +4375,176 @@ const LW={
       const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';
       pop.innerHTML='<div style="font-weight:900;color:'+this.W.glowCol+'||#FFD700;font-size:2.4rem">🎉 '+p.l+'!</div>';
       document.body.appendChild(pop);setTimeout(()=>pop.remove(),3500);
+      if(p.mt>=50000){ try{ ZNews.push('jackpot_mt', {amount:$mt(p.mt)}); }catch(e){} }
     }
   },
 };
+
+// ═══ NEWS BANNER — cross-player activity feed ═══
+// Shows a stacked, auto-dismissing notification whenever another player does
+// something newsworthy (buys/receives an animal, rebirths, joins fresh,
+// hatches an egg, wins big at the wheel, sells an animal, completes a trade,
+// finds a rare animal, or an admin event starts). Each viewer sees it in
+// their own language. Never shows the viewer's own actions (they already
+// get direct feedback via toasts elsewhere).
+const ZNews = {
+  _startTs: 0,       // only react to docs created after we started listening
+  _unsub: null,
+  _queue: [],         // pending cards waiting to be shown
+  _showing: 0,         // how many cards currently visible
+  MAX_VISIBLE: 3,
+  DISPLAY_MS: 6000,
+
+  // Localized message templates. {ph} placeholders get substituted.
+  TEMPLATES: {
+    animal_bought: {
+      de: '🛒 {player} hat {animal} {emoji} gekauft und trägt es in den Zoo!',
+      de_simple: '🛒 {player} hat {animal} {emoji} gekauft und trägt es in den Zoo!',
+      en: '🛒 {player} bought {animal} {emoji} and is carrying it into the zoo!',
+      fr: '🛒 {player} a acheté {animal} {emoji} et le porte au zoo !',
+    },
+    animal_arrived: {
+      de: '🏠 {animal} {emoji} ist in {player}s Zoo angekommen!',
+      de_simple: '🏠 {animal} {emoji} ist in {player}s Zoo angekommen!',
+      en: '🏠 {animal} {emoji} has arrived in {player}\'s zoo!',
+      fr: '🏠 {animal} {emoji} est arrivé au zoo de {player} !',
+    },
+    rebirth: {
+      de: '🔄 {player} hat ein Rebirth gemacht! (×{mult} Multiplikator)',
+      de_simple: '🔄 {player} hat neu angefangen! (×{mult} mehr Punkte)',
+      en: '🔄 {player} just did a rebirth! (×{mult} multiplier)',
+      fr: '🔄 {player} vient de faire une renaissance ! (×{mult})',
+    },
+    new_player: {
+      de: '👋 {player} ist neu im Zoo!',
+      de_simple: '👋 {player} ist neu hier!',
+      en: '👋 {player} just joined the zoo!',
+      fr: '👋 {player} vient de rejoindre le zoo !',
+    },
+    egg_hatched: {
+      de: '🥚 {player}s Ei ist geschlüpft: {animal} {emoji}!',
+      de_simple: '🥚 {player}s Ei ist geschlüpft: {animal} {emoji}!',
+      en: '🥚 {player}\'s egg hatched: {animal} {emoji}!',
+      fr: '🥚 L\'œuf de {player} a éclos : {animal} {emoji} !',
+    },
+    jackpot_mt: {
+      de: '🎰 {player} hat {amount} MT am Glücksrad gewonnen!',
+      de_simple: '🎰 {player} hat {amount} MT gewonnen!',
+      en: '🎰 {player} won {amount} MT at the wheel!',
+      fr: '🎰 {player} a gagné {amount} MT à la roue !',
+    },
+    jackpot_animal: {
+      de: '🎰 {player} hat {animal} {emoji} am Glücksrad gewonnen!',
+      de_simple: '🎰 {player} hat {animal} {emoji} gewonnen!',
+      en: '🎰 {player} won {animal} {emoji} at the wheel!',
+      fr: '🎰 {player} a gagné {animal} {emoji} à la roue !',
+    },
+    animal_sold: {
+      de: '💰 {player} hat {animal} {emoji} verkauft.',
+      de_simple: '💰 {player} hat {animal} {emoji} verkauft.',
+      en: '💰 {player} sold {animal} {emoji}.',
+      fr: '💰 {player} a vendu {animal} {emoji}.',
+    },
+    trade: {
+      de: '🤝 {player} hat {animal} {emoji} von {seller} gekauft!',
+      de_simple: '🤝 {player} hat {animal} {emoji} von {seller} gekauft!',
+      en: '🤝 {player} bought {animal} {emoji} from {seller}!',
+      fr: '🤝 {player} a acheté {animal} {emoji} à {seller} !',
+    },
+    achievement: {
+      de: '⭐ {player} hat ein seltenes Tier gefunden: {animal} {emoji}!',
+      de_simple: '⭐ {player} hat ein seltenes Tier gefunden: {animal} {emoji}!',
+      en: '⭐ {player} found a rare animal: {animal} {emoji}!',
+      fr: '⭐ {player} a trouvé un animal rare : {animal} {emoji} !',
+    },
+    admin_event: {
+      de: '🎉 Event gestartet: {eventName}!',
+      de_simple: '🎉 Event gestartet: {eventName}!',
+      en: '🎉 Event started: {eventName}!',
+      fr: '🎉 Événement lancé : {eventName} !',
+    },
+  },
+
+  _lang(){ return (typeof LANG!=='undefined' && LANG._cur) || localStorage.getItem('mischa_lang') || 'de'; },
+
+  _fmt(type, data){
+    const lang = this._lang();
+    const tpl = (this.TEMPLATES[type] && (this.TEMPLATES[type][lang] || this.TEMPLATES[type].de)) || '';
+    return tpl.replace(/\{(\w+)\}/g, (_, k) => (data[k] !== undefined && data[k] !== null) ? data[k] : '');
+  },
+
+  init(){
+    if(!(typeof _db!=='undefined' && _db)) return;
+    this._startTs = Date.now();
+    try{
+      this._unsub = _db.collection('zoo_news')
+        .where('ts','>',this._startTs)
+        .onSnapshot(snap=>{
+          snap.docChanges().forEach(ch=>{
+            if(ch.type!=='added') return;
+            const d = ch.doc.data();
+            if(!d || !d.type) return;
+            // Never show the viewer's own actions.
+            if(d.player && ZS.player && d.player.toLowerCase()===ZS.player.toLowerCase()) return;
+            this._enqueue(d.type, d);
+          });
+        }, ()=>{});
+    }catch(e){}
+  },
+
+  // Write a news event for everyone else to see. Best-effort — never blocks
+  // or throws for the player performing the action.
+  push(type, data={}){
+    try{
+      if(typeof _db==='undefined' || !_db) return;
+      _db.collection('zoo_news').add({
+        type, player: ZS.player||'?', ts: Date.now(), ...data
+      }).catch(()=>{});
+    }catch(e){}
+  },
+
+  _enqueue(type, data){
+    this._queue.push({type, data});
+    this._pump();
+  },
+
+  _pump(){
+    if(this._showing >= this.MAX_VISIBLE) return;
+    const next = this._queue.shift();
+    if(!next) return;
+    this._showing++;
+    this._showCard(next.type, next.data);
+  },
+
+  _showCard(type, data){
+    const stack = document.getElementById('znews-stack');
+    if(!stack){ this._showing--; return; }
+    const msg = this._fmt(type, data);
+    if(!msg){ this._showing--; this._pump(); return; }
+    const card = document.createElement('div');
+    card.style.cssText = 'background:rgba(15,15,30,.88);border:1px solid rgba(255,215,0,.35);'+
+      'border-radius:12px;padding:8px 16px;color:#fff;font-size:.85rem;font-weight:600;'+
+      'text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.4);backdrop-filter:blur(4px);'+
+      'animation:znews-in .35s ease-out;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    card.textContent = msg;
+    stack.appendChild(card);
+    setTimeout(()=>{
+      card.style.animation = 'znews-out .35s ease-in forwards';
+      setTimeout(()=>{
+        card.remove();
+        this._showing--;
+        this._pump();
+      }, 350);
+    }, this.DISPLAY_MS);
+  },
+};
+// Inject the slide-in/out keyframes once.
+(function(){
+  const st = document.createElement('style');
+  st.textContent = '@keyframes znews-in{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}'+
+    '@keyframes znews-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-12px)}}';
+  document.head.appendChild(st);
+})();
 
 // ═══ PANELS ═══
 const ZP={
@@ -4696,6 +4876,10 @@ const ZP={
     if(animal.r==='mythic'||animal.r==='secret') ZSound._sndSuperEpic&&ZSound._sndSuperEpic();
     else ZSound._sndUpgrade&&ZSound._sndUpgrade(2);
     ZG._updHUD&&ZG._updHUD();
+    try{ ZNews.push('egg_hatched', {animal:animal.n, emoji:animal.e}); }catch(e){}
+    if(['ultralegendary','god','mythic','secret'].includes(animal.r)){
+      try{ ZNews.push('achievement', {animal:animal.n, emoji:animal.e}); }catch(e){}
+    }
   },
 
   _rRboard(){
@@ -4739,8 +4923,10 @@ const ZP={
     try{ZG._broadcastAnimalWalk(g.a, slot);}catch(e){}
     this.close('gond');
     this.toast('🐾 '+g.a.e+' '+g.a.n+' gekauft! Trage es zum Gehege '+(slot+1)+'! (Vorsicht: andere können dich slappen!)',3500);
+    try{ ZNews.push('animal_bought', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
     const rareR=['ultralegendary','god','mythic','secret'];
     if(rareR.includes(g.a.r)){
+      try{ ZNews.push('achievement', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
       const pop=document.createElement('div');
       pop.style.cssText='position:fixed;top:18%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none;background:rgba(0,0,0,.85);border:3px solid #FFD700;border-radius:20px;padding:18px 28px;box-shadow:0 0 40px rgba(255,215,0,.6)';
       pop.innerHTML=`<div style="font-size:3.5rem;animation:bounce .5s infinite">${g.a.e}</div>
@@ -5385,7 +5571,7 @@ const ZP={
   _tN(el){const z=ZS.zoo;const enc=z.enc.filter(e=>e);if(!enc.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Tiere.</div>';return;}el.innerHTML=enc.map(e=>{const i=z.enc.indexOf(e);return`<div class="ac" style="cursor:pointer" onclick="ZP._oT(${i})"><div style="font-size:1.8rem">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${RAR[e.animal.r]?.c||'rn'}" style="font-size:.7rem">${RAR[e.animal.r]?.n||''}</div></div><div style="font-size:.7rem;color:#FFD700">Anbieten →</div></div>`;}).join('');},
   _oT(i){const z=ZS.zoo;const enc=z.enc[i];if(!enc)return;const p=prompt(`Preis für ${enc.animal.n} in MT:`);if(!p||isNaN(p))return;const tr=JSON.parse(localStorage.getItem('zoo_trades')||'[]');tr.push({sel:ZS.player,i,n:enc.animal.n,e:enc.animal.e,p:parseFloat(p),sh:enc.shiny,tr:enc.traits,d:enc});localStorage.setItem('zoo_trades',JSON.stringify(tr));this.toast(`✅ ${enc.animal.e} angeboten!`,2000);this._rTrade('m');},
   _cT(i){const my=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel===ZS.player);const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');const rem=my[i];localStorage.setItem('zoo_trades',JSON.stringify(all.filter(o=>!(o.sel===rem.sel&&o.n===rem.n&&o.p===rem.p))));this.toast('Zurückgezogen',1500);this._rTrade('m');},
-  _bT(i){const off=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel!==ZS.player);const o=off[i];if(!o)return;const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<o.p){this.toast('❌ Zu wenig!');return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Gehege voll!');return;}z.mt-=o.p;z.enc[slot]={...o.d,addedAt:Date.now()};const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');const idx=all.findIndex(x=>x.sel===o.sel&&x.n===o.n&&x.p===o.p);if(idx>=0)all.splice(idx,1);localStorage.setItem('zoo_trades',JSON.stringify(all));ZG._encs();this.toast(`✅ ${o.e} ${o.n} gekauft!`,3000);ZG._updHUD();this._rTrade('a');},
+  _bT(i){const off=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel!==ZS.player);const o=off[i];if(!o)return;const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<o.p){this.toast('❌ Zu wenig!');return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Gehege voll!');return;}z.mt-=o.p;z.enc[slot]={...o.d,addedAt:Date.now()};const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');const idx=all.findIndex(x=>x.sel===o.sel&&x.n===o.n&&x.p===o.p);if(idx>=0)all.splice(idx,1);localStorage.setItem('zoo_trades',JSON.stringify(all));ZG._encs();this.toast(`✅ ${o.e} ${o.n} gekauft!`,3000);ZG._updHUD();this._rTrade('a');try{ZNews.push('trade',{animal:o.n,emoji:o.e,seller:o.sel});}catch(e){}},
 
   // REBIRTH
   _rReb(){
@@ -5422,7 +5608,7 @@ const ZP={
       ${can?`<button class="btn btng" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:`<button class="btn btnd" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
-  async _doReb(){if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
+  async _doReb(){if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
 
   // ENCLOSURE
   _rEnc(i){
@@ -5510,8 +5696,12 @@ const ZP={
     ZG._encs();
     ZP.toast('🐾 '+g.a.e+' '+g.a.n+' auf dem Weg! Trage es ins Gehege '+(slot+1)+'! (50% langsamer)',3000);
     ZG._updHUD();
+    try{ ZNews.push('animal_bought', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
+    if(['ultralegendary','god','mythic','secret'].includes(g.a.r)){
+      try{ ZNews.push('achievement', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
+    }
   },
-  _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();},
+  _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();try{ZNews.push('animal_sold',{animal:enc.animal.n,emoji:enc.animal.e});}catch(e){}},
 
   // MENU
   _rSound(){
@@ -5635,7 +5825,7 @@ const ZP={
     }
     this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
   },
-  async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');},
+  async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');if(ev)try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}},
   async _adSl(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),sid=G('asl')?.value||'lucky';const cmd={type:'give_slap',target:tgt,slapId:sid,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const z=ZS.zoo;if(!z.ownSlaps.includes(sid))z.ownSlaps.push(sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;ZG._updWBar();}this.toast(`✅ ${SLAPS.find(s=>s.id===sid)?.e} Slap!`);this.close('adm');},
   _setWheel(btn){
     const w=btn.dataset.w;
@@ -6670,6 +6860,7 @@ const ZAdmin = {
     const cmd={id:'ev_'+Date.now(),type:'start_event',target:'_all',eventId:id,dur,exp:Date.now()+dur+10000};
     await this._cmd(cmd);
     ZP.toast('⚡ '+ev.n+' für ALLE gestartet für '+(dur/60000)+' Min!',3000);
+    try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}
     document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #FFD700':'2px solid transparent';});
     setTimeout(()=>document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border='2px solid transparent';}),3000);
   },
@@ -7710,6 +7901,7 @@ const ZAdmin = {
       try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
     }}catch(e){}
     ZP.toast('⚡ '+ev.n+' gestartet'+(this.target&&this.target.name?' für '+this.target.name:'')+'!',2500);
+    if(!this.target||!this.target.name){ try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){} }
   },
   setGlobalWheel(){
     const wType=document.getElementById('padmin-wheel-type')?.value||'normal';

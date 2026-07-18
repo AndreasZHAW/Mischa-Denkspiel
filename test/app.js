@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v303';
+const APP_VERSION = 'v305';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v303 · 2026-07-17</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v305 · 2026-07-18</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -387,7 +387,7 @@ const App = {
     const _localP = State._local.get(p.name) || p;
     const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
     const mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
-    const cost = 10;
+    const cost = 15;
     // Once unlocked (visited before), gate stays open permanently
     const _playerKey = p.name.toLowerCase();
     const _hasUnlocked = localStorage.getItem('zoo_unlocked_' + _playerKey) === '1';
@@ -1271,17 +1271,17 @@ const App = {
         </div>
 
         <!-- Teleport Button -->
-        ${mt>=10 ? `
+        ${mt>=15 ? `
         <div style="margin-bottom:12px">
           <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
-            ${typeof t!=='undefined'?t('wm.teleport_btn'):'🚀 In den Zoo teleportieren! (10 🌀 MT)'}
+            ${typeof t!=='undefined'?t('wm.teleport_btn'):'🚀 In den Zoo teleportieren! (15 🌀 MT)'}
           </button>
         </div>` : `
         <div style="margin-bottom:12px;background:rgba(39,174,96,.1);border:2px dashed rgba(39,174,96,.5);border-radius:14px;padding:12px;text-align:center;max-width:100%;width:100%">
           <div style="font-size:.9rem;color:rgba(255,255,255,.9);font-weight:700">${typeof t!=='undefined'?t('wm.zoo_unlock_title'):'🦁 Zoo freischalten'}</div>
-          <div style="font-size:1rem;color:rgba(255,255,255,.6);margin-top:4px">${(typeof t!=='undefined'?t('wm.zoo_unlock_body'):'Noch {n} 🌀 MT bis zur Teleportation').replace('{n}',Math.max(0,(10-mt)).toFixed(1))}</div>
+          <div style="font-size:1rem;color:rgba(255,255,255,.6);margin-top:4px">${(typeof t!=='undefined'?t('wm.zoo_unlock_body'):'Noch {n} 🌀 MT bis zur Teleportation').replace('{n}',Math.max(0,(15-mt)).toFixed(1))}</div>
           <div style="background:rgba(255,255,255,.15);border-radius:6px;height:8px;margin-top:8px;max-width:200px;margin-left:auto;margin-right:auto">
-            <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,mt/10*100)}%"></div>
+            <div style="background:#27AE60;height:8px;border-radius:6px;width:${Math.min(100,mt/15*100)}%"></div>
           </div>
         </div>`}
 
