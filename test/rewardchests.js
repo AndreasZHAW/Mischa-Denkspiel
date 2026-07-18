@@ -160,6 +160,7 @@ const RewardChests = {
   // ── CHEST LIST PAGE ──
   open(){
     this._initAudioUnlock(); this._unlockAudio();
+    try{ if(typeof ZTips!=='undefined') ZTips.notify('gifts'); }catch(e){}
     document.getElementById('chest-overlay')?.remove();
     const tiers=this._tiers(), round=this._round();
     const cards=tiers.map(t=>{

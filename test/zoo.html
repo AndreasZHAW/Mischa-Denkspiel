@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v305 -->
+<!-- ZOO v306 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=305"></script>
-<script src="rewardchests.js?v=305"></script>
-<script src="personality.js?v=305"></script>
+<script src="lang.js?v=306"></script>
+<script src="rewardchests.js?v=306"></script>
+<script src="personality.js?v=306"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v305','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v306','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -274,6 +274,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="s-zoo" class="scr off">
 <canvas id="zc"></canvas>
 <div id="znews-stack" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:850;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;max-width:94vw"></div>
+<div id="ztips-card-wrap" style="position:fixed;bottom:14px;left:14px;z-index:860;max-width:min(320px,80vw)"></div>
 <div id="hud" class="off">
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
@@ -284,6 +285,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   title="HUD minimieren/maximieren">⊟</button>
 
 <div class="hb" onclick="ZP._openProfile()" style="display:none"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl" data-i18n="zoo.profile">Profil</div></div>
+<div class="hb" id="tipsToggleBtn" onclick="ZTips.toggle()"><div class="hbb" id="tipsToggleIcon" style="background:rgba(120,120,120,.6)">💡</div><div class="hbl">Tipps</div></div>
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
@@ -475,8 +477,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=305"></script>
-<script src="worlds.js?v=305"></script>
+<script src="firebase-state.js?v=306"></script>
+<script src="worlds.js?v=306"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1038,7 +1040,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();try{if(ZNews._unsub)ZNews._unsub();}catch(e){}['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();try{if(ZNews._unsub)ZNews._unsub();}catch(e){}try{ZTips._hideCard();}catch(e){}['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -1196,6 +1198,12 @@ const ZG={
     this.yaw=Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this._updHUD(); this._updWBar();
     try{ ZNews.init(); }catch(e){}
+    try{
+      const _tipsOn = typeof ZTips!=='undefined' && ZTips.isEnabled();
+      const icon = document.getElementById('tipsToggleIcon');
+      if(icon) icon.style.background = _tipsOn ? 'rgba(255,215,0,.85)' : 'rgba(120,120,120,.6)';
+      if(_tipsOn) ZTips.resume(); else ZTips.maybeShowNudge();
+    }catch(e){}
     // Position camera - player starts at THEIR OWN zone entrance facing station
     {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x; this.pl.z=_z.z+12;}
     this.pl.y = 1.7;
@@ -1306,6 +1314,7 @@ const ZG={
       this._encs();
       ZP.toast('🏠 '+c.animal.e+' '+c.animal.n+' hat Gehege '+(c.slot+1)+' erreicht!',2500);
       try{ ZNews.push('animal_arrived', {animal:c.animal.n, emoji:c.animal.e}); }catch(e){}
+      try{ ZTips.notify('place'); }catch(e){}
     }
     this._updCarryHUD();
   },
@@ -2461,6 +2470,15 @@ const ZG={
     this.nearSt=stD<14;
     this.nearEnc=-1;
     this._nearDropped=-1; this._checkDroppedPickup(); this._checkTrashPickup&&this._checkTrashPickup();
+    // Throttled tip-engine check (~once/sec) — catches live-position-based
+    // step transitions like "carrying → near enclosure" as the player walks.
+    if(typeof ZTips!=='undefined' && ZTips.isEnabled()){
+      const _now=Date.now();
+      if(!this._lastTipCheck || _now-this._lastTipCheck>1000){
+        this._lastTipCheck=_now;
+        try{ ZTips.resume(); }catch(e){}
+      }
+    }
     const eps=this.ENCPOS();
     for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){
       if(Math.sqrt((this.pl.x-eps[i].x)**2+(this.pl.z-eps[i].z)**2)<5.5){
@@ -4196,6 +4214,7 @@ const LW={
 
   open(){
     const w=G('lwrap');w.style.display='flex';
+    try{ if(typeof ZTips!=='undefined') ZTips.notify('wheel'); }catch(e){}
     // Update title
     const ti=G('lwtit');if(ti)ti.textContent='🎡 '+this.W.name.toUpperCase();
     // Update spin count display
@@ -4546,6 +4565,212 @@ const ZNews = {
   document.head.appendChild(st);
 })();
 
+// ═══ TIPS / GUIDED TUTORIAL ═══
+// A toggleable step-by-step tutorial. When enabled, shows one small corner
+// card at a time, advancing only once the described action is actually
+// performed. Steps are gated on real game state, so re-enabling tips later
+// auto-resumes at the first thing the player hasn't done yet instead of
+// replaying everything from scratch.
+const ZTips = {
+  // Ordered step list. Each has a message (per language) and is considered
+  // "reached" (i.e. relevant to show) based on `when()`, which inspects live
+  // game state. Steps without a clean auto-detectable completion (e.g. the
+  // steal/slap tip) complete on dismissal instead.
+  STEPS: [
+    { id:'buy_first',   when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length===0 && !ZG.carrying,
+      msg: {
+        de: '💡 Du hast {mt} MT. Geh zur roten Gondelstation und warte, bis ein Tier kommt, das du dir leisten kannst!',
+        de_simple: '💡 Du hast {mt} MT. Geh zur roten Gondelstation und warte, bis ein Tier kommt, das du dir leisten kannst!',
+        en: '💡 You have {mt} MT. Head to the red gondola station and wait for an animal you can afford!',
+        fr: '💡 Tu as {mt} MT. Va à la station de téléphérique rouge et attends un animal que tu peux te permettre !',
+      } },
+    { id:'carry',        when: () => !!ZG.carrying && !(ZG.nearEnc>=0),
+      msg: {
+        de: '💡 Super! Trage das Tier jetzt zu deinem Zoo. Die Gehege findest du am Rand der Karte.',
+        de_simple: '💡 Super! Trage das Tier jetzt zu deinem Zoo. Die Gehege findest du am Rand der Karte.',
+        en: '💡 Great! Now carry the animal to your zoo. You\'ll find the enclosures at the edge of the map.',
+        fr: '💡 Super ! Porte maintenant l\'animal à ton zoo. Les enclos se trouvent au bord de la carte.',
+      } },
+    { id:'place',        when: () => !!ZG.carrying && ZG.nearEnc>=0,
+      msg: {
+        de: '💡 Du bist bei den Gehegen! Tippe jetzt, um das Tier in ein Gehege zu legen.',
+        de_simple: '💡 Du bist bei den Gehegen! Tippe jetzt, um das Tier in ein Gehege zu legen.',
+        en: '💡 You\'ve reached the enclosures! Tap now to place the animal inside one.',
+        fr: '💡 Tu es aux enclos ! Appuie maintenant pour placer l\'animal dedans.',
+      } },
+    { id:'buy_second',   when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length===1 && !ZG.carrying,
+      msg: {
+        de: '💡 Dein Tier verdient jetzt automatisch MT! Sammle genug für ein zweites Tier.',
+        de_simple: '💡 Dein Tier verdient jetzt automatisch MT! Sammle genug für ein zweites Tier.',
+        en: '💡 Your animal now earns MT automatically! Save up for a second one.',
+        fr: '💡 Ton animal gagne maintenant des MT automatiquement ! Économise pour un deuxième.',
+      } },
+    { id:'steal',        when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2, dismissToComplete:true,
+      msg: {
+        de: '💡 Tipp: Andere Spieler können dich beim Tragen "slappen", damit du das Tier fallen lässt — und umgekehrt! Finde die Waffen-Leiste unten.',
+        de_simple: '💡 Tipp: Andere Spieler können dich beim Tragen "slappen", damit du das Tier fallen lässt — und umgekehrt! Finde die Waffen-Leiste unten.',
+        en: '💡 Tip: Other players can "slap" you while carrying to make you drop the animal — and vice versa! Check the weapons bar at the bottom.',
+        fr: '💡 Astuce : d\'autres joueurs peuvent te « frapper » pendant que tu portes un animal pour le faire tomber — et vice versa ! Regarde la barre d\'armes en bas.',
+      } },
+    { id:'gold',
+      msg: {
+        de: '💡 Nutze die ⚗️ Goldmaschine, um deine Tiere aufzuwerten!',
+        de_simple: '💡 Nutze die ⚗️ Goldmaschine, um deine Tiere aufzuwerten!',
+        en: '💡 Use the ⚗️ Gold Machine to upgrade your animals!',
+        fr: '💡 Utilise la ⚗️ Machine à or pour améliorer tes animaux !',
+      } },
+    { id:'wheel',
+      msg: {
+        de: '💡 Dreh am 🍀 Glücksrad für Bonus-MT oder seltene Tiere!',
+        de_simple: '💡 Dreh am 🍀 Glücksrad für Bonus-MT oder seltene Tiere!',
+        en: '💡 Spin the 🍀 Wheel of Fortune for bonus MT or rare animals!',
+        fr: '💡 Tourne la 🍀 roue de la fortune pour des MT bonus ou des animaux rares !',
+      } },
+    { id:'gifts',
+      msg: {
+        de: '💡 Schau regelmässig in deine 🎁 Belohnungstruhe vorbei!',
+        de_simple: '💡 Schau regelmässig in deine 🎁 Belohnungstruhe vorbei!',
+        en: '💡 Check your 🎁 reward chest regularly!',
+        fr: '💡 Consulte régulièrement ton 🎁 coffre de récompenses !',
+      } },
+    { id:'rebirth', dismissToComplete:true,
+      msg: {
+        de: '💡 Bereit für mehr? Ein 🔄 Rebirth gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & MT!',
+        de_simple: '💡 Bereit für mehr? Ein 🔄 Rebirth gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & MT!',
+        en: '💡 Ready for more? A 🔄 rebirth gives you a permanent multiplier — but costs almost all animals & MT!',
+        fr: '💡 Prêt pour plus ? Une 🔄 renaissance te donne un multiplicateur permanent — mais coûte presque tous tes animaux et MT !',
+      } },
+    { id:'trade', dismissToComplete:true,
+      msg: {
+        de: '💡 Du kannst auch mit anderen Spielern 🤝 handeln — schau im Tauschen-Menü vorbei!',
+        de_simple: '💡 Du kannst auch mit anderen Spielern 🤝 handeln — schau im Tauschen-Menü vorbei!',
+        en: '💡 You can also 🤝 trade with other players — check out the Trading menu!',
+        fr: '💡 Tu peux aussi 🤝 échanger avec d\'autres joueurs — regarde le menu Échanges !',
+      } },
+  ],
+  COMPLETE_MSG: {
+    de: '🎉 Du kennst jetzt alle Grundlagen! Viel Spass im Zoo!',
+    de_simple: '🎉 Du kennst jetzt alle Grundlagen! Viel Spass im Zoo!',
+    en: '🎉 You now know all the basics! Have fun in the zoo!',
+    fr: '🎉 Tu connais maintenant toutes les bases ! Amuse-toi bien au zoo !',
+  },
+  NUDGE_MSG: {
+    de: '💡 Neu hier? Tippe oben auf "💡 Tipps", wir zeigen dir alles Schritt für Schritt!',
+    de_simple: '💡 Neu hier? Tippe oben auf "💡 Tipps", wir zeigen dir alles Schritt für Schritt!',
+    en: '💡 New here? Tap "💡 Tips" up top — we\'ll guide you step by step!',
+    fr: '💡 Nouveau ici ? Appuie sur « 💡 Astuces » en haut, on te guide pas à pas !',
+  },
+
+  _lang(){ return (typeof LANG!=='undefined' && LANG._cur) || localStorage.getItem('mischa_lang') || 'de'; },
+  _key(suffix){ return 'zoo_tips_'+suffix+'_'+(ZS.player||'').toLowerCase(); },
+
+  isEnabled(){ return localStorage.getItem(this._key('on'))==='1'; },
+  setEnabled(v){ try{ localStorage.setItem(this._key('on'), v?'1':'0'); }catch(e){} },
+
+  _doneMap(){ try{ return JSON.parse(localStorage.getItem(this._key('done'))||'{}'); }catch(e){ return {}; } },
+  _markDone(id){ const d=this._doneMap(); d[id]=true; try{ localStorage.setItem(this._key('done'), JSON.stringify(d)); }catch(e){} },
+  isDone(id){ return !!this._doneMap()[id]; },
+
+  toggle(){
+    const nowOn = !this.isEnabled();
+    this.setEnabled(nowOn);
+    const icon = document.getElementById('tipsToggleIcon');
+    if(icon) icon.style.background = nowOn ? 'rgba(255,215,0,.85)' : 'rgba(120,120,120,.6)';
+    if(nowOn){
+      ZP.toast('💡 Tipps aktiviert!', 1800);
+      this.resume();
+    } else {
+      ZP.toast('💡 Tipps deaktiviert.', 1500);
+      this._hideCard();
+    }
+  },
+
+  // Called on zoo entry (if tips already on) and right after toggling on —
+  // scans live state + persisted completion flags to find the first step
+  // that's still relevant, and shows it. This is what makes re-enabling
+  // tips "pick up where you left off" instead of restarting.
+  resume(){
+    if(!this.isEnabled()) return;
+    for(const step of this.STEPS){
+      if(this.isDone(step.id)) continue;
+      if(typeof step.when === 'function' && !step.when()) continue;
+      this._show(step);
+      return;
+    }
+    // Nothing left — only show the "all done" card once.
+    if(!this.isDone('_complete')){
+      this._markDone('_complete');
+      this._show({ id:'_complete', msg:this.COMPLETE_MSG, dismissToComplete:true });
+    }
+  },
+
+  // Called from action hooks (buy, carry, place, gold machine, wheel, etc.)
+  // — marks a step done if it was the currently-shown one, then advances.
+  notify(id){
+    if(!this.isEnabled()) return;
+    if(!this.isDone(id)) this._markDone(id);
+    this.resume();
+  },
+
+  // One-time nudge shown to brand-new players who haven't discovered the
+  // tips toggle yet, regardless of whether tips are on. Points at the button.
+  maybeShowNudge(){
+    if(this.isEnabled()) return; // they already know about it
+    if(localStorage.getItem(this._key('nudge_shown'))==='1') return;
+    const isNewPlayer = (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length===0 && (ZS.zoo?.te||0)===0;
+    if(!isNewPlayer) return;
+    try{ localStorage.setItem(this._key('nudge_shown'), '1'); }catch(e){}
+    this._show({ id:'_nudge', msg:this.NUDGE_MSG, dismissToComplete:true, isNudge:true });
+  },
+
+  _fmt(msgObj){
+    const lang = this._lang();
+    let s = (msgObj[lang] || msgObj.de || '');
+    const mt = ((ZS.dsMT||0) + (ZS.zoo?.mt||0)).toFixed(1);
+    return s.replace('{mt}', mt);
+  },
+
+  _hideCard(){
+    const wrap = document.getElementById('ztips-card-wrap');
+    if(wrap) wrap.innerHTML = '';
+    if(this._timer){ clearTimeout(this._timer); this._timer=null; }
+  },
+
+  _show(step){
+    const wrap = document.getElementById('ztips-card-wrap');
+    if(!wrap) return;
+    // Don't re-render the exact same step repeatedly (avoids flicker from
+    // frequent notify()/resume() calls during normal gameplay).
+    if(this._lastShown === step.id && wrap.children.length) return;
+    this._lastShown = step.id;
+    if(this._timer){ clearTimeout(this._timer); this._timer=null; }
+    const msg = this._fmt(step.msg);
+    wrap.innerHTML = `<div style="background:rgba(15,15,30,.92);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:10px 14px;color:#fff;font-size:.82rem;font-weight:600;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,.4);animation:znews-in .35s ease-out;position:relative;pointer-events:auto">
+      <button onclick="ZTips._dismiss('${step.id}')" style="position:absolute;top:4px;right:6px;background:none;border:none;color:rgba(255,255,255,.5);font-size:.9rem;cursor:pointer;padding:2px 6px">✕</button>
+      <div style="padding-right:16px">${msg}</div>
+    </div>`;
+    // Auto-dismiss after a while so it never blocks the screen forever.
+    this._timer = setTimeout(()=>this._dismiss(step.id, true), 12000);
+    if(step.dismissToComplete){
+      // These steps complete on being seen/dismissed rather than on a
+      // detectable follow-up action.
+      this._pendingDismissCompletes = step.id;
+    } else {
+      this._pendingDismissCompletes = null;
+    }
+  },
+
+  _dismiss(stepId, isTimeout){
+    this._hideCard();
+    this._lastShown = null;
+    if(this._pendingDismissCompletes === stepId){
+      this._pendingDismissCompletes = null;
+      if(!this.isDone(stepId)) this._markDone(stepId);
+      this.resume();
+    }
+  },
+};
+
 // ═══ PANELS ═══
 const ZP={
   _tt:null,_st:'z',_tt2:'m',
@@ -4688,8 +4913,8 @@ const ZP={
     if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
     if(p==='shop'){if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();}
-    if(p==='trade')this._rTrade('m');
-    if(p==='reb')this._rReb();
+    if(p==='trade'){this._rTrade('m');try{if(typeof ZTips!=='undefined')ZTips.notify('trade');}catch(e){}}
+    if(p==='reb'){this._rReb();try{if(typeof ZTips!=='undefined')ZTips.notify('rebirth');}catch(e){}}
     if(p==='menu')this._rMenu();
     if(p==='sound')this._rSound();
     if(p==='report')this._rReport();
@@ -4924,6 +5149,7 @@ const ZP={
     this.close('gond');
     this.toast('🐾 '+g.a.e+' '+g.a.n+' gekauft! Trage es zum Gehege '+(slot+1)+'! (Vorsicht: andere können dich slappen!)',3500);
     try{ ZNews.push('animal_bought', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
+    try{ ZTips.notify('buy_first'); }catch(e){}
     const rareR=['ultralegendary','god','mythic','secret'];
     if(rareR.includes(g.a.r)){
       try{ ZNews.push('achievement', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
@@ -5697,6 +5923,7 @@ const ZP={
     ZP.toast('🐾 '+g.a.e+' '+g.a.n+' auf dem Weg! Trage es ins Gehege '+(slot+1)+'! (50% langsamer)',3000);
     ZG._updHUD();
     try{ ZNews.push('animal_bought', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
+    try{ ZTips.notify('buy_first'); }catch(e){}
     if(['ultralegendary','god','mythic','secret'].includes(g.a.r)){
       try{ ZNews.push('achievement', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
     }
@@ -9062,6 +9289,7 @@ const GoldMachine = {
     const existing = document.getElementById('gm-panel');
     if(existing) existing.remove();
     const z = ZS.zoo; if(!z) return;
+    try{ if(typeof ZTips!=='undefined') ZTips.notify('gold'); }catch(e){}
     const tokens = z.tokens||0;
     const animals = z.enc.filter(e=>e&&e.animal).map(e=>e.animal);
     if(!animals.length) { ZP.toast('❌ Keine Tiere im Zoo!',2000); return; }
