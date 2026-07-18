@@ -1583,6 +1583,27 @@ window.sanitizeMT = function(v) {
   return v > window.MT_SANITY_CAP ? 0 : v;
 };
 
+// Display formatting for MT values: below 1 million, shows a plain number
+// with one decimal (unchanged from before). At and above 1 million, switches
+// to real scientific notation with a unicode superscript exponent (e.g.
+// "1.23×10⁶") instead of a raw 7+ digit number — much easier to read at a
+// glance, and matches how the leaderboard etc. should present huge values.
+window._supDigits = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+window._toSup = function(numStr) {
+  return String(numStr).split('').map(c => window._supDigits[c] || c).join('');
+};
+window.formatMT = function(n) {
+  if (typeof n !== 'number' || isNaN(n) || !isFinite(n)) return '0.0';
+  const neg = n < 0; const abs = Math.abs(n);
+  if (abs < 1000000) return (neg ? '-' : '') + abs.toFixed(1);
+  const exp = Math.floor(Math.log10(abs));
+  let mantissa = abs / Math.pow(10, exp);
+  // Guard against floating-point rounding pushing mantissa to 10.00
+  let expFinal = exp;
+  if (Math.round(mantissa * 100) / 100 >= 10) { mantissa /= 10; expFinal += 1; }
+  return (neg ? '-' : '') + mantissa.toFixed(2) + '×10' + window._toSup(expFinal);
+};
+
 // Sum a player's Welt-1 MT — from completed task rewards PLUS the one-time
 // language bonus. This is a small helper because the bonus was previously
 // invisible everywhere except the player's own world map (it was correctly

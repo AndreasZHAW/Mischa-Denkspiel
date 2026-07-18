@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v309 -->
+<!-- ZOO v310 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=309"></script>
-<script src="rewardchests.js?v=309"></script>
-<script src="personality.js?v=309"></script>
+<script src="lang.js?v=310"></script>
+<script src="rewardchests.js?v=310"></script>
+<script src="personality.js?v=310"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v309','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v310','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -477,8 +477,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=309"></script>
-<script src="worlds.js?v=309"></script>
+<script src="firebase-state.js?v=310"></script>
+<script src="worlds.js?v=310"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -885,7 +885,7 @@ const SLAPS=[
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:700},{e:2,l:1,u:0,g:0,m:0,s:0,mt:3500},{e:2,l:1,u:1,g:0,m:0,s:0,mt:17500},{e:3,l:2,u:1,g:1,m:0,s:0,mt:84000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:420000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:2100000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:10500000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:70000000}];return R[Math.min(n,R.length-1)];}
-function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e15)return'🌀'+(n/1e15).toFixed(2)+'Qa';if(n>=1e12)return'🌀'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'🌀'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'🌀'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
+function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'🌀'+(typeof formatMT==='function'?formatMT(n):(n/1e6).toFixed(2)+'M');if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
@@ -6707,7 +6707,33 @@ const ZChat = {
   },
   
   close(){ this.open = false; const p=document.getElementById('chat-panel'); if(p)p.style.display='none'; },
-  
+
+  // Toggle the chat panel between its normal small corner size and a
+  // fullscreen layout — the panel is already display:flex/flex-direction
+  // column when open, so this just swaps position/size and lets the
+  // messages area grow to fill the extra space.
+  _fullscreen: false,
+  toggleFullscreen(){
+    const panel = document.getElementById('chat-panel');
+    const msgs = document.getElementById('chat-msgs');
+    const btn = document.getElementById('chat-fs-btn');
+    if(!panel) return;
+    this._fullscreen = !this._fullscreen;
+    if(this._fullscreen){
+      panel.style.top='0'; panel.style.right='0'; panel.style.left='0'; panel.style.bottom='0';
+      panel.style.width='100vw'; panel.style.maxHeight='100vh'; panel.style.height='100vh';
+      panel.style.borderRadius='0';
+      if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; }
+      if(btn){ btn.textContent='🗗'; btn.title='Vollbild verlassen'; }
+    } else {
+      panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
+      panel.style.width='min(420px,94vw)'; panel.style.maxHeight='80vh'; panel.style.height='';
+      panel.style.borderRadius='';
+      if(msgs){ msgs.style.height='min(440px,58vh)'; msgs.style.flex=''; }
+      if(btn){ btn.textContent='⛶'; btn.title='Vollbild'; }
+    }
+  },
+
   show(){
     const b=document.getElementById('chat-toggle-btn');
     if(b) b.style.display='block';
@@ -10070,11 +10096,12 @@ window.ZooEvents = ZooEvents;
 </script>
 
 <!-- ══ VOICE + TEXT CHAT ══ -->
-<div id="chat-panel" style="position:fixed;bottom:0;left:0;z-index:600;width:min(420px,94vw);display:none;max-height:80vh">
+<div id="chat-panel" style="position:fixed;bottom:0;left:0;z-index:600;width:min(420px,94vw);display:none;max-height:80vh;transition:all .25s ease">
   <!-- Header -->
   <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
     <span id="chat-title" style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
-    <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">🎤</button>
+    <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">🎤</button>
+    <button id="chat-fs-btn" onclick="ZChat.toggleFullscreen()" title="Vollbild" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">⛶</button>
     <button onclick="ZChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
   </div>
   <!-- Voice status -->

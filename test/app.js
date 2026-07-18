@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v309';
+const APP_VERSION = 'v310';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v309 · 2026-07-18</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v310 · 2026-07-18</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -391,7 +391,7 @@ const App = {
     // Once unlocked (visited before), gate stays open permanently
     const _playerKey = p.name.toLowerCase();
     const _hasUnlocked = localStorage.getItem('zoo_unlocked_' + _playerKey) === '1';
-    if (!_hasUnlocked && mt < cost) { showAlert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + mt.toFixed(1) + ' MT'); return; }
+    if (!_hasUnlocked && mt < cost) { showAlert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + formatMT(mt) + ' MT'); return; }
     // Remember unlock permanently
     if (mt >= cost) localStorage.setItem('zoo_unlocked_' + _playerKey, '1');
     if (!(await showConfirm('🦁 In den Zoo teleportieren?'))) return;
@@ -1240,7 +1240,7 @@ const App = {
                 ${displayName}
                 ${(()=>{ const _age=State.getAge(player); return (_age>4&&_age<130)?`<span style="font-size:0.85rem;color:rgba(255,255,255,.45);font-weight:400;margin-left:4px">${_age}J</span>`:''; })()}
               </div>
-              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:1rem;padding:4px 12px;border-radius:20px">🌀 ${mt.toFixed(1)} MT</div>
+              <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:1rem;padding:4px 12px;border-radius:20px">🌀 ${formatMT(mt)} MT</div>
             </div>
           </div>
           <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
@@ -1258,7 +1258,7 @@ const App = {
         <!-- MT Counter prominent -->
         <div style="text-align:center;margin-bottom:10px">
           <div style="background:rgba(255,215,0,.2);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;display:inline-block">
-            <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${mt.toFixed(1)} MT</span>
+            <span style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${formatMT(mt)} MT</span>
             <span style="font-size:0.95rem;color:rgba(255,255,255,.7);margin-left:8px">${typeof t!=='undefined'?t('wm.mt_full'):'Mischa Taler'}</span>
           </div>
         </div>
@@ -1301,7 +1301,7 @@ const App = {
                 <div class="world-info">
                   <div class="world-name" style="font-size:1.2rem;font-weight:900;color:#1a3a6e">${world.name}${world.subtitle?` <span style="font-size:0.92rem;font-weight:500;color:#555">· ${world.subtitle}</span>`:''}</div>
                   <div class="world-desc" style="font-size:1rem;font-weight:500">${world.difficulty}</div>
-                  <div class="world-progress" style="font-size:0.97rem;font-weight:600">${done}/${ws.tasks.length} ${typeof t!=='undefined'?t('wm.games_done'):'Spiele ✓'} · 🌀 ${(world.id===1 ? mt : (ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0)).toFixed(1)} MT</div>
+                  <div class="world-progress" style="font-size:0.97rem;font-weight:600">${done}/${ws.tasks.length} ${typeof t!=='undefined'?t('wm.games_done'):'Spiele ✓'} · 🌀 ${formatMT(world.id===1 ? mt : (ws.tasks||[]).reduce((s,t)=>s+(t&&(!isNaN(t.mt)&&isFinite(t.mt)?t.mt:0)||0),0))} MT</div>
                 </div>
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
@@ -1731,7 +1731,7 @@ const App = {
 
     const rows = players.map((p, i) => {
       const isMe = p.name?.toLowerCase() === player?.name?.toLowerCase();
-      const mt = p._mt.toFixed(1);
+      const mt = formatMT(p._mt);
       const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
       const tasksDone = p.worlds ? ((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).filter(t=>t?.done).length : null;
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:${isMe?'rgba(41,182,246,.12)':'rgba(255,255,255,.04)'};border:${isMe?'1px solid rgba(41,182,246,.3)':'1px solid transparent'}">
@@ -1755,7 +1755,7 @@ const App = {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:1rem">← Zurück</button>
             <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
-            ${player ? `<div style="font-size:1rem;color:#FFD700">Du: 🌀${myMT.toFixed(1)} MT</div>` : ''}
+            ${player ? `<div style="font-size:1rem;color:#FFD700">Du: 🌀${formatMT(myMT)} MT</div>` : ''}
           </div>
           ${contestPhase==='countdown' ? `<div id="contest-countdown" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center"></div>` : ''}
           ${contestPhase==='frozen' ? `<div style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:center">
@@ -1807,7 +1807,7 @@ const App = {
       const done = task?.done || false;
       
       const mtColor = mt >= 1.3 ? '#27AE60' : mt >= 0.8 ? '#FFD700' : mt > 0 ? '#E67E22' : '#555';
-      const mtDisplay = done ? `<span style="color:${mtColor};font-weight:700">${mt.toFixed(1)}</span>` : '—';
+      const mtDisplay = done ? `<span style="color:${mtColor};font-weight:700">${formatMT(mt)}</span>` : '—';
       // MT thresholds: passed=max, failed=0.2×base
       const base = game.baseReward || 1.0;
       const maxMT = (base * 1.5).toFixed(1);
@@ -1833,7 +1833,7 @@ const App = {
           <!-- Summary -->
           <div style="display:flex;gap:8px;margin-bottom:10px">
             <div style="flex:1;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:10px;padding:10px;text-align:center">
-              <div style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${totalMT.toFixed(1)}</div>
+              <div style="font-size:1.4rem;font-weight:900;color:#FFD700">🌀 ${formatMT(totalMT)}</div>
               <div style="font-size:.72rem;color:rgba(255,255,255,.8)">Gesamt MT</div>
             </div>
             <div style="flex:1;background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.3);border-radius:10px;padding:10px;text-align:center">
@@ -1864,7 +1864,7 @@ const App = {
                 </tr>` : ''}
                 ${zooMT > 0 ? `<tr style="border-bottom:1px solid rgba(255,255,255,.05);background:rgba(255,215,0,.05)">
                   <td style="padding:5px 6px;font-size:0.92rem">🦁 Zoo-Guthaben</td>
-                  <td style="padding:5px 6px;text-align:center"><span style="color:#FFD700;font-weight:700">${zooMT.toFixed(1)}</span></td>
+                  <td style="padding:5px 6px;text-align:center"><span style="color:#FFD700;font-weight:700">${formatMT(zooMT)}</span></td>
                   <td style="padding:5px 6px;text-align:center;font-size:0.82rem;color:rgba(255,255,255,.5)">aktuell</td>
                   <td style="padding:5px 6px;text-align:center;color:rgba(255,255,255,.5);font-size:0.9rem">—</td>
                 </tr>` : ''}
@@ -1927,7 +1927,7 @@ const App = {
     } catch(e) {}
     const totalMT = rows.reduce((s,r)=>s+r.mt,0) + langBonus + zooMT;
     const tableRows = rows.map((r,i)=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.04)':''}"><td style="padding:6px 8px;font-size:1rem">${r.game.icon} ${r.game.name}</td><td style="padding:6px 8px;text-align:center;color:${r.mt>0?'#FFD700':'rgba(255,255,255,.3)'};font-weight:${r.mt>0?'700':'400'}">${r.mt>0?'🌀 '+r.mt:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.5);font-size:1rem">${r.done?r.score:'—'}</td><td style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:0.95rem">${r.plays>0?r.plays+'×':'—'}</td></tr>`).join('');
-    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:Arial,sans-serif;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:0.95rem;color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${totalMT.toFixed(1)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:1rem"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
+    this._html(`<div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div><div class="page"><div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:6px 14px">← Zurück</button><h2 style="flex:1;font-family:Arial,sans-serif;color:#FFD700;font-size:1.3rem">👜 Geldbeutel</h2><div style="text-align:right"><div style="font-size:0.95rem;color:rgba(255,255,255,.4)">Gesamt</div><div style="font-weight:900;color:#FFD700;font-size:1.1rem">🌀 ${formatMT(totalMT)} MT</div></div></div><div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:10px">Jedes Spiel kann unbegrenzt wiederholt werden. Es zählt immer das letzte Ergebnis.</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:1rem"><thead><tr style="border-bottom:2px solid rgba(255,215,0,.3);color:rgba(255,255,255,.5)"><th style="padding:7px 8px;text-align:left">Spiel</th><th style="padding:7px 8px;text-align:center">MT</th><th style="padding:7px 8px;text-align:center">Score</th><th style="padding:7px 8px;text-align:center">Gespielt</th></tr></thead><tbody>${tableRows}</tbody></table></div></div></div>`);
   },
 
   // ---- WORLD VIEW ----
@@ -2015,7 +2015,7 @@ const App = {
             <div class="world-banner ${world.bannerClass}" style="margin-bottom:10px">
           <span class="banner-icon">${world.icon}</span>
           <div class="banner-title">${world.name}</div>
-          <div class="banner-sub">${done}/20 ${typeof t!=='undefined'?t('gamelist.done_of20'):'geschafft'} · 🌀${(ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1)} MT</div>
+          <div class="banner-sub">${done}/20 ${typeof t!=='undefined'?t('gamelist.done_of20'):'geschafft'} · 🌀${formatMT((ws.tasks||[]).reduce((s,t)=>s+(t?.mt||0),0))} MT</div>
         </div>
 
 
