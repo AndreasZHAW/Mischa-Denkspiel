@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v307 -->
+<!-- ZOO v309 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=307"></script>
-<script src="rewardchests.js?v=307"></script>
-<script src="personality.js?v=307"></script>
+<script src="lang.js?v=309"></script>
+<script src="rewardchests.js?v=309"></script>
+<script src="personality.js?v=309"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v307','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v309','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -477,8 +477,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=307"></script>
-<script src="worlds.js?v=307"></script>
+<script src="firebase-state.js?v=309"></script>
+<script src="worlds.js?v=309"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -630,6 +630,38 @@ const ANIMALS=[
   {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.03, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
 ];
 window.ANIMALS = ANIMALS;
+// Per-species idle animation, hand-picked to fit each animal:
+//   nod  = gentle idle bob (calm/sleepy animals)
+//   look = curious head-tilt, perks up when the player gets close
+//   pace = walks back and forth within the enclosure
+//   hop  = bouncy vertical hop
+//   peck = quick pecking dip (birds that peck)
+//   fire = breathes a brief burst of fire when the player gets close
+//          (reserved for genuinely fire-thematic fantasy creatures only)
+const ANIMAL_ANIM = {
+  cat:'look', dog:'pace', hamster:'nod', dormouse:'nod', rabbit:'hop', duck:'pace',
+  chicken:'peck', turtle:'nod', fish:'pace', sister:'look', brother:'look',
+  kangaroo:'hop', deer:'look', penguin:'pace', koala:'nod', zebra:'pace',
+  parrot:'nod', otter:'hop', frog:'hop', raccoon:'look', dolphin:'pace',
+  wolf:'pace', panda:'nod', bear:'pace', flamingo:'nod', capybara:'nod',
+  jellyfish:'nod', fox:'look', tiger:'pace', elephant:'pace', gorilla:'nod',
+  unicorn:'pace', narwhal:'nod', orca:'pace', dragon:'fire', phoenix:'fire',
+  nessie:'look', lion:'look', mammoth:'pace', kraken:'look', anubis:'nod',
+  cerberus:'fire', poseidon:'nod', zeus:'look', thor:'pace', dino:'pace',
+  megalodon:'pace',
+  goat:'nod', sheep:'nod', pig:'nod', cow:'nod', rooster:'peck', chick:'hop',
+  mouse:'hop', snail:'nod', ladybug:'nod', butterfly:'hop',
+  fox_b:'look', wolf_b:'pace', bear_b:'pace', panda_b:'nod', lion_b:'look',
+  tiger_b:'pace', elephant_b:'pace', hippo:'nod', rhino:'pace', giraffe:'look',
+  camel:'pace', horse:'pace', donkey:'nod', bison:'pace', moose:'look',
+  gorilla_b:'nod', chimp:'hop', whale:'nod', shark:'pace', dolphin_b:'pace',
+  octopus:'nod', seahorse:'nod', narwhal_b:'nod', flamingo_b:'nod', peacock:'look',
+  dragon_b:'fire', unicorn_b:'pace', phoenix_b:'fire', kraken_b:'look',
+  t_rex:'pace', mammoth_b:'pace', dodo:'hop', yeti:'pace',
+  alien_pet:'look', robot_pet:'pace', mermaid_pet:'look', angel_pet:'nod',
+  galaxy_pet:'nod', time_pet:'nod', void_pet:'nod', god_beast:'look',
+};
+window.ANIMAL_ANIM = ANIMAL_ANIM;
 const ANIMAL_I18N={
   cat:{en:'Cat',fr:'Chat'},
   dog:{en:'Dog',fr:'Chien'},
@@ -2096,11 +2128,108 @@ const ZG={
       const rlm=new THREE.MeshBasicMaterial({color:0xa05525});
       [[0,3.2,'x'],[0,-3.2,'x'],[-3.2,0,'z'],[3.2,0,'z']].forEach(([px,pz,ax])=>{[1.7,.6].forEach(hy=>{const rg=new THREE.BoxGeometry(ax==='x'?7:.2,.15,ax==='z'?7:.2);const r=new THREE.Mesh(rg,rlm);r.position.set(px,hy,pz);g.add(r);});});
       const enc=z?.enc?.[i];
-      if(enc){const sp=this._anSp(enc.animal,enc.shiny);sp.position.set(0,1.5,0);g.add(sp);
+      if(enc){const sp=this._anSp(enc.animal,enc.shiny);sp.position.set(0,1.5,0);g.add(sp);g.userData.animalSprite=sp;
         const es=this._txt($mt(earn(enc,z,this.ev))+'/v',.45,'#00FF88');es.position.set(0,2.9,0);g.add(es);}
       const ns=this._txt('#'+(i+1),.5,'#fff');ns.position.set(-2.9,2.5,-2.9);g.add(ns);
       g.userData.encIdx=i; this.encGr.push(g); this.scene.add(g);
     });
+  },
+
+  // Called every frame from _loop() — animates each placed animal according
+  // to its species-appropriate idle animation (nod/look/pace/hop/peck/fire).
+  _animateEnclosures(){
+    if(!this.encGr || !this.encGr.length) return;
+    const time=Date.now()/1000;
+    const FIRE_COOLDOWN=6000, FIRE_RANGE=12;
+    this.encGr.forEach(encG=>{
+      const sp=encG.userData.animalSprite;
+      if(!sp) return;
+      const face=sp.userData.face;
+      if(!face) return;
+      const anim=sp.userData.animType||'nod';
+      const phase=sp.userData.animPhase||0;
+      switch(anim){
+        case 'nod':
+          face.position.y=sp.userData.faceBaseY+Math.sin(time*1.6+phase)*0.12;
+          break;
+        case 'hop':
+          face.position.y=sp.userData.faceBaseY+Math.abs(Math.sin(time*2.2+phase))*0.55;
+          break;
+        case 'peck': {
+          const dip=Math.pow(Math.max(0,Math.sin(time*3+phase)),10);
+          face.position.y=sp.userData.faceBaseY-dip*0.35;
+          break;
+        }
+        case 'pace': {
+          const off=Math.sin(time*0.5+phase)*2.0;
+          sp.position.x=(sp.userData.baseX||0)+off;
+          const dir=Math.cos(time*0.5+phase)>=0?1:-1;
+          face.scale.x=(sp.userData.faceBaseScale||1)*dir;
+          face.position.y=sp.userData.faceBaseY+Math.abs(Math.sin(time*3+phase))*0.08;
+          break;
+        }
+        case 'look': {
+          const dx=this.pl.x-(encG.position.x+sp.position.x);
+          const dz=this.pl.z-(encG.position.z+sp.position.z);
+          const dist=Math.sqrt(dx*dx+dz*dz);
+          const near=dist<10;
+          const amp=near?0.35:0.12;
+          face.material.rotation=Math.sin(time*(near?2.5:0.8)+phase)*amp;
+          face.position.y=sp.userData.faceBaseY+(near?0.08:0);
+          break;
+        }
+        case 'fire': {
+          face.position.y=sp.userData.faceBaseY+Math.sin(time*1.4+phase)*0.1;
+          const dx=this.pl.x-encG.position.x, dz=this.pl.z-encG.position.z;
+          const dist=Math.sqrt(dx*dx+dz*dz);
+          if(dist<FIRE_RANGE && Date.now()-(sp.userData.lastFireAt||0)>FIRE_COOLDOWN){
+            sp.userData.lastFireAt=Date.now();
+            this._spawnFireBreath(sp);
+          }
+          break;
+        }
+      }
+    });
+  },
+
+  // Brief fire-breath puff in front of a fire-type animal, self-contained
+  // (creates its own short rAF loop and cleans itself up).
+  _spawnFireBreath(spriteGroup){
+    if(!this.scene) return;
+    const face=spriteGroup.userData.face;
+    if(!face) return;
+    const worldPos=new THREE.Vector3();
+    face.getWorldPosition(worldPos);
+    const fireGroup=new THREE.Group();
+    for(let i=0;i<3;i++){
+      const c=document.createElement('canvas');c.width=64;c.height=64;
+      const cx=c.getContext('2d');
+      const grad=cx.createRadialGradient(32,32,0,32,32,32);
+      grad.addColorStop(0,i===0?'#FFD700':i===1?'#FF8C00':'#FF4500');
+      grad.addColorStop(1,'transparent');
+      cx.fillStyle=grad;cx.beginPath();cx.arc(32,32,32,0,Math.PI*2);cx.fill();
+      const tex=new THREE.CanvasTexture(c);
+      const fs=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.85}));
+      const baseScale=0.6-i*0.1;
+      fs.scale.set(baseScale,baseScale,1);
+      fs.position.set((Math.random()-.5)*.3,-0.1*i,0.3+i*0.25);
+      fireGroup.add(fs);
+    }
+    fireGroup.position.copy(worldPos);
+    this.scene.add(fireGroup);
+    const start=Date.now(), dur=650;
+    const anim=()=>{
+      const t=(Date.now()-start)/dur;
+      if(t>=1 || !this.scene){ try{this.scene.remove(fireGroup);}catch(e){} return; }
+      fireGroup.children.forEach((fs,i)=>{
+        fs.position.z=0.3+i*0.25+t*1.2;
+        fs.material.opacity=.85*(1-t);
+        const sc=(0.6-i*0.1)*(1+t*0.8);
+        fs.scale.set(sc,sc,1);
+      });
+      requestAnimationFrame(anim);
+    };
+    anim();
   },
 
   _hiddenTrapdoor(){
@@ -2176,8 +2305,18 @@ const ZG={
     const t=new THREE.CanvasTexture(c);
     const face=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));
     // Higher off the ground (was s*1.5) and noticeably bigger (was 1.8*s).
-    face.position.set(0,s*1.9+.4,0);
-    face.scale.set(2.6*s,2.6*s,1);g.add(face);
+    const faceBaseY=s*1.9+.4, faceBaseScale=2.6*s;
+    face.position.set(0,faceBaseY,0);
+    face.scale.set(faceBaseScale,faceBaseScale,1);g.add(face);
+    g.userData.face=face;
+    g.userData.faceBaseY=faceBaseY;
+    g.userData.faceBaseScale=faceBaseScale;
+    g.userData.animType=(window.ANIMAL_ANIM&&window.ANIMAL_ANIM[animal.id])||'nod';
+    g.userData.animPhase=Math.random()*Math.PI*2;
+    g.userData.paceDir=Math.random()<.5?1:-1;
+    g.userData.baseX=0; g.userData.baseZ=0;
+    g.userData.animal=animal;
+    g.userData.lastFireAt=0;
 
     // Shiny aura ring for special animals — around the ground disc now,
     // instead of trying to hug a body that no longer exists.
@@ -2190,7 +2329,6 @@ const ZG={
     }
 
     // Bobbing animation data
-    g.userData.bobPhase=Math.random()*Math.PI*2;
     g.userData.bobSpeed=0.8+Math.random()*.4;
 
     return g;
@@ -2366,6 +2504,7 @@ const ZG={
     }
     // Animate clouds
     this.scene.traverse(o=>{if(o.userData?.spd){o.position.x+=o.userData.spd;if(o.position.x>100)o.position.x=-100;}});
+    try{ this._animateEnclosures(); }catch(e){}
     this._minimap();
     if(this.renderer&&this.scene&&this.cam)try{this.renderer.render(this.scene,this.cam);}catch(e){}
   },
@@ -6605,13 +6744,13 @@ const ZChat = {
     const el = document.getElementById('chat-msgs');
     if(!el) return;
     const d = document.createElement('div');
-    d.style.cssText = 'padding:2px 5px;border-radius:5px;max-width:95%;word-break:break-word;';
+    d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;';
     if(isMine){
       d.style.background='rgba(41,128,185,.4)';d.style.alignSelf='flex-end';
-      d.innerHTML = '<span style="color:#4af;font-size:.65rem">Du</span><br>' + $esc(msg);
+      d.innerHTML = '<span style="color:#4af;font-size:.75rem">Du</span><br>' + $esc(msg);
     } else {
       d.style.background='rgba(255,255,255,.07)';d.style.alignSelf='flex-start';
-      d.innerHTML = '<span style="color:#FFD700;font-size:.65rem">' + $esc(from) + '</span><br>' + $esc(msg);
+      d.innerHTML = '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + '</span><br>' + $esc(msg);
     }
     el.appendChild(d);
     el.scrollTop = el.scrollHeight;
@@ -9931,25 +10070,25 @@ window.ZooEvents = ZooEvents;
 </script>
 
 <!-- ══ VOICE + TEXT CHAT ══ -->
-<div id="chat-panel" style="position:fixed;bottom:0;left:0;z-index:600;width:min(260px,90vw);display:none;max-height:60vh">
+<div id="chat-panel" style="position:fixed;bottom:0;left:0;z-index:600;width:min(420px,94vw);display:none;max-height:80vh">
   <!-- Header -->
-  <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
-    <span id="chat-title" style="color:#FFD700;font-size:.78rem;font-weight:700;flex:1">💬 Chat</span>
-    <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:2px 6px;font-size:.7rem;cursor:pointer">🎤</button>
-    <button onclick="ZChat.close()" style="background:none;border:none;color:#aaa;font-size:.9rem;cursor:pointer;padding:2px 6px">✕</button>
+  <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
+    <span id="chat-title" style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
+    <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">🎤</button>
+    <button onclick="ZChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
   </div>
   <!-- Voice status -->
-  <div id="voice-status" style="display:none;background:#0d1f0d;padding:4px 8px;font-size:.7rem;color:#5f5;text-align:center;border-bottom:1px solid rgba(255,255,255,.05)">
+  <div id="voice-status" style="display:none;background:#0d1f0d;padding:5px 10px;font-size:.8rem;color:#5f5;text-align:center;border-bottom:1px solid rgba(255,255,255,.05)">
     🔴 <span id="voice-txt">Verbinde...</span>
   </div>
   <!-- Messages -->
-  <div id="chat-msgs" style="background:rgba(10,20,30,.92);height:min(140px,30vh);overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;font-size:.72rem"></div>
+  <div id="chat-msgs" style="background:rgba(10,20,30,.92);height:min(440px,58vh);overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;font-size:.88rem"></div>
   <!-- Input -->
-  <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:5px;display:flex;gap:4px">
+  <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:8px;display:flex;gap:6px">
     <input id="chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off" 
-      style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:4px 8px;border-radius:6px;font-size:.72rem;outline:none"
+      style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
       onkeydown="if(event.key==='Enter')ZChat.send()">
-    <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:4px 8px;border-radius:6px;font-size:.72rem;cursor:pointer">→</button>
+    <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
   </div>
 </div>
 <!-- Chat toggle button -->
