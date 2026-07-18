@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v306 -->
+<!-- ZOO v307 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=306"></script>
-<script src="rewardchests.js?v=306"></script>
-<script src="personality.js?v=306"></script>
+<script src="lang.js?v=307"></script>
+<script src="rewardchests.js?v=307"></script>
+<script src="personality.js?v=307"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v306','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v307','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -274,7 +274,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="s-zoo" class="scr off">
 <canvas id="zc"></canvas>
 <div id="znews-stack" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:850;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;max-width:94vw"></div>
-<div id="ztips-card-wrap" style="position:fixed;bottom:14px;left:14px;z-index:860;max-width:min(320px,80vw)"></div>
+<div id="ztips-card-wrap" style="position:fixed;top:64px;left:14px;z-index:860;max-width:min(320px,80vw)"></div>
 <div id="hud" class="off">
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
@@ -477,8 +477,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=306"></script>
-<script src="worlds.js?v=306"></script>
+<script src="firebase-state.js?v=307"></script>
+<script src="worlds.js?v=307"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2138,74 +2138,61 @@ const ZG={
 
   _anSp(animal,shiny){
     const g=new THREE.Group();
-    // Rarity-based body colors
+    // Rarity-based accent colors (used for the ground ring + glow, not a body anymore)
     const rarityColors={normal:0x95a5a6,rare:0x3498DB,epic:0x9B59B6,legendary:0xF39C12,god:0xE74C3C,mythic:0x00FF88,ultralegendary:0xFFD700,secret:0xFF1493};
     const bodyCol=rarityColors[animal.r]||0x95a5a6;
-    // Shiny glow color
     const shinyCol=shiny?({gold:0xFFD700,diamond:0x00CFFF,rainbow:0xFF69B4,void:0x9B59B6}[shiny.id]||bodyCol):bodyCol;
     const col=shiny?shinyCol:bodyCol;
-    
-    // 3D body shape based on animal size (rarity = bigger)
+
+    // Size scales with rarity, same tiers as before.
     const sizeMap={normal:.55,rare:.7,epic:.85,legendary:1.0,god:1.15,mythic:1.3,ultralegendary:1.5,secret:1.4};
     const s=sizeMap[animal.r]||.6;
-    
-    // Main body (sphere for most animals)
-    const body=new THREE.Mesh(
-      new THREE.SphereGeometry(s*.5,10,8),
-      new THREE.MeshBasicMaterial({color:col})
+
+    // A soft colored disc on the ground under the animal — keeps the
+    // rarity-color cue without needing a mismatched 3D "creature body".
+    const disc=new THREE.Mesh(
+      new THREE.CircleGeometry(s*.85,20),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.28})
     );
-    body.position.y=s*.5;g.add(body);
-    
-    // Head (smaller sphere)
-    const head=new THREE.Mesh(
-      new THREE.SphereGeometry(s*.35,8,6),
-      new THREE.MeshBasicMaterial({color:col})
-    );
-    head.position.set(s*.25,s*.95,s*.3);g.add(head);
-    
-    // Legs (4 cylinders)
-    [[-s*.25,-s*.25],[s*.25,-s*.25],[-s*.25,s*.25],[s*.25,s*.25]].forEach(([lx,lz])=>{
-      const leg=new THREE.Mesh(
-        new THREE.CylinderGeometry(.08*s,.08*s,s*.4,5),
-        new THREE.MeshBasicMaterial({color:col})
-      );
-      leg.position.set(lx,s*.2,lz);g.add(leg);
-    });
-    
-    // Emoji face sprite (big, clear)
-    const c=document.createElement('canvas');c.width=128;c.height=128;
+    disc.rotation.x=-Math.PI/2; disc.position.y=.08; g.add(disc);
+
+    // The animal itself: one big, clean emoji sprite, floating clearly
+    // above the ground disc — larger and higher than before so it actually
+    // reads well at a glance instead of being a tiny flat face on a blob.
+    const c=document.createElement('canvas');c.width=160;c.height=160;
     const ctx=c.getContext('2d');
-    // Shiny background
     if(shiny){
       if(shiny.id==='rainbow'){
-        const gr=ctx.createLinearGradient(0,0,128,128);
-        ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff'].forEach((cl,i)=>gr.addColorStop(i/5,cl+'90'));
-        ctx.fillStyle=gr;ctx.fillRect(0,0,128,128);
+        const gr=ctx.createLinearGradient(0,0,160,160);
+        ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#8800ff'].forEach((cl,i)=>gr.addColorStop(i/5,cl+'70'));
+        ctx.fillStyle=gr;ctx.beginPath();ctx.arc(80,80,76,0,Math.PI*2);ctx.fill();
       } else {
-        ctx.fillStyle={gold:'#FFD70060',diamond:'#00CFFF60',void:'#9B59B660'}[shiny.id]||'transparent';
-        ctx.fillRect(0,0,128,128);
+        ctx.fillStyle={gold:'#FFD70050',diamond:'#00CFFF50',void:'#9B59B650'}[shiny.id]||'transparent';
+        ctx.beginPath();ctx.arc(80,80,76,0,Math.PI*2);ctx.fill();
       }
     }
-    ctx.font='64px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(animal.e,64,64);
+    ctx.font='104px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(animal.e,80,84);
     const t=new THREE.CanvasTexture(c);
     const face=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));
-    face.position.set(0,s*1.5,0);
-    face.scale.set(1.8*s,1.8*s,1);g.add(face);
-    
-    // Shiny aura ring for special animals
+    // Higher off the ground (was s*1.5) and noticeably bigger (was 1.8*s).
+    face.position.set(0,s*1.9+.4,0);
+    face.scale.set(2.6*s,2.6*s,1);g.add(face);
+
+    // Shiny aura ring for special animals — around the ground disc now,
+    // instead of trying to hug a body that no longer exists.
     if(shiny||['legendary','god','mythic','ultralegendary','secret'].includes(animal.r)){
       const ring=new THREE.Mesh(
-        new THREE.TorusGeometry(s*.7,.08,6,16),
-        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.6})
+        new THREE.TorusGeometry(s*.85,.08,6,20),
+        new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.7})
       );
-      ring.rotation.x=Math.PI/2;ring.position.y=.1;g.add(ring);
+      ring.rotation.x=Math.PI/2;ring.position.y=.12;g.add(ring);
     }
-    
+
     // Bobbing animation data
     g.userData.bobPhase=Math.random()*Math.PI*2;
     g.userData.bobSpeed=0.8+Math.random()*.4;
-    
+
     return g;
   },
 
@@ -4605,7 +4592,7 @@ const ZTips = {
         en: '💡 Your animal now earns MT automatically! Save up for a second one.',
         fr: '💡 Ton animal gagne maintenant des MT automatiquement ! Économise pour un deuxième.',
       } },
-    { id:'steal',        when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2, dismissToComplete:true,
+    { id:'steal',        when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2,
       msg: {
         de: '💡 Tipp: Andere Spieler können dich beim Tragen "slappen", damit du das Tier fallen lässt — und umgekehrt! Finde die Waffen-Leiste unten.',
         de_simple: '💡 Tipp: Andere Spieler können dich beim Tragen "slappen", damit du das Tier fallen lässt — und umgekehrt! Finde die Waffen-Leiste unten.',
@@ -4633,14 +4620,14 @@ const ZTips = {
         en: '💡 Check your 🎁 reward chest regularly!',
         fr: '💡 Consulte régulièrement ton 🎁 coffre de récompenses !',
       } },
-    { id:'rebirth', dismissToComplete:true,
+    { id:'rebirth',
       msg: {
         de: '💡 Bereit für mehr? Ein 🔄 Rebirth gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & MT!',
         de_simple: '💡 Bereit für mehr? Ein 🔄 Rebirth gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & MT!',
         en: '💡 Ready for more? A 🔄 rebirth gives you a permanent multiplier — but costs almost all animals & MT!',
         fr: '💡 Prêt pour plus ? Une 🔄 renaissance te donne un multiplicateur permanent — mais coûte presque tous tes animaux et MT !',
       } },
-    { id:'trade', dismissToComplete:true,
+    { id:'trade',
       msg: {
         de: '💡 Du kannst auch mit anderen Spielern 🤝 handeln — schau im Tauschen-Menü vorbei!',
         de_simple: '💡 Du kannst auch mit anderen Spielern 🤝 handeln — schau im Tauschen-Menü vorbei!',
@@ -4700,7 +4687,7 @@ const ZTips = {
     // Nothing left — only show the "all done" card once.
     if(!this.isDone('_complete')){
       this._markDone('_complete');
-      this._show({ id:'_complete', msg:this.COMPLETE_MSG, dismissToComplete:true });
+      this._show({ id:'_complete', msg:this.COMPLETE_MSG });
     }
   },
 
@@ -4720,7 +4707,7 @@ const ZTips = {
     const isNewPlayer = (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length===0 && (ZS.zoo?.te||0)===0;
     if(!isNewPlayer) return;
     try{ localStorage.setItem(this._key('nudge_shown'), '1'); }catch(e){}
-    this._show({ id:'_nudge', msg:this.NUDGE_MSG, dismissToComplete:true, isNudge:true });
+    this._show({ id:'_nudge', msg:this.NUDGE_MSG, isNudge:true });
   },
 
   _fmt(msgObj){
@@ -4751,13 +4738,10 @@ const ZTips = {
     </div>`;
     // Auto-dismiss after a while so it never blocks the screen forever.
     this._timer = setTimeout(()=>this._dismiss(step.id, true), 12000);
-    if(step.dismissToComplete){
-      // These steps complete on being seen/dismissed rather than on a
-      // detectable follow-up action.
-      this._pendingDismissCompletes = step.id;
-    } else {
-      this._pendingDismissCompletes = null;
-    }
+    // Every step completes as soon as it's been shown & dismissed (click or
+    // timeout) — not just the ones without a detectable follow-up action.
+    // This guarantees each tip is shown at most once, ever, per player.
+    this._pendingDismissCompletes = step.id;
   },
 
   _dismiss(stepId, isTimeout){
