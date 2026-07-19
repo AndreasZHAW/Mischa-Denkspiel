@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v315';
+const APP_VERSION = 'v318';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v315 · 2026-07-19</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v318 · 2026-07-19</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1318,8 +1318,8 @@ const App = {
           </button>
         </div>
       </div>`);
-    // Start reward-chest badge timer (test mode)
-    if(window.MISCHA_TESTMODE && typeof RewardChests!=='undefined'){ RewardChests.startBadgeTimer(); }
+    // Start reward-chest badge timer
+    if(typeof RewardChests!=='undefined'){ RewardChests.startBadgeTimer(); }
   },
 
   goToAdmin() {

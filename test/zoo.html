@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v315 -->
+<!-- ZOO v318 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=315"></script>
-<script src="rewardchests.js?v=315"></script>
-<script src="personality.js?v=315"></script>
+<script src="lang.js?v=318"></script>
+<script src="rewardchests.js?v=318"></script>
+<script src="personality.js?v=318"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v315','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v318','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=315"></script>
-<script src="worlds.js?v=315"></script>
+<script src="firebase-state.js?v=318"></script>
+<script src="worlds.js?v=318"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1068,39 +1068,41 @@ const ZS={
     try{
       const snap = await _db.collection('zoo_instances').orderBy('createdAt','asc').limit(25).get();
       for(const doc of snap.docs){
-        const data = doc.data()||{};
-        const slots = Array.isArray(data.slots) ? data.slots.slice(0,20) : Array(20).fill(null);
-        while(slots.length<20) slots.push(null);
-        let freeIdx = -1;
-        for(let i=0;i<20;i++){
-          const s = slots[i];
-          if(!s){ freeIdx=i; break; }
-          if((s.name||'').toLowerCase()===myName){ freeIdx=i; break; } // resume own slot
-          if(Date.now()-(s.t||0) > this.RECLAIM_STALE_MS){ freeIdx=i; break; } // reclaim abandoned
-        }
-        if(freeIdx<0) continue; // this instance is genuinely full — try the next one
         try{
+          let assignedIdx = -1;
           await _db.runTransaction(async (tx)=>{
             const fresh = await tx.get(doc.ref);
             const freshData = fresh.data()||{};
             const freshSlots = Array.isArray(freshData.slots) ? freshData.slots.slice(0,20) : Array(20).fill(null);
             while(freshSlots.length<20) freshSlots.push(null);
-            const cur = freshSlots[freeIdx];
-            if(cur && (cur.name||'').toLowerCase()!==myName && Date.now()-(cur.t||0)<=this.RECLAIM_STALE_MS){
-              throw new Error('slot-taken'); // someone else grabbed it first — retry another instance
+            // Compute the free slot FRESH, inside the transaction — so if
+            // another player's write landed first, this just picks a
+            // different open slot instead of failing the whole instance.
+            let freeIdx = -1;
+            for(let i=0;i<20;i++){
+              const s = freshSlots[i];
+              if(!s){ freeIdx=i; break; }
+              if((s.name||'').toLowerCase()===myName){ freeIdx=i; break; } // resume own slot
+              if(Date.now()-(s.t||0) > this.RECLAIM_STALE_MS){ freeIdx=i; break; } // reclaim abandoned
             }
+            if(freeIdx<0) throw new Error('instance-full');
             freshSlots[freeIdx] = {name:this.player, t:Date.now()};
             tx.update(doc.ref, {slots:freshSlots});
+            assignedIdx = freeIdx;
           });
-          this.instanceId = doc.id; this.mySlot = freeIdx;
-          return;
-        }catch(e){ continue; } // lost the race — try the next instance in the list
+          if(assignedIdx>=0){
+            this.instanceId = doc.id; this.mySlot = assignedIdx;
+            console.log('[Instance] joined '+doc.id+' at slot '+assignedIdx);
+            return;
+          }
+        }catch(e){ continue; } // this instance is full or had a conflict — try the next one
       }
       // No existing instance had room — create a brand-new one.
       const newSlots = Array(20).fill(null);
       newSlots[0] = {name:this.player, t:Date.now()};
       const newDoc = await _db.collection('zoo_instances').add({slots:newSlots, createdAt:Date.now()});
       this.instanceId = newDoc.id; this.mySlot = 0;
+      console.log('[Instance] created new instance '+newDoc.id+' at slot 0');
     }catch(e){
       console.warn('[Instance] assignment failed, using local fallback:', e.message);
       this.instanceId = 'local'; this.mySlot = 0;
@@ -1179,7 +1181,22 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();try{ZS._releaseSlot();}catch(e){}try{if(ZNews._unsub)ZNews._unsub();}catch(e){}try{ZTips._hideCard();}catch(e){}['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){
+    ZG.zStop();
+    try{ ZS._releaseSlot(); }catch(e){}
+    // Remove our own zoo_players entry immediately so our enclosures vanish
+    // from other players' screens right away, instead of waiting for the
+    // ~10s staleness cutoff to naturally exclude us.
+    try{
+      if(ZS.player && typeof _db!=='undefined' && _db && State._useCloud()){
+        _db.collection('zoo_players').doc(ZS.player.toLowerCase()).delete().catch(()=>{});
+      }
+    }catch(e){}
+    try{if(ZNews._unsub)ZNews._unsub();}catch(e){}
+    try{ZTips._hideCard();}catch(e){}
+    ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));
+    hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');
+  }
 };
 </script>
 <script>
@@ -1384,7 +1401,7 @@ const ZG={
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     this._scheduleEvent();
     // Apply pending chest rewards via RewardChests.applyPending()
-    if(window.MISCHA_TESTMODE){
+    {
       try{
         window.ANIMALS=ANIMALS; // make sure RewardChests can find animals
         setTimeout(()=>{ if(typeof RewardChests!=='undefined') RewardChests.applyPending(); },500);
@@ -1395,7 +1412,7 @@ const ZG={
         }
       }catch(e){}
     }
-    // Insurance: charge 1000 MT every 5 min while active (test mode)
+    // Insurance: charge 1000 MT every 5 min while active
     this._ivs.push(setInterval(()=>{
       const z=ZS.zoo; if(!z||!z.insuranceActive) return;
       if(z.lifeInsurance) return; // lifelong = free, no charge
@@ -1412,8 +1429,8 @@ const ZG={
         }
       }
     },10000));
-    // Random emergency: every 5 min, 5% chance (test mode)
-    if(window.MISCHA_TESTMODE){
+    // Random emergency: every 5 min, 5% chance
+    {
       this._ivs.push(setInterval(()=>{
         if(!ZS.player||!ZS.zoo)return;
         if(document.getElementById('zevent-overlay')||document.getElementById('accident-overlay'))return; // not during another event
@@ -1909,7 +1926,7 @@ const ZG={
     this.pl.x = layout.sign.x;
     this.pl.z = layout.sign.z;
     this.yaw = Math.atan2(layout.center.x-layout.sign.x, layout.center.z-layout.sign.z)+Math.PI;
-    ZP.toast('🏠 Zurück bei deinem Zoo!', 1500);
+    ZP.toast('🏠 Zurück bei deinem Zoo! (Slot '+(slot+1)+'/'+this.RING_SLOTS+')', 2000);
   },
 
   // Renders OTHER players' enclosure clusters around the shared ring — a
@@ -2191,10 +2208,10 @@ const ZG={
     sc.add(this._worldWheel);
     // Wheel label
     const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(8,8.5,16); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
-    // ═══ KEHRMASCHINE (Test-Modus) — drives in a circle near the wheel ═══
+    // ═══ KEHRMASCHINE — drives in a circle near the wheel ═══
     this._sweeperPos = null;
     this._sweeperMesh = null;
-    if(typeof window!=='undefined' && window.MISCHA_TESTMODE){
+    {
       const cx=14, cz=20; // center of its patrol circle
       const grp=new THREE.Group();
       const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,2,4),new THREE.MeshBasicMaterial({color:0xF39C12}));
@@ -2227,7 +2244,7 @@ const ZG={
     }
     const wlbl2=this._txt('Näher kommen!',0.55,'#fff'); wlbl2.position.set(8,7.5,16); wlbl2.scale.set(6,1.5,1); sc.add(wlbl2);
 
-    // ═══ GOLD MACHINE in EVERY zone ═══
+    // ═══ GOLD MACHINE (one, shared by everyone) ═══
     this._goldMachinePositions = [];
     this._goldMachineMeshes = [];
     this.ZONES.forEach((zone)=>{
@@ -2253,9 +2270,9 @@ const ZG={
     });
     this._goldMachineMesh = this._goldMachineMeshes[0]; // back-compat glow ref
 
-    // ═══ FUTTERAUTOMAT (Test-Map only) — buy an animal by rarity ═══
+    // ═══ FUTTERAUTOMAT — buy an animal by rarity ═══
     this._feederPositions = [];
-    if(typeof window!=='undefined' && window.MISCHA_TESTMODE){
+    {
       this.ZONES.forEach((zone)=>{
         const fx=zone.x-24, fz=zone.z+8; // clearly to the other side
         const fBase=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.6,3.5),new THREE.MeshBasicMaterial({color:0x2a3a1a}));
@@ -5613,7 +5630,7 @@ const ZP={
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
-    if(window.MISCHA_TESTMODE){IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'2000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});}el.innerHTML=IT.map(item=>{
+    IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'2000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});el.innerHTML=IT.map(item=>{
       if(item.insurance){
         const active=z.insuranceActive;
         return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div>🛡️</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
