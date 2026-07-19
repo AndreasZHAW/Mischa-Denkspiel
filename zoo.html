@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v319 -->
+<!-- ZOO v320 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=319"></script>
-<script src="rewardchests.js?v=319"></script>
-<script src="personality.js?v=319"></script>
+<script src="lang.js?v=320"></script>
+<script src="rewardchests.js?v=320"></script>
+<script src="personality.js?v=320"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v319','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v320','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=319"></script>
-<script src="worlds.js?v=319"></script>
+<script src="firebase-state.js?v=320"></script>
+<script src="worlds.js?v=320"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -933,7 +933,22 @@ const ZS={
   async load(){
     const k='zoo_'+this.player.toLowerCase();
     let loadedFromCloud=false;
-    try{if(State._useCloud()){const s=await _db.collection('zoos').doc(k).get();if(s.exists){this.zoo=s.data();this._fix();loadedFromCloud=true;}}}catch(e){}
+    // Retry the cloud fetch a couple of times before giving up — a single
+    // transient failure here used to silently fall back to (potentially
+    // very stale) local storage with zero indication anything was wrong,
+    // which could make a genuine admin reset look like it "didn't work".
+    for(let attempt=0; attempt<3 && !loadedFromCloud; attempt++){
+      try{
+        if(State._useCloud()){
+          const s=await _db.collection('zoos').doc(k).get();
+          if(s.exists){this.zoo=s.data();this._fix();loadedFromCloud=true;}
+          else { loadedFromCloud='empty'; } // doc genuinely doesn't exist — not a failure, stop retrying
+        } else break;
+      }catch(e){
+        if(attempt<2) await new Promise(r=>setTimeout(r,400));
+      }
+    }
+    if(loadedFromCloud==='empty') loadedFromCloud=false;
     if(!loadedFromCloud){
       const l=localStorage.getItem(k);
       this.zoo=l?JSON.parse(l):this.nz();
@@ -948,6 +963,12 @@ const ZS={
       // Genuinely brand-new player (no cloud save, no local save either) —
       // announce their arrival to everyone else currently in the zoo.
       if(!l){ try{ ZNews.push('new_player'); }catch(e){} }
+      else if(State._useCloud()){
+        // We HAD a local copy but couldn't reach the cloud after retries —
+        // warn clearly, since this local copy could be out of date (e.g.
+        // an admin reset that happened server-side wouldn't show here yet).
+        try{ ZP.toast('⚠️ Konnte Cloud-Daten nicht laden — zeige evtl. veraltete lokale Kopie!', 5000); }catch(e){}
+      }
     }
     // Pick up admin-granted tokens/MT from mischa_players (giftPlayer), and
     // cache the Denkspiel-side MT total here so the HUD can show a combined
@@ -1201,7 +1222,7 @@ const ZG={
   nearSt:false,nearEnc:-1,
   _raf:null,_ivs:[],
   // CIRCULAR MAP
-  WR:80, // world radius
+  WR:180, // world radius (enlarged to fit the 140-radius enclosure ring with margin)
   STA:{x:0,z:0}, // gondola station at center
   // ONE shared zone — everyone meets at the same gondola station. Capacity
   // (20 players) is handled by the instance system (see ZS.assignInstance),
@@ -1213,7 +1234,7 @@ const ZG={
   // around the zone center, each stall = a straight row of 5 enclosures
   // facing inward. Shared by ENCPOS() (my own slot) and the multiplayer
   // enclosure renderer (everyone else's slot).
-  RING_R: 45,
+  RING_R: 140,
   RING_SLOTS: 20,
   _slotEncPos(slot){
     const zone=this.ZONES[0]||{x:0,z:55};
@@ -1224,7 +1245,10 @@ const ZG={
     const tx=-Math.sin(angle), tz=Math.cos(angle);
     const positions=[];
     for(let i=0;i<5;i++){
-      const off=(i-2)*3; // -6,-3,0,3,6 — a compact 12-unit-wide row
+      // Each enclosure's own base platform is 7×7 units — spacing MUST
+      // exceed that or neighboring enclosures visually overlap (their
+      // fences intersect). 8 units gives a 1-unit gap between platforms.
+      const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
     // Sign position: just in front of the row, facing the ring center
@@ -2057,11 +2081,13 @@ const ZG={
     });
     // Zone platforms
     this.ZONES.forEach((z,i)=>{
-      const plat=new THREE.Mesh(new THREE.CircleGeometry(22,32),new THREE.MeshBasicMaterial({color:z.color,transparent:true,opacity:.12}));
+      // Outer boundary — resized to properly encircle the shared enclosure
+      // ring (radius 140, up to 20 players), not the old single-player zone.
+      const plat=new THREE.Mesh(new THREE.CircleGeometry(150,48),new THREE.MeshBasicMaterial({color:z.color,transparent:true,opacity:.08}));
       plat.rotation.x=-Math.PI/2; plat.position.set(z.x,.03,z.z); sc.add(plat);
-      // Zone fence posts
+      // Boundary fence posts — spread around the bigger circle at similar spacing to before
       const pm=new THREE.MeshBasicMaterial({color:0x8B4513});
-      for(let j=0;j<12;j++){const a=j/12*Math.PI*2;const post=new THREE.Mesh(new THREE.BoxGeometry(.35,2,.35),pm);post.position.set(z.x+Math.cos(a)*21,1,z.z+Math.sin(a)*21);sc.add(post);}
+      for(let j=0;j<32;j++){const a=j/32*Math.PI*2;const post=new THREE.Mesh(new THREE.BoxGeometry(.35,2,.35),pm);post.position.set(z.x+Math.cos(a)*148,1,z.z+Math.sin(a)*148);sc.add(post);}
       // Zone label
       const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
     });
@@ -7968,6 +7994,7 @@ const ZAdmin = {
         else {
           p.currentWorld = 1;
           p.worlds = State._emptyWorlds();
+          p.langBonusMT = 0;
           const dsShare = hasZooAccount ? 0 : targetVal; // only carries the value if there's no Zoo account to hold it
           p.totalScore = dsShare;
           if(dsShare){
@@ -8013,9 +8040,10 @@ const ZAdmin = {
       await new Promise(r=>setTimeout(r,2500));
       try{
         const k='zoo_'+name.toLowerCase();
+        const intendedZooMt = hasZooAccount ? targetVal : 0;
         const recheck=await _db.collection('zoos').doc(k).get();
-        if(recheck.exists && recheck.data()?.mt!==targetVal){
-          await _db.collection('zoos').doc(k).update({mt:targetVal, enc:Array(5).fill(null)});
+        if(recheck.exists && recheck.data()?.mt!==intendedZooMt){
+          await _db.collection('zoos').doc(k).update({mt:intendedZooMt, enc:Array(5).fill(null)});
           notes.push('⚠️ Wert war zwischenzeitlich abgewichen (Spieler vermutlich gerade online) — wurde nachkorrigiert.');
         }
       }catch(e){}
