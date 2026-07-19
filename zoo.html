@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v320 -->
+<!-- ZOO v321 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=320"></script>
-<script src="rewardchests.js?v=320"></script>
-<script src="personality.js?v=320"></script>
+<script src="lang.js?v=321"></script>
+<script src="rewardchests.js?v=321"></script>
+<script src="personality.js?v=321"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v320','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v321','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=320"></script>
-<script src="worlds.js?v=320"></script>
+<script src="firebase-state.js?v=321"></script>
+<script src="worlds.js?v=321"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2761,7 +2761,11 @@ const ZG={
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
     const carry_mod=this.carrying?0.5:1; // 50% slower when carrying
     const trash_mod=this._trashActive?(this._trashSpeedMul||0.5):1; // injured = slow in trash room
-    const sp=((this._sprintActive?12:7)*steal_mod*carry_mod)*steal_mod*trash_mod;
+    // Base speed doubled (14/24 instead of 7/12) — the v320 ring-layout
+    // enlarged the walkable map (WR 45→180, RING_R 45→140) but movement
+    // speed was never scaled up to match, so walking felt way too slow.
+    // Also dropped the accidental double steal_mod multiplication below.
+    const sp=(this._sprintActive?24:14)*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -4405,6 +4409,13 @@ const ZG={
       // our OWN in-memory state to match right now, then re-save immediately
       // so the correction sticks even if our autosave was about to fire.
       if(z){ z.mt=cmd.mt; z.enc=Array(5).fill(null); this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); ZP.toast('🔄 Admin hat deinen Punktestand auf '+cmd.mt+' gesetzt.',3000); }
+    }else if(cmd.type==='hard_reset'){
+      // Full wipe (not just mt/enc): replace our in-memory zoo entirely with
+      // a fresh one, matching the fresh doc the admin just wrote to Firestore,
+      // then re-save immediately so our own autosave can't race it back to
+      // the old values a moment later.
+      ZS.zoo={...ZS.nz(), mt:cmd.mt}; this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
+      ZP.toast('🔄 Admin hat deinen Zoo komplett zurückgesetzt ('+cmd.mt+' MT).',3000);
     }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
@@ -8011,39 +8022,63 @@ const ZAdmin = {
     try{
       if(typeof _db!=='undefined'&&_db){
         const k='zoo_'+name.toLowerCase();
-        // ALWAYS clear the zoo's animals — regardless of whether the
-        // existence check above succeeded. Previously this was gated on
-        // hasZooAccount AND used .update() (which throws if the doc somehow
-        // wasn't found), so a flaky pre-check could silently skip clearing
-        // animals entirely — the exact bug where a reset player still had
-        // their old animal and MT sitting in the Zoo. set(...,{merge:true})
-        // works whether or not a doc already existed, so this can't be skipped.
-        await _db.collection('zoos').doc(k).set({mt:hasZooAccount?targetVal:0, enc:Array(5).fill(null)}, {merge:true});
-        zooOk = true;
-        // If the player is online right now, their own autosave (every 15s)
-        // could otherwise silently overwrite this write moments later with
-        // their still-in-memory old value. Broadcast a correction command so
-        // THEIR OWN client fixes its in-memory state and re-saves immediately.
+        const intendedZooMt = hasZooAccount ? targetVal : 0;
+        // FULL WIPE instead of set(...,{merge:true}). merge:true only ever
+        // touched the mt/enc fields and left everything else (upg, reb,
+        // xenc, te, tv, luck, ownSlaps...) sitting there untouched — not a
+        // real reset. Worse, if that write raced a still-online player's
+        // 15s autosave and lost, the old animal/MT would silently survive
+        // with NO indication anything went wrong. Delete the doc outright
+        // first (verified, like deletePlayer() already does), THEN write a
+        // genuinely fresh zoo — nothing stale can possibly carry through.
+        await _db.collection('zoos').doc(k).delete().catch(()=>{});
+        let stillThere=false;
         try{
-          const cmd={type:'set_score', target:name.toLowerCase(), mt:(hasZooAccount?targetVal:0), id:Date.now().toString(), exp:Date.now()+60000};
+          const check=await _db.collection('zoos').doc(k).get();
+          stillThere=check.exists;
+          if(stillThere){
+            await _db.collection('zoos').doc(k).delete().catch(()=>{});
+            const recheck=await _db.collection('zoos').doc(k).get();
+            stillThere=recheck.exists;
+          }
+        }catch(e){ /* couldn't verify — proceed and write the fresh doc anyway */ }
+        await _db.collection('zoos').doc(k).set({...ZS.nz(), mt:intendedZooMt});
+        zooOk=true;
+        if(stillThere) notes.push('⚠️ Alter Zoo-Eintrag liess sich nicht löschen (wurde stattdessen überschrieben) — Ergebnis bitte nochmal prüfen.');
+        // Also clear the LIVE multiplayer doc (zoo_players) — otherwise the
+        // old enclosures (with the old animals) can keep showing on the
+        // shared map — to others, or to this same player if they're later
+        // re-assigned the same ring slot — until it either naturally times
+        // out (10s) or, if they never come back online, indefinitely.
+        await _db.collection('zoo_players').doc(name.toLowerCase()).delete().catch(()=>{});
+        // If the player is online right now, their own autosave (every 15s)
+        // could otherwise silently overwrite our fresh doc moments later
+        // with their still-in-memory old values. Broadcast a HARD reset (not
+        // just mt/enc) so THEIR OWN client replaces its in-memory zoo
+        // entirely and re-saves immediately, matching what we just wrote.
+        try{
+          const cmd={type:'hard_reset', target:name.toLowerCase(), mt:intendedZooMt, id:Date.now().toString(), exp:Date.now()+60000};
           try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
           await _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
         }catch(e){}
-        if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber geleert (0 MT, keine Tiere). Zielwert wurde in Welt 1 gesetzt.');
+        if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber frisch angelegt (0 MT, keine Tiere). Zielwert wurde in Welt 1 gesetzt.');
       }
     }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
     // Safety net: wait a moment (long enough for an in-progress autosave to have
-    // landed), then re-check what's ACTUALLY stored now. If a race condition
-    // still won and the value drifted back, force it again — this time there's
-    // nothing left in flight to race against.
+    // landed), then re-check what's ACTUALLY stored now — not just mt, but
+    // also whether any animal crept back in. If a race condition still won
+    // and something drifted back, force it again — this time there's nothing
+    // left in flight to race against.
     if(zooOk){
       await new Promise(r=>setTimeout(r,2500));
       try{
         const k='zoo_'+name.toLowerCase();
         const intendedZooMt = hasZooAccount ? targetVal : 0;
         const recheck=await _db.collection('zoos').doc(k).get();
-        if(recheck.exists && recheck.data()?.mt!==intendedZooMt){
-          await _db.collection('zoos').doc(k).update({mt:intendedZooMt, enc:Array(5).fill(null)});
+        const rd = recheck.exists ? recheck.data() : null;
+        const stillHasAnimal = rd && Array.isArray(rd.enc) && rd.enc.some(e=>e&&e.animal);
+        if(!rd || rd.mt!==intendedZooMt || stillHasAnimal){
+          await _db.collection('zoos').doc(k).set({...ZS.nz(), mt:intendedZooMt});
           notes.push('⚠️ Wert war zwischenzeitlich abgewichen (Spieler vermutlich gerade online) — wurde nachkorrigiert.');
         }
       }catch(e){}

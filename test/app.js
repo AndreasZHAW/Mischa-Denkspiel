@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v320';
+const APP_VERSION = 'v321';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v320 · 2026-07-19</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v321 · 2026-07-19</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -383,10 +383,18 @@ const App = {
   async teleportToZoo() {
     const p = State.currentPlayer;
     if (!p) { showAlert('Bitte erst anmelden!'); return; }
-    // Use real MT from LOCAL player (don't trust cloud which may be stale)
+    // Use real MT from LOCAL player (don't trust cloud which may be stale).
+    // IMPORTANT: use the same dsMTFor() helper the balance display uses
+    // elsewhere (task rewards + one-time language bonus) — this used to sum
+    // only task.mt directly, silently ignoring langBonusMT, so a player
+    // could see e.g. "15.0 MT" on screen (via dsMTFor/combinedMTFor) yet
+    // get rejected here with "Du hast: 0.0 MT" because their whole balance
+    // came from the language bonus, not from tasks.
     const _localP = State._local.get(p.name) || p;
     const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
-    const mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0);
+    let mt;
+    try { mt = (typeof dsMTFor === 'function') ? dsMTFor(_localP) : (_ws_tp.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0); }
+    catch(_e) { mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0); }
     const cost = 15;
     // Once unlocked (visited before), gate stays open permanently
     const _playerKey = p.name.toLowerCase();
