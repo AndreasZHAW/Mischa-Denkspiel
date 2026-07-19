@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v314 -->
+<!-- ZOO v315 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=314"></script>
-<script src="rewardchests.js?v=314"></script>
-<script src="personality.js?v=314"></script>
+<script src="lang.js?v=315"></script>
+<script src="rewardchests.js?v=315"></script>
+<script src="personality.js?v=315"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v314','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v315','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=314"></script>
-<script src="worlds.js?v=314"></script>
+<script src="firebase-state.js?v=315"></script>
+<script src="worlds.js?v=315"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1022,27 +1022,8 @@ const ZS={
     // Ensure enc array is exactly n long
     z.enc = z.enc.slice(0, n);
     while(z.enc.length<n) z.enc.push(null);
-  }
-};
-
-// ═══ AUTH ═══
-const ZA={
-  _c:null,
-  async login(){
-    const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,'');
-    const p=G('zpw')?.value.trim();
-    const e=G('zerr');
-    console.log('[ZA.login] name='+n+' pw_len='+(p?p.length:0));
-    if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
-    if(!p){e.textContent='Passwort fehlt!';return;}
-    const banned = await (window.checkDeviceBanned&&window.checkDeviceBanned());
-    if(banned){e.textContent='🚫 Dieses Gerät ist gesperrt.'+(banned.reason?' Grund: '+banned.reason:'');return;}
-    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
-        // If pw was 'auto' (from teleport), update to user's chosen password
-        if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
-  _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
-  _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
-  confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
+  },
+  // ═══ PERSONALITY (World-1 look carried into the Zoo) ═══
   _personalityAvatar(){try{if(!ZS.player)return '';const pk=Object.keys(localStorage).find(k=>k.startsWith('mischa_personality_')&&k.includes(ZS.player.toLowerCase()));if(pk){const d=JSON.parse(localStorage.getItem(pk)||'{}');if(d&&d.face)return d.face+(d.hat||'')+(d.glasses||'');}}catch(e){}return ZS.char?.e||'';},
   // Full World-1 "Personality" data (emoji combo + chosen color) — carried
   // over into the Zoo so other players see the same look you set up in
@@ -1148,6 +1129,26 @@ const ZA={
       });
     }catch(e){}
   },
+};
+
+// ═══ AUTH ═══
+const ZA={
+  _c:null,
+  async login(){
+    const n=(G('zn')?.value||'').trim().slice(0,20).replace(/[<>"']/g,'');
+    const p=G('zpw')?.value.trim();
+    const e=G('zerr');
+    console.log('[ZA.login] name='+n+' pw_len='+(p?p.length:0));
+    if(!n||n.length<2){e.textContent='Name zu kurz!';return;}
+    if(!p){e.textContent='Passwort fehlt!';return;}
+    const banned = await (window.checkDeviceBanned&&window.checkDeviceBanned());
+    if(banned){e.textContent='🚫 Dieses Gerät ist gesperrt.'+(banned.reason?' Grund: '+banned.reason:'');return;}
+    const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
+        // If pw was 'auto' (from teleport), update to user's chosen password
+        if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
+  _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
+  _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
+  confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
   _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}},
   async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
     const _ls = document.getElementById('zoo-load-status');
@@ -4283,7 +4284,7 @@ const ZG={
     try{
       if(!State._useCloud())return;
       if(!_db)return;
-      const _myPers=this._myPersonality();
+      const _myPers=ZS._myPersonality();
       await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'local',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
       // Throttled slot heartbeat (~every 15s) — keeps our ring slot from
       // being reclaimed as "abandoned" while we're still actively playing.
