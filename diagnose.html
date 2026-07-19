@@ -44,8 +44,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v322</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v322 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v323</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v323 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -55,6 +55,7 @@ try {
   <div class="tab active" onclick="switchTab('crash')">💾 Crash-Log</div>
   <div class="tab" onclick="switchTab('welt1')">🎮 Welt 1</div>
   <div class="tab" onclick="switchTab('zoo')">🦁 Zoo / WebGL</div>
+  <div class="tab" onclick="switchTab('mt')">💰 MT-Diagnose</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
 </div>
@@ -126,6 +127,26 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: MT-DIAGNOSE ══ -->
+<div id="tab-mt" class="tab-content">
+  <div class="box blue">
+    <h2>💰 MT-Weitergabe pro Spieler (Welt 1 + Zoo)</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Zeigt für jeden Spieler die MT-Rohdaten aus beiden Collections und rechnet die Gesamtsumme
+      genau so nach, wie es die drei Stellen im Spiel tun, die sie anzeigen — Weltkarte/Rangliste
+      (verlangt passende Geräte-ID auf beiden Seiten, sonst wird die Zoo-MT NICHT mitgezählt) und
+      Admin-Panel (zählt einfach nach Name zusammen, ohne Geräte-ID-Check). Wenn diese zwei Spalten
+      auseinanderlaufen, ist das exakt der gemeldete Bug — <b>Ursache steht in der letzten Spalte</b>.
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runMT()" class="info">🔄 Neu laden</button>
+      <button onclick="copyMT()" class="sec">📋 Tabelle kopieren</button>
+    </div>
+    <div id="mt-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="mt-out" style="overflow-x:auto"><pre>⏳</pre></div>
+  </div>
+</div>
+
 <!-- ══ TAB: FONT ══ -->
 <div id="tab-font" class="tab-content">
   <div class="box blue">
@@ -191,6 +212,7 @@ function switchTab(id){
   document.getElementById('tab-'+id)?.classList.add('active');
   if(id==='welt1'&&!_ran.welt1){_ran.welt1=true;runWelt1();}
   if(id==='zoo'&&!_ran.zoo){_ran.zoo=true;runZoo();}
+  if(id==='mt'&&!_ran.mt){_ran.mt=true;runMT();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
 }
@@ -434,6 +456,98 @@ async function runZoo(){
   }catch(e){fbr.push('❌ zoo.html: '+e.message);}
   document.getElementById('fb-out').textContent=fbr.join('\n');
   fbr.forEach(l=>L(l));
+}
+
+// ══ MT-DIAGNOSE ══
+// Pulls the raw mischa_players + zoos collections directly (same source
+// data every part of the game reads from) and recomputes the combined MT
+// total using BOTH formulas that exist in the codebase side by side:
+//  - "Admin-Panel-Formel": dsMT + zoo.mt, matched by NAME only (no device
+//    check) — this is what ZAdmin._fetchAllPlayers() shows.
+//  - "Rangliste/Weltkarte-Formel": dsMT + zoo.mt, but the zoo.mt part is
+//    only added when BOTH sides have a deviceId AND they match — this is
+//    what showGlobalLeaderboard()/combinedMTFor() show.
+// Whenever these two disagree for a player, that's the reported bug,
+// visible here instead of having to guess from screenshots.
+let _mtRows=[];
+async function runMT(){
+  L('=== MT-Diagnose gestartet ===');
+  const out=document.getElementById('mt-out');
+  const summary=document.getElementById('mt-summary');
+  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
+    return;
+  }
+  try{
+    const db=firebase.firestore();
+    const [mpSnap,zoosSnap]=await Promise.all([db.collection('mischa_players').get(),db.collection('zoos').get()]);
+    const dsMTFor=(p)=>{
+      const ws=p?.worlds?.['1']||p?.worlds?.[1]||{};
+      const bonus=(typeof p?.langBonusMT==='number'&&isFinite(p.langBonusMT))?p.langBonusMT:0;
+      const sum=(ws.tasks||[]).reduce((s,t)=>s+(t&&typeof t.mt==='number'&&isFinite(t.mt)?t.mt:0),0);
+      return isFinite(sum+bonus)?sum+bonus:0;
+    };
+    const zoosByName={};
+    zoosSnap.forEach(doc=>{
+      const name=(doc.id.startsWith('zoo_')?doc.id.slice(4):doc.id).toLowerCase();
+      zoosByName[name]=doc.data()||{};
+    });
+    const rows=[];
+    mpSnap.forEach(doc=>{
+      const p=doc.data()||{};
+      const name=p.name||doc.id;
+      const key=doc.id.toLowerCase();
+      const z=zoosByName[key]||null;
+      delete zoosByName[key]; // mark consumed
+      const ds=dsMTFor(p);
+      const zMt=(z&&typeof z.mt==='number'&&isFinite(z.mt))?z.mt:(z?0:null);
+      const p_dev=p.deviceId||null, z_dev=z?(z.deviceId||null):null;
+      const devMatch = !!(p_dev && z_dev && p_dev===z_dev);
+      const adminTotal = ds + (z?(zMt||0):0); // name-only, always adds zoo mt if a zoo doc exists
+      const rankTotal = ds + (devMatch?(zMt||0):0); // device-checked
+      rows.push({name,ds,z:!!z,zMt,p_dev,z_dev,devMatch,adminTotal,rankTotal,mismatch:Math.abs(adminTotal-rankTotal)>0.05});
+    });
+    // Any zoo docs left over have NO matching mischa_players doc at all
+    Object.entries(zoosByName).forEach(([key,z])=>{
+      const zMt=(typeof z.mt==='number'&&isFinite(z.mt))?z.mt:0;
+      rows.push({name:key+' (nur Zoo, kein Welt-1-Account)',ds:0,z:true,zMt,p_dev:null,z_dev:z.deviceId||null,devMatch:false,adminTotal:zMt,rankTotal:0,mismatch:zMt>0.05});
+    });
+    rows.sort((a,b)=>(b.mismatch-a.mismatch)||a.name.localeCompare(b.name));
+    _mtRows=rows;
+    const mismatches=rows.filter(r=>r.mismatch);
+    summary.innerHTML = mismatches.length
+      ? `<span class="err">⚠️ ${mismatches.length} von ${rows.length} Spielern zeigen unterschiedliche Summen je nach Ansicht (siehe rot markierte Zeilen).</span>`
+      : `<span class="ok">✅ Alle ${rows.length} Spieler: Admin-Panel- und Rangliste-Summe stimmen überein.</span>`;
+    const short=(s)=>s?(s.length>14?s.slice(0,6)+'…'+s.slice(-4):s):'—';
+    out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
+      +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
+      +'<th style="padding:4px 6px">Spieler</th><th>Welt1 dsMT</th><th>Zoo mt</th>'
+      +'<th>DeviceID Welt1</th><th>DeviceID Zoo</th><th>Match?</th>'
+      +'<th>Admin-Panel-Summe</th><th>Rangliste-Summe</th><th></th></tr>'
+      + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${r.mismatch?'background:rgba(231,76,60,.12)':''}">`
+        +`<td style="padding:4px 6px;font-weight:${r.mismatch?'900':'400'}">${r.name}</td>`
+        +`<td>${r.ds.toFixed(1)}</td>`
+        +`<td>${r.z?r.zMt.toFixed(1):'<span class="dim">— kein Zoo-Konto</span>'}</td>`
+        +`<td title="${r.p_dev||''}">${short(r.p_dev)}</td>`
+        +`<td title="${r.z_dev||''}">${short(r.z_dev)}</td>`
+        +`<td>${r.z ? (r.devMatch?'<span class="ok">✅</span>':'<span class="err">❌</span>') : '<span class="dim">—</span>'}</td>`
+        +`<td>${r.adminTotal.toFixed(1)} MT</td>`
+        +`<td>${r.rankTotal.toFixed(1)} MT</td>`
+        +`<td>${r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein</span>':''}</td>`
+        +`</tr>`).join('')
+      +'</table>';
+    L('MT-Diagnose: '+rows.length+' Spieler, '+mismatches.length+' mit Diskrepanz.');
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
+    L('❌ MT-Diagnose Fehler: '+e.message,'err');
+  }
+}
+function copyMT(){
+  if(!_mtRows.length){alert('Erst laden!');return;}
+  const lines=['Spieler | Welt1 dsMT | Zoo mt | DeviceID Welt1 | DeviceID Zoo | Match | Admin-Summe | Rangliste-Summe | Diskrepanz'];
+  _mtRows.forEach(r=>lines.push([r.name,r.ds.toFixed(1),r.z?r.zMt.toFixed(1):'—',r.p_dev||'—',r.z_dev||'—',r.z?(r.devMatch?'ja':'nein'):'—',r.adminTotal.toFixed(1),r.rankTotal.toFixed(1),r.mismatch?'JA':''].join(' | ')));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
 }
 
 // ══ FONT ══

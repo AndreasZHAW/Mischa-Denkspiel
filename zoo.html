@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v322 -->
+<!-- ZOO v323 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=322"></script>
-<script src="rewardchests.js?v=322"></script>
-<script src="personality.js?v=322"></script>
+<script src="lang.js?v=323"></script>
+<script src="rewardchests.js?v=323"></script>
+<script src="personality.js?v=323"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v322','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v323','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=322"></script>
-<script src="worlds.js?v=322"></script>
+<script src="firebase-state.js?v=323"></script>
+<script src="worlds.js?v=323"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -929,7 +929,25 @@ const ZS={
   maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
   lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
-  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));},
+  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));
+    // Keep the Denkspiel-side deviceId in sync with whichever device is
+    // ACTUALLY playing the Zoo right now (once per session, not every 15s
+    // autosave — this is just a repair mechanism, not something that needs
+    // to fire constantly). Without this, the two sides drift apart forever
+    // the moment someone switches devices or clears browser storage (which
+    // silently generates a brand-new local deviceId) — the combined-MT
+    // ownership check used by the leaderboard/world-map requires BOTH sides
+    // to match, so a stale Welt-1 deviceId then makes this player's entire
+    // Zoo balance disappear from every OTHER screen (though not their own,
+    // which re-reads fresh) until this runs. A live Zoo save from the
+    // player themselves (after typing their own name+password to get here)
+    // is the strongest ongoing proof of "this is really them" available, so
+    // it's safe to let it repair the record.
+    if(!this._deviceSyncedThisSession && State._useCloud() && this.zoo.deviceId){
+      this._deviceSyncedThisSession=true;
+      try{ await _db.collection('mischa_players').doc(this.player.toLowerCase()).set({deviceId:this.zoo.deviceId},{merge:true}); }catch(e){}
+    }
+  },
   async load(){
     const k='zoo_'+this.player.toLowerCase();
     let loadedFromCloud=false;
@@ -1222,7 +1240,16 @@ const ZG={
   nearSt:false,nearEnc:-1,
   _raf:null,_ivs:[],
   // CIRCULAR MAP
-  WR:180, // world radius (enlarged to fit the 140-radius enclosure ring with margin)
+  // World radius must comfortably contain the FULL enclosure ring: the ring
+  // is centered at ZONES[0]=(0,55) — NOT at the world origin (0,0), where
+  // the world boundary (this.WR) is centered — with radius RING_R=140 and
+  // an outer decorative fence at 148. The farthest point of that ring from
+  // the ORIGIN is therefore ~55+148=203, not just 140. WR was left at 180
+  // after the v320 ring enlargement, which cut off the far side of the ring
+  // (roughly slots facing away from the gondola station) outside the
+  // walkable world / boundary wall — enclosures rendering "outside or
+  // through the wall" for exactly the players assigned to those slots.
+  WR:210, // world radius — must stay >= 55 (zone offset) + 148 (outer fence) + margin
   STA:{x:0,z:0}, // gondola station at center
   // ONE shared zone — everyone meets at the same gondola station. Capacity
   // (20 players) is handled by the instance system (see ZS.assignInstance),
@@ -2765,7 +2792,7 @@ const ZG={
     // enlarged the walkable map (WR 45→180, RING_R 45→140) but movement
     // speed was never scaled up to match, so walking felt way too slow.
     // Also dropped the accidental double steal_mod multiplication below.
-    const sp=(this._sprintActive?24:14)*steal_mod*carry_mod*trash_mod;
+    const baseSp=(this._sprintActive?24:14)*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -2773,8 +2800,35 @@ const ZG={
     if(this.keys['KeyS']||this.keys['ArrowDown']){mx-=fwd.x;mz-=fwd.z;}
     if(this.keys['KeyA']||this.keys['ArrowLeft']){mx-=rgt.x;mz-=rgt.z;}
     if(this.keys['KeyD']||this.keys['ArrowRight']){mx+=rgt.x;mz+=rgt.z;}
+    // Joystick "full power" = pushed out close to the edge, not just barely past
+    // the dead zone — anything less doesn't count towards the turbo hold below.
+    const _joyMag=this.joy.on?Math.sqrt(this.joy.dx*this.joy.dx+this.joy.dy*this.joy.dy):0;
+    const _joyFullPower=this.joy.on&&_joyMag>0.85;
     if(this.joy.on){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
     const l=Math.sqrt(mx*mx+mz*mz);
+    // ── TURBO: holding full power in the same direction for 5s doubles speed
+    // again, until the joystick (or keys) direction/strength actually changes.
+    // "Full power" = keyboard (always full power when a key is down) or the
+    // joystick pushed near its edge. Direction is compared to the direction
+    // when the hold started — a small wobble is tolerated (dot > .97, ~14°)
+    // but an actual turn resets the 5s timer, matching "bis man den Joystick
+    // wieder ändert".
+    const _keyMoving=(this.keys['KeyW']||this.keys['ArrowUp']||this.keys['KeyS']||this.keys['ArrowDown']||this.keys['KeyA']||this.keys['ArrowLeft']||this.keys['KeyD']||this.keys['ArrowRight']);
+    const _fullPower = l>0 && (this.joy.on ? _joyFullPower : _keyMoving);
+    if(!_fullPower){
+      this._turboHoldStart=null; this._turboActive=false; this._turboDir=null;
+    } else {
+      const dirX=mx/l, dirZ=mz/l;
+      const now=Date.now();
+      if(!this._turboDir || (this._turboDir.x*dirX+this._turboDir.z*dirZ)<0.97){
+        // Direction just changed (or this is a fresh hold) — restart the timer
+        this._turboDir={x:dirX,z:dirZ}; this._turboHoldStart=now; this._turboActive=false;
+      } else if(!this._turboActive && now-this._turboHoldStart>=5000){
+        this._turboActive=true;
+        try{ ZP.toast('⚡ Turbo-Tempo!',1500); }catch(e){}
+      }
+    }
+    const sp=baseSp*(this._turboActive?2:1);
     if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
     if(this._trashActive){
       // Trash room: square boundary 28, no zoo collisions
@@ -2847,59 +2901,67 @@ const ZG={
       }
     }
     const eps=this.ENCPOS();
+    let _carryDropSlot=-1, _carryDropAnimal=null;
     for(let i=0;i<Math.min(eps.length,ZS.maxE());i++){
       if(Math.sqrt((this.pl.x-eps[i].x)**2+(this.pl.z-eps[i].z)**2)<5.5){
         this.nearEnc=i;
-        // Show place prompt when at target enclosure — place with [E] not auto
-        if(this.carrying && this.carrying.slot===i){
-          const ip=G('iprompt');
-          if(ip){ip.style.opacity='1';ip.style.color='#2ecc71';
-            ip.textContent='🏠 [E] '+this.carrying.animal.e+' '+this.carrying.animal.n+' in Gehege '+(i+1)+' ablegen!';}
-        }
+        if(this.carrying && this.carrying.slot===i){ _carryDropSlot=i; _carryDropAnimal=this.carrying.animal; }
         break;
       }
     }
-    // Lucky wheel proximity - show prompt
+    // Lucky wheel proximity
     const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
+    const _wasNearWheel=this._nearWheel;
     this._nearWheel=(wdist<6);
-    if(this._nearWheel && !this._wheelHinted){
-      this._wheelHinted=true;
-      const isTouch=('ontouchstart' in window);
-      G('iprompt') && (G('iprompt').style.opacity='1', G('iprompt').textContent=isTouch?'🍀 Glücksrad antippen!':'🍀 [E] oder klicken — Glücksrad');
-    } else if(!this._nearWheel){ this._wheelHinted=false; }
-    // Prompt
+    const _wheelJustEntered = this._nearWheel && !_wasNearWheel;
+    // Single interaction prompt — exactly ONE reason is shown per frame, chosen
+    // by priority below. This used to be several independent if-blocks (one
+    // for the gondola station, a separate chain for trapdoor/luckyblock/
+    // enclosure/wheel) that didn't know about each other: whichever one ran
+    // LAST in the function always won for that frame, silently stomping
+    // whatever an earlier block had just set — e.g. standing at the gondola
+    // station could get its hint set by the first block, then immediately
+    // reset to invisible (or overwritten by a stale wheel/enclosure text)
+    // by the second, unrelated chain a few lines later. That's what caused
+    // the "Gondel-Station" hint to stick or vanish seemingly at random —
+    // exactly which block happened to run/write last depended on tiny
+    // per-frame timing differences, which is also why it showed up
+    // differently on different devices. One ordered chain removes the
+    // ambiguity entirely: the displayed text always matches what's
+    // actually true on that exact frame, on every device.
     const ip=G('iprompt');
-    if(this.nearSt){
-      const stDist2=Math.sqrt((this.pl.x-this.STA.x)**2+(this.pl.z-this.STA.z)**2);
-      ip.style.opacity='1';ip.textContent=(typeof t!=='undefined'?t('zoo.gondola_enter'):'🚪 Gondel-Station (hineinlaufen)');
+    const _trapdoorNear = this._trapdoorPos && !SECRETS.unlocked['trapdoor'] && Math.sqrt((this.pl.x-this._trapdoorPos.x)**2+(this.pl.z-this._trapdoorPos.z)**2)<3;
+    const _nearBlock = LuckyBlocks.getNearBlock();
+    if(_carryDropSlot>=0){
+      ip.style.opacity='1';ip.style.color='#2ecc71';
+      ip.textContent='🏠 [E] '+_carryDropAnimal.e+' '+_carryDropAnimal.n+' in Gehege '+(_carryDropSlot+1)+' ablegen!';
+    }else if(_trapdoorNear){
+      ip.style.opacity='1';ip.style.color='rgba(255,255,255,.2)'; // Very subtle - mystery!
+      ip.textContent='❓ [E]';
+    }else if(_nearBlock){
+      ip.style.opacity='1';
+      ip.style.color=_nearBlock.rarity==='secret'?'#888':_nearBlock.rarity==='mythic'?'#ff69b4':'#FFD700';
+      ip.textContent=`📦 [E] ${LuckyBlocks.NAMES[_nearBlock.rarity]} Glücksblock öffnen!`;
+    }else if(this.nearEnc>=0){
+      ip.style.color='';ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;
+    }else if(this.nearSt){
       // Enter with E key only - handled in _interact
-    }
-    // Trapdoor hint (subtle)
-    if(this._trapdoorPos&&!SECRETS.unlocked['trapdoor']){
-      const tdx=this.pl.x-this._trapdoorPos.x, tdz=this.pl.z-this._trapdoorPos.z;
-      if(Math.sqrt(tdx*tdx+tdz*tdz)<3){
-        ip.style.opacity='1';
-        ip.textContent='❓ [E]';
-        ip.style.color='rgba(255,255,255,.2)'; // Very subtle - mystery!
-      }
-    }
-    else if(LuckyBlocks.getNearBlock()){
-      const nb=LuckyBlocks.getNearBlock();
-      ip.style.opacity='1';
-      ip.textContent=`📦 [E] ${LuckyBlocks.NAMES[nb.rarity]} Glücksblock öffnen!`;
-      ip.style.color=nb.rarity==='secret'?'#888':nb.rarity==='mythic'?'#ff69b4':'#FFD700';
-    }
-    else if(this.nearEnc>=0){ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;}
-    else if(this._nearWheel){
-      ip.style.opacity='1';
-      if(LW.spins>0){
+      ip.style.color='';ip.style.opacity='1';
+      ip.textContent=(typeof t!=='undefined'?t('zoo.gondola_enter'):'🚪 Gondel-Station (hineinlaufen)');
+    }else if(this._nearWheel){
+      ip.style.color='';ip.style.opacity='1';
+      if(_wheelJustEntered){
+        const isTouch=('ontouchstart' in window);
+        ip.textContent=isTouch?'🍀 Glücksrad antippen!':'🍀 [E] oder klicken — Glücksrad';
+      }else if(LW.spins>0){
         ip.textContent='🍀 [E] '+LW.W.name+' ('+LW.spins+' Spin'+(LW.spins>1?'s':'')+' verfügbar!)';
       }else{
         const minsLeft=Math.ceil(20-(Date.now()-LW._st)/60000);
         ip.textContent='🍀 Glücksrad — nächster Spin in '+(minsLeft>0?minsLeft:0)+' Min';
       }
+    }else{
+      ip.style.opacity='0';
     }
-    else{ip.style.opacity='0';}
   },
 
   _camUpdate(){
@@ -7774,6 +7836,53 @@ const ZAdmin = {
     if(el)el.style.display='none';
   },
   
+  // One-time bulk repair: for every player, if the Zoo doc and the
+  // Denkspiel doc have DIFFERENT (or one-sided) deviceId, copy the Zoo's
+  // deviceId onto the Denkspiel side. The Zoo side is preferred as the
+  // source of truth because ZS.save() re-stamps it with the CURRENT device
+  // on every single save, so it's always up to date; the Denkspiel side
+  // only ever gets a deviceId once (see savePlayer's "only if missing"
+  // guard) and then never updates it again, so it's the one that goes
+  // stale — e.g. after someone clears browser storage, which silently
+  // generates a brand-new local deviceId. Without matching deviceIds, the
+  // combined-MT ownership check (leaderboard, world map, admin panel) can't
+  // confirm the Zoo balance belongs to that Denkspiel account and quietly
+  // excludes it — the reported "shows correctly in admin panel but 0 MT for
+  // everyone else on the Rangliste" bug.
+  async syncAllDeviceIds(){
+    if(typeof _db==='undefined'||!_db){ZP.toast('❌ Keine Cloud-Verbindung.',3000);return;}
+    ZP.toast('🔧 Synchronisiere Geräte-IDs...',2000);
+    let checked=0, fixed=0, skippedNoZooDevice=0;
+    const log=[];
+    try{
+      const [zoosSnap, mpSnap] = await Promise.all([
+        _db.collection('zoos').get(),
+        _db.collection('mischa_players').get(),
+      ]);
+      const zoosByName={};
+      zoosSnap.forEach(doc=>{
+        const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
+        zoosByName[name.toLowerCase()]=doc.data()||{};
+      });
+      const writes=[];
+      mpSnap.forEach(doc=>{
+        checked++;
+        const mp=doc.data()||{};
+        const key=doc.id.toLowerCase();
+        const z=zoosByName[key];
+        if(!z || !z.deviceId){ skippedNoZooDevice++; return; } // nothing to sync FROM
+        if(mp.deviceId!==z.deviceId){
+          fixed++;
+          log.push((mp.name||doc.id)+': '+(mp.deviceId||'—')+' → '+z.deviceId);
+          writes.push(_db.collection('mischa_players').doc(doc.id).set({deviceId:z.deviceId},{merge:true}).catch(()=>{}));
+        }
+      });
+      await Promise.all(writes);
+    }catch(e){ ZP.toast('❌ Sync fehlgeschlagen: '+e.message,4000); return; }
+    ZP.toast('✅ Geräte-IDs abgeglichen: '+fixed+' von '+checked+' korrigiert'+(log.length?'\n'+log.slice(0,8).join('\n')+(log.length>8?'\n…':''):''), 6000);
+    this._loadPlayersTab();
+  },
+
   async _fetchAllPlayers(){
     // "Online" comes from the live position feed (zoo_players, updated every few seconds
     // while someone is actually in the 3D world). "All players" now combines BOTH the
@@ -10767,7 +10876,10 @@ window.ZooEvents = ZooEvents;
         <div class="padmin-tab" id="padmin-tab-spieler" style="display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="padmin-section-title" style="margin-bottom:0">👥 Spieler-Verwaltung</div>
-            <button onclick="ZAdmin._loadPlayersTab()" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Aktualisieren</button>
+            <div style="display:flex;gap:6px">
+              <button onclick="ZAdmin.syncAllDeviceIds()" title="Gleicht bei jedem Spieler die Geräte-ID von Welt 1 und Zoo ab, falls sie auseinandergelaufen sind (z.B. nach Browserdaten löschen) — sonst fehlt die Zoo-MT-Summe auf der Rangliste für andere." style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.3);color:#9b59b6;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔧 Geräte-IDs syncen</button>
+              <button onclick="ZAdmin._loadPlayersTab()" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Aktualisieren</button>
+            </div>
           </div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Grün = gerade online (aktiv in den letzten 20s) · Rot = offline. Liste ist eine Momentaufnahme — bei Änderungen ⟳ drücken.</div>
 

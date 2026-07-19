@@ -1234,8 +1234,8 @@ window.RankNotify = RankNotify;
 // takes for someone to open the app after 18:00. After the freeze window,
 // everything resumes live, including whatever was earned during the freeze.
 const Contest = {
-  START: new Date(2026, 6, 19, 21, 0, 0).getTime(),   // TEMP TEST VALUE: 19.07.2026 21:00 — remind to revert to 14.08.2026 18:00!
-  END:   new Date(2026, 6, 21, 21, 0, 0).getTime(),    // TEMP TEST VALUE: 21.07.2026 21:00 (2 Tage später) — remind to revert to 16.08.2026 18:00!
+  START: new Date(2026, 6, 21, 18, 0, 0).getTime(),   // TEMP TEST VALUE: 21.07.2026 18:00 — remind to revert to 14.08.2026 18:00!
+  END:   new Date(2026, 6, 23, 18, 0, 0).getTime(),    // TEMP TEST VALUE: 23.07.2026 18:00 (2 Tage später) — remind to revert to 16.08.2026 18:00!
 
   phase() {
     const now = Date.now();
