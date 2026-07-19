@@ -1137,7 +1137,15 @@ const RankNotify = {
         zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]);
       } catch(e) {}
       const merged = {...firebaseAll};
+      // Same fix as Contest._computeStandings() / showGlobalLeaderboard():
+      // only trust the local cache for the player THIS check is actually
+      // about when that's also who's using this device right now — never
+      // for anyone else's name that happens to be sitting in this
+      // browser's shared local cache (e.g. left there by an earlier admin
+      // action run from this device).
+      const myOwnName = ((typeof ZS!=='undefined' && ZS.player) || State.currentPlayer?.name || '').toLowerCase();
       Object.entries(localAll).forEach(([name, localP]) => {
+        if (!myOwnName || name !== myOwnName) return;
         const fbP = firebaseAll[name];
         if (!fbP) { if (!firebaseFetchOk) { merged[name] = localP; } return; }
         const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};
@@ -1287,7 +1295,24 @@ const Contest = {
       zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),4000))]);
     } catch(e) {}
     const merged = {...firebaseAll};
+    // Only ever prefer the LOCAL cache for the player actually using THIS
+    // device right now — never for anyone else. localStorage's
+    // 'mischa_players' blob is a single shared cache covering every player
+    // this browser has ever touched, and savePlayer() always writes to it
+    // FIRST for whoever it's given — including admin actions like
+    // resetScore() run against someone else's account from the admin's own
+    // device. That stamps a fresh updatedAt onto a snapshot of THEIR data,
+    // frozen at that moment, sitting in the admin's local cache. Every
+    // later run of this exact merge (which used to check ALL cached names)
+    // then saw that admin-device-local copy as "newer than the cloud" —
+    // even hours later, even after the real cloud data had since been
+    // fixed — and kept preferring the stale snapshot forever. That's
+    // exactly the "correct on Android, correct in the standalone
+    // diagnostics, wrong specifically on the PC that was used to run
+    // admin actions" pattern.
+    const myOwnName = ((typeof ZS!=='undefined' && ZS.player) || State.currentPlayer?.name || '').toLowerCase();
     Object.entries(localAll).forEach(([name, localP]) => {
+      if (!myOwnName || name !== myOwnName) return;
       const fbP = firebaseAll[name];
       if (!fbP) { if (!firebaseFetchOk) { merged[name] = localP; } return; }
       const localWs = localP.worlds?.['1'] || localP.worlds?.[1] || {};

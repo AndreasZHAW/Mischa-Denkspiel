@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v327';
+const APP_VERSION = 'v328';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v327 · 2026-07-19</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v328 · 2026-07-19</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1687,9 +1687,19 @@ const App = {
         zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]);
       } catch(e) {}
 
-      // Merge: for each player, use whichever version has MORE completed tasks
+      // Merge: only ever prefer the LOCAL cache for the CURRENTLY LOGGED-IN
+      // player's own entry — never for anyone else. See the matching
+      // comment in Contest._computeStandings() (firebase-state.js) for the
+      // full story: savePlayer() always writes local first for whichever
+      // player object it's given, including admin actions run against
+      // OTHER accounts from this device — that leaves a frozen, falsely
+      // "fresh-looking" snapshot of someone else's data sitting in this
+      // browser's shared local cache indefinitely, silently overriding
+      // correct live cloud data for that other player from then on.
+      const myOwnKey = (player?.name || '').toLowerCase();
       const merged = {...firebaseAll};
       Object.entries(localAll).forEach(([name, localP]) => {
+        if (!myOwnKey || name !== myOwnKey) return;
         const fbP = firebaseAll[name];
         if (!fbP) {
           // Player missing from the Firebase result. Only fall back to the local cache
