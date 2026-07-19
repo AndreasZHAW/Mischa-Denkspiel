@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v318 -->
+<!-- ZOO v319 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=318"></script>
-<script src="rewardchests.js?v=318"></script>
-<script src="personality.js?v=318"></script>
+<script src="lang.js?v=319"></script>
+<script src="rewardchests.js?v=319"></script>
+<script src="personality.js?v=319"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v318','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v319','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=318"></script>
-<script src="worlds.js?v=318"></script>
+<script src="firebase-state.js?v=319"></script>
+<script src="worlds.js?v=319"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1044,92 +1044,79 @@ const ZS={
   },
   // ═══ MULTIPLAYER INSTANCE / SLOT ASSIGNMENT ═══
   // Up to 20 players share one "instance" (one physical zoo + gondola
-  // station). Once an instance has 20 active players, new logins create
-  // (or join) another instance automatically — no fixed cap on how many
-  // instances can exist. mySlot (0-19) determines where this player's row
-  // of 5 enclosures sits on the shared ring (see ZG._slotEncPos).
-  instanceId: null,
+  // station). Once an instance has 20 active players, new logins join (or
+  // create) a numbered overflow instance automatically — no fixed cap on
+  // how many instances can exist. mySlot (0-19) determines where this
+  // player's row of 5 enclosures sits on the shared ring (_slotEncPos).
+  //
+  // Deliberately simple / transaction-free: a Firestore-transaction-based
+  // broker turned out to fail silently in practice, dumping every player
+  // into the same fallback slot (0) and making everyone's enclosures
+  // overlap. This version starts from a deterministic hash of the player's
+  // name (so different players land in different spots even if the
+  // collision check below can't run at all), then does a lightweight
+  // best-effort check against the already-synced zoo_players list to avoid
+  // a slot someone else is actively using.
+  instanceId: 'main',
   mySlot: 0,
-  RECLAIM_STALE_MS: 90000, // an abandoned slot (no heartbeat) can be reused after 90s
   async assignInstance(mode){
+    const name = (this.player||'x').toLowerCase();
+    let h=0; for(let i=0;i<name.length;i++){ h=(h*31+name.charCodeAt(i))>>>0; }
+    const preferredSlot = h % 20;
     if(mode==='private'){
       // Private servers are isolated — not part of the shared instance pool.
-      this.instanceId = 'private_'+(this.player||'x').toLowerCase();
+      this.instanceId = 'private_'+name;
       this.mySlot = 0;
       return;
     }
+    this.instanceId = 'main';
+    this.mySlot = preferredSlot;
     if(!(typeof _db!=='undefined' && _db && State._useCloud())){
-      // Offline/local fallback — still needs SOME slot for layout purposes.
-      this.instanceId = 'local';
-      this.mySlot = 0;
-      return;
+      return; // offline — hash-based slot is the best we can do
     }
-    const myName = (this.player||'').toLowerCase();
     try{
-      const snap = await _db.collection('zoo_instances').orderBy('createdAt','asc').limit(25).get();
-      for(const doc of snap.docs){
-        try{
-          let assignedIdx = -1;
-          await _db.runTransaction(async (tx)=>{
-            const fresh = await tx.get(doc.ref);
-            const freshData = fresh.data()||{};
-            const freshSlots = Array.isArray(freshData.slots) ? freshData.slots.slice(0,20) : Array(20).fill(null);
-            while(freshSlots.length<20) freshSlots.push(null);
-            // Compute the free slot FRESH, inside the transaction — so if
-            // another player's write landed first, this just picks a
-            // different open slot instead of failing the whole instance.
-            let freeIdx = -1;
-            for(let i=0;i<20;i++){
-              const s = freshSlots[i];
-              if(!s){ freeIdx=i; break; }
-              if((s.name||'').toLowerCase()===myName){ freeIdx=i; break; } // resume own slot
-              if(Date.now()-(s.t||0) > this.RECLAIM_STALE_MS){ freeIdx=i; break; } // reclaim abandoned
-            }
-            if(freeIdx<0) throw new Error('instance-full');
-            freshSlots[freeIdx] = {name:this.player, t:Date.now()};
-            tx.update(doc.ref, {slots:freshSlots});
-            assignedIdx = freeIdx;
-          });
-          if(assignedIdx>=0){
-            this.instanceId = doc.id; this.mySlot = assignedIdx;
-            console.log('[Instance] joined '+doc.id+' at slot '+assignedIdx);
-            return;
+      const cutoff = Date.now() - 20000; // only count players active in the last 20s
+      const _activeSlots = async (instId) => {
+        const snap = await _db.collection('zoo_players').where('instanceId','==',instId).get();
+        const taken = new Set(); let count = 0;
+        snap.forEach(doc=>{
+          const d = doc.data();
+          if(!d || (d.name||'').toLowerCase()===name) return; // ignore my own old entry
+          if((d.t||0) < cutoff) return; // ignore inactive/abandoned players
+          count++;
+          if(typeof d.slotIdx==='number') taken.add(d.slotIdx);
+        });
+        return {taken, count};
+      };
+      let {taken, count} = await _activeSlots('main');
+      if(count >= 20 && taken.size >= 20){
+        // Main instance is full — find or create a numbered overflow one.
+        let n = 2, joined = false;
+        while(n < 50 && !joined){
+          const instId = 'main_'+n;
+          const r = await _activeSlots(instId);
+          if(r.count < 20){
+            this.instanceId = instId;
+            let slot = preferredSlot, tries = 0;
+            while(r.taken.has(slot) && tries<20){ slot=(slot+1)%20; tries++; }
+            this.mySlot = slot;
+            joined = true;
+            console.log('[Instance] joined overflow '+instId+' at slot '+slot);
           }
-        }catch(e){ continue; } // this instance is full or had a conflict — try the next one
+          n++;
+        }
+        if(!joined){ this.instanceId = 'main'; this.mySlot = preferredSlot; }
+        return;
       }
-      // No existing instance had room — create a brand-new one.
-      const newSlots = Array(20).fill(null);
-      newSlots[0] = {name:this.player, t:Date.now()};
-      const newDoc = await _db.collection('zoo_instances').add({slots:newSlots, createdAt:Date.now()});
-      this.instanceId = newDoc.id; this.mySlot = 0;
-      console.log('[Instance] created new instance '+newDoc.id+' at slot 0');
+      // Room in the main instance — shift off any slot someone else is using.
+      let slot = preferredSlot, tries = 0;
+      while(taken.has(slot) && tries<20){ slot=(slot+1)%20; tries++; }
+      this.mySlot = slot;
+      console.log('[Instance] joined main at slot '+slot+' (preferred '+preferredSlot+', '+taken.size+' taken)');
     }catch(e){
-      console.warn('[Instance] assignment failed, using local fallback:', e.message);
-      this.instanceId = 'local'; this.mySlot = 0;
+      console.warn('[Instance] collision check failed, using hash-based slot '+preferredSlot+':', e.message);
+      // Keep the hash-based preferredSlot already assigned above.
     }
-  },
-  // Heartbeat: keep our slot marked as active so it isn't reclaimed by
-  // someone else while we're still playing. Piggybacks on the existing
-  // multiplayer sync interval.
-  async _instanceHeartbeat(){
-    if(!this.instanceId || this.instanceId==='local' || this.instanceId.startsWith('private_')) return;
-    try{
-      if(typeof _db==='undefined'||!_db) return;
-      await _db.collection('zoo_instances').doc(this.instanceId).update({
-        ['slots.'+this.mySlot]: {name:this.player, t:Date.now()}
-      });
-    }catch(e){}
-  },
-  // Free our slot on logout so someone else can use it immediately instead
-  // of waiting for the stale-reclaim timeout.
-  async _releaseSlot(){
-    if(!this.instanceId || this.instanceId==='local' || this.instanceId.startsWith('private_')) return;
-    try{
-      if(typeof _db==='undefined'||!_db) return;
-      await _db.collection('zoo_instances').doc(this.instanceId).update({
-        ['slots.'+this.mySlot]: null
-      });
-    }catch(e){}
   },
 };
 
@@ -1163,6 +1150,7 @@ const ZA={
     await ZS.load();
     if(ZS.zoo) ZS._fix(); // ensure all fields migrated before 3D starts
     await ZS.assignInstance(m); // find/create a shared instance + slot before the world builds
+    try{ ZP.toast('🏠 Dein Platz: Slot '+(ZS.mySlot+1)+'/20 ('+ZS.instanceId+')', 2500); }catch(e){}
     // Wait for browser to render and give canvas real dimensions
     await new Promise(r=>setTimeout(r,100));
     // Force layout
@@ -1183,7 +1171,6 @@ const ZA={
     }if(ZS.isAdmin)show('admbtn');},
   logout(){
     ZG.zStop();
-    try{ ZS._releaseSlot(); }catch(e){}
     // Remove our own zoo_players entry immediately so our enclosures vanish
     // from other players' screens right away, instead of waiting for the
     // ~10s staleness cutoff to naturally exclude us.
@@ -2212,7 +2199,7 @@ const ZG={
     this._sweeperPos = null;
     this._sweeperMesh = null;
     {
-      const cx=14, cz=20; // center of its patrol circle
+      const cx=0, cz=40; // spawn point, well within the central plaza (zone center is at 0,55)
       const grp=new THREE.Group();
       const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,2,4),new THREE.MeshBasicMaterial({color:0xF39C12}));
       swBody.position.set(0,1.2,0); grp.add(swBody);
@@ -2629,7 +2616,7 @@ const ZG={
     if(this._sweeperMesh && this._sweeperCenter){
       const m=this._sweeperMesh;
       if(this._sweeperBrush)this._sweeperBrush.rotation.x+=dt*8;
-      if(this._sweeperBeacon)this._sweeperBeacon.material.color.setHex((Math.floor((this._sweeperAngle||0)*4)%2)?0xff6600:0xffcc00);
+      if(this._sweeperBeacon) this._sweeperBeacon.material.color.setHex((Math.floor(Date.now()/300)%2)?0xff6600:0xffcc00);
       const state=this._sweepState||'idle';
       const driveTo=(tx,tz,speed)=>{
         const dx=tx-m.position.x, dz=tz-m.position.z, d=Math.hypot(dx,dz);
@@ -2640,12 +2627,35 @@ const ZG={
         return false;
       };
       if(state==='idle'){
-        this._sweeperAngle=(this._sweeperAngle||0)+dt*0.5;
-        const r=this._sweeperRadius||5;
-        const sx=this._sweeperCenter.x+Math.cos(this._sweeperAngle)*r;
-        const sz=this._sweeperCenter.z+Math.sin(this._sweeperAngle)*r;
-        m.position.set(sx,0,sz);
-        m.rotation.y=-this._sweeperAngle+Math.PI/2;
+        // Robot-vacuum-style wander: drive forward, turn to a random new
+        // heading whenever it gets too close to the gondola station,
+        // feeder, gold machine, or the edge of a central "plaza" — keeping
+        // clear of the player enclosure ring (radius 45) without needing
+        // to track every individual player's row.
+        if(this._sweeperHeading===undefined) this._sweeperHeading = Math.random()*Math.PI*2;
+        if(this._sweeperTurnCd===undefined) this._sweeperTurnCd = 0;
+        const speed = 6;
+        const nx = m.position.x + Math.sin(this._sweeperHeading)*speed*dt;
+        const nz = m.position.z + Math.cos(this._sweeperHeading)*speed*dt;
+        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[])];
+        const PLAZA_R = 26; // stays well clear of the 45-radius enclosure ring
+        const zc = (this.ZONES && this.ZONES[0]) || {x:0,z:55};
+        let blocked = Math.hypot(nx-zc.x, nz-zc.z) > PLAZA_R;
+        if(!blocked){
+          for(const ob of obstacles){
+            if(ob && Math.hypot(nx-ob.x, nz-ob.z) < 8){ blocked=true; break; }
+          }
+        }
+        this._sweeperTurnCd -= dt;
+        if(blocked && this._sweeperTurnCd<=0){
+          // Turn away — a random 90°-270° turn, never a tiny nudge, so it
+          // doesn't just bump the same obstacle again next frame.
+          this._sweeperHeading += Math.PI*0.5 + Math.random()*Math.PI;
+          this._sweeperTurnCd = 0.4; // brief grace period to actually clear the obstacle
+        } else if(!blocked){
+          m.position.x = nx; m.position.z = nz;
+          m.rotation.y = this._sweeperHeading;
+        }
       } else if(state==='toZoo'){
         // drive to the first enclosure waypoint
         const wp=this._sweepWaypoints&&this._sweepWaypoints[0];
@@ -4302,17 +4312,10 @@ const ZG={
       if(!State._useCloud())return;
       if(!_db)return;
       const _myPers=ZS._myPersonality();
-      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'local',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
-      // Throttled slot heartbeat (~every 15s) — keeps our ring slot from
-      // being reclaimed as "abandoned" while we're still actively playing.
-      const _now=Date.now();
-      if(!this._lastHeartbeat || _now-this._lastHeartbeat>15000){
-        this._lastHeartbeat=_now;
-        ZS._instanceHeartbeat();
-      }
+      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'main',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
       // Only fetch players in OUR OWN instance — not the whole global pool.
       const snap = await Promise.race([
-        _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'local').get(),
+        _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'main').get(),
         new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))
       ]);
       const others={};
@@ -9677,19 +9680,19 @@ const GoldMachine = {
       <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,215,0,.3);
         border-radius:16px;padding:20px;max-width:520px;width:95%;max-height:85vh;overflow-y:auto;
         box-shadow:0 8px 32px rgba(0,0,0,.8)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div style="flex:1;min-width:150px">
             <div style="font-size:1.2rem;font-weight:900;color:#FFD700">⚗️ Gold-Maschine</div>
             <div style="font-size:.78rem;color:rgba(255,255,255,.5)">🎫 ${tokens} Tokens verfügbar</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
             <button onclick="GoldMachine._goToShop()"
               style="background:linear-gradient(135deg,#FFD700,#F39C12);border:none;color:#1a1a2e;
                 padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:900;white-space:nowrap">
               🛒 Token kaufen</button>
             <button onclick="document.getElementById('gm-panel').remove()"
-              style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;
-                border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+              style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:36px;height:36px;
+                border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0">✕</button>
           </div>
         </div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px">
@@ -9704,6 +9707,7 @@ const GoldMachine = {
           <span style="color:rgba(255,255,255,.3)">1 Token = 1000 MT · Vergolden = Einkommen ×2 (sofort)</span>
         </div>
       </div>`;
+    panel.addEventListener('click', (e) => { if(e.target === panel) panel.remove(); });
     document.body.appendChild(panel);
   },
 
