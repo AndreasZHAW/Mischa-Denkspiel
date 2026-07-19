@@ -280,6 +280,7 @@ const State = {
     // First try local storage (instant, no network needed)
     const localPlayer = this._local.get(name.toLowerCase());
     if (localPlayer && localPlayer.password === password) {
+      this._syncDeviceIdOnLogin(localPlayer);
       return { ok: true, player: localPlayer };
     }
     // Then try cloud with timeout
@@ -298,7 +299,34 @@ const State = {
     if (player.password !== password) return { ok: false, error: 'Falsches Passwort' };
     // Cache locally
     this._local.save(player);
+    this._syncDeviceIdOnLogin(player);
     return { ok: true, player };
+  },
+
+  // A successful password login is the strongest proof of "this is really
+  // them" the game has — stronger than the Zoo's local-only pseudo-auth
+  // (ZA.login in zoo.html just checks a per-browser localStorage password
+  // store), and stronger than the "only set deviceId if missing" guard in
+  // savePlayer() below (which deliberately does NOT touch an EXISTING
+  // deviceId, to stop an admin action from stamping the ADMIN's own device
+  // over someone else's account). Use this proof to actively repair a
+  // stale deviceId right here, immediately at login — without this, a
+  // player who clears browser storage (which silently generates a
+  // brand-new local device id) and logs back in keeps showing 0 MT on the
+  // World Map/leaderboard for their Zoo balance until they happen to visit
+  // the Zoo itself (whose autosave — see ZS.save() in zoo.html — is the
+  // other half of this self-healing pair).
+  _syncDeviceIdOnLogin(player) {
+    try {
+      const id = window.getDeviceId && window.getDeviceId();
+      if (!id || !player?.name || player.deviceId === id) return; // nothing to do
+      player.deviceId = id;
+      this._local.save(player);
+      this.currentPlayer = player;
+      if (this._useCloud()) {
+        this._col().doc(player.name.toLowerCase()).set({deviceId:id}, {merge:true}).catch(()=>{});
+      }
+    } catch(e) {}
   },
 
   // ---- TASK COMPLETION ----
