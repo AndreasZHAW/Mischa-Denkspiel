@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v325 -->
+<!-- ZOO v326 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=325"></script>
-<script src="rewardchests.js?v=325"></script>
-<script src="personality.js?v=325"></script>
+<script src="lang.js?v=326"></script>
+<script src="rewardchests.js?v=326"></script>
+<script src="personality.js?v=326"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v325','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v326','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -289,7 +289,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
-<div class="hb" onclick="ZG.goToMyZoo()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏠</div><div class="hbl">Mein Zoo</div></div>
+<div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.showZooRangliste()"><div class="hbb" style="background:rgba(255,215,0,.85)">🏆</div><div class="hbl">Rangliste</div></div>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=325"></script>
-<script src="worlds.js?v=325"></script>
+<script src="firebase-state.js?v=326"></script>
+<script src="worlds.js?v=326"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1251,6 +1251,7 @@ const ZG={
   // through the wall" for exactly the players assigned to those slots.
   WR:210, // world radius — must stay >= 55 (zone offset) + 148 (outer fence) + margin
   STA:{x:0,z:0}, // gondola station at center
+  MARKET:{x:0,z:30}, // marketplace plaza — between the station (z=0) and the enclosure ring (z=55), right on the main path out of the station
   // ONE shared zone — everyone meets at the same gondola station. Capacity
   // (20 players) is handled by the instance system (see ZS.assignInstance),
   // not by splitting into separate physical zones anymore.
@@ -1955,17 +1956,19 @@ const ZG={
     });
   },
 
-  // Wayfinding: with up to 20 players sharing one ring, finding your own
-  // row again can be tricky — this teleports straight back to it.
-  goToMyZoo(){
-    const slot = typeof ZS.mySlot==='number' ? ZS.mySlot : 0;
-    const layout = this._slotEncPos(slot);
-    // Stand a little in front of the row's center, facing it
-    this.pl.x = layout.sign.x;
-    this.pl.z = layout.sign.z;
-    this.yaw = Math.atan2(layout.center.x-layout.sign.x, layout.center.z-layout.sign.z)+Math.PI;
-    ZP.toast('🏠 Zurück bei deinem Zoo! (Slot '+(slot+1)+'/'+this.RING_SLOTS+')', 2000);
+  // Wayfinding: always teleports to the shared marketplace plaza (see
+  // _marketplace()) — used to go to your own row instead, but with up to
+  // 20 players sharing one ring, "go to a fixed, findable meeting point"
+  // is more useful than "go to my own row" (which nobody else can find
+  // anyway from a name sign alone). Old name kept as an alias in case
+  // anything else still calls it.
+  goToMarket(){
+    this.pl.x = this.MARKET.x;
+    this.pl.z = this.MARKET.z + 11; // stand just outside the plaza, facing in
+    this.yaw = 0; // face north (-z), toward the plaza/station
+    ZP.toast('🏪 Willkommen am Marktplatz!', 2000);
   },
+  goToMyZoo(){ return this.goToMarket(); },
 
   // Renders OTHER players' enclosure clusters around the shared ring — a
   // labeled row of 5 enclosures per player, in their own personality color.
@@ -2119,6 +2122,7 @@ const ZG={
       const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
     });
     this._station();
+    this._marketplace();
     this._encs();
     this._trees();
     this._hiddenTrapdoor();
@@ -2328,6 +2332,48 @@ const ZG={
         this._feederPositions.push({x:fx,z:fz});
       });
     }
+  },
+
+  // A small plaza between the gondola station (z=0) and the enclosure ring
+  // (z=55), right on the main path everyone already walks — a shared
+  // landmark/meeting point, and the destination for the "🏪 Marktplatz"
+  // wayfinding button (see goToMarket()).
+  _marketplace(){
+    const sc=this.scene, mx=this.MARKET.x, mz=this.MARKET.z;
+    // Paved plaza ground
+    const plaza=new THREE.Mesh(new THREE.CircleGeometry(11,32),new THREE.MeshBasicMaterial({color:0xC2A878}));
+    plaza.rotation.x=-Math.PI/2; plaza.position.set(mx,0.04,mz); sc.add(plaza);
+    const plazaRim=new THREE.Mesh(new THREE.RingGeometry(10.6,11.2,32),new THREE.MeshBasicMaterial({color:0x8B6F47}));
+    plazaRim.rotation.x=-Math.PI/2; plazaRim.position.set(mx,0.05,mz); sc.add(plazaRim);
+    // 5 market stalls arranged around the plaza, facing inward
+    const stallColors=[0xE74C3C,0x27AE60,0x3498DB,0xF39C12,0x9B59B6];
+    for(let i=0;i<5;i++){
+      const ang=(i/5)*Math.PI*2;
+      const sx=mx+Math.sin(ang)*8.5, sz=mz+Math.cos(ang)*8.5;
+      const col=stallColors[i];
+      // Table
+      const table=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.9,1.6),new THREE.MeshBasicMaterial({color:0x8B5A2B}));
+      table.position.set(sx,0.45,sz); sc.add(table);
+      // Two posts + a striped awning/canopy
+      [-1,1].forEach(px=>{
+        const post=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,3,6),new THREE.MeshBasicMaterial({color:0x5a3d1a}));
+        post.position.set(sx+px*1.1,1.5,sz-0.6); sc.add(post);
+      });
+      const canopy=new THREE.Mesh(new THREE.ConeGeometry(2.2,1.4,4),new THREE.MeshBasicMaterial({color:col}));
+      canopy.position.set(sx,3.2,sz-0.6); canopy.rotation.y=Math.PI/4; sc.add(canopy);
+      // Little goods on the table (colored crates)
+      for(let j=0;j<2;j++){
+        const crate=new THREE.Mesh(new THREE.BoxGeometry(.55,.55,.55),new THREE.MeshBasicMaterial({color:col}));
+        crate.position.set(sx-0.6+j*1.2,1.15,sz); sc.add(crate);
+      }
+    }
+    // Central signpost
+    const signPost=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,4,8),new THREE.MeshBasicMaterial({color:0x6a4020}));
+    signPost.position.set(mx,2,mz); sc.add(signPost);
+    const lbl=this._txt('🏪 MARKTPLATZ',1,'#FFD700');
+    lbl.position.set(mx,5.2,mz); lbl.scale.set(10,2.2,1); sc.add(lbl);
+    const sub=this._txt('Hier triffst du andere Spieler & tauschst Tiere',0.55,'#fff');
+    sub.position.set(mx,4.1,mz); sub.scale.set(9,1.4,1); sc.add(sub);
   },
 
   _rebirthIntro(rebNum, mult, keptAnimal){
@@ -2806,29 +2852,33 @@ const ZG={
     const _joyFullPower=this.joy.on&&_joyMag>0.85;
     if(this.joy.on){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
     const l=Math.sqrt(mx*mx+mz*mz);
-    // ── TURBO: holding full power in the same direction for 5s doubles speed
-    // again, until the joystick (or keys) direction/strength actually changes.
-    // "Full power" = keyboard (always full power when a key is down) or the
-    // joystick pushed near its edge. Direction is compared to the direction
-    // when the hold started — a small wobble is tolerated (dot > .97, ~14°)
-    // but an actual turn resets the 5s timer, matching "bis man den Joystick
-    // wieder ändert".
+    // ── TURBO: holding full power in the same direction gets progressively
+    // faster — 2× after 2s, 3× after 5s — until the joystick (or keys)
+    // direction/strength actually changes. "Full power" = keyboard (always
+    // full power when a key is down) or the joystick pushed near its edge.
+    // Direction is compared to the direction when the hold started — a
+    // small wobble is tolerated (dot > .97, ~14°) but an actual turn resets
+    // the timer, matching "bis man den Joystick wieder ändert".
     const _keyMoving=(this.keys['KeyW']||this.keys['ArrowUp']||this.keys['KeyS']||this.keys['ArrowDown']||this.keys['KeyA']||this.keys['ArrowLeft']||this.keys['KeyD']||this.keys['ArrowRight']);
     const _fullPower = l>0 && (this.joy.on ? _joyFullPower : _keyMoving);
     if(!_fullPower){
-      this._turboHoldStart=null; this._turboActive=false; this._turboDir=null;
+      this._turboHoldStart=null; this._turboLevel=0; this._turboDir=null;
     } else {
       const dirX=mx/l, dirZ=mz/l;
       const now=Date.now();
       if(!this._turboDir || (this._turboDir.x*dirX+this._turboDir.z*dirZ)<0.97){
         // Direction just changed (or this is a fresh hold) — restart the timer
-        this._turboDir={x:dirX,z:dirZ}; this._turboHoldStart=now; this._turboActive=false;
-      } else if(!this._turboActive && now-this._turboHoldStart>=5000){
-        this._turboActive=true;
-        try{ ZP.toast('⚡ Turbo-Tempo!',1500); }catch(e){}
+        this._turboDir={x:dirX,z:dirZ}; this._turboHoldStart=now; this._turboLevel=0;
+      } else {
+        const held=now-this._turboHoldStart;
+        const newLevel = held>=5000?2:(held>=2000?1:0);
+        if(newLevel>this._turboLevel){
+          this._turboLevel=newLevel;
+          try{ ZP.toast(newLevel===2?'⚡⚡ Turbo x3!':'⚡ Turbo x2!',1500); }catch(e){}
+        }
       }
     }
-    const sp=baseSp*(this._turboActive?2:1);
+    const sp=baseSp*(this._turboLevel===2?3:this._turboLevel===1?2:1);
     if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
     if(this._trashActive){
       // Trash room: square boundary 28, no zoo collisions
@@ -6218,12 +6268,125 @@ const ZP={
   // TRADING
   tradeTab(t){this._tt2=t;['m','a','n'].forEach(x=>{G('tt-'+x)?.classList.toggle('ta',x===t);G('tt-'+x)?.classList.toggle('ti',x!==t);});this._rTrade(t);},
   _rTrade(t){const el=G('ptrade');if(!el)return;if(t==='m')this._tM(el);else if(t==='a')this._tA(el);else this._tN(el);},
-  _tM(el){const off=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel===ZS.player);if(!off.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}el.innerHTML=off.map((o,i)=>`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" style="background:rgba(231,76,60,.4);color:#ff6b6b" onclick="ZP._cT(${i})">Zurück</button></div>`).join('');},
-  _tA(el){const off=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel!==ZS.player);if(!off.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}el.innerHTML=off.map((o,i)=>`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">Von: ${o.sel}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" ${(ZS.zoo?.mt||0)<o.p?'disabled':''} onclick="ZP._bT(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`).join('');},
+  // ── TRADING (Firestore-backed) ──
+  // Previously this whole system lived in a single localStorage key
+  // ('zoo_trades'), which is per-browser: nobody on any OTHER device could
+  // ever see an offer, buy one, or even tell trading was happening — the
+  // exact "wird bei anderen Spielern nicht angezeigt" bug. It also had a
+  // duplication bug: offering an animal never actually removed it from the
+  // seller's own enclosure, so it could be "sold" to any number of buyers
+  // while the seller kept the original, and the seller was never paid
+  // anything for a sale either. Moving to a real `zoo_trades` Firestore
+  // collection fixes all three: offers are visible/buyable from any
+  // device, the animal is physically pulled out of the seller's enclosure
+  // the moment it's offered (see _oT), and the buyer's payment is credited
+  // to the seller via an atomic increment (see _bT) so it can't get lost
+  // to a race with the seller's own autosave.
+  _myTrades:[], _availTrades:[],
+  async _tM(el){
+    if(typeof _db==='undefined'||!_db){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
+    el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">⏳ Lade...</div>';
+    try{
+      const snap=await _db.collection('zoo_trades').where('sellerKey','==',ZS.player.toLowerCase()).get();
+      this._myTrades=snap.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){ this._myTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
+    if(!this._myTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
+    el.innerHTML=this._myTrades.map((o,i)=>`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" style="background:rgba(231,76,60,.4);color:#ff6b6b" onclick="ZP._cT(${i})">Zurück</button></div>`).join('');
+  },
+  async _tA(el){
+    if(typeof _db==='undefined'||!_db){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
+    el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">⏳ Lade...</div>';
+    try{
+      // Small collection — filter "not mine" client-side instead of a
+      // Firestore "!=" query (which would need a composite index).
+      const snap=await _db.collection('zoo_trades').get();
+      this._availTrades=snap.docs.map(d=>({id:d.id,...d.data()})).filter(o=>o.sellerKey!==ZS.player.toLowerCase());
+    }catch(e){ this._availTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
+    if(!this._availTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
+    const total=(ZS.dsMT||0)+(ZS.zoo?.mt||0);
+    el.innerHTML=this._availTrades.map((o,i)=>`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">Von: ${o.seller}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" ${total<o.p?'disabled':''} onclick="ZP._bT(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`).join('');
+  },
   _tN(el){const z=ZS.zoo;const enc=z.enc.filter(e=>e);if(!enc.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Tiere.</div>';return;}el.innerHTML=enc.map(e=>{const i=z.enc.indexOf(e);return`<div class="ac" style="cursor:pointer" onclick="ZP._oT(${i})"><div style="font-size:1.8rem">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${RAR[e.animal.r]?.c||'rn'}" style="font-size:.7rem">${RAR[e.animal.r]?.n||''}</div></div><div style="font-size:.7rem;color:#FFD700">Anbieten →</div></div>`;}).join('');},
-  _oT(i){const z=ZS.zoo;const enc=z.enc[i];if(!enc)return;const p=prompt(`Preis für ${enc.animal.n} in MT:`);if(!p||isNaN(p))return;const tr=JSON.parse(localStorage.getItem('zoo_trades')||'[]');tr.push({sel:ZS.player,i,n:enc.animal.n,e:enc.animal.e,p:parseFloat(p),sh:enc.shiny,tr:enc.traits,d:enc});localStorage.setItem('zoo_trades',JSON.stringify(tr));this.toast(`✅ ${enc.animal.e} angeboten!`,2000);this._rTrade('m');},
-  _cT(i){const my=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel===ZS.player);const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');const rem=my[i];localStorage.setItem('zoo_trades',JSON.stringify(all.filter(o=>!(o.sel===rem.sel&&o.n===rem.n&&o.p===rem.p))));this.toast('Zurückgezogen',1500);this._rTrade('m');},
-  _bT(i){const off=JSON.parse(localStorage.getItem('zoo_trades')||'[]').filter(o=>o.sel!==ZS.player);const o=off[i];if(!o)return;const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<o.p){this.toast('❌ Zu wenig!');return;}const slot=z.enc.findIndex(e=>!e);if(slot<0){this.toast('❌ Gehege voll!');return;}z.mt-=o.p;z.enc[slot]={...o.d,addedAt:Date.now()};const all=JSON.parse(localStorage.getItem('zoo_trades')||'[]');const idx=all.findIndex(x=>x.sel===o.sel&&x.n===o.n&&x.p===o.p);if(idx>=0)all.splice(idx,1);localStorage.setItem('zoo_trades',JSON.stringify(all));ZG._encs();this.toast(`✅ ${o.e} ${o.n} gekauft!`,3000);ZG._updHUD();this._rTrade('a');try{ZNews.push('trade',{animal:o.n,emoji:o.e,seller:o.sel});}catch(e){}},
+  _oT(i){
+    const z=ZS.zoo;const enc=z.enc[i];if(!enc)return;
+    if(typeof _db==='undefined'||!_db){this.toast('❌ Tauschen braucht eine Internetverbindung.');return;}
+    const p=prompt(`Preis für ${enc.animal.n} in MT:`);
+    if(!p||isNaN(p)||parseFloat(p)<=0)return;
+    const price=parseFloat(p);
+    // Pull the animal out of the enclosure right away — it's "on the
+    // market stall" now, not with the seller (see comment above).
+    z.enc[i]=null; ZG._encs(); ZS.save();
+    const doc={seller:ZS.player, sellerKey:ZS.player.toLowerCase(), n:enc.animal.n, e:enc.animal.e, p:price, sh:enc.shiny||null, tr:enc.traits||[], d:enc, createdAt:Date.now()};
+    _db.collection('zoo_trades').add(doc).then(()=>{
+      this.toast(`✅ ${enc.animal.e} für ${$mt(price)} angeboten!`,2500);
+      this._rTrade('m');
+    }).catch(e=>{
+      // Publish failed — give the animal back, nothing was actually offered.
+      z.enc[i]=enc; ZG._encs(); ZS.save();
+      this.toast('❌ Anbieten fehlgeschlagen: '+e.message,3000);
+    });
+  },
+  _cT(i){
+    const o=this._myTrades&&this._myTrades[i]; if(!o)return;
+    const z=ZS.zoo;
+    const slot=z.enc.findIndex(e=>!e);
+    if(slot<0){this.toast('❌ Kein freies Gehege — kann Tier gerade nicht zurücknehmen!');return;}
+    z.enc[slot]={...o.d,addedAt:Date.now()};
+    ZG._encs(); ZS.save(); ZG._updHUD();
+    _db.collection('zoo_trades').doc(o.id).delete().then(()=>{
+      this.toast('↩️ Zurückgezogen',1500);
+      this._rTrade('m');
+    }).catch(e=>{ this.toast('❌ '+e.message,3000); });
+  },
+  _bT(i){
+    const o=this._availTrades&&this._availTrades[i]; if(!o)return;
+    const z=ZS.zoo;
+    const total=(ZS.dsMT||0)+z.mt;
+    if(total<o.p){this.toast('❌ Zu wenig!');return;}
+    const slot=z.enc.findIndex(e=>!e);
+    if(slot<0){this.toast('❌ Gehege voll!');return;}
+    // Re-check the offer still exists right before committing — closes the
+    // obvious race where two people click "buy" on the same stale list
+    // within a second of each other (not a full atomic transaction, but a
+    // real device-to-device check, unlike the old localStorage version
+    // which couldn't see other devices at all).
+    const ref=_db.collection('zoo_trades').doc(o.id);
+    ref.get().then(doc=>{
+      if(!doc.exists){ this.toast('❌ Schon weg — jemand war schneller!',2500); this._rTrade('a'); return null; }
+      return ref.delete().then(()=>doc.data());
+    }).then(data=>{
+      if(!data)return;
+      z.mt-=o.p;
+      z.enc[slot]={...o.d,addedAt:Date.now()};
+      ZG._encs(); ZS.save(); ZG._updHUD();
+      // Credit the seller — atomic increment so it can never race/clobber
+      // their own concurrent autosave (unlike a read-modify-write here).
+      _db.collection('zoos').doc('zoo_'+o.sellerKey).update({mt:firebase.firestore.FieldValue.increment(o.p)}).catch(()=>{});
+      this._tradeAnim(o.e,o.p);
+      this.toast(`✅ ${o.e} ${o.n} gekauft!`,3000);
+      this._rTrade('a');
+      try{ZNews.push('trade',{animal:o.n,emoji:o.e,seller:o.seller});}catch(e){}
+    }).catch(e=>{ this.toast('❌ '+e.message,3000); });
+  },
+  // Quick MT-⇄-animal flourish shown to the buyer the moment a trade lands.
+  _tradeAnim(emoji,price){
+    try{
+      if(!document.getElementById('trade-anim-style')){
+        const st=document.createElement('style'); st.id='trade-anim-style';
+        st.textContent=`
+          @keyframes tradeAnimPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(.9)}}
+          @keyframes tradeAnimSlideL{0%{transform:translateX(-26px)}25%{transform:translateX(0)}100%{transform:translateX(0)}}
+          @keyframes tradeAnimSlideR{0%{transform:translateX(26px)}25%{transform:translateX(0)}100%{transform:translateX(0)}}
+        `;
+        document.head.appendChild(st);
+      }
+      const el=document.createElement('div');
+      el.style.cssText='position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);z-index:99999;display:flex;align-items:center;gap:14px;font-size:2.4rem;font-weight:900;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:tradeAnimPop 1.6s ease-out forwards';
+      el.innerHTML=`<span style="color:#FFD700;animation:tradeAnimSlideL 1.6s ease-out forwards">🌀${price}</span><span style="font-size:1.5rem;opacity:.8">⇄</span><span style="animation:tradeAnimSlideR 1.6s ease-out forwards">${emoji}</span>`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),1700);
+    }catch(e){}
+  },
 
   // REBIRTH
   _rReb(){
