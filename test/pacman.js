@@ -156,9 +156,11 @@ const PacmanGame = {
       if(Math.abs(tx) > Math.abs(ty)) {
         if(tx < -THRESH){ wantDx=1; wantDy=0; }
         else if(tx > THRESH){ wantDx=-1; wantDy=0; }
+        else { wantDx=0; wantDy=0; } // phone back near level → stop
       } else {
         if(ty > THRESH){ wantDx=0; wantDy=-1; }
         else if(ty < -THRESH){ wantDx=0; wantDy=1; }
+        else { wantDx=0; wantDy=0; } // phone back near level → stop
       }
     };
     window.addEventListener('devicemotion', onMotion);

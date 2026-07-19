@@ -26,10 +26,10 @@ const SokobanGame = {
       // Tier 4: Maze navigation
       { map:['###########','#   .  .  #','# # $  $  #','#   @  ## #','# # $  $  #','#   .  .  #','###########'],
         name:{de:'Labyrinth',en:'Maze',fr:'Labyrinthe'}, hint:{de:'Wände teilen den Raum — jede Kammer einzeln lösen',en:'Walls divide the room — solve each chamber separately',fr:'Des murs divisent la pièce — résous chaque chambre séparément'} },
-      { map:['###########','#    .    #','#    #    #','#  $ #    #','#    #    #','#    #  $ #','#    .    #','#    @    #','###########'],
-        name:{de:'Zwei Umwege',en:'Two Detours',fr:'Deux détours'}, hint:{de:'2 Boxen — beide brauchen einen Umweg um die Wand!',en:'2 boxes — both need a detour around the wall!',fr:'2 caisses — toutes deux nécessitent un détour autour du mur !'} },
-      { map:['###########','#    .    #','#    #    #','#  $ #    #','#    #    #','#  $ #    #','#    .    #','#    @    #','###########'],
-        name:{de:'Meister',en:'Master',fr:'Maître'}, hint:{de:'2 Boxen im selben Gang — finde die richtige Reihenfolge!',en:'2 boxes in the same corridor — find the right order!',fr:'2 caisses dans le même couloir — trouve le bon ordre !'} },
+      { map:['######','#... #','#  $ #','# #$##','#  $ #','#  @ #','######'],
+        name:{de:'Enge Gänge',en:'Narrow Passages',fr:'Passages étroits'}, hint:{de:'3 Boxen, wenig Platz — jeder Zug muss sitzen!',en:'3 boxes, tight space — every move counts!',fr:'3 caisses, peu de place — chaque mouvement compte !'} },
+      { map:['########','#      #','# #### #','# #...@#','# ###$###','# #     #','#  $$ $ #','####   ##','   #.###','   ###'],
+        name:{de:'Meister',en:'Master',fr:'Maître'}, hint:{de:'4 Boxen, über 90 Züge nötig — die bisher schwierigste Herausforderung!',en:'4 boxes, 90+ moves needed — the toughest challenge yet!',fr:'4 caisses, plus de 90 coups nécessaires — le plus grand défi !'} },
     ];;
 
     // BFS verify — skip broken levels
