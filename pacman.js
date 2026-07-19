@@ -166,11 +166,22 @@ const PacmanGame = {
     // ── BUTTON CONTROLS ──
     const DIRS = {up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
     document.querySelectorAll('.pc-btn').forEach(b => {
-      b.addEventListener('pointerdown', e => {
-        e.preventDefault();
+      const setDir = () => {
         const [ddx,ddy] = DIRS[b.dataset.d];
-        wantDx=ddx; wantDy=ddy;
-      });
+        wantDx=ddx; wantDy=ddy; b.dataset.active='1';
+      };
+      const clearDir = () => {
+        if (b.dataset.active!=='1') return;
+        b.dataset.active='0';
+        // Only stop if no OTHER direction button is still held down —
+        // otherwise releasing one finger while another is still pressed
+        // would wrongly halt movement.
+        if (!document.querySelector('.pc-btn[data-active="1"]')) { wantDx=0; wantDy=0; }
+      };
+      b.addEventListener('pointerdown', e => { e.preventDefault(); setDir(); });
+      b.addEventListener('pointerup', e => { e.preventDefault(); clearDir(); });
+      b.addEventListener('pointerleave', clearDir);
+      b.addEventListener('pointercancel', clearDir);
     });
 
     // ── BOMB PLACEMENT ──
@@ -184,16 +195,33 @@ const PacmanGame = {
     const bombBtn = document.getElementById('pc-bomb');
     if(bombBtn) bombBtn.addEventListener('pointerdown', e => { e.preventDefault(); placeBomb(); });
 
+    const KEYMAP={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+    const heldKeys = [];
     const onKey = e => {
-      const map={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
-      if(map[e.key]){ wantDx=map[e.key][0]; wantDy=map[e.key][1]; }
+      if(KEYMAP[e.key]){
+        if(!heldKeys.includes(e.key)) heldKeys.push(e.key);
+        wantDx=KEYMAP[e.key][0]; wantDy=KEYMAP[e.key][1];
+      }
       if(e.key===' ' || e.key==='Enter') { e.preventDefault(); placeBomb(); }
     };
+    const onKeyUp = e => {
+      if(!KEYMAP[e.key]) return;
+      const idx=heldKeys.indexOf(e.key);
+      if(idx>=0) heldKeys.splice(idx,1);
+      if(heldKeys.length===0){ wantDx=0; wantDy=0; }
+      else {
+        // Resume movement in whichever direction key is still held (most recent)
+        const last=heldKeys[heldKeys.length-1];
+        wantDx=KEYMAP[last][0]; wantDy=KEYMAP[last][1];
+      }
+    };
     window.addEventListener('keydown', onKey);
+    window.addEventListener('keyup', onKeyUp);
 
     const cleanup = () => {
       running=false; cancelAnimationFrame(animId);
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('devicemotion', onMotion);
     };
 

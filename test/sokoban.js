@@ -26,10 +26,10 @@ const SokobanGame = {
       // Tier 4: Maze navigation
       { map:['###########','#   .  .  #','# # $  $  #','#   @  ## #','# # $  $  #','#   .  .  #','###########'],
         name:{de:'Labyrinth',en:'Maze',fr:'Labyrinthe'}, hint:{de:'Wände teilen den Raum — jede Kammer einzeln lösen',en:'Walls divide the room — solve each chamber separately',fr:'Des murs divisent la pièce — résous chaque chambre séparément'} },
-      { map:['###########','#  .    .  #','#  $    $  #','#  @####   #','#  $    $  #','#  .    .  #','###########'],
-        name:{de:'Vier Tore',en:'Four Gates',fr:'Quatre portes'}, hint:{de:'4 Boxen durch enge Tore — Reihenfolge entscheidend!',en:'4 boxes through narrow gates — order matters!',fr:'4 caisses à travers des portes étroites — l\'ordre compte !'} },
-      { map:['###########','# .     . #','#  $   $  #','#  ## ##  #','#  $   $  #','# .  @  . #','###########'],
-        name:{de:'Meister',en:'Master',fr:'Maître'}, hint:{de:'4 Boxen, Wände blockieren alles — höchste Schwierigkeit!',en:'4 boxes, walls block everything — highest difficulty!',fr:'4 caisses, des murs bloquent tout — difficulté maximale !'} },
+      { map:['###########','#    .    #','#    #    #','#  $ #    #','#    #    #','#    #  $ #','#    .    #','#    @    #','###########'],
+        name:{de:'Zwei Umwege',en:'Two Detours',fr:'Deux détours'}, hint:{de:'2 Boxen — beide brauchen einen Umweg um die Wand!',en:'2 boxes — both need a detour around the wall!',fr:'2 caisses — toutes deux nécessitent un détour autour du mur !'} },
+      { map:['###########','#    .    #','#    #    #','#  $ #    #','#    #    #','#  $ #    #','#    .    #','#    @    #','###########'],
+        name:{de:'Meister',en:'Master',fr:'Maître'}, hint:{de:'2 Boxen im selben Gang — finde die richtige Reihenfolge!',en:'2 boxes in the same corridor — find the right order!',fr:'2 caisses dans le même couloir — trouve le bon ordre !'} },
     ];;
 
     // BFS verify — skip broken levels
