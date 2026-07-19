@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v326 -->
+<!-- ZOO v327 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=326"></script>
-<script src="rewardchests.js?v=326"></script>
-<script src="personality.js?v=326"></script>
+<script src="lang.js?v=327"></script>
+<script src="rewardchests.js?v=327"></script>
+<script src="personality.js?v=327"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v326','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v327','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -307,6 +307,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="iprompt">⬆ [E] Interagieren</div>
 <div id="evb"></div><div id="evt"></div>
 <div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
+<div id="home-arrow-wrap" style="position:absolute;top:118px;right:10px;width:100px;display:flex;flex-direction:column;align-items:center;pointer-events:none">
+  <div id="home-compass" style="width:36px;height:36px;background:rgba(0,0,0,.55);border:2px solid rgba(255,215,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden">
+    <span id="home-arrow" style="display:inline-block;font-size:1.3rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg)">⬆️</span>
+  </div>
+  <div id="home-arrow-dist" style="margin-top:2px;font-size:.62rem;color:#FFD700;background:rgba(0,0,0,.5);padding:1px 6px;border-radius:8px;font-weight:700">🏠</div>
+</div>
 <div id="bflash"></div>
 </div>
 <div id="zt"></div>
@@ -478,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=326"></script>
-<script src="worlds.js?v=326"></script>
+<script src="firebase-state.js?v=327"></script>
+<script src="worlds.js?v=327"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1395,6 +1401,7 @@ const ZG={
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),3000));
+    this._ivs.push(setInterval(()=>this._syncDropped(),3000));
     this._gondTick();
     for(let i=0;i<3;i++)this.gQ.push(this._mkG());
     // Start player in zone 0
@@ -1522,6 +1529,15 @@ const ZG={
     }
     this._updCarryHUD();
   },
+  // Dropped animals used to be 100% local: a plain gold cube spawned only
+  // in the dropper's own scene, tracked only in their own in-memory array —
+  // a Firestore doc DID get written on drop, but nothing anywhere ever
+  // listened to it, so no other player's client could ever know it
+  // existed. Now backed by a real `zoo_dropped` collection, polled every
+  // 3s (see _syncDropped, called from the same interval loop as the
+  // multiplayer position sync) so every nearby player sees the same
+  // dropped animal, can walk up to it, and carry it into THEIR OWN zoo —
+  // first to press [E] wins (see _pickupDropped).
   _dropCarried(slapper){
     if(!this.carrying) return;
     const c = this.carrying;
@@ -1531,52 +1547,86 @@ const ZG={
     const x = this.pl.x + (Math.random()-.5)*4;
     const z2 = this.pl.z + (Math.random()-.5)*4;
     const dropped = {
+      id:null, // filled in once the Firestore write resolves
       animal: c.animal, shiny: c.shiny, traits: c.traits||[],
       slot: c.slot, x, z: z2,
       expiresAt: Date.now()+60000,
       droppedBy: ZS.player, slappedBy: slapper
     };
     this.droppedAnimals.push(dropped);
-    // Show 3D indicator
-    this._spawnDroppedMesh(dropped);
+    this._spawnDroppedMesh(dropped); // optimistic — shows instantly for the dropper
     ZP.toast('💥 '+c.animal.e+' '+c.animal.n+' fallen gelassen! Schnell aufheben!',3000);
     this._updCarryHUD();
-    // Remove after 60s if not picked up
+    // Remove after 60s if not picked up (local fallback timer — _syncDropped
+    // also cleans up expired docs for everyone else)
     setTimeout(()=>{
-      const idx = this.droppedAnimals.indexOf(dropped);
+      const idx=this.droppedAnimals.indexOf(dropped);
       if(idx>=0){
         this.droppedAnimals.splice(idx,1);
-        if(dropped.mesh && this.scene){ this.scene.remove(dropped.mesh); }
+        if(dropped.mesh&&this.scene) this.scene.remove(dropped.mesh);
+        if(dropped.id) _db.collection('zoo_dropped').doc(dropped.id).delete().catch(()=>{});
         ZP.toast('💨 '+dropped.animal.e+' ist entkommen!',2000);
       }
     }, 60000);
-    // Broadcast drop
+    // Publish so every OTHER player's client can see and grab it too.
     try{
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-        _db.collection('zoo_broadcast').doc('dropped_'+Date.now()).set({
-          type:'animal_dropped', animal:c.animal.id, x, z:z2,
-          slot:c.slot, from:ZS.player, slapper, at:Date.now(),
-          exp:Date.now()+60000
-        }).catch(()=>{});
+        _db.collection('zoo_dropped').add({
+          animal:c.animal, shiny:c.shiny||null, traits:c.traits||[],
+          x, z:z2, droppedBy:ZS.player, slappedBy:slapper||null,
+          createdAt:Date.now(), expiresAt:dropped.expiresAt
+        }).then(ref=>{ dropped.id=ref.id; }).catch(()=>{});
       }
     }catch(e){}
   },
+  // Emoji sprite (same technique as the gondola cars' animal labels) on a
+  // small pedestal, instead of the old plain gold cube — so it actually
+  // looks like the animal that was dropped, not an anonymous box.
   _spawnDroppedMesh(dropped){
     if(!this.scene||typeof THREE==='undefined') return;
     try{
-      const g = new THREE.Group();
-      // Bouncing emoji-like cube
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1.5,1.5,1.5),
-        new THREE.MeshBasicMaterial({color:0xFFD700, transparent:true, opacity:0.9})
-      );
-      g.add(mesh);
-      g.position.set(dropped.x, 0.8, dropped.z);
-      // Pulsate
-      g.userData.bounceT = 0;
+      const g=new THREE.Group();
+      const base=new THREE.Mesh(new THREE.CylinderGeometry(.7,.8,.3,10),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:.85}));
+      base.position.y=.15; g.add(base);
+      const sprite=this._txt(dropped.animal.e,1,'#fff');
+      sprite.position.y=1.5; sprite.scale.set(2.2,2.2,1);
+      g.add(sprite);
+      g.position.set(dropped.x,0,dropped.z);
+      g.userData.bounceT=0;
       this.scene.add(g);
-      dropped.mesh = g;
-      dropped.bounceT = 0;
+      dropped.mesh=g; dropped.bounceT=0;
+    }catch(e){}
+  },
+  // Pull in any dropped animals other players published (or that appeared
+  // since our last check), and clean up ones that got picked up or expired.
+  async _syncDropped(){
+    if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+    try{
+      const snap=await _db.collection('zoo_dropped').get();
+      const now=Date.now();
+      const seenIds=new Set();
+      const toDelete=[];
+      snap.forEach(doc=>{
+        const d=doc.data();
+        seenIds.add(doc.id);
+        if((d.expiresAt||0)<=now){ toDelete.push(doc.id); return; }
+        if(this.droppedAnimals.some(x=>x.id===doc.id)) return; // already tracked
+        const dropped={id:doc.id, animal:d.animal, shiny:d.shiny, traits:d.traits||[],
+          x:d.x, z:d.z, expiresAt:d.expiresAt, droppedBy:d.droppedBy, slappedBy:d.slappedBy};
+        this.droppedAnimals.push(dropped);
+        this._spawnDroppedMesh(dropped);
+      });
+      // Anything we're tracking WITH a real id that's no longer in the
+      // snapshot got picked up by someone else (or deleted) — remove it.
+      for(let i=this.droppedAnimals.length-1;i>=0;i--){
+        const d=this.droppedAnimals[i];
+        if(d.id && !seenIds.has(d.id)){
+          this.droppedAnimals.splice(i,1);
+          if(d.mesh&&this.scene) this.scene.remove(d.mesh);
+        }
+      }
+      // Best-effort cleanup of expired docs — whichever client notices first deletes it.
+      toDelete.forEach(id=>_db.collection('zoo_dropped').doc(id).delete().catch(()=>{}));
     }catch(e){}
   },
   _checkDroppedPickup(){
@@ -1603,6 +1653,9 @@ const ZG={
     this.droppedAnimals.splice(idx,1);
     if(d.mesh&&this.scene) this.scene.remove(d.mesh);
     this._nearDropped = -1;
+    // Tell everyone else it's gone (best-effort — if two players grab it
+    // in the same instant, one delete just no-ops on an already-gone doc).
+    if(d.id && typeof _db!=='undefined' && _db) _db.collection('zoo_dropped').doc(d.id).delete().catch(()=>{});
     // Picking up = start carrying again (must reach enclosure to place)
     // Find a free enclosure slot
     const z = ZS.zoo;
@@ -2119,7 +2172,7 @@ const ZG={
       const pm=new THREE.MeshBasicMaterial({color:0x8B4513});
       for(let j=0;j<32;j++){const a=j/32*Math.PI*2;const post=new THREE.Mesh(new THREE.BoxGeometry(.35,2,.35),pm);post.position.set(z.x+Math.cos(a)*148,1,z.z+Math.sin(a)*148);sc.add(post);}
       // Zone label
-      const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,5,z.z); lbl.scale.set(8,2,1); sc.add(lbl);
+      const lbl=this._txt(z.label,.9,'#fff'); lbl.position.set(z.x,7.5,z.z); lbl.scale.set(4.5,1.1,1); sc.add(lbl);
     });
     this._station();
     this._marketplace();
@@ -2281,8 +2334,8 @@ const ZG={
       this._sweeperRadius=5;
       this._sweeperAngle=0;
       // floating label (stays above center, doesn't spin with the machine)
-      const swLbl=this._txt('🧹 KEHRMASCHINE',0.6,'#F39C12'); swLbl.position.set(cx,6,cz); swLbl.scale.set(8,2,1); sc.add(swLbl);
-      const swLbl2=this._txt('Zoo kehren! Antippen 🧹',0.5,'#fff'); swLbl2.position.set(cx,5,cz); swLbl2.scale.set(7,1.4,1); sc.add(swLbl2);
+      const swLbl=this._txt('🧹 Kehrmaschine',0.55,'#F39C12'); swLbl.position.set(cx,6.4,cz); swLbl.scale.set(4,1,1); sc.add(swLbl);
+      const swLbl2=this._txt('Antippen 🧹',0.45,'#fff'); swLbl2.position.set(cx,5.6,cz); swLbl2.scale.set(2.6,.65,1); sc.add(swLbl2);
       // proximity uses the moving position, updated each tick
       this._sweeperPos={x:cx,z:cz};
     }
@@ -2775,6 +2828,22 @@ const ZG={
         }
       }
       this._sweeperPos={x:m.position.x,z:m.position.z};
+      // Collision-based accident: if the machine actually drives over the
+      // player, THAT's when there's a chance it sucks them in — not (as
+      // before) an immediate dice-roll the instant you pay for a sweep,
+      // regardless of where you were standing. Edge-triggered so standing
+      // under it for several frames is still just ONE roll per approach,
+      // not an almost-certain hit.
+      if(typeof Sweeper!=='undefined' && !this._trashActive){
+        const hd=Math.hypot(this.pl.x-m.position.x, this.pl.z-m.position.z);
+        const touching = hd<2.4;
+        if(touching && !this._sweeperTouching){
+          this._sweeperTouching=true;
+          if(Math.random()<0.20){ Sweeper._accident(); }
+        } else if(!touching){
+          this._sweeperTouching=false;
+        }
+      }
     }
     if(this._carMeshes){
       const pl=this.pl;
@@ -2816,6 +2885,7 @@ const ZG={
     this.scene.traverse(o=>{if(o.userData?.spd){o.position.x+=o.userData.spd;if(o.position.x>100)o.position.x=-100;}});
     try{ this._animateEnclosures(); }catch(e){}
     this._minimap();
+    this._updHomeArrow();
     if(this.renderer&&this.scene&&this.cam)try{this.renderer.render(this.scene,this.cam);}catch(e){}
   },
 
@@ -3043,6 +3113,36 @@ const ZG={
     ctx.strokeStyle='#FFD700';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,pz);ctx.lineTo(px-Math.sin(this.yaw)*8,pz-Math.cos(this.yaw)*8);ctx.stroke();
     // Others
     Object.values(this.otherPl).forEach(op=>{ctx.fillStyle='#ff6b6b';ctx.beginPath();ctx.arc(W/2+op.x*sc2,W/2+op.z*sc2,3,0,Math.PI*2);ctx.fill();});
+  },
+
+  // Rotating compass arrow (top-right, under the minimap) that always
+  // points toward the player's OWN enclosure row — requested because with
+  // up to 20 players sharing one ring, and the "Mein Zoo" button now going
+  // to the shared marketplace instead, there was no obvious way left to
+  // tell which direction your own zoo actually is.
+  _updHomeArrow(){
+    const el=G('home-arrow'), distEl=G('home-arrow-dist');
+    if(!el)return;
+    const slot=typeof ZS.mySlot==='number'?ZS.mySlot:0;
+    const layout=this._slotEncPos(slot);
+    const dx=layout.sign.x-this.pl.x, dz=layout.sign.z-this.pl.z;
+    const dist=Math.sqrt(dx*dx+dz*dz);
+    if(dist<6){
+      // Standing (roughly) at home already — no need for a pointer
+      el.style.transform='rotate(0deg)'; el.style.opacity='.35';
+      if(distEl)distEl.textContent='🏠 hier!';
+      return;
+    }
+    el.style.opacity='1';
+    // World-space bearing of the home direction, converted into a rotation
+    // RELATIVE to which way the camera/player is currently facing — see
+    // the fwd() formula used everywhere else in this file (fwd = -sin(yaw),
+    // -cos(yaw)) for why this specific atan2(-dx,-dz) form lines up with it.
+    const worldAngle=Math.atan2(-dx,-dz);
+    let rel=worldAngle-this.yaw;
+    rel=((rel+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; // normalize to [-π,π]
+    el.style.transform='rotate('+(rel*180/Math.PI)+'deg)';
+    if(distEl)distEl.textContent='🏠 '+Math.round(dist)+'m';
   },
 
   _tick(){
@@ -5246,6 +5346,31 @@ const ZTips = {
     }
   },
 };
+
+// Cap every wheel's prize table: max 10'000 MT, and no animal prize above
+// "legendary" rarity — the wheels used to hand out jackpots up to 2 million
+// MT and secret/mythic/god-tier animals, which made the wheel massively
+// more powerful than actually playing the zoo. Runs once, right after all
+// wheels are defined, so every wheel (including seasonal ones) is affected
+// without having to hand-edit each prize list.
+(function _capWheelPrizes(){
+  const MT_CAP = 10000;
+  const TIER_ORDER = ['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+  const MAX_TIER_IDX = TIER_ORDER.indexOf('legendary');
+  const fmtMT = (n) => Math.round(n).toLocaleString('de-CH').replace(/[,\u2019']/g,'.') + ' MT';
+  Object.values(LW.WHEELS).forEach(wheel=>{
+    (wheel.prizes||[]).forEach(prize=>{
+      if(typeof prize.mt==='number' && prize.mt>MT_CAP){
+        prize.mt=MT_CAP;
+        if(/MT$/.test(prize.l||'')) prize.l=fmtMT(MT_CAP);
+      }
+      if(prize.animal && prize.animal.r){
+        const idx=TIER_ORDER.indexOf(prize.animal.r);
+        if(idx>MAX_TIER_IDX) prize.animal.r='legendary';
+      }
+    });
+  });
+})();
 
 // ═══ PANELS ═══
 const ZP={
@@ -10271,7 +10396,7 @@ const Sweeper = {
       '<div style="font-size:.9rem;color:rgba(255,255,255,.85);margin-bottom:6px">Kehre den Zoo für <b style="color:#FFD700">'+$mt(this._COST)+' MT</b></div>'+
       '<div style="font-size:.78rem;color:#27AE60;margin-bottom:4px">→ +1,2% mehr Besucher für 30 Min (stapelbar!)</div>'+
       (active?'<div style="font-size:.74rem;color:#27AE60;margin-bottom:6px">✅ Aktiv noch '+mins+' Min ('+(z.sweepStacks||1)+'× gestapelt)</div>':'')+
-      '<div style="font-size:.7rem;color:#E74C3C;margin-bottom:10px">⚠️ Achtung: 20% Risiko, dass die Maschine dich überfährt!</div>'+
+      '<div style="font-size:.7rem;color:#E74C3C;margin-bottom:10px">⚠️ Achtung: geh ihr nicht zu nah — wenn sie dich beim Fahren überrollt, gibt es eine Chance, dass sie dich einsaugt!</div>'+
       (this._hasInsurance()?'<div style="font-size:.68rem;color:#27AE60;margin-bottom:8px">🛡️ Versichert — keine Unfallkosten</div>':'')+
       '<button '+(mt<this._COST?'disabled style="opacity:.5"':'')+' onclick="Sweeper._sweep()" style="width:100%;background:linear-gradient(135deg,#F39C12,#e67e22);color:#1a1a2e;border:none;padding:12px;border-radius:12px;font-weight:900;font-size:1rem;cursor:pointer">'+(mt<this._COST?'Zu wenig MT':'🧹 Kehren ('+$mt(this._COST)+' MT)')+'</button>'+
     '</div>';
@@ -10284,11 +10409,6 @@ const Sweeper = {
     else { if((z.mt||0)<this._COST){ ZP.toast('❌ Zu wenig MT!',2000); return; } z.mt=Math.max(0,(z.mt||0)-this._COST); }
     ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
     document.getElementById('sweeper-panel')?.remove();
-    // 20% accident chance (happens right away)
-    if(Math.random()<0.20){
-      this._accident();
-      return;
-    }
     // Send the machine on its mission: drive to the player's own zone, pass every enclosure, return
     const eps=(ZG.ENCPOS&&ZG.ENCPOS())||[];
     const wps=eps.map(p=>({x:p.x,z:p.z}));
