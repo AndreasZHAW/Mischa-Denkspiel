@@ -3,10 +3,10 @@
 // für Eltern/Grosseltern — erklärt Denglisch-Begriffe wie "Jump-Event"),
 // en (English), fr (Français)
 const LANG = {
-  _cur: 'de',
+  _cur: 'de_simple',
   
   load() {
-    try { this._cur = localStorage.getItem('mischa_lang') || 'de'; } catch(e) {}
+    try { this._cur = localStorage.getItem('mischa_lang') || 'de_simple'; } catch(e) {}
     document.documentElement.lang = (this._cur==='de_simple'?'de':this._cur);
   },
   

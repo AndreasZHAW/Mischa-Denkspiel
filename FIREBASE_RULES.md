@@ -27,5 +27,7 @@ service cloud.firestore {
 - zoo_players (Spielerpositionen)
 - zoo_events (Tier-Käufe für alle sichtbar)
 - zoo_broadcast (Admin-Events wie Glücksrad-Wechsel)
+- zoo_instances (Zoo-Instanzen mit bis zu 20 Spieler-Slots — dynamisch erstellt)
+- zoo_news (Live-Neuigkeiten-Banner)
 - zoos (Gespeicherte Zoos)
 - players (Denkspiel-Spielerdaten)

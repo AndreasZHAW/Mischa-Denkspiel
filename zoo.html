@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v312 -->
+<!-- ZOO v314 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=312"></script>
-<script src="rewardchests.js?v=312"></script>
-<script src="personality.js?v=312"></script>
+<script src="lang.js?v=314"></script>
+<script src="rewardchests.js?v=314"></script>
+<script src="personality.js?v=314"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v312','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v314','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -289,6 +289,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
+<div class="hb" onclick="ZG.goToMyZoo()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏠</div><div class="hbl">Mein Zoo</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.showZooRangliste()"><div class="hbb" style="background:rgba(255,215,0,.85)">🏆</div><div class="hbl">Rangliste</div></div>
@@ -477,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=312"></script>
-<script src="worlds.js?v=312"></script>
+<script src="firebase-state.js?v=314"></script>
+<script src="worlds.js?v=314"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1060,6 +1061,93 @@ const ZA={
     }catch(e){}
     return {char: ZS.char?.e||ZS.char?.emoji||'🧭', color:null};
   },
+  // ═══ MULTIPLAYER INSTANCE / SLOT ASSIGNMENT ═══
+  // Up to 20 players share one "instance" (one physical zoo + gondola
+  // station). Once an instance has 20 active players, new logins create
+  // (or join) another instance automatically — no fixed cap on how many
+  // instances can exist. mySlot (0-19) determines where this player's row
+  // of 5 enclosures sits on the shared ring (see ZG._slotEncPos).
+  instanceId: null,
+  mySlot: 0,
+  RECLAIM_STALE_MS: 90000, // an abandoned slot (no heartbeat) can be reused after 90s
+  async assignInstance(mode){
+    if(mode==='private'){
+      // Private servers are isolated — not part of the shared instance pool.
+      this.instanceId = 'private_'+(this.player||'x').toLowerCase();
+      this.mySlot = 0;
+      return;
+    }
+    if(!(typeof _db!=='undefined' && _db && State._useCloud())){
+      // Offline/local fallback — still needs SOME slot for layout purposes.
+      this.instanceId = 'local';
+      this.mySlot = 0;
+      return;
+    }
+    const myName = (this.player||'').toLowerCase();
+    try{
+      const snap = await _db.collection('zoo_instances').orderBy('createdAt','asc').limit(25).get();
+      for(const doc of snap.docs){
+        const data = doc.data()||{};
+        const slots = Array.isArray(data.slots) ? data.slots.slice(0,20) : Array(20).fill(null);
+        while(slots.length<20) slots.push(null);
+        let freeIdx = -1;
+        for(let i=0;i<20;i++){
+          const s = slots[i];
+          if(!s){ freeIdx=i; break; }
+          if((s.name||'').toLowerCase()===myName){ freeIdx=i; break; } // resume own slot
+          if(Date.now()-(s.t||0) > this.RECLAIM_STALE_MS){ freeIdx=i; break; } // reclaim abandoned
+        }
+        if(freeIdx<0) continue; // this instance is genuinely full — try the next one
+        try{
+          await _db.runTransaction(async (tx)=>{
+            const fresh = await tx.get(doc.ref);
+            const freshData = fresh.data()||{};
+            const freshSlots = Array.isArray(freshData.slots) ? freshData.slots.slice(0,20) : Array(20).fill(null);
+            while(freshSlots.length<20) freshSlots.push(null);
+            const cur = freshSlots[freeIdx];
+            if(cur && (cur.name||'').toLowerCase()!==myName && Date.now()-(cur.t||0)<=this.RECLAIM_STALE_MS){
+              throw new Error('slot-taken'); // someone else grabbed it first — retry another instance
+            }
+            freshSlots[freeIdx] = {name:this.player, t:Date.now()};
+            tx.update(doc.ref, {slots:freshSlots});
+          });
+          this.instanceId = doc.id; this.mySlot = freeIdx;
+          return;
+        }catch(e){ continue; } // lost the race — try the next instance in the list
+      }
+      // No existing instance had room — create a brand-new one.
+      const newSlots = Array(20).fill(null);
+      newSlots[0] = {name:this.player, t:Date.now()};
+      const newDoc = await _db.collection('zoo_instances').add({slots:newSlots, createdAt:Date.now()});
+      this.instanceId = newDoc.id; this.mySlot = 0;
+    }catch(e){
+      console.warn('[Instance] assignment failed, using local fallback:', e.message);
+      this.instanceId = 'local'; this.mySlot = 0;
+    }
+  },
+  // Heartbeat: keep our slot marked as active so it isn't reclaimed by
+  // someone else while we're still playing. Piggybacks on the existing
+  // multiplayer sync interval.
+  async _instanceHeartbeat(){
+    if(!this.instanceId || this.instanceId==='local' || this.instanceId.startsWith('private_')) return;
+    try{
+      if(typeof _db==='undefined'||!_db) return;
+      await _db.collection('zoo_instances').doc(this.instanceId).update({
+        ['slots.'+this.mySlot]: {name:this.player, t:Date.now()}
+      });
+    }catch(e){}
+  },
+  // Free our slot on logout so someone else can use it immediately instead
+  // of waiting for the stale-reclaim timeout.
+  async _releaseSlot(){
+    if(!this.instanceId || this.instanceId==='local' || this.instanceId.startsWith('private_')) return;
+    try{
+      if(typeof _db==='undefined'||!_db) return;
+      await _db.collection('zoo_instances').doc(this.instanceId).update({
+        ['slots.'+this.mySlot]: null
+      });
+    }catch(e){}
+  },
   _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}},
   async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
     const _ls = document.getElementById('zoo-load-status');
@@ -1071,6 +1159,7 @@ const ZA={
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     await ZS.load();
     if(ZS.zoo) ZS._fix(); // ensure all fields migrated before 3D starts
+    await ZS.assignInstance(m); // find/create a shared instance + slot before the world builds
     // Wait for browser to render and give canvas real dimensions
     await new Promise(r=>setTimeout(r,100));
     // Force layout
@@ -1089,7 +1178,7 @@ const ZA={
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
     }if(ZS.isAdmin)show('admbtn');},
-  logout(){ZG.zStop();try{if(ZNews._unsub)ZNews._unsub();}catch(e){}try{ZTips._hideCard();}catch(e){}['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
+  logout(){ZG.zStop();try{ZS._releaseSlot();}catch(e){}try{if(ZNews._unsub)ZNews._unsub();}catch(e){}try{ZTips._hideCard();}catch(e){}['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p));hide('s-zoo');hide('hud');ZS.player=ZS.zoo=ZS.char=null;G('zn').value='';G('zpw').value='';G('zerr').textContent='';show('s-login');}
 };
 </script>
 <script>
@@ -1109,33 +1198,42 @@ const ZG={
   // CIRCULAR MAP
   WR:80, // world radius
   STA:{x:0,z:0}, // gondola station at center
-  // 3 zoo zones at 120° — bottom, top-left, top-right
+  // ONE shared zone — everyone meets at the same gondola station. Capacity
+  // (20 players) is handled by the instance system (see ZS.assignInstance),
+  // not by splitting into separate physical zones anymore.
   ZONES:[
-    {x:0,   z:55,  label:'Zoo A',color:0x27AE60},
-    {x:-48, z:-27, label:'Zoo B',color:0x2980B9},
-    {x:48,  z:-27, label:'Zoo C',color:0x8E44AD},
+    {x:0,   z:55,  label:'Zoo',color:0x27AE60},
   ],
-  // Limo shop: one per zone
-  // Enclosures: 5 per zone around each zone center
-  ENCPOS(){
-    // Each player gets their OWN zone based on a hash of their name,
-    // so different players don't share the same enclosure spots.
-    const out=[];
-    const name=(ZS.player||'').toLowerCase();
-    let h=0; for(let i=0;i<name.length;i++){h=(h*31+name.charCodeAt(i))>>>0;}
-    const zi = this.ZONES.length ? (h % this.ZONES.length) : 0;
-    const zone=this.ZONES[zi]||this.ZONES[0]||{x:0,z:55};
-    const baseAngle=zi===0?Math.PI/2:zi===1?Math.PI*7/6:Math.PI*11/6;
+  // Ring layout: up to 20 player "market stalls" arranged in a big circle
+  // around the zone center, each stall = a straight row of 5 enclosures
+  // facing inward. Shared by ENCPOS() (my own slot) and the multiplayer
+  // enclosure renderer (everyone else's slot).
+  RING_R: 45,
+  RING_SLOTS: 20,
+  _slotEncPos(slot){
+    const zone=this.ZONES[0]||{x:0,z:55};
+    const angle=(slot/this.RING_SLOTS)*Math.PI*2;
+    const cx=zone.x+Math.cos(angle)*this.RING_R, cz=zone.z+Math.sin(angle)*this.RING_R;
+    // Tangential direction (perpendicular to the radius) — the row of 5
+    // enclosures runs along this, so it doesn't curve with the ring.
+    const tx=-Math.sin(angle), tz=Math.cos(angle);
+    const positions=[];
     for(let i=0;i<5;i++){
-      const a=baseAngle+(-2+i)*0.38;
-      out.push({x:zone.x+Math.cos(a)*16,z:zone.z+Math.sin(a)*16,zone:zi});
+      const off=(i-2)*3; // -6,-3,0,3,6 — a compact 12-unit-wide row
+      positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    return out;
+    // Sign position: just in front of the row, facing the ring center
+    const signX=cx-Math.cos(angle)*4, signZ=cz-Math.sin(angle)*4;
+    return {positions, center:{x:cx,z:cz}, sign:{x:signX,z:signZ}, angle};
+  },
+  ENCPOS(){
+    const slot=(typeof ZS.mySlot==='number')?ZS.mySlot:0;
+    return this._slotEncPos(slot).positions;
   },
   _myZone(){
-    const name=(ZS.player||'').toLowerCase();
-    let h=0; for(let i=0;i<name.length;i++){h=(h*31+name.charCodeAt(i))>>>0;}
-    return this.ZONES.length ? (h % this.ZONES.length) : 0;
+    // Only one physical zone now — kept for backward compatibility with
+    // code that still calls this (always resolves to 0).
+    return 0;
   },
 
   start(){
@@ -1801,6 +1899,74 @@ const ZG={
     });
   },
 
+  // Wayfinding: with up to 20 players sharing one ring, finding your own
+  // row again can be tricky — this teleports straight back to it.
+  goToMyZoo(){
+    const slot = typeof ZS.mySlot==='number' ? ZS.mySlot : 0;
+    const layout = this._slotEncPos(slot);
+    // Stand a little in front of the row's center, facing it
+    this.pl.x = layout.sign.x;
+    this.pl.z = layout.sign.z;
+    this.yaw = Math.atan2(layout.center.x-layout.sign.x, layout.center.z-layout.sign.z)+Math.PI;
+    ZP.toast('🏠 Zurück bei deinem Zoo!', 1500);
+  },
+
+  // Renders OTHER players' enclosure clusters around the shared ring — a
+  // labeled row of 5 enclosures per player, in their own personality color.
+  // View-only: animals sitting in enclosures were never interactive even
+  // for their own owner beyond selling, so nothing extra needs blocking
+  // here — the existing slap/steal mechanic only ever targeted a player
+  // actively CARRYING an animal, never one already placed.
+  otherEnc:{},
+  _renderOtherEnclosures(others){
+    // Remove clusters for players who are no longer around
+    Object.keys(this.otherEnc).forEach(n=>{
+      if(!others[n]){ (this.otherEnc[n]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[n]; }
+    });
+    Object.values(others).forEach(op=>{
+      const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
+      const layout = this._slotEncPos(slot);
+      const encData = Array.isArray(op.enc) ? op.enc : [];
+      if(!this.otherEnc[op.name]){
+        const group=[];
+        // Sign with the player's name in their personality color
+        const signCol = (op.color && /^#?[0-9a-fA-F]{6}$/.test(op.color)) ? op.color : '#FFD700';
+        const sign=this._txt('🏠 '+op.name, .6, signCol);
+        sign.position.set(layout.sign.x, 3, layout.sign.z);
+        sign.scale.set(6,1.5,1);
+        this.scene.add(sign); group.push(sign);
+        // Base platforms for the 5 enclosures (visual only, animals added below)
+        layout.positions.forEach((p)=>{
+          const base=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.4,.3,10),new THREE.MeshBasicMaterial({color:0x8d6e4a}));
+          base.position.set(p.x,.15,p.z);
+          this.scene.add(base); group.push(base);
+        });
+        this.otherEnc[op.name]=group;
+        this.otherEnc[op.name+'_animalMeshes']=[null,null,null,null,null];
+      }
+      // Update/create animal sprites on each platform to match their current data
+      const animalMeshes=this.otherEnc[op.name+'_animalMeshes']||[];
+      for(let i=0;i<5;i++){
+        const enc=encData[i];
+        const p=layout.positions[i];
+        const has=enc && enc.animal;
+        const existing=animalMeshes[i];
+        // Cheap check: rebuild only if animal identity changed
+        const key=has?enc.animal.id:null;
+        if(existing && existing.userData?.animalKey===key) continue;
+        if(existing){ this.scene.remove(existing); animalMeshes[i]=null; }
+        if(has){
+          const sp=this._anSp(enc.animal, null);
+          sp.position.set(p.x,1.5,p.z);
+          sp.userData.animalKey=key;
+          this.scene.add(sp);
+          animalMeshes[i]=sp;
+        }
+      }
+      this.otherEnc[op.name+'_animalMeshes']=animalMeshes;
+    });
+  },
+
   // Called when we receive a slap event from another player
   _receiveSlap(from){
     if(this.otherM[from]){
@@ -1899,13 +2065,6 @@ const ZG={
     this._trees();
     this._hiddenTrapdoor();
     this._clouds();
-    // DEBUG: bright test cube in front of player start position
-    const testCube=new THREE.Mesh(
-      new THREE.BoxGeometry(4,4,4),
-      new THREE.MeshBasicMaterial({color:0xFF0000})
-    );
-    testCube.position.set(0,3,45); // Right in front of Zone A start
-    this.scene.add(testCube);
     console.log('World built. Scene objects:', this.scene.children.length);
     if(window._log) window._log('✅ Welt: '+this.scene.children.length+' Objekte');
     // Hide loading bar now that 3D world is ready
@@ -2702,7 +2861,7 @@ const ZG={
     ctx.strokeStyle='#aaa';ctx.lineWidth=2;
     this.ZONES.forEach(z=>{ctx.beginPath();ctx.moveTo(W/2,W/2);ctx.lineTo(W/2+z.x*sc2,W/2+z.z*sc2);ctx.stroke();});
     // Zones
-    ['rgba(39,174,96,.5)','rgba(41,128,185,.5)','rgba(142,68,173,.5)'].forEach((col,i)=>{const z=this.ZONES[i];ctx.fillStyle=col;ctx.beginPath();ctx.arc(W/2+z.x*sc2,W/2+z.z*sc2,22*sc2,0,Math.PI*2);ctx.fill();});
+    ['rgba(39,174,96,.5)','rgba(41,128,185,.5)','rgba(142,68,173,.5)'].forEach((col,i)=>{const z=this.ZONES[i];if(!z)return;ctx.fillStyle=col;ctx.beginPath();ctx.arc(W/2+z.x*sc2,W/2+z.z*sc2,22*sc2,0,Math.PI*2);ctx.fill();});
     // Station
     ctx.fillStyle='#8B4513';ctx.beginPath();ctx.arc(W/2,W/2,13*sc2,0,Math.PI*2);ctx.fill();
     // Enclosures
@@ -2753,25 +2912,6 @@ const ZG={
     if(this.visitT>=Math.min(ZS.visitMs(),5000)){this.visitT=0;this._visitor();}
     if(this.slapCD>0)this.slapCD-=100;
     this._updEvTimer(); this._updHUD();
-    
-    // Detect stealable enclosures nearby
-    if(window.ZSteal){
-      let foundSteal=null;
-      Object.values(this.otherPl||{}).forEach(op=>{
-        if(!op||!op.enc)return;
-        if(window.ZooLock&&ZooLock.isLocked&&ZooLock.isLocked(op.name))return;
-        const eps=this.ENCPOS?this.ENCPOS():[]; 
-        const zIdx=op.zoneIdx||0;
-        op.enc.forEach((enc,si)=>{
-          if(!enc||!enc.animal)return;
-          const ep=eps[zIdx*10+si]||eps[si];
-          if(!ep)return;
-          const dx=this.pl.x-ep.x,dz=this.pl.z-ep.z;
-          if(dx*dx+dz*dz<9)foundSteal={player:op.name,slot:si,animal:enc.animal};
-        });
-      });
-      ZSteal._nearStealTarget=foundSteal;
-    }
     
     // Detect Gold Machine proximity (check ALL machines, one per zone)
     let _gmDist=999;
@@ -4142,7 +4282,28 @@ const ZG={
     if(ZS.isPrivate||!ZS.player)return;
     try{
       if(!State._useCloud())return;
-      if(!_db)return;const _myPers=this._myPersonality();await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,zoneIdx:ZS.zoneIdx||0,enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});const snap=await Promise.race([_db.collection('zoo_players').get(),new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))]);const others={};snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});this.otherPl=others;this._updOthers(others);}catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}},
+      if(!_db)return;
+      const _myPers=this._myPersonality();
+      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'local',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
+      // Throttled slot heartbeat (~every 15s) — keeps our ring slot from
+      // being reclaimed as "abandoned" while we're still actively playing.
+      const _now=Date.now();
+      if(!this._lastHeartbeat || _now-this._lastHeartbeat>15000){
+        this._lastHeartbeat=_now;
+        ZS._instanceHeartbeat();
+      }
+      // Only fetch players in OUR OWN instance — not the whole global pool.
+      const snap = await Promise.race([
+        _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'local').get(),
+        new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))
+      ]);
+      const others={};
+      snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});
+      this.otherPl=others;
+      this._updOthers(others);
+      try{ this._renderOtherEnclosures(others); }catch(e){}
+    }catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}
+  },
   // ═══ ADMIN CMD ═══
   async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
       // Apply animal edit from admin
@@ -4632,7 +4793,7 @@ const ZNews = {
     },
   },
 
-  _lang(){ return (typeof LANG!=='undefined' && LANG._cur) || localStorage.getItem('mischa_lang') || 'de'; },
+  _lang(){ return (typeof LANG!=='undefined' && LANG._cur) || localStorage.getItem('mischa_lang') || 'de_simple'; },
 
   _fmt(type, data){
     const lang = this._lang();
@@ -4809,7 +4970,7 @@ const ZTips = {
     fr: '💡 Nouveau ici ? Appuie sur « 💡 Astuces » en haut, on te guide pas à pas !',
   },
 
-  _lang(){ return (typeof LANG!=='undefined' && LANG._cur) || localStorage.getItem('mischa_lang') || 'de'; },
+  _lang(){ return (typeof LANG!=='undefined' && LANG._cur) || localStorage.getItem('mischa_lang') || 'de_simple'; },
   _key(suffix){ return 'zoo_tips_'+suffix+'_'+(ZS.player||'').toLowerCase(); },
 
   isEnabled(){ return localStorage.getItem(this._key('on'))==='1'; },
@@ -7800,21 +7961,27 @@ const ZAdmin = {
       }
     }catch(e){ notes.push('❌ Welt-1-Reset fehlgeschlagen: '+e.message); }
     try{
-      if(typeof _db!=='undefined'&&_db && hasZooAccount){
+      if(typeof _db!=='undefined'&&_db){
         const k='zoo_'+name.toLowerCase();
-        await _db.collection('zoos').doc(k).update({mt:targetVal, enc:Array(5).fill(null)});
+        // ALWAYS clear the zoo's animals — regardless of whether the
+        // existence check above succeeded. Previously this was gated on
+        // hasZooAccount AND used .update() (which throws if the doc somehow
+        // wasn't found), so a flaky pre-check could silently skip clearing
+        // animals entirely — the exact bug where a reset player still had
+        // their old animal and MT sitting in the Zoo. set(...,{merge:true})
+        // works whether or not a doc already existed, so this can't be skipped.
+        await _db.collection('zoos').doc(k).set({mt:hasZooAccount?targetVal:0, enc:Array(5).fill(null)}, {merge:true});
         zooOk = true;
         // If the player is online right now, their own autosave (every 15s)
         // could otherwise silently overwrite this write moments later with
         // their still-in-memory old value. Broadcast a correction command so
         // THEIR OWN client fixes its in-memory state and re-saves immediately.
         try{
-          const cmd={type:'set_score', target:name.toLowerCase(), mt:targetVal, id:Date.now().toString(), exp:Date.now()+60000};
+          const cmd={type:'set_score', target:name.toLowerCase(), mt:(hasZooAccount?targetVal:0), id:Date.now().toString(), exp:Date.now()+60000};
           try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
           await _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
         }catch(e){}
-      } else if(!hasZooAccount){
-        notes.push('ℹ️ Kein Zoo-Account für «'+name+'» gefunden — Zielwert wurde komplett in Welt 1 gesetzt.');
+        if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber geleert (0 MT, keine Tiere). Zielwert wurde in Welt 1 gesetzt.');
       }
     }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
     // Safety net: wait a moment (long enough for an in-progress autosave to have
@@ -9100,13 +9267,12 @@ const ZooLock = {
     this._laserMeshes.forEach(m => ZG.scene?.remove(m));
     this._laserMeshes = [];
     if (!show) return;
-    // Find player's zone
-    const zones = ZG.ZONES || [];
-    if (!zones.length) return;
-    const zoneIdx = ZS.zoneIdx || 0;
-    const zone = zones[zoneIdx] || zones[0];
-    const x = zone.x, z = zone.z;
-    const R = 22; // fence radius
+    // Find player's own ring slot (their actual enclosure row)
+    const mySlot = typeof ZS.mySlot==='number' ? ZS.mySlot : 0;
+    const layout = ZG._slotEncPos ? ZG._slotEncPos(mySlot) : null;
+    if (!layout) return;
+    const x = layout.center.x, z = layout.center.z;
+    const R = 10; // fence radius — sized to the compact enclosure row, not the whole shared zone
     // Create 8 laser pillars
     for (let i=0; i<8; i++) {
       const angle = i/8 * Math.PI*2;
@@ -9160,12 +9326,12 @@ const ZooLock = {
       if (!op.locked || op.lockedUntil < Date.now()) continue;
       // Admin bypass
       if (ZS.isAdmin) continue;
-      // Find zone
-      const zones = ZG.ZONES || [];
-      const zone = zones[op.zoneIdx || 0] || zones[0];
-      if (!zone) continue;
-      const dx = targetX - zone.x, dz = targetZ - zone.z;
-      if (Math.sqrt(dx*dx+dz*dz) < 18) {
+      // Find that player's own ring slot (their actual enclosure row)
+      const theirSlot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
+      const layout = ZG._slotEncPos ? ZG._slotEncPos(theirSlot) : null;
+      if (!layout) continue;
+      const dx = targetX - layout.center.x, dz = targetZ - layout.center.z;
+      if (Math.sqrt(dx*dx+dz*dz) < 10) {
         ZP.toast('🔒 '+playerName+'s Zoo ist gesperrt! ('+Math.ceil((op.lockedUntil-Date.now())/1000)+'s)', 1000);
         return true; // Block movement
       }
@@ -9213,11 +9379,12 @@ const ZSteal = {
   // Called every tick: check if carrier reached own zone
   checkDelivery() {
     if (!this.carrying) return;
-    const zones = ZG.ZONES || [];
-    const myZone = zones[ZS.zoneIdx || 0] || zones[0];
-    if (!myZone) return;
-    const dx = ZG.pl.x - myZone.x, dz = ZG.pl.z - myZone.z;
-    if (Math.sqrt(dx*dx+dz*dz) < 15) {
+    const mySlot = typeof ZS.mySlot==='number' ? ZS.mySlot : 0;
+    const layout = ZG._slotEncPos ? ZG._slotEncPos(mySlot) : null;
+    const home = layout ? layout.center : (ZG.ZONES && ZG.ZONES[0]);
+    if (!home) return;
+    const dx = ZG.pl.x - home.x, dz = ZG.pl.z - home.z;
+    if (Math.sqrt(dx*dx+dz*dz) < 10) {
       this.deliver();
     }
   },
