@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v321';
+const APP_VERSION = 'v322';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v321 · 2026-07-19</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v322 · 2026-07-19</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -383,18 +383,21 @@ const App = {
   async teleportToZoo() {
     const p = State.currentPlayer;
     if (!p) { showAlert('Bitte erst anmelden!'); return; }
-    // Use real MT from LOCAL player (don't trust cloud which may be stale).
-    // IMPORTANT: use the same dsMTFor() helper the balance display uses
-    // elsewhere (task rewards + one-time language bonus) — this used to sum
-    // only task.mt directly, silently ignoring langBonusMT, so a player
-    // could see e.g. "15.0 MT" on screen (via dsMTFor/combinedMTFor) yet
-    // get rejected here with "Du hast: 0.0 MT" because their whole balance
-    // came from the language bonus, not from tasks.
-    const _localP = State._local.get(p.name) || p;
-    const _ws_tp = _localP.worlds?.['1'] || _localP.worlds?.[1] || {};
+    // Use the EXACT same balance calculation as the world-map display that
+    // decides whether this button even shows up (combinedMTFor: Welt-1
+    // tasks + language bonus + Zoo MT, on the freshly-refreshed
+    // State.currentPlayer). The previous version recomputed its own number
+    // from State._local.get() — a separate local-storage cache that is NOT
+    // updated when a value changes remotely (e.g. an admin resetting
+    // someone's score from a different device/browser: refreshCurrentPlayer()
+    // updates State.currentPlayer, but never touches State._local). Result:
+    // the world map could correctly show "15.0 MT" and reveal the button
+    // (mt>=15, computed via combinedMTFor(State.currentPlayer)), while this
+    // check — reading the stale local cache instead — still saw the old
+    // pre-reset value and rejected the click with "Du hast: 0.0 MT".
     let mt;
-    try { mt = (typeof dsMTFor === 'function') ? dsMTFor(_localP) : (_ws_tp.tasks||[]).reduce((s,t)=>s+(t&&t.mt||0),0); }
-    catch(_e) { mt = (_ws_tp.tasks||[]).reduce((s,t) => s+(t&&t.mt||0), 0); }
+    try { mt = (typeof combinedMTFor === 'function') ? await combinedMTFor(p) : ((typeof dsMTFor === 'function') ? dsMTFor(p) : 0); }
+    catch(_e) { mt = (typeof dsMTFor === 'function') ? dsMTFor(p) : 0; }
     const cost = 15;
     // Once unlocked (visited before), gate stays open permanently
     const _playerKey = p.name.toLowerCase();

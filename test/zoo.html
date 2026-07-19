@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v321 -->
+<!-- ZOO v322 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=321"></script>
-<script src="rewardchests.js?v=321"></script>
-<script src="personality.js?v=321"></script>
+<script src="lang.js?v=322"></script>
+<script src="rewardchests.js?v=322"></script>
+<script src="personality.js?v=322"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v321','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v322','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -478,8 +478,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=321"></script>
-<script src="worlds.js?v=321"></script>
+<script src="firebase-state.js?v=322"></script>
+<script src="worlds.js?v=322"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -7990,12 +7990,21 @@ const ZAdmin = {
     // Decide up front where the target value goes, so it's never counted twice:
     // prefer the Zoo (a plain numeric field, no side effects), and only fall
     // back to Welt 1 if the player has no Zoo account to hold it at all.
-    let hasZooAccount = false;
+    // Also grab whatever deviceId is already on record — the combined-balance
+    // helper (combinedMTFor, used for every on-screen total) only adds the
+    // Zoo's mt into the total when zoo.deviceId matches the Welt-1 player's
+    // deviceId. A rewritten zoo doc with NO deviceId fails that match and
+    // the Zoo-held portion of the reset silently vanishes from every display
+    // (world map, leaderboard) until the player happens to visit the Zoo
+    // itself and re-saves — exactly the "admin set 16, player still sees 0"
+    // bug. So: carry the existing deviceId forward into the fresh doc.
+    let hasZooAccount = false, knownDeviceId = null;
     try{
       if(typeof _db!=='undefined'&&_db){
         const k='zoo_'+name.toLowerCase();
         const zdoc=await _db.collection('zoos').doc(k).get();
         hasZooAccount = zdoc.exists;
+        if(hasZooAccount) knownDeviceId = zdoc.data()?.deviceId || null;
       }
     }catch(e){}
     try{
@@ -8003,6 +8012,7 @@ const ZAdmin = {
         const p = await State.getPlayer(name);
         if(!p){ notes.push('⚠️ Kein Welt-1-Account für «'+name+'» gefunden.'); }
         else {
+          if(!knownDeviceId && p.deviceId) knownDeviceId = p.deviceId; // Welt-1 side is the more authoritative source
           p.currentWorld = 1;
           p.worlds = State._emptyWorlds();
           p.langBonusMT = 0;
@@ -8031,6 +8041,7 @@ const ZAdmin = {
         // with NO indication anything went wrong. Delete the doc outright
         // first (verified, like deletePlayer() already does), THEN write a
         // genuinely fresh zoo — nothing stale can possibly carry through.
+        // (deviceId IS carried forward on purpose — see comment above.)
         await _db.collection('zoos').doc(k).delete().catch(()=>{});
         let stillThere=false;
         try{
@@ -8042,9 +8053,12 @@ const ZAdmin = {
             stillThere=recheck.exists;
           }
         }catch(e){ /* couldn't verify — proceed and write the fresh doc anyway */ }
-        await _db.collection('zoos').doc(k).set({...ZS.nz(), mt:intendedZooMt});
+        const freshZoo={...ZS.nz(), mt:intendedZooMt};
+        if(knownDeviceId) freshZoo.deviceId=knownDeviceId;
+        await _db.collection('zoos').doc(k).set(freshZoo);
         zooOk=true;
         if(stillThere) notes.push('⚠️ Alter Zoo-Eintrag liess sich nicht löschen (wurde stattdessen überschrieben) — Ergebnis bitte nochmal prüfen.');
+        if(hasZooAccount && !knownDeviceId) notes.push('⚠️ Keine Geräte-ID gefunden — die Zoo-MT tauchen evtl. erst in der Gesamtsumme auf, sobald «'+name+'» den Zoo einmal betritt.');
         // Also clear the LIVE multiplayer doc (zoo_players) — otherwise the
         // old enclosures (with the old animals) can keep showing on the
         // shared map — to others, or to this same player if they're later
@@ -8077,8 +8091,10 @@ const ZAdmin = {
         const recheck=await _db.collection('zoos').doc(k).get();
         const rd = recheck.exists ? recheck.data() : null;
         const stillHasAnimal = rd && Array.isArray(rd.enc) && rd.enc.some(e=>e&&e.animal);
-        if(!rd || rd.mt!==intendedZooMt || stillHasAnimal){
-          await _db.collection('zoos').doc(k).set({...ZS.nz(), mt:intendedZooMt});
+        if(!rd || rd.mt!==intendedZooMt || stillHasAnimal || (knownDeviceId && rd.deviceId!==knownDeviceId)){
+          const fixZoo={...ZS.nz(), mt:intendedZooMt};
+          if(knownDeviceId) fixZoo.deviceId=knownDeviceId;
+          await _db.collection('zoos').doc(k).set(fixZoo);
           notes.push('⚠️ Wert war zwischenzeitlich abgewichen (Spieler vermutlich gerade online) — wurde nachkorrigiert.');
         }
       }catch(e){}
