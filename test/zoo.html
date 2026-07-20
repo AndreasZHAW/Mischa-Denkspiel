@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v342 -->
+<!-- ZOO v343 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=342"></script>
-<script src="rewardchests.js?v=342"></script>
-<script src="personality.js?v=342"></script>
+<script src="lang.js?v=343"></script>
+<script src="rewardchests.js?v=343"></script>
+<script src="personality.js?v=343"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v342','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v343','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=342"></script>
-<script src="worlds.js?v=342"></script>
+<script src="firebase-state.js?v=343"></script>
+<script src="worlds.js?v=343"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1522,6 +1522,7 @@ const ZG={
     // data: {animal, shiny, traits, slot}
     this.carrying = data;
     this._updCarryHUD();
+    try{ ZSound.startCarryAmbience&&ZSound.startCarryAmbience(); }catch(e){}
     // Previously auto-placed into the enclosure after 60s even if the
     // player never actually walked there — reported as "the animal
     // sometimes reaches the enclosure even though I'm not there", which is
@@ -1534,6 +1535,7 @@ const ZG={
     if(!this.carrying) return;
     const c = this.carrying;
     this.carrying = null;
+    try{ ZSound.stopCarryAmbience&&ZSound.stopCarryAmbience(); }catch(e){}
     if(this.carryTimer){ clearTimeout(this.carryTimer); this.carryTimer=null; }
     // Place animal in enclosure
     const z = ZS.zoo;
@@ -1542,6 +1544,7 @@ const ZG={
     } else if(z) {
       z.enc[c.slot] = {animal:{...c.animal},shiny:c.shiny,traits:c.traits||[],xm:1,addedAt:Date.now(),sl:0,protected:c.protected||false};
       this._encs();
+      try{ ZSound._sndDelivered&&ZSound._sndDelivered(); }catch(e){}
       ZP.toast('🏠 '+c.animal.e+' '+c.animal.n+' hat Gehege '+(c.slot+1)+' erreicht!',2500);
       try{ ZNews.push('animal_arrived', {animal:c.animal.n, emoji:c.animal.e}); }catch(e){}
       try{ ZTips.notify('place'); }catch(e){}
@@ -1569,6 +1572,8 @@ const ZG={
       return;
     }
     this.carrying = null;
+    try{ ZSound.stopCarryAmbience&&ZSound.stopCarryAmbience(); }catch(e){}
+    try{ ZSound._sndAnimalFree&&ZSound._sndAnimalFree(); }catch(e){}
     if(this.carryTimer){ clearTimeout(this.carryTimer); this.carryTimer=null; }
     // Drop at current position
     const x = this.pl.x + (Math.random()-.5)*4;
@@ -2043,7 +2048,7 @@ const ZG={
               // Drop carried animal if carrying
               if(ZG.carrying) ZG._dropCarried(d.from||'?');
               ZG._stunType='slap';
-              ZSound.slap&&ZSound.slap();
+              ZSound._sndOuch&&ZSound._sndOuch();
               
               // Screen effect based on slap type
               const slapId=d.slapId||'basic';
@@ -3958,7 +3963,7 @@ const ZG={
       if(dist<closestD){closestD=dist;closest=i;}
     });
     if(closest<0){ ZP.toast('🥅 Kein entlaufenes Tier in der Nähe!',1200); return; }
-    ZSound.slap();
+    try{ ZSound._sndNetCatch&&ZSound._sndNetCatch(); }catch(e){}
     const fl=G('bflash');if(fl){fl.style.background='#8B5A2B33';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);}
     this._pickupDropped(closest);
     ZP.toast('🥅 Gefangen!',1500);
@@ -7438,19 +7443,110 @@ const ZSound = {
     this._playFile('gondolaArrive', 0.5);
   },
 
-  // Buy animal (happy chime)
+  // Buy animal (happy chime + a distinct coin-jingle layered on top —
+  // several quick high metallic pings, the "Geldmünzen klingeln" part).
   buy() {
-    if (this.style === 'arcade') { [523,659,784,1047].forEach((f,i) => this._tone(f, 0.18, 'sine', 0.2, i*0.1)); return; }
-    this._playFile('buy', 0.55);
+    if (this.style === 'arcade') { [523,659,784,1047].forEach((f,i) => this._tone(f, 0.18, 'sine', 0.2, i*0.1)); }
+    else { this._playFile('buy', 0.55); }
+    [1760,2093,2637,3136].forEach((f,i) => this._tone(f, 0.09, 'triangle', 0.1, 0.08 + i*0.045));
   },
 
   // Slap (thwack) — deliberately left as pure synthesis; the layered
   // sawtooth+square already gives it the punchy "impact" character a
   // sampled UI click can't easily match, and it's the one sound that never
-  // needed fixing.
+  // needed fixing. This is what the ATTACKER hears; see _sndOuch() below
+  // for what the person who got hit hears instead.
   slap() {
     this._tone(200, 0.08, 'sawtooth', 0.4);
     this._tone(100, 0.12, 'square', 0.3, 0.05);
+  },
+
+  // "Lustiges Aua" — played to whoever just GOT slapped, distinct from the
+  // attacker's thwack above. Cartoon pitch-drop ("boioioing") rather than
+  // a realistic pain sound — fits the game's tone better.
+  _sndOuch() {
+    if (this.style === 'off') return;
+    this._init(); if (!this.ctx) return;
+    try{
+      const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+      o.type='square';
+      o.frequency.setValueAtTime(700, this.ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime+0.22);
+      o.frequency.exponentialRampToValueAtTime(260, this.ctx.currentTime+0.32);
+      o.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime+0.42);
+      g.gain.setValueAtTime(0.22, this.ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.45);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(); o.stop(this.ctx.currentTime+0.46);
+    }catch(e){}
+  },
+
+  // Carrying an animal: a soft looping "huff... huff..." (short filtered
+  // noise burst standing in for panting) plus an occasional small pitched
+  // animal chirp, so carrying isn't silent. Started/stopped by ZG whenever
+  // this.carrying changes (see ZG._startCarry/_placeCarried/_dropCarried).
+  _carryIv: null,
+  startCarryAmbience() {
+    if (this._carryIv || this.style === 'off') return;
+    this._init(); if (!this.ctx) return;
+    let beat = 0;
+    const step = () => {
+      if (this.style === 'off') return;
+      try{
+        // Panting: short burst of filtered noise (a real "huff", not a tone)
+        const dur=0.14, buf=this.ctx.createBuffer(1, this.ctx.sampleRate*dur, this.ctx.sampleRate);
+        const data=buf.getChannelData(0);
+        for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*(1-i/data.length);
+        const src=this.ctx.createBufferSource(); src.buffer=buf;
+        const filt=this.ctx.createBiquadFilter(); filt.type='bandpass'; filt.frequency.value=500; filt.Q.value=0.7;
+        const g=this.ctx.createGain(); g.gain.value=0.06;
+        src.connect(filt); filt.connect(g); g.connect(this.ctx.destination);
+        src.start();
+        // Every 3rd huff, a tiny animal chirp on top
+        if (beat % 3 === 0) this._tone(300+Math.random()*250, 0.08, 'sine', 0.05, 0.08);
+        beat++;
+      }catch(e){}
+    };
+    step();
+    this._carryIv = setInterval(step, 900);
+  },
+  stopCarryAmbience() {
+    if (this._carryIv) { clearInterval(this._carryIv); this._carryIv = null; }
+  },
+
+  // An animal just broke free and started roaming (see ZG._dropCarried) —
+  // a bright little "uh-oh, it's loose!" alert, distinct from anything else.
+  _sndAnimalFree() {
+    if (this.style === 'off') return;
+    this._tone(660, 0.1, 'square', 0.22);
+    this._tone(880, 0.1, 'square', 0.2, 0.08);
+    this._tone(550, 0.14, 'square', 0.18, 0.18);
+  },
+
+  // Net catch — quick whoosh (fast downward sweep) + a soft "gotcha" pop.
+  _sndNetCatch() {
+    if (this.style === 'off') return;
+    this._init(); if (!this.ctx) return;
+    try{
+      const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(1400, this.ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime+0.18);
+      g.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.2);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(); o.stop(this.ctx.currentTime+0.2);
+    }catch(e){}
+    this._tone(700, 0.09, 'sine', 0.22, 0.16);
+    this._tone(1050, 0.1, 'sine', 0.2, 0.21);
+  },
+
+  // Delivered into the enclosure — satisfying little settle-and-resolve
+  // chime, plays when an animal is successfully placed (see ZG._placeCarried).
+  _sndDelivered() {
+    if (this.style === 'off') return;
+    [440,554,659].forEach((f,i) => this._tone(f, 0.16, 'sine', 0.22, i*0.07));
+    this._tone(880, 0.3, 'sine', 0.2, 0.24);
   },
 
   // Coin/MT earned
