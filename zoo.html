@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v343 -->
+<!-- ZOO v345 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=343"></script>
-<script src="rewardchests.js?v=343"></script>
-<script src="personality.js?v=343"></script>
+<script src="lang.js?v=345"></script>
+<script src="rewardchests.js?v=345"></script>
+<script src="personality.js?v=345"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v343','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v345','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -378,6 +378,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="zp off" id="p-rank"><div class="zpi">
   <button class="pcls" onclick="ZP.close('rank')">✕</button>
   <div class="pmenu-title">🏆 Rangliste (Welt 1 + Zoo)</div>
+  <div id="p-rank-countdown" style="margin-bottom:10px;text-align:center"></div>
   <div id="p-rank-content" style="max-height:60vh;overflow-y:auto"></div>
 </div></div>
 
@@ -484,8 +485,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=343"></script>
-<script src="worlds.js?v=343"></script>
+<script src="firebase-state.js?v=345"></script>
+<script src="worlds.js?v=345"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -870,18 +871,18 @@ const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
-  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:2},
-  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:4},
-  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:6},
-  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:8},
-  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:10},
-  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:12},
-  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:14},
-  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true, pct:16},
-  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:18},
-  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:20},
-  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:22},
-  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:24},
+  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:2,  range:8},
+  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:4,  range:10},
+  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:6,  range:12},
+  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:8,  range:14},
+  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:10, range:16},
+  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:12, range:18},
+  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:14, range:20},
+  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true, pct:16, range:22},
+  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:18, range:24},
+  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:20, range:26},
+  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:22, range:28},
+  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:24, range:30},
 ];
 
 // TOOLS — unlocked via shop purchase (z.upg.<id>), not rebirth. Shown in
@@ -1405,7 +1406,7 @@ const ZG={
     this._ivs.push(setInterval(()=>ZS.save(),15000));
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
-    this._ivs.push(setInterval(()=>this._syncMP(),3000));
+    this._ivs.push(setInterval(()=>this._syncMP(),1000));
     this._ivs.push(setInterval(()=>this._syncDropped(),3000));
     this._ivs.push(setInterval(()=>this._syncMarketStalls(),5000));
     this._syncMarketStalls();
@@ -2876,7 +2877,7 @@ const ZG={
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0)this._interact();
-      else this.slap();
+      else this.slap(e.clientX, e.clientY);
     });
     // Mouse move for looking (works without pointer lock - relative tracking)
     let _lastMX=-1,_lastMY=-1;
@@ -2916,7 +2917,7 @@ const ZG={
       if(this._nearSweeper){Sweeper.open();return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
-        this.slap();
+        this.slap(t.clientX, t.clientY);
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
@@ -3428,7 +3429,7 @@ const ZG={
   _visitor(){
     const z=ZS.zoo;if(!z)return;
     const a=z.enc.filter(e=>e);if(!a.length)return;
-    z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>{const ev2=earn(enc,z,this.ev);return s+(isNaN(ev2)||!isFinite(ev2)?0:ev2);},0);if(isNaN(z.mt)||!isFinite(z.mt))z.mt=0;if(tot>0){z.mt+=tot;z.te=(z.te||0)+tot;}if(Math.random()<0.3)ZSound.coin();
+    z.tv++;SECRETS.checkVisitors();const tot=a.reduce((s,enc)=>{const ev2=earn(enc,z,this.ev);return s+(isNaN(ev2)||!isFinite(ev2)?0:ev2);},0);if(isNaN(z.mt)||!isFinite(z.mt))z.mt=0;if(tot>0){z.mt+=tot;z.te=(z.te||0)+tot;}if(Math.random()<0.3&&ZSound.style!=='important')ZSound.coin();
     const el=document.createElement('div');el.className='flt';el.style.cssText=`left:${20+Math.random()*55}%;top:${30+Math.random()*28}%`;if(tot>0){el.textContent='+'+$mt(tot);document.body.appendChild(el);setTimeout(()=>el.remove(),1700);}
   },
 
@@ -3943,38 +3944,55 @@ const ZG={
     if(this._nearSweeper){Sweeper.open();return;}
   },
 
-  _useTool(sl){
+  _useTool(sl, clientX, clientY){
     this.slapCD=sl.cd;
     this._updWBar();
-    if(sl.id==='net'){ this._tryCatchNet(); }
+    if(sl.id==='net'){ this._tryCatchNet(clientX, clientY); }
   },
 
-  // Catch a roaming (dropped-and-freed) animal within range — same
-  // proximity-based interaction as slap() (no precise aim needed, just be
-  // close and have the net equipped). Whoever gets there first keeps it;
-  // works from ANY player's own dropped-animal list since roaming animals
-  // are synced via zoo_dropped and visible/catchable by everyone (see
+  // Catch a roaming (dropped-and-freed) animal — click/tap directly on it
+  // (raycast), works from a real distance (see NET_RANGE), not just
+  // point-blank. Whoever gets there first keeps it; works from ANY
+  // player's own dropped-animal list since roaming animals are synced via
+  // zoo_dropped and visible/catchable by everyone (see
   // _syncDropped/_syncMarketStalls pattern).
-  _tryCatchNet(){
-    const myX=this.pl.x, myZ=this.pl.z;
-    let closest=-1, closestD=8; // catch range, a bit more forgiving than slap's 8 since the target is small & moving
-    this.droppedAnimals.forEach((d,i)=>{
-      const dist=Math.sqrt((d.x-myX)**2+(d.z-myZ)**2);
-      if(dist<closestD){closestD=dist;closest=i;}
-    });
-    if(closest<0){ ZP.toast('🥅 Kein entlaufenes Tier in der Nähe!',1200); return; }
+  // Net catching: click/tap DIRECTLY on the roaming animal (raycast from
+  // camera through the click point), not just "be nearby and press
+  // anything" — lets you catch from much further away (up to NET_RANGE)
+  // as long as you can actually see and aim at it, matching how the
+  // stronger slaps also reach further now.
+  NET_RANGE: 60,
+  _tryCatchNet(clientX, clientY){
+    if(typeof THREE==='undefined'||!this.cam||!this.scene||!this.droppedAnimals.length){
+      ZP.toast('🥅 Kein entlaufenes Tier in Sicht!',1200); return;
+    }
+    const cx = clientX!=null ? clientX : window.innerWidth/2;
+    const cy = clientY!=null ? clientY : window.innerHeight/2;
+    const ndc = { x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1 };
+    const meshes = this.droppedAnimals.map(d=>d.mesh).filter(Boolean);
+    if(!meshes.length){ ZP.toast('🥅 Kein entlaufenes Tier in Sicht!',1200); return; }
+    if(!this._netRaycaster) this._netRaycaster = new THREE.Raycaster();
+    this._netRaycaster.setFromCamera(ndc, this.cam);
+    const hits = this._netRaycaster.intersectObjects(meshes, true); // recursive — hits the emoji sprite/pedestal, not just the group itself
+    if(!hits.length){ ZP.toast('🥅 Daneben — zielgenau aufs Tier klicken/tippen!',1400); return; }
+    // Walk up from whatever child was hit to find which tracked group it belongs to
+    let obj = hits[0].object;
+    while(obj && !meshes.includes(obj)) obj = obj.parent;
+    const idx = this.droppedAnimals.findIndex(d=>d.mesh===obj);
+    if(idx<0){ ZP.toast('🥅 Daneben!',1200); return; }
+    if(hits[0].distance>this.NET_RANGE){ ZP.toast('🥅 Zu weit weg (max. '+this.NET_RANGE+'m)!',1400); return; }
     try{ ZSound._sndNetCatch&&ZSound._sndNetCatch(); }catch(e){}
     const fl=G('bflash');if(fl){fl.style.background='#8B5A2B33';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);}
-    this._pickupDropped(closest);
+    this._pickupDropped(idx);
     ZP.toast('🥅 Gefangen!',1500);
   },
 
   // ═══ SLAP SYSTEM ═══
-  slap(){
+  slap(clientX, clientY){
     const z=ZS.zoo;if(!z)return;
     if(this.slapCD>0){ZP.toast('⏳ '+(Math.ceil(this.slapCD/100)/10)+'s',600);return;}
     const sl=SLAPS.find(s=>s.id===(z.eq||'basic'))||TOOLS.find(s=>s.id===z.eq)||SLAPS[0];
-    if(sl.isTool){ this._useTool(sl); return; }
+    if(sl.isTool){ this._useTool(sl, clientX, clientY); return; }
     // Ownership: permanently unlocked via rebirth (z.ownSlaps, 'basic'
     // always included) OR still has charges left in a purchased 10-pack
     // (z.slapPacks). Neither → can't use it (shouldn't normally be
@@ -4005,10 +4023,11 @@ const ZG={
 
   _slapNearby(sl){
     const myX=this.pl.x, myZ=this.pl.z;
+    const range=sl.range||8;
     let hit=false;
     Object.values(this.otherPl).forEach(op=>{
       const d=Math.sqrt((op.x-myX)**2+(op.z-myZ)**2);
-      if(d<8){
+      if(d<range){
         hit=true;
         // Duration by slap rarity
         const durMap={basic:2000,ice:3000,golden:2500,shadow:4000,fire:3000,
@@ -4276,7 +4295,7 @@ const ZG={
         oncontextmenu="ZG.unequipSlap();return false;"
         ontouchstart="ZG._slapTouchStart('${sl.id}',event)"
         ontouchend="ZG._slapTouchEnd(event)"
-        title="${sl.n} — ${sl.pct||2}% vom Vermögen pro Slap — Gedrückt halten zum Abwählen">
+        title="${sl.n} — ${sl.pct||2}% vom Vermögen pro Slap · Reichweite ${sl.range||8}m — Gedrückt halten zum Abwählen">
         <div class="si ${isEq?'eq':''}" style="background:${rbd||bg};border:${border};position:relative">
           <span style="font-size:1.65rem">${sl.e}</span>
           ${onCD ? `<div class="scd">${cdS}s</div>` : ''}
@@ -5386,6 +5405,20 @@ const ZNews = {
                 try{ ZSound._playFile ? ZSound._playFile('rare',0.4) : null; }catch(e){}
               }catch(e){}
             }
+            // Deadline changes are important enough to not just be a
+            // passing ticker line — same prominent-banner treatment.
+            if(d.type==='deadline_set'){
+              try{
+                const el=document.createElement('div');
+                el.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-20px);z-index:9500;background:linear-gradient(135deg,#6c3483,#4a235a);border:2px solid #FFD700;border-radius:16px;padding:12px 22px;text-align:center;color:#fff;font-weight:900;box-shadow:0 6px 24px rgba(0,0,0,.6);opacity:0;transition:all .4s ease;pointer-events:none;max-width:90vw';
+                const startStr = d.startMs ? new Date(d.startMs).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '?';
+                el.innerHTML=`<div style="font-size:1.4rem">📅 Neuer Rangliste-Stichtag!</div><div style="font-size:.9rem;margin-top:2px;color:#FFD700">${startStr} Uhr — wer dann oben steht, gewinnt.</div>`;
+                document.body.appendChild(el);
+                requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translate(-50%,0)'; });
+                setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),500); }, 5000);
+                try{ ZSound._playFile ? ZSound._playFile('rare',0.4) : null; }catch(e){}
+              }catch(e){}
+            }
           });
         }, ()=>{});
     }catch(e){}
@@ -5724,6 +5757,15 @@ const ZP={
     this.open('rank');
     const el=document.getElementById('p-rank-content');
     if(!el)return;
+    try{
+      if(typeof Contest!=='undefined' && Contest.loadConfig) await Contest.loadConfig();
+      const cdEl=document.getElementById('p-rank-countdown');
+      if(cdEl && typeof Contest!=='undefined' && Contest.renderCountdown){
+        if(Contest.phase && Contest.phase()==='countdown') Contest.renderCountdown(cdEl);
+        else if(Contest.phase && Contest.phase()==='frozen') cdEl.innerHTML='<div style="font-size:.75rem;color:#FFD700;font-weight:900">❄️ Rangliste eingefroren bis '+new Date(Contest.END).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' Uhr</div>';
+        else cdEl.innerHTML='';
+      }
+    }catch(e){}
     el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.5)">⏳ Lade...</div>';
     let standings=[];
     try{
@@ -6740,7 +6782,7 @@ const ZP={
         if(isOwned){
           return `<div class="ac" style="opacity:.6"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:#27AE60">✅ Permanent freigeschaltet (Rebirth) — ${sl.pct}% pro Nutzung</div></div></div>`;
         }
-        return `<div class="ac"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${sl.pct}% vom Vermögen pro Nutzung${packs>0?' · noch '+packs+' übrig':''}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<100?'disabled':''} onclick="ZP._bSlapPack('${sl.id}')">${$mt(100)}</button></div>`;
+        return `<div class="ac"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${sl.pct}% vom Vermögen · Reichweite ${sl.range||8}m${packs>0?' · noch '+packs+' übrig':''}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<100?'disabled':''} onclick="ZP._bSlapPack('${sl.id}')">${$mt(100)}</button></div>`;
       }).join('');
   },
   _bSlapPack(id){
@@ -7018,6 +7060,7 @@ const ZP={
     const cur=(typeof ZSound!=='undefined'?ZSound.style:'normal')||'normal';
     const styles=[
       {id:'off',       icon:'🔇', name:typeof t!=='undefined'?t('sound.mute'):'Stumm',       desc:typeof t!=='undefined'?t('sound.mute.desc'):'Kein Sound'},
+      {id:'important', icon:'🔔', name:'Nur Wichtiges', desc:'Kaufen, Slap, Tragen usw. — aber kein Ton bei jeder automatischen Einnahme'},
       {id:'arcade',    icon:'🕹️', name:typeof t!=='undefined'?t('sound.arcade'):'Arcade',     desc:typeof t!=='undefined'?t('sound.arcade.desc'):'Retro 8-Bit Töne'},
       {id:'normal',    icon:'🎶', name:typeof t!=='undefined'?t('sound.normal'):'Normal',     desc:typeof t!=='undefined'?t('sound.normal.desc'):'Standard Töne'},
       {id:'satisfying',icon:'✨', name:typeof t!=='undefined'?t('sound.satisfying'):'Satisfying',desc:typeof t!=='undefined'?t('sound.satisfying.desc'):'Weiche, angenehme Töne'},
@@ -7049,6 +7092,7 @@ const ZP={
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">🎵 Sound</span>
           <select onchange="ZSound.setStyle(this.value)" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 8px;font-size:.78rem;min-width:130px">
             <option value="off" ${soundStyle==='off'?'selected':''}>🔇 Aus</option>
+            <option value="important" ${soundStyle==='important'?'selected':''}>🔔 Nur Wichtiges</option>
             <option value="arcade" ${soundStyle==='arcade'?'selected':''}>🕹️ Arcade</option>
             <option value="normal" ${soundStyle==='normal'?'selected':''}>🎶 Normal</option>
             <option value="satisfying" ${soundStyle==='satisfying'?'selected':''}>✨ Satisfying</option>

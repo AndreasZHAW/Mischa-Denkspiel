@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v343';
+const APP_VERSION = 'v345';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v343 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v345 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1175,6 +1175,37 @@ const App = {
           if(typeof _showDenkspielNews==='function') _showDenkspielNews(news);
         }catch(e){}
       },2000);
+      // Check for a changed contest deadline — this used to only notify
+      // players inside the Zoo (via its news ticker); Welt-1 had no
+      // listener for it at all, so anyone who mostly plays Welt-1 never
+      // found out the Rangliste deadline had moved. Reads
+      // config/contest_settings directly (written by Contest.saveConfig()
+      // in firebase-state.js) rather than reusing the config/zoo_news doc
+      // above, which is a separate, admin-authored "what's new" feature —
+      // sharing it would mean a deadline change silently overwrites/gets
+      // overwritten by an unrelated announcement.
+      setTimeout(async ()=>{
+        try{
+          if(typeof _db==='undefined'||!State._useCloud())return;
+          const doc=await _db.collection('config').doc('contest_settings').get().catch(()=>null);
+          if(!doc||!doc.exists)return;
+          const d=doc.data();
+          if(!d.updatedAt||!d.start)return;
+          const seenAt=parseInt(localStorage.getItem('mischa_deadline_seen')||'0',10);
+          if(d.updatedAt<=seenAt)return;
+          localStorage.setItem('mischa_deadline_seen', String(d.updatedAt));
+          if(seenAt===0)return; // first time this device has ever checked — don't announce the initial value as "new"
+          const startStr=new Date(d.start).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+          try{
+            const el=document.createElement('div');
+            el.style.cssText='position:fixed;top:16px;left:50%;transform:translate(-50%,-20px);z-index:99500;background:linear-gradient(135deg,#6c3483,#4a235a);border:2px solid #FFD700;border-radius:14px;padding:10px 18px;text-align:center;color:#fff;font-weight:700;font-size:.85rem;box-shadow:0 6px 20px rgba(0,0,0,.5);opacity:0;transition:all .4s ease;max-width:90vw';
+            el.innerHTML='📅 <b>Neuer Rangliste-Stichtag:</b> '+startStr+' Uhr!';
+            document.body.appendChild(el);
+            requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translate(-50%,0)'; });
+            setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),500); }, 5000);
+          }catch(e){}
+        }catch(e){}
+      },2200);
       // If test was never done on this device, remember to show hint
       if (!FontScale.testDone()) {
         window._showEyeTestHint = true;
