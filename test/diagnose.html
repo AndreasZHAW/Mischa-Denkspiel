@@ -44,8 +44,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v337</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v337 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v338</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v338 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -57,6 +57,7 @@ try {
   <div class="tab" onclick="switchTab('zoo')">🦁 Zoo / WebGL</div>
   <div class="tab" onclick="switchTab('mt')">💰 MT-Diagnose</div>
   <div class="tab" onclick="switchTab('trade')">🤝 Trade-Diagnose</div>
+  <div class="tab" onclick="switchTab('mp')">👥 Multiplayer-Diagnose</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
 </div>
@@ -168,6 +169,27 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: MULTIPLAYER-DIAGNOSE ══ -->
+<div id="tab-mp" class="tab-content">
+  <div class="box blue">
+    <h2>👥 zoo_players — Live-Sichtbarkeit</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Liest die <code>zoo_players</code>-Collection direkt — das Gleiche, was jeder Spieler alle 3s
+      schreibt (Position, was er gerade trägt) und was andere alle 3s lesen, um Spieler anzuzeigen.
+      "Online" im echten Spiel heisst: <code>t</code> (letzter Schreibzeitpunkt) ist unter 10s alt.
+      Wird ein Spieler hier mit altem <code>t</code> angezeigt, obwohl er gerade aktiv spielt, ist genau
+      DAS der Bug — sein Schreibvorgang schlägt fehl (meist wegen eines <code>undefined</code>-Werts
+      irgendwo im Dokument, was Firestore komplett ablehnt) und er wird für alle anderen unsichtbar.
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runMP()" class="info">🔄 Neu laden</button>
+      <button onclick="copyMP()" class="sec">📋 Tabelle kopieren</button>
+    </div>
+    <div id="mp-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="mp-out" style="overflow-x:auto"><pre>⏳</pre></div>
+  </div>
+</div>
+
 <!-- ══ TAB: FONT ══ -->
 <div id="tab-font" class="tab-content">
   <div class="box blue">
@@ -235,6 +257,7 @@ function switchTab(id){
   if(id==='zoo'&&!_ran.zoo){_ran.zoo=true;runZoo();}
   if(id==='mt'&&!_ran.mt){_ran.mt=true;runMT();}
   if(id==='trade'&&!_ran.trade){_ran.trade=true;runTrade();}
+  if(id==='mp'&&!_ran.mp){_ran.mp=true;runMP();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
 }
@@ -663,6 +686,71 @@ async function cleanupStaleTrades(){
     L('Trade-Diagnose: '+toDelete.length+' alte/kaputte Angebote gelöscht.');
     runTrade();
   }catch(e){ alert('❌ '+e.message); }
+}
+
+// ══ MULTIPLAYER-DIAGNOSE ══
+// Raw read of zoo_players — exactly what every client writes every 3s
+// (ZG._syncMP in zoo.html) and what every OTHER client reads to decide who
+// to render. No reimplemented logic here on purpose: if a player looks
+// stale/wrong here, the bug is in the data itself (a failed write), not in
+// how some OTHER piece of code interprets it.
+let _mpRows=[];
+async function runMP(){
+  L('=== Multiplayer-Diagnose gestartet ===');
+  const out=document.getElementById('mp-out');
+  const summary=document.getElementById('mp-summary');
+  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
+    return;
+  }
+  try{
+    const db=firebase.firestore();
+    const snap=await db.collection('zoo_players').get();
+    const now=Date.now();
+    const rows=[];
+    snap.forEach(doc=>{
+      const d=doc.data()||{};
+      const ageMs=now-(d.t||0);
+      rows.push({
+        id:doc.id, name:d.name||doc.id, instanceId:d.instanceId||'?',
+        slotIdx:d.slotIdx, x:d.x, z:d.z, ageMs,
+        stale: ageMs>10000, // this is the exact cutoff every client's _updOthers() uses
+        carrying: d.carrying ? (d.carrying.e||'?')+' '+(d.carrying.n||'?') : null,
+        carryRaw: d.carrying,
+        locked: !!d.locked,
+      });
+    });
+    rows.sort((a,b)=>a.ageMs-b.ageMs);
+    _mpRows=rows;
+    const staleCount=rows.filter(r=>r.stale).length;
+    summary.innerHTML = `👥 ${rows.length} Spieler-Dokumente insgesamt.`
+      +(staleCount?` <span class="warn">⏳ ${staleCount} mit t &gt;10s alt (gelten als offline/unsichtbar für andere).</span>`:'');
+    if(!rows.length){ out.innerHTML='<div class="dim">Keine zoo_players-Dokumente.</div>'; return; }
+    out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
+      +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
+      +'<th style="padding:4px 6px">Name</th><th>Instanz</th><th>Slot</th><th>x,z</th><th>Alter (t)</th><th>Trägt</th><th>Status</th></tr>'
+      + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${r.stale?'background:rgba(231,76,60,.12)':''}">`
+        +`<td style="padding:4px 6px;font-weight:${r.stale?'900':'400'}">${r.name}</td>`
+        +`<td>${r.instanceId}</td>`
+        +`<td>${r.slotIdx??'—'}</td>`
+        +`<td>${r.x??'?'}, ${r.z??'?'}</td>`
+        +`<td>${(r.ageMs/1000).toFixed(1)}s</td>`
+        +`<td>${r.carrying||'<span class="dim">—</span>'}</td>`
+        +`<td>${r.stale?'<span class="err">⚠️ Stale — für andere unsichtbar</span>':'<span class="ok">✅ live</span>'}</td>`
+        +`</tr>`).join('')
+      +'</table>';
+    L('Multiplayer-Diagnose: '+rows.length+' Spieler, '+staleCount+' stale.');
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
+    L('❌ Multiplayer-Diagnose Fehler: '+e.message,'err');
+  }
+}
+function copyMP(){
+  if(!_mpRows.length){alert('Erst laden!');return;}
+  const lines=['Name | Instanz | Slot | x | z | Alter(s) | Trägt | Stale'];
+  _mpRows.forEach(r=>lines.push([r.name,r.instanceId,r.slotIdx,r.x,r.z,(r.ageMs/1000).toFixed(1),r.carrying||'—',r.stale?'JA':''].join(' | ')));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
 }
 
 // ══ FONT ══
