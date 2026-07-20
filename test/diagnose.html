@@ -44,8 +44,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v332</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v332 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v333</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v333 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -56,6 +56,7 @@ try {
   <div class="tab" onclick="switchTab('welt1')">🎮 Welt 1</div>
   <div class="tab" onclick="switchTab('zoo')">🦁 Zoo / WebGL</div>
   <div class="tab" onclick="switchTab('mt')">💰 MT-Diagnose</div>
+  <div class="tab" onclick="switchTab('trade')">🤝 Trade-Diagnose</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
 </div>
@@ -147,6 +148,26 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: TRADE-DIAGNOSE ══ -->
+<div id="tab-trade" class="tab-content">
+  <div class="box blue">
+    <h2>🤝 Tauschen-Diagnose</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Liest die <code>zoo_trades</code>-Collection direkt aus Firestore — dieselben Daten, die das
+      Tauschen-Panel im Zoo unter "🛒 Kaufen"/"📋 Meine Angebote" anzeigt. Wenn ein Angebot hier fehlt,
+      liegt's an Firestore (Rechte/Verbindung); wenn es hier auftaucht aber im Spiel nicht, liegt's an
+      der Anzeige im Panel selbst.
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runTrade()" class="info">🔄 Neu laden</button>
+      <button onclick="copyTrade()" class="sec">📋 Tabelle kopieren</button>
+      <button onclick="cleanupStaleTrades()" class="danger">🧹 Alte Angebote (&gt;7 Tage) löschen</button>
+    </div>
+    <div id="trade-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="trade-out" style="overflow-x:auto"><pre>⏳</pre></div>
+  </div>
+</div>
+
 <!-- ══ TAB: FONT ══ -->
 <div id="tab-font" class="tab-content">
   <div class="box blue">
@@ -213,6 +234,7 @@ function switchTab(id){
   if(id==='welt1'&&!_ran.welt1){_ran.welt1=true;runWelt1();}
   if(id==='zoo'&&!_ran.zoo){_ran.zoo=true;runZoo();}
   if(id==='mt'&&!_ran.mt){_ran.mt=true;runMT();}
+  if(id==='trade'&&!_ran.trade){_ran.trade=true;runTrade();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
 }
@@ -489,7 +511,7 @@ async function runMT(){
     // zeroes it out completely everywhere else. That looked like "the
     // diagnostics say it's fine but the game shows 0" — the diagnostics
     // just weren't checking the same thing the game actually checks.
-    const MT_SANITY_CAP=10000000;
+    const MT_SANITY_CAP=1000000000000; // muss exakt mit firebase-state.js übereinstimmen
     const sanitizeMT=(v)=>{ if(typeof v!=='number'||!isFinite(v)||v<0) return 0; return v>MT_SANITY_CAP?MT_SANITY_CAP:v; };
     const dsMTFor=(p)=>{
       const ws=p?.worlds?.['1']||p?.worlds?.[1]||{};
@@ -532,7 +554,7 @@ async function runMT(){
     const overCapRows=rows.filter(r=>r.overCap);
     summary.innerHTML = (mismatches.length||overCapRows.length)
       ? `<span class="err">⚠️ ${mismatches.length} von ${rows.length} Spielern zeigen unterschiedliche Summen je nach Ansicht`
-        +(overCapRows.length?`, ${overCapRows.length} über der 10-Mio-Sanity-Cap (Wert wird dadurch überall auf 10 Mio. gedeckelt)`:'')+` (siehe markierte Zeilen).</span>`
+        +(overCapRows.length?`, ${overCapRows.length} über der Sanity-Cap (Wert wird dadurch überall auf ${MT_SANITY_CAP.toLocaleString('de-CH')} gedeckelt)`:'')+` (siehe markierte Zeilen).</span>`
       : `<span class="ok">✅ Alle ${rows.length} Spieler: Admin-Panel- und Rangliste-Summe stimmen überein.</span>`;
     const short=(s)=>s?(s.length>14?s.slice(0,6)+'…'+s.slice(-4):s):'—';
     out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
@@ -549,7 +571,7 @@ async function runMT(){
         +`<td>${r.z ? (r.devMatch?'<span class="ok">✅</span>':'<span class="err">❌</span>') : '<span class="dim">—</span>'}</td>`
         +`<td>${r.adminTotal.toFixed(1)} MT</td>`
         +`<td>${r.rankTotal.toFixed(1)} MT</td>`
-        +`<td>${r.overCap?'<span class="err">⚠️ Über 10 Mio. Sanity-Cap — wird überall auf 10\'000\'000 gedeckelt</span>':r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein</span>':''}</td>`
+        +`<td>${r.overCap?'<span class="err">⚠️ Über Sanity-Cap — wird gedeckelt</span>':r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein</span>':''}</td>`
         +`</tr>`).join('')
       +'</table>';
     L('MT-Diagnose: '+rows.length+' Spieler, '+mismatches.length+' mit Diskrepanz.');
@@ -563,6 +585,84 @@ function copyMT(){
   const lines=['Spieler | Welt1 dsMT | Zoo mt (roh) | DeviceID Welt1 | DeviceID Zoo | Match | Admin-Summe | Rangliste-Summe | ÜberCap | Diskrepanz'];
   _mtRows.forEach(r=>lines.push([r.name,r.ds.toFixed(1),r.z?r.zRaw.toFixed(1):'—',r.p_dev||'—',r.z_dev||'—',r.z?(r.devMatch?'ja':'nein'):'—',r.adminTotal.toFixed(1),r.rankTotal.toFixed(1),r.overCap?'JA':'',r.mismatch?'JA':''].join(' | ')));
   navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
+}
+
+// ══ TRADE-DIAGNOSE ══
+// Reads the zoo_trades collection directly — the exact same source the
+// in-game Tauschen panel's "Kaufen"/"Meine Angebote" tabs read from (see
+// ZP._tM/_tA in zoo.html). Doesn't reimplement any game logic — if
+// something's wrong here, it's a Firestore/data problem; if this looks
+// fine but the in-game panel doesn't match it, the bug is in the panel's
+// rendering, not the data.
+let _tradeRows=[];
+async function runTrade(){
+  L('=== Trade-Diagnose gestartet ===');
+  const out=document.getElementById('trade-out');
+  const summary=document.getElementById('trade-summary');
+  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
+    return;
+  }
+  try{
+    const db=firebase.firestore();
+    const snap=await db.collection('zoo_trades').get();
+    const now=Date.now();
+    const rows=[];
+    snap.forEach(doc=>{
+      const d=doc.data()||{};
+      const ageMs=now-(d.createdAt||now);
+      rows.push({
+        id:doc.id, seller:d.seller||'?', animal:d.n||'?', emoji:d.e||'❓',
+        price:(typeof d.p==='number'?d.p:0), ageMs,
+        stale: ageMs > 7*24*3600*1000, // sitting unsold for over a week
+        hasSnapshot: !!(d.d && d.d.animal), // the actual animal data payload needed to grant it on purchase
+      });
+    });
+    rows.sort((a,b)=>b.ageMs-a.ageMs);
+    _tradeRows=rows;
+    const broken=rows.filter(r=>!r.hasSnapshot);
+    const stale=rows.filter(r=>r.stale);
+    summary.innerHTML = `📦 ${rows.length} aktive Angebote insgesamt.`
+      +(broken.length?` <span class="err">⚠️ ${broken.length} ohne gültige Tier-Daten (würden beim Kauf fehlschlagen)!</span>`:'')
+      +(stale.length?` <span class="warn">⏳ ${stale.length} seit über 7 Tagen unverkauft.</span>`:'');
+    if(!rows.length){ out.innerHTML='<div class="dim">Keine aktiven Angebote in der Cloud.</div>'; L('Trade-Diagnose: 0 Angebote.'); return; }
+    const fmtAge=(ms)=>{ const h=ms/3600000; if(h<1)return Math.round(ms/60000)+' Min'; if(h<48)return h.toFixed(1)+' Std'; return (h/24).toFixed(1)+' Tage'; };
+    out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
+      +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
+      +'<th style="padding:4px 6px">Verkäufer</th><th>Tier</th><th>Preis</th><th>Alter</th><th>Doc-ID</th><th>Status</th></tr>'
+      + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${!r.hasSnapshot?'background:rgba(231,76,60,.12)':r.stale?'background:rgba(243,156,18,.1)':''}">`
+        +`<td style="padding:4px 6px">${r.seller}</td>`
+        +`<td>${r.emoji} ${r.animal}</td>`
+        +`<td>🌀${r.price}</td>`
+        +`<td>${fmtAge(r.ageMs)}</td>`
+        +`<td class="dim" style="font-size:.65rem">${r.id}</td>`
+        +`<td>${!r.hasSnapshot?'<span class="err">⚠️ Kaputt (keine Tier-Daten)</span>':r.stale?'<span class="warn">⏳ Alt</span>':'<span class="ok">✅</span>'}</td>`
+        +`</tr>`).join('')
+      +'</table>';
+    L('Trade-Diagnose: '+rows.length+' Angebote, '+broken.length+' kaputt, '+stale.length+' alt.');
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
+    L('❌ Trade-Diagnose Fehler: '+e.message,'err');
+  }
+}
+function copyTrade(){
+  if(!_tradeRows.length){alert('Erst laden!');return;}
+  const lines=['Verkäufer | Tier | Preis | Alter(h) | Doc-ID | Kaputt | Alt'];
+  _tradeRows.forEach(r=>lines.push([r.seller,r.animal,r.price,(r.ageMs/3600000).toFixed(1),r.id,!r.hasSnapshot?'JA':'',r.stale?'JA':''].join(' | ')));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
+}
+async function cleanupStaleTrades(){
+  if(!_tradeRows.length){alert('Erst laden!');return;}
+  const toDelete=_tradeRows.filter(r=>r.stale||!r.hasSnapshot);
+  if(!toDelete.length){alert('Nichts zu löschen.');return;}
+  if(!confirm(`${toDelete.length} Angebot(e) löschen (älter als 7 Tage oder ohne gültige Tier-Daten)? Das kann nicht rückgängig gemacht werden.`))return;
+  const db=firebase.firestore();
+  try{
+    await Promise.all(toDelete.map(r=>db.collection('zoo_trades').doc(r.id).delete()));
+    L('Trade-Diagnose: '+toDelete.length+' alte/kaputte Angebote gelöscht.');
+    runTrade();
+  }catch(e){ alert('❌ '+e.message); }
 }
 
 // ══ FONT ══

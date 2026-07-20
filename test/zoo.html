@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v332 -->
+<!-- ZOO v333 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=332"></script>
-<script src="rewardchests.js?v=332"></script>
-<script src="personality.js?v=332"></script>
+<script src="lang.js?v=333"></script>
+<script src="rewardchests.js?v=333"></script>
+<script src="personality.js?v=333"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v332','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v333','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=332"></script>
-<script src="worlds.js?v=332"></script>
+<script src="firebase-state.js?v=333"></script>
+<script src="worlds.js?v=333"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1402,6 +1402,8 @@ const ZG={
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),3000));
     this._ivs.push(setInterval(()=>this._syncDropped(),3000));
+    this._ivs.push(setInterval(()=>this._syncMarketStalls(),5000));
+    this._syncMarketStalls();
     this._gondTick();
     for(let i=0;i<3;i++)this.gQ.push(this._mkG());
     // Start player in zone 0
@@ -1628,6 +1630,66 @@ const ZG={
       // Best-effort cleanup of expired docs — whichever client notices first deletes it.
       toDelete.forEach(id=>_db.collection('zoo_dropped').doc(id).delete().catch(()=>{}));
     }catch(e){}
+  },
+  // Show up to 5 active zoo_trades offers physically at the marketplace
+  // stalls (see _marketplace()) — same data as the 2D Tauschen panel's
+  // "Kaufen" tab, just also visible/buyable by walking up to it in the
+  // 3D world. If there are more than 5 offers at once, only the 5 most
+  // recent are shown here (the panel still lists all of them).
+  async _syncMarketStalls(){
+    if(typeof _db==='undefined'||!_db||!State._useCloud()||!this._marketStallPos) return;
+    try{
+      const snap=await _db.collection('zoo_trades').orderBy('createdAt','desc').limit(5).get().catch(async()=>{
+        // orderBy needs an index on createdAt — fall back to an unordered read if that's not set up
+        return await _db.collection('zoo_trades').limit(5).get();
+      });
+      const offers=[]; snap.forEach(doc=>offers.push({id:doc.id,...doc.data()}));
+      for(let i=0;i<5;i++){
+        const o=offers[i]||null;
+        const prev=this._marketOffers[i];
+        if(prev?.id===o?.id && prev?.p===o?.p) continue; // unchanged, skip re-render
+        this._marketOffers[i]=o;
+        if(this._marketOfferMeshes[i] && this.scene){ this.scene.remove(this._marketOfferMeshes[i]); this._marketOfferMeshes[i]=null; }
+        if(!o) continue;
+        const pos=this._marketStallPos[i]; if(!pos) continue;
+        const g=new THREE.Group();
+        const sprite=this._txt((o.e||'❓')+' '+$mt(o.p||0),0.9,'#fff');
+        sprite.position.set(pos.x,2.3,pos.z-0.6); sprite.scale.set(3.2,1.1,1);
+        g.add(sprite);
+        const seller=this._txt('von '+(o.seller||'?'),0.5,'#FFD700');
+        seller.position.set(pos.x,1.75,pos.z-0.6); seller.scale.set(2.4,.6,1);
+        g.add(seller);
+        this.scene.add(g);
+        this._marketOfferMeshes[i]=g;
+      }
+    }catch(e){}
+  },
+  // Buy directly from a market stall — same underlying purchase as
+  // ZP._bT() (re-verify the offer still exists, delete it, credit the
+  // seller atomically, hand the animal to a free enclosure slot), just
+  // triggered by walking up and pressing [E] instead of opening the panel.
+  async _buyMarketOffer(i){
+    const o=this._marketOffers?.[i]; if(!o)return;
+    const z=ZS.zoo; if(!z)return;
+    const total=(ZS.dsMT||0)+z.mt;
+    if(total<o.p){ZP.toast('❌ Zu wenig MT!');return;}
+    const slot=z.enc.findIndex(e=>!e);
+    if(slot<0){ZP.toast('❌ Gehege voll!');return;}
+    const ref=_db.collection('zoo_trades').doc(o.id);
+    try{
+      const doc=await ref.get();
+      if(!doc.exists){ ZP.toast('❌ Schon weg — jemand war schneller!',2500); this._syncMarketStalls(); return; }
+      await ref.delete();
+      const data=doc.data();
+      z.mt-=data.p;
+      z.enc[slot]={...data.d,addedAt:Date.now()};
+      this._encs(); ZS.save(); this._updHUD();
+      _db.collection('zoos').doc('zoo_'+data.sellerKey).update({mt:firebase.firestore.FieldValue.increment(data.p)}).catch(()=>{});
+      try{ ZP._tradeAnim && ZP._tradeAnim(data.e,data.p); }catch(e){}
+      ZP.toast(`✅ ${data.e} ${data.n} gekauft!`,3000);
+      try{ZNews.push('trade',{animal:data.n,emoji:data.e,seller:data.seller});}catch(e){}
+      this._syncMarketStalls();
+    }catch(e){ ZP.toast('❌ '+e.message,3000); }
   },
   _checkDroppedPickup(){
     if(!this.droppedAnimals.length) return;
@@ -2400,9 +2462,13 @@ const ZG={
     plazaRim.rotation.x=-Math.PI/2; plazaRim.position.set(mx,0.05,mz); sc.add(plazaRim);
     // 5 market stalls arranged around the plaza, facing inward
     const stallColors=[0xE74C3C,0x27AE60,0x3498DB,0xF39C12,0x9B59B6];
+    this._marketStallPos=[];
+    this._marketOfferMeshes=[null,null,null,null,null];
+    this._marketOffers=[null,null,null,null,null];
     for(let i=0;i<5;i++){
       const ang=(i/5)*Math.PI*2;
       const sx=mx+Math.sin(ang)*8.5, sz=mz+Math.cos(ang)*8.5;
+      this._marketStallPos.push({x:sx,z:sz});
       const col=stallColors[i];
       // Table
       const table=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.9,1.6),new THREE.MeshBasicMaterial({color:0x8B5A2B}));
@@ -3034,6 +3100,15 @@ const ZG={
     const _wasNearWheel=this._nearWheel;
     this._nearWheel=(wdist<6);
     const _wheelJustEntered = this._nearWheel && !_wasNearWheel;
+    // Market stall proximity (only stalls that currently hold an offer)
+    this._nearMarketStall=-1;
+    if(this._marketStallPos){
+      for(let i=0;i<this._marketStallPos.length;i++){
+        if(!this._marketOffers[i]) continue;
+        const p=this._marketStallPos[i];
+        if(Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2)<4){ this._nearMarketStall=i; break; }
+      }
+    }
     // Single interaction prompt — exactly ONE reason is shown per frame, chosen
     // by priority below. This used to be several independent if-blocks (one
     // for the gondola station, a separate chain for trapdoor/luckyblock/
@@ -3064,6 +3139,10 @@ const ZG={
       ip.textContent=`📦 [E] ${LuckyBlocks.NAMES[_nearBlock.rarity]} Glücksblock öffnen!`;
     }else if(this.nearEnc>=0){
       ip.style.color='';ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;
+    }else if(this._nearMarketStall>=0){
+      const o=this._marketOffers[this._nearMarketStall];
+      ip.style.color='#FFD700';ip.style.opacity='1';
+      ip.textContent=`🤝 [E] ${o.e} ${o.n} kaufen — ${$mt(o.p)} (von ${o.seller})`;
     }else if(this.nearSt){
       // Enter with E key only - handled in _interact
       ip.style.color='';ip.style.opacity='1';
@@ -3668,6 +3747,10 @@ const ZG={
   },
 
   _interact(){
+    if(this._nearMarketStall>=0){
+      this._buyMarketOffer(this._nearMarketStall);
+      return;
+    }
     if(this._nearWheel){
       LW.open();
       return;
@@ -5945,8 +6028,15 @@ const ZP={
       else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 2000 MT alle 5 Min.');}
     }
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
-    ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();},
-  _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${$st?$st(sb):sb+'⭐'}) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
+    ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();this._updShopBal();},
+  // The shop header's "MT: X" balance used to only ever get set once, when
+  // the panel first opened — every purchase (Zoo tab, Tauschen/exchange
+  // tab, Boosts tab) correctly deducted the cost and updated the item list
+  // underneath, but that top balance just sat there stale, which is
+  // exactly why buying something could look like "nothing happened" even
+  // though it worked.
+  _updShopBal(){ const el=G('sbal'); if(el) el.textContent='🌀 '+$mt((ZS.dsMT||0)+(ZS.zoo?.mt||0)).replace('🌀',''); },
+  _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${sb}⭐) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
   _openProfile(){
     const el=document.getElementById('profile-cur-name');
     if(el)el.textContent=ZS.player||'?';
@@ -6270,7 +6360,7 @@ const ZP={
     this._loadQuestions();
   },
 
-  _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();},
+  _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();this._updShopBal();},
   // ── LUCKY EGGS ──
   _EGG_TYPES:[
     {id:'normal',    name:'Normal-Ei',    e:'🥚', color:'#8e9da8', glow:'rgba(142,157,168,.5)', cost:500,    rarity:'normal'},
@@ -6401,7 +6491,7 @@ const ZP={
   },
 
   _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:600,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
-  _bst(id,p,dur){const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();},
+  _bst(id,p,dur){const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();this._updShopBal();},
 
   // TRADING
   tradeTab(t){this._tt2=t;['m','a','n'].forEach(x=>{G('tt-'+x)?.classList.toggle('ta',x===t);G('tt-'+x)?.classList.toggle('ti',x!==t);});this._rTrade(t);},
@@ -6458,6 +6548,7 @@ const ZP={
     _db.collection('zoo_trades').add(doc).then(()=>{
       this.toast(`✅ ${enc.animal.e} für ${$mt(price)} angeboten!`,2500);
       this._rTrade('m');
+      try{ZG._syncMarketStalls&&ZG._syncMarketStalls();}catch(e){}
     }).catch(e=>{
       // Publish failed — give the animal back, nothing was actually offered.
       z.enc[i]=enc; ZG._encs(); ZS.save();
@@ -6474,6 +6565,7 @@ const ZP={
     _db.collection('zoo_trades').doc(o.id).delete().then(()=>{
       this.toast('↩️ Zurückgezogen',1500);
       this._rTrade('m');
+      try{ZG._syncMarketStalls&&ZG._syncMarketStalls();}catch(e){}
     }).catch(e=>{ this.toast('❌ '+e.message,3000); });
   },
   _bT(i){
@@ -6503,6 +6595,7 @@ const ZP={
       this._tradeAnim(o.e,o.p);
       this.toast(`✅ ${o.e} ${o.n} gekauft!`,3000);
       this._rTrade('a');
+      try{ZG._syncMarketStalls&&ZG._syncMarketStalls();}catch(e){}
       try{ZNews.push('trade',{animal:o.n,emoji:o.e,seller:o.seller});}catch(e){}
     }).catch(e=>{ this.toast('❌ '+e.message,3000); });
   },

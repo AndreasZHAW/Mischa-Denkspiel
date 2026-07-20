@@ -1627,21 +1627,24 @@ window.PlayTime = PlayTime;
 // MT SANITY CAP — a defensive ceiling used everywhere MT gets summed for
 // rankings. Guards against corrupted Firestore values (bad writes, bugs,
 // manual tampering) silently winning leaderboards with impossible numbers.
-// Generous relative to real player balances today; tighten this once the
-// planned rarity-vs-earnrate rebalance ships and typical maximums are lower.
 //
-// IMPORTANT: clamp, don't zero. This used to return 0 for anything over
-// the cap — meant as "don't trust a suspicious number", but in practice it
-// meant a real (if unusually large — e.g. from the lucky wheel before its
-// payouts were capped) balance could vanish COMPLETELY and silently,
-// everywhere, with no indication why. A player who legitimately built up
-// a huge total then appears to have nothing at all, which is worse than
-// showing a capped number: at least a clamped value is visibly "very
-// large" rather than misleadingly "empty". Only truly invalid input
-// (NaN, not a number, negative) still maps to 0 — those aren't "big
-// numbers", they're not numbers at all.
+// Raised from 10 million to 1 trillion (1e12) — checked the actual income
+// formula (earn(), visitMs()) and it compounds in ways that are meant to
+// keep growing indefinitely over a long game lifetime: animal level gives
+// ×1.05 PER LEVEL with no cap, visitor speed can stack down to a 500ms
+// floor (18× faster than the un-upgraded 9s baseline) via vis/vis2/vis_m,
+// rebirths add a further permanent multiplier, and events/boosts/treats
+// stack another ~×32 on top of that during active play. A genuinely
+// long-term, fully-upgraded, multi-rebirth player is EXPECTED to blow
+// past 10 million MT eventually — that's not corruption, that's the
+// intended shape of an idle/incremental game. 1e12 stays comfortably
+// inside JS's safe integer range (~9e15) while giving that legitimate
+// growth many more orders of magnitude of headroom; sanitizeMT() clamps
+// (rather than zeroes) anything past it either way, so even a genuinely
+// corrupted value just displays as "very large" instead of silently
+// vanishing.
 // ============================================================
-window.MT_SANITY_CAP = 10000000; // 10 million
+window.MT_SANITY_CAP = 1000000000000; // 1 trillion
 window.sanitizeMT = function(v) {
   if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
   return v > window.MT_SANITY_CAP ? window.MT_SANITY_CAP : v;
