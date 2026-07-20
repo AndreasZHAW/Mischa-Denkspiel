@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v334 -->
+<!-- ZOO v336 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=334"></script>
-<script src="rewardchests.js?v=334"></script>
-<script src="personality.js?v=334"></script>
+<script src="lang.js?v=336"></script>
+<script src="rewardchests.js?v=336"></script>
+<script src="personality.js?v=336"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v334','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v336','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -308,10 +308,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="evb"></div><div id="evt"></div>
 <div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
 <div id="home-arrow-wrap" style="position:absolute;top:118px;right:10px;width:100px;display:flex;flex-direction:column;align-items:center;pointer-events:none">
-  <div id="home-compass" style="width:48px;height:48px;background:rgba(0,0,0,.55);border:2px solid rgba(255,215,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden">
-    <span id="home-arrow" style="display:inline-block;font-size:1.9rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg)">⬆️</span>
+  <div id="home-compass" style="width:58px;height:58px;background:rgba(0,0,0,.72);border:3px solid #FFD700;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 10px rgba(255,215,0,.5)">
+    <span id="home-arrow" style="display:inline-block;font-size:2.3rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg);filter:drop-shadow(0 0 2px #000)">⬆️</span>
   </div>
-  <div id="home-arrow-dist" style="margin-top:2px;font-size:.68rem;color:#FFD700;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:8px;font-weight:700">🏠</div>
+  <div id="home-arrow-dist" style="margin-top:3px;font-size:.75rem;color:#FFD700;background:rgba(0,0,0,.65);padding:2px 8px;border-radius:8px;font-weight:900">🏠</div>
 </div>
 <div id="bflash"></div>
 </div>
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=334"></script>
-<script src="worlds.js?v=334"></script>
+<script src="firebase-state.js?v=336"></script>
+<script src="worlds.js?v=336"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1525,14 +1525,13 @@ const ZG={
     // data: {animal, shiny, traits, slot}
     this.carrying = data;
     this._updCarryHUD();
-    // Cancel carry and place in enclosure after 60s max
-    if(this.carryTimer) clearTimeout(this.carryTimer);
-    this.carryTimer = setTimeout(()=>{
-      if(this.carrying){
-        // Auto-place if still carrying
-        this._placeCarried();
-      }
-    }, 60000);
+    // Previously auto-placed into the enclosure after 60s even if the
+    // player never actually walked there — reported as "the animal
+    // sometimes reaches the enclosure even though I'm not there", which is
+    // exactly what this was doing. Removed: the animal now stays with the
+    // player (carryable/stealable) until they genuinely reach an
+    // enclosure and place it themselves.
+    if(this.carryTimer){ clearTimeout(this.carryTimer); this.carryTimer=null; }
   },
   _placeCarried(){
     if(!this.carrying) return;
@@ -1607,7 +1606,7 @@ const ZG={
       const idx=this.droppedAnimals.indexOf(dropped);
       if(idx>=0){
         this.droppedAnimals.splice(idx,1);
-        if(dropped.mesh&&this.scene) this.scene.remove(dropped.mesh);
+        this._escapeAnim(dropped.mesh);
         if(dropped.id) _db.collection('zoo_dropped').doc(dropped.id).delete().catch(()=>{});
         ZP.toast('💨 '+dropped.animal.e+' ist entkommen!',2000);
       }
@@ -1626,6 +1625,27 @@ const ZG={
   // Emoji sprite (same technique as the gondola cars' animal labels) on a
   // small pedestal, instead of the old plain gold cube — so it actually
   // looks like the animal that was dropped, not an anonymous box.
+  // Instead of an abrupt scene.remove() the instant an animal's 60s runs
+  // out (which reads as "it just vanished"), scamper it a bit further
+  // away while shrinking/fading over ~700ms, THEN remove it — reads as
+  // "it actually ran off", not a pop.
+  _escapeAnim(mesh){
+    if(!mesh||!this.scene) return;
+    const startX=mesh.position.x, startZ=mesh.position.z;
+    const ang=Math.random()*Math.PI*2;
+    const endX=startX+Math.cos(ang)*6, endZ=startZ+Math.sin(ang)*6;
+    const dur=700, t0=Date.now();
+    const step=()=>{
+      const p=Math.min(1,(Date.now()-t0)/dur);
+      mesh.position.x=startX+(endX-startX)*p;
+      mesh.position.z=startZ+(endZ-startZ)*p;
+      const s=Math.max(0.02,1-p);
+      mesh.scale.set(s,s,s);
+      if(p<1) requestAnimationFrame(step);
+      else if(this.scene) this.scene.remove(mesh);
+    };
+    step();
+  },
   _spawnDroppedMesh(dropped){
     if(!this.scene||typeof THREE==='undefined') return;
     try{
@@ -1635,6 +1655,14 @@ const ZG={
       const sprite=this._txt(dropped.animal.e,1,'#fff');
       sprite.position.y=1.5; sprite.scale.set(2.2,2.2,1);
       g.add(sprite);
+      // Rarity label — so it's clear at a glance whether a roaming animal
+      // is worth chasing down with the net.
+      const rarCol=RARITY_COL[dropped.animal.r]||'#95a5a6', rarName=RARITY_NAME[dropped.animal.r]||'';
+      if(rarName){
+        const rarLbl=this._txt(rarName,0.6,rarCol);
+        rarLbl.position.y=2.4; rarLbl.scale.set(2.2,.6,1);
+        g.add(rarLbl);
+      }
       g.position.set(dropped.x,0,dropped.z);
       g.userData.bounceT=0;
       this.scene.add(g);
@@ -1735,10 +1763,16 @@ const ZG={
         const pos=this._marketStallPos[i]; if(!pos) continue;
         const g=new THREE.Group();
         const sprite=this._txt((o.e||'❓')+' '+$mt(o.p||0),0.9,'#fff');
-        sprite.position.set(pos.x,2.3,pos.z-0.6); sprite.scale.set(3.2,1.1,1);
+        sprite.position.set(pos.x,2.5,pos.z-0.6); sprite.scale.set(3.2,1.1,1);
         g.add(sprite);
+        const rarCol=RARITY_COL[o.r]||'#95a5a6', rarName=RARITY_NAME[o.r]||'';
+        if(rarName){
+          const rarLbl=this._txt(rarName,0.55,rarCol);
+          rarLbl.position.set(pos.x,1.95,pos.z-0.6); rarLbl.scale.set(2,.55,1);
+          g.add(rarLbl);
+        }
         const seller=this._txt('von '+(o.seller||'?'),0.5,'#FFD700');
-        seller.position.set(pos.x,1.75,pos.z-0.6); seller.scale.set(2.4,.6,1);
+        seller.position.set(pos.x,1.45,pos.z-0.6); seller.scale.set(2.4,.6,1);
         g.add(seller);
         this.scene.add(g);
         this._marketOfferMeshes[i]=g;
@@ -1779,7 +1813,7 @@ const ZG={
       const d = this.droppedAnimals[i];
       // Bounce animation (Y axis only — X/Z is driven by _tickWander's roam movement)
       if(d.mesh){ d.bounceT=(d.bounceT||0)+0.05; d.mesh.position.y=Math.abs(Math.sin(d.bounceT))*1.2; d.mesh.rotation.y=(d.bounceT||0); }
-      if(now > d.expiresAt){ this.droppedAnimals.splice(i,1); if(d.mesh&&this.scene)this.scene.remove(d.mesh); continue; }
+      if(now > d.expiresAt){ this.droppedAnimals.splice(i,1); this._escapeAnim(d.mesh); continue; }
       // NOTE: no more free [E] pickup here — catching a roaming animal now
       // requires the 🥅 net tool (see _tryCatchNet), bought in the shop.
     }
@@ -1870,6 +1904,10 @@ const ZG={
       const m=this._trashMeshes[i]; if(!m||!m.visible)continue;
       const d=Math.sqrt((this.pl.x-m.position.x)**2+(this.pl.z-m.position.z)**2);
       if(d<best){best=d;this._nearTrash=i;}
+    }
+    if(this._trashBanner){
+      const isTouch=('ontouchstart' in window);
+      this._trashBanner.textContent='🧹 Müll übrig: '+this._trashLeft+(this._nearTrash>=0?(isTouch?'  👆 Antippen zum Aufheben!':'  [E] Aufheben!'):'');
     }
   },
   _pickupTrash(idx){
@@ -2142,6 +2180,20 @@ const ZG={
         }
         m.position.x=op.x||0;
         m.position.z=op.z||0;
+        // Show what they're carrying (if anything) floating above their
+        // name — so other players can actually see there's something
+        // worth slapping loose, instead of it being invisible until you
+        // already knock it free.
+        const carryEmoji=op.carrying?op.carrying.e:null;
+        if(m.userData.carryEmoji!==carryEmoji){
+          if(m.userData.carrySprite){ m.remove(m.userData.carrySprite); m.userData.carrySprite=null; }
+          if(carryEmoji){
+            const cs=this._txt(carryEmoji,1,'#fff');
+            cs.position.set(0,4.0,0); cs.scale.set(1.8,1.8,1);
+            m.add(cs); m.userData.carrySprite=cs;
+          }
+          m.userData.carryEmoji=carryEmoji;
+        }
       }
     });
   },
@@ -2446,7 +2498,11 @@ const ZG={
     this._sweeperPos = null;
     this._sweeperMesh = null;
     {
-      const cx=0, cz=40; // spawn point, well within the central plaza (zone center is at 0,55)
+      // Moved off to the side (was x:0,z:40 — that circling range (z:35-45)
+      // directly overlapped the marketplace plaza added later at z:30
+      // (radius ~11, so z:19-41), which is why the sweeper always seemed
+      // to be right on top of the marketplace. Now well clear of it.
+      const cx=18, cz=12; // spawn point, east of the gondola station, away from the marketplace/wheel path
       const grp=new THREE.Group();
       const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,2,4),new THREE.MeshBasicMaterial({color:0xF39C12}));
       swBody.position.set(0,1.2,0); grp.add(swBody);
@@ -3213,7 +3269,15 @@ const ZG={
     const _K=_isTouch?'👆':'[E]';
     const _trapdoorNear = this._trapdoorPos && !SECRETS.unlocked['trapdoor'] && Math.sqrt((this.pl.x-this._trapdoorPos.x)**2+(this.pl.z-this._trapdoorPos.z)**2)<3;
     const _nearBlock = LuckyBlocks.getNearBlock();
-    if(_carryDropSlot>=0){
+    if(this._trashActive){
+      // The trash-room minigame has its own banner/instructions and
+      // doesn't use [E]/tap-to-interact — but without this, whatever
+      // prompt was showing the INSTANT before the accident triggered (e.g.
+      // a market stall or enclosure hint) just stays frozen on screen,
+      // pointer-events and all, potentially sitting right where the
+      // player needs to tap to pick up trash underneath it.
+      ip.style.opacity='0';ip.style.pointerEvents='none';
+    }else if(_carryDropSlot>=0){
       ip.style.opacity='1';ip.style.pointerEvents='auto';ip.style.color='#2ecc71';
       ip.textContent='🏠 '+_K+' '+_carryDropAnimal.e+' '+_carryDropAnimal.n+' in Gehege '+(_carryDropSlot+1)+' ablegen!';
     }else if(_trapdoorNear){
@@ -3228,7 +3292,7 @@ const ZG={
     }else if(this._nearMarketStall>=0){
       const o=this._marketOffers[this._nearMarketStall];
       ip.style.color='#FFD700';ip.style.opacity='1';ip.style.pointerEvents='auto';
-      ip.textContent=`🤝 ${_K} ${o.e} ${o.n} kaufen — ${$mt(o.p)} (von ${o.seller})`;
+      ip.textContent=`🤝 ${_K} ${o.e} ${o.n} (${RARITY_NAME[o.r]||'?'}) kaufen — ${$mt(o.p)} (von ${o.seller})`;
     }else if(this.nearSt){
       // Enter with E key only - handled in _interact
       ip.style.color='';ip.style.opacity='1';ip.style.pointerEvents='auto';
@@ -3305,7 +3369,11 @@ const ZG={
     const worldAngle=Math.atan2(-dx,-dz);
     let rel=worldAngle-this.yaw;
     rel=((rel+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; // normalize to [-π,π]
-    el.style.transform='rotate('+(rel*180/Math.PI)+'deg)';
+    // NEGATE: increasing yaw turns the camera LEFT (counter-clockwise), but
+    // CSS rotate() is clockwise-positive — without the flip, the arrow
+    // pointed to the mirror-image side of where the target actually was
+    // (reported as "points slightly right, enclosure is slightly left").
+    el.style.transform='rotate('+(-rel*180/Math.PI)+'deg)';
     if(distEl)distEl.textContent='🏠 '+Math.round(dist)+'m';
   },
 
@@ -4751,7 +4819,7 @@ const ZG={
       if(!State._useCloud())return;
       if(!_db)return;
       const _myPers=ZS._myPersonality();
-      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'main',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
+      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'main',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),carrying:this.carrying?{e:this.carrying.animal.e,n:this.carrying.animal.n}:null,x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
       // Only fetch players in OUR OWN instance — not the whole global pool.
       const snap = await Promise.race([
         _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'main').get(),
@@ -5680,6 +5748,7 @@ const ZP={
         const ic=ov.querySelector('#gift-anim-icon');
         if(ic){ ic.style.transform='translate(-50%,0) scale(1)'; ic.style.opacity='1'; }
         try{
+          if(typeof ZSound==='undefined' || ZSound.style==='off') throw new Error('muted');
           const ctx=new (window.AudioContext||window.webkitAudioContext)();
           [659,880,1108].forEach((freq,i)=>{
             const o=ctx.createOscillator(),g=ctx.createGain();
@@ -5758,7 +5827,9 @@ const ZP={
     ov.appendChild(cv);
     const ctx=cv.getContext('2d');
     // Sound
-    try{const ac=new(window.AudioContext||window.webkitAudioContext)();
+    try{
+      if(typeof ZSound==='undefined' || ZSound.style==='off') throw new Error('muted');
+      const ac=new(window.AudioContext||window.webkitAudioContext)();
       [1047,784,659,523,392,261,196,164,130].forEach((n,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(n,ac.currentTime+i*0.1);g.gain.setValueAtTime(0.07,ac.currentTime+i*0.1);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.1+0.4);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*0.1);o.stop(ac.currentTime+i*0.1+0.4);});
     }catch(e){}
     const stars=Array.from({length:300},()=>({angle:Math.random()*Math.PI*2,dist:100+Math.random()*Math.max(W,H)*0.6,speed:2+Math.random()*4,size:0.5+Math.random()*1.5,color:['#fff','#adf','#faf','#ffd'][Math.floor(Math.random()*4)]}));
@@ -5787,7 +5858,9 @@ const ZP={
     ov.appendChild(cv);
     const ctx=cv.getContext('2d');
     // Sound
-    try{const ac=new(window.AudioContext||window.webkitAudioContext)();
+    try{
+      if(typeof ZSound==='undefined' || ZSound.style==='off') throw new Error('muted');
+      const ac=new(window.AudioContext||window.webkitAudioContext)();
       [1047,784,659,523,392,261,196,164,130].forEach((n,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(n,ac.currentTime+i*0.1);g.gain.setValueAtTime(0.07,ac.currentTime+i*0.1);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.1+0.4);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*0.1);o.stop(ac.currentTime+i*0.1+0.4);});
     }catch(e){}
     const stars=Array.from({length:300},()=>({angle:Math.random()*Math.PI*2,dist:100+Math.random()*Math.max(W,H)*0.6,speed:2+Math.random()*4,size:0.5+Math.random()*1.5,color:['#fff','#adf','#faf','#ffd'][Math.floor(Math.random()*4)]}));
@@ -6641,7 +6714,7 @@ const ZP={
       this._myTrades=snap.docs.map(d=>({id:d.id,...d.data()}));
     }catch(e){ this._myTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
     if(!this._myTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
-    el.innerHTML=this._myTrades.map((o,i)=>`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" style="background:rgba(231,76,60,.4);color:#ff6b6b" onclick="ZP._cT(${i})">Zurück</button></div>`).join('');
+    el.innerHTML=this._myTrades.map((o,i)=>{const rar=o.r||o.d?.animal?.r;return`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div class="${RAR[rar]?.c||'rn'}" style="font-size:.68rem">${RAR[rar]?.n||''}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" style="background:rgba(231,76,60,.4);color:#ff6b6b" onclick="ZP._cT(${i})">Zurück</button></div>`;}).join('');
   },
   async _tA(el){
     if(typeof _db==='undefined'||!_db){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
@@ -6654,7 +6727,7 @@ const ZP={
     }catch(e){ this._availTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
     if(!this._availTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
     const total=(ZS.dsMT||0)+(ZS.zoo?.mt||0);
-    el.innerHTML=this._availTrades.map((o,i)=>`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">Von: ${o.seller}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" ${total<o.p?'disabled':''} onclick="ZP._bT(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`).join('');
+    el.innerHTML=this._availTrades.map((o,i)=>{const rar=o.r||o.d?.animal?.r;return`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div class="${RAR[rar]?.c||'rn'}" style="font-size:.68rem">${RAR[rar]?.n||''}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">Von: ${o.seller}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" ${total<o.p?'disabled':''} onclick="ZP._bT(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');
   },
   _tN(el){const z=ZS.zoo;const enc=z.enc.filter(e=>e);if(!enc.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Tiere.</div>';return;}el.innerHTML=enc.map(e=>{const i=z.enc.indexOf(e);return`<div class="ac" style="cursor:pointer" onclick="ZP._oT(${i})"><div style="font-size:1.8rem">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${RAR[e.animal.r]?.c||'rn'}" style="font-size:.7rem">${RAR[e.animal.r]?.n||''}</div></div><div style="font-size:.7rem;color:#FFD700">Anbieten →</div></div>`;}).join('');},
   _oT(i){
@@ -6666,7 +6739,7 @@ const ZP={
     // Pull the animal out of the enclosure right away — it's "on the
     // market stall" now, not with the seller (see comment above).
     z.enc[i]=null; ZG._encs(); ZS.save();
-    const doc={seller:ZS.player, sellerKey:ZS.player.toLowerCase(), n:enc.animal.n, e:enc.animal.e, p:price, sh:enc.shiny||null, tr:enc.traits||[], d:enc, createdAt:Date.now()};
+    const doc={seller:ZS.player, sellerKey:ZS.player.toLowerCase(), n:enc.animal.n, e:enc.animal.e, r:enc.animal.r, p:price, sh:enc.shiny||null, tr:enc.traits||[], d:enc, createdAt:Date.now()};
     _db.collection('zoo_trades').add(doc).then(()=>{
       this.toast(`✅ ${enc.animal.e} für ${$mt(price)} angeboten!`,2500);
       this._rTrade('m');
@@ -7375,6 +7448,7 @@ const ZSound = {
   },
   stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; },
   _playEventMusic(id){
+    if(this.style==='off') return;
     this._init();
     const c=this.ctx;if(!c)return;
     // Each event has a unique melody/motif
@@ -9423,6 +9497,7 @@ const ZTimer = {
 
   _sndTick(){
     try{
+      if(typeof ZSound==='undefined' || ZSound.style==='off') return;
       const ctx=new (window.AudioContext||window.webkitAudioContext)();
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.type='square';o.frequency.setValueAtTime(1000,ctx.currentTime);
@@ -9432,6 +9507,7 @@ const ZTimer = {
   },
   _sndBell(){
     try{
+      if(typeof ZSound==='undefined' || ZSound.style==='off') return;
       const ctx=new (window.AudioContext||window.webkitAudioContext)();
       [880,1108,1318].forEach((freq,i)=>{
         const o=ctx.createOscillator(),g=ctx.createGain();
