@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v333 -->
+<!-- ZOO v334 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -126,7 +126,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 /* Crosshair */
 #xhair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.7}
 /* Interact prompt */
-#iprompt{position:absolute;bottom:27%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;font-size:.85rem;font-weight:900;color:#FFD700;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:115}
+#iprompt{position:absolute;bottom:27%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:2px solid #FFD700;border-radius:50px;padding:8px 20px;font-size:.85rem;font-weight:900;color:#FFD700;opacity:0;transition:opacity .3s;pointer-events:none;cursor:pointer;white-space:nowrap;z-index:115}
 /* Event banner */
 #evb{position:absolute;top:0;left:0;right:0;text-align:center;padding:8px;font-size:.98rem;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);opacity:0;transition:opacity .5s;pointer-events:none}
 #bflash{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0;transition:opacity .08s}
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=333"></script>
-<script src="rewardchests.js?v=333"></script>
-<script src="personality.js?v=333"></script>
+<script src="lang.js?v=334"></script>
+<script src="rewardchests.js?v=334"></script>
+<script src="personality.js?v=334"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v333','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v334','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -304,7 +304,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="jzone"><div id="jbase"><div id="jthumb"></div></div></div>
 <!-- Crosshair -->
 <div id="xhair"><svg width="22" height="22" viewBox="0 0 22 22"><line x1="11" y1="2" x2="11" y2="9" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/><line x1="11" y1="13" x2="11" y2="20" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/><line x1="2" y1="11" x2="9" y2="11" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/><line x1="13" y1="11" x2="20" y2="11" stroke="rgba(255,255,255,.8)" stroke-width="1.5"/><circle cx="11" cy="11" r="2" fill="rgba(255,60,60,.9)"/></svg></div>
-<div id="iprompt">⬆ [E] Interagieren</div>
+<div id="iprompt" onclick="ZG._interact()">⬆ [E] Interagieren</div>
 <div id="evb"></div><div id="evt"></div>
 <div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
 <div id="home-arrow-wrap" style="position:absolute;top:118px;right:10px;width:100px;display:flex;flex-direction:column;align-items:center;pointer-events:none">
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=333"></script>
-<script src="worlds.js?v=333"></script>
+<script src="firebase-state.js?v=334"></script>
+<script src="worlds.js?v=334"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -889,6 +889,14 @@ const SLAPS=[
   {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true},
   {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true},
   {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true},
+];
+
+// TOOLS — unlocked via shop purchase (z.upg.<id>), not rebirth. Shown in
+// the SAME weapon bar as SLAPS (equip/unequip works identically via
+// equipSlap/z.eq) but behave completely differently when "fired" — see
+// slap()'s dispatch to _tryCatchNet() for the net.
+const TOOLS=[
+  {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:700},{e:2,l:1,u:0,g:0,m:0,s:0,mt:3500},{e:2,l:1,u:1,g:0,m:0,s:0,mt:17500},{e:3,l:2,u:1,g:1,m:0,s:0,mt:84000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:420000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:2100000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:10500000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:70000000}];return R[Math.min(n,R.length-1)];}
@@ -1500,6 +1508,19 @@ const ZG={
   },
 
   // ── CARRY SYSTEM ──
+  // The very first animal a player ever buys gets tagged as protected —
+  // _dropCarried() refuses to let it be knocked loose by a slap. Only
+  // fires once per zoo ever (z.firstAnimalBought is never reset, even by
+  // rebirth — see ZS._fix/rebirth logic elsewhere, this flag is
+  // deliberately NOT in the list of fields rebirth clears).
+  _tagFirstAnimal(data){
+    const z=ZS.zoo;
+    if(z && !z.firstAnimalBought){
+      z.firstAnimalBought=true;
+      data.protected=true;
+    }
+    return data;
+  },
   _startCarry(data){
     // data: {animal, shiny, traits, slot}
     this.carrying = data;
@@ -1523,7 +1544,7 @@ const ZG={
     if(z && z.enc[c.slot] && z.enc[c.slot].animal){
       // Already placed (e.g. by network)
     } else if(z) {
-      z.enc[c.slot] = {animal:{...c.animal},shiny:c.shiny,traits:c.traits||[],xm:1,addedAt:Date.now(),sl:0};
+      z.enc[c.slot] = {animal:{...c.animal},shiny:c.shiny,traits:c.traits||[],xm:1,addedAt:Date.now(),sl:0,protected:c.protected||false};
       this._encs();
       ZP.toast('🏠 '+c.animal.e+' '+c.animal.n+' hat Gehege '+(c.slot+1)+' erreicht!',2500);
       try{ ZNews.push('animal_arrived', {animal:c.animal.n, emoji:c.animal.e}); }catch(e){}
@@ -1543,6 +1564,14 @@ const ZG={
   _dropCarried(slapper){
     if(!this.carrying) return;
     const c = this.carrying;
+    // Protected: the very first animal a player ever buys can never be
+    // knocked loose this way — explicitly requested so a brand-new player
+    // can't lose their only animal before they've even had a chance to
+    // buy a net.
+    if(c.protected){
+      ZP.toast('🛡️ '+c.animal.e+' '+c.animal.n+' ist geschützt — dein erstes Tier kann nicht geklaut werden!',3000);
+      return;
+    }
     this.carrying = null;
     if(this.carryTimer){ clearTimeout(this.carryTimer); this.carryTimer=null; }
     // Drop at current position
@@ -1553,12 +1582,25 @@ const ZG={
       animal: c.animal, shiny: c.shiny, traits: c.traits||[],
       slot: c.slot, x, z: z2,
       expiresAt: Date.now()+60000,
-      droppedBy: ZS.player, slappedBy: slapper
+      droppedBy: ZS.player, slappedBy: slapper,
+      // Wander: this client "owns" the roam simulation for its own drop
+      // (see _tickWander) and periodically pushes new positions to
+      // Firestore so other players see it move too.
+      wanderCx:x, wanderCz:z2, wanderTx:x, wanderTz:z2, wanderOwner:true, _lastWanderPush:0,
     };
     this.droppedAnimals.push(dropped);
     this._spawnDroppedMesh(dropped); // optimistic — shows instantly for the dropper
     ZP.toast('💥 '+c.animal.e+' '+c.animal.n+' fallen gelassen! Schnell aufheben!',3000);
     this._updCarryHUD();
+    // Auto-equip the net for whoever just lost the animal — a small head
+    // start (they don't have to fumble with the weapon bar first) — but
+    // only if they actually own one; if not, this is exactly the moment
+    // the "buy a net early" tip is for.
+    const z=ZS.zoo;
+    if(z){
+      if(z.upg?.net){ z.eq='net'; this._updWBar(); ZP.toast('🥅 Fangnetz ausgerüstet!',1500); }
+      else{ ZP.toast('🥅 Kein Fangnetz! Kauf eins im Shop (100 MT), um entlaufene Tiere zurückzufangen.',3500); }
+    }
     // Remove after 60s if not picked up (local fallback timer — _syncDropped
     // also cleans up expired docs for everyone else)
     setTimeout(()=>{
@@ -1612,9 +1654,17 @@ const ZG={
         const d=doc.data();
         seenIds.add(doc.id);
         if((d.expiresAt||0)<=now){ toDelete.push(doc.id); return; }
-        if(this.droppedAnimals.some(x=>x.id===doc.id)) return; // already tracked
+        const existing=this.droppedAnimals.find(x=>x.id===doc.id);
+        if(existing){
+          // Already tracked — if it's NOT ours (we're not simulating its
+          // wander locally), pull the latest position so _tickWander can
+          // smoothly drift the mesh toward it. Our own drops keep pushing
+          // to Firestore, not pulling from it, so skip those.
+          if(!existing.wanderOwner){ existing.x=d.x; existing.z=d.z; }
+          return;
+        }
         const dropped={id:doc.id, animal:d.animal, shiny:d.shiny, traits:d.traits||[],
-          x:d.x, z:d.z, expiresAt:d.expiresAt, droppedBy:d.droppedBy, slappedBy:d.slappedBy};
+          x:d.x, z:d.z, expiresAt:d.expiresAt, droppedBy:d.droppedBy, slappedBy:d.slappedBy, wanderOwner:false};
         this.droppedAnimals.push(dropped);
         this._spawnDroppedMesh(dropped);
       });
@@ -1630,6 +1680,37 @@ const ZG={
       // Best-effort cleanup of expired docs — whichever client notices first deletes it.
       toDelete.forEach(id=>_db.collection('zoo_dropped').doc(id).delete().catch(()=>{}));
     }catch(e){}
+  },
+  // Slow random-walk for freed animals — the owner's client (whoever's
+  // drop this is) simulates the movement and throttles pushes of the new
+  // position to Firestore (every 1.5s, not every frame) so other players'
+  // clients — which just smoothly drift their local copy toward whatever
+  // position they last received — see it wander too, not just sit still.
+  _tickWander(dtSec){
+    if(!this.droppedAnimals.length) return;
+    const speed=1.1; // slow — this is meant to be catchable, not a chase across the map
+    const now=Date.now();
+    this.droppedAnimals.forEach(d=>{
+      if(d.wanderOwner){
+        if(d.wanderTx===undefined){ d.wanderCx=d.x; d.wanderCz=d.z; d.wanderTx=d.x; d.wanderTz=d.z; }
+        const dx=d.wanderTx-d.x, dz=d.wanderTz-d.z, dist=Math.sqrt(dx*dx+dz*dz);
+        if(dist<0.3){
+          const ang=Math.random()*Math.PI*2, r=1+Math.random()*4;
+          d.wanderTx=d.wanderCx+Math.cos(ang)*r;
+          d.wanderTz=d.wanderCz+Math.sin(ang)*r;
+        }else{
+          d.x+=dx/dist*speed*dtSec; d.z+=dz/dist*speed*dtSec;
+        }
+        if(d.mesh) d.mesh.position.set(d.x,0,d.z);
+        if(d.id && now-(d._lastWanderPush||0)>1500){
+          d._lastWanderPush=now;
+          _db.collection('zoo_dropped').doc(d.id).update({x:d.x,z:d.z}).catch(()=>{});
+        }
+      }else if(d.mesh){
+        d.mesh.position.x+=(d.x-d.mesh.position.x)*0.06;
+        d.mesh.position.z+=(d.z-d.mesh.position.z)*0.06;
+      }
+    });
   },
   // Show up to 5 active zoo_trades offers physically at the marketplace
   // stalls (see _marketplace()) — same data as the 2D Tauschen panel's
@@ -1696,17 +1777,11 @@ const ZG={
     const now = Date.now();
     for(let i=this.droppedAnimals.length-1;i>=0;i--){
       const d = this.droppedAnimals[i];
-      // Animate bounce
-      if(d.mesh){ d.bounceT=(d.bounceT||0)+0.05; d.mesh.position.y=0.8+Math.abs(Math.sin(d.bounceT))*1.2; d.mesh.rotation.y=(d.bounceT||0); }
+      // Bounce animation (Y axis only — X/Z is driven by _tickWander's roam movement)
+      if(d.mesh){ d.bounceT=(d.bounceT||0)+0.05; d.mesh.position.y=Math.abs(Math.sin(d.bounceT))*1.2; d.mesh.rotation.y=(d.bounceT||0); }
       if(now > d.expiresAt){ this.droppedAnimals.splice(i,1); if(d.mesh&&this.scene)this.scene.remove(d.mesh); continue; }
-      const dx=this.pl.x-d.x, dz=this.pl.z-d.z;
-      const dist=Math.sqrt(dx*dx+dz*dz);
-      // Show prompt when nearby
-      if(dist<5){
-        const ip=G('iprompt');
-        if(ip){ ip.textContent='[E] '+d.animal.e+' '+d.animal.n+' aufheben!'; ip.style.opacity='1'; ip.style.color='#FFD700'; }
-        this._nearDropped = i;
-      }
+      // NOTE: no more free [E] pickup here — catching a roaming animal now
+      // requires the 🥅 net tool (see _tryCatchNet), bought in the shop.
     }
   },
   _pickupDropped(idx){
@@ -3125,41 +3200,51 @@ const ZG={
     // ambiguity entirely: the displayed text always matches what's
     // actually true on that exact frame, on every device.
     const ip=G('iprompt');
+    // Touch devices have no [E] key at all — this prompt is now itself
+    // tappable (see the onclick on #iprompt and the pointer-events toggle
+    // below), so on touch it shows a tap icon instead of a keyboard hint
+    // that would be actively misleading (there IS no E key to press).
+    // Previously EVERY interaction in the game — gondola, enclosures,
+    // lucky wheel, trapdoor, lucky blocks, picking up a dropped animal,
+    // market stalls — was only reachable via the keydown listener for
+    // KeyE, with no touch equivalent anywhere. Mobile players had no way
+    // to trigger ANY of these at all.
+    const _isTouch=('ontouchstart' in window);
+    const _K=_isTouch?'👆':'[E]';
     const _trapdoorNear = this._trapdoorPos && !SECRETS.unlocked['trapdoor'] && Math.sqrt((this.pl.x-this._trapdoorPos.x)**2+(this.pl.z-this._trapdoorPos.z)**2)<3;
     const _nearBlock = LuckyBlocks.getNearBlock();
     if(_carryDropSlot>=0){
-      ip.style.opacity='1';ip.style.color='#2ecc71';
-      ip.textContent='🏠 [E] '+_carryDropAnimal.e+' '+_carryDropAnimal.n+' in Gehege '+(_carryDropSlot+1)+' ablegen!';
+      ip.style.opacity='1';ip.style.pointerEvents='auto';ip.style.color='#2ecc71';
+      ip.textContent='🏠 '+_K+' '+_carryDropAnimal.e+' '+_carryDropAnimal.n+' in Gehege '+(_carryDropSlot+1)+' ablegen!';
     }else if(_trapdoorNear){
-      ip.style.opacity='1';ip.style.color='rgba(255,255,255,.2)'; // Very subtle - mystery!
-      ip.textContent='❓ [E]';
+      ip.style.opacity='1';ip.style.pointerEvents='auto';ip.style.color='rgba(255,255,255,.2)'; // Very subtle - mystery!
+      ip.textContent='❓ '+_K;
     }else if(_nearBlock){
-      ip.style.opacity='1';
+      ip.style.opacity='1';ip.style.pointerEvents='auto';
       ip.style.color=_nearBlock.rarity==='secret'?'#888':_nearBlock.rarity==='mythic'?'#ff69b4':'#FFD700';
-      ip.textContent=`📦 [E] ${LuckyBlocks.NAMES[_nearBlock.rarity]} Glücksblock öffnen!`;
+      ip.textContent=`📦 ${_K} ${LuckyBlocks.NAMES[_nearBlock.rarity]} Glücksblock öffnen!`;
     }else if(this.nearEnc>=0){
-      ip.style.color='';ip.style.opacity='1';ip.textContent=`🏠 [E] Gehege #${this.nearEnc+1}`;
+      ip.style.color='';ip.style.opacity='1';ip.style.pointerEvents='auto';ip.textContent=`🏠 ${_K} Gehege #${this.nearEnc+1}`;
     }else if(this._nearMarketStall>=0){
       const o=this._marketOffers[this._nearMarketStall];
-      ip.style.color='#FFD700';ip.style.opacity='1';
-      ip.textContent=`🤝 [E] ${o.e} ${o.n} kaufen — ${$mt(o.p)} (von ${o.seller})`;
+      ip.style.color='#FFD700';ip.style.opacity='1';ip.style.pointerEvents='auto';
+      ip.textContent=`🤝 ${_K} ${o.e} ${o.n} kaufen — ${$mt(o.p)} (von ${o.seller})`;
     }else if(this.nearSt){
       // Enter with E key only - handled in _interact
-      ip.style.color='';ip.style.opacity='1';
-      ip.textContent=(typeof t!=='undefined'?t('zoo.gondola_enter'):'🚪 Gondel-Station (hineinlaufen)');
+      ip.style.color='';ip.style.opacity='1';ip.style.pointerEvents='auto';
+      ip.textContent=_isTouch?'🚪👆 Gondel-Station betreten':(typeof t!=='undefined'?t('zoo.gondola_enter'):'🚪 Gondel-Station (hineinlaufen)');
     }else if(this._nearWheel){
-      ip.style.color='';ip.style.opacity='1';
+      ip.style.color='';ip.style.opacity='1';ip.style.pointerEvents='auto';
       if(_wheelJustEntered){
-        const isTouch=('ontouchstart' in window);
-        ip.textContent=isTouch?'🍀 Glücksrad antippen!':'🍀 [E] oder klicken — Glücksrad';
+        ip.textContent=_isTouch?'🍀 Glücksrad antippen!':'🍀 [E] oder klicken — Glücksrad';
       }else if(LW.spins>0){
-        ip.textContent='🍀 [E] '+LW.W.name+' ('+LW.spins+' Spin'+(LW.spins>1?'s':'')+' verfügbar!)';
+        ip.textContent='🍀 '+_K+' '+LW.W.name+' ('+LW.spins+' Spin'+(LW.spins>1?'s':'')+' verfügbar!)';
       }else{
         const minsLeft=Math.ceil(20-(Date.now()-LW._st)/60000);
         ip.textContent='🍀 Glücksrad — nächster Spin in '+(minsLeft>0?minsLeft:0)+' Min';
       }
     }else{
-      ip.style.opacity='0';
+      ip.style.opacity='0';ip.style.pointerEvents='none';
     }
   },
 
@@ -3258,6 +3343,7 @@ const ZG={
     if(!z.enc)return;
     ZS._fix();
     this.visitT+=100;
+    this._tickWander(0.1);
     if(this.visitT>=Math.min(ZS.visitMs(),5000)){this.visitT=0;this._visitor();}
     if(this.slapCD>0)this.slapCD-=100;
     this._updEvTimer(); this._updHUD();
@@ -3808,11 +3894,38 @@ const ZG={
     if(this._nearSweeper){Sweeper.open();return;}
   },
 
+  _useTool(sl){
+    this.slapCD=sl.cd;
+    this._updWBar();
+    if(sl.id==='net'){ this._tryCatchNet(); }
+  },
+
+  // Catch a roaming (dropped-and-freed) animal within range — same
+  // proximity-based interaction as slap() (no precise aim needed, just be
+  // close and have the net equipped). Whoever gets there first keeps it;
+  // works from ANY player's own dropped-animal list since roaming animals
+  // are synced via zoo_dropped and visible/catchable by everyone (see
+  // _syncDropped/_syncMarketStalls pattern).
+  _tryCatchNet(){
+    const myX=this.pl.x, myZ=this.pl.z;
+    let closest=-1, closestD=8; // catch range, a bit more forgiving than slap's 8 since the target is small & moving
+    this.droppedAnimals.forEach((d,i)=>{
+      const dist=Math.sqrt((d.x-myX)**2+(d.z-myZ)**2);
+      if(dist<closestD){closestD=dist;closest=i;}
+    });
+    if(closest<0){ ZP.toast('🥅 Kein entlaufenes Tier in der Nähe!',1200); return; }
+    ZSound.slap();
+    const fl=G('bflash');if(fl){fl.style.background='#8B5A2B33';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);}
+    this._pickupDropped(closest);
+    ZP.toast('🥅 Gefangen!',1500);
+  },
+
   // ═══ SLAP SYSTEM ═══
   slap(){
     const z=ZS.zoo;if(!z)return;
     if(this.slapCD>0){ZP.toast('⏳ '+(Math.ceil(this.slapCD/100)/10)+'s',600);return;}
-    const sl=SLAPS.find(s=>s.id===(z.eq||'basic'))||SLAPS[0];
+    const sl=SLAPS.find(s=>s.id===(z.eq||'basic'))||TOOLS.find(s=>s.id===z.eq)||SLAPS[0];
+    if(sl.isTool){ this._useTool(sl); return; }
     this.slapCD=sl.cd;
     ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
     ZP.toast(sl.e+' '+sl.n+'!',700);
@@ -4076,8 +4189,9 @@ const ZG={
     if((z.lslaps||0)>0&&!owned.includes('lucky'))owned.push('lucky');
     z.ownSlaps=owned;
     const eq=z.eq||'basic';
-    // Only show OWNED slaps (+ basic always)
-    const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id));
+    // Only show OWNED slaps (+ basic always) plus any purchased tools (net)
+    const visibleTools = TOOLS.filter(tl => z.upg?.[tl.id]);
+    const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id)).concat(visibleTools);
     el.innerHTML = visibleSlaps.map(sl => {
       const isEq = sl.id === eq;
       const onCD = isEq && this.slapCD > 0;
@@ -5274,6 +5388,13 @@ const ZTips = {
         en: '💡 Tip: Other players can "slap" you while carrying to make you drop the animal — and vice versa! Check the weapons bar at the bottom.',
         fr: '💡 Astuce : d\'autres joueurs peuvent te « frapper » pendant que tu portes un animal pour le faire tomber — et vice versa ! Regarde la barre d\'armes en bas.',
       } },
+    { id:'buy_net',      when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=1 && !ZS.zoo?.upg?.net,
+      msg: {
+        de: '💡 Kauf dir gleich JETZT im Shop ein 🥅 Fangnetz für nur 100 MT! Ein fallen gelassenes Tier läuft weg und kann nur mit Netz zurückgefangen werden — dein allererstes Tier ist zwar geschützt, aber alle danach nicht.',
+        de_simple: '💡 Kauf dir gleich JETZT im Shop ein 🥅 Fangnetz für nur 100 MT! Ein fallen gelassenes Tier läuft weg und kann nur mit Netz zurückgefangen werden — dein allererstes Tier ist zwar geschützt, aber alle danach nicht.',
+        en: '💡 Buy a 🥅 net in the shop RIGHT NOW — only 100 MT! A dropped animal runs off and can only be recaptured with a net. Your very first animal is protected, but none after that.',
+        fr: '💡 Achète MAINTENANT un 🥅 filet dans la boutique — seulement 100 MT ! Un animal lâché s\'enfuit et ne peut être rattrapé qu\'avec un filet — ton tout premier animal est protégé, mais aucun après.',
+      } },
     { id:'gold',
       msg: {
         de: '💡 Nutze die ⚗️ Goldmaschine, um deine Tiere aufzuwerten!',
@@ -5841,7 +5962,7 @@ const ZP={
     // EGG: show crack-open animation instead of carry
     if(g.a.isEgg){ this.close('gond'); this._openGondolaEgg(g.a); return; }
     // CARRY mechanic: player must carry the animal to the enclosure (can be slapped → drops)
-    ZG._startCarry({animal:{...g.a},shiny:g.sh,traits:g.tr,slot});
+    ZG._startCarry(ZG._tagFirstAnimal({animal:{...g.a},shiny:g.sh,traits:g.tr,slot}));
     try{ZG._broadcastAnimalWalk(g.a, slot);}catch(e){}
     this.close('gond');
     this.toast('🐾 '+g.a.e+' '+g.a.n+' gekauft! Trage es zum Gehege '+(slot+1)+'! (Vorsicht: andere können dich slappen!)',3500);
@@ -6002,7 +6123,7 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
+  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:100},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
     IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'2000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});el.innerHTML=IT.map(item=>{
       if(item.insurance){
         const active=z.insuranceActive;
@@ -6027,6 +6148,7 @@ const ZP={
       if(z.insuranceActive){z.insuranceActive=false;z.insuranceUntil=0;this.toast('🛡️ Versicherung gekündigt.');}
       else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 2000 MT alle 5 Min.');}
     }
+    else if(id==='net'){if(!z.upg)z.upg={};z.upg.net=true;this.toast('🥅 Fangnetz gekauft! Jetzt in der Waffenleiste wählbar.',3000);try{ZG._updWBar&&ZG._updWBar();}catch(e){}}
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
     ZS.save&&ZS.save();this._sZ(G('scont'));ZG._updHUD();this._updShopBal();},
   // The shop header's "MT: X" balance used to only ever get set once, when
@@ -6738,7 +6860,7 @@ const ZP={
     ZG.gQ.push(ZG._mkG());
     ZG._broadcastAnimalWalk(g.a,slot); SECRETS.trackBuy();
     // START CARRYING — player carries animal to enclosure
-    ZG._startCarry({animal:{...g.a},shiny:g.sh,traits:g.tr,slot});
+    ZG._startCarry(ZG._tagFirstAnimal({animal:{...g.a},shiny:g.sh,traits:g.tr,slot}));
     ZG._encs();
     ZP.toast('🐾 '+g.a.e+' '+g.a.n+' auf dem Weg! Trage es ins Gehege '+(slot+1)+'! (50% langsamer)',3000);
     ZG._updHUD();
