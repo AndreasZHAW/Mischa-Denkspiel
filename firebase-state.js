@@ -1270,8 +1270,58 @@ window.RankNotify = RankNotify;
 // takes for someone to open the app after 18:00. After the freeze window,
 // everything resumes live, including whatever was earned during the freeze.
 const Contest = {
-  START: new Date(2026, 6, 21, 18, 0, 0).getTime(),   // TEMP TEST VALUE: 21.07.2026 18:00 — remind to revert to 14.08.2026 18:00!
-  END:   new Date(2026, 6, 23, 18, 0, 0).getTime(),    // TEMP TEST VALUE: 23.07.2026 18:00 (2 Tage später) — remind to revert to 16.08.2026 18:00!
+  // Fallback values, used until loadConfig() resolves (or if no admin
+  // config has ever been saved yet). Once an admin sets a deadline via the
+  // Admin Panel's 📅 Deadline tab, these get overridden from Firestore —
+  // no more manually editing/redeploying this file for every event.
+  START: new Date(2026, 6, 21, 18, 0, 0).getTime(),
+  END:   new Date(2026, 6, 23, 18, 0, 0).getTime(),
+  _configLoaded: false,
+
+  // Loads config/contest_settings ({start, freezeDurationMs}) from
+  // Firestore, once. Safe to call multiple times/from multiple places
+  // (zoo.html + index.html both call this on boot) — only the first
+  // successful load actually does anything.
+  async loadConfig() {
+    if (this._configLoaded) return;
+    try {
+      if (typeof _db === 'undefined' || !_db) return;
+      const doc = await _db.collection('config').doc('contest_settings').get();
+      if (doc.exists) {
+        const d = doc.data();
+        if (typeof d.start === 'number') this.START = d.start;
+        if (typeof d.freezeDurationMs === 'number') this.END = this.START + d.freezeDurationMs;
+        this._configLoaded = true;
+      }
+    } catch (e) {}
+  },
+
+  // Admin Panel: save a new deadline + freeze duration, apply it
+  // immediately locally, and notify every player. durationMs is how long
+  // the leaderboard stays frozen AFTER the deadline hits (previously
+  // always a hardcoded 2 days).
+  async saveConfig(startMs, freezeDurationMs) {
+    this.START = startMs;
+    this.END = startMs + freezeDurationMs;
+    this._configLoaded = true;
+    if (typeof _db === 'undefined' || !_db) throw new Error('Keine Cloud-Verbindung');
+    await _db.collection('config').doc('contest_settings').set({
+      start: startMs, freezeDurationMs, updatedAt: Date.now(), updatedBy: (typeof ZS!=='undefined'?ZS.player:null)||(typeof State!=='undefined'?State.currentPlayer?.name:null)||'admin',
+    });
+    // Invalidate any previously-frozen snapshot — it was computed for the
+    // OLD deadline and would otherwise keep showing stale results under
+    // the new one.
+    try { await _db.collection('config').doc('contest_result').delete(); } catch (e) {}
+    // Notify everyone — reuses the same news-ticker mechanism as other
+    // announcements (see ZNews in zoo.html); harmless no-op if that
+    // collection isn't reachable from this page.
+    try {
+      await _db.collection('zoo_news').add({
+        type: 'deadline_set', player: 'admin', ts: Date.now(),
+        startMs, freezeDurationMs,
+      });
+    } catch (e) {}
+  },
 
   phase() {
     const now = Date.now();

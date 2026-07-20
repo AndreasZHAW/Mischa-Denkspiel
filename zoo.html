@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v338 -->
+<!-- ZOO v342 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=338"></script>
-<script src="rewardchests.js?v=338"></script>
-<script src="personality.js?v=338"></script>
+<script src="lang.js?v=342"></script>
+<script src="rewardchests.js?v=342"></script>
+<script src="personality.js?v=342"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v338','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v342','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=338"></script>
-<script src="worlds.js?v=338"></script>
+<script src="firebase-state.js?v=342"></script>
+<script src="worlds.js?v=342"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1301,6 +1301,10 @@ const ZG={
   },
 
   start(){
+    // Load the admin-configurable contest deadline (Firestore config/contest_settings)
+    // as early as possible, non-blocking — falls back to the hardcoded
+    // Contest.START/END below until it resolves.
+    try{ if(typeof Contest!=='undefined') Contest.loadConfig(); }catch(e){}
     // Check THREE.js loaded
     // ── DEBUG PANEL ──
     const _dbg = document.createElement('div');
@@ -1905,7 +1909,17 @@ const ZG={
         cind.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:2px solid #FFD700;border-radius:30px;padding:7px 18px;font-size:.9rem;font-weight:900;color:#FFD700;z-index:300;pointer-events:none;text-align:center';
         document.getElementById('s-zoo')?.appendChild(cind);
       }
-      cind.textContent = '🐾 Trägst: '+this.carrying.animal.e+' '+this.carrying.animal.n+' → Gehege '+(this.carrying.slot+1)+' | 50% 🐌';
+      // Was showing a hardcoded "50%" regardless of the actual carry speed
+      // penalty (now 70% slower, see carry_mod in _move). More importantly:
+      // now also shows a 🛡️ badge when this is the PROTECTED first-ever
+      // animal — every admin "Reset" wipes z.firstAnimalBought, so the
+      // very next animal bought after ANY reset becomes newly protected.
+      // If testing repeatedly right after resets, you'd always be
+      // carrying a protected animal and slaps would never drop it —
+      // exactly as designed, but easy to mistake for a bug without this
+      // being visible anywhere.
+      const isProtected = this.carrying.protected;
+      cind.textContent = '🐾 Trägst: '+this.carrying.animal.e+' '+this.carrying.animal.n+' → Gehege '+(this.carrying.slot+1)+' | 70% 🐌'+(isProtected?' · 🛡️ geschützt':'');
       cind.style.display='block';
     } else {
       if(cind) cind.style.display='none';
@@ -3061,7 +3075,7 @@ const ZG={
       this._stunType=null;
     }
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
-    const carry_mod=this.carrying?0.8:1.2; // 20% slower carrying, 20% faster empty-handed — widens the chase gap
+    const carry_mod=this.carrying?0.3:1.2; // 70% slower carrying (50% + 20% more), 20% faster empty-handed — widens the chase gap
     const trash_mod=this._trashActive?(this._trashSpeedMul||0.5):1; // injured = slow in trash room
     // Base speed doubled (14/24 instead of 7/12) — the v320 ring-layout
     // enlarged the walkable map (WR 45→180, RING_R 45→140) but movement
@@ -5256,6 +5270,12 @@ const ZNews = {
 
   // Localized message templates. {ph} placeholders get substituted.
   TEMPLATES: {
+    deadline_set: {
+      de: '📅 Admin hat den Rangliste-Stichtag neu gesetzt!',
+      de_simple: '📅 Admin hat den Rangliste-Stichtag neu gesetzt!',
+      en: '📅 Admin set a new leaderboard deadline!',
+      fr: '📅 L\'admin a fixé une nouvelle date limite pour le classement !',
+    },
     animal_bought: {
       de: '🛒 {player} hat {animal} {emoji} gekauft und trägt es in den Zoo!',
       de_simple: '🛒 {player} hat {animal} {emoji} gekauft und trägt es in den Zoo!',
@@ -8013,6 +8033,7 @@ const ZAdmin = {
     if(tab==='announce')ZP._loadAnnStatus();
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
+    if(tab==='deadline')this._populateDeadlineTab();
     if(tab==='timer')this._loadTimerStatus();
     if(tab==='spieler')this._loadPlayersTab();
   },
@@ -8972,6 +8993,64 @@ const ZAdmin = {
   },
 
   // ── GLOBAL TIMER (visible to all players, persisted in Firebase) ──
+  // ── DEADLINE TAB ── Calendar picker for Contest.START + a freeze-duration
+  // picker, replacing what used to be hardcoded values in firebase-state.js
+  // that needed a code edit + redeploy for every event. Contest.saveConfig()
+  // (firebase-state.js) does the actual write + player notification; this
+  // is just the UI around it.
+  async _populateDeadlineTab(){
+    try{ if(typeof Contest!=='undefined') await Contest.loadConfig(); }catch(e){}
+    const startInput=document.getElementById('padmin-deadline-start');
+    const hoursInput=document.getElementById('padmin-deadline-hours');
+    const presetSel=document.getElementById('padmin-deadline-preset');
+    const cur=document.getElementById('padmin-deadline-current');
+    if(!startInput||typeof Contest==='undefined')return;
+    // datetime-local wants "YYYY-MM-DDTHH:mm" in LOCAL time (no timezone conversion)
+    const toLocalInput=(ms)=>{
+      const d=new Date(ms);
+      const pad=n=>String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    startInput.value=toLocalInput(Contest.START);
+    const freezeHours=Math.round((Contest.END-Contest.START)/3600000);
+    const presetMatch=[6,24,48,72,168].includes(freezeHours);
+    presetSel.value=presetMatch?String(freezeHours):'custom';
+    hoursInput.value=freezeHours;
+    hoursInput.style.display=presetMatch?'none':'block';
+    const fmt=(ms)=>new Date(ms).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const phase=Contest.phase?Contest.phase():'?';
+    const phaseLabel={countdown:'⏳ Countdown läuft',frozen:'❄️ Aktuell eingefroren',ended:'✅ Vorbei'}[phase]||phase;
+    cur.innerHTML=`<b>Aktuell aktiv:</b> Stichtag ${fmt(Contest.START)} → eingefroren bis ${fmt(Contest.END)}<br>${phaseLabel}`;
+  },
+  _deadlinePresetChange(){
+    const presetSel=document.getElementById('padmin-deadline-preset');
+    const hoursInput=document.getElementById('padmin-deadline-hours');
+    if(presetSel.value==='custom'){ hoursInput.style.display='block'; }
+    else{ hoursInput.style.display='none'; hoursInput.value=presetSel.value; }
+  },
+  async saveDeadline(){
+    const startInput=document.getElementById('padmin-deadline-start');
+    const presetSel=document.getElementById('padmin-deadline-preset');
+    const hoursInput=document.getElementById('padmin-deadline-hours');
+    const statusEl=document.getElementById('padmin-deadline-status');
+    if(!startInput.value){ statusEl.textContent='❌ Bitte Datum + Uhrzeit wählen.'; statusEl.style.color='#e74c3c'; return; }
+    const startMs=new Date(startInput.value).getTime();
+    if(isNaN(startMs)){ statusEl.textContent='❌ Ungültiges Datum.'; statusEl.style.color='#e74c3c'; return; }
+    const hours=presetSel.value==='custom'?parseFloat(hoursInput.value):parseFloat(presetSel.value);
+    if(!hours||hours<=0){ statusEl.textContent='❌ Bitte gültige Stundenzahl für die Freeze-Dauer angeben.'; statusEl.style.color='#e74c3c'; return; }
+    const freezeDurationMs=hours*3600000;
+    if(!(await showConfirm('📅 Neuen Stichtag auf '+new Date(startMs).toLocaleString('de-CH')+' setzen? Alle Spieler bekommen sofort eine Meldung.')))return;
+    statusEl.textContent='⏳ Speichere...'; statusEl.style.color='rgba(255,255,255,.5)';
+    try{
+      await Contest.saveConfig(startMs, freezeDurationMs);
+      statusEl.textContent='✅ Gespeichert — Stichtag: '+new Date(startMs).toLocaleString('de-CH')+', eingefroren für '+hours+'h danach.';
+      statusEl.style.color='#27AE60';
+      this._populateDeadlineTab();
+    }catch(e){
+      statusEl.textContent='❌ Fehler: '+e.message;
+      statusEl.style.color='#e74c3c';
+    }
+  },
   async startTimer(){
     const title=(document.getElementById('padmin-timer-title')?.value||'').trim()||'⏱️ Timer';
     const min=parseInt(document.getElementById('padmin-timer-min')?.value||'0')||0;
@@ -11264,6 +11343,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
           <div class="padmin-tab-btn" data-tab="spieler" onclick="ZAdmin.switchTab('spieler')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">👥 Spieler</div>
           <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#e67e22;display:flex;align-items:center;gap:6px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px">⏱️ Timer</div>
+          <div class="padmin-tab-btn" data-tab="deadline" onclick="ZAdmin.switchTab('deadline')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#9b59b6;display:flex;align-items:center;gap:6px;background:rgba(155,89,182,.1);border:1px solid rgba(155,89,182,.3);border-radius:6px">📅 Deadline</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
           <div class="padmin-tab-btn" data-tab="belohnungen" onclick="ZAdmin.switchTab('belohnungen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎁 Belohnungen</div>
@@ -11636,7 +11716,37 @@ window.ZooEvents = ZooEvents;
           </div>
         </div>
 
-        <div class="padmin-tab" id="padmin-tab-announce" style="display:none">
+        <div class="padmin-tab" id="padmin-tab-deadline" style="display:none">
+          <div class="padmin-section-title">📅 Rangliste-Deadline (Stichtag)</div>
+          <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:12px">
+            <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:10px;line-height:1.4">
+              Ab dem gewählten Zeitpunkt friert die Rangliste ein (Momentaufnahme, ändert sich nicht mehr)
+              und bleibt für die gewählte Dauer eingefroren — genau wie bisher, nur jetzt ohne Code-Änderung.
+              Beim Speichern bekommen alle Spieler sofort eine Ticker-Meldung, und ein evtl. altes eingefrorenes
+              Ergebnis wird verworfen.
+            </div>
+            <div id="padmin-deadline-current" style="background:rgba(155,89,182,.12);border:1px solid rgba(155,89,182,.3);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:.75rem;color:#c39bd3"></div>
+            <label style="display:block;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:4px">Stichtag (Datum + Uhrzeit)</label>
+            <input id="padmin-deadline-start" type="datetime-local"
+              style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 10px;border-radius:8px;font-size:.85rem;box-sizing:border-box;margin-bottom:10px">
+            <label style="display:block;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:4px">Wie lange danach eingefroren bleiben?</label>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <select id="padmin-deadline-preset" onchange="ZAdmin._deadlinePresetChange()"
+                style="flex:1;min-width:140px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.85rem">
+                <option value="6">6 Stunden</option>
+                <option value="24">1 Tag</option>
+                <option value="48" selected>2 Tage</option>
+                <option value="72">3 Tage</option>
+                <option value="168">7 Tage</option>
+                <option value="custom">Eigene Stundenzahl...</option>
+              </select>
+              <input id="padmin-deadline-hours" type="number" min="1" max="720" value="48"
+                style="width:90px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.85rem;text-align:center;display:none">
+            </div>
+            <button onclick="ZAdmin.saveDeadline()" style="width:100%;background:linear-gradient(135deg,#9b59b6,#6c3483);color:#fff;border:none;padding:10px;border-radius:10px;font-weight:900;cursor:pointer;font-size:.85rem">💾 Deadline speichern &amp; alle benachrichtigen</button>
+            <div id="padmin-deadline-status" style="margin-top:10px;font-size:.78rem;color:rgba(255,255,255,.5)"></div>
+          </div>
+        </div>
           <div class="padmin-section-title">📢 Event-Ankündigung</div>
 
           <!-- Live Preview (like the user's screenshot) -->
