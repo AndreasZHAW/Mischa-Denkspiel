@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v336 -->
+<!-- ZOO v337 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=336"></script>
-<script src="rewardchests.js?v=336"></script>
-<script src="personality.js?v=336"></script>
+<script src="lang.js?v=337"></script>
+<script src="rewardchests.js?v=337"></script>
+<script src="personality.js?v=337"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v336','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v337','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -450,7 +450,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     </div>
   </div>
 </div>
-<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button></div><div id="scont"></div>
+<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button></div><div id="scont"></div>
   <!-- Secret admin access field -->
   <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
     <input id="shop-admin-pw" type="password" placeholder="🔐 Code eingeben..." maxlength="30"
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=336"></script>
-<script src="worlds.js?v=336"></script>
+<script src="firebase-state.js?v=337"></script>
+<script src="worlds.js?v=337"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -628,13 +628,6 @@ const ANIMALS=[
   {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:16000,earn:2700},{id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:20000,earn:3500},
   {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
   {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
-  // ── LUCKY EGGS (appear in gondola like normal animals, open with crack animation) ──
-  // Weights match equivalent animals: Normal like Katze, Selten like Wolf, etc.
-  {id:'egg_normal',    n:'Normal-Ei',    e:'🥚',r:'normal',        w:40,   p:800,   earn:0,isEgg:true,eggRar:'normal'},
-  {id:'egg_rare',      n:'Seltenes Ei',  e:'🥚',r:'rare',          w:2,    p:2500,  earn:0,isEgg:true,eggRar:'rare'},
-  {id:'egg_epic',      n:'Episches Ei',  e:'🥚',r:'epic',          w:0.5,  p:8000,  earn:0,isEgg:true,eggRar:'epic'},
-  {id:'egg_superepic', n:'Super-Ei',     e:'🥚',r:'legendary',     w:0.1,  p:25000, earn:0,isEgg:true,eggRar:'legendary'},
-  {id:'egg_overdim',   n:'Überdim-Ei',   e:'🥚',r:'ultralegendary',w:0.03, p:80000, earn:0,isEgg:true,eggRar:'overdim'},
 ];
 window.ANIMALS = ANIMALS;
 // Per-species idle animation, hand-picked to fit each animal:
@@ -877,18 +870,18 @@ const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
-  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false},
-  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false},
-  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false},
-  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false},
-  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false},
-  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false},
-  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false},
-  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true},
-  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true},
-  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true},
-  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true},
-  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true},
+  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:2},
+  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:4},
+  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:6},
+  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:8},
+  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:10},
+  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:12},
+  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:14},
+  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true, pct:16},
+  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:18},
+  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:20},
+  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:22},
+  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:24},
 ];
 
 // TOOLS — unlocked via shop purchase (z.upg.<id>), not rebirth. Shown in
@@ -1580,7 +1573,6 @@ const ZG={
       id:null, // filled in once the Firestore write resolves
       animal: c.animal, shiny: c.shiny, traits: c.traits||[],
       slot: c.slot, x, z: z2,
-      expiresAt: Date.now()+60000,
       droppedBy: ZS.player, slappedBy: slapper,
       // Wander: this client "owns" the roam simulation for its own drop
       // (see _tickWander) and periodically pushes new positions to
@@ -1600,24 +1592,16 @@ const ZG={
       if(z.upg?.net){ z.eq='net'; this._updWBar(); ZP.toast('🥅 Fangnetz ausgerüstet!',1500); }
       else{ ZP.toast('🥅 Kein Fangnetz! Kauf eins im Shop (100 MT), um entlaufene Tiere zurückzufangen.',3500); }
     }
-    // Remove after 60s if not picked up (local fallback timer — _syncDropped
-    // also cleans up expired docs for everyone else)
-    setTimeout(()=>{
-      const idx=this.droppedAnimals.indexOf(dropped);
-      if(idx>=0){
-        this.droppedAnimals.splice(idx,1);
-        this._escapeAnim(dropped.mesh);
-        if(dropped.id) _db.collection('zoo_dropped').doc(dropped.id).delete().catch(()=>{});
-        ZP.toast('💨 '+dropped.animal.e+' ist entkommen!',2000);
-      }
-    }, 60000);
+    // No more auto-despawn: freed animals used to vanish after 60s if
+    // nobody caught them — now they just keep wandering the zoo
+    // indefinitely (see _tickWander) until someone actually nets them.
     // Publish so every OTHER player's client can see and grab it too.
     try{
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
         _db.collection('zoo_dropped').add({
           animal:c.animal, shiny:c.shiny||null, traits:c.traits||[],
           x, z:z2, droppedBy:ZS.player, slappedBy:slapper||null,
-          createdAt:Date.now(), expiresAt:dropped.expiresAt
+          createdAt:Date.now()
         }).then(ref=>{ dropped.id=ref.id; }).catch(()=>{});
       }
     }catch(e){}
@@ -1625,27 +1609,6 @@ const ZG={
   // Emoji sprite (same technique as the gondola cars' animal labels) on a
   // small pedestal, instead of the old plain gold cube — so it actually
   // looks like the animal that was dropped, not an anonymous box.
-  // Instead of an abrupt scene.remove() the instant an animal's 60s runs
-  // out (which reads as "it just vanished"), scamper it a bit further
-  // away while shrinking/fading over ~700ms, THEN remove it — reads as
-  // "it actually ran off", not a pop.
-  _escapeAnim(mesh){
-    if(!mesh||!this.scene) return;
-    const startX=mesh.position.x, startZ=mesh.position.z;
-    const ang=Math.random()*Math.PI*2;
-    const endX=startX+Math.cos(ang)*6, endZ=startZ+Math.sin(ang)*6;
-    const dur=700, t0=Date.now();
-    const step=()=>{
-      const p=Math.min(1,(Date.now()-t0)/dur);
-      mesh.position.x=startX+(endX-startX)*p;
-      mesh.position.z=startZ+(endZ-startZ)*p;
-      const s=Math.max(0.02,1-p);
-      mesh.scale.set(s,s,s);
-      if(p<1) requestAnimationFrame(step);
-      else if(this.scene) this.scene.remove(mesh);
-    };
-    step();
-  },
   _spawnDroppedMesh(dropped){
     if(!this.scene||typeof THREE==='undefined') return;
     try{
@@ -1675,13 +1638,10 @@ const ZG={
     if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
     try{
       const snap=await _db.collection('zoo_dropped').get();
-      const now=Date.now();
       const seenIds=new Set();
-      const toDelete=[];
       snap.forEach(doc=>{
         const d=doc.data();
         seenIds.add(doc.id);
-        if((d.expiresAt||0)<=now){ toDelete.push(doc.id); return; }
         const existing=this.droppedAnimals.find(x=>x.id===doc.id);
         if(existing){
           // Already tracked — if it's NOT ours (we're not simulating its
@@ -1692,7 +1652,7 @@ const ZG={
           return;
         }
         const dropped={id:doc.id, animal:d.animal, shiny:d.shiny, traits:d.traits||[],
-          x:d.x, z:d.z, expiresAt:d.expiresAt, droppedBy:d.droppedBy, slappedBy:d.slappedBy, wanderOwner:false};
+          x:d.x, z:d.z, droppedBy:d.droppedBy, slappedBy:d.slappedBy, wanderOwner:false};
         this.droppedAnimals.push(dropped);
         this._spawnDroppedMesh(dropped);
       });
@@ -1705,8 +1665,8 @@ const ZG={
           if(d.mesh&&this.scene) this.scene.remove(d.mesh);
         }
       }
-      // Best-effort cleanup of expired docs — whichever client notices first deletes it.
-      toDelete.forEach(id=>_db.collection('zoo_dropped').doc(id).delete().catch(()=>{}));
+      // Best-effort cleanup: nothing time-based to delete anymore — freed
+      // animals only ever leave zoo_dropped by actually being caught.
     }catch(e){}
   },
   // Slow random-walk for freed animals — the owner's client (whoever's
@@ -1808,12 +1768,12 @@ const ZG={
   },
   _checkDroppedPickup(){
     if(!this.droppedAnimals.length) return;
-    const now = Date.now();
     for(let i=this.droppedAnimals.length-1;i>=0;i--){
       const d = this.droppedAnimals[i];
       // Bounce animation (Y axis only — X/Z is driven by _tickWander's roam movement)
       if(d.mesh){ d.bounceT=(d.bounceT||0)+0.05; d.mesh.position.y=Math.abs(Math.sin(d.bounceT))*1.2; d.mesh.rotation.y=(d.bounceT||0); }
-      if(now > d.expiresAt){ this.droppedAnimals.splice(i,1); this._escapeAnim(d.mesh); continue; }
+      // No more auto-despawn — freed animals wander the zoo indefinitely
+      // (see _tickWander) until someone actually nets them.
       // NOTE: no more free [E] pickup here — catching a roaming animal now
       // requires the 🥅 net tool (see _tryCatchNet), bought in the shop.
     }
@@ -2062,7 +2022,7 @@ const ZG={
               this._animalWalk(d.animal,d.slot,'#ff6b6b');
             }
             // Receive slap from another player
-            if(d.type==='slap'&&d.target===ZS.player&&d.at>cutoff){
+            if(d.type==='slap'&&(d.target||'').toLowerCase()===(ZS.player||'').toLowerCase()&&d.at>cutoff){
               // I got slapped! Full cinematic experience
               const slapDur=d.dur||2000;
               ZG._slapStunEnd=Date.now()+slapDur; if(window.ZSteal)ZSteal.loseOnSlap(); SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
@@ -3994,11 +3954,30 @@ const ZG={
     if(this.slapCD>0){ZP.toast('⏳ '+(Math.ceil(this.slapCD/100)/10)+'s',600);return;}
     const sl=SLAPS.find(s=>s.id===(z.eq||'basic'))||TOOLS.find(s=>s.id===z.eq)||SLAPS[0];
     if(sl.isTool){ this._useTool(sl); return; }
+    // Ownership: permanently unlocked via rebirth (z.ownSlaps, 'basic'
+    // always included) OR still has charges left in a purchased 10-pack
+    // (z.slapPacks). Neither → can't use it (shouldn't normally be
+    // equippable at all once packs run out, but double-check here too).
+    const owned=(z.ownSlaps||['basic']).includes(sl.id);
+    const packLeft=(z.slapPacks||{})[sl.id]||0;
+    if(!owned && packLeft<=0){
+      ZP.toast('❌ '+sl.e+' '+sl.n+' nicht verfügbar — kauf ein 10er-Paket im Shop!',2500);
+      z.eq='basic'; this._updWBar();
+      return;
+    }
+    // Cost: every slap costs a % of total wealth, scaling with the slap's
+    // strength (basic=2%, next tier=4%, ... see SLAPS[].pct) — the
+    // tradeoff being: stronger slaps stun longer, giving more time to
+    // snatch a carried animal, but bite into your balance more to use.
+    const total=(ZS.dsMT||0)+z.mt;
+    const cost=Math.round(total*(sl.pct||2)/100*10)/10;
+    z.mt-=cost;
+    if(!owned){ z.slapPacks=z.slapPacks||{}; z.slapPacks[sl.id]=Math.max(0,packLeft-1); }
     this.slapCD=sl.cd;
     ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
-    ZP.toast(sl.e+' '+sl.n+'!',700);
+    ZP.toast(sl.e+' '+sl.n+'! −'+$mt(cost)+' ('+(sl.pct||2)+'%)'+(!owned?' · Paket: '+z.slapPacks[sl.id]+' übrig':''),1200);
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
-    this._updWBar();
+    this._updWBar(); ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
     // Find and hit nearby players (within 8 units)
     this._slapNearby(sl);
   },
@@ -4257,9 +4236,11 @@ const ZG={
     if((z.lslaps||0)>0&&!owned.includes('lucky'))owned.push('lucky');
     z.ownSlaps=owned;
     const eq=z.eq||'basic';
-    // Only show OWNED slaps (+ basic always) plus any purchased tools (net)
+    // Show OWNED (rebirth) slaps + basic, PLUS any slap with pack charges
+    // left even if not permanently unlocked, plus any purchased tools (net)
+    const packedIds=Object.entries(z.slapPacks||{}).filter(([,n])=>n>0).map(([id])=>id);
     const visibleTools = TOOLS.filter(tl => z.upg?.[tl.id]);
-    const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id)).concat(visibleTools);
+    const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id)||packedIds.includes(sl.id)).concat(visibleTools);
     el.innerHTML = visibleSlaps.map(sl => {
       const isEq = sl.id === eq;
       const onCD = isEq && this.slapCD > 0;
@@ -4268,16 +4249,18 @@ const ZG={
       const rbd = sl.isRainbow ? 'linear-gradient(135deg,#ff6b6b,#FFD700,#27AE60,#4A90D9)' : '';
       // Border glow when equipped
       const border = isEq ? '2px solid '+( sl.col||'#FFD700') : '2px solid transparent';
+      const isPackOnly = !owned.includes(sl.id) && (z.slapPacks?.[sl.id]||0)>0;
       return `<div class="ss"
         onclick="ZG.equipSlap('${sl.id}')"
         oncontextmenu="ZG.unequipSlap();return false;"
         ontouchstart="ZG._slapTouchStart('${sl.id}',event)"
         ontouchend="ZG._slapTouchEnd(event)"
-        title="${sl.n} — Gedrückt halten zum Abwählen">
+        title="${sl.n} — ${sl.pct||2}% vom Vermögen pro Slap — Gedrückt halten zum Abwählen">
         <div class="si ${isEq?'eq':''}" style="background:${rbd||bg};border:${border};position:relative">
           <span style="font-size:1.65rem">${sl.e}</span>
           ${onCD ? `<div class="scd">${cdS}s</div>` : ''}
           ${isEq ? '<div style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#27AE60;border-radius:50%"></div>' : ''}
+          ${isPackOnly ? `<div style="position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);background:#000;color:#FFD700;font-size:.55rem;font-weight:900;padding:0 4px;border-radius:6px;white-space:nowrap">×${z.slapPacks[sl.id]}</div>` : ''}
         </div>
         <div class="sn" style="color:${sl.col||'#ddd'};font-size:.58rem">${sl.n.replace(' SLAP','')}</div>
       </div>`;
@@ -6123,7 +6106,7 @@ const ZP={
   },
 
   // SHOP
-  shopTab(t){this._st=t;['z','x','b'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  shopTab(t){this._st=t;['z','x','b','s'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
   _sP(el){
     const z=ZS.zoo;if(!z)return;
     const pt=z.pt||0; // Premium Taler
@@ -6193,7 +6176,7 @@ const ZP={
     this._sP(document.getElementById('scont'));
   },
 
-  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else this._sB(el);},
+  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:100},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
@@ -6687,6 +6670,37 @@ const ZP={
 
   _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:600,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bst(id,p,dur){const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();this._updShopBal();},
+
+  // ── SLAP-PAKETE ── Every slap use now costs a % of total wealth (see
+  // ZG.slap()) — stronger slaps stun longer but cost more per use. Slaps
+  // are still unlocked PERMANENTLY (unlimited uses) via rebirth as before;
+  // this tab is the alternative: a flat 100 MT buys 10 USES of any one
+  // slap type, regardless of tier, without needing to rebirth for it.
+  _sS(el){
+    const z=ZS.zoo;if(!z)return;
+    const owned=z.ownSlaps||['basic'];
+    el.innerHTML = '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.4">'
+      +'🥊 Jeder Slap kostet beim Benutzen einen Prozentsatz deines Vermögens — <b>stärkere Slaps kosten mehr</b> (Basic 2%, jede Stufe +2%), halten Spieler aber auch länger ausser Gefecht. Permanent (unbegrenzt nutzbar) bekommst du Slaps weiterhin über Rebirth. Hier kannst du stattdessen ein <b>10er-Paket</b> für einen bestimmten Slap kaufen — 10 Nutzungen, unabhängig von der Stufe, immer 100 MT.</div>'
+      + SLAPS.map(sl=>{
+        const isOwned=owned.includes(sl.id);
+        const packs=(z.slapPacks||{})[sl.id]||0;
+        if(isOwned){
+          return `<div class="ac" style="opacity:.6"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:#27AE60">✅ Permanent freigeschaltet (Rebirth) — ${sl.pct}% pro Nutzung</div></div></div>`;
+        }
+        return `<div class="ac"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${sl.pct}% vom Vermögen pro Nutzung${packs>0?' · noch '+packs+' übrig':''}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<100?'disabled':''} onclick="ZP._bSlapPack('${sl.id}')">${$mt(100)}</button></div>`;
+      }).join('');
+  },
+  _bSlapPack(id){
+    const z=ZS.zoo;if(!z)return;
+    if(((ZS.dsMT||0)+z.mt)<100){this.toast('❌ Zu wenig MT!');return;}
+    z.mt-=100;
+    if(!z.slapPacks)z.slapPacks={};
+    z.slapPacks[id]=(z.slapPacks[id]||0)+10;
+    const sl=SLAPS.find(s=>s.id===id);
+    this.toast('✅ 10er-Paket '+(sl?.e||'')+' '+(sl?.n||id)+' gekauft!',2500);
+    ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); ZG._updWBar&&ZG._updWBar();
+    this._sS(G('scont')); this._updShopBal();
+  },
 
   // TRADING
   tradeTab(t){this._tt2=t;['m','a','n'].forEach(x=>{G('tt-'+x)?.classList.toggle('ta',x===t);G('tt-'+x)?.classList.toggle('ti',x!==t);});this._rTrade(t);},
