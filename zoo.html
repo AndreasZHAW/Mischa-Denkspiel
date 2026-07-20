@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v329 -->
+<!-- ZOO v332 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=329"></script>
-<script src="rewardchests.js?v=329"></script>
-<script src="personality.js?v=329"></script>
+<script src="lang.js?v=332"></script>
+<script src="rewardchests.js?v=332"></script>
+<script src="personality.js?v=332"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v329','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v332','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -308,10 +308,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="evb"></div><div id="evt"></div>
 <div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
 <div id="home-arrow-wrap" style="position:absolute;top:118px;right:10px;width:100px;display:flex;flex-direction:column;align-items:center;pointer-events:none">
-  <div id="home-compass" style="width:36px;height:36px;background:rgba(0,0,0,.55);border:2px solid rgba(255,215,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden">
-    <span id="home-arrow" style="display:inline-block;font-size:1.3rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg)">⬆️</span>
+  <div id="home-compass" style="width:48px;height:48px;background:rgba(0,0,0,.55);border:2px solid rgba(255,215,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden">
+    <span id="home-arrow" style="display:inline-block;font-size:1.9rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg)">⬆️</span>
   </div>
-  <div id="home-arrow-dist" style="margin-top:2px;font-size:.62rem;color:#FFD700;background:rgba(0,0,0,.5);padding:1px 6px;border-radius:8px;font-weight:700">🏠</div>
+  <div id="home-arrow-dist" style="margin-top:2px;font-size:.68rem;color:#FFD700;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:8px;font-weight:700">🏠</div>
 </div>
 <div id="bflash"></div>
 </div>
@@ -484,8 +484,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=329"></script>
-<script src="worlds.js?v=329"></script>
+<script src="firebase-state.js?v=332"></script>
+<script src="worlds.js?v=332"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -5355,15 +5355,28 @@ const ZTips = {
 // without having to hand-edit each prize list.
 (function _capWheelPrizes(){
   const MT_CAP = 10000;
+  // Staggered replacement scale — clamping everything above the cap straight
+  // to exactly 10'000 left a wheel with e.g. 5 different-looking prizes that
+  // all actually paid the identical amount. Instead, each over-cap prize on
+  // a given wheel gets a DIFFERENT value from this ladder, biggest original
+  // jackpot still mapping to the biggest (10'000) slot, next-biggest to the
+  // next rung, and so on — so the wheel still reads as "some prizes are
+  // clearly better than others", just all within the new ceiling.
+  const CAP_LADDER = [10000,7500,5000,3500,2500,1750,1200,800,500,300];
+  const rungFor = (rank) => rank < CAP_LADDER.length ? CAP_LADDER[rank]
+    : Math.max(100, Math.round(CAP_LADDER[CAP_LADDER.length-1]/Math.pow(1.6, rank-CAP_LADDER.length+1)));
   const TIER_ORDER = ['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
   const MAX_TIER_IDX = TIER_ORDER.indexOf('legendary');
   const fmtMT = (n) => Math.round(n).toLocaleString('de-CH').replace(/[,\u2019']/g,'.') + ' MT';
   Object.values(LW.WHEELS).forEach(wheel=>{
+    const overCap = (wheel.prizes||[]).filter(p=>typeof p.mt==='number' && p.mt>MT_CAP);
+    overCap.sort((a,b)=>b.mt-a.mt); // biggest original jackpot first
+    overCap.forEach((prize,rank)=>{
+      const newMt=rungFor(rank);
+      prize.mt=newMt;
+      if(/MT$/.test(prize.l||'')) prize.l=fmtMT(newMt);
+    });
     (wheel.prizes||[]).forEach(prize=>{
-      if(typeof prize.mt==='number' && prize.mt>MT_CAP){
-        prize.mt=MT_CAP;
-        if(/MT$/.test(prize.l||'')) prize.l=fmtMT(MT_CAP);
-      }
       if(prize.animal && prize.animal.r){
         const idx=TIER_ORDER.indexOf(prize.animal.r);
         if(idx>MAX_TIER_IDX) prize.animal.r='legendary';
@@ -6957,6 +6970,7 @@ const ZSound = {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(()=>{});
     }
+    if (this.ctx && !this._spriteBuffer && !this._spriteLoading) this._loadSprite();
     if(!this._styleLoaded){ this._styleLoaded=true; this.loadStyle(); }
   },
   // iOS/iPad: unlock audio on first user gesture
@@ -7011,18 +7025,79 @@ const ZSound = {
     osc.stop(this.ctx.currentTime + delay + d);
   },
 
+  // Real short audio clips (CC0 — Kenney "Interface Sounds" pack by
+  // Kenney.nl, creativecommons.org/publicdomain/zero/1.0) for the
+  // 'normal'/'satisfying' styles, which is what most players actually hear
+  // day to day. Pure oscillator tones are kept ONLY for 'arcade'
+  // (deliberately wants that retro chiptone character, which a realistic
+  // sample would work against) — this used to be true of every non-slap
+  // sound, which is exactly why they felt thin/unpolished compared to
+  // slap's punchier layered-oscillator design.
+  //
+  // All 7 clips are packed into ONE sprite file (sounds/sfx.wav) rather
+  // than 7 separate files — same audio, but 6 fewer files to upload/deploy
+  // (this project gets copied by hand via GitHub's web uploader, which
+  // balks past ~100 files at once). Segments are separated by 150ms of
+  // silence and played via an AudioBufferSourceNode with a precise
+  // start-offset + duration (Web Audio, not a plain <audio> element) so
+  // seeking to a segment never bleeds into its neighbour.
+  _spriteUrl: 'sounds/sfx.wav',
+  _spriteMap: {
+    gondolaArrive: {s:0.000, d:0.132},
+    buy:           {s:0.282, d:0.295},
+    coin:          {s:0.727, d:0.112},
+    rare:          {s:0.988, d:0.501},
+    upgrade:       {s:1.639, d:0.562},
+    superEpic:     {s:2.351, d:0.132},
+    superEpic2:    {s:2.633, d:0.324},
+  },
+  _spriteBuffer: null, _spriteLoading: false,
+  _loadSprite(){
+    if (this._spriteBuffer || this._spriteLoading || !this.ctx) return;
+    this._spriteLoading = true;
+    fetch(this._spriteUrl).then(r=>r.arrayBuffer())
+      .then(buf=>this.ctx.decodeAudioData(buf))
+      .then(decoded=>{ this._spriteBuffer=decoded; })
+      .catch(()=>{ this._spriteLoading=false; }); // allow a retry later on failure
+  },
+  _playFile(key, vol=0.55, delay=0, rate=1){
+    if (this.style === 'off') return;
+    this._init();
+    if (!this.ctx) return;
+    if (!this._spriteBuffer) { this._loadSprite(); return; } // first call after load just warms the cache
+    const seg = this._spriteMap[key]; if(!seg) return;
+    const run = () => {
+      try{
+        const src = this.ctx.createBufferSource();
+        src.buffer = this._spriteBuffer;
+        // 'satisfying' gets a touch of pitch-down for a softer/rounder feel;
+        // everything else plays at natural speed.
+        src.playbackRate.value = this.style==='satisfying' ? rate*0.94 : rate;
+        const gain = this.ctx.createGain();
+        gain.gain.value = Math.min(1, vol);
+        src.connect(gain); gain.connect(this.ctx.destination);
+        src.start(this.ctx.currentTime, seg.s, seg.d);
+      }catch(e){}
+    };
+    if (delay > 0) setTimeout(run, delay*1000); else run();
+  },
+
   // Gondola arrives (ding!)
   gondolaArrive() {
-    this._tone(880, 0.15, 'sine', 0.25);
-    this._tone(1100, 0.2, 'sine', 0.2, 0.15);
+    if (this.style === 'arcade') { this._tone(880, 0.15, 'sine', 0.25); this._tone(1100, 0.2, 'sine', 0.2, 0.15); return; }
+    this._playFile('gondolaArrive', 0.5);
   },
 
   // Buy animal (happy chime)
   buy() {
-    [523,659,784,1047].forEach((f,i) => this._tone(f, 0.18, 'sine', 0.2, i*0.1));
+    if (this.style === 'arcade') { [523,659,784,1047].forEach((f,i) => this._tone(f, 0.18, 'sine', 0.2, i*0.1)); return; }
+    this._playFile('buy', 0.55);
   },
 
-  // Slap (thwack)
+  // Slap (thwack) — deliberately left as pure synthesis; the layered
+  // sawtooth+square already gives it the punchy "impact" character a
+  // sampled UI click can't easily match, and it's the one sound that never
+  // needed fixing.
   slap() {
     this._tone(200, 0.08, 'sawtooth', 0.4);
     this._tone(100, 0.12, 'square', 0.3, 0.05);
@@ -7030,13 +7105,35 @@ const ZSound = {
 
   // Coin/MT earned
   coin() {
-    this._tone(1047, 0.1, 'sine', 0.2);
-    this._tone(1319, 0.15, 'sine', 0.2, 0.1);
+    if (this.style === 'arcade') { this._tone(1047, 0.1, 'sine', 0.2); this._tone(1319, 0.15, 'sine', 0.2, 0.1); return; }
+    this._playFile('coin', 0.45);
   },
 
   // Rare animal fanfare
   rare() {
-    [523,659,784,880,1047].forEach((f,i) => this._tone(f, 0.2, 'sine', 0.3, i*0.08));
+    if (this.style === 'arcade') { [523,659,784,880,1047].forEach((f,i) => this._tone(f, 0.2, 'sine', 0.3, i*0.08)); return; }
+    this._playFile('rare', 0.6);
+  },
+
+  // Upgrade / better-than-usual pull from a lucky block or similar — this
+  // was called from two places (LuckyBlocks reveal, wheel result) but was
+  // never actually defined, so both call sites silently did nothing. tier
+  // just scales the volume/adds a light synthesized sparkle for tier>1.
+  _sndUpgrade(tier=1) {
+    if (this.style === 'arcade') { [659,880,1047].slice(0, tier+1).forEach((f,i) => this._tone(f, 0.15, 'square', 0.22, i*0.08)); return; }
+    this._playFile('upgrade', 0.5 + Math.min(tier,2)*0.05);
+    if (tier > 1) [1568,2093].forEach((f,i) => this._tone(f, 0.12, 'sine', 0.12, 0.15 + i*0.08));
+  },
+
+  // The BIG one — mythic/secret pull, top wheel prize. Layers two real
+  // chime samples slightly offset (there's no single "epic fanfare" clip
+  // in the CC0 pack this project uses) plus a short synthesized rising
+  // sparkle on top, so it reads as a clear step up from a normal 'rare()'.
+  _sndSuperEpic() {
+    if (this.style === 'arcade') { [523,659,784,1047,1319,1568].forEach((f,i) => this._tone(f, 0.22, 'square', 0.28, i*0.09)); return; }
+    this._playFile('superEpic', 0.55);
+    this._playFile('superEpic2', 0.5, 0.12);
+    [1047,1319,1568,2093].forEach((f,i) => this._tone(f, 0.18, 'sine', 0.15, 0.25 + i*0.07));
   },
 
   // Lucky wheel spin

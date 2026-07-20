@@ -44,8 +44,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v329</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v329 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v332</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v332 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -482,6 +482,15 @@ async function runMT(){
   try{
     const db=firebase.firestore();
     const [mpSnap,zoosSnap]=await Promise.all([db.collection('mischa_players').get(),db.collection('zoos').get()]);
+    // MUST match firebase-state.js's real sanitizeMT() exactly — this tool
+    // previously used the raw, un-sanitized numbers, which meant it could
+    // show a big "everything matches!" total for an account whose value
+    // was actually so large the real game's sanity cap (10 million MT)
+    // zeroes it out completely everywhere else. That looked like "the
+    // diagnostics say it's fine but the game shows 0" — the diagnostics
+    // just weren't checking the same thing the game actually checks.
+    const MT_SANITY_CAP=10000000;
+    const sanitizeMT=(v)=>{ if(typeof v!=='number'||!isFinite(v)||v<0) return 0; return v>MT_SANITY_CAP?MT_SANITY_CAP:v; };
     const dsMTFor=(p)=>{
       const ws=p?.worlds?.['1']||p?.worlds?.[1]||{};
       const bonus=(typeof p?.langBonusMT==='number'&&isFinite(p.langBonusMT))?p.langBonusMT:0;
@@ -500,41 +509,47 @@ async function runMT(){
       const key=doc.id.toLowerCase();
       const z=zoosByName[key]||null;
       delete zoosByName[key]; // mark consumed
-      const ds=dsMTFor(p);
-      const zMt=(z&&typeof z.mt==='number'&&isFinite(z.mt))?z.mt:(z?0:null);
+      const dsRaw=dsMTFor(p);
+      const ds=sanitizeMT(dsRaw);
+      const zMtRaw=(z&&typeof z.mt==='number'&&isFinite(z.mt))?z.mt:(z?0:null);
+      const zMt=z?sanitizeMT(zMtRaw):null;
+      const overCap = (zMtRaw!==null && zMtRaw>MT_SANITY_CAP) || dsRaw>MT_SANITY_CAP;
       const p_dev=p.deviceId||null, z_dev=z?(z.deviceId||null):null;
       const devMatch = !!(p_dev && z_dev && p_dev===z_dev);
-      const adminTotal = ds + (z?(zMt||0):0); // name-only, always adds zoo mt if a zoo doc exists
-      const rankTotal = ds + (devMatch?(zMt||0):0); // device-checked
-      rows.push({name,ds,z:!!z,zMt,p_dev,z_dev,devMatch,adminTotal,rankTotal,mismatch:Math.abs(adminTotal-rankTotal)>0.05});
+      const adminTotal = sanitizeMT(ds + (z?(zMt||0):0)); // name-only, always adds zoo mt if a zoo doc exists
+      const rankTotal = sanitizeMT(ds + (devMatch?(zMt||0):0)); // device-checked
+      rows.push({name,ds,zRaw:zMtRaw,z:!!z,zMt,p_dev,z_dev,devMatch,adminTotal,rankTotal,overCap,mismatch:Math.abs(adminTotal-rankTotal)>0.05});
     });
     // Any zoo docs left over have NO matching mischa_players doc at all
     Object.entries(zoosByName).forEach(([key,z])=>{
-      const zMt=(typeof z.mt==='number'&&isFinite(z.mt))?z.mt:0;
-      rows.push({name:key+' (nur Zoo, kein Welt-1-Account)',ds:0,z:true,zMt,p_dev:null,z_dev:z.deviceId||null,devMatch:false,adminTotal:zMt,rankTotal:0,mismatch:zMt>0.05});
+      const zMtRaw=(typeof z.mt==='number'&&isFinite(z.mt))?z.mt:0;
+      const zMt=sanitizeMT(zMtRaw);
+      rows.push({name:key+' (nur Zoo, kein Welt-1-Account)',ds:0,zRaw:zMtRaw,z:true,zMt,p_dev:null,z_dev:z.deviceId||null,devMatch:false,adminTotal:zMt,rankTotal:0,overCap:zMtRaw>MT_SANITY_CAP,mismatch:zMt>0.05});
     });
-    rows.sort((a,b)=>(b.mismatch-a.mismatch)||a.name.localeCompare(b.name));
+    rows.sort((a,b)=>(b.mismatch-a.mismatch)||(b.overCap-a.overCap)||a.name.localeCompare(b.name));
     _mtRows=rows;
     const mismatches=rows.filter(r=>r.mismatch);
-    summary.innerHTML = mismatches.length
-      ? `<span class="err">⚠️ ${mismatches.length} von ${rows.length} Spielern zeigen unterschiedliche Summen je nach Ansicht (siehe rot markierte Zeilen).</span>`
+    const overCapRows=rows.filter(r=>r.overCap);
+    summary.innerHTML = (mismatches.length||overCapRows.length)
+      ? `<span class="err">⚠️ ${mismatches.length} von ${rows.length} Spielern zeigen unterschiedliche Summen je nach Ansicht`
+        +(overCapRows.length?`, ${overCapRows.length} über der 10-Mio-Sanity-Cap (Wert wird dadurch überall auf 10 Mio. gedeckelt)`:'')+` (siehe markierte Zeilen).</span>`
       : `<span class="ok">✅ Alle ${rows.length} Spieler: Admin-Panel- und Rangliste-Summe stimmen überein.</span>`;
     const short=(s)=>s?(s.length>14?s.slice(0,6)+'…'+s.slice(-4):s):'—';
     out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
       +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
-      +'<th style="padding:4px 6px">Spieler</th><th>Welt1 dsMT</th><th>Zoo mt</th>'
+      +'<th style="padding:4px 6px">Spieler</th><th>Welt1 dsMT</th><th>Zoo mt (roh)</th>'
       +'<th>DeviceID Welt1</th><th>DeviceID Zoo</th><th>Match?</th>'
       +'<th>Admin-Panel-Summe</th><th>Rangliste-Summe</th><th></th></tr>'
-      + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${r.mismatch?'background:rgba(231,76,60,.12)':''}">`
-        +`<td style="padding:4px 6px;font-weight:${r.mismatch?'900':'400'}">${r.name}</td>`
+      + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${r.overCap?'background:rgba(255,165,0,.15)':r.mismatch?'background:rgba(231,76,60,.12)':''}">`
+        +`<td style="padding:4px 6px;font-weight:${(r.mismatch||r.overCap)?'900':'400'}">${r.name}</td>`
         +`<td>${r.ds.toFixed(1)}</td>`
-        +`<td>${r.z?r.zMt.toFixed(1):'<span class="dim">— kein Zoo-Konto</span>'}</td>`
+        +`<td>${r.z?r.zRaw.toFixed(1):'<span class="dim">— kein Zoo-Konto</span>'}</td>`
         +`<td title="${r.p_dev||''}">${short(r.p_dev)}</td>`
         +`<td title="${r.z_dev||''}">${short(r.z_dev)}</td>`
         +`<td>${r.z ? (r.devMatch?'<span class="ok">✅</span>':'<span class="err">❌</span>') : '<span class="dim">—</span>'}</td>`
         +`<td>${r.adminTotal.toFixed(1)} MT</td>`
         +`<td>${r.rankTotal.toFixed(1)} MT</td>`
-        +`<td>${r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein</span>':''}</td>`
+        +`<td>${r.overCap?'<span class="err">⚠️ Über 10 Mio. Sanity-Cap — wird überall auf 10\'000\'000 gedeckelt</span>':r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein</span>':''}</td>`
         +`</tr>`).join('')
       +'</table>';
     L('MT-Diagnose: '+rows.length+' Spieler, '+mismatches.length+' mit Diskrepanz.');
@@ -545,8 +560,8 @@ async function runMT(){
 }
 function copyMT(){
   if(!_mtRows.length){alert('Erst laden!');return;}
-  const lines=['Spieler | Welt1 dsMT | Zoo mt | DeviceID Welt1 | DeviceID Zoo | Match | Admin-Summe | Rangliste-Summe | Diskrepanz'];
-  _mtRows.forEach(r=>lines.push([r.name,r.ds.toFixed(1),r.z?r.zMt.toFixed(1):'—',r.p_dev||'—',r.z_dev||'—',r.z?(r.devMatch?'ja':'nein'):'—',r.adminTotal.toFixed(1),r.rankTotal.toFixed(1),r.mismatch?'JA':''].join(' | ')));
+  const lines=['Spieler | Welt1 dsMT | Zoo mt (roh) | DeviceID Welt1 | DeviceID Zoo | Match | Admin-Summe | Rangliste-Summe | ÜberCap | Diskrepanz'];
+  _mtRows.forEach(r=>lines.push([r.name,r.ds.toFixed(1),r.z?r.zRaw.toFixed(1):'—',r.p_dev||'—',r.z_dev||'—',r.z?(r.devMatch?'ja':'nein'):'—',r.adminTotal.toFixed(1),r.rankTotal.toFixed(1),r.overCap?'JA':'',r.mismatch?'JA':''].join(' | ')));
   navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
 }
 

@@ -1629,11 +1629,22 @@ window.PlayTime = PlayTime;
 // manual tampering) silently winning leaderboards with impossible numbers.
 // Generous relative to real player balances today; tighten this once the
 // planned rarity-vs-earnrate rebalance ships and typical maximums are lower.
+//
+// IMPORTANT: clamp, don't zero. This used to return 0 for anything over
+// the cap — meant as "don't trust a suspicious number", but in practice it
+// meant a real (if unusually large — e.g. from the lucky wheel before its
+// payouts were capped) balance could vanish COMPLETELY and silently,
+// everywhere, with no indication why. A player who legitimately built up
+// a huge total then appears to have nothing at all, which is worse than
+// showing a capped number: at least a clamped value is visibly "very
+// large" rather than misleadingly "empty". Only truly invalid input
+// (NaN, not a number, negative) still maps to 0 — those aren't "big
+// numbers", they're not numbers at all.
 // ============================================================
 window.MT_SANITY_CAP = 10000000; // 10 million
 window.sanitizeMT = function(v) {
   if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
-  return v > window.MT_SANITY_CAP ? 0 : v;
+  return v > window.MT_SANITY_CAP ? window.MT_SANITY_CAP : v;
 };
 
 // Display formatting for MT values: below 1 million, shows a plain number
