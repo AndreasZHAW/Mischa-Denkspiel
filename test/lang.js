@@ -124,7 +124,7 @@ const STRINGS = {
   'zoo.rarity_secret':     { de:'Geheim', en:'Secret', fr:'Secret' },
   'zoo.gondola_enter':     { de:'🚪 Gondel-Station (hineinlaufen)', en:'🚪 Gondola Station (walk in)', fr:'🚪 Station de gondole (entrer)' },
   'zoo.popular_title':     { de:'BELIEBT!', en:'POPULAR!', fr:'POPULAIRE !' },
-  'zoo.popular_desc':      { de:'100 Besucher in deinem Zoo! +3000 MT!', en:'100 visitors in your zoo! +3000 MT!', fr:'100 visiteurs dans ton zoo ! +3000 MT !' },
+  'zoo.popular_desc':      { de:'100 Besucher in deinem Zoo! +300 MT!', en:'100 visitors in your zoo! +300 MT!', fr:'100 visiteurs dans ton zoo ! +300 MT !' },
   'zoo.sweeper_go':        { de:'🧹 Die Kehrmaschine fährt los und kehrt alle Gehege!', en:'🧹 The sweeper is heading out to clean all enclosures!', fr:'🧹 La balayeuse part nettoyer tous les enclos !' },
   'zoo.waiting_gondola':   { de:'Warte auf Gondel...', en:'Waiting for gondola...', fr:'En attente de la gondole...' },
   'zoo.traits_events_only':{ de:'Traits nur während Events!', en:'Traits only during events!', fr:'Traits uniquement pendant les événements !' },
