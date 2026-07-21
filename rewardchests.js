@@ -375,7 +375,7 @@ const RewardChests = {
       [{icon:'🎡',label:'1 Glücksrad-Dreh!',apply:()=>this._pending('spins',1)},
        {icon:'🛡️',label:'Lebenslange Versicherung!',apply:()=>this._pending('lifeInsurance',1)}],
       [  {icon:'🦕',label:'DINOSAURIER! 🦕',needsSlot:true,apply:()=>this._giveAnimal('dino')},
-         {icon:'🦄',label:'Mythisches Tier!',needsSlot:true,apply:()=>this._giveAnimal('mythic')}],
+         {icon:'🦄',label:'Ultra-Legendäres Tier!',needsSlot:true,apply:()=>this._giveAnimal('ultralegendary')}],
     ];
     const pool=pools[Math.min(rarityIdx,4)]||pools[0];
     if(rarityIdx===4) return Math.random()<0.10?pool[0]:pool[1];
@@ -424,11 +424,11 @@ const RewardChests = {
       const slot=z.enc.findIndex(e=>!e||!e.animal);
       if(slot<0){ if(typeof ZP!=='undefined')ZP.toast('🦁 Kein Platz! Tier-Belohnung wartet.',3500); return false; }
       if(rarity==='dino') z.enc[slot]={animal:{id:'chest_dino',n:'Dinosaurier',e:'🦕',r:'mythic',p:0,earn:800,w:0},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
-      else { let pool=(window.ANIMALS||[]).filter(a=>a.r===rarity); if(!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='epic'); const a=pool[Math.floor(Math.random()*pool.length)]; if(!a)return false; z.enc[slot]={animal:{...a},shiny:(rarity==='mythic'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0}; }
+      else { let pool=(window.ANIMALS||[]).filter(a=>a.r===rarity); if(!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='epic'); const a=pool[Math.floor(Math.random()*pool.length)]; if(!a)return false; z.enc[slot]={animal:{...a},shiny:(rarity==='ultralegendary'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0}; }
       return true;
     };
     let gaveAnimal=false;
-    ['rare','epic','mythic','dino'].forEach(rar=>{
+    ['rare','epic','ultralegendary','dino'].forEach(rar=>{
       let cnt=pr['animal_'+rar]||0; if(!cnt)return;
       let failed=0;
       for(let i=0;i<cnt;i++){ if(giveAnimal(rar)) gaveAnimal=true; else failed++; }

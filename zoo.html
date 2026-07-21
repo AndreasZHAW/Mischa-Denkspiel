@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v347 -->
+<!-- ZOO v348 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=347"></script>
-<script src="rewardchests.js?v=347"></script>
-<script src="personality.js?v=347"></script>
+<script src="lang.js?v=348"></script>
+<script src="rewardchests.js?v=348"></script>
+<script src="personality.js?v=348"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v347','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v348','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -487,8 +487,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=347"></script>
-<script src="worlds.js?v=347"></script>
+<script src="firebase-state.js?v=348"></script>
+<script src="worlds.js?v=348"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -575,62 +575,68 @@ function $esc(s){
 
 // ═══ DATA ═══
 const ANIMALS=[
-  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:5,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:6,earn:.7},
-  {id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,p:8,earn:.9},{id:'dormouse',n:'Sieben.',e:'🐭',r:'normal',w:15,p:10,earn:1.1},
-  {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,p:9,earn:.85},{id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,p:11,earn:1},
-  {id:'chicken',n:'Huhn',e:'🐔',r:'normal',w:8,p:12,earn:1.1},{id:'turtle',n:'Schildkröte',e:'🐢',r:'normal',w:6,p:15,earn:1.3},
-  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,p:30,earn:3.5},{id:'sister',n:'Schwester',e:'👧',r:'rare',w:5,p:45,earn:5.5},
-  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,p:45,earn:5.5},{id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,p:70,earn:8.5},
-  {id:'deer',n:'Reh',e:'🦌',r:'rare',w:4,p:55,earn:7},{id:'penguin',n:'Pinguin',e:'🐧',r:'rare',w:3.5,p:65,earn:7.8},
-  {id:'koala',n:'Koala',e:'🐨',r:'rare',w:2.5,p:80,earn:10},{id:'zebra',n:'Zebra',e:'🦓',r:'rare',w:2,p:90,earn:11.5},
-  {id:'parrot',n:'Papagei',e:'🦜',r:'rare',w:1.5,p:100,earn:13},{id:'otter',n:'Otter',e:'🦦',r:'rare',w:1,p:120,earn:16},
-  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,p:200,earn:28},{id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,p:350,earn:48},
-  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:.5,p:600,earn:80},{id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:.25,p:900,earn:120},
-  {id:'panda',n:'Panda',e:'🐼',r:'epic',w:.3,p:750,earn:100},{id:'bear',n:'Bär',e:'🐻',r:'epic',w:.2,p:1000,earn:135},
-  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:.15,p:1200,earn:162},{id:'capybara',n:'Capybara',e:'🦫',r:'epic',w:.06,p:2200,earn:300},
-  {id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:.2,p:2500,earn:340},{id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:.2,p:3500,earn:475},
-  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:.1,p:7000,earn:950},{id:'elephant',n:'Elefant',e:'🐘',r:'legendary',w:.08,p:9000,earn:1220},
-  {id:'gorilla',n:'Gorilla',e:'🦍',r:'legendary',w:.06,p:12000,earn:1630},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:.04,p:18000,earn:2450},
-  {id:'narwhal',n:'Narwal',e:'🐋',r:'legendary',w:.03,p:25000,earn:3400},
-  {id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:.09,p:22000,earn:3000},{id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',w:.003,p:150000,earn:20400},
-  {id:'phoenix',n:'Phönix',e:'🔥',r:'ultralegendary',w:.002,p:200000,earn:27200},{id:'nessie',n:'Nessie',e:'🦕',r:'ultralegendary',w:.001,p:350000,earn:47600},
-  {id:'lion',n:'Löwe',e:'🦁',r:'god',w:.001,p:450000,earn:61200},{id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:.0009,p:900000,earn:122400},
-  {id:'kraken',n:'Kraken',e:'🦑',r:'god',w:.0005,p:2000000,earn:272000},{id:'anubis',n:'Anubis',e:'🏺',r:'god',w:.0002,p:5000000,earn:680000},
-  {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,p:15000000,earn:2040000},{id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,p:40000000,earn:5440000},
-  {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,p:100000000,earn:13600000},{id:'thor',n:'Thor',e:'🔨',r:'mythic',w:.00001,p:300000000,earn:40800000},
-  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:500000000,earn:68000000},{id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:5000000000,earn:680000000},
-  // === 50 NEW ANIMALS ===
-  // Normal
-  {id:'goat',n:'Ziege',e:'🐐',r:'normal',w:8,p:11,earn:1.0},{id:'sheep',n:'Schaf',e:'🐑',r:'normal',w:9,p:10,earn:.95},
-  {id:'pig',n:'Schwein',e:'🐷',r:'normal',w:7,p:13,earn:1.15},{id:'cow',n:'Kuh',e:'🐄',r:'normal',w:6,p:14,earn:1.25},
-  {id:'rooster',n:'Hahn',e:'🐓',r:'normal',w:7,p:12,earn:1.1},{id:'chick',n:'Küken',e:'🐤',r:'normal',w:10,p:9,earn:.8},
-  {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:8,earn:.75},{id:'snail',n:'Schnecke',e:'🐌',r:'normal',w:5,p:16,earn:1.4},
-  {id:'ladybug',n:'Marienkäfer',e:'🐞',r:'normal',w:6,p:14,earn:1.2},{id:'butterfly',n:'Schmetterling',e:'🦋',r:'normal',w:5,p:16,earn:1.35},
-  // Rare
-  {id:'fox_b',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:110,earn:14},{id:'wolf_b',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:125,earn:16},
-  {id:'bear_b',n:'Bär',e:'🐻',r:'rare',w:0.9,p:140,earn:18},{id:'panda_b',n:'Panda',e:'🐼',r:'rare',w:0.8,p:160,earn:21},
-  {id:'lion_b',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:180,earn:24},{id:'tiger_b',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:175,earn:23},
-  {id:'elephant_b',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:200,earn:27},{id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:220,earn:30},
-  {id:'rhino',n:'Nashorn',e:'🦏',r:'rare',w:0.5,p:215,earn:29},{id:'giraffe',n:'Giraffe',e:'🦒',r:'rare',w:0.6,p:190,earn:26},
-  {id:'camel',n:'Kamel',e:'🐪',r:'rare',w:0.8,p:155,earn:20},{id:'horse',n:'Pferd',e:'🐴',r:'rare',w:1.1,p:115,earn:15},
-  {id:'donkey',n:'Esel',e:'🫏',r:'rare',w:1.0,p:120,earn:15.5},{id:'bison',n:'Bison',e:'🦬',r:'rare',w:0.7,p:170,earn:22},
-  {id:'moose',n:'Elch',e:'🫎',r:'rare',w:0.8,p:150,earn:19},
-  // Epic
-  {id:'gorilla_b',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:320,earn:44},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:280,earn:38},
-  {id:'whale',n:'Wal',e:'🐋',r:'epic',w:0.4,p:500,earn:70},{id:'shark',n:'Hai',e:'🦈',r:'epic',w:0.5,p:420,earn:58},
-  {id:'dolphin_b',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:360,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:390,earn:54},
-  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:300,earn:41},{id:'narwhal_b',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:330,earn:46},
-  {id:'flamingo_b',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:310,earn:43},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:305,earn:42},
-  // Legendary
-  {id:'dragon_b',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:2000,earn:300},{id:'unicorn_b',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:2800,earn:420},
-  {id:'phoenix_b',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:3500,earn:530},{id:'kraken_b',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:2200,earn:330},
-  {id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:2600,earn:390},{id:'mammoth_b',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:2400,earn:360},
-  {id:'dodo',n:'Dodo',e:'🦤',r:'legendary',w:0.15,p:2100,earn:315},{id:'yeti',n:'Yeti',e:'🏔️',r:'legendary',w:0.09,p:3000,earn:450},
-  // Ultra-Legendary
-  {id:'alien_pet',n:'Alien-Tier',e:'👽',r:'ultralegendary',w:0.02,p:15000,earn:2500},{id:'robot_pet',n:'Roboter-Hund',e:'🤖',r:'ultralegendary',w:0.02,p:14000,earn:2300},
-  {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:16000,earn:2700},{id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:20000,earn:3500},
-  {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:30000,earn:5000},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:25000,earn:4200},
-  {id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:40000,earn:7000},{id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:100000,earn:20000},
+  // ══ NEUES WIRTSCHAFTS-BALANCING (Konzept-PDF) ══
+  // Preise (p) neu kalibriert für ~5-Minuten-Kaufkadenz und Millionär nach 5 Std.
+  // Einnahmen (earn) unverändert. Reihenfolge/Emoji/Gewichte (w) unverändert.
+  // ── NORMAL ──
+  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:8,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:30,earn:.7},
+  {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:70,earn:.75},{id:'chick',n:'Küken',e:'🐤',r:'normal',w:10,p:114,earn:.8},
+  {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,p:159,earn:.85},{id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,p:207,earn:.9},
+  {id:'sheep',n:'Schaf',e:'🐑',r:'normal',w:9,p:227,earn:.95},{id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,p:239,earn:1},
+  {id:'goat',n:'Ziege',e:'🐐',r:'normal',w:8,p:251,earn:1.0},{id:'dormouse',n:'Sieben.',e:'🐭',r:'normal',w:15,p:260,earn:1.1},
+  {id:'chicken',n:'Huhn',e:'🐔',r:'normal',w:8,p:271,earn:1.1},{id:'rooster',n:'Hahn',e:'🐓',r:'normal',w:7,p:280,earn:1.1},
+  {id:'pig',n:'Schwein',e:'🐷',r:'normal',w:7,p:285,earn:1.15},{id:'ladybug',n:'Marienkäfer',e:'🐞',r:'normal',w:6,p:291,earn:1.2},
+  {id:'cow',n:'Kuh',e:'🐄',r:'normal',w:6,p:299,earn:1.25},{id:'turtle',n:'Schildkröte',e:'🐢',r:'normal',w:6,p:304,earn:1.3},
+  {id:'butterfly',n:'Schmetterling',e:'🦋',r:'normal',w:5,p:311,earn:1.35},{id:'snail',n:'Schnecke',e:'🐌',r:'normal',w:5,p:321,earn:1.4},
+  // ── SELTEN ──
+  {id:'fish',n:'Fisch',e:'🐠',r:'rare',w:10,p:331,earn:3.5},{id:'sister',n:'Schwester',e:'👧',r:'rare',w:5,p:444,earn:5.5},
+  {id:'brother',n:'Bruder',e:'👦',r:'rare',w:5,p:653,earn:5.5},{id:'deer',n:'Reh',e:'🦌',r:'rare',w:4,p:856,earn:7},
+  {id:'penguin',n:'Pinguin',e:'🐧',r:'rare',w:3.5,p:1126,earn:7.8},{id:'kangaroo',n:'Känguru',e:'🦘',r:'rare',w:3,p:1427,earn:8.5},
+  {id:'koala',n:'Koala',e:'🐨',r:'rare',w:2.5,p:1656,earn:10},{id:'zebra',n:'Zebra',e:'🦓',r:'rare',w:2,p:1856,earn:11.5},
+  {id:'parrot',n:'Papagei',e:'🦜',r:'rare',w:1.5,p:2124,earn:13},{id:'fox_b',n:'Fuchs',e:'🦊',r:'rare',w:1.2,p:2386,earn:14},
+  {id:'horse',n:'Pferd',e:'🐴',r:'rare',w:1.1,p:2653,earn:15},{id:'donkey',n:'Esel',e:'🫏',r:'rare',w:1.0,p:2929,earn:15.5},
+  {id:'otter',n:'Otter',e:'🦦',r:'rare',w:1,p:3154,earn:16},{id:'wolf_b',n:'Wolf',e:'🐺',r:'rare',w:1.0,p:3330,earn:16},
+  {id:'bear_b',n:'Bär',e:'🐻',r:'rare',w:0.9,p:3434,earn:18},{id:'moose',n:'Elch',e:'🫎',r:'rare',w:0.8,p:3581,earn:19},
+  {id:'camel',n:'Kamel',e:'🐪',r:'rare',w:0.8,p:3725,earn:20},{id:'panda_b',n:'Panda',e:'🐼',r:'rare',w:0.8,p:3888,earn:21},
+  {id:'bison',n:'Bison',e:'🦬',r:'rare',w:0.7,p:4070,earn:22},{id:'tiger_b',n:'Tiger',e:'🐯',r:'rare',w:0.7,p:4291,earn:23},
+  {id:'lion_b',n:'Löwe',e:'🦁',r:'rare',w:0.7,p:4464,earn:24},{id:'giraffe',n:'Giraffe',e:'🦒',r:'rare',w:0.6,p:4635,earn:26},
+  {id:'elephant_b',n:'Elefant',e:'🐘',r:'rare',w:0.6,p:4844,earn:27},{id:'rhino',n:'Nashorn',e:'🦏',r:'rare',w:0.5,p:5249,earn:29},
+  {id:'hippo',n:'Nilpferd',e:'🦛',r:'rare',w:0.5,p:5445,earn:30},
+  // ── EPISCH ──
+  {id:'frog',n:'Frosch',e:'🐸',r:'epic',w:2,p:5048,earn:28},{id:'chimp',n:'Schimpanse',e:'🐒',r:'epic',w:1.0,p:5638,earn:38},
+  {id:'seahorse',n:'Seepferd',e:'🐴',r:'epic',w:0.9,p:6066,earn:41},{id:'peacock',n:'Pfau',e:'🦚',r:'epic',w:0.9,p:6564,earn:42},
+  {id:'flamingo_b',n:'Flamingo',e:'🦩',r:'epic',w:0.9,p:7054,earn:43},{id:'gorilla_b',n:'Gorilla',e:'🦍',r:'epic',w:0.8,p:7534,earn:44},
+  {id:'narwhal_b',n:'Narwal',e:'🦭',r:'epic',w:0.8,p:8005,earn:46},{id:'raccoon',n:'Waschbär',e:'🦝',r:'epic',w:1,p:8238,earn:48},
+  {id:'dolphin_b',n:'Delphin',e:'🐬',r:'epic',w:0.7,p:8428,earn:50},{id:'octopus',n:'Oktopus',e:'🐙',r:'epic',w:0.6,p:8651,earn:54},
+  {id:'shark',n:'Hai',e:'🦈',r:'epic',w:0.5,p:8982,earn:58},{id:'whale',n:'Wal',e:'🐋',r:'epic',w:0.4,p:9415,earn:70},
+  {id:'dolphin',n:'Delphin',e:'🐬',r:'epic',w:.5,p:10205,earn:80},{id:'panda',n:'Panda',e:'🐼',r:'epic',w:.3,p:11269,earn:100},
+  {id:'wolf',n:'Wolf',e:'🐺',r:'epic',w:.25,p:12957,earn:120},{id:'bear',n:'Bär',e:'🐻',r:'epic',w:.2,p:15181,earn:135},
+  {id:'flamingo',n:'Flamingo',e:'🦩',r:'epic',w:.15,p:17751,earn:162},{id:'capybara',n:'Capybara',e:'🦫',r:'epic',w:.06,p:28201,earn:300},
+  // ── LEGENDÄR ──
+  {id:'dragon_b',n:'Drache',e:'🐉',r:'legendary',w:0.15,p:20795,earn:300},{id:'dodo',n:'Dodo',e:'🦤',r:'legendary',w:0.15,p:34788,earn:315},
+  {id:'kraken_b',n:'Kraken',e:'🦑',r:'legendary',w:0.12,p:41085,earn:330},{id:'jellyfish',n:'Qualle',e:'🪼',r:'legendary',w:.2,p:47265,earn:340},
+  {id:'mammoth_b',n:'Mammut',e:'🦣',r:'legendary',w:0.12,p:52764,earn:360},{id:'t_rex',n:'T-Rex',e:'🦕',r:'legendary',w:0.1,p:54267,earn:390},
+  {id:'unicorn_b',n:'Einhorn',e:'🦄',r:'legendary',w:0.1,p:56720,earn:420},{id:'yeti',n:'Yeti',e:'🏔️',r:'legendary',w:0.09,p:59609,earn:450},
+  {id:'fox',n:'Fuchs',e:'🦊',r:'legendary',w:.2,p:62924,earn:475},{id:'phoenix_b',n:'Phönix',e:'🔥',r:'legendary',w:0.08,p:66651,earn:530},
+  {id:'tiger',n:'Tiger',e:'🐯',r:'legendary',w:.1,p:71410,earn:950},{id:'elephant',n:'Elefant',e:'🐘',r:'legendary',w:.08,p:88261,earn:1220},
+  {id:'gorilla',n:'Gorilla',e:'🦍',r:'legendary',w:.06,p:112234,earn:1630},{id:'unicorn',n:'Einhorn',e:'🦄',r:'legendary',w:.04,p:201585,earn:2450},
+  {id:'narwhal',n:'Narwal',e:'🐋',r:'legendary',w:.03,p:379725,earn:3400},
+  // ── ULTRA LEGENDÄR ──
+  {id:'robot_pet',n:'Roboter-Hund',e:'🤖',r:'ultralegendary',w:0.02,p:147426,earn:2300},{id:'alien_pet',n:'Alien-Tier',e:'👽',r:'ultralegendary',w:0.02,p:257617,earn:2500},
+  {id:'mermaid_pet',n:'Meerjungfrau',e:'🧜',r:'ultralegendary',w:0.02,p:301574,earn:2700},{id:'orca',n:'Orca',e:'🐳',r:'ultralegendary',w:.09,p:342645,earn:3000},
+  {id:'angel_pet',n:'Engel-Tier',e:'👼',r:'ultralegendary',w:0.015,p:408263,earn:3500},{id:'time_pet',n:'Zeitreise-Tier',e:'⏳',r:'ultralegendary',w:0.01,p:434815,earn:4200},
+  {id:'galaxy_pet',n:'Galaxie-Kreatur',e:'🌌',r:'ultralegendary',w:0.01,p:479403,earn:5000},{id:'void_pet',n:'Leere-Wesen',e:'🕳️',r:'ultralegendary',w:0.008,p:540118,earn:7000},
+  {id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',w:.003,p:1102488,earn:20400},{id:'phoenix',n:'Phönix',e:'🔥',r:'ultralegendary',w:.002,p:1557627,earn:27200},
+  {id:'nessie',n:'Nessie',e:'🦕',r:'ultralegendary',w:.001,p:2170822,earn:47600},
+  // ── GOTT ──
+  {id:'god_beast',n:'Göttliches Wesen',e:'✨',r:'god',w:0.005,p:647338,earn:20000},{id:'lion',n:'Löwe',e:'🦁',r:'god',w:.001,p:3302526,earn:61200},
+  {id:'mammoth',n:'Mammut',e:'🦣',r:'god',w:.0009,p:4724300,earn:122400},{id:'kraken',n:'Kraken',e:'🦑',r:'god',w:.0005,p:7399384,earn:272000},
+  {id:'anubis',n:'Anubis',e:'🏺',r:'god',w:.0002,p:13949872,earn:680000},
+  // ── MYTHISCH ──
+  {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,p:30838182,earn:2040000},{id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,p:82020101,earn:5440000},
+  {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,p:218951521,earn:13600000},{id:'thor',n:'Thor',e:'🔨',r:'mythic',w:.00001,p:558825534,earn:40800000},
+  // ── GEHEIM ──
+  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:1572472160,earn:68000000},{id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:3235135022,earn:680000000},
 ];
 window.ANIMALS = ANIMALS;
 // Per-species idle animation, hand-picked to fit each animal:
@@ -1468,15 +1474,15 @@ const ZG={
         }
       }catch(e){}
     }
-    // Insurance: charge 1000 MT every 5 min while active
+    // Insurance: charge 20'795 MT every 5 min while active
     this._ivs.push(setInterval(()=>{
       const z=ZS.zoo; if(!z||!z.insuranceActive) return;
       if(z.lifeInsurance) return; // lifelong = free, no charge
       if(Date.now() >= (z.insuranceNext||0)){
         if((z.mt||0) >= 2000){
-          z.mt-=2000; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
+          z.mt-=20795; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
           this._updHUD&&this._updHUD(); ZS.save&&ZS.save();
-          ZP.toast('🛡️ Versicherung: 2000 MT abgebucht',2500);
+          ZP.toast('🛡️ Versicherung: 20\'795 MT abgebucht',2500);
         } else {
           // can't pay → insurance lapses
           z.insuranceActive=false; z.insuranceUntil=0;
@@ -5767,7 +5773,7 @@ const ZTips = {
   // jackpot still mapping to the biggest (10'000) slot, next-biggest to the
   // next rung, and so on — so the wheel still reads as "some prizes are
   // clearly better than others", just all within the new ceiling.
-  const CAP_LADDER = [10000,7500,5000,3500,2500,1750,1200,800,500,300];
+  const CAP_LADDER = [88261,66196,44130,30891,22065,15446,10591,7061,4413,2648];
   const rungFor = (rank) => rank < CAP_LADDER.length ? CAP_LADDER[rank]
     : Math.max(100, Math.round(CAP_LADDER[CAP_LADDER.length-1]/Math.pow(1.6, rank-CAP_LADDER.length+1)));
   const TIER_ORDER = ['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
@@ -6338,8 +6344,8 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'token_1',n:'🥇 1 Gold-Token',d:'Für die Gold-Maschine',p:1000,token:1},{id:'token_5',n:'🥇 5 Gold-Tokens',d:'Vorteilspreis!',p:4500,token:5},{id:'token_10',n:'🥇 10 Gold-Tokens',d:'Bester Preis!',p:8500,token:10},{id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:100},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:800},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:4000,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:1500},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:2500},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:12000,req:'earn'}];
-    IT.push({id:'treat_1',n:'🍬 1 Leckerli',d:'Tier 2× schneller (Leckerli-Automat)',p:1000,treat:1},{id:'treat_5',n:'🍬 5 Leckerlis',d:'Vorteilspreis!',p:4500,treat:5},{id:'insurance',n:'🛡️ Versicherung',d:'2000 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});el.innerHTML=IT.map(item=>{
+  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'}];
+    IT.push({id:'insurance',n:'🛡️ Versicherung',d:'20\'795 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});el.innerHTML=IT.map(item=>{
       if(item.insurance){
         const active=z.insuranceActive;
         return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div>🛡️</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
@@ -6353,15 +6359,9 @@ const ZP={
       ? Math.max(0, Math.round(p*(1-disc.pct/100))) : p;
     if(((ZS.dsMT||0)+z.mt)<finalP){this.toast('❌ Zu wenig MT! Brauchst '+$mt(finalP));return;}
     z.mt-=finalP;
-    // Token items: repeatable, grant tokens (not marked as owned)
-    if(id==='token_1'){z.tokens=(z.tokens||0)+1;this.toast('🥇 +1 Gold-Token! Total: '+z.tokens);}
-    else if(id==='token_5'){z.tokens=(z.tokens||0)+5;this.toast('🥇 +5 Gold-Tokens! Total: '+z.tokens);}
-    else if(id==='token_10'){z.tokens=(z.tokens||0)+10;this.toast('🥇 +10 Gold-Tokens! Total: '+z.tokens);}
-    else if(id==='treat_1'){z.treats=(z.treats||0)+1;this.toast('🍬 +1 Leckerli! Total: '+z.treats);}
-    else if(id==='treat_5'){z.treats=(z.treats||0)+5;this.toast('🍬 +5 Leckerlis! Total: '+z.treats);}
-    else if(id==='insurance'){
+    if(id==='insurance'){
       if(z.insuranceActive){z.insuranceActive=false;z.insuranceUntil=0;this.toast('🛡️ Versicherung gekündigt.');}
-      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 2000 MT alle 5 Min.');}
+      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 20\'795 MT alle 5 Min.');}
     }
     else if(id==='net'){if(!z.upg)z.upg={};z.upg.net=true;this.toast('🥅 Fangnetz gekauft! Jetzt in der Waffenleiste wählbar.',3000);try{ZG._updWBar&&ZG._updWBar();}catch(e){}}
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
@@ -6827,7 +6827,7 @@ const ZP={
     ZSound._sndSuperEpic&&ZSound._sndSuperEpic();
   },
 
-  _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:600,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:1200,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:2500,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:10205,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:17751,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:47265,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bst(id,p,dur){const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();this._updShopBal();},
 
   // ── SLAP-PAKETE ── Every slap use now costs a % of total wealth (see
@@ -6846,13 +6846,13 @@ const ZP={
         if(isOwned){
           return `<div class="ac" style="opacity:.6"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:#27AE60">✅ Permanent freigeschaltet (Rebirth) — ${sl.pct}% pro Nutzung</div></div></div>`;
         }
-        return `<div class="ac"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${sl.pct}% vom Vermögen · Reichweite ${sl.range||8}m${packs>0?' · noch '+packs+' übrig':''}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<100?'disabled':''} onclick="ZP._bSlapPack('${sl.id}')">${$mt(100)}</button></div>`;
+        return `<div class="ac"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${sl.pct}% vom Vermögen · Reichweite ${sl.range||8}m${packs>0?' · noch '+packs+' übrig':''}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<2124?'disabled':''} onclick="ZP._bSlapPack('${sl.id}')">${$mt(2124)}</button></div>`;
       }).join('');
   },
   _bSlapPack(id){
     const z=ZS.zoo;if(!z)return;
-    if(((ZS.dsMT||0)+z.mt)<100){this.toast('❌ Zu wenig MT!');return;}
-    z.mt-=100;
+    if(((ZS.dsMT||0)+z.mt)<2124){this.toast('❌ Zu wenig MT!');return;}
+    z.mt-=2124;
     if(!z.slapPacks)z.slapPacks={};
     z.slapPacks[id]=(z.slapPacks[id]||0)+10;
     const sl=SLAPS.find(s=>s.id===id);
@@ -7022,7 +7022,7 @@ const ZP={
       ${can?`<button class="btn btng" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:`<button class="btn btnd" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
-  async _doReb(){if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=100;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
+  async _doReb(){if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=10;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
 
   // ENCLOSURE
   _rEnc(i){
@@ -9411,16 +9411,16 @@ const ZAdmin = {
         ZP.toast('✅ '+amount+' MT an '+name+' vergeben (Denkspiel)! Neuer Stand: '+(data.totalScore||0).toFixed(1)+' MT',3000);
         this._broadcastGiftAnim(name, amount, 'MT');
       } else {
-        // Tokens go directly into the zoo document
+        // Zoo-MT goes directly into the zoo document (was: Gold-Tokens, removed — Gold-Maschine zahlt jetzt direkt in MT)
         const zooKey='zoo_'+name.toLowerCase();
         const zref=_db.collection('zoos').doc(zooKey);
         const zdoc=await zref.get();
-        if(!zdoc.exists){ ZP.toast('⚠️ '+name+' hat noch keinen Zoo — Tokens können erst vergeben werden, sobald der Zoo einmal besucht wurde.',3500); return; }
+        if(!zdoc.exists){ ZP.toast('⚠️ '+name+' hat noch keinen Zoo — MT können erst vergeben werden, sobald der Zoo einmal besucht wurde.',3500); return; }
         const zoo=zdoc.data();
-        zoo.tokens=(zoo.tokens||0)+amount;
+        zoo.mt=(zoo.mt||0)+amount;
         await zref.set(zoo);
-        ZP.toast('✅ '+amount+' Gold-Tokens an '+name+' vergeben! Neuer Stand: '+zoo.tokens,3000);
-        this._broadcastGiftAnim(name, amount, 'Gold-Tokens');
+        ZP.toast('✅ '+amount+' MT an '+name+'s Zoo vergeben! Neuer Stand: '+zoo.mt,3000);
+        this._broadcastGiftAnim(name, amount, 'Zoo-MT');
       }
     }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
   },
@@ -10092,9 +10092,9 @@ const SECRETS = {
   checkNameSecret(msg){
     if(ZS.player&&msg.toLowerCase()===ZS.player.toLowerCase()&&!this.unlocked['narcissist']){
       this.unlocked['narcissist']=true;
-      this._reveal('🪞 NARZISST!','Dein eigener Name im Chat... +500 MT für die Kreativität!','#9B59B6');
-      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+500;
-      ZP.toast('🪞 Narzisst Secret! +500 MT!',3000);
+      this._reveal('🪞 NARZISST!','Dein eigener Name im Chat... +9\'415 MT für die Kreativität!','#9B59B6');
+      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+9415;
+      ZP.toast('🪞 Narzisst Secret! +9\'415 MT!',3000);
     }
   },
 
@@ -10108,9 +10108,9 @@ const SECRETS = {
       // target), it dwarfed the rest of the early economy. Reduced to a
       // scale similar to the other secret achievements (e.g. "Narzisst" is
       // +500 MT for something much harder to stumble into).
-      this._reveal('👥 '+(typeof t!=='undefined'?t('zoo.popular_title'):'BELIEBT!'),typeof t!=='undefined'?t('zoo.popular_desc'):'100 Besucher in deinem Zoo! +300 MT!','#E74C3C');
-      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+300;
-      ZP.toast('👥 100 Besucher! +300 MT!',4000);
+      this._reveal('👥 '+(typeof t!=='undefined'?t('zoo.popular_title'):'BELIEBT!'),typeof t!=='undefined'?t('zoo.popular_desc'):'100 Besucher in deinem Zoo! +6\'066 MT!','#E74C3C');
+      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+6066;
+      ZP.toast('👥 100 Besucher! +6\'066 MT!',4000);
     }
   },
   
@@ -10823,18 +10823,15 @@ const GoldMachine = {
     {n:'Void',      emoji:'🌌', mult:16,   tokens:8, waitMin:120, color:'#9B59B6'},
   ],
 
-  // Token cost to GOLD an animal depends on its rarity
-  _RARITY_COST: {
-    normal:1, rare:3, epic:10, legendary:20,
-    ultralegendary:40, god:75, mythic:100, secret:200
-  },
+  // Direct MT cost (tokens removed, per economy concept) — 25% of the
+  // animal's CURRENT purchase price for the permanent ×2 (Gold) upgrade.
+  // Scales automatically with the animal price curve, no separate tuning needed.
   _RARITY_NAMES: {
     normal:'Gewöhnlich', rare:'Selten', epic:'Episch', legendary:'Legendär',
     ultralegendary:'Ultra Legendär', god:'Gott', mythic:'Mythisch', secret:'Geheim'
   },
   _costFor(animal) {
-    const r = (animal && animal.r) || 'normal';
-    return this._RARITY_COST[r] !== undefined ? this._RARITY_COST[r] : 1;
+    return Math.max(1, Math.round((animal && animal.p || 0) * 0.25));
   },
 
   _tier(animal) {
@@ -10851,7 +10848,7 @@ const GoldMachine = {
     if(existing) existing.remove();
     const z = ZS.zoo; if(!z) return;
     try{ if(typeof ZTips!=='undefined') ZTips.notify('gold'); }catch(e){}
-    const tokens = z.tokens||0;
+    const totalMt = (ZS.dsMT||0)+(z.mt||0);
     const animals = z.enc.filter(e=>e&&e.animal).map(e=>e.animal);
     if(!animals.length) { ZP.toast('❌ Keine Tiere im Zoo!',2000); return; }
 
@@ -10862,7 +10859,7 @@ const GoldMachine = {
       const cardBg = isGold ? 'rgba(255,215,0,.22)' : 'rgba(255,215,0,.10)';
       const statusLabel = isGold
         ? `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🥇 Vergoldet</div>`
-        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🎫 ${cost} · 👆 Tippen</div>`;
+        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🌀 ${$mt(cost)} · 👆 Tippen</div>`;
       return `<div onclick="GoldMachine._select('${a.id}')" id="gm-card-${a.id}"
         onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"
         style="background:${cardBg};border:2px solid #FFD700;
@@ -10885,44 +10882,27 @@ const GoldMachine = {
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
           <div style="flex:1;min-width:150px">
             <div style="font-size:1.2rem;font-weight:900;color:#FFD700">⚗️ Gold-Maschine</div>
-            <div style="font-size:.78rem;color:rgba(255,255,255,.5)">🎫 ${tokens} Tokens verfügbar</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5)">🌀 ${$mt(totalMt)} verfügbar</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-            <button onclick="GoldMachine._goToShop()"
-              style="background:linear-gradient(135deg,#FFD700,#F39C12);border:none;color:#1a1a2e;
-                padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:900;white-space:nowrap">
-              🛒 Token kaufen</button>
             <button onclick="document.getElementById('gm-panel').remove()"
               style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:36px;height:36px;
                 border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0">✕</button>
           </div>
         </div>
         <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px">
-          Deine Tiere im Gehege — tippe eines zum Aufwerten (Tokens im Shop kaufen):
+          Deine Tiere im Gehege — tippe eines zum Aufwerten:
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${cards}</div>
         <div id="gm-action" style="margin-top:6px"></div>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);
           font-size:.7rem;color:rgba(255,255,255,.4);line-height:1.6">
-          <b style="color:#FFD700">Token-Kosten nach Seltenheit:</b><br>
-          Gewöhnlich 1 · Selten 3 · Episch 10 · Legendär 20 · Ultra 40 · Gott 75 · Mythisch 100 · Geheim 200<br>
-          <span style="color:rgba(255,255,255,.3)">1 Token = 1000 MT · Vergolden = Einkommen ×2 (sofort)</span>
+          <b style="color:#FFD700">Kosten:</b> 25% des aktuellen Kaufpreises des Tieres, direkt in MT.<br>
+          <span style="color:rgba(255,255,255,.3)">Vergolden = Einkommen ×2 (sofort, dauerhaft)</span>
         </div>
       </div>`;
     panel.addEventListener('click', (e) => { if(e.target === panel) panel.remove(); });
     document.body.appendChild(panel);
-  },
-
-  _goToShop() {
-    // Close Gold Machine, open Shop on the Zoo tab (where tokens are sold)
-    const panel = document.getElementById('gm-panel');
-    if(panel) panel.remove();
-    if(typeof ZP!=='undefined' && ZP.open) {
-      ZP.open('shop');
-      // Switch to Zoo tab where the Gold-Tokens are
-      if(ZP.shopTab) ZP.shopTab('z');
-      ZP.toast && ZP.toast('🛒 Hier findest du die Gold-Tokens!',2500);
-    }
   },
 
   _select(animalId) {
@@ -10934,7 +10914,7 @@ const GoldMachine = {
     const nextTierIdx = tier+1;
     const nextDef = this._TIERS[nextTierIdx];
     const upg = this._upgrading(a);
-    const tokens = z.tokens||0;
+    const totalMt = (ZS.dsMT||0)+(z.mt||0);
     const el = document.getElementById('gm-action');
     if(!el) return;
 
@@ -10962,22 +10942,21 @@ const GoldMachine = {
     } else {
       const cost = this._costFor(a);
       const rName = this._RARITY_NAMES[a.r||'normal']||'Gewöhnlich';
-      const canAfford = tokens >= cost;
+      const canAfford = totalMt >= cost;
       el.innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px">
         <div style="font-size:.9rem;font-weight:700;color:#fff;margin-bottom:8px">
           🥇 ${a.e||''} ${a.n||a.id} vergolden</div>
         <div style="display:flex;gap:12px;font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:10px;flex-wrap:wrap">
           <span>Seltenheit: <b style="color:#FFD700">${rName}</b></span>
-          <span>🎫 Kosten: <b style="color:${canAfford?'#FFD700':'#E74C3C'}">${cost} Token${cost!==1?'s':''}</b></span>
+          <span>🌀 Kosten: <b style="color:${canAfford?'#FFD700':'#E74C3C'}">${$mt(cost)}</b> <span style="color:rgba(255,255,255,.4)">(25% des Tierpreises)</span></span>
           <span>📈 Einkommen: <b style="color:#27AE60">×2</b></span>
         </div>
         ${canAfford ? `<button onclick="GoldMachine._startUpgrade('${animalId}')"
           style="width:100%;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;
             border:none;padding:10px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">
-          🥇 Jetzt vergolden! (${cost} Token${cost!==1?'s':''})
+          🥇 Jetzt vergolden! (${$mt(cost)})
         </button>` : `<div style="text-align:center;color:#E74C3C;font-size:.82rem">
-          ❌ Zu wenig Tokens! Du hast ${tokens}, brauchst ${cost}.<br>
-          <span style="font-size:.7rem;color:rgba(255,255,255,.4)">Tokens im Shop kaufen (1 Token = 1000 MT)</span>
+          ❌ Zu wenig MT! Du hast ${$mt(totalMt)}, brauchst ${$mt(cost)}.
         </div>`}
       </div>`;
     }
@@ -10990,9 +10969,9 @@ const GoldMachine = {
     const a = enc.animal;
     if(this._tier(a) >= 1) { ZP.toast('🥇 Bereits vergoldet!',2000); return; }
     const cost = this._costFor(a);
-    if((z.tokens||0) < cost) { ZP.toast('❌ Zu wenig Tokens! Brauchst '+cost,2500); return; }
-    // Deduct tokens and apply gold INSTANTLY (no wait time in rarity model)
-    z.tokens = (z.tokens||0) - cost;
+    if(((ZS.dsMT||0)+(z.mt||0)) < cost) { ZP.toast('❌ Zu wenig MT! Brauchst '+$mt(cost),2500); return; }
+    // Deduct MT directly and apply gold INSTANTLY (no wait time in this simple ×2 tier)
+    z.mt = (z.mt||0) - cost;
     if(!z.upgrades) z.upgrades = {};
     z.upgrades[animalId] = {tier:1};
     // Boost earnings ×2
@@ -11000,7 +10979,7 @@ const GoldMachine = {
     enc.animal.earn = Math.round((enc.animal._baseEarn) * 2);
     enc.animal._upgrading = false;
     ZS.save && ZS.save();
-    ZG._encs && ZG._encs();
+    ZG._encs && ZG._encs(); ZG._updHUD && ZG._updHUD();
     ZP.toast('🥇 '+(enc.animal.e||'')+' '+(enc.animal.n||'')+' ist jetzt vergoldet! Einkommen ×2',4000);
     // Refresh the panel
     document.getElementById('gm-panel')?.remove();
@@ -11034,11 +11013,13 @@ window.GoldMachine = GoldMachine;
 // ══════════════════════════════════════════════
 const Feeder = {
   _TREAT_MIN: 5, // a treat lasts 5 minutes (2x earn during that time)
+  _TREAT_PCT: 0.05, // cost = 5% of the animal's current price — scales automatically with the price curve
   _selected: null,
+  _costFor(a){ return Math.max(1, Math.round((a && a.p || 0) * this._TREAT_PCT)); },
   open(){
     document.getElementById('feeder-panel')?.remove();
     const z=ZS.zoo; if(!z) return;
-    const treats=z.treats||0;
+    const totalMt=(ZS.dsMT||0)+(z.mt||0);
     const RAR_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#f39c12',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#00CFFF',secret:'#FF1493'};
     // Only animals currently in enclosures can be fed
     const myAnimals=(z.enc||[]).map((e,i)=>({e,i})).filter(o=>o.e&&o.e.animal);
@@ -11061,10 +11042,10 @@ const Feeder = {
         '<div style="font-size:1.2rem;font-weight:900;color:#f5c542">'+(typeof t!=='undefined'?t('feeder.title'):'🍬 Leckerli-Automat')+'</div>'+
         '<button onclick="document.getElementById(\'feeder-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer">✕</button>'+
       '</div>'+
-      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">'+(typeof t!=='undefined'?t('feeder.yours'):'Deine Leckerlis:')+' <b style="color:#f5c542">🍬 '+treats+'</b> · '+(typeof t!=='undefined'?t('feeder.choose'):'Wähle ein Tier, das du fütterst')+'</div>'+
+      '<div style="font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:6px">🌀 '+$mt(totalMt)+' verfügbar · Wähle ein Tier, das du fütterst</div>'+
       '<div id="feeder-action" style="margin-bottom:10px"></div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">'+cards+'</div>'+
-      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">'+(typeof t!=='undefined'?t('feeder.hint'):'Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld.')+'<br>'+(typeof t!=='undefined'?t('feeder.buy_shop'):'Leckerlis im Shop kaufen (1000 MT).')+'</div>'+
+      '<div style="margin-top:12px;font-size:.7rem;color:rgba(255,255,255,.45);text-align:center">Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld — kostet 5% des Preises dieses Tieres.</div>'+
     '</div>';
     document.body.appendChild(ov);
   },
@@ -11072,21 +11053,25 @@ const Feeder = {
     const z=ZS.zoo; if(!z) return;
     const enc=z.enc[idx]; if(!enc||!enc.animal) return;
     this._selected=idx;
-    const a=enc.animal; const treats=z.treats||0;
+    const a=enc.animal;
+    const cost=this._costFor(a);
+    const totalMt=(ZS.dsMT||0)+(z.mt||0);
+    const canAfford=totalMt>=cost;
     const now=Date.now(); const active=enc.treatUntil&&enc.treatUntil>now;
     const el=document.getElementById('feeder-action'); if(!el) return;
     el.innerHTML='<div style="background:rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center">'+
       '<span style="font-size:1.4rem">'+(a.e||"")+'</span> <b>'+(a.n||a.id)+'</b>'+
-      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ '+(typeof t!=='undefined'?t('feeder.already'):'Schon gefüttert! Läuft noch.')+'</span>':'')+
-      (treats>0? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">'+(typeof t!=='undefined'?t('feeder.feed_btn'):'🍬 Füttern (1 Leckerli)')+'</button>'
-                : '<br><span style="color:#E74C3C;font-size:.8rem">'+(typeof t!=='undefined'?t('feeder.none_left'):'Keine Leckerlis! Im Shop kaufen.')+'</span>')+
+      (active?'<br><span style="color:#27AE60;font-size:.82rem">⚡ Schon gefüttert! Läuft noch.</span>':'')+
+      (canAfford? '<br><button onclick="Feeder._feed()" style="margin-top:8px;background:linear-gradient(135deg,#f5c542,#d9a441);color:#1a1a2e;border:none;padding:9px 22px;border-radius:10px;font-weight:900;cursor:pointer">🍬 Füttern ('+$mt(cost)+')</button>'
+                : '<br><span style="color:#E74C3C;font-size:.8rem">Zu wenig MT! Brauchst '+$mt(cost)+'.</span>')+
       '</div>';
   },
   _feed(){
     const z=ZS.zoo; if(!z||this._selected==null) return;
     const enc=z.enc[this._selected]; if(!enc||!enc.animal) return;
-    if((z.treats||0)<1){ ZP.toast('❌ Keine Leckerlis!',2000); return; }
-    z.treats--;
+    const cost=this._costFor(enc.animal);
+    if(((ZS.dsMT||0)+(z.mt||0))<cost){ ZP.toast('❌ Zu wenig MT!',2000); return; }
+    z.mt=(z.mt||0)-cost;
     const now=Date.now();
     // Extend if already active, else start fresh
     const base=(enc.treatUntil&&enc.treatUntil>now)?enc.treatUntil:now;
@@ -11102,7 +11087,7 @@ window.Feeder = Feeder;
 // KEHRMASCHINE — sweep the zoo, 20% accident → trash room → 112 → hospital
 // ══════════════════════════════════════════════
 const Sweeper = {
-  _COST: 5000,
+  _COST: 66651,
   _hasInsurance(){ const z=ZS.zoo; return z && z.insuranceUntil && z.insuranceUntil>Date.now(); },
   open(){
     document.getElementById('sweeper-panel')?.remove();
@@ -11738,7 +11723,7 @@ window.ZooEvents = ZooEvents;
             <div style="display:flex;gap:6px;margin-bottom:6px">
               <select id="padmin-gift-type" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.78rem">
                 <option value="mt">🌀 Denkspiel-MT</option>
-                <option value="token">🥇 Gold-Tokens (Zoo)</option>
+                <option value="token">🌀 Zoo-MT (direkt in den Zoo)</option>
               </select>
               <input id="padmin-gift-amount" type="number" placeholder="Anzahl" style="width:90px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.78rem">
             </div>
