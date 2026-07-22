@@ -134,7 +134,21 @@ const RewardChests = {
   },
 
   // ── TIMING ──
-  _startTs(){ let t=0; try{ t=parseInt(sessionStorage.getItem('mischa_session_start')||'0'); }catch(e){} if(!t){ t=Date.now(); try{sessionStorage.setItem('mischa_session_start',String(t));}catch(e){} } return t; },
+  _startTs(){
+    let t=0; try{ t=parseInt(sessionStorage.getItem('mischa_session_start')||'0'); }catch(e){}
+    if(!t){ t=Date.now(); try{sessionStorage.setItem('mischa_session_start',String(t));}catch(e){} }
+    // If the zoo document itself was reset more recently than this
+    // session started (admin reset, possibly from a different device),
+    // that's a more authoritative "start over" signal — use it instead.
+    // Without this, an admin reset only cleared chest state on the SAME
+    // browser tab that ran resetScore() (sessionStorage can't be cleared
+    // remotely), so from the actual player's device every chest still
+    // looked instantly "ready" if enough real time had passed.
+    try{
+      if(typeof ZS!=='undefined' && ZS.zoo && ZS.zoo.st && ZS.zoo.st>t) t=ZS.zoo.st;
+    }catch(e){}
+    return t;
+  },
   _opened(){ try{ return JSON.parse(sessionStorage.getItem('mischa_chests_opened')||'[]'); }catch(e){ return []; } },
   _markOpened(min){
     const o=this._opened(); if(!o.includes(min)){ o.push(min); try{sessionStorage.setItem('mischa_chests_opened',JSON.stringify(o));}catch(e){} }

@@ -281,6 +281,7 @@ const State = {
     const localPlayer = this._local.get(name.toLowerCase());
     if (localPlayer && localPlayer.password === password) {
       this._syncDeviceIdOnLogin(localPlayer);
+      await this._claimSession(localPlayer.name).catch(()=>{});
       return { ok: true, player: localPlayer };
     }
     // Then try cloud with timeout
@@ -300,9 +301,48 @@ const State = {
     // Cache locally
     this._local.save(player);
     this._syncDeviceIdOnLogin(player);
+    await this._claimSession(player.name).catch(()=>{});
     return { ok: true, player };
   },
 
+  // ── SESSION LOCK ── one active device per account. A second device
+  // logging in always wins (per explicit product decision) — it claims the
+  // "seat" immediately; the FIRST device finds out next time it polls (see
+  // checkSessionKicked) and gets logged out with an explanation, rather
+  // than silently racing autosaves against a device it doesn't know exists.
+  // A device that's gone quiet for 15+ minutes (closed the tab without
+  // logging out) is treated as inactive — its own re-login later just
+  // re-claims the seat normally, no kick message needed since nothing
+  // could have raced it.
+  SESSION_STALE_MS: 15 * 60 * 1000,
+  async _claimSession(name) {
+    try {
+      const id = window.getDeviceId && window.getDeviceId();
+      if (!id || !name || typeof _db === 'undefined' || !_db || !this._useCloud()) return;
+      await this._col().doc(name.toLowerCase()).set(
+        { sessionDeviceId: id, sessionHeartbeat: Date.now() }, { merge: true }
+      );
+    } catch(e) {}
+  },
+  // Call periodically while logged in to (a) prove this device is still
+  // alive (extends the 15-min staleness window) and (b) find out if
+  // another device has since claimed the seat — if so, returns a message
+  // to show the person before logging them out; null means all is fine.
+  async checkSessionKicked(name) {
+    try {
+      const id = window.getDeviceId && window.getDeviceId();
+      if (!id || !name || typeof _db === 'undefined' || !_db || !this._useCloud()) return null;
+      const doc = await this._col().doc(name.toLowerCase()).get();
+      if (!doc.exists) return null;
+      const d = doc.data();
+      if (d.sessionDeviceId && d.sessionDeviceId !== id) {
+        return '🔒 Du wurdest ausgeloggt, weil sich «' + name + '» auf einem anderen Gerät angemeldet hat.';
+      }
+      // Still ours — refresh the heartbeat so we don't go stale ourselves.
+      await this._col().doc(name.toLowerCase()).set({ sessionHeartbeat: Date.now() }, { merge: true }).catch(()=>{});
+      return null;
+    } catch(e) { return null; }
+  },
   // A successful password login is the strongest proof of "this is really
   // them" the game has — stronger than the Zoo's local-only pseudo-auth
   // (ZA.login in zoo.html just checks a per-browser localStorage password
@@ -879,6 +919,44 @@ const State = {
     // Also save to localStorage as backup (survives page refresh)
     localStorage.setItem('mischa_current_backup', player.name.toLowerCase());
     this._resetActivityTimer();
+    this.startSessionWatch(player.name);
+  },
+
+  // Periodically confirms this device still "owns" the login (see
+  // _claimSession/checkSessionKicked above) and shows a message + forces
+  // a return to the login screen the moment another device claims it.
+  // Started from setCurrentPlayer so it covers both a fresh login and a
+  // page-reload that restores an existing session from storage.
+  _sessionWatchIv: null,
+  startSessionWatch(name) {
+    if (this._sessionWatchIv) clearInterval(this._sessionWatchIv);
+    this._sessionWatchIv = setInterval(async () => {
+      const msg = await this.checkSessionKicked(name);
+      if (msg) {
+        clearInterval(this._sessionWatchIv); this._sessionWatchIv = null;
+        this.currentPlayer = null;
+        try { sessionStorage.removeItem('mischa_current'); localStorage.removeItem('mischa_current_backup'); } catch(e) {}
+        try {
+          if (typeof App !== 'undefined' && App.showLogin) {
+            App.showLogin();
+            setTimeout(() => {
+              const e = document.getElementById('l-err');
+              if (e) { e.textContent = msg; e.style.display = 'block'; e.style.whiteSpace = 'pre-line'; }
+            }, 50);
+          } else if (typeof ZP !== 'undefined' && ZP.toast) {
+            // Zoo context — no login screen to bounce to here (ZA handles its own), just alert + reload
+            alert(msg);
+            location.reload();
+          } else {
+            alert(msg);
+            location.reload();
+          }
+        } catch(e) { alert(msg); location.reload(); }
+      }
+    }, 60000);
+  },
+  stopSessionWatch() {
+    if (this._sessionWatchIv) { clearInterval(this._sessionWatchIv); this._sessionWatchIv = null; }
   },
 
   _resetActivityTimer() {

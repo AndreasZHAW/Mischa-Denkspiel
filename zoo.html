@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v348 -->
+<!-- ZOO v351 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -232,12 +232,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=348"></script>
-<script src="rewardchests.js?v=348"></script>
-<script src="personality.js?v=348"></script>
+<script src="lang.js?v=351"></script>
+<script src="rewardchests.js?v=351"></script>
+<script src="personality.js?v=351"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v348','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v351','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -453,7 +453,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     </div>
   </div>
 </div>
-<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-x" class="tab ti" onclick="ZP.shopTab('x')">🌀 Tauschen</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button></div><div id="scont"></div>
+<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button></div><div id="scont"></div>
   <!-- Secret admin access field -->
   <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
     <input id="shop-admin-pw" type="password" placeholder="🔐 Code eingeben..." maxlength="30"
@@ -487,8 +487,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=348"></script>
-<script src="worlds.js?v=348"></script>
+<script src="firebase-state.js?v=351"></script>
+<script src="worlds.js?v=351"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -879,18 +879,18 @@ const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
-  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:2,  range:8},
-  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:4,  range:10},
-  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:6,  range:12},
-  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:8,  range:14},
-  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:10, range:16},
-  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:12, range:18},
-  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:14, range:20},
-  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true, pct:16, range:22},
-  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:18, range:24},
-  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:20, range:26},
-  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:22, range:28},
-  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:24, range:30},
+  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:1,  range:8},
+  {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:2,  range:10},
+  {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:3,  range:12},
+  {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:4,  range:14},
+  {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:5,  range:16},
+  {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:6,  range:18},
+  {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:7,  range:20},
+  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true, pct:8,  range:22},
+  {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:9,  range:24},
+  {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:10, range:26},
+  {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:11, range:28},
+  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:12, range:30},
 ];
 
 // TOOLS — unlocked via shop purchase (z.upg.<id>), not rebirth. Shown in
@@ -1187,13 +1187,41 @@ const ZA={
     if(!p){e.textContent='Passwort fehlt!';return;}
     const banned = await (window.checkDeviceBanned&&window.checkDeviceBanned());
     if(banned){e.textContent='🚫 Dieses Gerät ist gesperrt.'+(banned.reason?' Grund: '+banned.reason:'');return;}
+    // If a REAL Denkspiel account exists for this name, its actual password
+    // is authoritative — previously the Zoo only ever checked a per-browser
+    // local password store, so anyone could "create" a same-named local
+    // entry and get full Zoo access to somebody else's real account
+    // (worse now that a successful login also claims/kicks their session
+    // elsewhere — see State._claimSession).
+    let realAccount=null;
+    try{ if(typeof State!=='undefined'&&State.getPlayer) realAccount=await State.getPlayer(n); }catch(err){}
+    if(realAccount){
+      const res=await State.login(n,p);
+      if(!res.ok){ e.textContent=res.error||'Falsches Passwort!'; return; }
+      const k=n.toLowerCase();
+      const us=JSON.parse(localStorage.getItem('zoo_users')||'{}');
+      if(!us[k]){ us[k]={n:res.player.name,p:'auto',ch:null}; }
+      us[k].p='auto'; // keep the local copy in sync but never authoritative for a real account
+      localStorage.setItem('zoo_users',JSON.stringify(us));
+      ZS.player=res.player.name; ZS.isAdmin=k==='mischa'||k==='admin';
+      if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}
+      return;
+    }
+    // No real Denkspiel account with this name — Zoo-only player, existing local-only flow
     const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=n.toLowerCase();if(!us[k]){us[k]={n,p,ch:null};localStorage.setItem('zoo_users',JSON.stringify(us));ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';console.log('[ZA.login] new user created');this._showChar();}else{if(us[k].p!=='auto' && us[k].p!==p){e.textContent='Falsches Passwort!';return;}
         // If pw was 'auto' (from teleport), update to user's chosen password
         if(us[k].p==='auto'){us[k].p=p;localStorage.setItem('zoo_users',JSON.stringify(us));}ZS.player=n;ZS.isAdmin=k==='mischa'||k==='admin';if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}}},
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
-  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}},
+  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}
+    try{
+      if(typeof State!=='undefined'&&State._claimSession&&ZS.player){
+        State._claimSession(ZS.player);
+        State.startSessionWatch(ZS.player);
+      }
+    }catch(e){}
+  },
   async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
     const _ls = document.getElementById('zoo-load-status');
     if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
@@ -1226,6 +1254,7 @@ const ZA={
     }if(ZS.isAdmin)show('admbtn');},
   logout(){
     ZG.zStop();
+    try{ if(typeof State!=='undefined'&&State.stopSessionWatch) State.stopSessionWatch(); }catch(e){}
     // Remove our own zoo_players entry immediately so our enclosures vanish
     // from other players' screens right away, instead of waiting for the
     // ~10s staleness cutoff to naturally exclude us.
@@ -4995,7 +5024,7 @@ const ZG={
       // a fresh one, matching the fresh doc the admin just wrote to Firestore,
       // then re-save immediately so our own autosave can't race it back to
       // the old values a moment later.
-      ZS.zoo={...ZS.nz(), mt:cmd.mt}; this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save();
+      ZS.zoo={...ZS.nz(), mt:cmd.mt}; this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZG._updWBar&&ZG._updWBar(); ZS.save&&ZS.save();
       ZP.toast('🔄 Admin hat deinen Zoo komplett zurückgesetzt ('+cmd.mt+' MT).',3000);
     }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}
     else if(cmd.type==='poll'){
@@ -6271,7 +6300,7 @@ const ZP={
   },
 
   // SHOP
-  shopTab(t){this._st=t;['z','x','b','s'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  shopTab(t){this._st=t;['z','b','s'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
   _sP(el){
     const z=ZS.zoo;if(!z)return;
     const pt=z.pt||0; // Premium Taler
@@ -6341,7 +6370,7 @@ const ZP={
     this._sP(document.getElementById('scont'));
   },
 
-  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='x')this._sX(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
+  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'}];
@@ -6373,7 +6402,6 @@ const ZP={
   // exactly why buying something could look like "nothing happened" even
   // though it worked.
   _updShopBal(){ const el=G('sbal'); if(el) el.textContent='🌀 '+$mt((ZS.dsMT||0)+(ZS.zoo?.mt||0)).replace('🌀',''); },
-  _sX(el){const sb=State.currentPlayer?.totalScore||0;const R=[{s:100,m:50,l:'100⭐→50 MT'},{s:500,m:300,l:'500⭐→300 MT'},{s:1000,m:700,l:'1K⭐→700 MT'},{s:5000,m:4000,l:'5K⭐→4K MT'}];el.innerHTML=`<div style="font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:6px">⭐ Sterne (${sb}⭐) → 🌀 MT</div>`+R.map(r=>`<div class="ex"><div style="font-weight:900;font-size:.82rem">${r.l}</div><button class="ab" ${sb<r.s?'disabled':''} onclick="ZP._exch(${r.s},${r.m})">Tauschen</button></div>`).join('');},
   _openProfile(){
     const el=document.getElementById('profile-cur-name');
     if(el)el.textContent=ZS.player||'?';
@@ -6697,7 +6725,6 @@ const ZP={
     this._loadQuestions();
   },
 
-  _exch(s,m){const p=State.currentPlayer;if(!p||p.totalScore<s){this.toast('❌ Nicht genug ⭐!');return;}State.addPoints(p.name,-s);ZS.zoo.mt+=m;this.toast(`✅ ${s}⭐→${$mt(m)}!`);this._sX(G('scont'));ZG._updHUD();this._updShopBal();},
   // ── LUCKY EGGS ──
   _EGG_TYPES:[
     {id:'normal',    name:'Normal-Ei',    e:'🥚', color:'#8e9da8', glow:'rgba(142,157,168,.5)', cost:500,    rarity:'normal'},
@@ -6839,7 +6866,7 @@ const ZP={
     const z=ZS.zoo;if(!z)return;
     const owned=z.ownSlaps||['basic'];
     el.innerHTML = '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.4">'
-      +'🥊 Jeder Slap kostet beim Benutzen einen Prozentsatz deines Vermögens — <b>stärkere Slaps kosten mehr</b> (Basic 2%, jede Stufe +2%), halten Spieler aber auch länger ausser Gefecht. Permanent (unbegrenzt nutzbar) bekommst du Slaps weiterhin über Rebirth. Hier kannst du stattdessen ein <b>10er-Paket</b> für einen bestimmten Slap kaufen — 10 Nutzungen, unabhängig von der Stufe, immer 100 MT.</div>'
+      +'🥊 Jeder Slap kostet beim Benutzen einen Prozentsatz deines Vermögens — <b>stärkere Slaps kosten mehr</b> (Basic 1%, jede Stufe +1%), halten Spieler aber auch länger ausser Gefecht. Permanent (unbegrenzt nutzbar) bekommst du Slaps weiterhin über Rebirth. Hier kannst du stattdessen ein <b>10er-Paket</b> für einen bestimmten Slap kaufen — 10 Nutzungen, unabhängig von der Stufe, immer 2\'124 MT.</div>'
       + SLAPS.map(sl=>{
         const isOwned=owned.includes(sl.id);
         const packs=(z.slapPacks||{})[sl.id]||0;
@@ -7152,10 +7179,6 @@ const ZP={
     G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left;font-size:.78rem;line-height:1.85;color:rgba(255,255,255,.6)">${ZS._personalityAvatar()} <b style="color:#fff">${ZS.player}</b><br>🌀 ${$mt(z.mt)}<br>📈 ${$mt(z.te||0)} verdient<br>🐾 ${z.enc.filter(e=>e).length}/${ZS.maxE()} Tiere<br>🔄 ${z.reb||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}</div>
       <div style="background:linear-gradient(135deg,rgba(255,107,0,.3),rgba(255,165,0,.2));border:2px solid #FFA500;border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
         <div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px;text-align:center;letter-spacing:1px">${typeof t!=='undefined'?t('menu.settings'):'⚙️ EINSTELLUNGEN ⚙️'}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-          <span style="color:rgba(255,255,255,.75);font-size:.78rem">🎵 Sound</span>
-          <button onclick="ZP.close('menu');ZP.open('sound')" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 14px;font-size:.78rem;cursor:pointer">${soundStyle==='off'?'🔇 Aus':soundStyle==='important'?'🔔 Nur Wichtiges':soundStyle==='arcade'?'🕹️ Arcade':soundStyle==='satisfying'?'✨ Satisfying':'🎶 Normal'} ›</button>
-        </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">🌅 Tageszeiten</span>
           <button id="todToggleBtn" onclick="ZG.setTimeOfDay(!ZG._todEnabled())" style="background:${todOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${todOn?'✓ An':'✗ Aus'}</button>
@@ -7702,13 +7725,14 @@ const ZSound = {
     let ni = 0;
     this._melodyIv = setInterval(() => {
       if (document.hidden) return;
+      if (this.style === 'important') return; // ambient background music isn't "important"
       this._tone(notes[ni % notes.length], 0.4, 'sine', 0.04);
       ni++;
     }, 2000);
   },
   stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; },
   _playEventMusic(id){
-    if(this.style==='off') return;
+    if(this.style==='off'||this.style==='important') return;
     this._init();
     const c=this.ctx;if(!c)return;
     // Each event has a unique melody/motif
@@ -10092,9 +10116,12 @@ const SECRETS = {
   checkNameSecret(msg){
     if(ZS.player&&msg.toLowerCase()===ZS.player.toLowerCase()&&!this.unlocked['narcissist']){
       this.unlocked['narcissist']=true;
-      this._reveal('🪞 NARZISST!','Dein eigener Name im Chat... +9\'415 MT für die Kreativität!','#9B59B6');
-      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+9415;
-      ZP.toast('🪞 Narzisst Secret! +9\'415 MT!',3000);
+      // Same issue as "Beliebt" above — this can be triggered by pure
+      // curiosity within the first minute of play, so it needs the same
+      // curve-appropriate, modest scale rather than the old rank-mapped value.
+      this._reveal('🪞 NARZISST!','Dein eigener Name im Chat... +80 MT für die Kreativität!','#9B59B6');
+      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+80;
+      ZP.toast('🪞 Narzisst Secret! +80 MT!',3000);
     }
   },
 
@@ -10103,14 +10130,18 @@ const SECRETS = {
     const tv=ZS.zoo?.tv||0;
     if(tv>=100&&!this.unlocked['visitors100']){
       this.unlocked['visitors100']=true;
-      // Was +3000 MT — way too much for a milestone reachable within the
-      // first several minutes of play (100 visitors is an early, easy
-      // target), it dwarfed the rest of the early economy. Reduced to a
-      // scale similar to the other secret achievements (e.g. "Narzisst" is
-      // +500 MT for something much harder to stumble into).
-      this._reveal('👥 '+(typeof t!=='undefined'?t('zoo.popular_title'):'BELIEBT!'),typeof t!=='undefined'?t('zoo.popular_desc'):'100 Besucher in deinem Zoo! +6\'066 MT!','#E74C3C');
-      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+6066;
-      ZP.toast('👥 100 Besucher! +6\'066 MT!',4000);
+      // 100 visitors happens at a roughly FIXED wall-clock time (~8-10 min,
+      // regardless of spending) since visitor count ticks up on its own —
+      // unlike shop/animal prices, this can't be scaled via "what rank on
+      // the price ladder did this used to match", because it isn't
+      // triggered by progression at all. At ~8-10 min the target curve
+      // says expected wealth is only ~30-100 MT — the previous value
+      // (+6'066, carried over from the rank-mapping method used for
+      // purchasable items) was a 30-40× jump ahead of the curve at that
+      // point. Rescaled to a modest, curve-appropriate bump instead.
+      this._reveal('👥 '+(typeof t!=='undefined'?t('zoo.popular_title'):'BELIEBT!'),typeof t!=='undefined'?t('zoo.popular_desc'):'100 Besucher in deinem Zoo! +100 MT!','#E74C3C');
+      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+100;
+      ZP.toast('👥 100 Besucher! +100 MT!',4000);
     }
   },
   
