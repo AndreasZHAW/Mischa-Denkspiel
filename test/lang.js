@@ -232,7 +232,7 @@ const STRINGS = {
   'feeder.already':        { de:'⚡ Schon gefüttert! Läuft noch.', en:'⚡ Already fed! Still active.', fr:'⚡ Déjà nourri ! Toujours actif.' },
   'feeder.none_left':      { de:'Keine Leckerlis! Im Shop kaufen.', en:'No treats left! Buy some in the shop.', fr:'Plus de friandises ! Achète-en dans la boutique.' },
   'feeder.hint':           { de:'Ein Leckerli macht ein Tier 5 Min lang 2× so schnell Geld.', en:'A treat makes an animal earn 2× money for 5 minutes.', fr:'Une friandise fait gagner 2× plus d\'argent pendant 5 min.' },
-  'feeder.buy_shop':       { de:'Leckerlis im Shop kaufen (1000 MT).', en:'Buy treats in the shop (1000 MT).', fr:'Achète des friandises dans la boutique (1000 MT).' },
+  'feeder.buy_shop':       { de:'Kostet 5% des Preises des gefütterten Tieres.', en:'Costs 5% of the fed animal\'s price.', fr:'Coûte 5% du prix de l\'animal nourri.' },
   'feeder.slot':           { de:'Gehege', en:'Enclosure', fr:'Enclos' },
 
   // ── WORLD MAP (Weltkarte, expanded) ──
