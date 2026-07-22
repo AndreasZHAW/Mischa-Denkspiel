@@ -319,9 +319,12 @@ const State = {
     try {
       const id = window.getDeviceId && window.getDeviceId();
       if (!id || !name || typeof _db === 'undefined' || !_db || !this._useCloud()) return;
-      await this._col().doc(name.toLowerCase()).set(
-        { sessionDeviceId: id, sessionHeartbeat: Date.now() }, { merge: true }
-      );
+      await Promise.race([
+        this._col().doc(name.toLowerCase()).set(
+          { sessionDeviceId: id, sessionHeartbeat: Date.now() }, { merge: true }
+        ),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('claimSession timeout')), 5000))
+      ]);
     } catch(e) {}
   },
   // Call periodically while logged in to (a) prove this device is still
@@ -332,7 +335,10 @@ const State = {
     try {
       const id = window.getDeviceId && window.getDeviceId();
       if (!id || !name || typeof _db === 'undefined' || !_db || !this._useCloud()) return null;
-      const doc = await this._col().doc(name.toLowerCase()).get();
+      const doc = await Promise.race([
+        this._col().doc(name.toLowerCase()).get(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('checkSessionKicked timeout')), 5000))
+      ]);
       if (!doc.exists) return null;
       const d = doc.data();
       if (d.sessionDeviceId && d.sessionDeviceId !== id) {
