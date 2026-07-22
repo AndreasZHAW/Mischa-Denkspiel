@@ -27,6 +27,7 @@ button.sec{background:#2a6;color:#fff}button.info{background:#2a6ab5;color:#fff}
 <!-- Firebase SDK + init for player diagnostics -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 try {
   firebase.initializeApp({
@@ -35,7 +36,8 @@ try {
     projectId: "mischa-denkspiel",
     storageBucket: "mischa-denkspiel.firebasestorage.app",
     messagingSenderId: "272799969679",
-    appId: "1:272799969679:web:930490bc929b3b2747dbfa"
+    appId: "1:272799969679:web:930490bc929b3b2747dbfa",
+    databaseURL: "https://mischa-denkspiel-default-rtdb.europe-west1.firebasedatabase.app"
   });
   console.log('[Diagnose] Firebase initialisiert');
 } catch(e) { console.warn('[Diagnose] Firebase init Fehler:', e); }
@@ -44,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v365</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v365 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v368</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v368 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -173,14 +175,14 @@ try {
 <!-- ══ TAB: MULTIPLAYER-DIAGNOSE ══ -->
 <div id="tab-mp" class="tab-content">
   <div class="box blue">
-    <h2>👥 zoo_players — Live-Sichtbarkeit</h2>
+    <h2>👥 zoo_hot / zoo_cold (Realtime Database) — Live-Sichtbarkeit</h2>
     <div style="font-size:.75rem;color:#999;margin-bottom:8px">
-      Liest die <code>zoo_players</code>-Collection direkt — das Gleiche, was jeder Spieler alle 3s
-      schreibt (Position, was er gerade trägt) und was andere alle 3s lesen, um Spieler anzuzeigen.
-      "Online" im echten Spiel heisst: <code>t</code> (letzter Schreibzeitpunkt) ist unter 10s alt.
+      Liest die <code>zoo_hot</code>- und <code>zoo_cold</code>-Pfade in der Realtime Database direkt
+      (seit der RTDB-Migration nicht mehr Firestore) — das Gleiche, was jeder Spieler laufend schreibt
+      (Position, was er gerade trägt = "hot", Name/Farbe/Gehege = "cold", seltener geschrieben).
+      "Online" im echten Spiel heisst: <code>t</code> (letzter Schreibzeitpunkt im hot-Pfad) ist unter 10s alt.
       Wird ein Spieler hier mit altem <code>t</code> angezeigt, obwohl er gerade aktiv spielt, ist genau
-      DAS der Bug — sein Schreibvorgang schlägt fehl (meist wegen eines <code>undefined</code>-Werts
-      irgendwo im Dokument, was Firestore komplett ablehnt) und er wird für alle anderen unsichtbar.
+      DAS der Bug — sein Schreibvorgang schlägt fehl und er wird für alle anderen unsichtbar.
     </div>
     <div style="margin-bottom:6px">
       <button onclick="runMP()" class="info">🔄 Neu laden</button>
@@ -510,9 +512,9 @@ async function runZoo(){
   // Firebase + zoo.html
   const fbr=[];
   try{
-    const r=await fetch('https://firestore.googleapis.com/v1/projects/mischa-denkspiel/databases/(default)/documents/zoo_players');
-    fbr.push('Firebase zoo_players: HTTP '+r.status+(r.ok?' ✅':' ❌'));
-  }catch(e){fbr.push('❌ Firebase: '+e.message);}
+    const r=await fetch('https://mischa-denkspiel-default-rtdb.europe-west1.firebasedatabase.app/zoo_hot.json');
+    fbr.push('Realtime Database zoo_hot: HTTP '+r.status+(r.ok?' ✅':' ❌'));
+  }catch(e){fbr.push('❌ Realtime Database: '+e.message);}
   try{
     const r=await fetch('zoo.html',{method:'HEAD',cache:'no-store'});
     fbr.push('zoo.html: HTTP '+r.status+(r.ok?' ✅':' ❌'));
@@ -713,9 +715,10 @@ async function cleanupStaleTrades(){
 }
 
 // ══ MULTIPLAYER-DIAGNOSE ══
-// Raw read of zoo_players — exactly what every client writes every 3s
-// (ZG._syncMP in zoo.html) and what every OTHER client reads to decide who
-// to render. No reimplemented logic here on purpose: if a player looks
+// Raw read of the Realtime Database zoo_hot/zoo_cold trees — exactly what
+// every client writes (ZG._syncMP in zoo.html, hot at the throttled sync
+// rate, cold much less often) and what every OTHER client reads to decide
+// who to render. No reimplemented logic here on purpose: if a player looks
 // stale/wrong here, the bug is in the data itself (a failed write), not in
 // how some OTHER piece of code interprets it.
 let _mpRows=[];
@@ -723,34 +726,47 @@ async function runMP(){
   L('=== Multiplayer-Diagnose gestartet ===');
   const out=document.getElementById('mp-out');
   const summary=document.getElementById('mp-summary');
-  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  out.innerHTML='<pre>⏳ Lade Realtime-Database-Daten...</pre>';
   if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
     out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
     return;
   }
+  if(!firebase.database){
+    out.innerHTML='<pre class="err">❌ Realtime-Database-SDK nicht geladen.</pre>';
+    return;
+  }
   try{
-    const db=firebase.firestore();
-    const snap=await db.collection('zoo_players').get();
+    const rtdb=firebase.database();
+    const [hotSnap, coldSnap] = await Promise.all([
+      rtdb.ref('zoo_hot').once('value'),
+      rtdb.ref('zoo_cold').once('value'),
+    ]);
+    const hotAll=hotSnap.val()||{};
+    const coldAll=coldSnap.val()||{};
     const now=Date.now();
     const rows=[];
-    snap.forEach(doc=>{
-      const d=doc.data()||{};
-      const ageMs=now-(d.t||0);
-      rows.push({
-        id:doc.id, name:d.name||doc.id, instanceId:d.instanceId||'?',
-        slotIdx:d.slotIdx, x:d.x, z:d.z, ageMs,
-        stale: ageMs>10000, // this is the exact cutoff every client's _updOthers() uses
-        carrying: d.carrying ? (d.carrying.e||'?')+' '+(d.carrying.n||'?') : null,
-        carryRaw: d.carrying,
-        locked: !!d.locked,
+    Object.keys(hotAll).forEach(instanceId=>{
+      const players=hotAll[instanceId]||{};
+      Object.keys(players).forEach(key=>{
+        const d=players[key]||{};
+        const cold=(coldAll[instanceId]||{})[key]||{};
+        const ageMs=now-(d.t||0);
+        rows.push({
+          id:key, name:cold.name||key, instanceId,
+          slotIdx:d.slotIdx, x:d.x, z:d.z, ageMs,
+          stale: ageMs>10000, // this is the exact cutoff every client's _updOthers() uses
+          carrying: d.carrying ? (d.carrying.e||'?')+' '+(d.carrying.n||'?') : null,
+          carryRaw: d.carrying,
+          locked: !!cold.locked,
+        });
       });
     });
     rows.sort((a,b)=>a.ageMs-b.ageMs);
     _mpRows=rows;
     const staleCount=rows.filter(r=>r.stale).length;
-    summary.innerHTML = `👥 ${rows.length} Spieler-Dokumente insgesamt.`
+    summary.innerHTML = `👥 ${rows.length} Spieler-Einträge insgesamt (alle Instanzen).`
       +(staleCount?` <span class="warn">⏳ ${staleCount} mit t &gt;10s alt (gelten als offline/unsichtbar für andere).</span>`:'');
-    if(!rows.length){ out.innerHTML='<div class="dim">Keine zoo_players-Dokumente.</div>'; return; }
+    if(!rows.length){ out.innerHTML='<div class="dim">Keine Live-Einträge in zoo_hot.</div>'; return; }
     out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
       +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
       +'<th style="padding:4px 6px">Name</th><th>Instanz</th><th>Slot</th><th>x,z</th><th>Alter (t)</th><th>Trägt</th><th>Status</th></tr>'

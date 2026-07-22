@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v365 -->
+<!-- ZOO v368 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=365"></script>
-<script src="rewardchests.js?v=365"></script>
-<script src="personality.js?v=365"></script>
+<script src="lang.js?v=368"></script>
+<script src="rewardchests.js?v=368"></script>
+<script src="personality.js?v=368"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v365','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v368','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=365"></script>
-<script src="worlds.js?v=365"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-state.js?v=368"></script>
+<script src="worlds.js?v=368"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1111,7 +1112,7 @@ const ZS={
   // overlap. This version starts from a deterministic hash of the player's
   // name (so different players land in different spots even if the
   // collision check below can't run at all), then does a lightweight
-  // best-effort check against the already-synced zoo_players list to avoid
+  // best-effort check against the already-synced RTDB zoo_hot list to avoid
   // a slot someone else is actively using.
   instanceId: 'main',
   mySlot: 0,
@@ -1127,17 +1128,18 @@ const ZS={
     }
     this.instanceId = 'main';
     this.mySlot = preferredSlot;
-    if(!(typeof _db!=='undefined' && _db && State._useCloud())){
+    if(!(typeof _rtdb!=='undefined' && _rtdb && State._useCloud())){
       return; // offline — hash-based slot is the best we can do
     }
     try{
       const cutoff = Date.now() - 20000; // only count players active in the last 20s
       const _activeSlots = async (instId) => {
-        const snap = await _db.collection('zoo_players').where('instanceId','==',instId).get();
+        const snap = await _rtdb.ref('zoo_hot/'+instId).once('value');
+        const all = snap.val() || {};
         const taken = new Set(); let count = 0;
-        snap.forEach(doc=>{
-          const d = doc.data();
-          if(!d || (d.name||'').toLowerCase()===name) return; // ignore my own old entry
+        Object.keys(all).forEach(key=>{
+          const d = all[key];
+          if(!d || key===name) return; // ignore my own old entry
           if((d.t||0) < cutoff) return; // ignore inactive/abandoned players
           count++;
           if(typeof d.slotIdx==='number') taken.add(d.slotIdx);
@@ -1256,12 +1258,14 @@ const ZA={
   logout(){
     ZG.zStop();
     try{ if(typeof State!=='undefined'&&State.stopSessionWatch) State.stopSessionWatch(); }catch(e){}
-    // Remove our own zoo_players entry immediately so our enclosures vanish
+    // Remove our own RTDB live-position entry immediately so our enclosures vanish
     // from other players' screens right away, instead of waiting for the
     // ~10s staleness cutoff to naturally exclude us.
     try{
-      if(ZS.player && typeof _db!=='undefined' && _db && State._useCloud()){
-        _db.collection('zoo_players').doc(ZS.player.toLowerCase()).delete().catch(()=>{});
+      if(ZS.player && typeof _rtdb!=='undefined' && _rtdb && State._useCloud()){
+        const instanceId=ZS.instanceId||'main', myKey=ZS.player.toLowerCase();
+        _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).remove().catch(()=>{});
+        _rtdb.ref('zoo_cold/'+instanceId+'/'+myKey).remove().catch(()=>{});
       }
     }catch(e){}
     try{if(ZNews._unsub)ZNews._unsub();}catch(e){}
@@ -1445,7 +1449,7 @@ const ZG={
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),100));
-    this._ivs.push(setInterval(()=>this._syncDropped(),1000));
+    this._ivs.push(setInterval(()=>this._syncDropped(),2500));
     this._ivs.push(setInterval(()=>this._syncMarketStalls(),5000));
     this._ivs.push(setInterval(()=>this._checkMarketExpiry(),5*60000));
     this._syncMarketStalls();
@@ -1818,6 +1822,15 @@ const ZG={
   async _enforceRoamingCap(){
     try{
       if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+      // Cooldown: a burst of drops in quick succession (e.g. the TikTok
+      // event releasing one animal per active player almost simultaneously)
+      // would otherwise re-read the whole collection once per drop — a
+      // needless multiplier on Firestore usage for a check that doesn't
+      // need to be that eager (the 20-cap is a soft cosmetic limit, not
+      // something that must be enforced within milliseconds).
+      const now=Date.now();
+      if(this._lastCapCheck && (now-this._lastCapCheck)<10000) return;
+      this._lastCapCheck=now;
       const snap=await _db.collection('zoo_dropped').get();
       if(snap.size<=this.MAX_ROAMING) return;
       // Grace period: never consider anything created in the last 30s a
@@ -1827,7 +1840,7 @@ const ZG={
       // deleted seconds later — which is exactly what "animals vanish a
       // few seconds after being freed" was: this cap enforcement eating
       // its own freshly-created entry.
-      const graceMs=30000, now=Date.now();
+      const graceMs=30000;
       let worstId=null, worstPrice=Infinity;
       snap.forEach(doc=>{
         const d=doc.data();
@@ -2451,6 +2464,7 @@ const ZG={
       this.pl.z=op.z+Math.sin(ang)*4;
     }
     ZP.toast('✨ Neben '+name+' gebeamt — jetzt slappen!',2000);
+    this._recentlyBeamedAt=Date.now();
   },
 
   // Wayfinding: always teleports to the shared marketplace plaza (see
@@ -5173,28 +5187,54 @@ const ZG={
     {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x;this.pl.z=_z.z+14;}
   },
 
-  // ═══ MULTIPLAYER ═══
+  // ═══ MULTIPLAYER (Realtime Database — see initFirebase/_rtdb) ═══
+  // Session clock for the budget-schedule below — set once, the first
+  // time _syncMP actually runs (not at zoo-load, so idle time before
+  // entering doesn't count against the schedule).
+  _sessionStart: null,
+  // How often the larger, rarely-changing "cold" data (name/char/color/
+  // enc/lock-state) gets read from other players — much slower than the
+  // hot position data, since RTDB's .once() always returns the full
+  // current value at whatever path you read (unlike a push listener,
+  // polling doesn't automatically get cheaper just because a value hasn't
+  // changed) — so the only way to save bandwidth on the big-but-rarely-
+  // changing fields is to simply read them less often, hence splitting
+  // them into their own path from the tiny, fast-changing one.
+  COLD_READ_GAP_MS: 8000,
   async _syncMP(){
     if(ZS.isPrivate||!ZS.player)return;
-    // Runs every 100ms, but only actually syncs every call while someone
-    // relevant is carrying an animal (a fast-moving, chaseable target for
-    // slapping) — otherwise it throttles itself back down to once a
-    // second, same as before. "Someone relevant" means either I'm
-    // carrying myself, or I already know (from a previous read) that
-    // another nearby player is — that second case matters too: once an
-    // attacker has spotted a carrier, THEIR read rate needs to speed up
-    // as well, or the extra precision from the carrier's faster writes
-    // would go to waste against a still-1s-stale view of them.
     const now=Date.now();
-    const someoneCarrying = !!this.carrying || Object.values(this.otherPl||{}).some(op=>op.carrying);
-    const minGap = someoneCarrying ? 100 : 1000;
+    if(!this._sessionStart) this._sessionStart=now;
+    // ── FAST-PATH SCOPE ──
+    // Only players who actually NEED tight tracking get the fast rate:
+    // the carrier themselves, anyone who recently beamed to a carrier
+    // (chasing them — see _teleportNextTo, which sets _recentlyBeamedAt),
+    // or anyone who happens to be physically close to a known carrier
+    // already. Everyone else in the zoo (most players, most of the time)
+    // stays on the slower baseline — no reason to pay for precision
+    // nobody's using.
+    const iAmCarrying = !!this.carrying;
+    const recentlyBeamed = this._recentlyBeamedAt && (now-this._recentlyBeamedAt)<30000;
+    const nearACarrier = Object.values(this.otherPl||{}).some(op=>
+      op.carrying && Math.hypot((op.x||0)-this.pl.x, (op.z||0)-this.pl.z) < 30
+    );
+    const fastPathActive = iAmCarrying || recentlyBeamed || nearACarrier;
+    // ── SESSION-BUDGET SCHEDULE ──
+    // The baseline (non-fast-path) rate eases off over a long session so
+    // a 5-hour, many-player event doesn't blow through free-tier bandwidth
+    // just because everyone stayed logged in the whole time.
+    const sessionMin=(now-this._sessionStart)/60000;
+    let baseRate;
+    if(sessionMin<60) baseRate=500;
+    else if(sessionMin<180) baseRate=1000;
+    else if(sessionMin<270) baseRate=1500;
+    else baseRate=2500;
+    const minGap = fastPathActive ? 100 : baseRate;
     if(this._lastMPSync && (now-this._lastMPSync)<minGap) return;
     this._lastMPSync = now;
     // ── SYNC DIAGNOSTICS ──
     // window._syncDebug always holds the outcome of the most recent
-    // attempt (never gets silently dropped, even permission-denied errors
-    // which the old catch-all specifically excluded from logging). Check
-    // it any time from the browser console with: window._syncDebug
+    // attempt. Check it any time from the browser console with: window._syncDebug
     if(!window._syncDebug) window._syncDebug={writes:0,writeFails:0,reads:0,readFails:0,lastWriteOK:null,lastReadOK:null,lastError:null};
     const dbg=window._syncDebug;
     if(!ZS.isPrivate && ZS.player && typeof State!=='undefined' && !State._useCloud()){
@@ -5202,54 +5242,93 @@ const ZG={
       this._updSyncBadge();
       return;
     }
-    if(!_db){
-      dbg.lastError={when:now,stage:'precheck',msg:'_db ist nicht gesetzt — Firebase wurde nie initialisiert.'};
+    if(!_rtdb){
+      dbg.lastError={when:now,stage:'precheck',msg:'_rtdb ist nicht gesetzt — Realtime Database wurde nie initialisiert (SDK geladen? databaseURL gesetzt?).'};
       this._updSyncBadge();
       return;
     }
     try{
       if(!State._useCloud())return;
-      if(!_db)return;
+      if(!_rtdb)return;
+      const instanceId=ZS.instanceId||'main';
+      const myKey=ZS.player.toLowerCase();
       const _myPers=ZS._myPersonality();
-      // IMPORTANT: carrying must never contain `undefined` — Firestore's
-      // .set() throws synchronously on any undefined field, which kills
-      // this ENTIRE write (not just the carrying part) — including x/z/t.
-      // If that happens right after catching/picking up an animal (net
-      // catch, trade, etc.) and the resulting animal object is ever
-      // missing .e/.n, the player's position stops updating entirely and,
-      // after 10s, disappears from every other player's screen — exactly
-      // the "I'm carrying it but invisible to others" bug. The `|| '?'`
-      // fallbacks guarantee this write can never be skipped for that reason.
+      // IMPORTANT: carrying must never contain `undefined` — same reasoning
+      // as before the RTDB migration: a bad value here must never be able
+      // to break the write and make this player invisible to everyone else.
       const _carryPayload = (this.carrying && this.carrying.animal)
         ? {e:this.carrying.animal.e||'❓', n:this.carrying.animal.n||'?'} : null;
-      const writeData={name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'main',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),carrying:_carryPayload,x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()};
+      // HOT: tiny, changes every cycle — this is the one written/read at
+      // the throttled rate above.
+      const hotData={x:Math.round(this.pl.x), z:Math.round(this.pl.z), t:now,
+        carrying:_carryPayload, slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0)};
       try{
-        await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set(writeData);
+        await _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).set(hotData);
         dbg.writes++; dbg.lastWriteOK=now;
       }catch(writeErr){
         dbg.writeFails++;
-        dbg.lastError={when:now,stage:'write',code:writeErr.code||'?',msg:writeErr.message||String(writeErr),dataSent:writeData};
-        console.error('[SYNC-DEBUG] Schreibfehler in zoo_players:',writeErr.code,writeErr.message,writeData);
+        dbg.lastError={when:now,stage:'write',code:writeErr.code||'?',msg:writeErr.message||String(writeErr),dataSent:hotData};
+        console.error('[SYNC-DEBUG] Schreibfehler in zoo_hot:',writeErr.code,writeErr.message,hotData);
         this._updSyncBadge();
         return; // don't attempt the read if the write itself failed — surfaces the real problem faster
       }
-      // Only fetch players in OUR OWN instance — not the whole global pool.
-      let snap;
+      // COLD: bigger, rarely changes — only written when it actually
+      // differs from what we last sent, so a completely static inventory
+      // doesn't get re-uploaded every cycle for nothing.
+      const coldData={name:ZS.player,char:_myPers.char,color:_myPers.color,
+        charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,
+        enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null)};
+      const coldStr=JSON.stringify(coldData);
+      if(this._lastColdSent!==coldStr){
+        try{
+          await _rtdb.ref('zoo_cold/'+instanceId+'/'+myKey).set(coldData);
+          this._lastColdSent=coldStr;
+        }catch(writeErr){
+          console.error('[SYNC-DEBUG] Schreibfehler in zoo_cold:',writeErr.code,writeErr.message);
+          // Not fatal — hot data (position/carrying) already went through,
+          // which is the part that matters for visibility/chasing.
+        }
+      }
+      // Read HOT for our whole instance every cycle (small payload).
+      let hotSnap;
       try{
-        snap = await Promise.race([
-          _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'main').get(),
+        hotSnap = await Promise.race([
+          _rtdb.ref('zoo_hot/'+instanceId).once('value'),
           new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))
         ]);
         dbg.reads++; dbg.lastReadOK=now;
       }catch(readErr){
         dbg.readFails++;
         dbg.lastError={when:now,stage:'read',code:readErr.code||'?',msg:readErr.message||String(readErr)};
-        console.error('[SYNC-DEBUG] Lesefehler auf zoo_players:',readErr.code,readErr.message);
+        console.error('[SYNC-DEBUG] Lesefehler auf zoo_hot:',readErr.code,readErr.message);
         this._updSyncBadge();
         return;
       }
+      // Read COLD much less often — this is the bigger payload (name,
+      // color, enclosure contents), no need for it at the same tight cadence.
+      if(!this._lastColdRead || (now-this._lastColdRead)>=this.COLD_READ_GAP_MS){
+        try{
+          const coldSnap = await Promise.race([
+            _rtdb.ref('zoo_cold/'+instanceId).once('value'),
+            new Promise((_,r)=>setTimeout(()=>r(new Error('mp cold timeout')),3000))
+          ]);
+          this._coldCache = coldSnap.val() || {};
+          this._lastColdRead=now;
+        }catch(readErr){
+          console.warn('[SYNC-DEBUG] Lesefehler auf zoo_cold (nicht kritisch):',readErr.code,readErr.message);
+          this._coldCache = this._coldCache || {};
+        }
+      }
+      const hotAll=hotSnap.val()||{};
+      const coldAll=this._coldCache||{};
       const others={};
-      snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});
+      Object.keys(hotAll).forEach(key=>{
+        if(key===myKey) return;
+        const hot=hotAll[key];
+        if(!hot || (now-(hot.t||0))>=10000) return; // stale — 10s cutoff, same as before
+        const cold=coldAll[key]||{};
+        others[cold.name||key]={...cold, ...hot};
+      });
       // Track each player's walking heading (current pos vs last known pos)
       // — used by _teleportNextTo so a player beaming to a carrier lands
       // facing the way that carrier is actually walking, not just facing them.
@@ -5270,6 +5349,34 @@ const ZG={
       this._updSyncBadge();
     }
   },
+  // Admin delete/reset operations know a player's NAME but not which
+  // instance they were last active in (unlike our own logout, which
+  // knows ZS.instanceId directly) — so this searches every instance
+  // under zoo_hot/zoo_cold for a matching key and removes it there.
+  // Best-effort: if the player comes back online later in a NEW instance
+  // before this runs, a stale leftover in an old instance is harmless
+  // (10s staleness cutoff hides it from everyone anyway).
+  async _deleteRtdbPlayerEverywhere(name){
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb) return;
+      const key=name.toLowerCase();
+      const [hotSnap, coldSnap] = await Promise.all([
+        _rtdb.ref('zoo_hot').once('value'),
+        _rtdb.ref('zoo_cold').once('value'),
+      ]);
+      const jobs=[];
+      const hotAll=hotSnap.val()||{};
+      Object.keys(hotAll).forEach(instId=>{
+        if(hotAll[instId] && hotAll[instId][key]!==undefined) jobs.push(_rtdb.ref('zoo_hot/'+instId+'/'+key).remove());
+      });
+      const coldAll=coldSnap.val()||{};
+      Object.keys(coldAll).forEach(instId=>{
+        if(coldAll[instId] && coldAll[instId][key]!==undefined) jobs.push(_rtdb.ref('zoo_cold/'+instId+'/'+key).remove());
+      });
+      await Promise.all(jobs);
+    }catch(e){}
+  },
+
   // Small always-on-screen badge showing sync health — no need to open
   // devtools to see if writes/reads are failing and why. Tap it to see
   // the full error in a toast (useful on mobile where there's no console).
@@ -8539,14 +8646,16 @@ const ZChat = {
   
   async _offerToAll(){
     try{
-      const snap = await _db.collection('zoo_players').get();
+      const snap = await _rtdb.ref('zoo_hot').once('value');
+      const allInstances = snap.val() || {};
       const me = ZS.player?.toLowerCase();
-      snap.forEach(doc => {
-        const d = doc.data();
-        const other = d.name?.toLowerCase();
-        if(!other||other===me) return;
-        if(Date.now()-d.t>15000) return; // only recent players
-        this._connectTo(other);
+      Object.values(allInstances).forEach(instancePlayers=>{
+        Object.keys(instancePlayers||{}).forEach(other=>{
+          const d = instancePlayers[other];
+          if(!other||other===me) return;
+          if(Date.now()-(d.t||0)>15000) return; // only recent players
+          this._connectTo(other);
+        });
       });
     }catch(e){}
   },
@@ -9232,23 +9341,28 @@ const ZAdmin = {
   },
 
   async _fetchAllPlayers(){
-    // "Online" comes from the live position feed (zoo_players, updated every few seconds
+    // "Online" comes from the live position feed (RTDB zoo_hot, updated every few seconds
     // while someone is actually in the 3D world). "All players" now combines BOTH the
     // zoos collection (anyone who's ever visited the Zoo) AND mischa_players (anyone
     // with a Denkspiel/Welt-1 account) — a player who only ever played Welt 1 and never
     // visited the Zoo previously never showed up here at all, so they could never be
     // deleted even though they still appeared on the combined leaderboard.
     if(typeof _db==='undefined'||!_db)throw new Error('no db');
-    const [posSnap, zoosSnap, mpSnap] = await Promise.all([
-      _db.collection('zoo_players').get(),
+    const [hotSnap, zoosSnap, mpSnap] = await Promise.all([
+      (typeof _rtdb!=='undefined'&&_rtdb) ? _rtdb.ref('zoo_hot').once('value') : Promise.resolve(null),
       _db.collection('zoos').get(),
       _db.collection('mischa_players').get(),
     ]);
     const onlineNames = new Set();
-    posSnap.forEach(doc=>{
-      const d=doc.data();
-      if(d.name && Date.now()-d.t<20000) onlineNames.add(d.name.toLowerCase());
-    });
+    if(hotSnap){
+      const allInstances = hotSnap.val() || {};
+      Object.values(allInstances).forEach(instancePlayers=>{
+        Object.keys(instancePlayers||{}).forEach(key=>{
+          const d = instancePlayers[key];
+          if(d && Date.now()-(d.t||0)<20000) onlineNames.add(key);
+        });
+      });
+    }
     mpSnap.forEach(doc=>{
       const d=doc.data();
       if(d && d.lastActive && Date.now()-d.lastActive<20000){
@@ -9378,7 +9492,7 @@ const ZAdmin = {
     try{
       if(typeof _db!=='undefined'&&_db){
         await _db.collection('zoos').doc(k).delete().catch(()=>{ zooDeleteFailed=true; });
-        await _db.collection('zoo_players').doc(name.toLowerCase()).delete().catch(()=>{});
+        await ZG._deleteRtdbPlayerEverywhere(name).catch(()=>{});
         // Verify the zoo doc is REALLY gone — Firestore delete() can fail
         // silently (network hiccup, rules, etc). Trusting it blindly meant
         // the admin saw "completely deleted" while the old zoo balance (and
@@ -9516,12 +9630,12 @@ const ZAdmin = {
         zooOk=true;
         if(stillThere) notes.push('⚠️ Alter Zoo-Eintrag liess sich nicht löschen (wurde stattdessen überschrieben) — Ergebnis bitte nochmal prüfen.');
         if(hasZooAccount && !knownDeviceId) notes.push('⚠️ Keine Geräte-ID gefunden — die Zoo-MT tauchen evtl. erst in der Gesamtsumme auf, sobald «'+name+'» den Zoo einmal betritt.');
-        // Also clear the LIVE multiplayer doc (zoo_players) — otherwise the
+        // Also clear the LIVE multiplayer entry (RTDB zoo_hot/zoo_cold) — otherwise the
         // old enclosures (with the old animals) can keep showing on the
         // shared map — to others, or to this same player if they're later
         // re-assigned the same ring slot — until it either naturally times
         // out (10s) or, if they never come back online, indefinitely.
-        await _db.collection('zoo_players').doc(name.toLowerCase()).delete().catch(()=>{});
+        await ZG._deleteRtdbPlayerEverywhere(name).catch(()=>{});
         // If the player is online right now, their own autosave (every 15s)
         // could otherwise silently overwrite our fresh doc moments later
         // with their still-in-memory old values. Broadcast a HARD reset (not
@@ -9605,7 +9719,7 @@ const ZAdmin = {
       try{
         if(typeof _db!=='undefined'&&_db){
           await _db.collection('zoos').doc(k).delete().catch(()=>{});
-          await _db.collection('zoo_players').doc(p.name.toLowerCase()).delete().catch(()=>{});
+          await ZG._deleteRtdbPlayerEverywhere(p.name).catch(()=>{});
         }
       }catch(e){}
       try{ localStorage.removeItem(k); }catch(e){}
@@ -10874,7 +10988,7 @@ const ZooLock = {
     const btn = document.getElementById('hb-lock-btn');
     if (btn) { btn.querySelector('.hbb').textContent = '🔓'; btn.querySelector('.hbl').textContent = 'Offen'; btn.querySelector('.hbb').style.background='rgba(39,174,96,.7)'; }
     // Broadcast lock
-    try { if(typeof _db!=='undefined'&&_db) _db.collection('zoo_players').doc(ZS.player?.toLowerCase()).update({locked:true,lockedUntil:Date.now()+120000}).catch(()=>{}); } catch(e) {}
+    try { if(typeof _rtdb!=='undefined'&&_rtdb&&ZS.player) _rtdb.ref('zoo_cold/'+(ZS.instanceId||'main')+'/'+ZS.player.toLowerCase()).update({locked:true,lockedUntil:Date.now()+120000}).catch(()=>{}); } catch(e) {}
     // Show laser fence
     this._showLasers(true);
     // Auto-unlock after 120s
@@ -10894,7 +11008,7 @@ const ZooLock = {
     const btn = document.getElementById('hb-lock-btn');
     if (btn) { btn.querySelector('.hbb').textContent='🔒'; btn.querySelector('.hbl').textContent='Sperren'; btn.querySelector('.hbb').style.background='rgba(231,76,60,.7)'; }
     this._showLasers(false);
-    try { if(typeof _db!=='undefined'&&_db) _db.collection('zoo_players').doc(ZS.player?.toLowerCase()).update({locked:false,lockedUntil:0}).catch(()=>{}); } catch(e) {}
+    try { if(typeof _rtdb!=='undefined'&&_rtdb&&ZS.player) _rtdb.ref('zoo_cold/'+(ZS.instanceId||'main')+'/'+ZS.player.toLowerCase()).update({locked:false,lockedUntil:0}).catch(()=>{}); } catch(e) {}
     ZP.toast('🔓 Dein Zoo ist wieder offen!', 2000);
   },
   

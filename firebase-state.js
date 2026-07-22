@@ -16,7 +16,8 @@ const FIREBASE_CONFIG = {
   projectId:         "mischa-denkspiel",
   storageBucket:     "mischa-denkspiel.firebasestorage.app",
   messagingSenderId: "272799969679",
-  appId:             "1:272799969679:web:930490bc929b3b2747dbfa"
+  appId:             "1:272799969679:web:930490bc929b3b2747dbfa",
+  databaseURL:       "https://mischa-denkspiel-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
 // ============================================================
@@ -24,6 +25,14 @@ const FIREBASE_CONFIG = {
 // ============================================================
 // Firebase SDK wird über CDN in index.html geladen
 let _db = null;
+// Realtime Database — used ONLY for live zoo positions/carrying status (see
+// RTDB helper further below). Everything else (accounts, zoo inventory,
+// trades, chests, dropped animals, etc.) stays on Firestore (_db) exactly
+// as before. Kept as a separate connection/product deliberately: RTDB
+// bills by bandwidth instead of per-document reads, which is the right
+// model for small, very-frequent position updates and is what keeps this
+// entirely inside the free Spark tier even with many concurrent players.
+let _rtdb = null;
 let _firebaseReady = false;
 
 function initFirebase() {
@@ -36,6 +45,7 @@ function initFirebase() {
       firebase.initializeApp(FIREBASE_CONFIG);
     }
     _db = firebase.firestore();
+    try { if (firebase.database) _rtdb = firebase.database(); } catch(e) { console.warn('RTDB nicht verfügbar:', e.message); }
     _firebaseReady = true;
     console.log('✅ Firebase verbunden');
     return true;
@@ -43,6 +53,7 @@ function initFirebase() {
     console.warn('Firebase Fehler:', e);
     return false;
   }
+
 }
 
 // ============================================================
@@ -1744,7 +1755,7 @@ const PlayTime = {
       }, 60000);
       // Separate, faster heartbeat so the admin panel's "online now" check also
       // recognizes Welt-1 (Denkspiel) activity — previously "online" only ever
-      // reflected being physically inside the Zoo's 3D world (zoo_players pings),
+      // reflected being physically inside the Zoo's 3D world (RTDB zoo_hot pings),
       // so a player actively doing Welt-1 tasks looked permanently offline.
       if (kind === 'ds' && !this._heartbeats) this._heartbeats = {};
       if (kind === 'ds' && !this._heartbeats[key]) {
