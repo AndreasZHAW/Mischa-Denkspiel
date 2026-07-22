@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v357 -->
+<!-- ZOO v358 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=357"></script>
-<script src="rewardchests.js?v=357"></script>
-<script src="personality.js?v=357"></script>
+<script src="lang.js?v=358"></script>
+<script src="rewardchests.js?v=358"></script>
+<script src="personality.js?v=358"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v357','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v358','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=357"></script>
-<script src="worlds.js?v=357"></script>
+<script src="firebase-state.js?v=358"></script>
+<script src="worlds.js?v=358"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1444,7 +1444,7 @@ const ZG={
     this._ivs.push(setInterval(()=>ZS.save(),15000));
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
-    this._ivs.push(setInterval(()=>this._syncMP(),1000));
+    this._ivs.push(setInterval(()=>this._syncMP(),250));
     this._ivs.push(setInterval(()=>this._syncDropped(),1000));
     this._ivs.push(setInterval(()=>this._syncMarketStalls(),5000));
     this._ivs.push(setInterval(()=>this._checkMarketExpiry(),5*60000));
@@ -5129,6 +5129,20 @@ const ZG={
   // ═══ MULTIPLAYER ═══
   async _syncMP(){
     if(ZS.isPrivate||!ZS.player)return;
+    // Runs every 250ms, but only actually syncs every call while someone
+    // relevant is carrying an animal (a fast-moving, chaseable target for
+    // slapping) — otherwise it throttles itself back down to once a
+    // second, same as before. "Someone relevant" means either I'm
+    // carrying myself, or I already know (from a previous read) that
+    // another nearby player is — that second case matters too: once an
+    // attacker has spotted a carrier, THEIR read rate needs to speed up
+    // as well, or the extra precision from the carrier's faster writes
+    // would go to waste against a still-1s-stale view of them.
+    const now=Date.now();
+    const someoneCarrying = !!this.carrying || Object.values(this.otherPl||{}).some(op=>op.carrying);
+    const minGap = someoneCarrying ? 250 : 1000;
+    if(this._lastMPSync && (now-this._lastMPSync)<minGap) return;
+    this._lastMPSync = now;
     try{
       if(!State._useCloud())return;
       if(!_db)return;
