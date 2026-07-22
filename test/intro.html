@@ -155,7 +155,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 <div id="intro-test-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:4px">🧪 TEST-UMGEBUNG</div>
 <script>if(window.MISCHA_TESTMODE){var b=document.getElementById('intro-test-banner');if(b)b.style.display='block';}</script>
 <button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
-<script src="lang.js?v=358"></script>
+<script src="lang.js?v=360"></script>
 <!-- Firebase (needed for Contest.loadConfig() — the deadline shown at the
      end of the story is pulled live from here, see updateIntroDeadline()
      below, instead of being a hardcoded date that goes stale). Loads async,
@@ -177,7 +177,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
     setTimeout(() => resolve(false), 3000);
   });
 </script>
-<script src="firebase-state.js?v=358"></script>
+<script src="firebase-state.js?v=360"></script>
 <script>
 function introLangPicker(){
   if(document.getElementById('intro-lang-overlay'))return;
@@ -318,6 +318,15 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
 (async function updateIntroDeadline(){
   try{
     await (window._firebaseLoadPromise || Promise.resolve(false));
+    // CRITICAL: unlike index.html/zoo.html (which call this from their own
+    // boot() routine), intro.html never actually initializes Firebase —
+    // the SDK script loading above only makes the `firebase` global
+    // available, it does NOT call firebase.initializeApp()/set up `_db`.
+    // Without this, Contest.loadConfig() below always silently no-ops
+    // (its own guard: `if (!_db) return;`), so the deadline shown here
+    // was permanently stuck on the hardcoded fallback date no matter what
+    // an admin set via the Admin Panel.
+    if(typeof initFirebase==='function') { try{ initFirebase(); }catch(e){} }
     if(typeof Contest!=='undefined' && Contest.loadConfig) await Contest.loadConfig();
     const ms = (typeof Contest!=='undefined') ? Contest.START : null;
     if(!ms) return;

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v358 -->
+<!-- ZOO v360 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=358"></script>
-<script src="rewardchests.js?v=358"></script>
-<script src="personality.js?v=358"></script>
+<script src="lang.js?v=360"></script>
+<script src="rewardchests.js?v=360"></script>
+<script src="personality.js?v=360"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v358','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v360','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=358"></script>
-<script src="worlds.js?v=358"></script>
+<script src="firebase-state.js?v=360"></script>
+<script src="worlds.js?v=360"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1649,7 +1649,14 @@ const ZG={
       const animal=best.e.animal, shiny=best.e.shiny, traits=best.e.traits||[];
       z.enc[best.i]=null;
       this._encs&&this._encs(); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
-      const x=this.pl.x+(Math.random()-.5)*20, z2=this.pl.z+(Math.random()-.5)*20;
+      const mySlot=typeof ZS.mySlot==='number'?ZS.mySlot:0;
+      const encCenter=(this._slotEncPos?this._slotEncPos(mySlot).center:null)||{x:this.pl.x,z:this.pl.z};
+      // Near your own enclosure row, but noticeably further out than a
+      // slap-drop (25-45 units instead of 0-10) — close enough that it's
+      // recognizably "yours", far enough that someone wandering past has
+      // a real shot at spotting and grabbing it before you circle back.
+      const ang=Math.random()*Math.PI*2, dist=25+Math.random()*20;
+      const x=encCenter.x+Math.cos(ang)*dist, z2=encCenter.z+Math.sin(ang)*dist;
       const dropped={ id:null, animal, shiny, traits, slot:best.i, x, z:z2,
         droppedBy:ZS.player, slappedBy:null, speed:this.TIKTOK_EVENT_SPEED,
         wanderCx:x, wanderCz:z2, wanderTx:x, wanderTz:z2, wanderOwner:true, _lastWanderPush:0 };
@@ -1801,9 +1808,18 @@ const ZG={
       if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
       const snap=await _db.collection('zoo_dropped').get();
       if(snap.size<=this.MAX_ROAMING) return;
+      // Grace period: never consider anything created in the last 30s a
+      // candidate for removal. Without this, an animal that was JUST
+      // dropped a moment ago (this function runs right after every single
+      // drop) could immediately be judged "the cheapest of them all" and
+      // deleted seconds later — which is exactly what "animals vanish a
+      // few seconds after being freed" was: this cap enforcement eating
+      // its own freshly-created entry.
+      const graceMs=30000, now=Date.now();
       let worstId=null, worstPrice=Infinity;
       snap.forEach(doc=>{
         const d=doc.data();
+        if((now-(d.createdAt||0))<graceMs) return; // too new, protected
         const p=(d.animal&&typeof d.animal.p==='number')?d.animal.p:0;
         if(p<worstPrice){ worstPrice=p; worstId=doc.id; }
       });
@@ -2400,9 +2416,21 @@ const ZG={
     const others=this.otherPl||{};
     const op=others[name];
     if(!op){ ZP.toast('❌ '+name+' ist nicht mehr in der Nähe.',1500); return; }
-    const ang=Math.random()*Math.PI*2;
-    this.pl.x=op.x+Math.cos(ang)*4;
-    this.pl.z=op.z+Math.sin(ang)*4;
+    if(typeof op._heading==='number'){
+      // Stand a few units BEHIND them along their walking direction (so
+      // they're ahead of you, clearly in view, not just adjacent) and
+      // face the same way they're heading — matches how fwd(yaw) is used
+      // everywhere else in this file: yaw = heading + π makes you look
+      // the same direction (dx,dz) points.
+      const dirX=Math.sin(op._heading), dirZ=Math.cos(op._heading);
+      this.pl.x=op.x-dirX*4;
+      this.pl.z=op.z-dirZ*4;
+      this.yaw=op._heading+Math.PI;
+    }else{
+      const ang=Math.random()*Math.PI*2;
+      this.pl.x=op.x+Math.cos(ang)*4;
+      this.pl.z=op.z+Math.sin(ang)*4;
+    }
     ZP.toast('✨ Neben '+name+' gebeamt — jetzt slappen!',2000);
   },
 
@@ -5166,6 +5194,16 @@ const ZG={
       ]);
       const others={};
       snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});
+      // Track each player's walking heading (current pos vs last known pos)
+      // — used by _teleportNextTo so a player beaming to a carrier lands
+      // facing the way that carrier is actually walking, not just facing them.
+      const prevPl=this.otherPl||{};
+      Object.keys(others).forEach(name=>{
+        const prev=prevPl[name];
+        const moved=prev && (Math.abs(others[name].x-prev.x)>0.1 || Math.abs(others[name].z-prev.z)>0.1);
+        if(moved) others[name]._heading=Math.atan2(others[name].x-prev.x, others[name].z-prev.z);
+        else if(prev && prev._heading!==undefined) others[name]._heading=prev._heading;
+      });
       this.otherPl=others;
       this._updOthers(others);
       try{ this._renderOtherEnclosures(others); }catch(e){}

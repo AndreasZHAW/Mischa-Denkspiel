@@ -44,8 +44,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v358</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v358 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v360</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v360 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -58,6 +58,7 @@ try {
   <div class="tab" onclick="switchTab('mt')">💰 MT-Diagnose</div>
   <div class="tab" onclick="switchTab('trade')">🤝 Trade-Diagnose</div>
   <div class="tab" onclick="switchTab('mp')">👥 Multiplayer-Diagnose</div>
+  <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
 </div>
@@ -190,6 +191,28 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: ROAMING-DIAGNOSE ══ -->
+<div id="tab-roam" class="tab-content">
+  <div class="box blue">
+    <h2>🐾 zoo_dropped — Umherlaufende Tiere</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Liest die <code>zoo_dropped</code>-Collection direkt — jedes Tier, das gerade frei im Zoo
+      umherläuft (durch Slap-Klau, Marktplatz-Verfall oder die TikTok-Tierbefreiung), egal ob schon
+      besucher-sichtbar oder nicht. Maximal <code>ZG.MAX_ROAMING</code> (aktuell 20) dürfen gleichzeitig
+      existieren — wird das überschritten, löscht der Client automatisch das wertmässig schwächste,
+      das mindestens 30s alt ist (jüngere sind per Schonfrist geschützt, damit gerade erst
+      fallengelassene Tiere nicht sofort wieder verschwinden).
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runRoam()" class="info">🔄 Neu laden</button>
+      <button onclick="copyRoam()" class="sec">📋 Tabelle kopieren</button>
+      <button onclick="cleanupOldRoaming()" class="danger">🧹 Alle &gt;24h alten Tiere löschen</button>
+    </div>
+    <div id="roam-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="roam-out" style="overflow-x:auto"><pre>⏳</pre></div>
+  </div>
+</div>
+
 <!-- ══ TAB: FONT ══ -->
 <div id="tab-font" class="tab-content">
   <div class="box blue">
@@ -258,6 +281,7 @@ function switchTab(id){
   if(id==='mt'&&!_ran.mt){_ran.mt=true;runMT();}
   if(id==='trade'&&!_ran.trade){_ran.trade=true;runTrade();}
   if(id==='mp'&&!_ran.mp){_ran.mp=true;runMP();}
+  if(id==='roam'&&!_ran.roam){_ran.roam=true;runRoam();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
 }
@@ -751,6 +775,83 @@ function copyMP(){
   const lines=['Name | Instanz | Slot | x | z | Alter(s) | Trägt | Stale'];
   _mpRows.forEach(r=>lines.push([r.name,r.instanceId,r.slotIdx,r.x,r.z,(r.ageMs/1000).toFixed(1),r.carrying||'—',r.stale?'JA':''].join(' | ')));
   navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
+}
+
+// ══ ROAMING-DIAGNOSE ══
+// Raw read of zoo_dropped — every animal currently loose in the zoo,
+// regardless of source (slap-drop, market expiry, TikTok event). This is
+// the exact same collection ZG._enforceRoamingCap() enforces the 20-max
+// cap against, so if that cap is eating a freshly-dropped animal, it'll
+// show up here as churn (row count near/at 20, entries disappearing
+// between reloads shortly after appearing).
+let _roamRows=[];
+async function runRoam(){
+  L('=== Roaming-Diagnose gestartet ===');
+  const out=document.getElementById('roam-out');
+  const summary=document.getElementById('roam-summary');
+  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
+    return;
+  }
+  try{
+    const db=firebase.firestore();
+    const snap=await db.collection('zoo_dropped').get();
+    const now=Date.now();
+    const rows=[];
+    snap.forEach(doc=>{
+      const d=doc.data()||{};
+      const ageMs=now-(d.createdAt||now);
+      rows.push({
+        id:doc.id, animal:(d.animal&&d.animal.n)||'?', emoji:(d.animal&&d.animal.e)||'❓',
+        price:(d.animal&&typeof d.animal.p==='number')?d.animal.p:0,
+        x:d.x, z:d.z, ageMs,
+        inGracePeriod: ageMs<30000, // ZG._enforceRoamingCap()'s protection window
+        droppedBy:d.droppedBy||'?', old24h: ageMs>24*3600*1000,
+      });
+    });
+    rows.sort((a,b)=>a.price-b.price); // cheapest first — these are next in line if the 20-cap trips
+    _roamRows=rows;
+    const overCap=rows.length>20;
+    summary.innerHTML = `🐾 ${rows.length} Tiere laufen gerade frei im Zoo (Limit: 20).`
+      +(overCap?` <span class="err">⚠️ Über dem Limit — beim nächsten Drop wird automatisch das günstigste (ausserhalb der 30s-Schonfrist) gelöscht: <b>${rows.find(r=>!r.inGracePeriod)?.animal||'—'}</b>.</span>`:'');
+    if(!rows.length){ out.innerHTML='<div class="dim">Keine umherlaufenden Tiere.</div>'; L('Roaming-Diagnose: 0 Tiere.'); return; }
+    const fmtAge=(ms)=>{ const h=ms/3600000; if(h<1)return Math.round(ms/60000)+' Min'; if(h<48)return h.toFixed(1)+' Std'; return (h/24).toFixed(1)+' Tage'; };
+    out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
+      +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
+      +'<th style="padding:4px 6px">Tier</th><th>Preis</th><th>Von wem</th><th>Alter</th><th>Position</th><th>Status</th></tr>'
+      + rows.map((r,i)=>`<tr style="border-bottom:1px solid #1a1a1a;${r.old24h?'background:rgba(231,76,60,.12)':(i===0&&rows.length>20)?'background:rgba(243,156,18,.15)':''}">`
+        +`<td style="padding:4px 6px">${r.emoji} ${r.animal}</td>`
+        +`<td>🌀${r.price.toLocaleString('de-CH')}</td>`
+        +`<td>${r.droppedBy}</td>`
+        +`<td>${fmtAge(r.ageMs)}</td>`
+        +`<td class="dim" style="font-size:.65rem">${r.x?.toFixed?.(1)}, ${r.z?.toFixed?.(1)}</td>`
+        +`<td>${r.inGracePeriod?'<span class="ok">🛡️ Schonfrist</span>':rows.length>20&&i===0?'<span class="warn">⚠️ Nächster Lösch-Kandidat</span>':r.old24h?'<span class="err">⚠️ &gt;24h alt</span>':'<span class="ok">✅ normal</span>'}</td>`
+        +`</tr>`).join('')
+      +'</table>';
+    L('Roaming-Diagnose: '+rows.length+' Tiere'+(overCap?' (ÜBER LIMIT!)':'')+'.');
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
+    L('❌ Roaming-Diagnose Fehler: '+e.message,'err');
+  }
+}
+function copyRoam(){
+  if(!_roamRows.length){alert('Erst laden!');return;}
+  const lines=['Tier | Preis | Von wem | Alter(h) | x | z | Status'];
+  _roamRows.forEach(r=>lines.push([r.animal,r.price,r.droppedBy,(r.ageMs/3600000).toFixed(2),r.x,r.z,r.inGracePeriod?'Schonfrist':r.old24h?'>24h':'normal'].join(' | ')));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
+}
+async function cleanupOldRoaming(){
+  if(!_roamRows.length){alert('Erst laden!');return;}
+  const toDelete=_roamRows.filter(r=>r.old24h);
+  if(!toDelete.length){alert('Nichts zu löschen — keine Tiere über 24h alt.');return;}
+  if(!confirm(`${toDelete.length} Tier(e) über 24h alt löschen? Das kann nicht rückgängig gemacht werden.`))return;
+  const db=firebase.firestore();
+  try{
+    await Promise.all(toDelete.map(r=>db.collection('zoo_dropped').doc(r.id).delete()));
+    L('Roaming-Diagnose: '+toDelete.length+' alte Tiere gelöscht.');
+    runRoam();
+  }catch(e){ alert('❌ '+e.message); }
 }
 
 // ══ FONT ══
