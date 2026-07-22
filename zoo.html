@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v353 -->
+<!-- ZOO v354 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -187,6 +187,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .ex{background:rgba(0,207,255,.07);border:1px solid rgba(0,207,255,.22);border-radius:11px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:7px}
 .gcars{display:flex;gap:10px;justify-content:center;padding:8px;background:rgba(0,0,0,.4);border-radius:11px;margin-bottom:8px;min-height:78px;align-items:flex-end}
 @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes carryAlertPop{from{transform:translateX(-30px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes rb{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
 
 /* Smart HUD compact mode */
@@ -232,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=353"></script>
-<script src="rewardchests.js?v=353"></script>
-<script src="personality.js?v=353"></script>
+<script src="lang.js?v=354"></script>
+<script src="rewardchests.js?v=354"></script>
+<script src="personality.js?v=354"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v353','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v354','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -487,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=353"></script>
-<script src="worlds.js?v=353"></script>
+<script src="firebase-state.js?v=354"></script>
+<script src="worlds.js?v=354"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1444,7 +1445,7 @@ const ZG={
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),1000));
-    this._ivs.push(setInterval(()=>this._syncDropped(),3000));
+    this._ivs.push(setInterval(()=>this._syncDropped(),1000));
     this._ivs.push(setInterval(()=>this._syncMarketStalls(),5000));
     this._syncMarketStalls();
     this._gondTick();
@@ -2291,6 +2292,52 @@ const ZG={
        }catch(e){ console.warn('_updOthers per-player update failed for', op.name, e); }
       }
     });
+    this._updCarryNotifications(others);
+  },
+
+  // Persistent on-screen list of every OTHER player currently carrying an
+  // animal — stays up for as long as they're carrying it (refreshed every
+  // sync cycle, ~1s), not a toast that fades. Tapping/clicking an entry
+  // teleports you right next to them so you can go slap them.
+  _updCarryNotifications(others){
+    let panel=document.getElementById('carry-alerts');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='carry-alerts';
+      panel.style.cssText='position:fixed;top:80px;left:10px;z-index:350;display:flex;flex-direction:column;gap:6px;max-width:220px;pointer-events:none';
+      document.body.appendChild(panel);
+    }
+    const carriers=Object.values(others).filter(op=>op.carrying && op.name!==ZS.player);
+    const seen=new Set();
+    carriers.forEach(op=>{
+      seen.add(op.name);
+      let row=document.getElementById('carry-alert-'+op.name);
+      if(!row){
+        row=document.createElement('div');
+        row.id='carry-alert-'+op.name;
+        row.style.cssText='background:rgba(0,0,0,.8);border:2px solid #FFD700;border-radius:12px;padding:7px 10px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;pointer-events:auto;box-shadow:0 2px 8px rgba(0,0,0,.5);animation:carryAlertPop .3s ease';
+        row.onclick=()=>ZG._teleportNextTo(op.name);
+        panel.appendChild(row);
+      }
+      row.textContent='🐾 '+op.name+' trägt '+op.carrying.e+' — antippen zum Hinbeamen!';
+      row.dataset.x=op.x; row.dataset.z=op.z;
+    });
+    // Remove rows for anyone who stopped carrying (or went offline)
+    Array.from(panel.children).forEach(row=>{
+      const n=row.id.replace('carry-alert-','');
+      if(!seen.has(n)) row.remove();
+    });
+  },
+  // Teleport right next to a carrying player so you can slap them —
+  // triggered by tapping their entry in the carry-alerts list above.
+  _teleportNextTo(name){
+    const others=this.otherPl||{};
+    const op=others[name];
+    if(!op){ ZP.toast('❌ '+name+' ist nicht mehr in der Nähe.',1500); return; }
+    const ang=Math.random()*Math.PI*2;
+    this.pl.x=op.x+Math.cos(ang)*4;
+    this.pl.z=op.z+Math.sin(ang)*4;
+    ZP.toast('✨ Neben '+name+' gebeamt — jetzt slappen!',2000);
   },
 
   // Wayfinding: always teleports to the shared marketplace plaza (see
@@ -2601,7 +2648,16 @@ const ZG={
       // circle (35–45 from origin) doesn't come near the station (r≈14),
       // the arrows (r≈26), the marketplace (centered at z=30, r≈11), or
       // the wheel (8,16) at all.
-      const cx=-40, cz=0; // spawn point, well clear of every other landmark
+      // Spawn INSIDE the actual "idle wander" plaza (see the movement code
+      // below: it's only ever allowed to move while within PLAZA_R=26 of
+      // ZONES[0], currently (0,55) — the previous spawn at (-40,0) was
+      // ~68 units away from there, so the machine was "blocked" from
+      // frame one and could never take a single step (movement only
+      // applies in the NOT-blocked branch). This is the real reason it
+      // never drove at all, not an obstacle/geometry issue. Offset from
+      // dead-center so it isn't spawning exactly on top of anything else.
+      const zc0=(this.ZONES && this.ZONES[0]) || {x:0,z:55};
+      const cx=zc0.x+10, cz=zc0.z-5;
       const grp=new THREE.Group();
       const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,2,4),new THREE.MeshBasicMaterial({color:0xF39C12}));
       swBody.position.set(0,1.2,0); grp.add(swBody);
@@ -3096,9 +3152,17 @@ const ZG={
         }
         this._sweeperTurnCd -= dt;
         if(blocked && this._sweeperTurnCd<=0){
-          // Turn away — a random 90°-270° turn, never a tiny nudge, so it
-          // doesn't just bump the same obstacle again next frame.
-          this._sweeperHeading += Math.PI*0.5 + Math.random()*Math.PI;
+          // Turn AWAY from whatever actually caused the block, instead of a
+          // blind random turn — a purely random 90°-270° turn could still
+          // land on another blocked heading (e.g. in a corner formed by two
+          // close obstacles, or right at the plaza edge), which is exactly
+          // what made it look "stuck": it kept re-picking bad directions.
+          let awayX=zc.x-nx, awayZ=zc.z-nz; // default: head back toward zone center
+          for(const ob of obstacles){
+            if(ob && Math.hypot(nx-ob.x, nz-ob.z) < 8){ awayX=nx-ob.x; awayZ=nz-ob.z; break; }
+          }
+          const awayHeading=Math.atan2(awayX,awayZ);
+          this._sweeperHeading = awayHeading + (Math.random()-.5)*Math.PI*0.6; // some randomness, but biased to a genuinely clear direction
           this._sweeperTurnCd = 0.4; // brief grace period to actually clear the obstacle
         } else if(!blocked){
           m.position.x = nx; m.position.z = nz;
