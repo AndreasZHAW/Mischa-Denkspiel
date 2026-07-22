@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v352';
+const APP_VERSION = 'v353';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v352 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v353 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1296,15 +1296,19 @@ const App = {
               <div style="background:rgba(255,215,0,.3);border:1px solid #FFD700;color:#FFD700;font-weight:900;font-size:1rem;padding:4px 12px;border-radius:20px">🌀 ${formatMT(mt)} MT</div>
             </div>
           </div>
-          <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
-            <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
-            ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
-            ${['mischa','admin'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
-            <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,.5);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
-            <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.25);border:1.5px solid rgba(100,200,255,.7);color:rgba(180,240,255,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
-            <button onclick="location.reload()" style="background:rgba(52,200,120,0.25);border:1.5px solid rgba(52,200,120,.7);color:rgba(100,255,180,1);padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
-            <button onclick="GameLog.showViewer()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,.3);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Spielprotokoll anzeigen">${typeof t!=='undefined'?t('wm.log'):'📋 Log'}</button>
-            <button onclick="App._logout()" style="background:rgba(255,255,255,0.25);border:1.5px solid white;color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;max-width:100%">
+            <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
+              <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
+              ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
+              ${['mischa','admin'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
+              <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
+              <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,.45);color:rgba(180,240,255,1);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
+              <button onclick="location.reload()" style="background:rgba(52,200,120,0.15);border:1px solid rgba(52,200,120,.45);color:rgba(100,255,180,1);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
+              <button onclick="App.showAbout()" style="background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,.4);color:#FFD700;padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Über dieses Spiel">${typeof t!=='undefined'?t('wm.about'):'ℹ️ Über'}</button>
+              <button onclick="App._logout()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
+            </div>
           </div>
         </div>
 
@@ -1407,6 +1411,30 @@ const App = {
     const closeBtn = document.createElement('button');
     closeBtn.textContent = typeof t!=='undefined'?t('worldmap.close'):'Schliessen';
     closeBtn.style.cssText = 'margin-top:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 24px;border-radius:10px;cursor:pointer;font-size:.9rem';
+    closeBtn.onclick = () => ov.remove();
+    card.appendChild(closeBtn);
+    ov.appendChild(card);
+    document.body.appendChild(ov);
+  },
+
+  showAbout() {
+    const ov = document.createElement('div');
+    ov.id = 'about-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+    ov.onclick = (e) => { if(e.target===ov) ov.remove(); };
+    const card = document.createElement('div');
+    card.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,215,0,.25);border-radius:20px;padding:26px;max-width:400px;width:100%;text-align:center';
+    const title = document.createElement('div');
+    title.style.cssText = 'color:#FFD700;font-weight:900;font-size:1.2rem;margin-bottom:14px';
+    title.textContent = typeof t!=='undefined'?t('wm.about_title'):'ℹ️ Über dieses Spiel';
+    card.appendChild(title);
+    const body = document.createElement('div');
+    body.style.cssText = 'color:rgba(255,255,255,.85);font-size:.9rem;line-height:1.6;text-align:left';
+    body.textContent = typeof t!=='undefined'?t('wm.about_text'):'Dieses Spiel wurde von Janosch, Mischa und Andi seit dem 15. April 2026 erstellt.';
+    card.appendChild(body);
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = typeof t!=='undefined'?t('worldmap.close'):'Schliessen';
+    closeBtn.style.cssText = 'margin-top:20px;background:linear-gradient(135deg,#FFD700,#F39C12);border:none;color:#1a1a2e;padding:10px 28px;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:900';
     closeBtn.onclick = () => ov.remove();
     card.appendChild(closeBtn);
     ov.appendChild(card);

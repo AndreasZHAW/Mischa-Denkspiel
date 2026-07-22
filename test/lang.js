@@ -237,7 +237,12 @@ const STRINGS = {
 
   // ── WORLD MAP (Weltkarte, expanded) ──
   'wm.leaderboard':        { de:'🌍 Rangliste', en:'🌍 Leaderboard', fr:'🌍 Classement' },
-  'wm.log':                { de:'📋 Log', en:'📋 Log', fr:'📋 Journal' },
+  'wm.about':              { de:'ℹ️ Über', en:'ℹ️ About', fr:'ℹ️ À propos' },
+  'wm.about_title':        { de:'ℹ️ Über dieses Spiel', en:'ℹ️ About this game', fr:'ℹ️ À propos de ce jeu' },
+  'wm.about_text':         { de:'Dieses Spiel wurde von Janosch, Mischa und Andi seit dem 15. April 2026 erstellt. Insgesamt haben wir dazu über 30\'000 Zeilen Code generiert und über 360 Deployments erstellt und getestet, was insgesamt über 200 Arbeitsstunden entspricht. Wir wünschen euch viel Spass!',
+                             de_simple:'Dieses Spiel wurde von Janosch, Mischa und Andi seit dem 15. April 2026 gemacht. Insgesamt haben wir dafür über 30\'000 Zeilen Code geschrieben (mit Hilfe von KI) und über 360 Mal eine neue Version hochgeladen und getestet — das sind über 200 Arbeitsstunden. Wir wünschen euch viel Spass!',
+                             en:'This game was created by Janosch, Mischa and Andi since April 15, 2026. In total, we generated over 30,000 lines of code and built and tested over 360 deployments, which adds up to more than 200 hours of work. We hope you have fun!',
+                             fr:'Ce jeu a été créé par Janosch, Mischa et Andi depuis le 15 avril 2026. Au total, nous avons généré plus de 30 000 lignes de code et créé et testé plus de 360 déploiements, ce qui représente plus de 200 heures de travail. On vous souhaite beaucoup de plaisir !' },
   'wm.mt_full':            { de:'Mischa Taler', en:'Mischa Coins', fr:'Mischa Pièces' },
   'wm.rewards_btn':        { de:'🎁 Belohnungen abholen', en:'🎁 Collect rewards', fr:'🎁 Récupérer récompenses' },
   'wm.zoo_unlock_title':   { de:'🦁 Zoo freischalten', en:'🦁 Unlock the Zoo', fr:'🦁 Débloquer le Zoo' },
