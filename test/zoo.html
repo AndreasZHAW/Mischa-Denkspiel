@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v364 -->
+<!-- ZOO v365 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=364"></script>
-<script src="rewardchests.js?v=364"></script>
-<script src="personality.js?v=364"></script>
+<script src="lang.js?v=365"></script>
+<script src="rewardchests.js?v=365"></script>
+<script src="personality.js?v=365"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v364','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v365','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="firebase-state.js?v=364"></script>
-<script src="worlds.js?v=364"></script>
+<script src="firebase-state.js?v=365"></script>
+<script src="worlds.js?v=365"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -5190,6 +5190,23 @@ const ZG={
     const minGap = someoneCarrying ? 100 : 1000;
     if(this._lastMPSync && (now-this._lastMPSync)<minGap) return;
     this._lastMPSync = now;
+    // ── SYNC DIAGNOSTICS ──
+    // window._syncDebug always holds the outcome of the most recent
+    // attempt (never gets silently dropped, even permission-denied errors
+    // which the old catch-all specifically excluded from logging). Check
+    // it any time from the browser console with: window._syncDebug
+    if(!window._syncDebug) window._syncDebug={writes:0,writeFails:0,reads:0,readFails:0,lastWriteOK:null,lastReadOK:null,lastError:null};
+    const dbg=window._syncDebug;
+    if(!ZS.isPrivate && ZS.player && typeof State!=='undefined' && !State._useCloud()){
+      dbg.lastError={when:now,stage:'precheck',msg:'State._useCloud() ist false — läuft im Lokal-Modus, kein Multiplayer-Sync aktiv.'};
+      this._updSyncBadge();
+      return;
+    }
+    if(!_db){
+      dbg.lastError={when:now,stage:'precheck',msg:'_db ist nicht gesetzt — Firebase wurde nie initialisiert.'};
+      this._updSyncBadge();
+      return;
+    }
     try{
       if(!State._useCloud())return;
       if(!_db)return;
@@ -5205,12 +5222,32 @@ const ZG={
       // fallbacks guarantee this write can never be skipped for that reason.
       const _carryPayload = (this.carrying && this.carrying.animal)
         ? {e:this.carrying.animal.e||'❓', n:this.carrying.animal.n||'?'} : null;
-      await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set({name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'main',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),carrying:_carryPayload,x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()});
+      const writeData={name:ZS.player,char:_myPers.char,color:_myPers.color,charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,instanceId:ZS.instanceId||'main',slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null),carrying:_carryPayload,x:Math.round(this.pl.x),z:Math.round(this.pl.z),t:Date.now()};
+      try{
+        await _db.collection('zoo_players').doc(ZS.player.toLowerCase()).set(writeData);
+        dbg.writes++; dbg.lastWriteOK=now;
+      }catch(writeErr){
+        dbg.writeFails++;
+        dbg.lastError={when:now,stage:'write',code:writeErr.code||'?',msg:writeErr.message||String(writeErr),dataSent:writeData};
+        console.error('[SYNC-DEBUG] Schreibfehler in zoo_players:',writeErr.code,writeErr.message,writeData);
+        this._updSyncBadge();
+        return; // don't attempt the read if the write itself failed — surfaces the real problem faster
+      }
       // Only fetch players in OUR OWN instance — not the whole global pool.
-      const snap = await Promise.race([
-        _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'main').get(),
-        new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))
-      ]);
+      let snap;
+      try{
+        snap = await Promise.race([
+          _db.collection('zoo_players').where('instanceId','==',ZS.instanceId||'main').get(),
+          new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))
+        ]);
+        dbg.reads++; dbg.lastReadOK=now;
+      }catch(readErr){
+        dbg.readFails++;
+        dbg.lastError={when:now,stage:'read',code:readErr.code||'?',msg:readErr.message||String(readErr)};
+        console.error('[SYNC-DEBUG] Lesefehler auf zoo_players:',readErr.code,readErr.message);
+        this._updSyncBadge();
+        return;
+      }
       const others={};
       snap.forEach(doc=>{const d=doc.data();if(d.name.toLowerCase()!==ZS.player.toLowerCase()&&Date.now()-d.t<10000)others[d.name]={...d};});
       // Track each player's walking heading (current pos vs last known pos)
@@ -5226,7 +5263,42 @@ const ZG={
       this.otherPl=others;
       this._updOthers(others);
       try{ this._renderOtherEnclosures(others); }catch(e){}
-    }catch(e){if(e.code!=='permission-denied')console.warn('MP:',e.message);}
+      this._updSyncBadge();
+    }catch(e){
+      dbg.lastError={when:now,stage:'outer',code:e.code||'?',msg:e.message||String(e)};
+      console.error('[SYNC-DEBUG] Unerwarteter Fehler in _syncMP:',e.code,e.message);
+      this._updSyncBadge();
+    }
+  },
+  // Small always-on-screen badge showing sync health — no need to open
+  // devtools to see if writes/reads are failing and why. Tap it to see
+  // the full error in a toast (useful on mobile where there's no console).
+  _updSyncBadge(){
+    const dbg=window._syncDebug; if(!dbg) return;
+    let badge=document.getElementById('sync-debug-badge');
+    if(!badge){
+      badge=document.createElement('div');
+      badge.id='sync-debug-badge';
+      badge.style.cssText='position:fixed;bottom:6px;right:6px;z-index:8000;font-size:.62rem;padding:3px 8px;border-radius:8px;cursor:pointer;font-family:monospace;pointer-events:auto';
+      badge.onclick=()=>{
+        const d=window._syncDebug;
+        const errTxt=d.lastError?`[${d.lastError.stage}] ${d.lastError.code}: ${d.lastError.msg}`:'kein Fehler bisher';
+        ZP.toast('Sync: '+d.writes+'✅/'+d.writeFails+'❌ Schreiben, '+d.reads+'✅/'+d.readFails+'❌ Lesen. Letzter Fehler: '+errTxt, 6000);
+        console.log('[SYNC-DEBUG] Voller Status:', d);
+      };
+      document.body.appendChild(badge);
+    }
+    const hasRecentError=dbg.lastError && (Date.now()-dbg.lastError.when)<5000;
+    if(hasRecentError){
+      badge.style.background='rgba(231,76,60,.85)'; badge.style.color='#fff';
+      badge.textContent='⚠️ Sync-Fehler (antippen)';
+    }else if(dbg.lastWriteOK){
+      badge.style.background='rgba(39,174,96,.55)'; badge.style.color='#fff';
+      badge.textContent='✅ Sync OK';
+    }else{
+      badge.style.background='rgba(150,150,150,.5)'; badge.style.color='#fff';
+      badge.textContent='… Sync startet';
+    }
   },
   // ═══ ADMIN CMD ═══
   async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
