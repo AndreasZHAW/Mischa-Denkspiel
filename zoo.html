@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v368 -->
+<!-- ZOO v369 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=368"></script>
-<script src="rewardchests.js?v=368"></script>
-<script src="personality.js?v=368"></script>
+<script src="lang.js?v=369"></script>
+<script src="rewardchests.js?v=369"></script>
+<script src="personality.js?v=369"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v368','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v369','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=368"></script>
-<script src="worlds.js?v=368"></script>
+<script src="firebase-state.js?v=369"></script>
+<script src="worlds.js?v=369"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -903,7 +903,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:700},{e:2,l:1,u:0,g:0,m:0,s:0,mt:3500},{e:2,l:1,u:1,g:0,m:0,s:0,mt:17500},{e:3,l:2,u:1,g:1,m:0,s:0,mt:84000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:420000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:2100000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:10500000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:70000000}];return R[Math.min(n,R.length-1)];}
+function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000000},{e:2,l:1,u:1,g:0,m:0,s:0,mt:25000000},{e:3,l:2,u:1,g:1,m:0,s:0,mt:120000000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:600000000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:3000000000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:15000000000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:100000000000}];return R[Math.min(n,R.length-1)];}
 function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'🌀'+(typeof formatMT==='function'?formatMT(n):(n/1e6).toFixed(2)+'M');if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
@@ -1492,8 +1492,15 @@ const ZG={
       if(jb)jb.style.display='flex';
     }
     setTimeout(()=>ZG._listenAnimalEvents(),3000);
-    // Schedule random events every 10 minutes
-    this._ivs.push(setInterval(()=>ZG._tryStartRandomEvent(),10*60*1000));
+    setTimeout(()=>ZG._listenSlaps(),3000);
+    // NOTE: there used to ALSO be a setInterval(_tryStartRandomEvent, 10min)
+    // here — a second, entirely local random-event trigger that never
+    // broadcast anything, running alongside _scheduleEvent (which does
+    // broadcast properly, every 15 min). Having both meant every player
+    // saw their own private, unsynchronized weather on top of whatever
+    // _scheduleEvent shared — removed, _scheduleEvent below is now the
+    // only random-event source, and it's coordinated via RTDB so exactly
+    // one event fires for everyone at a time (see _scheduleEvent).
     // Spawn first lucky block after 30s, then every 3 minutes
     setTimeout(()=>LuckyBlocks.spawn(),30000);
     this._scheduleEvent();
@@ -2162,18 +2169,26 @@ const ZG={
 
   _listenWheelBroadcast(){
     try{
+      // World events (admin-triggered AND random) — via Realtime Database,
+      // not Firestore. This is the one broadcast channel every player's
+      // client listens to for weather/world events, so it needs to work
+      // even when Firestore's daily quota is exhausted (which is exactly
+      // what caused events to arrive inconsistently or not at all before).
+      if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+        _rtdb.ref('zoo_broadcast/event').on('value', snap=>{
+          const d=snap.val();
+          if(!d)return;
+          if(Date.now()-d.at>5000)return; // ignore old
+          const ev=EVENTS.find(e=>e.id===d.eventId);
+          if(ev&&(!this.ev||this.ev.id!==d.eventId)){
+            this.startEv(ev,d.dur);
+            ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
+          }
+        });
+      }
+    }catch(e){}
+    try{
       if(typeof _db==='undefined'||!_db||!State._useCloud())return;
-      // Also listen for synchronized events
-      _db.collection('zoo_broadcast').doc('event').onSnapshot(snap=>{
-        if(!snap.exists)return;
-        const d=snap.data();
-        if(Date.now()-d.at>5000)return; // ignore old
-        const ev=EVENTS.find(e=>e.id===d.eventId);
-        if(ev&&(!this.ev||this.ev.id!==d.eventId)){
-          this.startEv(ev,d.dur);
-          ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
-        }
-      });
       // Listen for admin announcements
       _db.collection('zoo_broadcast').doc('announcement').onSnapshot(snap=>{
         if(!snap.exists)return;
@@ -2253,72 +2268,95 @@ const ZG={
               ZP.toast(`${d.animal.e} ${d.animal.n} läuft zu ${d.buyer}'s Zoo! ⚔️`,3000);
               this._animalWalk(d.animal,d.slot,'#ff6b6b');
             }
-            // Receive slap from another player
-            if(d.type==='slap'&&(d.target||'').toLowerCase()===(ZS.player||'').toLowerCase()&&d.at>cutoff){
-              // I got slapped! Full cinematic experience
-              const slapDur=d.dur||2000;
-              ZG._slapStunEnd=Date.now()+slapDur; if(window.ZSteal)ZSteal.loseOnSlap(); SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
-              // Drop carried animal if carrying
-              if(ZG.carrying) ZG._dropCarried(d.from||'?');
-              ZG._stunType='slap';
-              ZSound._sndOuch&&ZSound._sndOuch();
-              
-              // Screen effect based on slap type
-              const slapId=d.slapId||'basic';
-              if(slapId==='lucky'||slapId==='weekend'){
-                // Launch myself into sky (visual only)
-                ZG._slapLaunchSelf(slapDur);
-                ZP.toast(`🍀 ${d.from} hat dich in den Himmel geschleudert! ${Math.round(slapDur/1000)}s`,3000);
-                ZP._showReportBtn(d.from, 'slap');
-              } else if(slapId==='france'){
-                // French flag flash + BOOM
-                const ov=document.createElement('div');
-                ov.style.cssText='position:fixed;inset:0;z-index:8500;pointer-events:none;display:flex;animation:none';
-                ov.innerHTML='<div style="flex:1;background:#002395;opacity:.8"></div><div style="flex:1;background:#fff;opacity:.8"></div><div style="flex:1;background:#ED2939;opacity:.8"></div>';
-                const boom=document.createElement('div');
-                boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8501;font-size:4rem;font-weight:900;color:#FFD700;pointer-events:none';
-                boom.textContent='💥 BOOM!';
-                document.body.appendChild(ov);document.body.appendChild(boom);
-                setTimeout(()=>{ov.remove();boom.remove();},800);
-                ZP.toast(`🗼 ${d.from} hat dich mit dem FRANCE SLAP getroffen! 10s!`,4000);
-              } else if(slapId==='void'){
-                // Black flash
-                const fl2=document.createElement('div');
-                fl2.style.cssText='position:fixed;inset:0;background:#000;z-index:8000;pointer-events:none;opacity:0;transition:opacity .3s';
-                document.body.appendChild(fl2);
-                setTimeout(()=>fl2.style.opacity='0.9',10);
-                setTimeout(()=>fl2.style.opacity='0',500);
-                setTimeout(()=>fl2.remove(),800);
-                ZP.toast(`🌌 ${d.from}: VOID SLAP! Du verschwindest! ${Math.round(slapDur/1000)}s`,4000);
-              } else if(slapId==='ice'){
-                const ice=document.createElement('div');
-                ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.2),rgba(0,100,200,.4));border:4px solid rgba(0,200,255,.7)';
-                ice.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;opacity:.5">🧊</div>';
-                document.body.appendChild(ice);
-                setTimeout(()=>ice.remove(),slapDur);
-                ZP.toast(`❄️ ${d.from}: ICE SLAP! Eingefroren! ${Math.round(slapDur/1000)}s`,3000);
-                ZP._showReportBtn(d.from, 'slap');
-              } else {
-                // Default red flash
-                const fl=G('bflash');
-                if(fl){fl.style.background='rgba(255,0,0,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
-                ZP.toast(`${d.slapEmoji||'🤚'} ${d.from}: ${d.slapId?.toUpperCase()||'BASIC'} SLAP! ${Math.round(slapDur/1000)}s!`,3000);
-                ZP._showReportBtn(d.from, d.slapId);
-              }
-              
-              // Void + France: send to own zoo after stun
-              if(slapId==='void'||slapId==='france'){
-                setTimeout(()=>{
-                  if(ZS.zoo){
-                    // Teleport to enclosure area
-                    {const _z=ZG.ZONES[ZG._myZone()]||ZG.ZONES[0];ZG.pl.x=_z.x; ZG.pl.z=_z.z+14;}
-                    ZP.toast('🏠 Du wurdest in deinen Zoo teleportiert!',2000);
-                  }
-                },slapDur-500);
-              }
-            }
           });
         });
+    }catch(e){}
+  },
+
+  // Applies everything that happens when a slap actually reaches its
+  // target — extracted out so both the (legacy) listener shape and the
+  // new RTDB-based one can call the exact same logic.
+  _applyReceivedSlap(d){
+    const slapDur=d.dur||2000;
+    ZG._slapStunEnd=Date.now()+slapDur; if(window.ZSteal)ZSteal.loseOnSlap(); SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
+    // Drop carried animal if carrying
+    if(ZG.carrying) ZG._dropCarried(d.from||'?');
+    ZG._stunType='slap';
+    ZSound._sndOuch&&ZSound._sndOuch();
+
+    // Screen effect based on slap type
+    const slapId=d.slapId||'basic';
+    if(slapId==='lucky'||slapId==='weekend'){
+      // Launch myself into sky (visual only)
+      ZG._slapLaunchSelf(slapDur);
+      ZP.toast(`🍀 ${d.from} hat dich in den Himmel geschleudert! ${Math.round(slapDur/1000)}s`,3000);
+      ZP._showReportBtn(d.from, 'slap');
+    } else if(slapId==='france'){
+      // French flag flash + BOOM
+      const ov=document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;z-index:8500;pointer-events:none;display:flex;animation:none';
+      ov.innerHTML='<div style="flex:1;background:#002395;opacity:.8"></div><div style="flex:1;background:#fff;opacity:.8"></div><div style="flex:1;background:#ED2939;opacity:.8"></div>';
+      const boom=document.createElement('div');
+      boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8501;font-size:4rem;font-weight:900;color:#FFD700;pointer-events:none';
+      boom.textContent='💥 BOOM!';
+      document.body.appendChild(ov);document.body.appendChild(boom);
+      setTimeout(()=>{ov.remove();boom.remove();},800);
+      ZP.toast(`🗼 ${d.from} hat dich mit dem FRANCE SLAP getroffen! 10s!`,4000);
+    } else if(slapId==='void'){
+      // Black flash
+      const fl2=document.createElement('div');
+      fl2.style.cssText='position:fixed;inset:0;background:#000;z-index:8000;pointer-events:none;opacity:0;transition:opacity .3s';
+      document.body.appendChild(fl2);
+      setTimeout(()=>fl2.style.opacity='0.9',10);
+      setTimeout(()=>fl2.style.opacity='0',500);
+      setTimeout(()=>fl2.remove(),800);
+      ZP.toast(`🌌 ${d.from}: VOID SLAP! Du verschwindest! ${Math.round(slapDur/1000)}s`,4000);
+    } else if(slapId==='ice'){
+      const ice=document.createElement('div');
+      ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.2),rgba(0,100,200,.4));border:4px solid rgba(0,200,255,.7)';
+      ice.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;opacity:.5">🧊</div>';
+      document.body.appendChild(ice);
+      setTimeout(()=>ice.remove(),slapDur);
+      ZP.toast(`❄️ ${d.from}: ICE SLAP! Eingefroren! ${Math.round(slapDur/1000)}s`,3000);
+      ZP._showReportBtn(d.from, 'slap');
+    } else {
+      // Default red flash
+      const fl=G('bflash');
+      if(fl){fl.style.background='rgba(255,0,0,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
+      ZP.toast(`${d.slapEmoji||'🤚'} ${d.from}: ${d.slapId?.toUpperCase()||'BASIC'} SLAP! ${Math.round(slapDur/1000)}s!`,3000);
+      ZP._showReportBtn(d.from, d.slapId);
+    }
+
+    // Void + France: send to own zoo after stun
+    if(slapId==='void'||slapId==='france'){
+      setTimeout(()=>{
+        if(ZS.zoo){
+          // Teleport to enclosure area
+          {const _z=ZG.ZONES[ZG._myZone()]||ZG.ZONES[0];ZG.pl.x=_z.x; ZG.pl.z=_z.z+14;}
+          ZP.toast('🏠 Du wurdest in deinen Zoo teleportiert!',2000);
+        }
+      },slapDur-500);
+    }
+  },
+
+  // Listens on OUR OWN RTDB slap path (zoo_slaps/{myNameLower}) instead of
+  // Firestore's zoo_events — Firestore writes can (and did) get blocked by
+  // the daily quota, silently dropping every slap. RTDB is billed
+  // completely separately, so this keeps slaps landing even then.
+  _listenSlaps(){
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()||!ZS.player) return;
+      const myKey=ZS.player.toLowerCase();
+      const ref=_rtdb.ref('zoo_slaps/'+myKey);
+      const startTime=Date.now();
+      ref.on('value', snap=>{
+        const d=snap.val();
+        if(!d) return;
+        if(d.at<startTime) return; // ignore whatever was already sitting there when we started listening
+        if(this._lastHandledSlapAt===d.at) return; // already handled this exact one
+        this._lastHandledSlapAt=d.at;
+        this._applyReceivedSlap(d);
+      });
     }catch(e){}
   },
 
@@ -4372,9 +4410,14 @@ const ZG={
       mesh.userData.slapType=sl.id;
       mesh.userData.slapCount=(mesh.userData.slapCount||0)+1;
     }
-    // Broadcast to Firebase
-    try{if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-      _db.collection('zoo_events').add({type:'slap',from:ZS.player,target:targetName,
+    // Broadcast via Realtime Database — NOT Firestore. Firestore's daily
+    // write quota can (and did) block this entirely, silently leaving the
+    // target un-notified: they'd never receive the slap, so a carried
+    // animal just stayed with them forever and nothing else about the
+    // slap (freeze, stun) ever applied. RTDB is a separate quota/product,
+    // so this keeps working even when Firestore is exhausted.
+    try{if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+      _rtdb.ref('zoo_slaps/'+targetName.toLowerCase()).set({type:'slap',from:ZS.player,target:targetName,
         slapId:sl.id,slapEmoji:sl.e,dur,at:Date.now()}).catch(()=>{});
     }}catch(e){}
     // Local effects
@@ -4753,27 +4796,38 @@ const ZG={
 
   // Events synchronized via Firebase - only admin/first player triggers, all sync
   _scheduleEvent(){
-    // Events every 15 minutes; each lasts 5 minutes; 1-3 may stack by luck
+    // Events every 15 minutes; exactly one per cycle. Coordinated via an
+    // RTDB transaction so that with several players online, only ONE of
+    // them actually "wins" the window and broadcasts — previously every
+    // single online client independently picked its OWN random event and
+    // wrote it to Firestore, so with multiple people online the shared
+    // doc got overwritten several times in a row (whoever wrote last —
+    // arbitrarily — is what everyone briefly saw), and none of it worked
+    // at all once Firestore's write quota was exhausted.
     const delay=15*60000;
     setTimeout(()=>{
       if(!ZS.player)return;
-      // Exactly ONE event per 15-minute cycle (rarer, as requested)
-      const count=1;
-      const shuffled=[...EVENTS].sort(()=>Math.random()-.5);
-      for(let i=0;i<count;i++){
-        const ev=shuffled[i%shuffled.length];
-        const dur=5*60000; // 5 minutes
-        try{
-          if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-            _db.collection('zoo_broadcast').doc('event').set({
-              eventId:ev.id,at:Date.now(),dur,from:ZS.player
-            }).catch(()=>{});
-          }
-        }catch(e){}
-        setTimeout(()=>this.startEv(ev,dur), i*3000); // stagger by 3s
-      }
+      this._tryClaimRandomEvent();
       this._scheduleEvent();
     },delay);
+  },
+  async _tryClaimRandomEvent(){
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud())return;
+      const ref=_rtdb.ref('zoo_broadcast/lastRandomEventAt');
+      const result = await ref.transaction(current=>{
+        const now=Date.now();
+        // 14 min (not 15) so small timing drift between clients' own
+        // setTimeout schedules can't cause a cycle to be skipped entirely.
+        if(current && (now-current)<14*60000) return; // undefined = abort — someone already claimed this window
+        return now;
+      });
+      if(!result.committed) return; // lost the race (or offline) — fine, whoever won will broadcast
+      const shuffled=[...EVENTS].sort(()=>Math.random()-.5);
+      const ev=shuffled[0];
+      const dur=5*60000; // 5 minutes
+      await _rtdb.ref('zoo_broadcast/event').set({eventId:ev.id,at:Date.now(),dur,from:ZS.player}).catch(()=>{});
+    }catch(e){}
     // (No early event — events only come every 15 minutes now)
   },
 
@@ -7533,7 +7587,11 @@ const ZP={
       ${can?`<button class="btn btng" onclick="ZP._doReb()">🔄 Jetzt Wiedergeburt!</button>`:`<button class="btn btnd" disabled>Anforderungen fehlen</button>`}
     </div>`;
   },
-  async _doReb(){if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const z=ZS.zoo;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=10;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
+  async _doReb(){
+    const z=ZS.zoo;
+    const req=rebReq(z.reb||0);
+    if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
+    if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=10;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
 
   // ENCLOSURE
   _rEnc(i){
@@ -7743,7 +7801,7 @@ const ZP={
     }
     this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
   },
-  async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');if(ev)try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}},
+  async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);try{if(typeof _rtdb!=='undefined'&&_rtdb&&ev){await _rtdb.ref('zoo_broadcast/event').set({eventId:ev.id,at:Date.now(),dur,from:ZS.player||'Admin'});}}catch(e){}if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');if(ev)try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}},
   async adTikTok(){
     if(!(await showConfirm('📱🐾 TikTok-Tierbefreiung starten? Das wertvollste (nicht geschützte) Tier jedes aktiven Spielers wird freigelassen.')))return;
     const cmd={type:'tiktok_liberation',target:'_all',id:'tt_'+Date.now(),exp:Date.now()+60000};
