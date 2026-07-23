@@ -13,7 +13,7 @@ h1{color:#FFD700;font-size:1.2rem;margin-bottom:6px}
 h2{color:#4af;font-size:.92rem;margin:10px 0 4px;border-bottom:1px solid #2a2a2a;padding-bottom:2px}
 .ok  {color:#2ecc71}.err{color:#e74c3c;font-weight:bold}.warn{color:#f39c12}.info{color:#4af}.dim{color:#666}
 .box {background:#111;border:1px solid #222;border-radius:8px;padding:10px;margin-bottom:8px}
-.box.red{border-color:#e74c3c}.box.green{border-color:#2ecc71}.box.blue{border-color:#4af}
+.box.red{border-color:#e74c3c}.box.green{border-color:#2ecc71}.box.blue{border-color:#4af}.box.orange{border-color:#F39C12}
 pre{font-size:11px;white-space:pre-wrap;word-break:break-all}
 button{background:#FFD700;color:#000;border:none;padding:7px 13px;border-radius:6px;font-weight:bold;font-size:.85rem;cursor:pointer;margin:2px}
 button.sec{background:#2a6;color:#fff}button.info{background:#2a6ab5;color:#fff}button.danger{background:#a22;color:#fff}
@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v371</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v371 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v373</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v373 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -63,6 +63,7 @@ try {
   <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
+  <div class="tab" onclick="switchTab('all')" style="background:#F39C12;color:#000;font-weight:900">📋 Alles zusammen</div>
 </div>
 
 <!-- ══ TAB: CRASH LOG ══ -->
@@ -259,6 +260,23 @@ try {
   <div class="box">
     <h2>🌐 Latenzen</h2>
     <pre id="net-out">⏳</pre>
+  </div>
+</div>
+
+<!-- ══ TAB: ALLES ZUSAMMEN ══ -->
+<div id="tab-all" class="tab-content">
+  <div class="box orange">
+    <h2>📋 Gesamt-Report — alle Tabs auf einmal</h2>
+    <div style="font-size:.78rem;color:#999;margin-bottom:10px">
+      Führt alle Diagnose-Tabs nacheinander aus (auch die, die du noch nicht angeklickt hast) und fasst
+      ALLES in einem einzigen Text zusammen — einmal kopieren oder herunterladen, fertig. Kein Risiko mehr,
+      aus Versehen nur einen Teil zu schicken.
+    </div>
+    <button onclick="runAllTabsReport()" class="info">🔄 Alle Diagnosen ausführen (dauert ~5-10s)</button>
+    <button onclick="copyAllTabsReport()" class="ok">📋 Alles kopieren</button>
+    <button onclick="downloadAllTabsReport()" class="ok">💾 Als Datei herunterladen</button>
+    <div id="all-progress" style="font-size:.78rem;color:#4af;margin:10px 0"></div>
+    <pre id="all-out" style="max-height:600px;overflow-y:auto;background:#050505;border:1px solid #1a1a1a;border-radius:4px;padding:8px;font-size:10.5px;white-space:pre-wrap">Noch nicht ausgeführt — Knopf oben drücken.</pre>
   </div>
 </div>
 
@@ -610,7 +628,7 @@ async function runMT(){
       +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
       +'<th style="padding:4px 6px">Spieler</th><th>Welt1 dsMT</th><th>Zoo mt (roh)</th>'
       +'<th>DeviceID Welt1</th><th>DeviceID Zoo</th><th>Match?</th>'
-      +'<th>Admin-Panel-Summe</th><th>Rangliste-Summe</th><th></th></tr>'
+      +'<th>Admin-Panel-Summe</th><th>Rangliste-Summe</th><th></th><th></th></tr>'
       + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${r.overCap?'background:rgba(255,165,0,.15)':r.mismatch?'background:rgba(231,76,60,.12)':''}">`
         +`<td style="padding:4px 6px;font-weight:${(r.mismatch||r.overCap)?'900':'400'}">${r.name}</td>`
         +`<td>${r.ds.toFixed(1)}</td>`
@@ -620,13 +638,34 @@ async function runMT(){
         +`<td>${r.z ? (r.devMatch?'<span class="ok">✅</span>':'<span class="err">❌</span>') : '<span class="dim">—</span>'}</td>`
         +`<td>${r.adminTotal.toFixed(1)} MT</td>`
         +`<td>${r.rankTotal.toFixed(1)} MT</td>`
-        +`<td>${r.overCap?'<span class="err">⚠️ Über Sanity-Cap — wird gedeckelt</span>':r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein</span>':''}</td>`
+        +`<td>${r.overCap?'<span class="err">⚠️ Über Sanity-Cap — wird gedeckelt</span>':r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein. Welt-1 zeigt daher NICHT die Zoo-MT mit an.</span>':''}</td>`
+        +`<td>${(r.z && r.z_dev && !r.devMatch) ? `<button onclick="fixDeviceId('${r.name.replace(/'/g,"\\'")}','${r.z_dev}')" class="info" style="font-size:.68rem;padding:3px 8px">🔧 Fix</button>` : ''}</td>`
         +`</tr>`).join('')
       +'</table>';
     L('MT-Diagnose: '+rows.length+' Spieler, '+mismatches.length+' mit Diskrepanz.');
   }catch(e){
     out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
     L('❌ MT-Diagnose Fehler: '+e.message,'err');
+  }
+}
+// Fixes exactly the mismatch case _mtRows exposes: mischa_players.deviceId
+// doesn't match zoos.deviceId, so Welt 1's combined-MT calculation
+// (which requires a device match before adding the Zoo's MT) silently
+// leaves the Zoo balance out entirely for that player. Same fix as the
+// Admin Panel's "Geräte-IDs syncen" button, just scoped to one player so
+// you don't have to re-run the blanket sync for a single known case.
+async function fixDeviceId(name, zooDeviceId){
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){ alert('Firebase nicht geladen.'); return; }
+  if(!confirm(`Geräte-ID von "${name}" in Welt 1 auf die des Zoos umstellen?\n\nNeue Geräte-ID: ${zooDeviceId}`)) return;
+  try{
+    const db=firebase.firestore();
+    await db.collection('mischa_players').doc(name.toLowerCase()).set({deviceId:zooDeviceId},{merge:true});
+    L('MT-Diagnose: Geräte-ID von "'+name+'" auf Zoo-Wert umgestellt.');
+    alert('✅ Erledigt — bitte "Neu laden" drücken, um die Änderung zu bestätigen.');
+    runMT();
+  }catch(e){
+    alert('❌ Fehler: '+e.message);
+    L('❌ fixDeviceId Fehler: '+e.message,'err');
   }
 }
 function copyMT(){
@@ -983,9 +1022,124 @@ async function runNet(){
   document.getElementById('net-out').textContent=nr.join('\n');
 }
 
+// ══ ALLES ZUSAMMEN — Gesamt-Report ══
+// Runs every individual diagnostic tab (even ones the person never
+// clicked, thanks to the _ran lazy-load guards elsewhere reusing the same
+// underlying functions) and stitches all their outputs into one text
+// block. Exists so a bug report never accidentally leaves out the one
+// tab that actually explains the problem.
+let _allTabsReportText='';
+function _grabText(id){
+  const el=document.getElementById(id);
+  if(!el) return '(nicht gefunden: '+id+')';
+  return (el.innerText||el.textContent||'').trim();
+}
+async function runAllTabsReport(){
+  const progress=document.getElementById('all-progress');
+  const out=document.getElementById('all-out');
+  out.textContent='⏳ Läuft...';
+  const steps=[
+    ['Welt 1',   async()=>{await runWelt1();}],
+    ['Zoo / WebGL', async()=>{await runZoo();}],
+    ['MT-Diagnose', async()=>{await runMT();}],
+    ['Trade-Diagnose', async()=>{await runTrade();}],
+    ['Multiplayer-Diagnose', async()=>{await runMP();}],
+    ['Roaming-Diagnose', async()=>{await runRoam();}],
+    ['Schrift', async()=>{runFont();}],
+    ['Netzwerk', async()=>{await runNet();}],
+  ];
+  // Run sequentially (not in parallel) so the progress label above stays
+  // meaningful and nothing races on shared state between tabs.
+  for(const [label, fn] of steps){
+    progress.textContent='⏳ '+label+' läuft...';
+    try{ await fn(); }catch(e){ L('❌ Gesamt-Report: '+label+' fehlgeschlagen: '+e.message,'err'); }
+  }
+  progress.textContent='✅ Fertig — Bericht wird zusammengestellt...';
+
+  const sections=[];
+  sections.push('=== MISCHA DENKSPIEL / ZOO — GESAMT-DIAGNOSE ===');
+  sections.push(new Date().toLocaleString('de-CH'));
+  sections.push('');
+  sections.push('── CRASH-LOG (letzte 2 Minuten) ──');
+  sections.push(_grabText('crash-ring'));
+  sections.push('');
+  sections.push('── WELT 1: Spieler & Fortschritt ──');
+  sections.push(_grabText('player-out'));
+  sections.push('');
+  sections.push('── WELT 1: Spiel-Dateien ──');
+  sections.push(_grabText('js-out'));
+  sections.push('');
+  sections.push('── WELT 1: Spiel-Engines ──');
+  sections.push(_grabText('engine-out'));
+  sections.push('');
+  sections.push('── WELT 1: Bekannte Fixes ──');
+  sections.push(_grabText('fixes-out'));
+  sections.push('');
+  sections.push('── ZOO: Browser & System ──');
+  sections.push(_grabText('browser-out'));
+  sections.push('');
+  sections.push('── ZOO: Three.js CDN ──');
+  sections.push(_grabText('three-out'));
+  sections.push('');
+  sections.push('── ZOO: WebGL Hardware ──');
+  sections.push(_grabText('webgl-out'));
+  sections.push('');
+  sections.push('── ZOO: Canvas Grösse ──');
+  sections.push(_grabText('canvas-out'));
+  sections.push('');
+  sections.push('── ZOO: Firebase & zoo.html ──');
+  sections.push(_grabText('fb-out'));
+  sections.push('');
+  sections.push('── MT-DIAGNOSE — Zusammenfassung ──');
+  sections.push(_grabText('mt-summary'));
+  sections.push('── MT-DIAGNOSE — Tabelle ──');
+  sections.push(_grabText('mt-out'));
+  sections.push('');
+  sections.push('── TRADE-DIAGNOSE — Zusammenfassung ──');
+  sections.push(_grabText('trade-summary'));
+  sections.push('── TRADE-DIAGNOSE — Tabelle ──');
+  sections.push(_grabText('trade-out'));
+  sections.push('');
+  sections.push('── MULTIPLAYER-DIAGNOSE — Zusammenfassung ──');
+  sections.push(_grabText('mp-summary'));
+  sections.push('── MULTIPLAYER-DIAGNOSE — Tabelle ──');
+  sections.push(_grabText('mp-out'));
+  sections.push('');
+  sections.push('── ROAMING-DIAGNOSE — Zusammenfassung ──');
+  sections.push(_grabText('roam-summary'));
+  sections.push('── ROAMING-DIAGNOSE — Tabelle ──');
+  sections.push(_grabText('roam-out'));
+  sections.push('');
+  sections.push('── SCHRIFT ──');
+  sections.push(_grabText('font-out'));
+  sections.push('');
+  sections.push('── NETZWERK ──');
+  sections.push(_grabText('net-out'));
+  sections.push('');
+  sections.push('── VOLLES DIAGNOSE-LOG (alle Einträge dieser Sitzung) ──');
+  sections.push(_grabText('full-log'));
+
+  _allTabsReportText=sections.join('\n');
+  out.textContent=_allTabsReportText;
+  progress.textContent='✅ Fertig — '+new Date().toLocaleTimeString('de-CH');
+  L('Gesamt-Report erstellt ('+_allTabsReportText.length+' Zeichen).');
+}
+function copyAllTabsReport(){
+  if(!_allTabsReportText){ alert('Erst "Alle Diagnosen ausführen" drücken!'); return; }
+  navigator.clipboard.writeText(_allTabsReportText).then(()=>alert('✅ Gesamter Bericht kopiert!'));
+}
+function downloadAllTabsReport(){
+  if(!_allTabsReportText){ alert('Erst "Alle Diagnosen ausführen" drücken!'); return; }
+  const blob=new Blob([_allTabsReportText],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='mischa-gesamt-diagnose-'+Date.now()+'.txt';
+  a.click();
+}
+
 // ══ INIT ══
 async function runAll(){
-  L('=== Diagnose v267 gestartet === '+new Date().toLocaleString('de-CH'));
+  L('=== Diagnose v373 gestartet === '+new Date().toLocaleString('de-CH'));
   L('Browser: '+navigator.userAgent.slice(0,80));
   L('Viewport: '+window.innerWidth+'×'+window.innerHeight+' DPR='+window.devicePixelRatio);
   renderCrash();
