@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v371 -->
+<!-- ZOO v374 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=371"></script>
-<script src="rewardchests.js?v=371"></script>
-<script src="personality.js?v=371"></script>
+<script src="lang.js?v=374"></script>
+<script src="rewardchests.js?v=374"></script>
+<script src="personality.js?v=374"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v371','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v374','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=371"></script>
-<script src="worlds.js?v=371"></script>
+<script src="firebase-state.js?v=374"></script>
+<script src="worlds.js?v=374"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3446,7 +3446,12 @@ const ZG={
     // enlarged the walkable map (WR 45→180, RING_R 45→140) but movement
     // speed was never scaled up to match, so walking felt way too slow.
     // Also dropped the accidental double steal_mod multiplication below.
-    const baseSp=(this._sprintActive?24:14)*steal_mod*carry_mod*trash_mod;
+    // Base speed reduced by 20% (24/14 → 19.2/11.2) to make the new shoe
+    // upgrades (see shoe_mod) actually matter — buying shoes now nets you
+    // back to (or above) the old baseline instead of being pure bonus on
+    // top of an already-fast default.
+    const shoe_mod=(ZS.zoo?.upg?.goldshoes)?1.5:(ZS.zoo?.upg?.redshoes?1.2:1);
+    const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
     let mx=0,mz=0;
@@ -6922,13 +6927,18 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'}];
+  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+20% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:500,shoe:true,col:'#FFD700'}];
     IT.push({id:'insurance',n:'🛡️ Versicherung',d:'20\'795 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});el.innerHTML=IT.map(item=>{
       if(item.insurance){
         const active=z.insuranceActive;
         return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div>🛡️</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
       }
-      const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||((ZS.dsMT||0)+z.mt)<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+      if(item.shoe){
+        const o=z.upg?.[item.id];
+        const otherOwned=item.id==='redshoes'?z.upg?.goldshoes:z.upg?.redshoes;
+        if(o)return`<div class="ac" style="opacity:.5;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;
+        return `<div class="ac"><div style="flex:1;display:flex;gap:8px;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${otherOwned?'<div style="color:#ff6b6b;font-size:.64rem">Ersetzt das andere Paar (kein Stapeln)</div>':''}</div></div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="event.stopPropagation();ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
+      }const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||((ZS.dsMT||0)+z.mt)<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){
     const z=ZS.zoo;
     // Apply active discount
@@ -7446,6 +7456,31 @@ const ZP={
         return `<div class="ac"><div style="flex:1;display:flex;gap:8px;cursor:pointer" onclick="ZP._showSlapInfo('${sl.id}')"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${infoLine}${packs>0?' · noch '+packs+' übrig':''}</div></div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<2124?'disabled':''} onclick="event.stopPropagation();ZP._bSlapPack('${sl.id}')">${$mt(2124)}</button></div>`;
       }).join('');
     this._slapDescMap=descMap; this._slapDurMap=durMap;
+  },
+  _showShoeInfo(id){
+    const isGold=id==='goldshoes';
+    const col=isGold?'#FFD700':'#E74C3C';
+    const emoji=isGold?'✨':'👟';
+    const title=(typeof t!=='undefined')?t(isGold?'zoo.shoe_gold_title':'zoo.shoe_red_title'):(isGold?'✨ Goldene Turnschuhe':'👟 Rote Turnschuhe');
+    const desc=(typeof t!=='undefined')?t(isGold?'zoo.shoe_gold_desc':'zoo.shoe_red_desc'):'';
+    const boost=isGold?'+50%':'+20%';
+    const owned=ZS.zoo?.upg?.[id];
+    const price=isGold?500:100;
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
+    el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+    el.innerHTML=`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid ${col};border-radius:16px;padding:22px;max-width:320px;text-align:center;color:#fff">
+      <div style="font-size:2.6rem">${emoji}</div>
+      <div style="font-weight:900;font-size:1.1rem;color:${col};margin:6px 0">${title}</div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:12px;line-height:1.5">${desc}</div>
+      <div style="display:flex;justify-content:space-around;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:14px">
+        <div>🏃 <b style="color:#fff">${boost}</b><br>Laufgeschwindigkeit</div>
+        <div>💰 <b style="color:#fff">${$mt(price)}</b><br>einmalig</div>
+        <div>♾️ <b style="color:#fff">${owned?'Aktiv':'Dauerhaft'}</b><br>${owned?'':'nach Kauf'}</div>
+      </div>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:${col};color:#1a1a2e;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">✓ OK</button>
+    </div>`;
+    document.body.appendChild(el);
   },
   _showSlapInfo(id){
     const sl=SLAPS.find(s=>s.id===id); if(!sl)return;

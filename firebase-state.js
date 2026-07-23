@@ -1840,7 +1840,14 @@ window.combinedMTFor = async function(player) {
   if (!player?.name) return ds;
   try {
     const zoo = await State.getZoo(player.name);
-    if (zoo && player.deviceId && zoo.deviceId && player.deviceId === zoo.deviceId) {
+    // Previously required player.deviceId===zoo.deviceId before counting
+    // the Zoo's MT at all — meant to guard against some kind of
+    // multi-device abuse, but it also blocked the completely legitimate
+    // case of one person playing the SAME account from two devices (e.g.
+    // created on mobile, later logged into on a PC): the name+password
+    // login already proves it's the same account, so trusting that here
+    // too instead of also requiring a device match.
+    if (zoo) {
       const zooMT = window.sanitizeMT ? window.sanitizeMT(zoo.mt) : (zoo.mt||0);
       return ds + zooMT;
     }
