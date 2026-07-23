@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v370 -->
+<!-- ZOO v371 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=370"></script>
-<script src="rewardchests.js?v=370"></script>
-<script src="personality.js?v=370"></script>
+<script src="lang.js?v=371"></script>
+<script src="rewardchests.js?v=371"></script>
+<script src="personality.js?v=371"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v370','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v371','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=370"></script>
-<script src="worlds.js?v=370"></script>
+<script src="firebase-state.js?v=371"></script>
+<script src="worlds.js?v=371"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -904,6 +904,13 @@ const TOOLS=[
 ];
 
 function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000000},{e:2,l:1,u:1,g:0,m:0,s:0,mt:25000000},{e:3,l:2,u:1,g:1,m:0,s:0,mt:120000000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:600000000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:3000000000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:15000000000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:100000000000}];return R[Math.min(n,R.length-1)];}
+// Realtime Database forbids ".", "#", "$", "[", "]" in path keys — but
+// player names (e.g. "j.t.") can contain exactly those characters. Every
+// place that turns a player name into an RTDB path segment MUST go
+// through this first, or that specific player's writes silently fail
+// with "invalid path" and they never sync for anyone (this is exactly
+// what happened to a player named "j.t." before this existed).
+function $rtdbKey(name){ return (name||'').toLowerCase().replace(/[.#$\[\]]/g,'_'); }
 function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'🌀'+(typeof formatMT==='function'?formatMT(n):(n/1e6).toFixed(2)+'M');if(n>=1e3)return'🌀'+(n/1e3).toFixed(1)+'K';return'🌀'+Math.floor(n);}
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
@@ -1117,7 +1124,7 @@ const ZS={
   instanceId: 'main',
   mySlot: 0,
   async assignInstance(mode){
-    const name = (this.player||'x').toLowerCase();
+    const name = $rtdbKey(this.player||'x');
     let h=0; for(let i=0;i<name.length;i++){ h=(h*31+name.charCodeAt(i))>>>0; }
     const preferredSlot = h % 20;
     if(mode==='private'){
@@ -1263,7 +1270,7 @@ const ZA={
     // ~10s staleness cutoff to naturally exclude us.
     try{
       if(ZS.player && typeof _rtdb!=='undefined' && _rtdb && State._useCloud()){
-        const instanceId=ZS.instanceId||'main', myKey=ZS.player.toLowerCase();
+        const instanceId=ZS.instanceId||'main', myKey=$rtdbKey(ZS.player);
         _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).remove().catch(()=>{});
         _rtdb.ref('zoo_cold/'+instanceId+'/'+myKey).remove().catch(()=>{});
       }
@@ -2352,7 +2359,7 @@ const ZG={
   _listenSlaps(){
     try{
       if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()||!ZS.player) return;
-      const myKey=ZS.player.toLowerCase();
+      const myKey=$rtdbKey(ZS.player);
       const ref=_rtdb.ref('zoo_slaps/'+myKey);
       const startTime=Date.now();
       ref.on('value', snap=>{
@@ -4463,7 +4470,7 @@ const ZG={
     // slap (freeze, stun) ever applied. RTDB is a separate quota/product,
     // so this keeps working even when Firestore is exhausted.
     try{if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
-      _rtdb.ref('zoo_slaps/'+targetName.toLowerCase()).set({type:'slap',from:ZS.player,target:targetName,
+      _rtdb.ref('zoo_slaps/'+$rtdbKey(targetName)).set({type:'slap',from:ZS.player,target:targetName,
         slapId:sl.id,slapEmoji:sl.e,dur,at:Date.now()}).catch(()=>{});
     }}catch(e){}
     // Local effects
@@ -5351,7 +5358,7 @@ const ZG={
       if(!State._useCloud())return;
       if(!_rtdb)return;
       const instanceId=ZS.instanceId||'main';
-      const myKey=ZS.player.toLowerCase();
+      const myKey=$rtdbKey(ZS.player);
       const _myPers=ZS._myPersonality();
       // IMPORTANT: carrying must never contain `undefined` — same reasoning
       // as before the RTDB migration: a bad value here must never be able
@@ -5459,7 +5466,7 @@ const ZG={
   async _deleteRtdbPlayerEverywhere(name){
     try{
       if(typeof _rtdb==='undefined'||!_rtdb) return;
-      const key=name.toLowerCase();
+      const key=$rtdbKey(name);
       const [hotSnap, coldSnap] = await Promise.all([
         _rtdb.ref('zoo_hot').once('value'),
         _rtdb.ref('zoo_cold').once('value'),
@@ -11092,7 +11099,7 @@ const ZooLock = {
     const btn = document.getElementById('hb-lock-btn');
     if (btn) { btn.querySelector('.hbb').textContent = '🔓'; btn.querySelector('.hbl').textContent = 'Offen'; btn.querySelector('.hbb').style.background='rgba(39,174,96,.7)'; }
     // Broadcast lock
-    try { if(typeof _rtdb!=='undefined'&&_rtdb&&ZS.player) _rtdb.ref('zoo_cold/'+(ZS.instanceId||'main')+'/'+ZS.player.toLowerCase()).update({locked:true,lockedUntil:Date.now()+120000}).catch(()=>{}); } catch(e) {}
+    try { if(typeof _rtdb!=='undefined'&&_rtdb&&ZS.player) _rtdb.ref('zoo_cold/'+(ZS.instanceId||'main')+'/'+$rtdbKey(ZS.player)).update({locked:true,lockedUntil:Date.now()+120000}).catch(()=>{}); } catch(e) {}
     // Show laser fence
     this._showLasers(true);
     // Auto-unlock after 120s
@@ -11112,7 +11119,7 @@ const ZooLock = {
     const btn = document.getElementById('hb-lock-btn');
     if (btn) { btn.querySelector('.hbb').textContent='🔒'; btn.querySelector('.hbl').textContent='Sperren'; btn.querySelector('.hbb').style.background='rgba(231,76,60,.7)'; }
     this._showLasers(false);
-    try { if(typeof _rtdb!=='undefined'&&_rtdb&&ZS.player) _rtdb.ref('zoo_cold/'+(ZS.instanceId||'main')+'/'+ZS.player.toLowerCase()).update({locked:false,lockedUntil:0}).catch(()=>{}); } catch(e) {}
+    try { if(typeof _rtdb!=='undefined'&&_rtdb&&ZS.player) _rtdb.ref('zoo_cold/'+(ZS.instanceId||'main')+'/'+$rtdbKey(ZS.player)).update({locked:false,lockedUntil:0}).catch(()=>{}); } catch(e) {}
     ZP.toast('🔓 Dein Zoo ist wieder offen!', 2000);
   },
   
