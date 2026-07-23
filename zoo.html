@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v376 -->
+<!-- ZOO v377 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=376"></script>
-<script src="rewardchests.js?v=376"></script>
-<script src="personality.js?v=376"></script>
+<script src="lang.js?v=377"></script>
+<script src="rewardchests.js?v=377"></script>
+<script src="personality.js?v=377"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v376','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v377','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=376"></script>
-<script src="worlds.js?v=376"></script>
+<script src="firebase-state.js?v=377"></script>
+<script src="worlds.js?v=377"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1796,11 +1796,23 @@ const ZG={
   // local entry gets its real id INSTANTLY instead of asynchronously —
   // there's no window anymore where our own child_added echo could look
   // like a "new" animal and get duplicated.
-  _listenDropped(){
+  _listenDropped(retry){
     if(this._droppedListening) return;
+    // IMPORTANT: only mark as "listening" once we've actually confirmed
+    // _rtdb is ready and attached the listener. Setting this flag too
+    // early (before the readiness check) meant that if RTDB wasn't ready
+    // on this exact call — a real possibility right at zoo init, a race
+    // against Firebase's own async setup — the listener silently never
+    // got attached, and because the flag was already true, no later call
+    // could ever retry either: that player would never see roaming
+    // animals appear for the rest of the session, even though everyone
+    // else could see them fine.
+    if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()){
+      if((retry||0)<20) setTimeout(()=>this._listenDropped((retry||0)+1),300);
+      return;
+    }
     this._droppedListening=true;
     try{
-      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
       const ref=_rtdb.ref('zoo_dropped');
       ref.on('child_added', snap=>{
         const id=snap.key;
@@ -1946,10 +1958,13 @@ const ZG={
   // 3D world. Used to poll Firestore every 5s from EVERY player — now a
   // single RTDB real-time listener (top-5 by creation time), which only
   // re-fires when an offer is actually posted, bought, or expires.
-  _listenMarketStalls(){
+  _listenMarketStalls(retry){
     if(this._marketListening) return;
     try{
-      if(typeof _rtdb==='undefined'||!_rtdb||!this._marketStallPos) return;
+      if(typeof _rtdb==='undefined'||!_rtdb||!this._marketStallPos){
+        if((retry||0)<20) setTimeout(()=>this._listenMarketStalls((retry||0)+1),300);
+        return;
+      }
       this._marketListening=true;
       _rtdb.ref('zoo_trades').orderByChild('createdAt').limitToLast(5).on('value', snap=>{
         const val=snap.val()||{};
@@ -2363,18 +2378,28 @@ const ZG={
   // commands are rare but every single client checked constantly anyway.
   // Now a single RTDB real-time listener, set up once, firing only when
   // an admin actually sends something.
-  _listenAdminCmd(){
+  _listenAdminCmd(retry){
+    if(this._adminCmdListening) return;
     try{
-      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()){
+        if((retry||0)<20) setTimeout(()=>this._listenAdminCmd((retry||0)+1),300);
+        return;
+      }
+      this._adminCmdListening=true;
       _rtdb.ref('zoo_admin_cmd').on('value', snap=>{
         const cmd=snap.val();
         this._handleAdminCmd(cmd);
       });
     }catch(e){}
   },
-  _listenSlaps(){
+  _listenSlaps(retry){
+    if(this._slapsListening) return;
     try{
-      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()||!ZS.player) return;
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()||!ZS.player){
+        if((retry||0)<20) setTimeout(()=>this._listenSlaps((retry||0)+1),300);
+        return;
+      }
+      this._slapsListening=true;
       const myKey=$rtdbKey(ZS.player);
       const ref=_rtdb.ref('zoo_slaps/'+myKey);
       const startTime=Date.now();
@@ -10431,9 +10456,9 @@ const ZTimer = {
   // no network request in the per-second loop at all.
   _listen(){
     if(this._listening) return;
-    this._listening=true;
     try{
       if(typeof _rtdb!=='undefined'&&_rtdb){
+        this._listening=true;
         _rtdb.ref('zoo_timer').on('value', snap=>{ this._cached = snap.val(); });
         return;
       }
