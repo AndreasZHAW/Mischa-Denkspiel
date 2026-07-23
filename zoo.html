@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v369 -->
+<!-- ZOO v370 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=369"></script>
-<script src="rewardchests.js?v=369"></script>
-<script src="personality.js?v=369"></script>
+<script src="lang.js?v=370"></script>
+<script src="rewardchests.js?v=370"></script>
+<script src="personality.js?v=370"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v369','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v370','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=369"></script>
-<script src="worlds.js?v=369"></script>
+<script src="firebase-state.js?v=370"></script>
+<script src="worlds.js?v=370"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1444,6 +1444,12 @@ const ZG={
     }
     this._raf=requestAnimationFrame(()=>this._loop());
     this._ivs.push(setInterval(()=>this._tick(),100));
+    // Catch up on income the moment the tab becomes visible again — see
+    // _catchUpOfflineEarnings() for why this is needed (background tabs
+    // can have their timers paused/throttled by the browser entirely).
+    document.addEventListener('visibilitychange', () => {
+      if(!document.hidden) ZG._catchUpOfflineEarnings();
+    });
     this._ivs.push(setInterval(()=>this._updateTimeOfDay(),5*60000));
     this._ivs.push(setInterval(()=>ZS.save(),15000));
     this._ivs.push(setInterval(()=>this._adminCmd(),2000));
@@ -3705,6 +3711,45 @@ const ZG={
     if(distEl)distEl.textContent='🏠 '+Math.round(dist)+'m';
   },
 
+  // Browsers pause (or heavily throttle) setInterval/requestAnimationFrame
+  // for background/hidden tabs to save battery and memory — Chrome in
+  // particular can suspend a hidden tab's JS almost entirely after a few
+  // minutes. Since normal income relies on _tick() actually running every
+  // 100ms, that meant earnings just froze solid while the tab sat in the
+  // background, with no way to ever catch back up. This runs once when
+  // the tab becomes visible again and credits the MT that should have
+  // accrued for the real elapsed time, using the current income rate as
+  // a reasonable approximation for the whole gap (capped at 24h so an
+  // abandoned tab left open for days doesn't produce an absurd number).
+  _catchUpOfflineEarnings(){
+    try{
+      const z=ZS.zoo; if(!z||!z.enc) return;
+      const now=Date.now();
+      const last=z.lastTickAt||now;
+      const elapsedMs=now-last;
+      if(elapsedMs<3000){ z.lastTickAt=now; return; } // negligible, nothing missed
+      const cappedMs=Math.min(elapsedMs,24*3600*1000);
+      const visitMs=Math.max(500, (typeof ZS!=='undefined'&&ZS.visitMs)?ZS.visitMs():5000);
+      const numTicks=Math.floor(cappedMs/visitMs);
+      z.lastTickAt=now;
+      if(numTicks<=0) return;
+      const cnt=(z.enc||[]).filter(e=>e&&e.animal).length;
+      const perTick=(z.enc||[]).reduce((s,enc)=>{
+        if(!enc||!enc.animal) return s;
+        const ev2=earn(enc,z,this.ev);
+        return s+(isNaN(ev2)||!isFinite(ev2)?0:ev2);
+      },0);
+      const totalIncome=perTick*numTicks;
+      if(totalIncome>0){
+        z.mt=(z.mt||0)+totalIncome;
+        z.te=(z.te||0)+totalIncome;
+        ZP.toast&&ZP.toast('💰 Willkommen zurück! +'+$mt(Math.round(totalIncome))+' MT verdient, während der Tab im Hintergrund war.',6000);
+        ZS.save&&ZS.save();
+        this._updHUD&&this._updHUD();
+      }
+    }catch(e){}
+  },
+
   _tick(){
     const z=ZS.zoo;if(!z)return;
     if(this._st==='d'){
@@ -3739,6 +3784,7 @@ const ZG={
     if(!z.enc)return;
     ZS._fix();
     this.visitT+=100;
+    z.lastTickAt=Date.now();
     this._tickWander(0.1);
     if(this.visitT>=Math.min(ZS.visitMs(),5000)){this.visitT=0;this._visitor();}
     if(this.slapCD>0)this.slapCD-=100;
