@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v375 -->
+<!-- ZOO v376 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=375"></script>
-<script src="rewardchests.js?v=375"></script>
-<script src="personality.js?v=375"></script>
+<script src="lang.js?v=376"></script>
+<script src="rewardchests.js?v=376"></script>
+<script src="personality.js?v=376"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v375','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v376','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=375"></script>
-<script src="worlds.js?v=375"></script>
+<script src="firebase-state.js?v=376"></script>
+<script src="worlds.js?v=376"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1459,13 +1459,12 @@ const ZG={
     });
     this._ivs.push(setInterval(()=>this._updateTimeOfDay(),5*60000));
     this._ivs.push(setInterval(()=>ZS.save(),15000));
-    this._ivs.push(setInterval(()=>this._adminCmd(),2000));
+    this._listenAdminCmd();
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),100));
-    this._ivs.push(setInterval(()=>this._syncDropped(),2500));
-    this._ivs.push(setInterval(()=>this._syncMarketStalls(),5000));
+    this._listenDropped();
     this._ivs.push(setInterval(()=>this._checkMarketExpiry(),5*60000));
-    this._syncMarketStalls();
+    this._listenMarketStalls();
     this._gondTick();
     for(let i=0;i<3;i++)this.gQ.push(this._mkG());
     // Start player in zone 0
@@ -1681,18 +1680,20 @@ const ZG={
       // a real shot at spotting and grabbing it before you circle back.
       const ang=Math.random()*Math.PI*2, dist=25+Math.random()*20;
       const x=encCenter.x+Math.cos(ang)*dist, z2=encCenter.z+Math.sin(ang)*dist;
-      const dropped={ id:null, animal, shiny, traits, slot:best.i, x, z:z2,
+      const dropped={ id:null, createdAt:Date.now(), animal, shiny, traits, slot:best.i, x, z:z2,
         droppedBy:ZS.player, slappedBy:null, speed:this.TIKTOK_EVENT_SPEED,
         wanderCx:x, wanderCz:z2, wanderTx:x, wanderTz:z2, wanderOwner:true, _lastWanderPush:0 };
       this.droppedAnimals.push(dropped);
       this._spawnDroppedMesh(dropped);
       ZP.toast('📱 Dein wertvollstes Tier ('+animal.e+' '+animal.n+') wurde freigelassen! Schnell zurückfangen!',4000);
       try{
-        if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-          _db.collection('zoo_dropped').add({
+        if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+          const ref=_rtdb.ref('zoo_dropped').push();
+          dropped.id=ref.key;
+          ref.set({
             animal, shiny:shiny||null, traits, x, z:z2, droppedBy:ZS.player, slappedBy:null,
-            speed:this.TIKTOK_EVENT_SPEED, createdAt:Date.now()
-          }).then(ref=>{ dropped.id=ref.id; }).catch(()=>{});
+            speed:this.TIKTOK_EVENT_SPEED, createdAt:dropped.createdAt
+          }).catch(()=>{});
         }
       }catch(e){}
       this._enforceRoamingCap();
@@ -1718,13 +1719,13 @@ const ZG={
     const x = this.pl.x + (Math.random()-.5)*4;
     const z2 = this.pl.z + (Math.random()-.5)*4;
     const dropped = {
-      id:null, // filled in once the Firestore write resolves
+      id:null, createdAt:Date.now(),
       animal: c.animal, shiny: c.shiny, traits: c.traits||[],
       slot: c.slot, x, z: z2,
       droppedBy: ZS.player, slappedBy: slapper,
       // Wander: this client "owns" the roam simulation for its own drop
-      // (see _tickWander) and periodically pushes new positions to
-      // Firestore so other players see it move too.
+      // (see _tickWander) and periodically pushes new positions so
+      // other players see it move too.
       wanderCx:x, wanderCz:z2, wanderTx:x, wanderTz:z2, wanderOwner:true, _lastWanderPush:0,
     };
     this.droppedAnimals.push(dropped);
@@ -1743,14 +1744,19 @@ const ZG={
     // No more auto-despawn: freed animals used to vanish after 60s if
     // nobody caught them — now they just keep wandering the zoo
     // indefinitely (see _tickWander) until someone actually nets them.
-    // Publish so every OTHER player's client can see and grab it too.
+    // Publish via RTDB (real-time, not Firestore) so every OTHER player's
+    // client sees it via their _listenDropped() child_added listener.
+    // push() generates the key entirely client-side, synchronously — no
+    // async race where our own local entry could look "new" to ourselves.
     try{
-      if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-        _db.collection('zoo_dropped').add({
+      if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+        const ref=_rtdb.ref('zoo_dropped').push();
+        dropped.id=ref.key;
+        ref.set({
           animal:c.animal, shiny:c.shiny||null, traits:c.traits||[],
           x, z:z2, droppedBy:ZS.player, slappedBy:slapper||null,
-          createdAt:Date.now()
-        }).then(ref=>{ dropped.id=ref.id; }).catch(()=>{});
+          createdAt:dropped.createdAt
+        }).catch(()=>{});
       }
     }catch(e){}
     this._enforceRoamingCap();
@@ -1781,53 +1787,48 @@ const ZG={
       dropped.mesh=g; dropped.bounceT=0;
     }catch(e){}
   },
-  // Pull in any dropped animals other players published (or that appeared
-  // since our last check), and clean up ones that got picked up or expired.
-  async _syncDropped(){
-    if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+  // Pull in any dropped animals other players published, and clean up
+  // ones that got picked up. Used to poll the whole zoo_dropped collection
+  // every 2.5s from EVERY player — now a single RTDB real-time listener,
+  // set up once, that only fires on actual add/change/remove events. Also
+  // fixes a subtler issue: RTDB's push() generates a unique key entirely
+  // client-side (no server round-trip needed), so our own optimistic
+  // local entry gets its real id INSTANTLY instead of asynchronously —
+  // there's no window anymore where our own child_added echo could look
+  // like a "new" animal and get duplicated.
+  _listenDropped(){
+    if(this._droppedListening) return;
+    this._droppedListening=true;
     try{
-      const snap=await _db.collection('zoo_dropped').get();
-      const seenIds=new Set();
-      snap.forEach(doc=>{
-        const d=doc.data();
-        seenIds.add(doc.id);
-        const existing=this.droppedAnimals.find(x=>x.id===doc.id);
-        if(existing){
-          // Already tracked — if it's NOT ours (we're not simulating its
-          // wander locally), pull the latest position so _tickWander can
-          // smoothly drift the mesh toward it. Our own drops keep pushing
-          // to Firestore, not pulling from it, so skip those.
-          if(!existing.wanderOwner){ existing.x=d.x; existing.z=d.z; }
-          return;
-        }
-        // Is this actually OUR OWN just-created drop, whose local id is
-        // still null because the .add() Firestore write hasn't resolved
-        // yet (its .then() callback sets dropped.id, but that can lag
-        // behind this poll — especially now that this poll runs every 1s
-        // instead of 3s)? Without this check, x.id===doc.id above never
-        // matches (null !== the real id), so we'd create a SECOND local
-        // entry + mesh for the exact same animal — this is why freed
-        // animals kept appearing in duplicate pairs right next to each other.
-        const pending=this.droppedAnimals.find(x=>!x.id && x.wanderOwner
-          && (x.droppedBy||'').toLowerCase()===(d.droppedBy||'').toLowerCase()
-          && Math.abs(x.x-d.x)<0.5 && Math.abs(x.z-d.z)<0.5);
-        if(pending){ pending.id=doc.id; return; }
-        const dropped={id:doc.id, animal:d.animal, shiny:d.shiny, traits:d.traits||[],
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
+      const ref=_rtdb.ref('zoo_dropped');
+      ref.on('child_added', snap=>{
+        const id=snap.key;
+        if(this.droppedAnimals.find(x=>x.id===id)) return; // our own entry, already tracked
+        const d=snap.val(); if(!d) return;
+        const dropped={id, animal:d.animal, shiny:d.shiny||null, traits:d.traits||[],
           x:d.x, z:d.z, droppedBy:d.droppedBy, slappedBy:d.slappedBy, speed:d.speed, wanderOwner:false};
         this.droppedAnimals.push(dropped);
         this._spawnDroppedMesh(dropped);
       });
-      // Anything we're tracking WITH a real id that's no longer in the
-      // snapshot got picked up by someone else (or deleted) — remove it.
-      for(let i=this.droppedAnimals.length-1;i>=0;i--){
-        const d=this.droppedAnimals[i];
-        if(d.id && !seenIds.has(d.id)){
-          this.droppedAnimals.splice(i,1);
+      ref.on('child_changed', snap=>{
+        const id=snap.key;
+        const existing=this.droppedAnimals.find(x=>x.id===id);
+        // Only pull position for animals we're NOT simulating ourselves —
+        // our own wander pushes would otherwise immediately echo back.
+        if(!existing || existing.wanderOwner) return;
+        const d=snap.val(); if(!d) return;
+        existing.x=d.x; existing.z=d.z;
+      });
+      ref.on('child_removed', snap=>{
+        const id=snap.key;
+        const idx=this.droppedAnimals.findIndex(x=>x.id===id);
+        if(idx>=0){
+          const d=this.droppedAnimals[idx];
           if(d.mesh&&this.scene) this.scene.remove(d.mesh);
+          this.droppedAnimals.splice(idx,1);
         }
-      }
-      // Best-effort cleanup: nothing time-based to delete anymore — freed
-      // animals only ever leave zoo_dropped by actually being caught.
+      });
     }catch(e){}
   },
   // Slow random-walk for freed animals — the owner's client (whoever's
@@ -1839,20 +1840,14 @@ const ZG={
   // slap-drops, market expiry, or admin events all adding up), delete the
   // least valuable one to keep things from growing without bound.
   MAX_ROAMING: 20,
-  async _enforceRoamingCap(){
+  _enforceRoamingCap(){
     try{
-      if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
-      // Cooldown: a burst of drops in quick succession (e.g. the TikTok
-      // event releasing one animal per active player almost simultaneously)
-      // would otherwise re-read the whole collection once per drop — a
-      // needless multiplier on Firestore usage for a check that doesn't
-      // need to be that eager (the 20-cap is a soft cosmetic limit, not
-      // something that must be enforced within milliseconds).
+      // No network request needed at all anymore — _listenDropped() keeps
+      // this.droppedAnimals current in real time, so the cap check just
+      // reads local state. Previously this re-queried the whole collection
+      // (with a 10s cooldown to limit the damage from bursts of drops).
+      if(this.droppedAnimals.length<=this.MAX_ROAMING) return;
       const now=Date.now();
-      if(this._lastCapCheck && (now-this._lastCapCheck)<10000) return;
-      this._lastCapCheck=now;
-      const snap=await _db.collection('zoo_dropped').get();
-      if(snap.size<=this.MAX_ROAMING) return;
       // Grace period: never consider anything created in the last 30s a
       // candidate for removal. Without this, an animal that was JUST
       // dropped a moment ago (this function runs right after every single
@@ -1861,19 +1856,18 @@ const ZG={
       // few seconds after being freed" was: this cap enforcement eating
       // its own freshly-created entry.
       const graceMs=30000;
-      let worstId=null, worstPrice=Infinity;
-      snap.forEach(doc=>{
-        const d=doc.data();
+      let worst=null, worstPrice=Infinity;
+      this.droppedAnimals.forEach(d=>{
+        if(!d.id) return; // not yet confirmed remotely, leave it alone
         if((now-(d.createdAt||0))<graceMs) return; // too new, protected
         const p=(d.animal&&typeof d.animal.p==='number')?d.animal.p:0;
-        if(p<worstPrice){ worstPrice=p; worstId=doc.id; }
+        if(p<worstPrice){ worstPrice=p; worst=d; }
       });
-      if(worstId){
-        await _db.collection('zoo_dropped').doc(worstId).delete().catch(()=>{});
-        const idx=this.droppedAnimals.findIndex(d=>d.id===worstId);
+      if(worst){
+        try{ if(typeof _rtdb!=='undefined'&&_rtdb) _rtdb.ref('zoo_dropped/'+worst.id).remove().catch(()=>{}); }catch(e){}
+        const idx=this.droppedAnimals.indexOf(worst);
         if(idx>=0){
-          const d=this.droppedAnimals[idx];
-          if(d.mesh&&this.scene) this.scene.remove(d.mesh);
+          if(worst.mesh&&this.scene) this.scene.remove(worst.mesh);
           this.droppedAnimals.splice(idx,1);
         }
       }
@@ -1887,30 +1881,34 @@ const ZG={
   // several people online this settles quickly without needing a real backend.
   async _checkMarketExpiry(){
     try{
-      if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
       const cutoff=Date.now()-24*3600*1000;
-      const snap=await _db.collection('zoo_trades').get();
+      const snap=await _rtdb.ref('zoo_trades').once('value');
+      const val=snap.val()||{};
       const expired=[];
-      snap.forEach(doc=>{ const d=doc.data(); if((d.createdAt||0)<cutoff) expired.push({id:doc.id,...d}); });
+      Object.keys(val).forEach(id=>{ const d=val[id]; if((d.createdAt||0)<cutoff) expired.push({id,...d}); });
       for(const o of expired){
         // Delete first — if someone else grabs it or also releases it
-        // between our read and this delete, the .delete() is a harmless
+        // between our read and this delete, the .remove() is a harmless
         // no-op either way, so no need for a transaction here.
-        await _db.collection('zoo_trades').doc(o.id).delete().catch(()=>{});
+        await _rtdb.ref('zoo_trades/'+o.id).remove().catch(()=>{});
         const mx=this.MARKET.x+(Math.random()-.5)*8, mz=this.MARKET.z+(Math.random()-.5)*8;
         const animal=o.d?.animal||{id:o.id,n:o.n,e:o.e,r:o.r,p:0,earn:0};
-        const dropped={ id:null, animal, shiny:o.sh||null, traits:o.tr||[], x:mx, z:mz,
+        const dropped={ id:null, createdAt:Date.now(), animal, shiny:o.sh||null, traits:o.tr||[], x:mx, z:mz,
           droppedBy:o.seller||null, slappedBy:null,
           wanderCx:mx, wanderCz:mz, wanderTx:mx, wanderTz:mz, wanderOwner:true, _lastWanderPush:0 };
         this.droppedAnimals.push(dropped);
         this._spawnDroppedMesh(dropped);
         try{ ZP.toast&&ZP.toast('🏃 Ein nicht abgeholtes Marktangebot ('+(animal.e||'')+' '+(animal.n||'')+') ist ausgebüxt!',3500); }catch(e){}
         try{
-          const ref=await _db.collection('zoo_dropped').add({
-            animal, shiny:o.sh||null, traits:o.tr||[], x:mx, z:mz,
-            droppedBy:o.seller||null, slappedBy:null, createdAt:Date.now()
-          });
-          dropped.id=ref.id;
+          if(typeof _rtdb!=='undefined'&&_rtdb){
+            const ref=_rtdb.ref('zoo_dropped').push();
+            dropped.id=ref.key;
+            ref.set({
+              animal, shiny:o.sh||null, traits:o.tr||[], x:mx, z:mz,
+              droppedBy:o.seller||null, slappedBy:null, createdAt:dropped.createdAt
+            }).catch(()=>{});
+          }
         }catch(e){}
         this._enforceRoamingCap();
       }
@@ -1934,7 +1932,7 @@ const ZG={
         if(d.mesh) d.mesh.position.set(d.x,0,d.z);
         if(d.id && now-(d._lastWanderPush||0)>1500){
           d._lastWanderPush=now;
-          _db.collection('zoo_dropped').doc(d.id).update({x:d.x,z:d.z}).catch(()=>{});
+          try{ if(typeof _rtdb!=='undefined'&&_rtdb) _rtdb.ref('zoo_dropped/'+d.id).update({x:d.x,z:d.z}).catch(()=>{}); }catch(e){}
         }
       }else if(d.mesh){
         d.mesh.position.x+=(d.x-d.mesh.position.x)*0.06;
@@ -1945,40 +1943,44 @@ const ZG={
   // Show up to 5 active zoo_trades offers physically at the marketplace
   // stalls (see _marketplace()) — same data as the 2D Tauschen panel's
   // "Kaufen" tab, just also visible/buyable by walking up to it in the
-  // 3D world. If there are more than 5 offers at once, only the 5 most
-  // recent are shown here (the panel still lists all of them).
-  async _syncMarketStalls(){
-    if(typeof _db==='undefined'||!_db||!State._useCloud()||!this._marketStallPos) return;
+  // 3D world. Used to poll Firestore every 5s from EVERY player — now a
+  // single RTDB real-time listener (top-5 by creation time), which only
+  // re-fires when an offer is actually posted, bought, or expires.
+  _listenMarketStalls(){
+    if(this._marketListening) return;
     try{
-      const snap=await _db.collection('zoo_trades').orderBy('createdAt','desc').limit(5).get().catch(async()=>{
-        // orderBy needs an index on createdAt — fall back to an unordered read if that's not set up
-        return await _db.collection('zoo_trades').limit(5).get();
-      });
-      const offers=[]; snap.forEach(doc=>offers.push({id:doc.id,...doc.data()}));
-      for(let i=0;i<5;i++){
-        const o=offers[i]||null;
-        const prev=this._marketOffers[i];
-        if(prev?.id===o?.id && prev?.p===o?.p) continue; // unchanged, skip re-render
-        this._marketOffers[i]=o;
-        if(this._marketOfferMeshes[i] && this.scene){ this.scene.remove(this._marketOfferMeshes[i]); this._marketOfferMeshes[i]=null; }
-        if(!o) continue;
-        const pos=this._marketStallPos[i]; if(!pos) continue;
-        const g=new THREE.Group();
-        const sprite=this._txt((o.e||'❓')+' '+$mt(o.p||0),0.9,'#fff');
-        sprite.position.set(pos.x,2.5,pos.z-0.6); sprite.scale.set(3.2,1.1,1);
-        g.add(sprite);
-        const rarCol=RARITY_COL[o.r]||'#95a5a6', rarName=RARITY_NAME[o.r]||'';
-        if(rarName){
-          const rarLbl=this._txt(rarName,0.55,rarCol);
-          rarLbl.position.set(pos.x,1.95,pos.z-0.6); rarLbl.scale.set(2,.55,1);
-          g.add(rarLbl);
+      if(typeof _rtdb==='undefined'||!_rtdb||!this._marketStallPos) return;
+      this._marketListening=true;
+      _rtdb.ref('zoo_trades').orderByChild('createdAt').limitToLast(5).on('value', snap=>{
+        const val=snap.val()||{};
+        // RTDB returns oldest-first for limitToLast; we want newest-first
+        // to match the old Firestore orderBy('createdAt','desc') behavior.
+        const offers=Object.keys(val).map(id=>({id,...val[id]})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+        for(let i=0;i<5;i++){
+          const o=offers[i]||null;
+          const prev=this._marketOffers[i];
+          if(prev?.id===o?.id && prev?.p===o?.p) continue; // unchanged, skip re-render
+          this._marketOffers[i]=o;
+          if(this._marketOfferMeshes[i] && this.scene){ this.scene.remove(this._marketOfferMeshes[i]); this._marketOfferMeshes[i]=null; }
+          if(!o) continue;
+          const pos=this._marketStallPos[i]; if(!pos) continue;
+          const g=new THREE.Group();
+          const sprite=this._txt((o.e||'❓')+' '+$mt(o.p||0),0.9,'#fff');
+          sprite.position.set(pos.x,2.5,pos.z-0.6); sprite.scale.set(3.2,1.1,1);
+          g.add(sprite);
+          const rarCol=RARITY_COL[o.r]||'#95a5a6', rarName=RARITY_NAME[o.r]||'';
+          if(rarName){
+            const rarLbl=this._txt(rarName,0.55,rarCol);
+            rarLbl.position.set(pos.x,1.95,pos.z-0.6); rarLbl.scale.set(2,.55,1);
+            g.add(rarLbl);
+          }
+          const seller=this._txt('von '+(o.seller||'?'),0.5,'#FFD700');
+          seller.position.set(pos.x,1.45,pos.z-0.6); seller.scale.set(2.4,.6,1);
+          g.add(seller);
+          this.scene.add(g);
+          this._marketOfferMeshes[i]=g;
         }
-        const seller=this._txt('von '+(o.seller||'?'),0.5,'#FFD700');
-        seller.position.set(pos.x,1.45,pos.z-0.6); seller.scale.set(2.4,.6,1);
-        g.add(seller);
-        this.scene.add(g);
-        this._marketOfferMeshes[i]=g;
-      }
+      });
     }catch(e){}
   },
   // Buy directly from a market stall — same underlying purchase as
@@ -1992,12 +1994,12 @@ const ZG={
     if(total<o.p){ZP.toast('❌ Zu wenig MT!');return;}
     const slot=z.enc.findIndex(e=>!e);
     if(slot<0){ZP.toast('❌ Gehege voll!');return;}
-    const ref=_db.collection('zoo_trades').doc(o.id);
+    const ref=_rtdb.ref('zoo_trades/'+o.id);
     try{
-      const doc=await ref.get();
-      if(!doc.exists){ ZP.toast('❌ Schon weg — jemand war schneller!',2500); this._syncMarketStalls(); return; }
-      await ref.delete();
-      const data=doc.data();
+      const snap=await ref.once('value');
+      const data=snap.val();
+      if(!data){ ZP.toast('❌ Schon weg — jemand war schneller!',2500); return; }
+      await ref.remove();
       z.mt-=data.p;
       z.enc[slot]={...data.d,addedAt:Date.now()};
       this._encs(); ZS.save(); this._updHUD();
@@ -2028,7 +2030,7 @@ const ZG={
     this._nearDropped = -1;
     // Tell everyone else it's gone (best-effort — if two players grab it
     // in the same instant, one delete just no-ops on an already-gone doc).
-    if(d.id && typeof _db!=='undefined' && _db) _db.collection('zoo_dropped').doc(d.id).delete().catch(()=>{});
+    if(d.id && typeof _rtdb!=='undefined' && _rtdb) _rtdb.ref('zoo_dropped/'+d.id).remove().catch(()=>{});
     // Picking up = start carrying again (must reach enclosure to place)
     // Find a free enclosure slot
     const z = ZS.zoo;
@@ -2356,6 +2358,20 @@ const ZG={
   // Firestore's zoo_events — Firestore writes can (and did) get blocked by
   // the daily quota, silently dropping every slap. RTDB is billed
   // completely separately, so this keeps slaps landing even then.
+  // Was polled from Firestore every 2s by every player (config/zoo_admin_cmd)
+  // — one of the biggest read-cost contributors at scale, since admin
+  // commands are rare but every single client checked constantly anyway.
+  // Now a single RTDB real-time listener, set up once, firing only when
+  // an admin actually sends something.
+  _listenAdminCmd(){
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
+      _rtdb.ref('zoo_admin_cmd').on('value', snap=>{
+        const cmd=snap.val();
+        this._handleAdminCmd(cmd);
+      });
+    }catch(e){}
+  },
   _listenSlaps(){
     try{
       if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()||!ZS.player) return;
@@ -5520,7 +5536,12 @@ const ZG={
     }
   },
   // ═══ ADMIN CMD ═══
-  async _adminCmd(){let cmd=null;try{if(State._useCloud()){const s=await _db.collection('config').doc('zoo_admin_cmd').get();if(s.exists)cmd=s.data();}}catch(e){}if(!cmd)cmd=JSON.parse(localStorage.getItem('zoo_admin_cmd')||'null');if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
+  // Used to be polled from Firestore every 2s by every single player —
+  // now fed directly by a single RTDB real-time listener set up once at
+  // init (see _listenAdminCmd) instead, which only fires when an admin
+  // actually sends something. Same dedup/target-check/type-handling logic
+  // as before, just receiving its data as a parameter now.
+  _handleAdminCmd(cmd){if(!cmd)return;if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
       // Apply animal edit from admin
       const a=(window.ANIMALS||[]).find(x=>x.id===cmd.animalId);
       if(a){a.n=cmd.n;a.earn=cmd.earn;a.r=cmd.r;
@@ -7533,23 +7554,25 @@ const ZP={
   // to a race with the seller's own autosave.
   _myTrades:[], _availTrades:[],
   async _tM(el){
-    if(typeof _db==='undefined'||!_db){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
+    if(typeof _rtdb==='undefined'||!_rtdb){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
     el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">⏳ Lade...</div>';
     try{
-      const snap=await _db.collection('zoo_trades').where('sellerKey','==',ZS.player.toLowerCase()).get();
-      this._myTrades=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const snap=await _rtdb.ref('zoo_trades').once('value');
+      const val=snap.val()||{};
+      this._myTrades=Object.keys(val).filter(id=>val[id].sellerKey===ZS.player.toLowerCase()).map(id=>({id,...val[id]}));
     }catch(e){ this._myTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
     if(!this._myTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
     el.innerHTML=this._myTrades.map((o,i)=>{const rar=o.r||o.d?.animal?.r;return`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div class="${RAR[rar]?.c||'rn'}" style="font-size:.68rem">${RAR[rar]?.n||''}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" style="background:rgba(231,76,60,.4);color:#ff6b6b" onclick="ZP._cT(${i})">Zurück</button></div>`;}).join('');
   },
   async _tA(el){
-    if(typeof _db==='undefined'||!_db){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
+    if(typeof _rtdb==='undefined'||!_rtdb){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Offline — Tauschen braucht Internet.</div>';return;}
     el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">⏳ Lade...</div>';
     try{
       // Small collection — filter "not mine" client-side instead of a
-      // Firestore "!=" query (which would need a composite index).
-      const snap=await _db.collection('zoo_trades').get();
-      this._availTrades=snap.docs.map(d=>({id:d.id,...d.data()})).filter(o=>o.sellerKey!==ZS.player.toLowerCase());
+      // separate indexed query.
+      const snap=await _rtdb.ref('zoo_trades').once('value');
+      const val=snap.val()||{};
+      this._availTrades=Object.keys(val).map(id=>({id,...val[id]})).filter(o=>o.sellerKey!==ZS.player.toLowerCase());
     }catch(e){ this._availTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
     if(!this._availTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
     const total=(ZS.dsMT||0)+(ZS.zoo?.mt||0);
@@ -7558,7 +7581,7 @@ const ZP={
   _tN(el){const z=ZS.zoo;const enc=z.enc.filter(e=>e);if(!enc.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Tiere.</div>';return;}el.innerHTML=enc.map(e=>{const i=z.enc.indexOf(e);return`<div class="ac" style="cursor:pointer" onclick="ZP._oT(${i})"><div style="font-size:1.8rem">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${RAR[e.animal.r]?.c||'rn'}" style="font-size:.7rem">${RAR[e.animal.r]?.n||''}</div></div><div style="font-size:.7rem;color:#FFD700">Anbieten →</div></div>`;}).join('');},
   _oT(i){
     const z=ZS.zoo;const enc=z.enc[i];if(!enc)return;
-    if(typeof _db==='undefined'||!_db){this.toast('❌ Tauschen braucht eine Internetverbindung.');return;}
+    if(typeof _rtdb==='undefined'||!_rtdb){this.toast('❌ Tauschen braucht eine Internetverbindung.');return;}
     const p=prompt(`Preis für ${enc.animal.n} in MT:`);
     if(!p||isNaN(p)||parseFloat(p)<=0)return;
     const price=parseFloat(p);
@@ -7566,10 +7589,9 @@ const ZP={
     // market stall" now, not with the seller (see comment above).
     z.enc[i]=null; ZG._encs(); ZS.save();
     const doc={seller:ZS.player, sellerKey:ZS.player.toLowerCase(), n:enc.animal.n, e:enc.animal.e, r:enc.animal.r, p:price, sh:enc.shiny||null, tr:enc.traits||[], d:enc, createdAt:Date.now()};
-    _db.collection('zoo_trades').add(doc).then(()=>{
+    _rtdb.ref('zoo_trades').push(doc).then(()=>{
       this.toast(`✅ ${enc.animal.e} für ${$mt(price)} angeboten!`,2500);
       this._rTrade('m');
-      try{ZG._syncMarketStalls&&ZG._syncMarketStalls();}catch(e){}
     }).catch(e=>{
       // Publish failed — give the animal back, nothing was actually offered.
       z.enc[i]=enc; ZG._encs(); ZS.save();
@@ -7583,10 +7605,9 @@ const ZP={
     if(slot<0){this.toast('❌ Kein freies Gehege — kann Tier gerade nicht zurücknehmen!');return;}
     z.enc[slot]={...o.d,addedAt:Date.now()};
     ZG._encs(); ZS.save(); ZG._updHUD();
-    _db.collection('zoo_trades').doc(o.id).delete().then(()=>{
+    _rtdb.ref('zoo_trades/'+o.id).remove().then(()=>{
       this.toast('↩️ Zurückgezogen',1500);
       this._rTrade('m');
-      try{ZG._syncMarketStalls&&ZG._syncMarketStalls();}catch(e){}
     }).catch(e=>{ this.toast('❌ '+e.message,3000); });
   },
   _bT(i){
@@ -7601,10 +7622,11 @@ const ZP={
     // within a second of each other (not a full atomic transaction, but a
     // real device-to-device check, unlike the old localStorage version
     // which couldn't see other devices at all).
-    const ref=_db.collection('zoo_trades').doc(o.id);
-    ref.get().then(doc=>{
-      if(!doc.exists){ this.toast('❌ Schon weg — jemand war schneller!',2500); this._rTrade('a'); return null; }
-      return ref.delete().then(()=>doc.data());
+    const ref=_rtdb.ref('zoo_trades/'+o.id);
+    ref.once('value').then(snap=>{
+      const data=snap.val();
+      if(!data){ this.toast('❌ Schon weg — jemand war schneller!',2500); this._rTrade('a'); return null; }
+      return ref.remove().then(()=>data);
     }).then(data=>{
       if(!data)return;
       z.mt-=o.p;
@@ -7616,7 +7638,6 @@ const ZP={
       this._tradeAnim(o.e,o.p);
       this.toast(`✅ ${o.e} ${o.n} gekauft!`,3000);
       this._rTrade('a');
-      try{ZG._syncMarketStalls&&ZG._syncMarketStalls();}catch(e){}
       try{ZNews.push('trade',{animal:o.n,emoji:o.e,seller:o.seller});}catch(e){}
     }).catch(e=>{ this.toast('❌ '+e.message,3000); });
   },
@@ -8066,7 +8087,7 @@ const ZP={
     await this._cmd(cmd);
     ZP.toast('🍀 ×'+mult+' Glück für ALLE für '+mins+' Min aktiv!',3000);
   },
-  async _cmd(cmd){try{if(State._useCloud())await _db.collection('config').doc('zoo_admin_cmd').set(cmd);}catch(e){}localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));},
+  async _cmd(cmd){try{if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())await _rtdb.ref('zoo_admin_cmd').set(cmd);}catch(e){}localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));},
 };
 
 
@@ -8968,7 +8989,7 @@ const ZAdmin = {
         spawnMsg:'🎁 Mischa hat dir '+(a.e||'')+' '+(a.n||'')+' geschenkt!',
         id:Date.now().toString(),exp:Date.now()+60000};
       try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
-      try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
+      try{if(typeof _rtdb!=='undefined'&&_rtdb)_rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
       ZP.toast('🐾 '+(a.e||'')+' '+(a.n||'')+' an '+this.target.name+' gespawnt!',2500);
       return;
     }
@@ -8989,7 +9010,7 @@ const ZAdmin = {
     // Broadcast to OTHER players (for _all). Mark own command handled so WE don't double-place.
     if(target==='_all'){
       try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
-      try{if(typeof _db!=='undefined'&&_db)_db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
+      try{if(typeof _rtdb!=='undefined'&&_rtdb)_rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});}catch(e){}
     }
     try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
   },
@@ -9064,7 +9085,7 @@ const ZAdmin = {
     // Send command to that player
     try{if(typeof _db!=='undefined'&&_db){
       const cmd={type:'emergency',fn:fn,target:tgt,id:Date.now().toString(),exp:Date.now()+30000};
-      _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
+      _rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});
     }}catch(e){}
     ZP.toast('🚨 '+label+' an '+this.target.name+' gesendet!',2500);
   },
@@ -9790,7 +9811,7 @@ const ZAdmin = {
         try{
           const cmd={type:'hard_reset', target:name.toLowerCase(), mt:intendedZooMt, id:Date.now().toString(), exp:Date.now()+60000};
           try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
-          await _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
+          await _rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});
         }catch(e){}
         if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber frisch angelegt (0 MT, keine Tiere). Zielwert wurde in Welt 1 gesetzt.');
       }
@@ -9949,7 +9970,7 @@ const ZAdmin = {
       active: true, startedAt: Date.now(), id: Date.now().toString(),
     };
     try{
-      if(typeof _db!=='undefined'&&_db) await _db.collection('config').doc('zoo_timer').set(timer);
+      if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_timer').set(timer);
     }catch(e){}
     try{ localStorage.setItem('zoo_timer', JSON.stringify(timer)); }catch(e){}
     ZP.toast('⏱️ Timer gestartet: "'+title+'" ('+min+'m '+sec+'s)',2500);
@@ -9958,7 +9979,7 @@ const ZAdmin = {
 
   async stopTimer(){
     try{
-      if(typeof _db!=='undefined'&&_db) await _db.collection('config').doc('zoo_timer').set({active:false});
+      if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_timer').set({active:false});
     }catch(e){}
     try{ localStorage.removeItem('zoo_timer'); }catch(e){}
     ZP.toast('⏹️ Timer gestoppt.',2000);
@@ -9971,9 +9992,9 @@ const ZAdmin = {
     if(!el)return;
     let timer=null;
     try{
-      if(typeof _db!=='undefined'&&_db){
-        const s=await _db.collection('config').doc('zoo_timer').get();
-        if(s.exists) timer=s.data();
+      if(typeof _rtdb!=='undefined'&&_rtdb){
+        const s=await _rtdb.ref('zoo_timer').once('value');
+        timer=s.val();
       }
     }catch(e){}
     if(!timer){ try{timer=JSON.parse(localStorage.getItem('zoo_timer')||'null');}catch(e){} }
@@ -10060,7 +10081,7 @@ const ZAdmin = {
       const cmd={type:'mt_gift_anim', target:name.toLowerCase(), amount, unit,
         adminChar: ZS.char?.e || '🧑', id:Date.now().toString(), exp:Date.now()+60000};
       try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
-      if(typeof _db!=='undefined'&&_db) await _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
+      if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});
     }catch(e){}
   },
 
@@ -10350,7 +10371,7 @@ const ZAdmin = {
     try{if(typeof _db!=='undefined'&&_db){
       const cmd={type:'start_event',eventId:evId,at:Date.now(),dur:dur,from:ZS.player,id:Date.now().toString(),exp:Date.now()+30000};
       if(this.target&&this.target.name){cmd.target=this.target.name.toLowerCase();}else{cmd.target='_all';}
-      _db.collection('config').doc('zoo_admin_cmd').set(cmd).catch(()=>{});
+      _rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});
       // mark own command handled so we don't double-fire locally
       try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
     }}catch(e){}
@@ -10399,22 +10420,28 @@ window.ZAdmin=ZAdmin;
 // ══ GLOBAL TIMER (shown to every player, admin-controlled, persisted in Firebase) ══
 const ZTimer = {
   _cached: null,
-  _lastFetch: 0,
+  _listening: false,
   _playedFor: null, // id of the timer whose completion animation we already played
 
+  // Was fetching config/zoo_timer from Firestore every 5s, from EVERY
+  // player, forever — even though an admin timer is a rare, occasional
+  // thing. Now a single RTDB real-time listener (set up once, see
+  // _listen()) keeps _cached up to date, and tick() just runs the local
+  // 1-second countdown display against whatever's already cached —
+  // no network request in the per-second loop at all.
+  _listen(){
+    if(this._listening) return;
+    this._listening=true;
+    try{
+      if(typeof _rtdb!=='undefined'&&_rtdb){
+        _rtdb.ref('zoo_timer').on('value', snap=>{ this._cached = snap.val(); });
+        return;
+      }
+    }catch(e){}
+    try{ this._cached = JSON.parse(localStorage.getItem('zoo_timer')||'null'); }catch(e){}
+  },
   async tick(){
-    const now=Date.now();
-    if(now-this._lastFetch>5000){
-      this._lastFetch=now;
-      try{
-        if(typeof _db!=='undefined'&&_db){
-          const s=await _db.collection('config').doc('zoo_timer').get();
-          this._cached = s.exists ? s.data() : null;
-        } else {
-          this._cached = JSON.parse(localStorage.getItem('zoo_timer')||'null');
-        }
-      }catch(e){}
-    }
+    if(!this._listening) this._listen();
     const timer=this._cached;
     if(!timer || !timer.active){ this.hide(); return; }
     const left=timer.endsAt-Date.now();

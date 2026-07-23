@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v375</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v375 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v376</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v376 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -693,21 +693,26 @@ async function runTrade(){
   L('=== Trade-Diagnose gestartet ===');
   const out=document.getElementById('trade-out');
   const summary=document.getElementById('trade-summary');
-  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  out.innerHTML='<pre>⏳ Lade RTDB-Daten...</pre>';
   if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
     out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
     return;
   }
+  if(!firebase.database){
+    out.innerHTML='<pre class="err">❌ Realtime-Database-SDK nicht geladen.</pre>';
+    return;
+  }
   try{
-    const db=firebase.firestore();
-    const snap=await db.collection('zoo_trades').get();
+    const rtdb=firebase.database();
+    const snap=await rtdb.ref('zoo_trades').once('value');
+    const val=snap.val()||{};
     const now=Date.now();
     const rows=[];
-    snap.forEach(doc=>{
-      const d=doc.data()||{};
+    Object.keys(val).forEach(id=>{
+      const d=val[id]||{};
       const ageMs=now-(d.createdAt||now);
       rows.push({
-        id:doc.id, seller:d.seller||'?', animal:d.n||'?', emoji:d.e||'❓',
+        id, seller:d.seller||'?', animal:d.n||'?', emoji:d.e||'❓',
         price:(typeof d.p==='number'?d.p:0), ageMs,
         stale: ageMs > 7*24*3600*1000, // sitting unsold for over a week
         hasSnapshot: !!(d.d && d.d.animal), // the actual animal data payload needed to grant it on purchase
@@ -724,7 +729,7 @@ async function runTrade(){
     const fmtAge=(ms)=>{ const h=ms/3600000; if(h<1)return Math.round(ms/60000)+' Min'; if(h<48)return h.toFixed(1)+' Std'; return (h/24).toFixed(1)+' Tage'; };
     out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
       +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
-      +'<th style="padding:4px 6px">Verkäufer</th><th>Tier</th><th>Preis</th><th>Alter</th><th>Doc-ID</th><th>Status</th></tr>'
+      +'<th style="padding:4px 6px">Verkäufer</th><th>Tier</th><th>Preis</th><th>Alter</th><th>Key</th><th>Status</th></tr>'
       + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${!r.hasSnapshot?'background:rgba(231,76,60,.12)':r.stale?'background:rgba(243,156,18,.1)':''}">`
         +`<td style="padding:4px 6px">${r.seller}</td>`
         +`<td>${r.emoji} ${r.animal}</td>`
@@ -742,7 +747,7 @@ async function runTrade(){
 }
 function copyTrade(){
   if(!_tradeRows.length){alert('Erst laden!');return;}
-  const lines=['Verkäufer | Tier | Preis | Alter(h) | Doc-ID | Kaputt | Alt'];
+  const lines=['Verkäufer | Tier | Preis | Alter(h) | Key | Kaputt | Alt'];
   _tradeRows.forEach(r=>lines.push([r.seller,r.animal,r.price,(r.ageMs/3600000).toFixed(1),r.id,!r.hasSnapshot?'JA':'',r.stale?'JA':''].join(' | ')));
   navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
 }
@@ -751,9 +756,9 @@ async function cleanupStaleTrades(){
   const toDelete=_tradeRows.filter(r=>r.stale||!r.hasSnapshot);
   if(!toDelete.length){alert('Nichts zu löschen.');return;}
   if(!confirm(`${toDelete.length} Angebot(e) löschen (älter als 7 Tage oder ohne gültige Tier-Daten)? Das kann nicht rückgängig gemacht werden.`))return;
-  const db=firebase.firestore();
+  const rtdb=firebase.database();
   try{
-    await Promise.all(toDelete.map(r=>db.collection('zoo_trades').doc(r.id).delete()));
+    await Promise.all(toDelete.map(r=>rtdb.ref('zoo_trades/'+r.id).remove()));
     L('Trade-Diagnose: '+toDelete.length+' alte/kaputte Angebote gelöscht.');
     runTrade();
   }catch(e){ alert('❌ '+e.message); }
@@ -850,21 +855,26 @@ async function runRoam(){
   L('=== Roaming-Diagnose gestartet ===');
   const out=document.getElementById('roam-out');
   const summary=document.getElementById('roam-summary');
-  out.innerHTML='<pre>⏳ Lade Firestore-Daten...</pre>';
+  out.innerHTML='<pre>⏳ Lade RTDB-Daten...</pre>';
   if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
     out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>';
     return;
   }
+  if(!firebase.database){
+    out.innerHTML='<pre class="err">❌ Realtime-Database-SDK nicht geladen.</pre>';
+    return;
+  }
   try{
-    const db=firebase.firestore();
-    const snap=await db.collection('zoo_dropped').get();
+    const rtdb=firebase.database();
+    const snap=await rtdb.ref('zoo_dropped').once('value');
+    const val=snap.val()||{};
     const now=Date.now();
     const rows=[];
-    snap.forEach(doc=>{
-      const d=doc.data()||{};
+    Object.keys(val).forEach(id=>{
+      const d=val[id]||{};
       const ageMs=now-(d.createdAt||now);
       rows.push({
-        id:doc.id, animal:(d.animal&&d.animal.n)||'?', emoji:(d.animal&&d.animal.e)||'❓',
+        id, animal:(d.animal&&d.animal.n)||'?', emoji:(d.animal&&d.animal.e)||'❓',
         price:(d.animal&&typeof d.animal.p==='number')?d.animal.p:0,
         x:d.x, z:d.z, ageMs,
         inGracePeriod: ageMs<30000, // ZG._enforceRoamingCap()'s protection window
@@ -907,9 +917,9 @@ async function cleanupOldRoaming(){
   const toDelete=_roamRows.filter(r=>r.old24h);
   if(!toDelete.length){alert('Nichts zu löschen — keine Tiere über 24h alt.');return;}
   if(!confirm(`${toDelete.length} Tier(e) über 24h alt löschen? Das kann nicht rückgängig gemacht werden.`))return;
-  const db=firebase.firestore();
+  const rtdb=firebase.database();
   try{
-    await Promise.all(toDelete.map(r=>db.collection('zoo_dropped').doc(r.id).delete()));
+    await Promise.all(toDelete.map(r=>rtdb.ref('zoo_dropped/'+r.id).remove()));
     L('Roaming-Diagnose: '+toDelete.length+' alte Tiere gelöscht.');
     runRoam();
   }catch(e){ alert('❌ '+e.message); }
