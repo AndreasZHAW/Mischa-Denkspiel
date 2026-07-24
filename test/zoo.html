@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v384 -->
+<!-- ZOO v385 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=384"></script>
-<script src="rewardchests.js?v=384"></script>
-<script src="personality.js?v=384"></script>
+<script src="lang.js?v=385"></script>
+<script src="rewardchests.js?v=385"></script>
+<script src="personality.js?v=385"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v384','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v385','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=384"></script>
-<script src="worlds.js?v=384"></script>
+<script src="firebase-state.js?v=385"></script>
+<script src="worlds.js?v=385"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1542,7 +1542,9 @@ const ZG={
         // pending accident from a hell chest
         if(sessionStorage.getItem('mischa_pending_accident')==='1'){
           sessionStorage.removeItem('mischa_pending_accident');
-          setTimeout(()=>{ if(typeof Sweeper!=='undefined')Sweeper._accident(); },2000);
+          if(!ZS.zoo?.upg?.sweepIns){
+            setTimeout(()=>{ if(typeof Sweeper!=='undefined')Sweeper._accident(); },2000);
+          }
         }
       }catch(e){}
     }
@@ -3469,7 +3471,10 @@ const ZG={
         const touching = hd<2.4;
         if(touching && !this._sweeperTouching){
           this._sweeperTouching=true;
-          if(Math.random()<0.20){ Sweeper._accident(); }
+          // Sweeper insurance (one-time 50 MT shop purchase) means you
+          // simply never trigger this accident roll again — no more
+          // ambulance calls, no more trash-room minigame, period.
+          if(!ZS.zoo?.upg?.sweepIns && Math.random()<0.20){ Sweeper._accident(); }
         } else if(!touching){
           this._sweeperTouching=false;
         }
@@ -7069,7 +7074,7 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+20% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:500,shoe:true,col:'#FFD700'}];
+  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+20% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:500,shoe:true,col:'#FFD700'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50}];
     const insCost=Math.max(1, Math.round((z.tv||0)/100));
     IT.push({id:'insurance',n:'🛡️ Versicherung',d:$mt(insCost)+' alle 5 Min · keine Unfallkosten — tippen für Details',p:0,insurance:true});
     IT.push({id:'rebirth',n:'🔄 Rebirth',d:'Setzt fast alles zurück, für einen dauerhaften Bonus — tippen für Details',p:0,rebirth:true});
@@ -7614,8 +7619,8 @@ const ZP={
   // fixed set of two.
   _showShopItemInfo(id){
     const z=ZS.zoo;
-    const colors={net:'#8B5A2B',vis:'#3498db',vis2:'#3498db',vis_m:'#9b59b6',earn:'#f1c40f',earn2:'#f1c40f',insurance:'#2ecc71',rebirth:'#e74c3c'};
-    const emojis={net:'🥅',vis:'🚀',vis2:'🚀🚀',vis_m:'👥',earn:'💰',earn2:'💰💰',insurance:'🛡️',rebirth:'🔄'};
+    const colors={net:'#8B5A2B',vis:'#3498db',vis2:'#3498db',vis_m:'#9b59b6',earn:'#f1c40f',earn2:'#f1c40f',insurance:'#2ecc71',rebirth:'#e74c3c',sweepIns:'#F39C12'};
+    const emojis={net:'🥅',vis:'🚀',vis2:'🚀🚀',vis_m:'👥',earn:'💰',earn2:'💰💰',insurance:'🛡️',rebirth:'🔄',sweepIns:'🧹'};
     const col=colors[id]||'#00CFFF', emoji=emojis[id]||'❓';
     const title=(typeof t!=='undefined')?t('zoo.shopinfo_'+id+'_title'):id;
     let desc=(typeof t!=='undefined')?t('zoo.shopinfo_'+id+'_desc'):'';
