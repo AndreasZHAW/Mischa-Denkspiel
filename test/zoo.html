@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v377 -->
+<!-- ZOO v378 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=377"></script>
-<script src="rewardchests.js?v=377"></script>
-<script src="personality.js?v=377"></script>
+<script src="lang.js?v=378"></script>
+<script src="rewardchests.js?v=378"></script>
+<script src="personality.js?v=378"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v377','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v378','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=377"></script>
-<script src="worlds.js?v=377"></script>
+<script src="firebase-state.js?v=378"></script>
+<script src="worlds.js?v=378"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3481,7 +3481,7 @@ const ZG={
       this._stunType=null;
     }
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
-    const carry_mod=this.carrying?0.3:1.2; // 70% slower carrying (50% + 20% more), 20% faster empty-handed — widens the chase gap
+    const carry_mod=this.carrying?0.21:1.2; // additional 30% slower on top of the existing 70% penalty (0.3×0.7=0.21) — makes carriers realistically catchable, 20% faster empty-handed
     const trash_mod=this._trashActive?(this._trashSpeedMul||0.5):1; // injured = slow in trash room
     // Base speed doubled (14/24 instead of 7/12) — the v320 ring-layout
     // enlarged the walkable map (WR 45→180, RING_R 45→140) but movement
