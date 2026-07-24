@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v378 -->
+<!-- ZOO v379 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=378"></script>
-<script src="rewardchests.js?v=378"></script>
-<script src="personality.js?v=378"></script>
+<script src="lang.js?v=379"></script>
+<script src="rewardchests.js?v=379"></script>
+<script src="personality.js?v=379"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v378','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v379','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=378"></script>
-<script src="worlds.js?v=378"></script>
+<script src="firebase-state.js?v=379"></script>
+<script src="worlds.js?v=379"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1528,15 +1528,19 @@ const ZG={
         }
       }catch(e){}
     }
-    // Insurance: charge 20'795 MT every 5 min while active
+    // Insurance: charge ~1 MT per 100 total visitors every 5 min while
+    // active (was a flat 20'795 MT — completely unaffordable for anyone
+    // without an already-huge zoo; scaling with visitor count means it
+    // starts cheap early game and grows naturally alongside income).
     this._ivs.push(setInterval(()=>{
       const z=ZS.zoo; if(!z||!z.insuranceActive) return;
       if(z.lifeInsurance) return; // lifelong = free, no charge
       if(Date.now() >= (z.insuranceNext||0)){
-        if((z.mt||0) >= 2000){
-          z.mt-=20795; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
+        const insCost=Math.max(1, Math.round((z.tv||0)/100));
+        if((z.mt||0) >= insCost){
+          z.mt-=insCost; z.insuranceNext=Date.now()+5*60000; z.insuranceUntil=Date.now()+5*60000;
           this._updHUD&&this._updHUD(); ZS.save&&ZS.save();
-          ZP.toast('🛡️ Versicherung: 20\'795 MT abgebucht',2500);
+          ZP.toast('🛡️ Versicherung: '+$mt(insCost)+' abgebucht',2500);
         } else {
           // can't pay → insurance lapses
           z.insuranceActive=false; z.insuranceUntil=0;
@@ -3030,6 +3034,22 @@ const ZG={
   _encs(){
     this.encGr.forEach(g=>this.scene.remove(g)); this.encGr=[];
     const z=ZS.zoo; const eps=this.ENCPOS();
+    // Sign with my own name over my own enclosures — other players already
+    // got one of these (see _renderOtherEnclosures), mine was missing.
+    // Only created once (not recreated every _encs() call, which runs on
+    // every inventory change) since the name/color rarely changes.
+    if(!this._mySignMesh && ZS.player && typeof ZS.mySlot==='number'){
+      try{
+        const layout=this._slotEncPos(ZS.mySlot);
+        const _myPers=ZS._myPersonality?ZS._myPersonality():null;
+        const signCol=(_myPers?.color && /^#?[0-9a-fA-F]{6}$/.test(_myPers.color)) ? _myPers.color : '#FFD700';
+        const sign=this._txt('🏠 '+ZS.player, .6, signCol);
+        sign.position.set(layout.sign.x, 3, layout.sign.z);
+        sign.scale.set(6,1.5,1);
+        this.scene.add(sign);
+        this._mySignMesh=sign;
+      }catch(e){}
+    }
     eps.slice(0,Math.min(ZS.maxE(),eps.length)).forEach((ep,i)=>{
       const g=new THREE.Group(); g.position.set(ep.x,0,ep.z);
       const base=new THREE.Mesh(new THREE.BoxGeometry(7,.2,7),new THREE.MeshBasicMaterial({color:0x4a8a30}));
@@ -4398,6 +4418,7 @@ const ZG={
 
   _useTool(sl, clientX, clientY){
     this.slapCD=sl.cd;
+    this._trackWeaponUse();
     this._updWBar();
     if(sl.id==='net'){ this._tryCatchNet(clientX, clientY); }
   },
@@ -4442,8 +4463,10 @@ const ZG={
   // ═══ SLAP SYSTEM ═══
   slap(clientX, clientY){
     const z=ZS.zoo;if(!z)return;
+    if(!z.eq || z.eq==='none'){ return; } // neutral — no weapon equipped, clicking around does nothing
     if(this.slapCD>0){ZP.toast('⏳ '+(Math.ceil(this.slapCD/100)/10)+'s',600);return;}
-    const sl=SLAPS.find(s=>s.id===(z.eq||'basic'))||TOOLS.find(s=>s.id===z.eq)||SLAPS[0];
+    const sl=SLAPS.find(s=>s.id===z.eq)||TOOLS.find(s=>s.id===z.eq);
+    if(!sl){ z.eq='none'; this._updWBar(); return; }
     if(sl.isTool){ this._useTool(sl, clientX, clientY); return; }
     // Ownership: permanently unlocked via rebirth (z.ownSlaps, 'basic'
     // always included) OR still has charges left in a purchased 10-pack
@@ -4453,7 +4476,7 @@ const ZG={
     const packLeft=(z.slapPacks||{})[sl.id]||0;
     if(!owned && packLeft<=0){
       ZP.toast('❌ '+sl.e+' '+sl.n+' nicht verfügbar — kauf ein 10er-Paket im Shop!',2500);
-      z.eq='basic'; this._updWBar();
+      z.eq='none'; this._updWBar();
       return;
     }
     // Cost: every slap costs a % of total wealth, scaling with the slap's
@@ -4468,9 +4491,26 @@ const ZG={
     ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
     ZP.toast(sl.e+' '+sl.n+'! −'+$mt(cost)+' ('+(sl.pct||2)+'%)'+(!owned?' · Paket: '+z.slapPacks[sl.id]+' übrig':''),1200);
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
+    this._trackWeaponUse();
     this._updWBar(); ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
     // Find and hit whichever player is actually clicked/tapped on (within range)
     this._slapNearby(sl, clientX, clientY);
+  },
+  // Auto-unequip back to "neutral" (no weapon) after 10 uses of whatever's
+  // currently equipped — the person then has to deliberately pick a weapon
+  // again. Fixes "man slappt immer, auch wenn man nur die Richtung
+  // ändert": a weapon staying equipped forever meant every stray click on
+  // the world (turning the camera, walking) could fire it. Forcing a
+  // periodic re-pick keeps that from happening indefinitely.
+  _trackWeaponUse(){
+    const z=ZS.zoo; if(!z) return;
+    z.eqUses=(z.eqUses||0)+1;
+    if(z.eqUses>=10){
+      z.eqUses=0;
+      z.eq='none';
+      this._updWBar();
+      ZP.toast('✋ Waffe automatisch abgelegt nach 10×. Bitte erneut auswählen!',3000);
+    }
   },
 
   _slapNearby(sl, clientX, clientY){
@@ -4769,13 +4809,23 @@ const ZG={
     SLAPS.slice(0,Math.min(rb+1,SLAPS.length-1)).forEach(s=>this._grantSlap(z,s.id));
     if((z.lslaps||0)>0) this._grantSlap(z,'lucky');
     const owned=z.ownSlaps;
-    const eq=z.eq||'basic';
+    const eq=z.eq||'none';
     // Show OWNED (rebirth) slaps + basic, PLUS any slap with pack charges
     // left even if not permanently unlocked, plus any purchased tools (net)
     const packedIds=Object.entries(z.slapPacks||{}).filter(([,n])=>n>0).map(([id])=>id);
     const visibleTools = TOOLS.filter(tl => z.upg?.[tl.id]);
     const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id)||packedIds.includes(sl.id)).concat(visibleTools);
-    el.innerHTML = visibleSlaps.map(sl => {
+    // Neutral/"nothing equipped" — always shown first. Clicking around the
+    // world while this is active does nothing (see slap()'s early-out),
+    // so accidentally tapping to turn the camera can't fire a weapon.
+    const neutralEq = eq==='none';
+    el.innerHTML = `<div class="ss" onclick="ZG.equipSlap('none')" title="Nichts ausgerüstet — Tippen im Zoo löst nichts aus">
+        <div class="si ${neutralEq?'eq':''}" style="background:#1a1a1a;border:2px solid ${neutralEq?'#aaa':'transparent'};position:relative">
+          <span style="font-size:1.65rem">✋</span>
+          ${neutralEq ? '<div style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#27AE60;border-radius:50%"></div>' : ''}
+        </div>
+        <div class="sn" style="color:#aaa;font-size:.58rem">Neutral</div>
+      </div>` + visibleSlaps.map(sl => {
       const isEq = sl.id === eq;
       const onCD = isEq && this.slapCD > 0;
       const cdS = Math.ceil(this.slapCD/1000);
@@ -4810,8 +4860,8 @@ const ZG={
 
   unequipSlap(){
     const z=ZS.zoo;if(!z)return;
-    if((z.eq||'basic')==='basic'){ZP.toast('Basic ist bereits ausgerüstet',800);return;}
-    z.eq='basic';
+    if((z.eq||'none')==='none'){ZP.toast('Bereits neutral — keine Waffe ausgerüstet',800);return;}
+    z.eq='none';
     this._updWBar();
     ZP.toast('🤚 Basic Slap ausgerüstet',800);
     ZS.save&&ZS.save();
@@ -4832,10 +4882,11 @@ const ZG={
 
   equipSlap(id){
     const z=ZS.zoo;if(!z)return;
+    if(id==='none'){ z.eq='none'; z.eqUses=0; this._updWBar(); ZP.toast('✋ Neutral — keine Waffe ausgerüstet',1000); return; }
     // Toggle: click same = unequip, different = equip
-    if(z.eq===id){z.eq=null;this._updWBar();ZP.toast('Keine Waffe ausgerüstet',1000);return;}
-    z.eq=id;this._updWBar();
-    const sl=SLAPS.find(s=>s.id===id);ZP.toast(`${sl?.e} ${sl?.n} ausgerüstet!`,1200);
+    if(z.eq===id){z.eq='none';this._updWBar();ZP.toast('Keine Waffe ausgerüstet',1000);return;}
+    z.eq=id;z.eqUses=0;this._updWBar();
+    const sl=SLAPS.find(s=>s.id===id)||TOOLS.find(s=>s.id===id);ZP.toast(`${sl?.e} ${sl?.n} ausgerüstet!`,1200);
   },
 
   // ═══ GONDOLA ═══
@@ -6974,17 +7025,18 @@ const ZP={
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+20% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:500,shoe:true,col:'#FFD700'}];
-    IT.push({id:'insurance',n:'🛡️ Versicherung',d:'20\'795 MT alle 5 Min · keine Unfallkosten',p:0,insurance:true});el.innerHTML=IT.map(item=>{
+    const insCost=Math.max(1, Math.round((z.tv||0)/100));
+    IT.push({id:'insurance',n:'🛡️ Versicherung',d:$mt(insCost)+' alle 5 Min · keine Unfallkosten — tippen für Details',p:0,insurance:true});el.innerHTML=IT.map(item=>{
       if(item.insurance){
         const active=z.insuranceActive;
-        return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div>🛡️</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
+        return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'insurance\')">🛡️</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'insurance\')"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="event.stopPropagation();ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
       }
       if(item.shoe){
         const o=z.upg?.[item.id];
         const otherOwned=item.id==='redshoes'?z.upg?.goldshoes:z.upg?.redshoes;
         if(o)return`<div class="ac" style="opacity:.5;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;
         return `<div class="ac"><div style="flex:1;display:flex;gap:8px;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${otherOwned?'<div style="color:#ff6b6b;font-size:.64rem">Ersetzt das andere Paar (kein Stapeln)</div>':''}</div></div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="event.stopPropagation();ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
-      }const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||((ZS.dsMT||0)+z.mt)<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+      }const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5;cursor:pointer" onclick="ZP._showShopItemInfo('${item.id}')"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div style="cursor:pointer" onclick="ZP._showShopItemInfo('${item.id}')">${item.n.split(' ')[0]}</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo('${item.id}')"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||((ZS.dsMT||0)+z.mt)<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="event.stopPropagation();ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){
     const z=ZS.zoo;
     // Apply active discount
@@ -6995,7 +7047,7 @@ const ZP={
     z.mt-=finalP;
     if(id==='insurance'){
       if(z.insuranceActive){z.insuranceActive=false;z.insuranceUntil=0;this.toast('🛡️ Versicherung gekündigt.');}
-      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! 20\'795 MT alle 5 Min.');}
+      else{z.insuranceActive=true;z.insuranceUntil=Date.now()+5*60000;z.insuranceNext=Date.now()+5*60000;this.toast('🛡️ Versicherung aktiv! '+$mt(Math.max(1,Math.round((z.tv||0)/100)))+' alle 5 Min.');}
     }
     else if(id==='net'){if(!z.upg)z.upg={};z.upg.net=true;this.toast('🥅 Fangnetz gekauft! Jetzt in der Waffenleiste wählbar.',3000);try{ZG._updWBar&&ZG._updWBar();}catch(e){}}
     else{if(!z.upg)z.upg={};z.upg[id]=true;this.toast('✅ Gekauft!');}
@@ -7502,6 +7554,34 @@ const ZP={
         return `<div class="ac"><div style="flex:1;display:flex;gap:8px;cursor:pointer" onclick="ZP._showSlapInfo('${sl.id}')"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.4)">${infoLine}${packs>0?' · noch '+packs+' übrig':''}</div></div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<2124?'disabled':''} onclick="event.stopPropagation();ZP._bSlapPack('${sl.id}')">${$mt(2124)}</button></div>`;
       }).join('');
     this._slapDescMap=descMap; this._slapDurMap=durMap;
+  },
+  // Generic click-for-info modal for the "plain" Zoo shop items (net,
+  // vis/vis2/vis_m, earn/earn2, insurance) — same pattern as
+  // _showSlapInfo/_showShoeInfo, just keyed by shop item id instead of a
+  // fixed set of two.
+  _showShopItemInfo(id){
+    const z=ZS.zoo;
+    const colors={net:'#8B5A2B',vis:'#3498db',vis2:'#3498db',vis_m:'#9b59b6',earn:'#f1c40f',earn2:'#f1c40f',insurance:'#2ecc71'};
+    const emojis={net:'🥅',vis:'🚀',vis2:'🚀🚀',vis_m:'👥',earn:'💰',earn2:'💰💰',insurance:'🛡️'};
+    const col=colors[id]||'#00CFFF', emoji=emojis[id]||'❓';
+    const title=(typeof t!=='undefined')?t('zoo.shopinfo_'+id+'_title'):id;
+    let desc=(typeof t!=='undefined')?t('zoo.shopinfo_'+id+'_desc'):'';
+    if(id==='insurance'){
+      const insCost=Math.max(1,Math.round((z?.tv||0)/100));
+      desc=desc.replace(/1 MT/,$mt(insCost).replace('🌀',''));
+    }
+    const owned=z?.upg?.[id];
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
+    el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+    el.innerHTML=`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid ${col};border-radius:16px;padding:22px;max-width:320px;text-align:center;color:#fff">
+      <div style="font-size:2.6rem">${emoji}</div>
+      <div style="font-weight:900;font-size:1.1rem;color:${col};margin:6px 0">${title}</div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:14px;line-height:1.5">${desc}</div>
+      ${owned?'<div style="color:#27AE60;font-weight:900;font-size:.8rem;margin-bottom:10px">✅ Bereits gekauft</div>':''}
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:${col};color:#1a1a2e;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">✓ OK</button>
+    </div>`;
+    document.body.appendChild(el);
   },
   _showShoeInfo(id){
     const isGold=id==='goldshoes';
