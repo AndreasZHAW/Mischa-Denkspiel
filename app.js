@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v381';
+const APP_VERSION = 'v383';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v381 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v383 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -983,7 +983,14 @@ const App = {
     // Check if player is banned
     try {
       if(typeof _db !== 'undefined' && _db) {
-        const banDoc = await _db.collection('banned_players').doc(res.player.name.toLowerCase()).get();
+        // IMPORTANT: timeout-protected, same reasoning as State.login() above
+        // — an unprotected await here would hang the ENTIRE login at
+        // "Anmelden..." forever if this one read ever failed to resolve,
+        // even though the actual login itself had already succeeded.
+        const banDoc = await Promise.race([
+          _db.collection('banned_players').doc(res.player.name.toLowerCase()).get(),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error('ban check timeout')),5000))
+        ]);
         if(banDoc.exists) {
           const ban = banDoc.data();
           const now = Date.now();
@@ -1007,7 +1014,10 @@ const App = {
     } catch(e) {} // ban check failed silently, allow login
     // Device ban check — catches someone banned by name trying to re-enter under a new one
     try {
-      const devBan = await (window.checkDeviceBanned && window.checkDeviceBanned());
+      const devBan = await Promise.race([
+        (window.checkDeviceBanned && window.checkDeviceBanned()) || Promise.resolve(null),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('device ban check timeout')),5000))
+      ]);
       if(devBan) {
         State.currentPlayer = null;
         sessionStorage.removeItem('mischa_current');
@@ -1781,23 +1791,19 @@ const App = {
       });
 
       // Helper: Welt-1 MT + Zoo MT for a given player object.
-      // IMPORTANT: matching a zoo record to a Denkspiel player is done by NAME
-      // ONLY (there's no shared account ID). If a totally different person (or
-      // stale test data) ever created a zoo save under the same name, that MT
-      // would get silently glued onto this player's total. To guard against
-      // that, we only add the zoo MT when we can POSITIVELY CONFIRM it's the
-      // same device: both the player record and the zoo record need a
-      // deviceId, and they need to match. If either side is missing a
-      // deviceId (e.g. an old record from before device tracking existed),
-      // we do NOT add it — better to under-count a legacy edge case than to
-      // keep leaking unrelated MT into fresh players' totals.
+      // Zoo record is matched to a Denkspiel player by NAME only (no shared
+      // account ID) — same account, same name, is trusted, matching the
+      // combinedMTFor() policy in firebase-state.js. This used to
+      // additionally require a matching deviceId before counting the Zoo MT
+      // at all, which blocked the completely legitimate case of playing the
+      // same account from two devices — and since only THIS copy of the
+      // check got missed when combinedMTFor() was loosened, it's exactly
+      // why the Zoo's own leaderboard and Welt 1's leaderboard showed
+      // different totals for the same player.
       const _zooMTForChecked = (playerObj) => {
         const name = playerObj?.name;
         const z = zoosAll[name?.toLowerCase()];
         if (!z) return 0;
-        if (!playerObj?.deviceId || !z.deviceId || playerObj.deviceId !== z.deviceId) {
-          return 0; // ownership not positively confirmed → exclude
-        }
         return sanitizeMT(z.mt);
       };
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v381 -->
+<!-- ZOO v383 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=381"></script>
-<script src="rewardchests.js?v=381"></script>
-<script src="personality.js?v=381"></script>
+<script src="lang.js?v=383"></script>
+<script src="rewardchests.js?v=383"></script>
+<script src="personality.js?v=383"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v381','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v383','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -289,7 +289,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" id="tipsToggleBtn" onclick="ZTips.toggle()"><div class="hbb" id="tipsToggleIcon" style="background:rgba(120,120,120,.6)">💡</div><div class="hbl">Tipps</div></div>
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
-<div class="hb" onclick="ZP.open('reb')"><div class="hbb" style="background:rgba(100,100,100,.8)">🔄</div><div class="hbl" data-i18n="zoo.rebirth">Rebirth</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
@@ -489,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=381"></script>
-<script src="worlds.js?v=381"></script>
+<script src="firebase-state.js?v=383"></script>
+<script src="worlds.js?v=383"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -903,7 +902,8 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:5000000},{e:2,l:1,u:1,g:0,m:0,s:0,mt:25000000},{e:3,l:2,u:1,g:1,m:0,s:0,mt:120000000},{e:4,l:3,u:2,g:1,m:1,s:0,mt:600000000},{e:4,l:4,u:3,g:2,m:1,s:0,mt:3000000000},{e:5,l:4,u:4,g:3,m:2,s:0,mt:15000000000},{e:5,l:5,u:4,g:4,m:3,s:1,mt:100000000000}];return R[Math.min(n,R.length-1)];}
+function rebReq(n){const R=[{e:1,l:0,u:0,g:0,m:0,s:0,mt:1000000},{e:2,l:1,u:0,g:0,m:0,s:0,mt:1000000},{e:2,l:1,u:1,g:0,m:0,s:0,mt:1000000}];return R[Math.min(n,R.length-1)];}
+const REBIRTH_MAX=3;
 // Realtime Database forbids ".", "#", "$", "[", "]" in path keys — but
 // player names (e.g. "j.t.") can contain exactly those characters. Every
 // place that turns a player name into an RTDB path segment MUST go
@@ -1575,6 +1575,16 @@ const ZG={
         if(ZG._trashActive)return;
         if(Math.random()<0.05){ ZooEvents.randomEmergency(); }
       }, 5*60000));
+    }
+    // Escape ("Tier ausgebrochen") runs on its own separate ~hourly
+    // schedule, capped at once per rolling 24h — see _tryTriggerEscape.
+    {
+      this._ivs.push(setInterval(()=>{
+        if(!ZS.player||!ZS.zoo)return;
+        if(document.getElementById('zevent-overlay')||document.getElementById('accident-overlay'))return;
+        if(ZG._trashActive)return;
+        ZooEvents._tryTriggerEscape();
+      }, 10*60000));
     }
     setInterval(()=>{if(LuckyBlocks.blocks.length<3)LuckyBlocks.spawn();},180000);
     if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
@@ -7065,9 +7075,10 @@ const ZP={
     IT.push({id:'rebirth',n:'🔄 Rebirth',d:'Setzt fast alles zurück, für einen dauerhaften Bonus — tippen für Details',p:0,rebirth:true});
     el.innerHTML=IT.map(item=>{
       if(item.rebirth){
-        const req=(typeof rebReq==='function')?rebReq(z.reb||0):null;
+        const atMax=(z.reb||0)>=REBIRTH_MAX;
+        const req=(!atMax && typeof rebReq==='function')?rebReq(z.reb||0):null;
         const canReb=req && (z.mt||0)>=req.mt;
-        return '<div class="ac" style="border:1px solid '+(canReb?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')">🔄</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')"><div style="font-weight:900;font-size:.84rem">'+item.n+' (Stufe '+(z.reb||0)+')</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+(req?('Benötigt: '+$mt(req.mt)):item.d)+'</div></div><div style="text-align:right"><button class="ab" onclick="event.stopPropagation();ZP.open(\'reb\')">Öffnen</button></div></div>';
+        return '<div class="ac" style="border:1px solid '+(atMax?'#FFD700':canReb?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')">🔄</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')"><div style="font-weight:900;font-size:.84rem">'+item.n+' (Stufe '+(z.reb||0)+'/'+REBIRTH_MAX+')</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+(atMax?'🏆 Maximum erreicht':req?('Benötigt: '+$mt(req.mt)):item.d)+'</div></div><div style="text-align:right"><button class="ab" onclick="event.stopPropagation();ZP.open(\'reb\')">Öffnen</button></div></div>';
       }
       if(item.insurance){
         const active=z.insuranceActive;
@@ -7810,7 +7821,16 @@ const ZP={
 
   // REBIRTH
   _rReb(){
-    const z=ZS.zoo,rb=z.reb||0,req=rebReq(rb),nM=Math.round((1+(rb+1)*.5)*100)/100;
+    const z=ZS.zoo,rb=z.reb||0;
+    if(rb>=REBIRTH_MAX){
+      G('prc').innerHTML=`<div style="text-align:center">
+        <div style="font-size:2.4rem;margin-bottom:6px">🏆</div>
+        <div style="font-weight:900;font-size:1rem;margin-bottom:8px">Maximum erreicht!</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6">Du hast bereits ${REBIRTH_MAX}× wiedergeboren — mehr geht nicht. Dein Permanent-Multiplikator (×${(1+rb*.5).toFixed(1)}) bleibt für immer aktiv.</div>
+      </div>`;
+      return;
+    }
+    const req=rebReq(rb),nM=Math.round((1+(rb+1)*.5)*100)/100;
     // Safe filter: only real animals (not null, not eggs, has valid rarity)
     const a=(z.enc||[]).filter(e=>e&&e.animal&&e.animal.r&&!e.animal.isEgg&&e.animal.id&&e.animal.id!=='');
     // Count helpers with safe access
@@ -7845,6 +7865,7 @@ const ZP={
   },
   async _doReb(){
     const z=ZS.zoo;
+    if((z.reb||0)>=REBIRTH_MAX){ ZP.toast('🏆 Maximum von '+REBIRTH_MAX+' Wiedergeburten bereits erreicht!',3000); return; }
     const req=rebReq(z.reb||0);
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
     if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=10;z.xenc=0;z.luck=1;z.luckLv=0;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
@@ -12134,29 +12155,88 @@ const ZooEvents = {
     return ov;
   },
   _close(){ document.getElementById('zevent-overlay')?.remove(); },
+  // Dynamic cost — 10-30% of current zoo MT, rolled fresh each time an
+  // event is shown. Replaces the old flat amounts (6'000-12'000 MT), which
+  // were completely disconnected from what a player could actually afford
+  // at any given point in the game.
+  _dynCost(){
+    const z=ZS.zoo; if(!z) return 0;
+    const pct=10+Math.random()*20; // 10-30%
+    return Math.max(1, Math.round((z.mt||0)*pct/100));
+  },
+  // The "or lose an animal instead" alternative to paying. Picks one
+  // random NON-protected animal (the very first animal a player ever buys
+  // is exempt, same protection as the slap-drop mechanic) out of their
+  // enclosures and sends it loose into the zoo as a real, catchable
+  // roaming animal — same mechanism as a slap-drop, not a permanent loss.
+  _loseRandomAnimal(){
+    const z=ZS.zoo; if(!z||!z.enc) return null;
+    const eligible=z.enc.map((e,i)=>({e,i})).filter(x=>x.e && !x.e.protected);
+    if(!eligible.length) return null;
+    const pick=eligible[Math.floor(Math.random()*eligible.length)];
+    const {animal,shiny,traits}=pick.e;
+    z.enc[pick.i]=null;
+    try{ ZG._encs&&ZG._encs(); }catch(e){}
+    ZS.save&&ZS.save(); try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    this._releaseAsRoaming(animal,shiny,traits);
+    return animal;
+  },
+  // Shared "spawn as roaming animal" logic — same pattern as ZG._dropCarried,
+  // just callable from ZooEvents without needing an actively-carried animal.
+  _releaseAsRoaming(animal,shiny,traits){
+    try{
+      const mySlot=typeof ZS.mySlot==='number'?ZS.mySlot:0;
+      const encCenter=(typeof ZG!=='undefined'&&ZG._slotEncPos)?ZG._slotEncPos(mySlot).center:{x:ZG.pl?.x||0,z:ZG.pl?.z||0};
+      const ang=Math.random()*Math.PI*2, dist=15+Math.random()*10;
+      const x=encCenter.x+Math.cos(ang)*dist, z2=encCenter.z+Math.sin(ang)*dist;
+      const dropped={ id:null, createdAt:Date.now(), animal, shiny:shiny||null, traits:traits||[], x, z:z2,
+        droppedBy:ZS.player, slappedBy:null,
+        wanderCx:x, wanderCz:z2, wanderTx:x, wanderTz:z2, wanderOwner:true, _lastWanderPush:0 };
+      ZG.droppedAnimals.push(dropped);
+      try{ ZG._spawnDroppedMesh&&ZG._spawnDroppedMesh(dropped); }catch(e){}
+      try{
+        if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+          const ref=_rtdb.ref('zoo_dropped').push();
+          dropped.id=ref.key;
+          ref.set(JSON.parse(JSON.stringify({
+            animal, shiny:shiny||null, traits:traits||[], x, z:z2,
+            droppedBy:ZS.player, slappedBy:null, createdAt:dropped.createdAt
+          }))).catch(()=>{});
+        }
+      }catch(e){}
+      try{ ZG._enforceRoamingCap&&ZG._enforceRoamingCap(); }catch(e){}
+    }catch(e){}
+  },
+  // Small reusable button-row HTML: Zahlen / Tier verlieren (+ optional
+  // third custom button, e.g. a click-minigame for thief/escape).
+  _payOrLoseButtons(cost, payFn, loseFn, extraBtnHtml){
+    return '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'+
+      '<button onclick="'+payFn+'" style="flex:1;min-width:110px;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Zahlen<br><small>'+$mt(cost)+'</small></button>'+
+      '<button onclick="'+loseFn+'" style="flex:1;min-width:110px;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">🐾 Tier<br>verlieren</button>'+
+      (extraBtnHtml||'')+
+      '</div>';
+  },
   // ─── POLIZEI-RAZZIA ───
   policeRaid(){
     const insured=this._hasInsurance();
     if(insured){ ZP.toast('🛡️ Versicherung regelt die Polizei-Razzia!',3500); return; }
+    const cost=this._curCost=this._dynCost();
     this._overlay(
       '<div style="font-size:3.4rem">🚓</div>'+
       '<h2 style="color:#3498db;margin:6px 0">Polizei-Razzia!</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Die Polizei durchsucht deinen Zoo! Zahle <b style="color:#FFD700">8.000 MT</b> Strafe — sonst wird die Gondel 10 Min gesperrt (keine neuen Tiere).</p>'+
-      '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="ZooEvents._payPolice()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Zahlen<br><small>8.000 MT</small></button>'+
-        '<button onclick="ZooEvents._refusePolice()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht<br>zahlen</button>'+
-      '</div>');
+      '<p style="font-size:.92rem;line-height:1.4">Die Polizei durchsucht deinen Zoo! Zahle <b style="color:#FFD700">'+$mt(cost)+'</b> Strafe — oder eines deiner Tiere kommt frei und muss zurückgefangen werden.</p>'+
+      this._payOrLoseButtons(cost,'ZooEvents._payPolice()','ZooEvents._losePolice()'));
   },
   _payPolice(){
-    const z=ZS.zoo;
-    if((z.mt||0)<8000){ ZP.toast('❌ Keine 8.000 MT! Gondel wird gesperrt.',3000); this._refusePolice(); return; }
-    z.mt=Math.max(0,(z.mt||0)-8000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
-    this._close(); ZP.toast('🚓 8.000 MT Strafe bezahlt. Neuer Stand: '+$mt(z.mt),3500);
+    const z=ZS.zoo; const cost=this._curCost||0;
+    if((z.mt||0)<cost){ ZP.toast('❌ Nicht genug MT!',3000); return; }
+    z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._close(); ZP.toast('🚓 '+$mt(cost)+' Strafe bezahlt. Neuer Stand: '+$mt(z.mt),3500);
   },
-  _refusePolice(){
-    const z=ZS.zoo;
-    z.gondLockUntil=Date.now()+10*60000; ZS.save&&ZS.save();
-    this._close(); ZP.toast('🚓 Gondel 10 Min gesperrt — keine neuen Tiere!',4000);
+  _losePolice(){
+    const a=this._loseRandomAnimal();
+    this._close();
+    ZP.toast(a?('🚓 '+(a.e||'')+' '+(a.n||'')+' ist bei der Razzia entkommen — schnell zurückfangen!'):'🚓 Kein Tier zum Verlieren.',4000);
   },
   // helper: lose a % of visitors (slows visitor income for a while via a debuff)
   _scareVisitors(pct,mins){
@@ -12168,49 +12248,24 @@ const ZooEvents = {
   // ─── ANFALL (jemand wird geschlagen) ───
   assault(){
     if(this._hasInsurance()){ ZP.toast('🛡️ Versicherung regelt den Vorfall!',3500); return; }
+    const cost=this._curCost=this._dynCost();
     this._overlay(
       '<div style="font-size:3.4rem">🤕👊</div>'+
       '<h2 style="color:#e74c3c;margin:6px 0">Schlägerei im Zoo!</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Ein Mann schlägt einen Besucher! Öffne dein Handy und rufe die <b>112</b> — sonst gehen <b>20% deiner Besucher</b> aus Angst.</p>'+
-      '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="ZooEvents._assaultPhone()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">📱 Handy öffnen</button>'+
-        '<button onclick="ZooEvents._refuseAssault()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Ignorieren</button>'+
-      '</div>');
-  },
-  _assaultPhone(){
-    const ov=document.getElementById('zevent-overlay'); if(!ov) return;
-    const inner=ov.firstChild;
-    inner.style.cssText='background:transparent;border:none;max-width:300px;width:100%;padding:0';
-    inner.innerHTML='<div style="background:#0a0a0a;border:6px solid #222;border-radius:30px;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.8)">'+
-      '<div style="background:#111;padding:6px;text-align:center;font-size:.7rem;color:#888">📶 Zoo-Phone · 112</div>'+
-      '<div style="background:linear-gradient(160deg,#2a1a1a,#0a0a0a);padding:24px 16px;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center">'+
-        '<div style="font-size:3rem;margin-bottom:6px">📞</div>'+
-        '<div style="font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:4px">Notruf-App</div>'+
-        '<div style="font-size:.78rem;color:#aaa;text-align:center;margin-bottom:14px">Wähle 112 — es gibt eine Schlägerei!</div>'+
-        '<div style="font-size:2rem;font-weight:900;color:#27AE60;letter-spacing:4px;margin-bottom:14px">1 1 2</div>'+
-        '<button onclick="ZooEvents._assaultCall()" style="background:#27AE60;color:#fff;border:none;width:64px;height:64px;border-radius:50%;font-size:1.6rem;cursor:pointer;box-shadow:0 0 20px rgba(39,174,96,.6)">📞</button>'+
-        '<div style="font-size:.7rem;color:#666;margin-top:8px">Anrufen</div>'+
-      '</div></div>';
-  },
-  _assaultCall(){
-    const ov=document.getElementById('zevent-overlay'); if(!ov) return;
-    const inner=ov.firstChild;
-    inner.style.cssText='background:linear-gradient(135deg,#1a1a2e,#0e0e1e);border:2px solid #3498db;border-radius:18px;max-width:380px;width:100%;padding:22px;color:#fff;text-align:center';
-    inner.innerHTML='<div style="font-size:2.6rem">🚓🚑</div>'+
-      '<h3 style="color:#f5c542;margin:8px 0">Notruf 112</h3>'+
-      '<p style="font-size:.88rem;line-height:1.4">Die Leitstelle schickt Polizei & Sanitäter. Das kostet <b style="color:#FFD700">10.000 MT</b>.</p>'+
-      '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="ZooEvents._payAssault()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Bezahlen<br><small>10.000 MT</small></button>'+
-        '<button onclick="ZooEvents._refuseAssault()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht<br>bezahlen</button>'+
-      '</div>';
+      '<p style="font-size:.92rem;line-height:1.4">Ein Mann schlägt einen Besucher! Rufe die <b>112</b> und zahle <b style="color:#FFD700">'+$mt(cost)+'</b> für Polizei & Sanitäter — oder eines deiner Tiere kommt frei.</p>'+
+      this._payOrLoseButtons(cost,'ZooEvents._payAssault()','ZooEvents._loseAssault()'));
   },
   _payAssault(){
-    const z=ZS.zoo;
-    if((z.mt||0)<10000){ ZP.toast('❌ Keine 10.000 MT! Besucher fliehen.',3000); this._refuseAssault(); return; }
-    z.mt=Math.max(0,(z.mt||0)-10000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
-    this._close(); ZP.toast('🚓🚑 10.000 MT bezahlt. Neuer Stand: '+$mt(z.mt),3500);
+    const z=ZS.zoo; const cost=this._curCost||0;
+    if((z.mt||0)<cost){ ZP.toast('❌ Nicht genug MT!',3000); return; }
+    z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._close(); ZP.toast('🚓🚑 '+$mt(cost)+' bezahlt. Neuer Stand: '+$mt(z.mt),3500);
   },
-  _refuseAssault(){ this._scareVisitors(20,10); this._close(); ZP.toast('😱 20% deiner Besucher sind geflohen!',4000); },
+  _loseAssault(){
+    const a=this._loseRandomAnimal();
+    this._close();
+    ZP.toast(a?('🤕 '+(a.e||'')+' '+(a.n||'')+' ist in der Aufregung entkommen!'):'🤕 Kein Tier zum Verlieren.',4000);
+  },
   // ─── FEUERALARM ───
   fire(){
     this._fireLeft=10;
@@ -12234,26 +12289,25 @@ const ZooEvents = {
   // ─── GESUNDHEITSAMT ───
   health(){
     if(this._hasInsurance()){ ZP.toast('🛡️ Versicherung übernimmt das Zertifikat!',3500); return; }
+    const cost=this._curCost=this._dynCost();
     this._overlay(
       '<div style="font-size:3.4rem">🦠📋</div>'+
       '<h2 style="color:#16a085;margin:6px 0">Gesundheitsamt</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Ein Inspektor prüft die Hygiene. Zahle <b style="color:#FFD700">6.000 MT</b> für ein Zertifikat — sonst verdienen deine Tiere 5 Min lang <b>50% weniger</b>.</p>'+
-      '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="ZooEvents._payHealth()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Zertifikat<br><small>6.000 MT</small></button>'+
-        '<button onclick="ZooEvents._refuseHealth()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht zahlen</button>'+
-      '</div>');
+      '<p style="font-size:.92rem;line-height:1.4">Ein Inspektor prüft die Hygiene. Zahle <b style="color:#FFD700">'+$mt(cost)+'</b> für ein Zertifikat — oder eines deiner Tiere kommt frei.</p>'+
+      this._payOrLoseButtons(cost,'ZooEvents._payHealth()','ZooEvents._loseHealth()'));
   },
-  _payHealth(){ const z=ZS.zoo; if((z.mt||0)<6000){ZP.toast('❌ Keine 6.000 MT!',2500);this._refuseHealth();return;} z.mt=Math.max(0,(z.mt||0)-6000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('📋 6.000 MT — Zertifikat erhalten! Stand: '+$mt(z.mt),3500); },
-  _refuseHealth(){ const z=ZS.zoo; z.earnDebuffUntil=Date.now()+5*60000; ZS.save&&ZS.save(); this._close(); ZP.toast('🦠 5 Min lang 50% weniger Einnahmen!',4000); },
+  _payHealth(){ const z=ZS.zoo; const cost=this._curCost||0; if((z.mt||0)<cost){ZP.toast('❌ Nicht genug MT!',2500);return;} z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('📋 '+$mt(cost)+' — Zertifikat erhalten! Stand: '+$mt(z.mt),3500); },
+  _loseHealth(){ const a=this._loseRandomAnimal(); this._close(); ZP.toast(a?('🦠 '+(a.e||'')+' '+(a.n||'')+' ist bei der Prüfung entkommen!'):'🦠 Kein Tier zum Verlieren.',4000); },
   // ─── EINBRECHER ───
   thief(){
     this._thiefHits=0;
+    const cost=this._curCost=this._dynCost();
     this._overlay(
       '<div style="font-size:3.4rem">🦹</div>'+
       '<h2 style="color:#8e44ad;margin:6px 0">Einbrecher!</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Ein Dieb will ein Tier stehlen! Klicke ihn <b>5×</b> an, um ihn zu vertreiben — oder zahle <b style="color:#FFD700">12.000 MT</b> Sicherheitsdienst.</p>'+
+      '<p style="font-size:.92rem;line-height:1.4">Ein Dieb will ein Tier stehlen! Klicke ihn <b>5×</b> an, um ihn zu vertreiben — oder zahle <b style="color:#FFD700">'+$mt(cost)+'</b> Sicherheitsdienst — oder eines deiner Tiere kommt frei.</p>'+
       '<div style="text-align:center;margin:14px 0"><button id="thief-btn" onclick="ZooEvents._hitThief()" style="font-size:2.6rem;background:none;border:none;cursor:pointer">🦹</button><div style="font-size:.8rem;color:#f5c542">Treffer: <span id="thief-cnt">0</span>/5</div></div>'+
-      '<button onclick="ZooEvents._payThief()" style="width:100%;background:rgba(255,215,0,.2);border:1px solid #FFD700;color:#FFD700;padding:9px;border-radius:10px;font-weight:900;cursor:pointer">💳 Sicherheitsdienst (12.000 MT)</button>');
+      this._payOrLoseButtons(cost,'ZooEvents._payThief()','ZooEvents._loseThief()'));
   },
   _hitThief(){
     this._thiefHits++;
@@ -12261,35 +12315,32 @@ const ZooEvents = {
     const b=document.getElementById('thief-btn'); if(b){b.style.transform='scale(0.8) rotate('+(this._thiefHits*20)+'deg)';setTimeout(()=>{if(b)b.style.transform='';},100);}
     if(this._thiefHits>=5){ this._close(); ZP.toast('👮 Dieb vertrieben! Deine Tiere sind sicher.',3500); }
   },
-  _payThief(){ const z=ZS.zoo; if((z.mt||0)<12000){ZP.toast('❌ Keine 12.000 MT! Klicke den Dieb weg!',2500);return;} z.mt=Math.max(0,(z.mt||0)-12000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('👮 12.000 MT — Dieb geschnappt! Stand: '+$mt(z.mt),3500); },
+  _payThief(){ const z=ZS.zoo; const cost=this._curCost||0; if((z.mt||0)<cost){ZP.toast('❌ Nicht genug MT! Klicke den Dieb weg!',2500);return;} z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('👮 '+$mt(cost)+' — Dieb geschnappt! Stand: '+$mt(z.mt),3500); },
+  _loseThief(){ const a=this._loseRandomAnimal(); this._close(); ZP.toast(a?('🦹 '+(a.e||'')+' '+(a.n||'')+' wurde vom Dieb freigelassen — schnell zurückfangen!'):'🦹 Kein Tier zum Verlieren.',4000); },
   // ─── TIERSCHÜTZER-PROTEST ───
   protest(){
     if(this._hasInsurance()){ ZP.toast('🛡️ Versicherung regelt den Protest (PR)!',3500); return; }
+    const cost=this._curCost=this._dynCost();
     this._overlay(
       '<div style="font-size:3.4rem">⚖️📢</div>'+
       '<h2 style="color:#27ae60;margin:6px 0">Tierschützer-Protest</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Demonstranten stehen vor dem Zoo! Zahle <b style="color:#FFD700">7.000 MT</b> Spende zur Beruhigung — sonst <b>20% weniger Besucher</b> für 10 Min.</p>'+
-      '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="ZooEvents._payProtest()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💚 Spende<br><small>7.000 MT</small></button>'+
-        '<button onclick="ZooEvents._refuseProtest()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Ignorieren</button>'+
-      '</div>');
+      '<p style="font-size:.92rem;line-height:1.4">Demonstranten stehen vor dem Zoo! Zahle <b style="color:#FFD700">'+$mt(cost)+'</b> Spende zur Beruhigung — oder eines deiner Tiere kommt frei.</p>'+
+      this._payOrLoseButtons(cost,'ZooEvents._payProtest()','ZooEvents._loseProtest()'));
   },
-  _payProtest(){ const z=ZS.zoo; if((z.mt||0)<7000){ZP.toast('❌ Keine 7.000 MT!',2500);this._refuseProtest();return;} z.mt=Math.max(0,(z.mt||0)-7000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('💚 7.000 MT gespendet. Stand: '+$mt(z.mt),3500); },
-  _refuseProtest(){ this._scareVisitors(20,10); this._close(); ZP.toast('📢 20% weniger Besucher für 10 Min!',4000); },
+  _payProtest(){ const z=ZS.zoo; const cost=this._curCost||0; if((z.mt||0)<cost){ZP.toast('❌ Nicht genug MT!',2500);return;} z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('💚 '+$mt(cost)+' gespendet. Stand: '+$mt(z.mt),3500); },
+  _loseProtest(){ const a=this._loseRandomAnimal(); this._close(); ZP.toast(a?('📢 '+(a.e||'')+' '+(a.n||'')+' wurde von Aktivisten befreit — schnell zurückfangen!'):'📢 Kein Tier zum Verlieren.',4000); },
   // ─── STURM ───
   storm(){
     if(this._hasInsurance()){ ZP.toast('🛡️ Versicherung deckt die Sturmschäden!',3500); return; }
+    const cost=this._curCost=this._dynCost();
     this._overlay(
       '<div style="font-size:3.4rem">🌪️</div>'+
       '<h2 style="color:#5dade2;margin:6px 0">Sturm im Zoo!</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Ein Sturm fegt durch den Zoo! Zahle <b style="color:#FFD700">9.000 MT</b> für Reparaturen — sonst verdienen deine Tiere 5 Min lang weniger (Schäden).</p>'+
-      '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="ZooEvents._payStorm()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">🔧 Reparieren<br><small>9.000 MT</small></button>'+
-        '<button onclick="ZooEvents._refuseStorm()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht zahlen</button>'+
-      '</div>');
+      '<p style="font-size:.92rem;line-height:1.4">Ein Sturm fegt durch den Zoo! Zahle <b style="color:#FFD700">'+$mt(cost)+'</b> für Reparaturen — oder eines deiner Tiere kommt frei.</p>'+
+      this._payOrLoseButtons(cost,'ZooEvents._payStorm()','ZooEvents._loseStorm()'));
   },
-  _payStorm(){ const z=ZS.zoo; if((z.mt||0)<9000){ZP.toast('❌ Keine 9.000 MT!',2500);this._refuseStorm();return;} z.mt=Math.max(0,(z.mt||0)-9000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('🔧 9.000 MT — Zoo repariert! Stand: '+$mt(z.mt),3500); },
-  _refuseStorm(){ const z=ZS.zoo; z.earnDebuffUntil=Date.now()+5*60000; ZS.save&&ZS.save(); this._close(); ZP.toast('🌪️ Schäden! 5 Min weniger Einnahmen.',4000); },
+  _payStorm(){ const z=ZS.zoo; const cost=this._curCost||0; if((z.mt||0)<cost){ZP.toast('❌ Nicht genug MT!',2500);return;} z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('🔧 '+$mt(cost)+' — Zoo repariert! Stand: '+$mt(z.mt),3500); },
+  _loseStorm(){ const a=this._loseRandomAnimal(); this._close(); ZP.toast(a?('🌪️ '+(a.e||'')+' '+(a.n||'')+' ist durch den Sturm entkommen!'):'🌪️ Kein Tier zum Verlieren.',4000); },
   // ─── INFLUENCER (10 Sek, 8 Klicks) ───
   influencer(){
     this._infLeft=8;
@@ -12314,28 +12365,79 @@ const ZooEvents = {
       this._close(); ZP.toast('🤩 Viral! +50% Besucher für 10 Min!',4000);
     } else this._renderInf();
   },
-  // ─── AUSBRUCH (20 Klicks) ───
+  // ─── AUSBRUCH — jetzt ein ECHTES entlaufenes Tier, kein Klick-Minispiel
+  // mit statischem Emoji mehr. Das Tier landet als richtiges, fangbares
+  // Roaming-Tier im Zoo (gleicher Mechanismus wie ein Slap-Drop) — bezahlen
+  // bringt es sofort zurück, sonst muss man es selbst mit dem Netz fangen. ───
   escape(){
-    this._escHits=0;
+    const cost=this._curCost=this._dynCost();
+    const animal=this._releaseAndTrackEscape();
+    if(!animal){ return; } // nothing in the zoo to escape — skip silently
     this._overlay(
       '<div style="font-size:3.4rem">🐍💨</div>'+
       '<h2 style="color:#e67e22;margin:6px 0">Tier ausgebrochen!</h2>'+
-      '<p style="font-size:.92rem;line-height:1.4">Ein Tier ist los! Klicke es <b>20×</b> zum Einfangen — oder zahle <b style="color:#FFD700">8.000 MT</b> Tierfänger.</p>'+
-      '<div style="text-align:center;margin:14px 0"><button id="esc-btn" onclick="ZooEvents._catchEsc()" style="font-size:2.6rem;background:none;border:none;cursor:pointer">🦎</button><div style="font-size:.8rem;color:#f5c542">Gefangen: <span id="esc-cnt">0</span>/20</div></div>'+
-      '<button onclick="ZooEvents._payEsc()" style="width:100%;background:rgba(255,215,0,.2);border:1px solid #FFD700;color:#FFD700;padding:9px;border-radius:10px;font-weight:900;cursor:pointer">💳 Tierfänger (8.000 MT)</button>');
+      '<p style="font-size:.92rem;line-height:1.4">Dein '+(animal.e||'')+' '+(animal.n||'')+' ist ausgebüxt und läuft jetzt frei im Zoo herum! Fang es mit dem Fangnetz zurück — oder zahle <b style="color:#FFD700">'+$mt(cost)+'</b>, dann bringt es ein Tierfänger sofort zurück.</p>'+
+      '<button onclick="ZooEvents._payEsc()" style="width:100%;background:rgba(255,215,0,.2);border:1px solid #FFD700;color:#FFD700;padding:11px;border-radius:10px;font-weight:900;cursor:pointer;margin-top:8px">💳 Tierfänger<br><small>'+$mt(cost)+'</small></button>'+
+      '<button onclick="ZooEvents._close()" style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:9px;border-radius:10px;font-weight:900;cursor:pointer;margin-top:8px">🥅 Selbst fangen gehen</button>');
   },
-  _catchEsc(){
-    this._escHits++;
-    const c=document.getElementById('esc-cnt'); if(c)c.textContent=this._escHits;
-    const b=document.getElementById('esc-btn'); if(b){const x=(Math.random()*60-30),y=(Math.random()*30-15);b.style.transform='translate('+x+'px,'+y+'px) rotate('+(this._escHits*30)+'deg)';}
-    if(this._escHits>=20){ this._close(); ZP.toast('🦎 Tier wieder eingefangen! Puh!',3500); }
+  // Same underlying release as _loseRandomAnimal, but also remembers
+  // exactly WHICH roaming entry this was, so paying can recall that
+  // specific one instead of just picking any roaming animal off the list.
+  _releaseAndTrackEscape(){
+    const animal=this._loseRandomAnimal();
+    if(animal){
+      this._escapedDroppedRef = ZG.droppedAnimals[ZG.droppedAnimals.length-1] || null;
+    }
+    return animal;
   },
-  _payEsc(){ const z=ZS.zoo; if((z.mt||0)<8000){ZP.toast('❌ Keine 8.000 MT! Fang es selbst!',2500);return;} z.mt=Math.max(0,(z.mt||0)-8000); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); this._close(); ZP.toast('🪤 8.000 MT — Tierfänger hat es. Stand: '+$mt(z.mt),3500); },
-  // ─── random emergency trigger (5% per 5 min) ───
-  _allEmergencies:['policeRaid','assault','fire','health','thief','protest','storm','influencer','escape'],
+  _payEsc(){
+    const z=ZS.zoo; const cost=this._curCost||0;
+    if((z.mt||0)<cost){ ZP.toast('❌ Nicht genug MT! Fang es selbst mit dem Netz!',2500); return; }
+    z.mt=Math.max(0,(z.mt||0)-cost); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
+    this._recallEscapedAnimal();
+    this._close(); ZP.toast('🪤 '+$mt(cost)+' — Tierfänger hat dein Tier zurückgebracht! Stand: '+$mt(z.mt),3500);
+  },
+  // Removes the tracked roaming animal from the world (locally + RTDB) and
+  // hands it straight back into a free enclosure slot — "paying" means the
+  // animal never actually has to be chased down.
+  _recallEscapedAnimal(){
+    const d=this._escapedDroppedRef; if(!d) return;
+    const idx=ZG.droppedAnimals.indexOf(d);
+    if(idx>=0){
+      if(d.mesh && ZG.scene) ZG.scene.remove(d.mesh);
+      ZG.droppedAnimals.splice(idx,1);
+    }
+    try{ if(d.id && typeof _rtdb!=='undefined'&&_rtdb) _rtdb.ref('zoo_dropped/'+d.id).remove().catch(()=>{}); }catch(e){}
+    const z=ZS.zoo;
+    if(z){
+      const slot=z.enc.findIndex(e=>!e);
+      if(slot>=0 && d.animal){
+        z.enc[slot]={animal:d.animal, shiny:d.shiny||null, traits:d.traits||[], addedAt:Date.now()};
+        ZS.save&&ZS.save();
+        try{ ZG._encs&&ZG._encs(); }catch(e){}
+      }
+    }
+    this._escapedDroppedRef=null;
+  },
+  // ─── random emergency trigger (5% per 5 min) — "escape" runs on its own
+  // dedicated schedule instead (see _tryTriggerEscape), so it's not in
+  // this shared pool anymore. ───
+  _allEmergencies:['policeRaid','assault','fire','health','thief','protest','storm','influencer'],
   randomEmergency(){
     const pick=this._allEmergencies[Math.floor(Math.random()*this._allEmergencies.length)];
     if(typeof this[pick]==='function') this[pick]();
+  },
+  // Escape needs a different cadence than the other emergencies: roughly
+  // once an hour on average, but NEVER more than once per rolling 24h,
+  // regardless of how many times the dice come up lucky in between.
+  _tryTriggerEscape(){
+    const z=ZS.zoo; if(!z) return;
+    if(Date.now()-(z.lastEscapeAt||0) < 24*3600*1000) return; // already had one today
+    // Checked every 10 min at ~16.7% → averages one trigger per ~60 min
+    if(Math.random() < 0.1667){
+      z.lastEscapeAt=Date.now(); ZS.save&&ZS.save();
+      this.escape();
+    }
   },
 };
 window.ZooEvents = ZooEvents;
