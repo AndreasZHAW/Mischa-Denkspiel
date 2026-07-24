@@ -1478,6 +1478,19 @@ const Contest = {
     const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);
     const players = [...allNames]
       .filter(name => name)
+      // Keep obviously-fake/test accounts out of the ranking entirely —
+      // doesn't touch or delete their underlying data, just hides them
+      // from the leaderboard people actually look at. Two signals: an
+      // explicit "test..." name, or a Zoo account with NO matching Welt-1
+      // record at all (every legitimate player unlocks the Zoo FROM Welt
+      // 1, so a zoo-only entry is inherently an artifact, not a real player).
+      .filter(name => {
+        if (/^test/i.test(name)) return false;
+        const hasWelt1 = !!merged[name];
+        const hasZoo = !!zoosAll[name];
+        if (hasZoo && !hasWelt1) return false;
+        return true;
+      })
       .map(name => {
         const p = merged[name];
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
