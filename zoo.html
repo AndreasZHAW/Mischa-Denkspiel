@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v385 -->
+<!-- ZOO v386 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=385"></script>
-<script src="rewardchests.js?v=385"></script>
-<script src="personality.js?v=385"></script>
+<script src="lang.js?v=386"></script>
+<script src="rewardchests.js?v=386"></script>
+<script src="personality.js?v=386"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v385','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v386','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=385"></script>
-<script src="worlds.js?v=385"></script>
+<script src="firebase-state.js?v=386"></script>
+<script src="worlds.js?v=386"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1463,6 +1463,12 @@ const ZG={
     this._ivs.push(setInterval(()=>{ if(typeof ZTimer!=='undefined') ZTimer.tick(); },1000));
     this._ivs.push(setInterval(()=>this._syncMP(),100));
     this._listenDropped();
+    this._listenSpecials();
+    this._ivs.push(setInterval(()=>{
+      if(!ZS.player||!ZS.zoo)return;
+      this._tryTriggerSpecials();
+    }, 20*60000)); // check every 20 min whether a new day's items still need spawning
+    setTimeout(()=>{ if(ZS.player&&ZS.zoo) this._tryTriggerSpecials(); }, 8000);
     this._ivs.push(setInterval(()=>this._checkMarketExpiry(),5*60000));
     this._listenMarketStalls();
     this._gondTick();
@@ -1885,6 +1891,136 @@ const ZG={
   // position to Firestore (every 1.5s, not every frame) so other players'
   // clients — which just smoothly drift their local copy toward whatever
   // position they last received — see it wander too, not just sit still.
+  // ═══ DAILY SPECIAL ITEMS ═══
+  // 5 small collectible items (wallet, watch, braces, ...) scattered
+  // across the whole zoo once a day, worth 2-100 MT each, catchable with
+  // the net just like a roaming animal. Small and only really visible up
+  // close, by design. Once all 5 are caught, nothing more spawns until
+  // the next day — or until an admin re-triggers it manually.
+  specialItems: [],
+  SPECIAL_TYPES: [
+    {id:'wallet', e:'👛', n:'Geldbeutel'},
+    {id:'watch', e:'⌚', n:'Uhr'},
+    {id:'braces', e:'🦷', n:'Zahnspange'},
+    {id:'key', e:'🔑', n:'Schlüssel'},
+    {id:'ring', e:'💍', n:'Ring'},
+    {id:'glasses', e:'👓', n:'Brille'},
+    {id:'phone', e:'📱', n:'Handy'},
+    {id:'coin', e:'🪙', n:'Alte Münze'},
+  ],
+  _listenSpecials(retry){
+    if(this._specialsListening) return;
+    if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()){
+      if((retry||0)<20) setTimeout(()=>this._listenSpecials((retry||0)+1),300);
+      return;
+    }
+    this._specialsListening=true;
+    try{
+      const ref=_rtdb.ref('zoo_specials');
+      ref.on('child_added', snap=>{
+        const id=snap.key;
+        if(this.specialItems.find(x=>x.id===id)) return;
+        const d=snap.val(); if(!d) return;
+        const item={id, itemId:d.itemId, e:d.e, n:d.n, value:d.value, x:d.x, z:d.z};
+        this.specialItems.push(item);
+        this._spawnSpecialMesh(item);
+      });
+      ref.on('child_removed', snap=>{
+        const id=snap.key;
+        const idx=this.specialItems.findIndex(x=>x.id===id);
+        if(idx>=0){
+          const it=this.specialItems[idx];
+          if(it.mesh && this.scene) this.scene.remove(it.mesh);
+          this.specialItems.splice(idx,1);
+        }
+      });
+    }catch(e){}
+  },
+  _spawnSpecialMesh(item){
+    try{
+      // Deliberately small and low to the ground — "nur aus kurzer
+      // Distanz erkennbar" — you have to actually walk up close to spot one.
+      const sprite=this._txt(item.e,1,'#fff');
+      sprite.position.set(item.x, 0.6, item.z);
+      sprite.scale.set(1.1,1.1,1);
+      this.scene.add(sprite);
+      item.mesh=sprite;
+    }catch(e){}
+  },
+  // Scatter 5 fresh items across the walkable zoo radius. Called either by
+  // the daily auto-trigger (_tryTriggerSpecials) or directly by an admin
+  // command — both funnel through here.
+  async _spawnDailySpecials(){
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
+      // Clear whatever's left over from a previous round first (best-effort)
+      const oldSnap=await _rtdb.ref('zoo_specials').once('value');
+      const oldVal=oldSnap.val()||{};
+      await Promise.all(Object.keys(oldVal).map(id=>_rtdb.ref('zoo_specials/'+id).remove().catch(()=>{})));
+      const R=(this.WR||45)-5;
+      for(let i=0;i<5;i++){
+        const type=this.SPECIAL_TYPES[Math.floor(Math.random()*this.SPECIAL_TYPES.length)];
+        const value=2+Math.floor(Math.random()*99); // 2-100 MT
+        const ang=Math.random()*Math.PI*2, r=Math.random()*R;
+        const x=Math.sin(ang)*r, z=Math.cos(ang)*r;
+        const ref=_rtdb.ref('zoo_specials').push();
+        await ref.set({itemId:type.id, e:type.e, n:type.n, value, x, z, createdAt:Date.now()}).catch(()=>{});
+      }
+      try{ ZP.toast&&ZP.toast('🎁 5 Spezial-Gegenstände sind im Zoo versteckt! Halte die Augen offen und fang sie mit dem Netz!',5000); }catch(e){}
+    }catch(e){}
+  },
+  // Checked periodically by every client — an RTDB transaction ensures
+  // only ONE of them actually wins and triggers the spawn, even if several
+  // players' clients happen to check at the same moment.
+  async _tryTriggerSpecials(){
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
+      const today=new Date().toISOString().slice(0,10); // "2026-07-24" in the browser's local date
+      const ref=_rtdb.ref('zoo_specials_meta/lastSpawnDay');
+      const result=await ref.transaction(current=>{
+        if(current===today) return; // already spawned today — abort
+        return today;
+      });
+      if(!result.committed) return;
+      // Only actually spawn if the pool is currently empty (all 5 from a
+      // previous manual/admin trigger might still be sitting uncaught).
+      const snap=await _rtdb.ref('zoo_specials').once('value');
+      if(snap.exists() && Object.keys(snap.val()||{}).length>0) return;
+      await this._spawnDailySpecials();
+    }catch(e){}
+  },
+  // Called by an admin command (see _handleAdminCmd's 'spawn_specials' case)
+  // — always spawns immediately, regardless of the daily gate.
+  async _adminTriggerSpecials(){
+    const today=new Date().toISOString().slice(0,10);
+    try{ if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_specials_meta/lastSpawnDay').set(today).catch(()=>{}); }catch(e){}
+    await this._spawnDailySpecials();
+  },
+  // Called from _tryCatchNet — checks special items IN ADDITION to
+  // roaming animals when the net is used. Returns true if something was
+  // caught (so the caller doesn't also report "nothing here").
+  _tryCatchSpecial(ndc){
+    if(!this.specialItems.length) return false;
+    const meshes=this.specialItems.map(it=>it.mesh).filter(Boolean);
+    if(!meshes.length) return false;
+    if(!this._netRaycaster) this._netRaycaster=new THREE.Raycaster();
+    this._netRaycaster.setFromCamera(ndc, this.cam);
+    const hits=this._netRaycaster.intersectObjects(meshes, true);
+    if(!hits.length) return false;
+    let obj=hits[0].object;
+    while(obj && !meshes.includes(obj)) obj=obj.parent;
+    const idx=this.specialItems.findIndex(it=>it.mesh===obj);
+    if(idx<0) return false;
+    if(hits[0].distance>this.NET_RANGE) return false;
+    const item=this.specialItems[idx];
+    const z=ZS.zoo; if(z){ z.mt=(z.mt||0)+item.value; ZS.save&&ZS.save(); this._updHUD&&this._updHUD(); }
+    if(item.mesh && this.scene) this.scene.remove(item.mesh);
+    this.specialItems.splice(idx,1);
+    try{ if(item.id && typeof _rtdb!=='undefined'&&_rtdb) _rtdb.ref('zoo_specials/'+item.id).remove().catch(()=>{}); }catch(e){}
+    try{ ZSound._sndNetCatch&&ZSound._sndNetCatch(); }catch(e){}
+    ZP.toast('🥅 '+item.e+' '+item.n+' gefunden! +'+$mt(item.value),2000);
+    return true;
+  },
   // If more than MAX_ROAMING animals are loose in the zoo at once (from
   // slap-drops, market expiry, or admin events all adding up), delete the
   // least valuable one to keep things from growing without bound.
@@ -2631,8 +2767,11 @@ const ZG={
         // Sign with the player's name in their personality color
         const signCol = (op.color && /^#?[0-9a-fA-F]{6}$/.test(op.color)) ? op.color : '#FFD700';
         const sign=this._txt('🏠 '+op.name, .6, signCol);
-        sign.position.set(layout.sign.x, 3, layout.sign.z);
-        sign.scale.set(6,1.5,1);
+        // Higher up + bigger so it's readable from across the zoo, but out
+        // of the way when standing right next to the enclosure (you'd
+        // have to look up, rather than it sitting right in your face).
+        sign.position.set(layout.sign.x, 6.5, layout.sign.z);
+        sign.scale.set(9,2.2,1);
         this.scene.add(sign); group.push(sign);
         // Base platforms for the 5 enclosures (visual only, animals added below)
         layout.positions.forEach((p)=>{
@@ -3077,8 +3216,8 @@ const ZG={
         const _myPers=ZS._myPersonality?ZS._myPersonality():null;
         const signCol=(_myPers?.color && /^#?[0-9a-fA-F]{6}$/.test(_myPers.color)) ? _myPers.color : '#FFD700';
         const sign=this._txt('🏠 '+ZS.player, .6, signCol);
-        sign.position.set(layout.sign.x, 3, layout.sign.z);
-        sign.scale.set(6,1.5,1);
+        sign.position.set(layout.sign.x, 6.5, layout.sign.z);
+        sign.scale.set(9,2.2,1);
         this.scene.add(sign);
         this._mySignMesh=sign;
       }catch(e){}
@@ -3093,7 +3232,7 @@ const ZG={
       [[0,3.2,'x'],[0,-3.2,'x'],[-3.2,0,'z'],[3.2,0,'z']].forEach(([px,pz,ax])=>{[1.7,.6].forEach(hy=>{const rg=new THREE.BoxGeometry(ax==='x'?7:.2,.15,ax==='z'?7:.2);const r=new THREE.Mesh(rg,rlm);r.position.set(px,hy,pz);g.add(r);});});
       const enc=z?.enc?.[i];
       if(enc){const sp=this._anSp(enc.animal,enc.shiny);sp.position.set(0,1.5,0);g.add(sp);g.userData.animalSprite=sp;
-        const es=this._txt($mt(earn(enc,z,this.ev))+'/v',.45,'#00FF88');es.position.set(0,2.9,0);g.add(es);}
+        const es=this._txt($mt(earn(enc,z,this.ev))+'/👤',.45,'#00FF88');es.position.set(0,2.9,0);g.add(es);}
       const ns=this._txt('#'+(i+1),.5,'#fff');ns.position.set(-2.9,2.5,-2.9);g.add(ns);
       g.userData.encIdx=i; this.encGr.push(g); this.scene.add(g);
     });
@@ -3547,7 +3686,18 @@ const ZG={
     // upgrades (see shoe_mod) actually matter — buying shoes now nets you
     // back to (or above) the old baseline instead of being pure bonus on
     // top of an already-fast default.
-    const shoe_mod=(ZS.zoo?.upg?.goldshoes)?1.5:(ZS.zoo?.upg?.redshoes?1.2:1);
+    // Shoes now STACK — buy red, then gold (needs red), then platinum
+    // (needs gold), each one adding another +50% — instead of the old
+    // "only the best pair counts" design. Never applies while carrying an
+    // animal (carriers must stay catchable regardless of what shoes are
+    // in the closet).
+    let shoe_mod=1;
+    if(!this.carrying){
+      const _upg=ZS.zoo?.upg;
+      if(_upg?.redshoes) shoe_mod+=0.5;
+      if(_upg?.goldshoes) shoe_mod+=0.5;
+      if(_upg?.platinumshoes) shoe_mod+=0.5;
+    }
     const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
@@ -3562,15 +3712,14 @@ const ZG={
     const _joyFullPower=this.joy.on&&_joyMag>0.85;
     if(this.joy.on){mx+=fwd.x*(-this.joy.dy)+rgt.x*this.joy.dx;mz+=fwd.z*(-this.joy.dy)+rgt.z*this.joy.dx;}
     const l=Math.sqrt(mx*mx+mz*mz);
-    // ── TURBO: holding full power in the same direction gets progressively
-    // faster — 2× after 2s, 3× after 5s — until the joystick (or keys)
-    // direction/strength actually changes. "Full power" = keyboard (always
-    // full power when a key is down) or the joystick pushed near its edge.
-    // Direction is compared to the direction when the hold started — a
-    // small wobble is tolerated (dot > .97, ~14°) but an actual turn resets
-    // the timer, matching "bis man den Joystick wieder ändert".
+    // ── PLATINUM RUSH: exclusive to platinum shoe owners — hold a
+    // direction (keyboard always full power, joystick pushed near its
+    // edge) and you ramp up through 3 speed stages the longer you keep
+    // going straight: 2s/3s/4s. Changing direction resets it immediately.
+    // Never active while carrying — carriers must stay catchable.
+    const _hasPlatinum = !!(ZS.zoo?.upg?.platinumshoes) && !this.carrying;
     const _keyMoving=(this.keys['KeyW']||this.keys['ArrowUp']||this.keys['KeyS']||this.keys['ArrowDown']||this.keys['KeyA']||this.keys['ArrowLeft']||this.keys['KeyD']||this.keys['ArrowRight']);
-    const _fullPower = l>0 && (this.joy.on ? _joyFullPower : _keyMoving);
+    const _fullPower = _hasPlatinum && l>0 && (this.joy.on ? _joyFullPower : _keyMoving);
     if(!_fullPower){
       this._turboHoldStart=null; this._turboLevel=0; this._turboDir=null;
     } else {
@@ -3581,14 +3730,14 @@ const ZG={
         this._turboDir={x:dirX,z:dirZ}; this._turboHoldStart=now; this._turboLevel=0;
       } else {
         const held=now-this._turboHoldStart;
-        const newLevel = held>=4000?2:(held>=2000?1:0);
+        const newLevel = held>=4000?3:(held>=3000?2:(held>=2000?1:0));
         if(newLevel>this._turboLevel){
           this._turboLevel=newLevel;
-          try{ ZP.toast(newLevel===2?'⚡⚡ Turbo x4!':'⚡ Turbo x2!',1500); }catch(e){}
+          try{ ZP.toast(newLevel===3?'⚡⚡⚡ Platin-Rush x6!':newLevel===2?'⚡⚡ Platin-Rush x3!':'⚡ Platin-Rush x1.5!',1500); }catch(e){}
         }
       }
     }
-    const sp=baseSp*(this._turboLevel===2?4:this._turboLevel===1?2:1);
+    const sp=baseSp*(this._turboLevel===3?6:this._turboLevel===2?3:this._turboLevel===1?1.5:1);
     if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
     if(this._trashActive){
       // Trash room: square boundary 28, no zoo collisions
@@ -4472,12 +4621,19 @@ const ZG={
   // stronger slaps also reach further now.
   NET_RANGE: 60,
   _tryCatchNet(clientX, clientY){
-    if(typeof THREE==='undefined'||!this.cam||!this.scene||!this.droppedAnimals.length){
+    if(typeof THREE==='undefined'||!this.cam||!this.scene){
       ZP.toast('🥅 Kein entlaufenes Tier in Sicht!',1200); return;
     }
     const cx = clientX!=null ? clientX : window.innerWidth/2;
     const cy = clientY!=null ? clientY : window.innerHeight/2;
     const ndc = { x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1 };
+    // Special collectible items take priority if you're pointed right at
+    // one — they're small and rare, no reason to make people fight the
+    // raycaster if a roaming animal happens to be nearby too.
+    if(this._tryCatchSpecial(ndc)) return;
+    if(!this.droppedAnimals.length){
+      ZP.toast('🥅 Kein entlaufenes Tier in Sicht!',1200); return;
+    }
     const meshes = this.droppedAnimals.map(d=>d.mesh).filter(Boolean);
     if(!meshes.length){ ZP.toast('🥅 Kein entlaufenes Tier in Sicht!',1200); return; }
     if(!this._netRaycaster) this._netRaycaster = new THREE.Raycaster();
@@ -6038,8 +6194,12 @@ const LW={
       pop.innerHTML='<div style="font-size:3rem">'+(sd?.e||'✨')+'</div><div style="font-weight:900;color:#FFD700;font-size:1.3rem">'+p.l+'!</div>';
       document.body.appendChild(pop);setTimeout(()=>pop.remove(),4500);
     }else if(p.gift){
-      const bonus=[10000,25000,50000,88261][Math.floor(Math.random()*4)];
-      z.mt+=bonus;ZG._updHUD();ZP.toast('🎁 Weihnachtsgeschenk: '+$mt(bonus)+'!',4000);
+      // Was a fixed list [10000,25000,50000,88261] — now a % of current
+      // balance too, same reasoning as the plain MT prizes below.
+      const [lo,hi]=p.giftPctRange||[0.05,1.0];
+      const pct=lo+Math.random()*(hi-lo);
+      const bonus=Math.max(1,Math.round((z.mt||0)*pct));
+      z.mt+=bonus;ZG._updHUD();ZP.toast('🎁 Überraschung: '+$mt(bonus)+' ('+Math.round(pct*100)+'% deines Guthabens)!',4000);
     }else if(p.animal){
       // Animal prize from wheel!
       const z=ZS.zoo;if(!z)return;
@@ -6064,11 +6224,15 @@ const LW={
       if(!z.tb)z.tb={};z.tb[p.boost]=Date.now()+2*60*60*1000;
       ZP.toast('🍀 Glück ×2 für 2 Stunden!',4000);
     }else{
-      z.mt+=p.mt;ZG._updHUD();
+      // Was a fixed p.mt amount — now a % of CURRENT balance (see
+      // _makeWheelPrizesIncomeRelative below), computed fresh at spin
+      // time so it always scales with however much you actually have.
+      const awarded=Math.max(1,Math.round((z.mt||0)*(p.pct||0)));
+      z.mt+=awarded;ZG._updHUD();
       const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';
-      pop.innerHTML='<div style="font-weight:900;color:'+this.W.glowCol+'||#FFD700;font-size:2.4rem">🎉 '+p.l+'!</div>';
+      pop.innerHTML='<div style="font-weight:900;color:'+this.W.glowCol+'||#FFD700;font-size:2.4rem">🎉 +'+$mt(awarded)+'!</div><div style="font-size:1rem;color:#fff;margin-top:4px">('+p.l+')</div>';
       document.body.appendChild(pop);setTimeout(()=>pop.remove(),3500);
-      if(p.mt>=50000){ try{ ZNews.push('jackpot_mt', {amount:$mt(p.mt)}); }catch(e){} }
+      if((p.pct||0)>=0.4){ try{ ZNews.push('jackpot_mt', {amount:$mt(awarded)}); }catch(e){} }
     }
   },
 };
@@ -6484,36 +6648,42 @@ const ZTips = {
   },
 };
 
-// Cap every wheel's prize table: max 10'000 MT, and no animal prize above
-// "legendary" rarity — the wheels used to hand out jackpots up to 2 million
-// MT and secret/mythic/god-tier animals, which made the wheel massively
-// more powerful than actually playing the zoo. Runs once, right after all
-// wheels are defined, so every wheel (including seasonal ones) is affected
-// without having to hand-edit each prize list.
-(function _capWheelPrizes(){
-  const MT_CAP = 10000;
-  // Staggered replacement scale — clamping everything above the cap straight
-  // to exactly 10'000 left a wheel with e.g. 5 different-looking prizes that
-  // all actually paid the identical amount. Instead, each over-cap prize on
-  // a given wheel gets a DIFFERENT value from this ladder, biggest original
-  // jackpot still mapping to the biggest (10'000) slot, next-biggest to the
-  // next rung, and so on — so the wheel still reads as "some prizes are
-  // clearly better than others", just all within the new ceiling.
-  const CAP_LADDER = [88261,66196,44130,30891,22065,15446,10591,7061,4413,2648];
-  const rungFor = (rank) => rank < CAP_LADDER.length ? CAP_LADDER[rank]
-    : Math.max(100, Math.round(CAP_LADDER[CAP_LADDER.length-1]/Math.pow(1.6, rank-CAP_LADDER.length+1)));
+// Convert every wheel's fixed MT prizes into percentages of the player's
+// CURRENT balance, computed fresh each time the wheel is actually spun
+// (see LW._prize()) — replacing the old fixed-amount system (which used
+// to hand out up to 2 million MT flat, then later got capped to a flat
+// 10'000 MT ceiling; neither scaled with how much a player actually has).
+// The biggest original jackpot on each wheel becomes exactly 100% (i.e.
+// doubles your balance); every other prize on that same wheel keeps its
+// same RELATIVE size compared to that jackpot, just expressed as a %
+// instead of an absolute number — so the wheel still reads as "some
+// prizes are clearly better than others", it just always feels
+// proportional regardless of how far along a player's economy is.
+(function _makeWheelPrizesIncomeRelative(){
+  const fmtPct=(frac)=>{
+    const pct=frac*100;
+    if(pct>=99.5) return '💰 Verdopplung!';
+    if(pct>=10) return Math.round(pct)+'% Guthaben';
+    if(pct>=1) return pct.toFixed(1)+'% Guthaben';
+    return pct.toFixed(2)+'% Guthaben';
+  };
   const TIER_ORDER = ['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
   const MAX_TIER_IDX = TIER_ORDER.indexOf('legendary');
-  const fmtMT = (n) => Math.round(n).toLocaleString('de-CH').replace(/[,\u2019']/g,'.') + ' MT';
   Object.values(LW.WHEELS).forEach(wheel=>{
-    const overCap = (wheel.prizes||[]).filter(p=>typeof p.mt==='number' && p.mt>MT_CAP);
-    overCap.sort((a,b)=>b.mt-a.mt); // biggest original jackpot first
-    overCap.forEach((prize,rank)=>{
-      const newMt=rungFor(rank);
-      prize.mt=newMt;
-      if(/MT$/.test(prize.l||'')) prize.l=fmtMT(newMt);
-    });
+    const mtPrizes = (wheel.prizes||[]).filter(p=>typeof p.mt==='number' && p.mt>0);
+    if(mtPrizes.length){
+      const maxMt = Math.max(...mtPrizes.map(p=>p.mt));
+      mtPrizes.forEach(p=>{
+        p.pct = maxMt>0 ? p.mt/maxMt : 0;
+        delete p.mt;
+        p.l = fmtPct(p.pct);
+      });
+    }
     (wheel.prizes||[]).forEach(prize=>{
+      // "Überraschung" gift box: was a fixed [10000,25000,50000,88261]
+      // list — now a random 5%-100% of current balance range instead
+      // (applied in LW._prize()).
+      if(prize.gift) prize.giftPctRange=[0.05,1.0];
       if(prize.animal && prize.animal.r){
         const idx=TIER_ORDER.indexOf(prize.animal.r);
         if(idx>MAX_TIER_IDX) prize.animal.r='legendary';
@@ -6862,7 +7032,7 @@ const ZP={
       '<div style="font-size:1.4rem;font-weight:900;color:'+col2+';margin-bottom:8px;text-shadow:0 0 20px '+col2+'">'+(rarNames[animal.r]||animal.r).toUpperCase()+'</div>'+
       '<div style="font-size:5.5rem;margin:8px 0">'+animal.e+'</div>'+
       '<div style="font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:4px">'+animal.n+'</div>'+
-      '<div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-bottom:6px">💰 '+$mt(animal.earn)+'/v</div>'+
+      '<div style="font-size:.8rem;color:rgba(255,255,255,.45);margin-bottom:6px">💰 '+$mt(animal.earn)+'/👤</div>'+
       '<div style="font-size:.85rem;color:'+(placed?'#27AE60':'#e74c3c')+';margin-bottom:22px;font-weight:700">'+(placed?'✅ Im Gehege!':'❌ Kein Platz — Tier verloren')+'</div>'+
       '<button onclick="document.getElementById(\"egg-crack-ui\").remove()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:14px 40px;border-radius:14px;font-weight:900;font-size:1.1rem;cursor:pointer">Super! ➜</button>';
     ov.onclick=null; ov.ontouchend=null;
@@ -6903,7 +7073,7 @@ const ZP={
   _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();
     const _gt=(k,de,vars)=>{let s=(typeof t!=='undefined')?t(k):null;if(!s||s===k)s=de;if(vars)Object.keys(vars).forEach(vk=>{s=s.split('{'+vk+'}').join(vars[vk]);});return s;};
-    if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">'+_gt('zoo.gondola_locked_police','🚓🔒 Gondel gesperrt!').replace('🚓🔒 ','')+'</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">'+_gt('zoo.police_raid','Polizei-Razzia · noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)})+'</div></div>';return;}const can=((ZS.dsMT||0)+z.mt)>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?_gt('zoo.open_after_buy','🥚 Sofort öffnen nach Kauf!'):'💰 '+$mt(a.earn*tm)+'/v'} · ${$mt(a.p)}</div><button class="ab" ${(!can)?'disabled':''} style="font-size:.88rem;padding:9px 20px;${a.isEgg?'background:linear-gradient(135deg,#9b59b6,#6c3483);':''}" onclick="ZP._buyG()">${!can?_gt('zoo.too_little','❌ Zu wenig'):a.isEgg?_gt('zoo.buy_and_open','🥚 Kaufen & Öffnen!'):_gt('zoo.buy_cart','🛒 Kaufen')}</button></div>`;},
+    if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">'+_gt('zoo.gondola_locked_police','🚓🔒 Gondel gesperrt!').replace('🚓🔒 ','')+'</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">'+_gt('zoo.police_raid','Polizei-Razzia · noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)})+'</div></div>';return;}const can=((ZS.dsMT||0)+z.mt)>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?_gt('zoo.open_after_buy','🥚 Sofort öffnen nach Kauf!'):'💰 '+$mt(a.earn*tm)+'/👤'} · ${$mt(a.p)}</div><button class="ab" ${(!can)?'disabled':''} style="font-size:.88rem;padding:9px 20px;${a.isEgg?'background:linear-gradient(135deg,#9b59b6,#6c3483);':''}" onclick="ZP._buyG()">${!can?_gt('zoo.too_little','❌ Zu wenig'):a.isEgg?_gt('zoo.buy_and_open','🥚 Kaufen & Öffnen!'):_gt('zoo.buy_cart','🛒 Kaufen')}</button></div>`;},
   _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;
     const _gt=(k,de,vars)=>{let s=(typeof t!=='undefined')?t(k):null;if(!s||s===k)s=de;if(vars)Object.keys(vars).forEach(vk=>{s=s.split('{'+vk+'}').join(vars[vk]);});return s;};
     if((z.gondLockUntil||0)>Date.now()){this.toast(_gt('zoo.gondola_locked_toast','🚓 Gondel gesperrt (Polizei)! Noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)}),3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast(_gt('zoo.all_enc_full','❌ Alle Gehege belegt!'));return;}if(((ZS.dsMT||0)+z.mt)<g.a.p){this.toast(_gt('zoo.too_little_mt','❌ Zu wenig MT!'));return;}
@@ -6977,7 +7147,7 @@ const ZP={
       return`<div style="background:rgba(255,255,255,${owned?.08:.02});border:1px solid ${owned?col:'rgba(255,255,255,.05)'};border-radius:10px;padding:6px;text-align:center;${owned?'':'filter:grayscale(1)opacity(.4)'}">
         <div style="font-size:1.6rem">${owned?a.e:'❓'}</div>
         <div style="font-size:.52rem;color:${owned?'rgba(255,255,255,.8)':'rgba(255,255,255,.3)'};margin-top:2px">${owned?a.n:'???'}</div>
-        ${owned?`<div style="font-size:.48rem;color:#00FF88">💰${a.earn}/v</div>`:''}
+        ${owned?`<div style="font-size:.48rem;color:#00FF88">💰${a.earn}/👤</div>`:''}
       </div>`;
     }).join('');
     
@@ -7074,7 +7244,7 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+20% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:500,shoe:true,col:'#FFD700'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50}];
+  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'Nochmal +50% (braucht rote Schuhe) — tippen für Details',p:500,shoe:true,col:'#FFD700',req:'redshoes'},{id:'platinumshoes',n:'💎 Platin-Turnschuhe',d:'Nochmal +50%, plus Platin-Rush beim Geradeauslaufen (braucht goldene Schuhe) — tippen für Details',p:2000,shoe:true,col:'#B9F2FF',req:'goldshoes'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50}];
     const insCost=Math.max(1, Math.round((z.tv||0)/100));
     IT.push({id:'insurance',n:'🛡️ Versicherung',d:$mt(insCost)+' alle 5 Min · keine Unfallkosten — tippen für Details',p:0,insurance:true});
     IT.push({id:'rebirth',n:'🔄 Rebirth',d:'Setzt fast alles zurück, für einen dauerhaften Bonus — tippen für Details',p:0,rebirth:true});
@@ -7091,9 +7261,9 @@ const ZP={
       }
       if(item.shoe){
         const o=z.upg?.[item.id];
-        const otherOwned=item.id==='redshoes'?z.upg?.goldshoes:z.upg?.redshoes;
+        const reqMet=!item.req||z.upg?.[item.req];
         if(o)return`<div class="ac" style="opacity:.5;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;
-        return `<div class="ac"><div style="flex:1;display:flex;gap:8px;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${otherOwned?'<div style="color:#ff6b6b;font-size:.64rem">Ersetzt das andere Paar (kein Stapeln)</div>':''}</div></div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="event.stopPropagation();ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
+        return `<div class="ac"><div style="flex:1;display:flex;gap:8px;cursor:pointer" onclick="ZP._showShoeInfo('${item.id}')"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!reqMet?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherige Schuhe kaufen!</div>':''}</div></div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${(!reqMet||((ZS.dsMT||0)+z.mt)<item.p)?'disabled':''} onclick="event.stopPropagation();ZP._bZ('${item.id}',${item.p})">${!reqMet?'Gesperrt':((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;
       }const o=!item.token&&z.upg?.[item.id];const req=!item.req||z.upg?.[item.req];if(o)return`<div class="ac" style="opacity:.5;cursor:pointer" onclick="ZP._showShopItemInfo('${item.id}')"><div>✅</div><div style="font-weight:900;font-size:.84rem">${item.n}</div></div>`;return`<div class="ac"><div style="cursor:pointer" onclick="ZP._showShopItemInfo('${item.id}')">${item.n.split(' ')[0]}</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo('${item.id}')"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${!req?'<div style="color:#ff6b6b;font-size:.64rem">Erst vorherigen!</div>':''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${(()=>{const disc=window._adminDiscount;const ok=disc&&disc.until>Date.now()&&(disc.item==='all'||disc.item==='vis');const finalP=ok?Math.round(item.p*(1-disc.pct/100)):item.p;return (ok?'<s style="color:#666;font-size:.7rem">'+$mt(item.p)+'</s> <b style="color:#27AE60">'+$mt(finalP)+'</b>':$mt(finalP));})()}</div><button class="ab" ${(!req||((ZS.dsMT||0)+z.mt)<(window._adminDiscount&&window._adminDiscount.until>Date.now()?Math.round(item.p*(1-window._adminDiscount.pct/100)):item.p))?'disabled':''} onclick="event.stopPropagation();ZP._bZ('${item.id}',${item.p})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
   _bZ(id,p){
     const z=ZS.zoo;
@@ -7642,27 +7812,28 @@ const ZP={
     document.body.appendChild(el);
   },
   _showShoeInfo(id){
-    const isGold=id==='goldshoes';
-    const col=isGold?'#FFD700':'#E74C3C';
-    const emoji=isGold?'✨':'👟';
-    const title=(typeof t!=='undefined')?t(isGold?'zoo.shoe_gold_title':'zoo.shoe_red_title'):(isGold?'✨ Goldene Turnschuhe':'👟 Rote Turnschuhe');
-    const desc=(typeof t!=='undefined')?t(isGold?'zoo.shoe_gold_desc':'zoo.shoe_red_desc'):'';
-    const boost=isGold?'+50%':'+20%';
+    const meta={
+      redshoes:{col:'#E74C3C',emoji:'👟',titleKey:'zoo.shoe_red_title',descKey:'zoo.shoe_red_desc',boost:'+50%',price:100},
+      goldshoes:{col:'#FFD700',emoji:'✨',titleKey:'zoo.shoe_gold_title',descKey:'zoo.shoe_gold_desc',boost:'+50%',price:500},
+      platinumshoes:{col:'#B9F2FF',emoji:'💎',titleKey:'zoo.shoe_platinum_title',descKey:'zoo.shoe_platinum_desc',boost:'+50% + Rush',price:2000},
+    };
+    const m=meta[id]; if(!m) return;
+    const title=(typeof t!=='undefined')?t(m.titleKey):id;
+    const desc=(typeof t!=='undefined')?t(m.descKey):'';
     const owned=ZS.zoo?.upg?.[id];
-    const price=isGold?500:100;
     const el=document.createElement('div');
     el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
     el.onclick=(e)=>{ if(e.target===el) el.remove(); };
-    el.innerHTML=`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid ${col};border-radius:16px;padding:22px;max-width:320px;text-align:center;color:#fff">
-      <div style="font-size:2.6rem">${emoji}</div>
-      <div style="font-weight:900;font-size:1.1rem;color:${col};margin:6px 0">${title}</div>
+    el.innerHTML=`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid ${m.col};border-radius:16px;padding:22px;max-width:320px;text-align:center;color:#fff">
+      <div style="font-size:2.6rem">${m.emoji}</div>
+      <div style="font-weight:900;font-size:1.1rem;color:${m.col};margin:6px 0">${title}</div>
       <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:12px;line-height:1.5">${desc}</div>
       <div style="display:flex;justify-content:space-around;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:14px">
-        <div>🏃 <b style="color:#fff">${boost}</b><br>Laufgeschwindigkeit</div>
-        <div>💰 <b style="color:#fff">${$mt(price)}</b><br>einmalig</div>
+        <div>🏃 <b style="color:#fff">${m.boost}</b><br>Laufgeschwindigkeit</div>
+        <div>💰 <b style="color:#fff">${$mt(m.price)}</b><br>einmalig</div>
         <div>♾️ <b style="color:#fff">${owned?'Aktiv':'Dauerhaft'}</b><br>${owned?'':'nach Kauf'}</div>
       </div>
-      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:${col};color:#1a1a2e;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">✓ OK</button>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:${m.col};color:#1a1a2e;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">✓ OK</button>
     </div>`;
     document.body.appendChild(el);
   },
@@ -8084,6 +8255,16 @@ const ZP={
     this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
   },
   async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);try{if(typeof _rtdb!=='undefined'&&_rtdb&&ev){await _rtdb.ref('zoo_broadcast/event').set({eventId:ev.id,at:Date.now(),dur,from:ZS.player||'Admin'});}}catch(e){}if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');if(ev)try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}},
+  async adSpecials(){
+    if(!(await showConfirm('🎁 5 Spezial-Gegenstände jetzt im ganzen Zoo verstecken? Ersetzt alle noch nicht gefundenen von heute.')))return;
+    // Global one-time write to a shared RTDB collection — every player's
+    // _listenSpecials() listener picks the new items up automatically, no
+    // need to broadcast a command for each client to independently spawn
+    // anything (unlike TikTok-Tierbefreiung, which IS per-player).
+    if(typeof ZG!=='undefined' && ZG._adminTriggerSpecials) await ZG._adminTriggerSpecials();
+    this.toast('✅ Spezial-Gegenstände versteckt!');
+    this.close('adm');
+  },
   async adTikTok(){
     if(!(await showConfirm('📱🐾 TikTok-Tierbefreiung starten? Das wertvollste (nicht geschützte) Tier jedes aktiven Spielers wird freigelassen.')))return;
     const cmd={type:'tiktok_liberation',target:'_all',id:'tt_'+Date.now(),exp:Date.now()+60000};
@@ -13047,6 +13228,8 @@ window.ZooEvents = ZooEvents;
             <div class="padmin-section-title" style="margin-top:14px">📱 Sondereinsatz</div>
             <button class="padmin-btn" style="background:linear-gradient(135deg,#ff0050,#00f2ea);color:#fff" onclick="ZP.adTikTok()">📱🐾 TikTok-Tierbefreiung starten</button>
             <div style="font-size:.68rem;color:rgba(255,255,255,.4);text-align:center">Bestes (nicht geschütztes) Tier jedes aktiven Spielers bricht aus und läuft langsam frei im Zoo herum — von jedem einfangbar.</div>
+            <button class="padmin-btn" style="background:linear-gradient(135deg,#8B5A2B,#5d3a1a);color:#fff;margin-top:8px" onclick="ZP.adSpecials()">🎁 Spezial-Gegenstände verstecken</button>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.4);text-align:center">5 kleine Gegenstände (Geldbeutel, Uhr, Zahnspange, ...) im Wert von 2-100 MT werden zufällig im Zoo verteilt — mit dem Netz fangbar. Passiert sonst automatisch einmal pro Tag.</div>
           </div>
         </div>
       </div>
