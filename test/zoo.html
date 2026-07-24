@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v386 -->
+<!-- ZOO v388 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=386"></script>
-<script src="rewardchests.js?v=386"></script>
-<script src="personality.js?v=386"></script>
+<script src="lang.js?v=388"></script>
+<script src="rewardchests.js?v=388"></script>
+<script src="personality.js?v=388"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v386','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v388','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=386"></script>
-<script src="worlds.js?v=386"></script>
+<script src="firebase-state.js?v=388"></script>
+<script src="worlds.js?v=388"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1940,12 +1940,30 @@ const ZG={
     try{
       // Deliberately small and low to the ground — "nur aus kurzer
       // Distanz erkennbar" — you have to actually walk up close to spot one.
+      // Starts fully invisible; _tickSpecialsVisibility() reveals it only
+      // once a player gets within REVEAL_R of it, so finding one takes
+      // deliberate searching (and a bit of luck), not just glancing
+      // around the zoo from a distance.
       const sprite=this._txt(item.e,1,'#fff');
       sprite.position.set(item.x, 0.6, item.z);
       sprite.scale.set(1.1,1.1,1);
+      sprite.visible=false;
       this.scene.add(sprite);
       item.mesh=sprite;
     }catch(e){}
+  },
+  // Toggle visibility based on distance to the local player — called every
+  // tick (100ms), cheap enough for a handful of items. Each OTHER player
+  // sees this independently based on THEIR OWN position, so someone
+  // standing right on top of an item is the only one who sees it appear.
+  SPECIAL_REVEAL_R: 9,
+  _tickSpecialsVisibility(){
+    if(!this.specialItems.length) return;
+    this.specialItems.forEach(item=>{
+      if(!item.mesh) return;
+      const dx=this.pl.x-item.x, dz=this.pl.z-item.z;
+      item.mesh.visible = Math.sqrt(dx*dx+dz*dz) < this.SPECIAL_REVEAL_R;
+    });
   },
   // Scatter 5 fresh items across the walkable zoo radius. Called either by
   // the daily auto-trigger (_tryTriggerSpecials) or directly by an admin
@@ -4044,6 +4062,7 @@ const ZG={
     this.visitT+=100;
     z.lastTickAt=Date.now();
     this._tickWander(0.1);
+    this._tickSpecialsVisibility();
     if(this.visitT>=Math.min(ZS.visitMs(),5000)){this.visitT=0;this._visitor();}
     if(this.slapCD>0)this.slapCD-=100;
     this._updEvTimer(); this._updHUD();
@@ -6753,9 +6772,9 @@ const ZP={
         const myNameLower = ZS.player.toLowerCase();
         const myIdx = standings.findIndex(p=>p.name?.toLowerCase()===myNameLower);
         if(myIdx>=0){
-          standings[myIdx] = {...standings[myIdx], _mt: dsOnly + liveZooMt};
+          standings[myIdx] = {...standings[myIdx], _mt: dsOnly + liveZooMt, reb: ZS.zoo.reb||0};
         } else {
-          standings.push({name:ZS.player, _mt: dsOnly + liveZooMt});
+          standings.push({name:ZS.player, _mt: dsOnly + liveZooMt, reb: ZS.zoo.reb||0});
         }
         standings.sort((a,b)=>b._mt-a._mt);
       }
@@ -6771,7 +6790,7 @@ const ZP={
       return `<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:4px;background:${isMe?'rgba(41,182,246,.15)':'rgba(255,255,255,.04)'}">
         <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
-        <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${isMe?' (Du)':''}</span>
+        <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
         <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
       </div>`;
     }).join('');

@@ -1469,7 +1469,10 @@ const Contest = {
     const _zooMTFor = (name, playerObj) => {
       const z = zoosAll[name?.toLowerCase()];
       if (!z) return 0;
-      if (!playerObj?.deviceId || !z.deviceId || playerObj.deviceId !== z.deviceId) return 0;
+      // Same policy as combinedMTFor() — matched by name only, no device
+      // gate (this was a third copy of the exact same check, missed
+      // during the earlier fix, which is why the wheel/Zoo/Welt-1 numbers
+      // kept disagreeing for anyone playing from more than one device).
       return sanitizeMT(z.mt);
     };
     const allNames = new Set([...Object.keys(merged), ...Object.keys(zoosAll)]);
@@ -1479,7 +1482,8 @@ const Contest = {
         const p = merged[name];
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
         const dsMT = dsMTFor(p);
-        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name, p)) };
+        const z = zoosAll[name?.toLowerCase()];
+        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name, p)), reb: z?.reb||0 };
       })
       .sort((a,b) => b._mt - a._mt);
     return players;

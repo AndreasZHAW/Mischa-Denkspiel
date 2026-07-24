@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v386';
+const APP_VERSION = 'v388';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v386 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v388 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1811,6 +1811,7 @@ const App = {
         .filter(p => p.name)
         .map(p => ({
           ...p,
+          reb: zoosAll[p.name?.toLowerCase()]?.reb||0,
           _mt: (() => {
           // dsMTFor handles both task rewards AND the one-time language bonus,
           // then we sanitize + add zoo MT for the combined leaderboard total.
@@ -1838,7 +1839,7 @@ const App = {
         <div style="font-size:1.1rem;min-width:28px;text-align:center">${medal||('<span style="color:rgba(255,255,255,.3);font-size:.85rem">#'+(i+1)+'</span>')}</div>
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <div style="flex:1">
-          <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:1.05rem;color:#29B6F6">(Du)</span>':''}</div>
+          <div style="font-weight:700;font-size:.92rem">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' <span style="font-size:1.05rem;color:#29B6F6">(Du)</span>':''}</div>
           ${tasksDone!==null?`<div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>`:''}
         </div>
         <div style="text-align:right">
