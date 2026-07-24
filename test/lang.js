@@ -125,7 +125,7 @@ const STRINGS = {
   'zoo.rarity_secret':     { de:'Geheim', en:'Secret', fr:'Secret' , it:'Segreto'},
   'zoo.gondola_enter':     { de:'🚪 Gondel-Station (hineinlaufen)', en:'🚪 Gondola Station (walk in)', fr:'🚪 Station de gondole (entrer)' , it:'🚪 Stazione della gondola (entra a piedi)'},
   'zoo.popular_title':     { de:'BELIEBT!', en:'POPULAR!', fr:'POPULAIRE !' , it:'POPOLARE!'},
-  'zoo.popular_desc':      { de:'100 Besucher in deinem Zoo! +100 MT!', en:'100 visitors in your zoo! +100 MT!', fr:'100 visiteurs dans ton zoo ! +100 MT !' , it:'100 visitatori nel tuo zoo! +100 MT!'},
+  'zoo.popular_desc':      { de:'{n} Besucher in deinem Zoo! +{mt} MT!', en:'{n} visitors in your zoo! +{mt} MT!', fr:'{n} visiteurs dans ton zoo ! +{mt} MT !' , it:'{n} visitatori nel tuo zoo! +{mt} MT!'},
   'zoo.tiktok_event':      { de:'Unseriöse TikToker haben sich als Tierschützer ausgegeben und in allen Zoobereichen das wertvollste Tier freigelassen. Schnell Tiere suchen und wieder einfangen!',
                              de_simple:'Ein paar TikToker haben sich als Tierschützer ausgegeben und überall im Zoo das wertvollste Tier freigelassen. Schnell suchen und wieder einfangen!',
                              en:'Shady TikTokers posed as animal rights activists and set the most valuable animal in every zoo area free. Go find them and catch them again — fast!',

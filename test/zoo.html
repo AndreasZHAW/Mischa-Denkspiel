@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v389 -->
+<!-- ZOO v390 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=389"></script>
-<script src="rewardchests.js?v=389"></script>
-<script src="personality.js?v=389"></script>
+<script src="lang.js?v=390"></script>
+<script src="rewardchests.js?v=390"></script>
+<script src="personality.js?v=390"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v389','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v390','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=389"></script>
-<script src="worlds.js?v=389"></script>
+<script src="firebase-state.js?v=390"></script>
+<script src="worlds.js?v=390"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1213,6 +1213,11 @@ const ZA={
       if(!us[k]){ us[k]={n:res.player.name,p:'auto',ch:null}; }
       us[k].p='auto'; // keep the local copy in sync but never authoritative for a real account
       localStorage.setItem('zoo_users',JSON.stringify(us));
+      // IMPORTANT: also sync the SHARED Denkspiel session, not just the
+      // Zoo's own ZS.player — without this, "← Denkspiel" (or Abmelden)
+      // landed back on index.html looking logged OUT, because the shared
+      // session variable was never actually set by logging in here.
+      try{ if(typeof State!=='undefined' && State.setCurrentPlayer) State.setCurrentPlayer(res.player); }catch(err){}
       ZS.player=res.player.name; ZS.isAdmin=k==='mischa'||k==='admin';
       if(!us[k].ch)this._showChar();else{ZS.char=us[k].ch;this._showMode();}
       return;
@@ -1265,6 +1270,16 @@ const ZA={
   logout(){
     ZG.zStop();
     try{ if(typeof State!=='undefined'&&State.stopSessionWatch) State.stopSessionWatch(); }catch(e){}
+    // Also clear the SHARED Denkspiel session — "Abmelden" in the Zoo
+    // should mean logged out everywhere, not just in the Zoo's own local
+    // state (which used to leave the Welt-1 session dangling, causing
+    // confusing half-logged-in states depending on which screen you
+    // happened to look at next).
+    try{
+      if(typeof State!=='undefined') State.currentPlayer=null;
+      sessionStorage.removeItem('mischa_current');
+      localStorage.removeItem('mischa_current_backup');
+    }catch(e){}
     // Remove our own RTDB live-position entry immediately so our enclosures vanish
     // from other players' screens right away, instead of waiting for the
     // ~10s staleness cutoff to naturally exclude us.
@@ -1469,6 +1484,17 @@ const ZG={
       this._tryTriggerSpecials();
     }, 20*60000)); // check every 20 min whether a new day's items still need spawning
     setTimeout(()=>{ if(ZS.player&&ZS.zoo) this._tryTriggerSpecials(); }, 8000);
+    // Rank-change notifications used to only get checked right after a
+    // purchase/upgrade/rebirth — meaning someone else's progress could
+    // quietly push you up or down a rank for a long time with no notice
+    // at all if you weren't actively buying anything. RankNotify.check()
+    // already throttles the actual notification to at most once per hour
+    // internally, so calling it periodically here is safe — it just
+    // means a rank change gets NOTICED sooner, not spammed more.
+    this._ivs.push(setInterval(()=>{
+      if(!ZS.player||!ZS.zoo)return;
+      try{ if(typeof RankNotify!=='undefined') RankNotify.check(ZS.player); }catch(e){}
+    }, 8*60000));
     this._ivs.push(setInterval(()=>this._checkMarketExpiry(),5*60000));
     this._listenMarketStalls();
     this._gondTick();
@@ -1496,6 +1522,7 @@ const ZG={
       }catch(e){}
     }, 800);
     try{ ZNews.init(); }catch(e){}
+    try{ SECRETS._loadUnlocked(); }catch(e){}
     try{
       const _tipsOn = typeof ZTips!=='undefined' && ZTips.isEnabled();
       const icon = document.getElementById('tipsToggleIcon');
@@ -1946,7 +1973,7 @@ const ZG={
       // around the zoo from a distance.
       const sprite=this._txt(item.e,1,'#fff');
       sprite.position.set(item.x, 0.6, item.z);
-      sprite.scale.set(1.1,1.1,1);
+      sprite.scale.set(2.4,2.4,1);
       sprite.visible=false;
       this.scene.add(sprite);
       item.mesh=sprite;
@@ -1956,7 +1983,7 @@ const ZG={
   // tick (100ms), cheap enough for a handful of items. Each OTHER player
   // sees this independently based on THEIR OWN position, so someone
   // standing right on top of an item is the only one who sees it appear.
-  SPECIAL_REVEAL_R: 9,
+  SPECIAL_REVEAL_R: 15,
   _tickSpecialsVisibility(){
     if(!this.specialItems.length) return;
     this.specialItems.forEach(item=>{
@@ -6511,6 +6538,27 @@ const ZTips = {
         en: '💡 Buy a 🥅 net in the shop RIGHT NOW — only 30 MT! A dropped animal runs off and can only be recaptured with a net. Your very first animal is protected, but none after that.',
         fr: '💡 Achète MAINTENANT un 🥅 filet dans la boutique — seulement 30 MT ! Un animal lâché s\'enfuit et ne peut être rattrapé qu\'avec un filet — ton tout premier animal est protégé, mais aucun après.',
       } },
+    { id:'shoes',        when: () => !ZS.zoo?.upg?.redshoes,
+      msg: {
+        de: '💡 👟 Turnschuhe im Shop machen dich dauerhaft schneller — rot, dann gold, dann platin, jede Stufe baut auf der vorherigen auf (insgesamt bis +150%)!',
+        de_simple: '💡 👟 Turnschuhe im Shop machen dich dauerhaft schneller — rot, dann gold, dann platin, jede Stufe zusätzlich zur vorherigen!',
+        en: '💡 👟 Sneakers in the shop make you permanently faster — red, then gold, then platinum, each tier stacking on top of the last (up to +150%)!',
+        fr: '💡 👟 Des baskets dans la boutique te rendent définitivement plus rapide — rouge, puis or, puis platine, chaque niveau s\'ajoutant au précédent (jusqu\'à +150 %) !',
+      } },
+    { id:'specials',     when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2,
+      msg: {
+        de: '💡 Jeden Tag verstecken sich 5 kleine Spezial-Gegenstände irgendwo im Zoo (Geldbeutel, Uhr, ...) — sie sind erst aus der Nähe sichtbar! Lauf herum und fang sie mit dem Netz.',
+        de_simple: '💡 Jeden Tag sind 5 kleine Spezial-Gegenstände im Zoo versteckt — man sieht sie erst, wenn man ganz nah dran ist! Lauf herum und fang sie mit dem Netz.',
+        en: '💡 Every day, 5 small special items (wallet, watch, ...) are hidden somewhere in the zoo — they only become visible up close! Walk around and catch them with the net.',
+        fr: '💡 Chaque jour, 5 petits objets spéciaux (portefeuille, montre, ...) se cachent quelque part dans le zoo — visibles seulement de très près ! Explore et attrape-les avec le filet.',
+      } },
+    { id:'insurance',    when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2 && !ZS.zoo?.insuranceActive,
+      msg: {
+        de: '💡 Eine 🛡️ Versicherung im Shop schützt dich vor Unfallkosten (Preis richtet sich nach deinen Besuchern) — und die 🧹🛡️ Kehrmaschinenversicherung (einmalig 50 MT) sorgt dafür, dass du nie wieder Müll aufsammeln musst!',
+        de_simple: '💡 Eine 🛡️ Versicherung im Shop schützt dich vor Unfallkosten — und die 🧹🛡️ Kehrmaschinenversicherung (50 MT) heisst: nie wieder Müll aufsammeln!',
+        en: '💡 A 🛡️ insurance in the shop protects you from accident costs (price scales with your visitors) — and the 🧹🛡️ sweeper insurance (one-time 50 MT) means you never have to pick up trash again!',
+        fr: '💡 Une 🛡️ assurance dans la boutique te protège des frais d\'incidents (le prix dépend de tes visiteurs) — et l\'assurance 🧹🛡️ balayeuse (50 MT, une seule fois) signifie que tu n\'auras plus jamais à ramasser de déchets !',
+      } },
     { id:'gold',
       msg: {
         de: '💡 Nutze die ⚗️ Goldmaschine, um deine Tiere aufzuwerten!',
@@ -6534,10 +6582,10 @@ const ZTips = {
       } },
     { id:'rebirth',
       msg: {
-        de: '💡 Bereit für mehr? Ein 🔄 Rebirth gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & MT!',
-        de_simple: '💡 Bereit für mehr? Ein 🔄 Rebirth gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & MT!',
-        en: '💡 Ready for more? A 🔄 rebirth gives you a permanent multiplier — but costs almost all animals & MT!',
-        fr: '💡 Prêt pour plus ? Une 🔄 renaissance te donne un multiplicateur permanent — mais coûte presque tous tes animaux et MT !',
+        de: '💡 Bereit für mehr? Ein 🔄 Rebirth (im Shop) gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & 1 Mio. MT. Geht maximal 3×!',
+        de_simple: '💡 Bereit für mehr? Ein 🔄 Rebirth (im Shop) gibt dir einen dauerhaften Multiplikator — kostet aber fast alle Tiere & 1 Mio. MT. Geht maximal 3×!',
+        en: '💡 Ready for more? A 🔄 rebirth (in the shop) gives you a permanent multiplier — but costs almost all animals & 1 million MT. Possible up to 3 times!',
+        fr: '💡 Prêt pour plus ? Une 🔄 renaissance (dans la boutique) te donne un multiplicateur permanent — mais coûte presque tous tes animaux et 1 million de MT. Possible jusqu\'à 3 fois !',
       } },
     { id:'trade',
       msg: {
@@ -11077,6 +11125,19 @@ function _handleAdminEvent(d){
 // ══════════════════════════════════════════
 const SECRETS = {
   unlocked: {},
+  // Was a plain in-memory object with NO persistence at all — reset to {}
+  // on every page reload/new session, so every "one-time" secret (100
+  // visitors, Konami code, night owl, ...) fired again the very next time
+  // its condition was checked, even though it had already been unlocked
+  // long ago. Now saved into the zoo doc itself.
+  _loadUnlocked(){
+    try{ this.unlocked = {...(ZS.zoo?.secretsUnlocked||{})}; }catch(e){ this.unlocked = {}; }
+  },
+  _saveUnlocked(){
+    try{
+      if(ZS.zoo){ ZS.zoo.secretsUnlocked = {...this.unlocked}; ZS.save&&ZS.save(); }
+    }catch(e){}
+  },
   
   // Check and trigger secrets
   check(type, data){
@@ -11085,7 +11146,7 @@ const SECRETS = {
     // SECRET 1: France Slap admin (0.1% chance)
     if(type==='france_slap_win'){
       if(Math.random()<0.001){
-        this.unlocked['admin']=true;
+        this.unlocked['admin']=true; this._saveUnlocked();
         localStorage.setItem('zoo_secret_admin',ZS.player);
         this._reveal('🗼 SECRET ENTDECKT!',
           'Du hast Admin-Befehle freigeschaltet! Öffne das Admin-Panel mit [A] oder im Menü.',
@@ -11098,12 +11159,12 @@ const SECRETS = {
     // SECRET 2: Moon walk - walk backwards very fast 
     if(type==='moonwalk'){
       this._reveal('🌙 MOONWALK!','Du hast den Moonwalk entdeckt! Halte [S] + [Shift] für Lichtgeschwindigkeit!','#FFD700');
-      this.unlocked['moonwalk']=true;
+      this.unlocked['moonwalk']=true; this._saveUnlocked();
     }
     
     // SECRET 3: Konami code in zoo
     if(type==='konami'){
-      this.unlocked['konami']=true;
+      this.unlocked['konami']=true; this._saveUnlocked();
       ZS.zoo.mt+=50;
       this._reveal('🎮 KONAMI!','↑↑↓↓←→←→BA — +50 MT!','#27AE60');
       ZP.toast('🎮 CHEAT CODE! +50 MT!',3000);
@@ -11111,13 +11172,13 @@ const SECRETS = {
     
     // SECRET 4: Stay still 60 seconds - a ghost appears
     if(type==='ghost'){
-      this.unlocked['ghost']=true;
+      this.unlocked['ghost']=true; this._saveUnlocked();
       this._reveal('👻 GEISTERSTUNDE!','Du hast 60 Sekunden stillgehalten. Ein Geist erscheint...','#888');
     }
     
     // SECRET 5: Buy all 5 animals in under 5 minutes  
     if(type==='speedbuy'){
-      this.unlocked['speedbuy']=true;
+      this.unlocked['speedbuy']=true; this._saveUnlocked();
       this._reveal('⚡ SPEED BUYER!','5 Tiere in unter 5 Min! ×3 Einnahmen für 10 Min!','#F39C12');
       if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*3;setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=3;},600000);}
     }
@@ -11140,7 +11201,7 @@ const SECRETS = {
   checkNightOwl(){
     const h=new Date().getHours();
     if((h>=0&&h<3)&&!this.unlocked['nightowl']){
-      this.unlocked['nightowl']=true;
+      this.unlocked['nightowl']=true; this._saveUnlocked();
       this._reveal('🦉 NACHT-EULE!','Du spielst mitten in der Nacht! +80 MT + Nacht-Slap!','#9B59B6');
       if(ZS.zoo){ZS.zoo.mt=(ZS.zoo.mt||0)+80;ZG._grantSlap(ZS.zoo,'void');}
       ZP.toast('🦉 Nacht-Eule Secret! +80 MT + Void Slap!',5000);
@@ -11155,7 +11216,7 @@ const SECRETS = {
     clearTimeout(this._gondolaTapTimer);
     this._gondolaTapTimer=setTimeout(()=>this._gondolaTaps=0,3000);
     if(this._gondolaTaps>=7&&!this.unlocked['gondola7']){
-      this.unlocked['gondola7']=true;
+      this.unlocked['gondola7']=true; this._saveUnlocked();
       this._reveal('🚡 GONDEL-MEISTER!','7x die Gondel berührt! Alle Gehege entsperrt!','#1ABC9C');
       if(ZS.zoo){ZS.zoo.xenc=5;ZS._fix&&ZS._fix();}
       ZP.toast('🚡 +5 extra Gehege freigeschaltet!',4000);
@@ -11167,7 +11228,7 @@ const SECRETS = {
   trackSlap(){
     this._slapCount++;
     if(this._slapCount>=10&&!this.unlocked['slapmagnet']){
-      this.unlocked['slapmagnet']=true;
+      this.unlocked['slapmagnet']=true; this._saveUnlocked();
       this._reveal('🧲 SLAP MAGNET!','10x geslapped worden... das gibt +150 MT als Entschädigung!','#E74C3C');
       if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+150;
       ZP.toast('🧲 Slap Magnet! +150 MT Entschädigung!',5000);
@@ -11178,7 +11239,7 @@ const SECRETS = {
   checkGoldenHour(){
     const h=new Date().getHours();
     if(h===17&&!this.unlocked['goldenhour']){
-      this.unlocked['goldenhour']=true;
+      this.unlocked['goldenhour']=true; this._saveUnlocked();
       this._reveal('🌅 GOLDENE STUNDE!','17 Uhr - Goldene Stunde! ×2 Einnahmen für 30 Min!','#F39C12');
       if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*2;setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=2;},1800000);}
       ZP.toast('🌅 Goldene Stunde! ×2 Einnahmen 30 Min!',5000);
@@ -11188,7 +11249,7 @@ const SECRETS = {
   // SECRET 10: Type your own name in chat
   checkNameSecret(msg){
     if(ZS.player&&msg.toLowerCase()===ZS.player.toLowerCase()&&!this.unlocked['narcissist']){
-      this.unlocked['narcissist']=true;
+      this.unlocked['narcissist']=true; this._saveUnlocked();
       // Same issue as "Beliebt" above — this can be triggered by pure
       // curiosity within the first minute of play, so it needs the same
       // curve-appropriate, modest scale rather than the old rank-mapped value.
@@ -11200,21 +11261,24 @@ const SECRETS = {
 
   // SECRET 12: Collect 100 total visitors
   checkVisitors(){
-    const tv=ZS.zoo?.tv||0;
-    if(tv>=100&&!this.unlocked['visitors100']){
-      this.unlocked['visitors100']=true;
-      // 100 visitors happens at a roughly FIXED wall-clock time (~8-10 min,
-      // regardless of spending) since visitor count ticks up on its own —
-      // unlike shop/animal prices, this can't be scaled via "what rank on
-      // the price ladder did this used to match", because it isn't
-      // triggered by progression at all. At ~8-10 min the target curve
-      // says expected wealth is only ~30-100 MT — the previous value
-      // (+6'066, carried over from the rank-mapping method used for
-      // purchasable items) was a 30-40× jump ahead of the curve at that
-      // point. Rescaled to a modest, curve-appropriate bump instead.
-      this._reveal('👥 '+(typeof t!=='undefined'?t('zoo.popular_title'):'BELIEBT!'),typeof t!=='undefined'?t('zoo.popular_desc'):'100 Besucher in deinem Zoo! +100 MT!','#E74C3C');
-      if(ZS.zoo)ZS.zoo.mt=(ZS.zoo.mt||0)+100;
-      ZP.toast('👥 100 Besucher! +100 MT!',4000);
+    const z=ZS.zoo; if(!z) return;
+    const tv=z.tv||0;
+    // Recurring milestone at every power of 10 (10, 100, 1'000, 10'000, ...)
+    // instead of a single fixed "100 visitors" achievement — a flat 100
+    // stopped meaning anything once a zoo has thousands of visitors, and
+    // kept re-popping on every reload since "unlocked" wasn't persisted
+    // (see SECRETS._loadUnlocked/_saveUnlocked). z.visitorMilestone tracks
+    // the NEXT threshold not yet claimed, persisted in the zoo doc.
+    const milestone = z.visitorMilestone || 10;
+    if(tv>=milestone){
+      z.visitorMilestone = milestone*10;
+      const reward = milestone;
+      z.mt=(z.mt||0)+reward;
+      let desc=(typeof t!=='undefined')?t('zoo.popular_desc'):'{n} Besucher in deinem Zoo! +{mt} MT!';
+      desc=desc.split('{n}').join(milestone).split('{mt}').join(reward);
+      this._reveal('👥 '+(typeof t!=='undefined'?t('zoo.popular_title'):'BELIEBT!'), desc, '#E74C3C');
+      ZP.toast('👥 '+milestone+' Besucher! +'+reward+' MT!',4000);
+      ZS.save&&ZS.save();
     }
   },
   
@@ -11223,7 +11287,7 @@ const SECRETS = {
   trackAdminOpen(){
     this._adminOpenCount++;
     if(this._adminOpenCount>=10&&!this.unlocked['adminaddict']){
-      this.unlocked['adminaddict']=true;
+      this.unlocked['adminaddict']=true; this._saveUnlocked();
       this._reveal('👑 ADMIN SÜCHTIG!','10× Admin-Panel geöffnet. Hier sind 20 extra Spins!','#FFD700');
       LW.spins=(LW.spins||0)+20;
       ZP.toast('👑 Admin-Addict: +20 Spins!',4000);
@@ -11254,7 +11318,7 @@ const SECRETS = {
     if(this._gondolaTimer)return;
     this._gondolaTimer=setTimeout(()=>{
       if(!this.unlocked['gondola2min']){
-        this.unlocked['gondola2min']=true;
+        this.unlocked['gondola2min']=true; this._saveUnlocked();
         this._reveal('🚡 GONDEL-FAN!','2 Min in der Gondel! Gratis Spin!','#27AE60');
         LW.spins=(LW.spins||0)+1;
         ZP.toast('🚡 Gondel-Fan: +1 Gratis Spin!',3000);

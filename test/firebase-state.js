@@ -1257,8 +1257,9 @@ const RankNotify = {
         const name = typeof playerObj === 'string' ? playerObj : playerObj?.name;
         const z = zoosAll[name?.toLowerCase()];
         if (!z) return 0;
-        const pDeviceId = typeof playerObj === 'object' ? playerObj?.deviceId : null;
-        if (!pDeviceId || !z.deviceId || pDeviceId !== z.deviceId) return 0;
+        // Same policy as combinedMTFor()/_computeStandings() — matched by
+        // name only, no device gate (this was a fourth copy of the exact
+        // same check, all missed in the same earlier pass).
         return sanitizeMT(z.mt);
       };
       const players = Object.values(merged)

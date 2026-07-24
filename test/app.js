@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v389';
+const APP_VERSION = 'v390';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,31 +342,33 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v389 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v390 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ ${typeof t!=='undefined'?t('welcome.title'):'Willkommen, Abenteurer'}</div>
 
-          <!-- Welt 1 Box - dunkel, kurz -->
-          <div style="background:rgba(41,128,185,.15);border:2px solid #2980B9;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">
-            <div style="font-weight:900;color:#5DADE2;font-size:1.05rem">${typeof t!=='undefined'?t('welcome.world1.short'):'🇫🇷 Welt 1: Frankreich'}</div>
+          <!-- Welt 1 — informational label, not a button (no thick border/pill
+               shape that invites clicking; a left accent bar reads as a
+               section header instead) -->
+          <div style="background:rgba(41,128,185,.1);border-left:4px solid #2980B9;border-radius:4px;padding:8px 12px;margin-bottom:8px;text-align:left">
+            <div style="font-weight:700;color:#5DADE2;font-size:.92rem">${typeof t!=='undefined'?t('welcome.world1.short'):'🇫🇷 Welt 1: Frankreich'}</div>
           </div>
 
-          <!-- Welt 2 Box - dunkel, kurz -->
-          <div style="background:rgba(39,174,96,.15);border:2px solid #27AE60;border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
-            <div style="font-weight:900;color:#58D68D;font-size:1.05rem">${typeof t!=='undefined'?t('welcome.world2.short'):'🦁 Welt 2: Zoo Empire'}</div>
+          <!-- Welt 2 - same treatment -->
+          <div style="background:rgba(39,174,96,.1);border-left:4px solid #27AE60;border-radius:4px;padding:8px 12px;margin-bottom:14px;text-align:left">
+            <div style="font-weight:700;color:#58D68D;font-size:.92rem">${typeof t!=='undefined'?t('welcome.world2.short'):'🦁 Welt 2: Zoo Empire'}</div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
             <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>
             <button class="btn btn-secondary btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>
-            <div style="display:flex;gap:6px;margin-top:2px">
-              <button class="btn btn-full" style="flex:1;background:rgba(255,255,255,0.5);color:var(--text-dark)" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
-              <button onclick="App.showQR()" style="background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.5);color:white;padding:8px 14px;border-radius:10px;font-size:.85rem;cursor:pointer" title="QR Code">📱 QR</button>
+            <div style="display:flex;gap:6px;margin-top:6px;opacity:.8">
+              <button class="btn" style="flex:1;background:rgba(255,255,255,0.35);color:var(--text-dark);padding:5px 10px;font-size:.72rem;border-radius:8px" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
+              <button onclick="App.showQR()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:5px 10px;border-radius:8px;font-size:.72rem;cursor:pointer" title="QR Code">📱 QR</button>
             </div>
-            <button onclick="window.location.href='zoo.html?openadmin=1'" style="background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);color:#FFD700;padding:9px 14px;border-radius:12px;font-weight:700;cursor:pointer;font-size:.85rem;margin-top:2px">🔧 Admin-Login</button>
+            <button onclick="window.location.href='zoo.html?openadmin=1'" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#FFD700;padding:5px 10px;border-radius:8px;font-weight:600;cursor:pointer;font-size:.72rem;margin-top:2px;opacity:.8">🔧 Admin-Login</button>
           </div>
         </div>
       </div>`);
@@ -1033,6 +1035,16 @@ const App = {
     if(typeof Personality!=='undefined')Personality.init();
       if(typeof LANG!=='undefined')LANG.load();
     try{ if(typeof PlayTime!=='undefined'&&State.currentPlayer?.name){ PlayTime.recordLogin('ds',State.currentPlayer.name); PlayTime.startTracking('ds',State.currentPlayer.name); } }catch(e){}
+    // Rank-change notifications used to only fire right after completing a
+    // task — same fix as the Zoo side (see zoo.html init): RankNotify.check()
+    // already throttles the actual popup to once per hour, so a periodic
+    // call here just means a rank change gets noticed sooner instead of
+    // only right after the next task.
+    if(!this._rankNotifyIv){
+      this._rankNotifyIv = setInterval(()=>{
+        try{ if(State.currentPlayer?.name && typeof RankNotify!=='undefined') RankNotify.check(State.currentPlayer.name); }catch(e){}
+      }, 8*60000);
+    }
     this.showWorldMap();
   },
 
