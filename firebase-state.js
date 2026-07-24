@@ -1835,6 +1835,44 @@ window.dsMTFor = function(p) {
 // only add the zoo balance if it was genuinely saved from the same device as
 // the Denkspiel account, so an unrelated name-collision zoo save from someone
 // else never leaks into this player's total.
+// Returns a Set of lowercase player names currently "online" — active in
+// the Zoo (RTDB zoo_hot, any instance, updated every couple seconds while
+// someone's actually in the 3D world) OR active in Welt 1 (mischa_players'
+// lastActive field). Same 20s freshness window the Admin Panel already
+// uses for its own online/offline badges — shared here so the Zoo's and
+// Welt 1's leaderboards can show the same live indicator without
+// duplicating this logic.
+window.getOnlineNames = async function() {
+  const onlineNames = new Set();
+  try{
+    const jobs = [];
+    if (typeof _rtdb !== 'undefined' && _rtdb) jobs.push(_rtdb.ref('zoo_hot').once('value'));
+    else jobs.push(Promise.resolve(null));
+    if (typeof _db !== 'undefined' && _db) jobs.push(_db.collection('mischa_players').get());
+    else jobs.push(Promise.resolve(null));
+    const [hotSnap, mpSnap] = await Promise.all(jobs);
+    if (hotSnap) {
+      const allInstances = hotSnap.val() || {};
+      Object.values(allInstances).forEach(instancePlayers => {
+        Object.keys(instancePlayers || {}).forEach(key => {
+          const d = instancePlayers[key];
+          if (d && Date.now() - (d.t || 0) < 20000) onlineNames.add(key);
+        });
+      });
+    }
+    if (mpSnap) {
+      mpSnap.forEach(doc => {
+        const d = doc.data();
+        if (d && d.lastActive && Date.now() - d.lastActive < 20000) {
+          const nm = d.name || doc.id;
+          if (nm) onlineNames.add(nm.toLowerCase());
+        }
+      });
+    }
+  }catch(e){}
+  return onlineNames;
+};
+
 window.combinedMTFor = async function(player) {
   const ds = window.sanitizeMT ? window.sanitizeMT(dsMTFor(player)) : dsMTFor(player);
   if (!player?.name) return ds;

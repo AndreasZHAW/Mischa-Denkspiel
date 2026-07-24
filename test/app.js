@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v379';
+const APP_VERSION = 'v381';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v379 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v381 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1820,13 +1820,17 @@ const App = {
       })();
     }
 
+    let online = new Set();
+    try{ if(typeof getOnlineNames==='function') online = await getOnlineNames(); }catch(e){}
     const rows = players.map((p, i) => {
       const isMe = p.name?.toLowerCase() === player?.name?.toLowerCase();
+      const isOnline = online.has(p.name?.toLowerCase());
       const mt = formatMT(p._mt);
       const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
       const tasksDone = p.worlds ? ((p.worlds?.[1]||p.worlds?.['1']||{}).tasks||[]).filter(t=>t?.done).length : null;
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:${isMe?'rgba(41,182,246,.12)':'rgba(255,255,255,.04)'};border:${isMe?'1px solid rgba(41,182,246,.3)':'1px solid transparent'}">
         <div style="font-size:1.1rem;min-width:28px;text-align:center">${medal||('<span style="color:rgba(255,255,255,.3);font-size:.85rem">#'+(i+1)+'</span>')}</div>
+        <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <div style="flex:1">
           <div style="font-weight:700;font-size:.92rem">${p.name}${isMe?' <span style="font-size:1.05rem;color:#29B6F6">(Du)</span>':''}</div>
           ${tasksDone!==null?`<div style="font-size:.72rem;color:rgba(255,255,255,.4)">${tasksDone}/20 Aufgaben</div>`:''}

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v379 -->
+<!-- ZOO v381 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -99,7 +99,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
 .ms{font-size:.72rem;color:rgba(255,255,255,.8);text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
 /* LEFT sidebar */
-#hleft{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;padding:5px 6px;pointer-events:auto;z-index:120}
+#hleft{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;padding:5px 6px;pointer-events:auto;z-index:120;max-height:94vh;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
 .hb{width:62px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .hb:active .hbb{transform:scale(.88)}
 .hbb{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.55rem;border:2.5px solid rgba(255,255,255,.35);background:rgba(0,0,0,.65);backdrop-filter:blur(8px);transition:transform .12s}
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=379"></script>
-<script src="rewardchests.js?v=379"></script>
-<script src="personality.js?v=379"></script>
+<script src="lang.js?v=381"></script>
+<script src="rewardchests.js?v=381"></script>
+<script src="personality.js?v=381"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v379','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v381','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=379"></script>
-<script src="worlds.js?v=379"></script>
+<script src="firebase-state.js?v=381"></script>
+<script src="worlds.js?v=381"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1471,6 +1471,24 @@ const ZG={
     {const _z=this.ZONES[this._myZone()]||this.ZONES[0];this.pl.x=_z.x; this.pl.z=_z.z+12;}
     this.yaw=Math.atan2(this.STA.x-this.pl.x,this.STA.z-this.pl.z)+Math.PI;
     this._updHUD(); this._updWBar();
+    // Diagnostic: if the left sidebar (#hleft) is taller than the visible
+    // screen, some buttons could be rendered off-screen with no way to
+    // scroll to them (before this was fixed to be scrollable) — logging
+    // this so a future "sees only some buttons" report shows up clearly
+    // in the crash log instead of needing a screen-by-screen description.
+    setTimeout(()=>{
+      try{
+        const hl=document.getElementById('hleft');
+        if(hl){
+          const sh=hl.scrollHeight, vh=window.innerHeight;
+          if(sh>vh){
+            console.warn('[UI] Linke Knopfleiste (#hleft) ist '+sh+'px hoch, Bildschirm nur '+vh+'px — ohne Scroll wären Knöpfe ausserhalb des sichtbaren Bereichs. scrollHeight='+sh+' clientHeight='+hl.clientHeight+' viewportHeight='+vh+' buttonCount='+hl.children.length);
+          } else {
+            console.log('[UI] Linke Knopfleiste passt in den sichtbaren Bereich (sidebar='+sh+'px, viewport='+vh+'px).');
+          }
+        }
+      }catch(e){}
+    }, 800);
     try{ ZNews.init(); }catch(e){}
     try{
       const _tipsOn = typeof ZTips!=='undefined' && ZTips.isEnabled();
@@ -1719,9 +1737,12 @@ const ZG={
     try{ ZSound.stopCarryAmbience&&ZSound.stopCarryAmbience(); }catch(e){}
     try{ ZSound._sndAnimalFree&&ZSound._sndAnimalFree(); }catch(e){}
     if(this.carryTimer){ clearTimeout(this.carryTimer); this.carryTimer=null; }
-    // Drop at current position
-    const x = this.pl.x + (Math.random()-.5)*4;
-    const z2 = this.pl.z + (Math.random()-.5)*4;
+    // Drop further away than right at the carrier's feet — gives the
+    // freed animal a real head start instead of landing in a spot where
+    // it's trivially easy to just walk over and re-catch immediately.
+    const dropAng=Math.random()*Math.PI*2, dropDist=15+Math.random()*10;
+    const x = this.pl.x + Math.cos(dropAng)*dropDist;
+    const z2 = this.pl.z + Math.sin(dropAng)*dropDist;
     const dropped = {
       id:null, createdAt:Date.now(),
       animal: c.animal, shiny: c.shiny, traits: c.traits||[],
@@ -1934,12 +1955,12 @@ const ZG={
     if(!this.droppedAnimals.length) return;
     const now=Date.now();
     this.droppedAnimals.forEach(d=>{
-      const speed=d.speed||1.1; // slow — this is meant to be catchable, not a chase across the map
+      const speed=d.speed||2.2; // faster than before — harder to just casually walk up and catch
       if(d.wanderOwner){
         if(d.wanderTx===undefined){ d.wanderCx=d.x; d.wanderCz=d.z; d.wanderTx=d.x; d.wanderTz=d.z; }
         const dx=d.wanderTx-d.x, dz=d.wanderTz-d.z, dist=Math.sqrt(dx*dx+dz*dz);
         if(dist<0.3){
-          const ang=Math.random()*Math.PI*2, r=1+Math.random()*4;
+          const ang=Math.random()*Math.PI*2, r=2+Math.random()*8;
           d.wanderTx=d.wanderCx+Math.cos(ang)*r;
           d.wanderTz=d.wanderCz+Math.sin(ang)*r;
         }else{
@@ -5467,7 +5488,7 @@ const ZG={
       const hotData={x:Math.round(this.pl.x), z:Math.round(this.pl.z), t:now,
         carrying:_carryPayload, slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0)};
       try{
-        await _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).set(hotData);
+        await _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).set(JSON.parse(JSON.stringify(hotData)));
         dbg.writes++; dbg.lastWriteOK=now;
       }catch(writeErr){
         dbg.writeFails++;
@@ -5485,7 +5506,17 @@ const ZG={
       const coldStr=JSON.stringify(coldData);
       if(this._lastColdSent!==coldStr){
         try{
-          await _rtdb.ref('zoo_cold/'+instanceId+'/'+myKey).set(coldData);
+          // IMPORTANT: write the JSON round-tripped version (JSON.parse(coldStr)),
+          // not the raw coldData object. RTDB's .set() throws synchronously on
+          // ANY undefined value anywhere in the object (same class of bug as
+          // the earlier zoo_hot/carrying issue) — which silently kills the
+          // WHOLE write, not just the offending field. A single animal with
+          // an unexpected undefined property (some rarity/trait combos) meant
+          // NONE of that player's enclosure contents ever reached anyone else
+          // — exactly "aaa's cat isn't visible to others". JSON.stringify
+          // already drops undefined properties cleanly, so re-parsing that
+          // guarantees a write RTDB can never reject for this reason.
+          await _rtdb.ref('zoo_cold/'+instanceId+'/'+myKey).set(JSON.parse(coldStr));
           this._lastColdSent=coldStr;
         }catch(writeErr){
           console.error('[SYNC-DEBUG] Schreibfehler in zoo_cold:',writeErr.code,writeErr.message);
@@ -6545,12 +6576,16 @@ const ZP={
       }
     }catch(e){}
     if(!standings.length){ el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.4)">Keine Spieler gefunden.</div>'; return; }
+    let online=new Set();
+    try{ if(typeof getOnlineNames==='function') online=await getOnlineNames(); }catch(e){}
     const medals=['🥇','🥈','🥉'];
     const myName = ZS.player?.toLowerCase();
     el.innerHTML = standings.map((p,i)=>{
       const isMe = p.name?.toLowerCase()===myName;
+      const isOnline = online.has(p.name?.toLowerCase());
       return `<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:4px;background:${isMe?'rgba(41,182,246,.15)':'rgba(255,255,255,.04)'}">
         <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
+        <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${isMe?' (Du)':''}</span>
         <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
       </div>`;
@@ -7026,7 +7061,14 @@ const ZP={
 
   {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+20% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:500,shoe:true,col:'#FFD700'}];
     const insCost=Math.max(1, Math.round((z.tv||0)/100));
-    IT.push({id:'insurance',n:'🛡️ Versicherung',d:$mt(insCost)+' alle 5 Min · keine Unfallkosten — tippen für Details',p:0,insurance:true});el.innerHTML=IT.map(item=>{
+    IT.push({id:'insurance',n:'🛡️ Versicherung',d:$mt(insCost)+' alle 5 Min · keine Unfallkosten — tippen für Details',p:0,insurance:true});
+    IT.push({id:'rebirth',n:'🔄 Rebirth',d:'Setzt fast alles zurück, für einen dauerhaften Bonus — tippen für Details',p:0,rebirth:true});
+    el.innerHTML=IT.map(item=>{
+      if(item.rebirth){
+        const req=(typeof rebReq==='function')?rebReq(z.reb||0):null;
+        const canReb=req && (z.mt||0)>=req.mt;
+        return '<div class="ac" style="border:1px solid '+(canReb?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')">🔄</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')"><div style="font-weight:900;font-size:.84rem">'+item.n+' (Stufe '+(z.reb||0)+')</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+(req?('Benötigt: '+$mt(req.mt)):item.d)+'</div></div><div style="text-align:right"><button class="ab" onclick="event.stopPropagation();ZP.open(\'reb\')">Öffnen</button></div></div>';
+      }
       if(item.insurance){
         const active=z.insuranceActive;
         return '<div class="ac" style="border:1px solid '+(active?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'insurance\')">🛡️</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'insurance\')"><div style="font-weight:900;font-size:.84rem">'+item.n+(active?' <span style="color:#27AE60;font-size:.7rem">✅ Aktiv</span>':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+item.d+'</div></div><div style="text-align:right"><button class="ab" style="background:'+(active?'#c0392b':'')+'" onclick="event.stopPropagation();ZP._bZ(\'insurance\',0)">'+(active?'Kündigen':'Abschliessen')+'</button></div></div>';
@@ -7561,8 +7603,8 @@ const ZP={
   // fixed set of two.
   _showShopItemInfo(id){
     const z=ZS.zoo;
-    const colors={net:'#8B5A2B',vis:'#3498db',vis2:'#3498db',vis_m:'#9b59b6',earn:'#f1c40f',earn2:'#f1c40f',insurance:'#2ecc71'};
-    const emojis={net:'🥅',vis:'🚀',vis2:'🚀🚀',vis_m:'👥',earn:'💰',earn2:'💰💰',insurance:'🛡️'};
+    const colors={net:'#8B5A2B',vis:'#3498db',vis2:'#3498db',vis_m:'#9b59b6',earn:'#f1c40f',earn2:'#f1c40f',insurance:'#2ecc71',rebirth:'#e74c3c'};
+    const emojis={net:'🥅',vis:'🚀',vis2:'🚀🚀',vis_m:'👥',earn:'💰',earn2:'💰💰',insurance:'🛡️',rebirth:'🔄'};
     const col=colors[id]||'#00CFFF', emoji=emojis[id]||'❓';
     const title=(typeof t!=='undefined')?t('zoo.shopinfo_'+id+'_title'):id;
     let desc=(typeof t!=='undefined')?t('zoo.shopinfo_'+id+'_desc'):'';
