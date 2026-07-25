@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v392 -->
+<!-- ZOO v393 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=392"></script>
-<script src="rewardchests.js?v=392"></script>
-<script src="personality.js?v=392"></script>
+<script src="lang.js?v=393"></script>
+<script src="rewardchests.js?v=393"></script>
+<script src="personality.js?v=393"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v392','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v393','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=392"></script>
-<script src="worlds.js?v=392"></script>
+<script src="firebase-state.js?v=393"></script>
+<script src="worlds.js?v=393"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2421,24 +2421,37 @@ const ZG={
     }catch(e){}
   },
 
-  _listenWheelBroadcast(){
+  _listenWheelBroadcast(retry){
     try{
       // World events (admin-triggered AND random) — via Realtime Database,
       // not Firestore. This is the one broadcast channel every player's
       // client listens to for weather/world events, so it needs to work
       // even when Firestore's daily quota is exhausted (which is exactly
       // what caused events to arrive inconsistently or not at all before).
-      if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
-        _rtdb.ref('zoo_broadcast/event').on('value', snap=>{
-          const d=snap.val();
-          if(!d)return;
-          if(Date.now()-d.at>5000)return; // ignore old
-          const ev=EVENTS.find(e=>e.id===d.eventId);
-          if(ev&&(!this.ev||this.ev.id!==d.eventId)){
-            this.startEv(ev,d.dur);
-            ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
-          }
-        });
+      //
+      // IMPORTANT: only mark as "listening" once _rtdb is actually ready.
+      // This used to be a single setTimeout(...,2000) call with no retry —
+      // if RTDB wasn't ready at exactly that moment (a real race against
+      // Firebase's own async init, especially on slower connections), the
+      // listener was NEVER attached for the rest of the session: that
+      // player would silently never see admin-triggered (or random) world
+      // events at all, while everyone else saw them fine.
+      if(!this._worldEvListening){
+        if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()){
+          if((retry||0)<20) setTimeout(()=>this._listenWheelBroadcast((retry||0)+1),300);
+        } else {
+          this._worldEvListening=true;
+          _rtdb.ref('zoo_broadcast/event').on('value', snap=>{
+            const d=snap.val();
+            if(!d)return;
+            if(Date.now()-d.at>5000)return; // ignore old
+            const ev=EVENTS.find(e=>e.id===d.eventId);
+            if(ev&&(!this.ev||this.ev.id!==d.eventId)){
+              this.startEv(ev,d.dur);
+              ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
+            }
+          });
+        }
       }
     }catch(e){}
     try{
@@ -9369,7 +9382,7 @@ const ZAdmin = {
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
     if(tab==='deadline')this._populateDeadlineTab();
-    if(tab==='markt')this.loadTrades();
+    if(tab==='markt'){this.loadTrades();this._populateMarktAnimalSelect();}
     if(tab==='timer')this._loadTimerStatus();
     if(tab==='spieler')this._loadPlayersTab();
   },
@@ -10693,6 +10706,34 @@ const ZAdmin = {
   },
   
   // ═══ MARKTPLATZ-VERWALTUNG ═══
+  _populateMarktAnimalSelect(){
+    const sel=G('padmin-markt-animal'); if(!sel) return;
+    if(sel.children.length>1) return; // already populated
+    const animals=(window.ANIMALS||[]);
+    sel.innerHTML='<option value="">— Tier auswählen —</option>'+
+      animals.map(a=>`<option value="${a.id}">${a.e||'?'} ${a.n} (${a.r||'normal'})</option>`).join('');
+  },
+  async createTradeForPlayer(){
+    const seller=(G('padmin-markt-seller')?.value||'').trim();
+    const price=parseFloat(G('padmin-markt-price')?.value||'');
+    const animalId=G('padmin-markt-animal')?.value;
+    const shiny=G('padmin-markt-shiny')?.checked||false;
+    if(!seller){ this.toast('❗ Verkäufer-Name eingeben!'); return; }
+    if(!animalId){ this.toast('❗ Tier auswählen!'); return; }
+    if(!price||price<=0){ this.toast('❗ Gültigen Preis eingeben!'); return; }
+    const a=(window.ANIMALS||[]).find(x=>x.id===animalId);
+    if(!a){ this.toast('❌ Tier nicht gefunden.'); return; }
+    if(typeof _rtdb==='undefined'||!_rtdb){ this.toast('❌ RTDB nicht verfügbar.'); return; }
+    try{
+      const sh=shiny?{id:'rainbow',...(SHINY?.rainbow||{})}:null;
+      const animalData={animal:{...a},shiny:sh,traits:[],addedAt:Date.now()};
+      const doc={seller, sellerKey:seller.toLowerCase(), n:a.n, e:a.e, r:a.r, p:price, sh, tr:[], d:animalData, createdAt:Date.now()};
+      await _rtdb.ref('zoo_trades').push(JSON.parse(JSON.stringify(doc)));
+      this.toast('✅ '+(a.e||'')+' '+a.n+' für '+seller+' angeboten ('+price+' MT)!');
+      const priceEl=G('padmin-markt-price'); if(priceEl) priceEl.value='';
+      this.loadTrades();
+    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+  },
   _trades: [],
   async loadTrades(){
     const el=G('padmin-trades-list'), sum=G('padmin-trades-summary');
@@ -13069,7 +13110,21 @@ window.ZooEvents = ZooEvents;
         </div>
         <!-- TAB: MARKTPLATZ -->
         <div class="padmin-tab" id="padmin-tab-markt" style="display:none">
-          <div class="padmin-section-title">🤝 Marktplatz-Angebote</div>
+          <div class="padmin-section-title">🏷️ Angebot für Spieler erstellen</div>
+          <div style="background:rgba(139,90,43,.08);border:1px solid rgba(139,90,43,.25);border-radius:10px;padding:10px;margin-bottom:14px">
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+              <input id="padmin-markt-seller" type="text" placeholder="Verkäufer-Name" style="flex:1;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.8rem">
+              <input id="padmin-markt-price" type="number" placeholder="Preis (MT)" min="1" style="width:110px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.8rem">
+            </div>
+            <select id="padmin-markt-animal" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.8rem;margin-bottom:6px">
+              <option value="">— Tier auswählen —</option>
+            </select>
+            <label style="font-size:.75rem;color:rgba(255,255,255,.6);display:block;margin-bottom:6px">
+              <input type="checkbox" id="padmin-markt-shiny" style="vertical-align:middle;margin-right:4px">✨ Shiny
+            </label>
+            <button class="padmin-btn" style="width:100%;background:#8B5A2B" onclick="ZAdmin.createTradeForPlayer()">🏷️ Angebot erstellen</button>
+          </div>
+          <div class="padmin-section-title">🤝 Aktive Marktplatz-Angebote</div>
           <div style="display:flex;gap:6px;margin-bottom:10px">
             <button class="padmin-btn" style="flex:1;background:#3498DB" onclick="ZAdmin.loadTrades()">🔄 Laden/Aktualisieren</button>
             <button class="padmin-btn" style="flex:1;background:#E74C3C" onclick="ZAdmin.deleteAllTrades()">🗑️ Alle löschen</button>
