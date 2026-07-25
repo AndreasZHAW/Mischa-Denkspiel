@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v390</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v390 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v392</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v392 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -61,6 +61,7 @@ try {
   <div class="tab" onclick="switchTab('trade')">🤝 Trade-Diagnose</div>
   <div class="tab" onclick="switchTab('mp')">👥 Multiplayer-Diagnose</div>
   <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
+  <div class="tab" onclick="switchTab('special')">🎁 Spezial-Gegenstände</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
   <div class="tab" onclick="switchTab('all')" style="background:#F39C12;color:#000;font-weight:900">📋 Alles zusammen</div>
@@ -213,6 +214,25 @@ try {
     </div>
     <div id="roam-summary" style="font-size:.8rem;margin-bottom:8px"></div>
     <div id="roam-out" style="overflow-x:auto"><pre>⏳</pre></div>
+  </div>
+</div>
+
+<!-- ══ TAB: SPEZIAL-GEGENSTÄNDE ══ -->
+<div id="tab-special" class="tab-content">
+  <div class="box blue">
+    <h2>🎁 zoo_specials — Tägliche Spezial-Gegenstände</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Liest <code>zoo_specials</code> (die 5 versteckten Gegenstände) und <code>zoo_specials_meta/lastSpawnDay</code>
+      (welcher Tag zuletzt einen Spawn ausgelöst hat) direkt aus RTDB. Wenn hier "0 Gegenstände" UND kein
+      lastSpawnDay steht, wurde noch nie erfolgreich gespawnt — meist ein Zeichen, dass die RTDB-Regeln für
+      <code>zoo_specials</code>/<code>zoo_specials_meta</code> noch fehlen (Schreibzugriff wird dann lautlos verweigert).
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runSpecials()" class="info">🔄 Neu laden</button>
+      <button onclick="forceSpawnSpecials()" class="danger">🎁 Jetzt Spawn erzwingen (Test)</button>
+    </div>
+    <div id="special-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="special-out" style="overflow-x:auto"><pre>⏳</pre></div>
   </div>
 </div>
 
@@ -925,6 +945,80 @@ async function cleanupOldRoaming(){
   }catch(e){ alert('❌ '+e.message); }
 }
 
+// ══ SPEZIAL-GEGENSTÄNDE-DIAGNOSE ══
+async function runSpecials(){
+  L('=== Spezial-Gegenstände-Diagnose gestartet ===');
+  const out=document.getElementById('special-out');
+  const summary=document.getElementById('special-summary');
+  out.innerHTML='<pre>⏳ Lade RTDB-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>'; return;
+  }
+  if(!firebase.database){
+    out.innerHTML='<pre class="err">❌ Realtime-Database-SDK nicht geladen.</pre>'; return;
+  }
+  try{
+    const rtdb=firebase.database();
+    const [itemsSnap, metaSnap] = await Promise.all([
+      rtdb.ref('zoo_specials').once('value'),
+      rtdb.ref('zoo_specials_meta/lastSpawnDay').once('value'),
+    ]);
+    const val=itemsSnap.val()||{};
+    const lastSpawnDay=metaSnap.val()||null;
+    const today=new Date().toISOString().slice(0,10);
+    const now=Date.now();
+    const rows=Object.keys(val).map(id=>{
+      const d=val[id]||{};
+      return { id, e:d.e||'❓', n:d.n||'?', value:d.value||0, x:d.x, z:d.z, ageMs:now-(d.createdAt||now) };
+    });
+    summary.innerHTML = `📦 ${rows.length}/5 Gegenstände aktuell im Zoo · lastSpawnDay: <b>${lastSpawnDay||'— nie gesetzt'}</b> (heute: ${today})`
+      + (!lastSpawnDay ? ' <span class="err">⚠️ Noch nie erfolgreich gespawnt! Prüfe, ob die RTDB-Regeln für zoo_specials/zoo_specials_meta gesetzt sind.</span>' : '')
+      + (lastSpawnDay && lastSpawnDay!==today && rows.length===0 ? ' <span class="warn">ℹ️ Heute noch nicht gespawnt (kommt automatisch, oder über Admin-Panel erzwingen).</span>' : '');
+    if(!rows.length){ out.innerHTML='<div class="dim">Keine Spezial-Gegenstände aktuell im Zoo.</div>'; L('Spezial-Gegenstände-Diagnose: 0 Gegenstände, lastSpawnDay='+lastSpawnDay); return; }
+    const fmtAge=(ms)=>{ const h=ms/3600000; if(h<1)return Math.round(ms/60000)+' Min'; return h.toFixed(1)+' Std'; };
+    out.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'
+      +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333"><th style="padding:4px 6px">Gegenstand</th><th>Wert</th><th>Alter</th><th>Position</th></tr>'
+      + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a"><td style="padding:4px 6px">${r.e} ${r.n}</td><td>🌀${r.value}</td><td>${fmtAge(r.ageMs)}</td><td class="dim" style="font-size:.65rem">${r.x?.toFixed?.(1)}, ${r.z?.toFixed?.(1)}</td></tr>`).join('')
+      +'</table>';
+    L('Spezial-Gegenstände-Diagnose: '+rows.length+' Gegenstände, lastSpawnDay='+lastSpawnDay);
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+' (Code: '+(e.code||'?')+')</pre>';
+    L('❌ Spezial-Gegenstände-Diagnose Fehler: '+e.message+' Code: '+(e.code||'?'),'err');
+  }
+}
+async function forceSpawnSpecials(){
+  if(!confirm('Jetzt testweise 5 neue Spezial-Gegenstände spawnen (ersetzt alle aktuellen)?'))return;
+  if(typeof firebase==='undefined'||!firebase.database){ alert('❌ RTDB nicht verfügbar.'); return; }
+  const rtdb=firebase.database();
+  const SPECIAL_TYPES=[
+    {id:'wallet',e:'👛',n:'Geldbeutel'},{id:'watch',e:'⌚',n:'Uhr'},{id:'braces',e:'🦷',n:'Zahnspange'},
+    {id:'key',e:'🔑',n:'Schlüssel'},{id:'ring',e:'💍',n:'Ring'},{id:'glasses',e:'👓',n:'Brille'},
+    {id:'phone',e:'📱',n:'Handy'},{id:'coin',e:'🪙',n:'Alte Münze'},
+  ];
+  try{
+    const oldSnap=await rtdb.ref('zoo_specials').once('value');
+    const oldVal=oldSnap.val()||{};
+    await Promise.all(Object.keys(oldVal).map(id=>rtdb.ref('zoo_specials/'+id).remove().catch(e=>{throw e;})));
+    const R=40;
+    for(let i=0;i<5;i++){
+      const type=SPECIAL_TYPES[Math.floor(Math.random()*SPECIAL_TYPES.length)];
+      const value=2+Math.floor(Math.random()*99);
+      const ang=Math.random()*Math.PI*2, r=Math.random()*R;
+      const x=Math.sin(ang)*r, z=Math.cos(ang)*r;
+      const ref=rtdb.ref('zoo_specials').push();
+      await ref.set({itemId:type.id,e:type.e,n:type.n,value,x,z,createdAt:Date.now()});
+    }
+    await rtdb.ref('zoo_specials_meta/lastSpawnDay').set(new Date().toISOString().slice(0,10));
+    L('Spezial-Gegenstände: Test-Spawn erfolgreich, 5 neue Gegenstände geschrieben.');
+    alert('✅ 5 neue Gegenstände gespawnt! Wenn das hier funktioniert hat, sind die RTDB-Regeln OK — dann liegt das Problem woanders (z.B. im Zoo selbst laden/anzeigen).');
+    runSpecials();
+  }catch(e){
+    L('❌ Test-Spawn fehlgeschlagen: '+e.message+' Code: '+(e.code||'?'),'err');
+    alert('❌ Test-Spawn fehlgeschlagen: '+e.message+'\\n\\nCode: '+(e.code||'?')+'\\n\\nWenn der Code "PERMISSION_DENIED" ist, fehlen die RTDB-Regeln für zoo_specials/zoo_specials_meta!');
+  }
+}
+
+
 // ══ FONT ══
 function runFont(){
   const dpr=window.devicePixelRatio||1;
@@ -1061,6 +1155,7 @@ async function runAllTabsReport(){
     ['Trade-Diagnose', async()=>{await runTrade();}],
     ['Multiplayer-Diagnose', async()=>{await runMP();}],
     ['Roaming-Diagnose', async()=>{await runRoam();}],
+    ['Spezial-Gegenstände', async()=>{await runSpecials();}],
     ['Schrift', async()=>{runFont();}],
     ['Netzwerk', async()=>{await runNet();}],
   ];
@@ -1125,6 +1220,11 @@ async function runAllTabsReport(){
   sections.push(_grabText('roam-summary'));
   sections.push('── ROAMING-DIAGNOSE — Tabelle ──');
   sections.push(_grabText('roam-out'));
+  sections.push('');
+  sections.push('── SPEZIAL-GEGENSTÄNDE-DIAGNOSE — Zusammenfassung ──');
+  sections.push(_grabText('special-summary'));
+  sections.push('── SPEZIAL-GEGENSTÄNDE-DIAGNOSE — Tabelle ──');
+  sections.push(_grabText('special-out'));
   sections.push('');
   sections.push('── SCHRIFT ──');
   sections.push(_grabText('font-out'));

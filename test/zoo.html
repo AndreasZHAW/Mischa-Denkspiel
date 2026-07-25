@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v390 -->
+<!-- ZOO v392 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=390"></script>
-<script src="rewardchests.js?v=390"></script>
-<script src="personality.js?v=390"></script>
+<script src="lang.js?v=392"></script>
+<script src="rewardchests.js?v=392"></script>
+<script src="personality.js?v=392"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v390','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v392','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=390"></script>
-<script src="worlds.js?v=390"></script>
+<script src="firebase-state.js?v=392"></script>
+<script src="worlds.js?v=392"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1983,7 +1983,13 @@ const ZG={
   // tick (100ms), cheap enough for a handful of items. Each OTHER player
   // sees this independently based on THEIR OWN position, so someone
   // standing right on top of an item is the only one who sees it appear.
-  SPECIAL_REVEAL_R: 15,
+  // Tuned so a player actively searching finds one roughly every ~90s on
+  // average: zoo search area (π·40²≈5027), 5 items, ~11 units/s base walk
+  // speed, and an assumed ~40% search efficiency (not a perfect sweep —
+  // real walking backtracks/re-covers ground) works out to a reveal
+  // radius of ~1.3. Adjust this one number to retune the whole game's
+  // difficulty if 90s doesn't feel right in practice.
+  SPECIAL_REVEAL_R: 1.3,
   _tickSpecialsVisibility(){
     if(!this.specialItems.length) return;
     this.specialItems.forEach(item=>{
@@ -6496,6 +6502,13 @@ const ZTips = {
   // game state. Steps without a clean auto-detectable completion (e.g. the
   // steal/slap tip) complete on dismissal instead.
   STEPS: [
+    { id:'specials',
+      msg: {
+        de: '💡 Schon jetzt lohnt sich die Suche: Jeden Tag verstecken sich 5 kleine Spezial-Gegenstände irgendwo im Zoo (Geldbeutel, Uhr, ...) — sie sind erst aus der Nähe sichtbar! Lauf herum und fang sie mit dem Netz für schnelles Extra-Geld.',
+        de_simple: '💡 Schon jetzt lohnt sich das Suchen: Jeden Tag sind 5 kleine Spezial-Gegenstände im Zoo versteckt — man sieht sie erst, wenn man ganz nah dran ist! Lauf herum und fang sie mit dem Netz für schnelles Extra-Geld.',
+        en: '💡 Worth searching right from the start: every day, 5 small special items (wallet, watch, ...) are hidden somewhere in the zoo — they only become visible up close! Walk around and catch them with the net for quick extra money.',
+        fr: '💡 Ça vaut déjà le coup de chercher : chaque jour, 5 petits objets spéciaux (portefeuille, montre, ...) se cachent quelque part dans le zoo — visibles seulement de très près ! Explore et attrape-les avec le filet pour de l\'argent rapide.',
+      } },
     { id:'buy_first',   when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length===0 && !ZG.carrying,
       msg: {
         de: '💡 Du hast {mt} MT. Geh zur roten Gondelstation und warte, bis ein Tier kommt, das du dir leisten kannst!',
@@ -6544,13 +6557,6 @@ const ZTips = {
         de_simple: '💡 👟 Turnschuhe im Shop machen dich dauerhaft schneller — rot, dann gold, dann platin, jede Stufe zusätzlich zur vorherigen!',
         en: '💡 👟 Sneakers in the shop make you permanently faster — red, then gold, then platinum, each tier stacking on top of the last (up to +150%)!',
         fr: '💡 👟 Des baskets dans la boutique te rendent définitivement plus rapide — rouge, puis or, puis platine, chaque niveau s\'ajoutant au précédent (jusqu\'à +150 %) !',
-      } },
-    { id:'specials',     when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2,
-      msg: {
-        de: '💡 Jeden Tag verstecken sich 5 kleine Spezial-Gegenstände irgendwo im Zoo (Geldbeutel, Uhr, ...) — sie sind erst aus der Nähe sichtbar! Lauf herum und fang sie mit dem Netz.',
-        de_simple: '💡 Jeden Tag sind 5 kleine Spezial-Gegenstände im Zoo versteckt — man sieht sie erst, wenn man ganz nah dran ist! Lauf herum und fang sie mit dem Netz.',
-        en: '💡 Every day, 5 small special items (wallet, watch, ...) are hidden somewhere in the zoo — they only become visible up close! Walk around and catch them with the net.',
-        fr: '💡 Chaque jour, 5 petits objets spéciaux (portefeuille, montre, ...) se cachent quelque part dans le zoo — visibles seulement de très près ! Explore et attrape-les avec le filet.',
       } },
     { id:'insurance',    when: () => (ZS.zoo?.enc||[]).filter(e=>e&&e.animal).length>=2 && !ZS.zoo?.insuranceActive,
       msg: {
@@ -9363,6 +9369,7 @@ const ZAdmin = {
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
     if(tab==='deadline')this._populateDeadlineTab();
+    if(tab==='markt')this.loadTrades();
     if(tab==='timer')this._loadTimerStatus();
     if(tab==='spieler')this._loadPlayersTab();
   },
@@ -10685,6 +10692,50 @@ const ZAdmin = {
     setTimeout(()=>discDiv.remove(),5000);
   },
   
+  // ═══ MARKTPLATZ-VERWALTUNG ═══
+  _trades: [],
+  async loadTrades(){
+    const el=G('padmin-trades-list'), sum=G('padmin-trades-summary');
+    if(sum) sum.textContent='⏳ Lade...';
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb){ if(sum)sum.textContent='❌ RTDB nicht verfügbar.'; return; }
+      const snap=await _rtdb.ref('zoo_trades').once('value');
+      const val=snap.val()||{};
+      const now=Date.now();
+      this._trades=Object.keys(val).map(id=>({id,...val[id]})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      if(sum) sum.textContent='📦 '+this._trades.length+' aktive Angebote.';
+      if(!el) return;
+      if(!this._trades.length){ el.innerHTML='<div style="font-size:.75rem;color:rgba(255,255,255,.4);text-align:center;padding:10px">Keine aktiven Angebote.</div>'; return; }
+      const fmtAge=(ms)=>{ const h=ms/3600000; if(h<1)return Math.round(ms/60000)+' Min'; if(h<48)return h.toFixed(1)+' Std'; return (h/24).toFixed(1)+' Tage'; };
+      el.innerHTML=this._trades.map(o=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;margin-bottom:5px;background:rgba(255,255,255,.05)">
+        <div style="font-size:1.3rem">${o.e||'❓'}</div>
+        <div style="flex:1;font-size:.75rem">
+          <div style="font-weight:700">${o.n||'?'} <span style="color:#FFD700">🌀${o.p||0}</span></div>
+          <div style="color:rgba(255,255,255,.45)">von ${o.seller||'?'} · ${fmtAge(now-(o.createdAt||now))} alt</div>
+        </div>
+        <button class="padmin-btn" style="background:#E74C3C;padding:6px 10px;font-size:.7rem" onclick="ZAdmin.deleteTrade('${o.id}')">🗑️</button>
+      </div>`).join('');
+    }catch(e){ if(sum)sum.textContent='❌ Fehler: '+e.message; }
+  },
+  async deleteTrade(id){
+    if(!(await showConfirm('Dieses Angebot wirklich löschen?')))return;
+    try{
+      if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_trades/'+id).remove();
+      this.toast('🗑️ Angebot gelöscht.');
+      this.loadTrades();
+    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+  },
+  async deleteAllTrades(){
+    if(!this._trades.length){ this.toast('❌ Erst laden!'); return; }
+    if(!(await showConfirm('⚠️ Wirklich ALLE '+this._trades.length+' Marktplatz-Angebote löschen? Kann nicht rückgängig gemacht werden.')))return;
+    try{
+      if(typeof _rtdb!=='undefined'&&_rtdb){
+        await Promise.all(this._trades.map(o=>_rtdb.ref('zoo_trades/'+o.id).remove().catch(()=>{})));
+      }
+      this.toast('🗑️ Alle Angebote gelöscht.');
+      this.loadTrades();
+    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+  },
   showSecrets(){
     const ALL_SECRETS = [
       {id:'konami',      emoji:'🎮', name:'Konami-Code',        how:'↑↑↓↓←→←→BA im Zoo eingeben',                reward:'+50 MT'},
@@ -12339,21 +12390,26 @@ const Sweeper = {
       ZP.toast('🛡️ Versicherung übernimmt die Kosten!',3000);
       this._ambulance(); return;
     }
+    // Dynamic cost — 10-30% of current balance, same as the other
+    // emergency events (see ZooEvents._dynCost). Was a flat 15'000 MT,
+    // which made no sense early game when nobody has anywhere near that.
+    const cost=this._curAmbulanceCost=(typeof ZooEvents!=='undefined'?ZooEvents._dynCost():Math.max(1,Math.round((ZS.zoo?.mt||0)*0.15)));
     ov.innerHTML='<div style="position:relative;z-index:2;background:rgba(10,10,10,.95);border-radius:16px;padding:22px;max-width:360px;text-align:center;color:#fff">'+
       '<div style="font-size:2.6rem">🚑</div>'+
       '<h3 style="color:#f5c542;margin:8px 0">Krankenwagen gerufen!</h3>'+
-      '<p style="font-size:.88rem;line-height:1.4">Der Rettungsdienst verlangt <b style="color:#FFD700">15.000 MT</b> für den Transport ins Krankenhaus.</p>'+
+      '<p style="font-size:.88rem;line-height:1.4">Der Rettungsdienst verlangt <b style="color:#FFD700">'+$mt(cost)+'</b> (15-30% deines Guthabens) für den Transport ins Krankenhaus — oder du putzt selbst den Müllraum sauber.</p>'+
       '<div style="display:flex;gap:8px;margin-top:14px">'+
-        '<button onclick="Sweeper._pay()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Bezahlen<br><small>15.000 MT</small></button>'+
-        '<button onclick="Sweeper._refuse()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">❌ Nicht<br>bezahlen</button>'+
+        '<button onclick="Sweeper._pay()" style="flex:1;background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">💳 Bezahlen<br><small>'+$mt(cost)+'</small></button>'+
+        '<button onclick="Sweeper._refuse()" style="flex:1;background:rgba(231,76,60,.25);color:#E74C3C;border:1px solid #E74C3C;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">🧹 Müllraum<br>putzen</button>'+
       '</div></div>';
   },
   _pay(){
     const z=ZS.zoo;
-    if((z.mt||0)<15000){ ZP.toast('❌ Du hast keine 15.000 MT! Du musst putzen.',3000); this._refuse(); return; }
-    z.mt = Math.max(0, (z.mt||0) - 15000);
+    const cost=this._curAmbulanceCost||0;
+    if((z.mt||0)<cost){ ZP.toast('❌ Zu wenig MT! Du musst putzen.',3000); this._refuse(); return; }
+    z.mt = Math.max(0, (z.mt||0) - cost);
     ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD();
-    ZP.toast('💳 15.000 MT bezahlt. Neuer Stand: '+$mt(z.mt),3500);
+    ZP.toast('💳 '+$mt(cost)+' bezahlt. Neuer Stand: '+$mt(z.mt),3500);
     this._ambulance();
   },
   _refuse(){
@@ -12793,6 +12849,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="reports" onclick="ZAdmin.switchTab('reports')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">📋 Meldungen</div>
           <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
           <div class="padmin-tab-btn" data-tab="spieler" onclick="ZAdmin.switchTab('spieler')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">👥 Spieler</div>
+          <div class="padmin-tab-btn" data-tab="markt" onclick="ZAdmin.switchTab('markt')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#8B5A2B;display:flex;align-items:center;gap:6px;background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:6px">🤝 Marktplatz</div>
           <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#e67e22;display:flex;align-items:center;gap:6px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px">⏱️ Timer</div>
           <div class="padmin-tab-btn" data-tab="deadline" onclick="ZAdmin.switchTab('deadline')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#9b59b6;display:flex;align-items:center;gap:6px;background:rgba(155,89,182,.1);border:1px solid rgba(155,89,182,.3);border-radius:6px">📅 Deadline</div>
           <div class="padmin-tab-btn" data-tab="craft" onclick="ZAdmin.switchTab('craft')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚗️ Crafting</div>
@@ -13009,6 +13066,16 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#27AE60;font-size:.9rem;padding:12px" onclick="ZAdmin.sendDiscount()">🏷️ Rabatt für alle aktivieren</button>
             <button class="padmin-btn" style="background:#E74C3C;font-size:.85rem" onclick="ZAdmin.clearDiscount()">❌ Rabatt beenden</button>
           </div>
+        </div>
+        <!-- TAB: MARKTPLATZ -->
+        <div class="padmin-tab" id="padmin-tab-markt" style="display:none">
+          <div class="padmin-section-title">🤝 Marktplatz-Angebote</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <button class="padmin-btn" style="flex:1;background:#3498DB" onclick="ZAdmin.loadTrades()">🔄 Laden/Aktualisieren</button>
+            <button class="padmin-btn" style="flex:1;background:#E74C3C" onclick="ZAdmin.deleteAllTrades()">🗑️ Alle löschen</button>
+          </div>
+          <div id="padmin-trades-summary" style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px">Noch nicht geladen — auf "Laden/Aktualisieren" klicken.</div>
+          <div id="padmin-trades-list"></div>
         </div>
         <!-- TAB: SERVER -->
         <div class="padmin-tab" id="padmin-tab-server" style="display:none">
