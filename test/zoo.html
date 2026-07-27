@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v400 -->
+<!-- ZOO v401 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=400"></script>
-<script src="rewardchests.js?v=400"></script>
-<script src="personality.js?v=400"></script>
+<script src="lang.js?v=401"></script>
+<script src="rewardchests.js?v=401"></script>
+<script src="personality.js?v=401"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v400','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v401','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -277,6 +277,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="znews-stack" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:850;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;max-width:94vw"></div>
 <div id="ztips-card-wrap" style="position:fixed;top:64px;left:14px;z-index:860;max-width:min(320px,80vw)"></div>
 <div id="hud" class="off">
+<div id="cl-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,#B8860B,#FFD700,#B8860B);color:#1a1a1a;text-align:center;padding:6px 10px;font-weight:900;font-size:.85rem;letter-spacing:1px;box-shadow:0 2px 10px rgba(0,0,0,.4)">🏆 CHAMPIONS LEAGUE ZOO 🏆</div>
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
 <div id="hleft">
@@ -488,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=400"></script>
-<script src="worlds.js?v=400"></script>
+<script src="firebase-state.js?v=401"></script>
+<script src="worlds.js?v=401"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1156,7 +1157,7 @@ const ZS={
     // Their own zoo data (MT, animals, insurances, upgrades — all of
     // ZS.zoo) is untouched by this; only which OTHER PLAYERS they share a
     // 3D world with changes.
-    if(mode==='main' && this.zoo?.inChampionsLeague){
+    if(mode==='public' && this.zoo?.inChampionsLeague){
       this.instanceId = 'champions_league';
       this.mySlot = preferredSlot;
       if(!(typeof _rtdb!=='undefined' && _rtdb && State._useCloud())) return;
@@ -1292,6 +1293,10 @@ const ZA={
     await ZS.load();
     if(ZS.zoo) ZS._fix(); // ensure all fields migrated before 3D starts
     await ZS.assignInstance(m); // find/create a shared instance + slot before the world builds
+    try{
+      const banner=document.getElementById('cl-banner');
+      if(banner) banner.style.display=(ZS.instanceId==='champions_league')?'block':'none';
+    }catch(e){}
     try{ ZP.toast('🏠 Dein Platz: Slot '+(ZS.mySlot+1)+'/20 ('+ZS.instanceId+')', 2500); }catch(e){}
     // Wait for browser to render and give canvas real dimensions
     await new Promise(r=>setTimeout(r,100));

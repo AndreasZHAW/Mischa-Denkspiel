@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v400';
+const APP_VERSION = 'v401';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v400 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v401 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2141,8 +2141,20 @@ const App = {
       // Other games: auto-fill screen
       const inner = ga.querySelector('canvas') || ga.querySelector('div');
       const gameW = inner ? (inner.offsetWidth || inner.scrollWidth) : ga.scrollWidth;
+      // IMPORTANT: also constrain by HEIGHT, not just width. Some games
+      // (Tetris, others that reserve space for on-screen buttons) already
+      // size themselves to fit the available viewport HEIGHT internally —
+      // zooming them up further based on width alone pushed their controls
+      // straight off the bottom of the screen (exactly the "Tetris buttons
+      // not visible on iPad" report — width-only zoom looked fine on
+      // narrower phones where height was rarely the limiting factor, but
+      // an iPad's wide-but-shorter landscape viewport hit this hard).
+      const gameH = ga.scrollHeight || (inner ? inner.offsetHeight : 0);
+      const screenH = window.innerHeight;
       if (gameW > 10 && screenW > gameW * 1.05) {
-        const idealZoom = Math.min(screenW / gameW, 2.5);
+        const idealZoomW = screenW / gameW;
+        const idealZoomH = gameH > 10 ? (screenH * 0.92) / gameH : idealZoomW;
+        const idealZoom = Math.min(idealZoomW, idealZoomH, 2.5);
         const steps = [0.85, 1, 1.1, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
         const snapped = steps.reduce((a,b) => Math.abs(b-idealZoom)<Math.abs(a-idealZoom)?b:a);
         if (snapped > 1.05) setZoom(snapped);
