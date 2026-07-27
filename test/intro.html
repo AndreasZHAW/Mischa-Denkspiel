@@ -21,6 +21,44 @@
     document.documentElement.style.setProperty('--user-font-scale','1');
   }
 })();
+// ZOOM-BASED FONT CALIBRATION: browsers give no way to read the OS-level
+// "Text Size" accessibility setting directly (see discussion — this is a
+// real, deliberate privacy restriction, not a gap we can work around).
+// What IS reliably available is visualViewport.scale — the actual current
+// pinch-zoom level, a real standard API on both iOS Safari and Android
+// Chrome. If someone pinch-zooms in while reading the story (because the
+// default text felt too small), that's a genuine, direct signal of their
+// preferred reading size — far more reliable than guessing from a hidden
+// probe element. We track the HIGHEST zoom level reached throughout the
+// intro and, once they finish/skip it, derive a font size from it —  but
+// only if they haven't already set one explicitly (never overwrites an
+// existing choice), and only for a MEANINGFUL zoom (>15%, so incidental
+// jitter doesn't trigger a change).
+window._maxIntroZoom = 1;
+(function trackIntroZoom(){
+  try{
+    if(!window.visualViewport) return;
+    const update = () => {
+      const s = window.visualViewport.scale || 1;
+      if(s > window._maxIntroZoom) window._maxIntroZoom = s;
+    };
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+    update();
+  }catch(e){}
+})();
+window._applyZoomDerivedFontSize = function(){
+  try{
+    // Never override a size the person already picked deliberately
+    // (either via this same mechanism before, or the Schrift slider).
+    if(localStorage.getItem('mischa_font_size') !== null) return;
+    const z = window._maxIntroZoom || 1;
+    if(z < 1.15) return; // no meaningful zoom observed — leave the default alone
+    const derived = Math.round(16 * Math.min(z, 2.2)); // cap — avoid an extreme accidental pinch producing an unreadable-huge default
+    const clamped = Math.max(10, Math.min(40, derived));
+    localStorage.setItem('mischa_font_size', String(clamped));
+  }catch(e){}
+};
 </script>
 <style>
 :root{--user-font-scale:1}
@@ -155,7 +193,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
 <div id="intro-test-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:4px">🧪 TEST-UMGEBUNG</div>
 <script>if(window.MISCHA_TESTMODE){var b=document.getElementById('intro-test-banner');if(b)b.style.display='block';}</script>
 <button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
-<script src="lang.js?v=398"></script>
+<script src="lang.js?v=399"></script>
 <!-- Firebase (needed for Contest.loadConfig() — the deadline shown at the
      end of the story is pulled live from here, see updateIntroDeadline()
      below, instead of being a hardcoded date that goes stale). Loads async,
@@ -177,7 +215,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Ge
     setTimeout(() => resolve(false), 3000);
   });
 </script>
-<script src="firebase-state.js?v=398"></script>
+<script src="firebase-state.js?v=399"></script>
 <script>
 function introLangPicker(){
   if(document.getElementById('intro-lang-overlay'))return;
@@ -219,6 +257,18 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
     <div class="chapter-label" data-i18n="intro.ch0.label">Prolog</div>
     <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.6">🌌</div>
     <div class="chapter-title" data-i18n="intro.ch0.title">Irgendwo in der Welt...</div>
+    <div class="chars">
+      <div class="char-card">
+        <div class="char-avatar">🧭</div>
+        <div class="char-name">Mischa</div>
+        <div class="char-desc" data-i18n="intro.ch1.mischa_desc">Der Kreative. Einfallsreich, ruhig, unglaublich klug, ein echter Teamplayer.</div>
+      </div>
+      <div class="char-card" style="animation-delay:.3s">
+        <div class="char-avatar">🔬</div>
+        <div class="char-name">Janosch</div>
+        <div class="char-desc" data-i18n="intro.ch1.janosch_desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
+      </div>
+    </div>
     <div class="chapter-text" data-i18n-html="intro.ch0.text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
     <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
@@ -431,12 +481,14 @@ function showEnd(){
 function skipIntro(){
   stopMusic();
   localStorage.setItem('mischa_intro_ts', Date.now().toString());
+  try{ if(window._applyZoomDerivedFontSize) window._applyZoomDerivedFontSize(); }catch(e){}
   showEnd();
 }
 
 // ── ENTER GAME ──
 function enterGame(){
   stopMusic();
+  try{ if(window._applyZoomDerivedFontSize) window._applyZoomDerivedFontSize(); }catch(e){}
   // Mark intro as seen — prevents loop
   const nowTs = Date.now().toString();
   localStorage.setItem('mischa_intro_ts', nowTs);

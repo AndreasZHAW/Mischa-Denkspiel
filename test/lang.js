@@ -389,7 +389,7 @@ const STRINGS = {
   'gamelist.next_task':   { de:'Tippe auf die nächste Aufgabe:', en:'Tap the next task:', fr:'Touche la prochaine tâche :' , it:'Tocca il prossimo compito:'},
   'gamelist.done_of20':   { de:'geschafft', en:'done', fr:'réussi' , it:'completati'},
   'gamelist.font_hint_t': { de:'Schrift zu klein?', en:'Text too small?', fr:'Texte trop petit ?' , it:'Testo troppo piccolo?'},
-  'gamelist.font_hint_b': { de:'Schrift optimieren — 10 Stufen, ~30 Sek.', en:'Optimize text size — 10 steps, ~30 sec.', fr:'Optimiser la taille du texte — 10 étapes, ~30 s.' , it:'Ottimizza la dimensione del testo — 10 passaggi, ~30 sec.'},
+  'gamelist.font_hint_b': { de:'Schrift optimieren — mit dem Regler einstellen.', en:'Optimize text size — adjust with the slider.', fr:'Optimiser la taille du texte — ajuste avec le curseur.' , it:'Ottimizza la dimensione del testo — regola con il cursore.'},
 
   // ── MINI-GAME INSTRUCTIONS (shown before each game starts) ──
   'instr.dart':        { de:'🎯 <b>Dart!</b><br>Wirf 3 Pfeile auf die Scheibe. Klicke oder tippe auf die Scheibe — je näher zur Mitte, desto mehr Punkte!<br>📱 Handy/Tablet: Das Steuerkreuz rechts neben der Scheibe zum Zielen nutzen, loslassen = Wurf.',

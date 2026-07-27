@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v398';
+const APP_VERSION = 'v399';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v398 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v399 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1491,279 +1491,88 @@ const App = {
   showEyeTest() {
     const player = State.currentPlayer;
     const playerName = player?.name || '';
-    // Detect system font size and compute 10 steps dynamically
-    const detected = FontScale.detectSizes();
-    const SIZES = detected.steps;
-    const { sysSize, effectiveSys, maxPx, minPx } = detected;
-    let step = 0;
-    let lastReadable = 0;
+    const current = FontScale.load();
+    this._sliderPreviewSize = current;
 
-    const SAMPLE_TEXTS = [
-      'Mischa Denkspiel — Willkommen!',
-      'Du hast 20 Aufgaben geschafft.',
-      'Jetzt kannst du den Zoo besuchen.',
-      '14/20 Spiele · 11.5 MT verdient',
-      'Rangliste · Shop · Kontoauszug',
-      'Tippe auf die nächste Aufgabe:',
-      'Dart · Rechnen · Sokoban · Race',
-      '🌀 Mischa Taler: 11.5 MT',
-      'Welt 1 abgeschlossen! Weiter →',
-      '🦁 Zoo · 🎡 Glücksrad · Slaps',
-    ];
+    const SAMPLE_TEXT = 'Mischa Denkspiel — 14/20 Spiele · 🌀 11.5 MT · Tippe auf die nächste Aufgabe';
 
-    const render = (s) => {
-      const size = SIZES[s];
-      const isFirst = s === 0;
-      const isLast = s === SIZES.length - 1;
-      const progress = Math.round((s / (SIZES.length-1)) * 100);
-      const pctOfSys = Math.round((size / (effectiveSys||16)) * 100);
-
-      this._html(`
-        <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
-             display:flex;flex-direction:column;align-items:center;justify-content:center;
-             padding:20px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif">
-
-          <!-- Header -->
-          <div style="text-align:center;margin-bottom:28px">
-            <div style="font-size:3rem;margin-bottom:8px">👁</div>
-            <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Schriftgrösse optimieren</h2>
-            <p style="color:rgba(255,255,255,.5);font-size:.85rem;margin:0">
-              Schritt ${s+1} von ${SIZES.length} — ${size}px
-            </p>
-            <p style="color:rgba(255,255,255,.3);font-size:0.875rem;margin:3px 0 0">
-              Systemschrift: ${sysSize}px · DPR: ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
-            </p>
-          </div>
-
-          <!-- Progress bar -->
-          <div style="width:100%;max-width:400px;background:rgba(255,255,255,.1);
-               border-radius:20px;height:6px;margin-bottom:32px;overflow:hidden">
-            <div style="width:${progress}%;background:linear-gradient(90deg,#4af,#27AE60);
-                 height:100%;border-radius:20px;transition:width .3s"></div>
-          </div>
-
-          <!-- Text sample card -->
-          <div style="width:100%;max-width:440px;background:rgba(255,255,255,.06);
-               border:1.5px solid rgba(255,255,255,.12);border-radius:20px;
-               padding:28px 24px;margin-bottom:28px;text-align:center">
-            <div style="color:rgba(255,255,255,.35);font-size:.75rem;
-                 font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">
-              Kannst du diesen Text lesen?
-            </div>
-            <div style="color:#fff;font-size:${size}px;line-height:1.55;font-weight:500">
-              ${SAMPLE_TEXTS[s]}
-            </div>
-            <div style="margin-top:14px;color:rgba(255,255,255,.3);font-size:.7rem">
-              ${size}px · ${pctOfSys}% der Systemgrösse · ${isFirst?'▲ Grösste':isLast?'▼ Kleinste':'Stufe '+(s+1)}
-            </div>
-          </div>
-
-          <!-- Buttons -->
-          <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px">
-            <button onclick="App._eyeTestYes(${s})"
-              style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;
-                     padding:18px;border-radius:14px;font-size:1.1rem;font-weight:900;
-                     cursor:pointer;min-height:56px;
-                     box-shadow:0 4px 16px rgba(39,174,96,.4)">
-              ✅ Ja, ich kann das lesen
-            </button>
-            <button onclick="App._eyeTestNo(${s})"
-              style="background:rgba(231,76,60,.15);color:#E74C3C;
-                     border:2px solid rgba(231,76,60,.4);
-                     padding:16px;border-radius:14px;font-size:1rem;font-weight:700;
-                     cursor:pointer;min-height:52px">
-              ❌ Zu klein — nicht lesbar
-            </button>
-            ${!isFirst ? `<button onclick="App._eyeTestBack(${s})"
-              style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:none;
-                     padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer">
-              ← Vorherige Stufe
-            </button>` : ''}
-            <button onclick="App.showWorldMap()"
-              style="background:none;color:rgba(255,255,255,.3);border:none;
-                     padding:10px;font-size:1.000rem;cursor:pointer;margin-top:4px">
-              Überspringen (Standardgrösse beibehalten)
-            </button>
-          </div>
-        </div>`);
-    };
-
-    // Store test state on App
-    this._eyeStep = 0;
-    this._eyeLastReadable = 0;
-    this._eyeHadYes = false; // track if user ever clicked 'Yes'
-    render(0);
-  },
-
-  _eyeTestYes(step) {
-    const detected = FontScale.detectSizes();
-    const SIZES = detected.steps;
-    this._eyeLastReadable = step; // remember: this step WAS readable
-    this._eyeHadYes = true;
-    // Preview live
-    FontScale.apply(SIZES[step]);
-    if (step >= SIZES.length - 1) {
-      // Reached smallest — save it as the minimum readable
-      this._eyeTestFinish(step, detected);
-    } else {
-      this.showEyeTestStep(step + 1);
-    }
-  },
-
-  _eyeTestNo(step) {
-    const detected = FontScale.detectSizes();
-    const SIZES = detected.steps;
-    
-    if (step === 0) {
-      // "Cannot read" already at BIGGEST size → save biggest (step 0) anyway
-      // This is the maximum we have — better than nothing
-      this._eyeTestFinish(0, detected);
-    } else if (this._eyeHadYes) {
-      // We had at least one "Yes" — save the last readable step
-      this._eyeTestFinish(this._eyeLastReadable, detected);
-    } else {
-      // Never clicked "Yes" before — save previous step (one bigger)
-      this._eyeTestFinish(step - 1, detected);
-    }
-  },
-
-  _eyeTestBack(step) {
-    if (step > 0) {
-      // If going back to step before last readable, reset tracker
-      if (step - 1 < this._eyeLastReadable) {
-        this._eyeLastReadable = step - 1;
-        this._eyeHadYes = step > 1;
-      }
-      this.showEyeTestStep(step - 1);
-    }
-  },
-
-  showEyeTestStep(step) {
-    const detected = FontScale.detectSizes();
-    const SIZES = detected.steps;
-    const { sysSize, effectiveSys, maxPx, minPx } = detected;
-    if (step < 0 || step >= SIZES.length) { this.showWorldMap(); return; }
-    const size = SIZES[step];
-    const SAMPLE_TEXTS = [
-      'Mischa Denkspiel — Willkommen!',
-      'Du hast 20 Aufgaben geschafft.',
-      'Jetzt kannst du den Zoo besuchen.',
-      '14/20 Spiele · 11.5 MT verdient',
-      'Rangliste · Shop · Kontoauszug',
-      'Tippe auf die nächste Aufgabe:',
-      'Dart · Rechnen · Sokoban · Race',
-      '🌀 Mischa Taler: 11.5 MT',
-      'Welt 1 abgeschlossen! Weiter →',
-      '🦁 Zoo · 🎡 Glücksrad · Slaps',
-    ];
-    const progress = Math.round((step / (SIZES.length-1)) * 100);
-    const isFirst = step === 0;
-    const isLast = step === SIZES.length - 1;
-    const pctOfSys = Math.round((size / effectiveSys) * 100);
     this._html(`
       <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
            display:flex;flex-direction:column;align-items:center;justify-content:center;
            padding:20px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif">
-        <div style="text-align:center;margin-bottom:28px">
-          <div style="font-size:3rem;margin-bottom:8px">👁</div>
-          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 4px">Schriftgrösse optimieren</h2>
-          <p style="color:rgba(255,255,255,.5);font-size:1.000rem;margin:0">
-            Schritt ${step+1} von ${SIZES.length} — ${size}px
-          </p>
-          <p style="color:rgba(255,255,255,.3);font-size:0.812rem;margin:3px 0 0">
-            System: ${sysSize}px · DPR ${(window.devicePixelRatio||1).toFixed(1)} · Bereich: ${maxPx}→${minPx}px
+
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:3rem;margin-bottom:8px">🔤</div>
+          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 6px">Schriftgrösse einstellen</h2>
+          <p style="color:rgba(255,255,255,.55);font-size:.88rem;margin:0;max-width:320px;line-height:1.4">
+            Schieb den Regler, bis es für dich passt — <b style="color:#4af">so klein wie möglich, so gross wie nötig.</b>
           </p>
         </div>
-        <div style="width:100%;max-width:400px;background:rgba(255,255,255,.1);
-             border-radius:20px;height:6px;margin-bottom:32px;overflow:hidden">
-          <div style="width:${progress}%;background:linear-gradient(90deg,#4af,#27AE60);
-               height:100%;border-radius:20px;transition:width .3s"></div>
-        </div>
+
+        <!-- Live preview -->
         <div style="width:100%;max-width:440px;background:rgba(255,255,255,.06);
              border:1.5px solid rgba(255,255,255,.12);border-radius:20px;
-             padding:28px 24px;margin-bottom:28px;text-align:center">
-          <div style="color:rgba(255,255,255,.35);font-size:.75rem;
+             padding:28px 24px;margin-bottom:20px;text-align:center">
+          <div style="color:rgba(255,255,255,.35);font-size:.72rem;
                font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">
-            Kannst du diesen Text lesen?
+            Vorschau
           </div>
-          <div style="color:#fff;font-size:${size}px;line-height:1.55;font-weight:500">
-            ${SAMPLE_TEXTS[step]}
+          <div id="font-slider-preview" style="color:#fff;font-size:${current}px;line-height:1.55;font-weight:500;transition:font-size .05s">
+            ${SAMPLE_TEXT}
           </div>
-          <div style="margin-top:14px;color:rgba(255,255,255,.3);font-size:.7rem">
-            ${size}px · ${isFirst?'▲ Grösste (2× System)':isLast?'▼ Kleinste (0.3× System)':'Stufe '+(step+1)+'/10'}
+          <div id="font-slider-px" style="margin-top:14px;color:rgba(255,255,255,.4);font-size:.75rem;font-weight:700">
+            ${current}px
           </div>
         </div>
+
+        <!-- Slider -->
+        <div style="width:100%;max-width:400px;margin-bottom:24px">
+          <div style="display:flex;justify-content:space-between;color:rgba(255,255,255,.3);font-size:.68rem;margin-bottom:4px">
+            <span>A klein</span><span>A gross</span>
+          </div>
+          <input id="font-slider" type="range" min="${FontScale.MIN}" max="${FontScale.MAX}" value="${current}" step="1"
+            style="width:100%;height:8px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#4af,#27AE60);border-radius:20px;outline:none;cursor:pointer"
+            oninput="App._onFontSliderInput(this.value)">
+        </div>
+
         <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px">
-          <button onclick="App._eyeTestYes(${step})"
+          <button onclick="App._saveFontSlider()"
             style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;
-                   padding:18px;border-radius:14px;font-size:1.1rem;font-weight:900;
-                   cursor:pointer;min-height:56px;box-shadow:0 4px 16px rgba(39,174,96,.4)">
-            ✅ Ja, ich kann das lesen
+                   padding:16px;border-radius:14px;font-size:1.05rem;font-weight:900;
+                   cursor:pointer;min-height:52px;box-shadow:0 4px 16px rgba(39,174,96,.4)">
+            ✅ So ist es gut!
           </button>
-          <button onclick="App._eyeTestNo(${step})"
-            style="background:rgba(231,76,60,.15);color:#E74C3C;
-                   border:2px solid rgba(231,76,60,.4);
-                   padding:16px;border-radius:14px;font-size:1rem;font-weight:700;
-                   cursor:pointer;min-height:52px">
-            ❌ Zu klein — nicht lesbar
-          </button>
-          ${!isFirst ? `<button onclick="App._eyeTestBack(${step})"
-            style="background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:none;
-                   padding:12px;border-radius:12px;font-size:.9rem;cursor:pointer">
-            ← Vorherige Stufe
-          </button>` : ''}
           <button onclick="App.showWorldMap()"
             style="background:none;color:rgba(255,255,255,.3);border:none;
                    padding:10px;font-size:.82rem;cursor:pointer;margin-top:4px">
-            Überspringen (Standardgrösse)
+            Abbrechen
           </button>
         </div>
-      </div>`);
-  },
-
-  _eyeTestFinish(stepIdx, detected) {
-    const player = State.currentPlayer;
-    const playerName = player?.name || '';
-    // Use passed detected object or re-detect
-    if (!detected) detected = FontScale.detectSizes();
-    const size = detected.steps[stepIdx] ?? detected.steps[0] ?? 32;
-    // Store the detected system size alongside for diagnostics
-    const detectedInfo = { sysSize: detected.sysSize, effectiveSys: detected.effectiveSys, 
-                           stepIdx, sizePx: size, steps: detected.steps };
-    try { localStorage.setItem('mischa_eyetest_detected', JSON.stringify(detectedInfo)); } catch(e) {}
-    // Save
-    FontScale.save(playerName, size);
-    FontScale.markTested();
-    FontScale.apply(size);
-
-    this._html(`
-      <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
-           display:flex;flex-direction:column;align-items:center;justify-content:center;
-           padding:24px;text-align:center;font-family:'Segoe UI',system-ui,sans-serif">
-        <div style="font-size:4rem;margin-bottom:16px">✅</div>
-        <h2 style="color:#fff;font-size:1.3rem;font-weight:900;margin:0 0 8px">Schriftgrösse gespeichert!</h2>
-        <p style="color:rgba(255,255,255,.6);font-size:${Math.max(16,size)}px;margin:0 0 8px;max-width:340px;line-height:1.5">
-          Optimale Grösse: <b style="color:#4af">${size}px</b>
-          ${stepIdx===0&&!this._eyeHadYes?'<br><span style="color:#f39c12;font-size:.85em">⚠️ Grösste verfügbare Stufe gespeichert — du hast bei keiner Grösse ✅ geklickt.</span>':''}
-        </p>
-        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-             border-radius:14px;padding:16px 20px;margin-bottom:24px;max-width:360px">
-          <div style="color:rgba(255,255,255,.4);font-size:.72rem;margin-bottom:6px">VORSCHAU bei ${size}px:</div>
-          <div style="color:#fff;font-size:${size}px;line-height:1.6">
-            14/20 Spiele · 🌀 11.5 MT<br>
-            Tippe auf die nächste Aufgabe
-          </div>
-        </div>
-        <button onclick="App.showWorldMap()"
-          style="background:linear-gradient(135deg,#2980B9,#1a5a8a);color:#fff;border:none;
-                 padding:16px 40px;border-radius:14px;font-size:${size}px;font-weight:900;
-                 cursor:pointer;min-height:52px;box-shadow:0 4px 16px rgba(41,128,185,.4)">
-          ← Zurück zu den Welten
-        </button>
-        <p style="color:rgba(255,255,255,.25);font-size:.72rem;margin-top:16px">
+        <p style="color:rgba(255,255,255,.25);font-size:.7rem;margin-top:16px">
           Gerät: ${screen.width}x${screen.height} · Spieler: ${playerName}
         </p>
       </div>`);
+  },
+
+  // Live preview as the slider is dragged — doesn't save/apply anywhere
+  // else until confirmed, so trying out sizes has no side effects.
+  _onFontSliderInput(value) {
+    const size = FontScale.clamp(value);
+    this._sliderPreviewSize = size;
+    const preview = document.getElementById('font-slider-preview');
+    const pxLabel = document.getElementById('font-slider-px');
+    if (preview) preview.style.fontSize = size + 'px';
+    if (pxLabel) pxLabel.textContent = size + 'px';
+  },
+
+  _saveFontSlider() {
+    const player = State.currentPlayer;
+    const playerName = player?.name || '';
+    const size = FontScale.clamp(this._sliderPreviewSize);
+    FontScale.save(playerName, size);
+    FontScale.markTested();
+    FontScale.apply(size);
+    this.showWorldMap();
   },
 
   // ---- GLOBAL LEADERBOARD ----
@@ -2172,7 +1981,7 @@ const App = {
             <span style="font-size:1.4rem">👁</span>
             <div style="flex:1">
               <div style="font-weight:900;color:rgba(180,240,255,1)">${typeof t!=='undefined'?t('gamelist.font_hint_t'):'Schrift zu klein?'}</div>
-              <div style="color:rgba(255,255,255,.5);font-size:.82rem">${typeof t!=='undefined'?t('gamelist.font_hint_b'):'Schrift optimieren — 10 Stufen, ~30 Sek.'}</div>
+              <div style="color:rgba(255,255,255,.5);font-size:.82rem">${typeof t!=='undefined'?t('gamelist.font_hint_b'):'Schrift optimieren — mit dem Regler einstellen.'}</div>
             </div>
             <span style="color:rgba(100,200,255,.7)">›</span>
           </div>` : ''}
