@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v397</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v397 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v398</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v398 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -398,7 +398,8 @@ async function runWelt1(){
       try{Object.values(p.worlds||{}).forEach(ws=>{(ws.tasks||[]).forEach(t=>{if(t&&t.mt&&!isNaN(t.mt))worldsMT+=t.mt;});});}catch(e){}
       const cw=p.currentWorld||1;
       const tasksCount=Object.values(p.worlds||{}).reduce((s,ws)=>s+((ws.tasks||[]).filter(t=>t&&t.done).length),0);
-      pr.push(`  👤 ${n}: totalScore=${mt.toFixed?mt.toFixed(1):mt} MT · worldsMT=${worldsMT.toFixed(1)} MT · Welt ${cw} · ${tasksCount} Tasks`);
+      const resetStr=p.lastAdminReset?new Date(p.lastAdminReset).toLocaleString('de-CH',{timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+      pr.push(`  👤 ${n}: totalScore=${mt.toFixed?mt.toFixed(1):mt} MT · worldsMT=${worldsMT.toFixed(1)} MT · Welt ${cw} · ${tasksCount} Tasks · 🔄lastAdminReset(lokal)=${resetStr}`);
     });
     const zk=Object.keys(localStorage).filter(k=>k.startsWith('zoo_unlocked_'));
     if(zk.length)pr.push('Zoo freigeschaltet: '+zk.map(k=>k.replace('zoo_unlocked_','')).join(', '));
@@ -413,6 +414,7 @@ async function runWelt1(){
       const snap=await db.collection('mischa_players').get();
       pr.push('🔥 mischa_players: '+snap.size+' Spieler');
       const fbNames=[];
+      const fbByName={};
       snap.forEach(doc=>{
         const p=doc.data();
         const mt=p.totalScore||0;
@@ -420,8 +422,33 @@ async function runWelt1(){
         const tasksCount=Object.values(p.worlds||{}).reduce((s,ws)=>s+((ws.tasks||[]).filter(t=>t&&t.done).length),0);
         const onlyFB = !localNames.includes(doc.id.toLowerCase());
         fbNames.push(doc.id.toLowerCase());
-        pr.push(`  ${onlyFB?'🆕':'🌐'} ${doc.id}: ${(mt.toFixed?mt.toFixed(1):mt)} MT · Welt ${cw} · ${tasksCount} Tasks${onlyFB?' (nur Firebase!)':''}`);
+        fbByName[doc.id.toLowerCase()]={mt, lastAdminReset:p.lastAdminReset||0};
+        const resetStr=p.lastAdminReset?new Date(p.lastAdminReset).toLocaleString('de-CH',{timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+        pr.push(`  ${onlyFB?'🆕':'🌐'} ${doc.id}: ${(mt.toFixed?mt.toFixed(1):mt)} MT · Welt ${cw} · ${tasksCount} Tasks${onlyFB?' (nur Firebase!)':''} · 🔄lastAdminReset(cloud)=${resetStr}`);
       });
+      // Direct cross-check: local cache vs cloud, specifically the case
+      // that causes the "reset doesn't stick on the player's own device"
+      // bug — local totalScore/lastAdminReset lagging behind what's
+      // actually in the cloud right now.
+      try{
+        const mpLocal=JSON.parse(localStorage.getItem('mischa_players')||'{}');
+        const mismatches=[];
+        Object.entries(mpLocal).forEach(([n,p])=>{
+          const fb=fbByName[n.toLowerCase()]; if(!fb) return;
+          const localMt=p.totalScore||0;
+          const localReset=p.lastAdminReset||0;
+          if(fb.lastAdminReset && fb.lastAdminReset>localReset){
+            mismatches.push(`  ⚠️ ${n}: CLOUD hat einen NEUEREN Reset (${new Date(fb.lastAdminReset).toLocaleTimeString('de-CH')}) als der lokale Cache auf DIESEM Gerät kennt (lokal: ${localReset?new Date(localReset).toLocaleTimeString('de-CH'):'nie'}) — lokaler Wert: ${localMt} MT, Cloud-Wert: ${fb.mt} MT. Falls dieses Gerät das des betroffenen Spielers ist, ist DAS die Ursache.`);
+          } else if(Math.abs(localMt-fb.mt)>0.05 && !fb.lastAdminReset){
+            mismatches.push(`  ℹ️ ${n}: lokaler Wert (${localMt} MT) weicht von Cloud (${fb.mt} MT) ab, aber kein Reset-Zeitstempel vorhanden — evtl. einfach noch nicht synchronisiert.`);
+          }
+        });
+        if(mismatches.length){
+          pr.push('');
+          pr.push('🔍 LOKAL-vs-CLOUD ABGLEICH (auf DIESEM Gerät):');
+          mismatches.forEach(m=>pr.push(m));
+        }
+      }catch(e){}
       // Check 'players' collection (old name) for orphaned records — THESE are missing in Admin!
       const snapOld=await db.collection('players').get();
       if(snapOld.size>0){
