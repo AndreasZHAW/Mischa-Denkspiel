@@ -4,18 +4,18 @@ const RewardChests = {
   // hell = chance for hell chest (rolled first)
   // upChance = per-click upgrade probability (Brawl-Stars style)
   TIERS: [
-    {min:5,   name:'5 MIN TRUHE',   color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.08,  upChance:0.10, q:1},
-    {min:10,  name:'10 MIN TRUHE',  color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.06,  upChance:0.15, q:2},
-    {min:30,  name:'30 MIN TRUHE',  color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.04,  upChance:0.20, q:5},
-    {min:60,  name:'60 MIN TRUHE',  color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.02,  upChance:0.28, q:10},
-    {min:120, name:'120 MIN TRUHE', color:'#ffd700', glow:'rgba(255,215,0,.7)',   hell:0.008, upChance:0.38, q:20},
+    {min:5,   name:'5 MIN TRUHE',   color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.08,  upChance:0.10, q:0.6},
+    {min:10,  name:'10 MIN TRUHE',  color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.06,  upChance:0.15, q:1},
+    {min:30,  name:'30 MIN TRUHE',  color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.04,  upChance:0.20, q:2.2},
+    {min:60,  name:'60 MIN TRUHE',  color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.02,  upChance:0.28, q:4},
+    {min:120, name:'120 MIN TRUHE', color:'#ffd700', glow:'rgba(255,215,0,.7)',   hell:0.008, upChance:0.38, q:7},
   ],
   TIERS2: [
-    {min:5,   name:'5 MIN TRUHE+',  color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.06,  upChance:0.13, q:1.3},
-    {min:10,  name:'10 MIN TRUHE+', color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.04,  upChance:0.19, q:2.6},
-    {min:30,  name:'30 MIN TRUHE+', color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.02,  upChance:0.25, q:6.5},
-    {min:60,  name:'60 MIN TRUHE+', color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.008, upChance:0.33, q:13},
-    {min:120, name:'120 MIN TRUHE+',color:'#9b59ff', glow:'rgba(155,89,255,.8)',  hell:0.0,   upChance:0.45, space:true, q:26},
+    {min:5,   name:'5 MIN TRUHE+',  color:'#2ecc40', glow:'rgba(46,204,64,.6)',   hell:0.06,  upChance:0.13, q:0.75},
+    {min:10,  name:'10 MIN TRUHE+', color:'#0074d9', glow:'rgba(0,116,217,.6)',   hell:0.04,  upChance:0.19, q:1.3},
+    {min:30,  name:'30 MIN TRUHE+', color:'#b10dc9', glow:'rgba(177,13,201,.6)',  hell:0.02,  upChance:0.25, q:2.8},
+    {min:60,  name:'60 MIN TRUHE+', color:'#ff851b', glow:'rgba(255,133,27,.6)',  hell:0.008, upChance:0.33, q:5},
+    {min:120, name:'120 MIN TRUHE+',color:'#9b59ff', glow:'rgba(155,89,255,.8)',  hell:0.0,   upChance:0.45, space:true, q:9},
   ],
   // Rarity tiers (index 0-4)
   RARITIES:[
