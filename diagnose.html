@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v401</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v401 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v402</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v402 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -660,13 +660,14 @@ async function runMT(){
       // kept purely as informational context, no longer as a gate.
       const adminTotal = sanitizeMT(ds + (z?(zMt||0):0));
       const rankTotal = sanitizeMT(ds + (z?(zMt||0):0));
-      rows.push({name,ds,zRaw:zMtRaw,z:!!z,zMt,p_dev,z_dev,devMatch,adminTotal,rankTotal,overCap,mismatch:Math.abs(adminTotal-rankTotal)>0.05});
+      const inCL = !!(z && z.inChampionsLeague);
+      rows.push({name,ds,zRaw:zMtRaw,z:!!z,zMt,p_dev,z_dev,devMatch,adminTotal,rankTotal,overCap,mismatch:Math.abs(adminTotal-rankTotal)>0.05,inCL});
     });
     // Any zoo docs left over have NO matching mischa_players doc at all
     Object.entries(zoosByName).forEach(([key,z])=>{
       const zMtRaw=(typeof z.mt==='number'&&isFinite(z.mt))?z.mt:0;
       const zMt=sanitizeMT(zMtRaw);
-      rows.push({name:key+' (nur Zoo, kein Welt-1-Account)',ds:0,zRaw:zMtRaw,z:true,zMt,p_dev:null,z_dev:z.deviceId||null,devMatch:false,adminTotal:zMt,rankTotal:0,overCap:zMtRaw>MT_SANITY_CAP,mismatch:zMt>0.05});
+      rows.push({name:key+' (nur Zoo, kein Welt-1-Account)',ds:0,zRaw:zMtRaw,z:true,zMt,p_dev:null,z_dev:z.deviceId||null,devMatch:false,adminTotal:zMt,rankTotal:0,overCap:zMtRaw>MT_SANITY_CAP,mismatch:zMt>0.05,inCL:!!z.inChampionsLeague});
     });
     rows.sort((a,b)=>(b.mismatch-a.mismatch)||(b.overCap-a.overCap)||a.name.localeCompare(b.name));
     _mtRows=rows;
@@ -681,7 +682,7 @@ async function runMT(){
       +'<tr style="color:#4af;text-align:left;border-bottom:1px solid #333">'
       +'<th style="padding:4px 6px">Spieler</th><th>Welt1 dsMT</th><th>Zoo mt (roh)</th>'
       +'<th>DeviceID Welt1</th><th>DeviceID Zoo</th><th>Match?</th>'
-      +'<th>Admin-Panel-Summe</th><th>Rangliste-Summe</th><th></th><th></th></tr>'
+      +'<th>Admin-Panel-Summe</th><th>Rangliste-Summe</th><th>🏆CL</th><th></th><th></th></tr>'
       + rows.map(r=>`<tr style="border-bottom:1px solid #1a1a1a;${r.overCap?'background:rgba(255,165,0,.15)':r.mismatch?'background:rgba(231,76,60,.12)':''}">`
         +`<td style="padding:4px 6px;font-weight:${(r.mismatch||r.overCap)?'900':'400'}">${r.name}</td>`
         +`<td>${r.ds.toFixed(1)}</td>`
@@ -691,6 +692,7 @@ async function runMT(){
         +`<td>${r.z ? (r.devMatch?'<span class="ok">✅</span>':'<span class="err">❌</span>') : '<span class="dim">—</span>'}</td>`
         +`<td>${r.adminTotal.toFixed(1)} MT</td>`
         +`<td>${r.rankTotal.toFixed(1)} MT</td>`
+        +`<td>${r.inCL?'<span class="ok">🏆</span>':'<span class="dim">—</span>'}</td>`
         +`<td>${r.overCap?'<span class="err">⚠️ Über Sanity-Cap — wird gedeckelt</span>':r.mismatch?'<span class="err">⚠️ Diskrepanz — Ursache: Geräte-ID stimmt nicht überein. Welt-1 zeigt daher NICHT die Zoo-MT mit an.</span>':''}</td>`
         +`<td>${(r.z && r.z_dev && !r.devMatch) ? `<button onclick="fixDeviceId('${r.name.replace(/'/g,"\\'")}','${r.z_dev}')" class="info" style="font-size:.68rem;padding:3px 8px">🔧 Fix</button>` : ''}</td>`
         +`</tr>`).join('')
