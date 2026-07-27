@@ -47,6 +47,7 @@ const PacmanGame = {
           <span style="font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.5)">Steuerung:</span>
           <button id="pc-mode-btn" style="background:#2c3e50;color:#FFD700;border:1px solid #FFD700;padding:4px 10px;border-radius:20px;font-size:clamp(0.82rem,3.5vw,0.92rem);cursor:pointer">${typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten'}</button>
           <label id="pc-tilt-opts" style="display:none;align-items:center;gap:8px;font-size:clamp(0.8rem,3.4vw,0.9rem);color:rgba(255,255,255,.5)">
+            <span title="Falls sich die Neigungssteuerung verkehrt herum anfühlt (z.B. rechts neigen bewegt nach links), hier ankreuzen." style="color:rgba(255,255,255,.65);cursor:help">🔄 Invertieren, falls verkehrt:</span>
             <label style="display:flex;align-items:center;gap:3px;cursor:pointer">
               <input type="checkbox" id="pc-rev-x" style="cursor:pointer"> Links/Rechts ↔
             </label>

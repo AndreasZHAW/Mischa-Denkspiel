@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v405';
+const APP_VERSION = 'v406';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -343,7 +343,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v405 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v406 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2119,7 +2119,14 @@ const App = {
       // (phone, iPad, Android tablet) now goes through the same fit logic
       // that phones already used — this doesn't change anything for phones
       // (they were always <700px and already went through this path).
-      const _isTouchDevice = (navigator.maxTouchPoints||0)>0 || 'ontouchstart' in window;
+      // NOT navigator.maxTouchPoints/'ontouchstart' — those report true on
+      // many Windows laptops that HAVE a touchscreen even when the person
+      // is using a mouse right now, wrongly triggering mobile auto-zoom on
+      // a normal desktop (this shrank/cut off Tetris's controls there).
+      // (hover:none)+(pointer:coarse) correctly identifies devices where
+      // touch is the PRIMARY input (phones, tablets) rather than merely
+      // available alongside a mouse.
+      const _isTouchDevice = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
       if (!ga || (window.innerWidth >= 700 && !_isTouchDevice)) return; // desktop: no auto-zoom
       const setZoom = (z) => {
         this._zoomLevel = z;
