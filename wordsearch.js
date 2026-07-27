@@ -12,10 +12,20 @@ const WordSearchGame = {
     WordSearchGame._lastConfig = config;
     const wordSet = this._getWords(worldId);
     const { grid, placements } = this._buildGrid(wordSet, 10, 10);
+    // IMPORTANT: use only the words that ACTUALLY made it into the grid —
+    // not the full requested list. The placement loop below gives up
+    // after 100 random attempts per word and silently skips ones that
+    // don't fit (a fixed 10x10 grid can run out of room, especially with
+    // longer words or more than the original 5). If the win condition
+    // required c.found.size to reach the REQUESTED word count instead of
+    // the PLACED one, a single unplaceable word made the puzzle
+    // permanently uncompletable — you could find every word that was
+    // actually in the grid and still never "win".
+    const placedWords = placements.map(p => p.word);
 
     this.current = {
       grid, placements,
-      words: wordSet,
+      words: placedWords,
       found: new Set(),
       selecting: false,
       selStart: null,

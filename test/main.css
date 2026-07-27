@@ -250,7 +250,8 @@ body { font-size: var(--fluid-base); }
 /* Prevent game overflow on small screens */
 #game-area {
   max-height: calc(100dvh - 100px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 #game-area canvas {
   max-height: calc(100dvh - 180px) !important;
@@ -272,7 +273,8 @@ body { font-size: var(--fluid-base); }
 #game-area {
   width: 100% !important;
   max-width: 100% !important;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   box-sizing: border-box;
 }
 #game-area canvas {
