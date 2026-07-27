@@ -190,7 +190,7 @@ const RewardChests = {
             ? '<div style="color:'+t.color+';font-weight:900;margin:8px 0;font-size:.9rem">✨ Bereit zum Öffnen!</div>'+
               '<button onclick="RewardChests.openChest('+t.min+')" style="width:100%;background:linear-gradient(135deg,'+t.color+','+t.color+'cc);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:900;font-size:1rem;cursor:pointer">ÖFFNEN</button>'
             : '<div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-top:6px">Öffne in:</div>'+
-              '<div style="background:#000;border-radius:8px;padding:6px;margin-top:4px;font-size:1.1rem;font-weight:900">🕐 '+mm+':'+ss+'</div>'
+              '<div id="chest-timer-'+t.min+'" style="background:#000;border-radius:8px;padding:6px;margin-top:4px;font-size:1.1rem;font-weight:900">🕐 '+mm+':'+ss+'</div>'
         )+
         (t.min===120?'<div style="font-size:.62rem;color:'+t.color+';margin-top:6px;font-weight:700">SEHR SELTENE BELOHNUNGEN!</div>':'')+
       '</div>';
@@ -209,6 +209,26 @@ const RewardChests = {
       '</div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 20px;max-width:900px;margin:0 auto">'+cards+'</div>';
     document.body.appendChild(ov);
+    // Live-update the countdowns every second while the panel is open —
+    // they used to be a static snapshot computed once at render time,
+    // which looked like a frozen/broken timer since the numbers never
+    // actually ticked down. If a tier BECOMES ready while watching, do a
+    // full re-render (its whole card needs to change, not just the text).
+    if(this._chestTimerIv) clearInterval(this._chestTimerIv);
+    this._chestTimerIv=setInterval(()=>{
+      if(!document.getElementById('chest-overlay')){ clearInterval(this._chestTimerIv); this._chestTimerIv=null; return; }
+      let needsFullRerender=false;
+      tiers.forEach(t=>{
+        if(this._opened().includes(t.min)) return;
+        if(this._isReady(t)){ needsFullRerender=true; return; }
+        const el=document.getElementById('chest-timer-'+t.min);
+        if(!el) return;
+        const minsLeft=Math.max(0,t.min-this._minsPlayed());
+        const mm=String(Math.floor(minsLeft)).padStart(2,'0'), ss=String(Math.floor((minsLeft%1)*60)).padStart(2,'0');
+        el.textContent='🕐 '+mm+':'+ss;
+      });
+      if(needsFullRerender) this.open();
+    },1000);
   },
   _ffTest(){ try{ sessionStorage.setItem('mischa_session_start',String(this._startTs()-130*60000)); }catch(e){} this.open(); this.updateBadge(); },
 

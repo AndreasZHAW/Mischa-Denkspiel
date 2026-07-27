@@ -69,7 +69,7 @@ const TetrisGame = {
       return;
     }
     const ctx=cv.getContext('2d'), nxCtx=nxCv.getContext('2d');
-    ctx.scale(DPR,DPR); nxCtx.scale(DPR,DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0); nxCtx.setTransform(DPR,0,0,DPR,0,0);
 
     let board=Array(ROWS).fill(null).map(()=>Array(COLS).fill(null));
     const pickPiece=()=>PIECES[Math.floor(Math.random()*PIECES.length)];

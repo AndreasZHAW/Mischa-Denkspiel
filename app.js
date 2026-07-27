@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v393';
+const APP_VERSION = 'v397';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v393 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v397 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1158,6 +1158,31 @@ const App = {
   async showWorldMap() {
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
+    // If a session got auto-restored (from sessionStorage/localStorage
+    // backup — see State.getCurrentPlayer()) but the resulting player
+    // object is missing basic required shape, treat it as broken rather
+    // than rendering a World Map that then can't actually do anything
+    // (every action needing player.name/worlds would silently fail).
+    // Matches what a fresh login screen would give instead.
+    if (player && (!player.name || typeof player.name !== 'string')) {
+      try{ sessionStorage.removeItem('mischa_current'); localStorage.removeItem('mischa_current_backup'); State.currentPlayer=null; }catch(e){}
+      this.showWelcome();
+      setTimeout(() => {
+        const err = document.getElementById('l-err');
+        if (err) { err.textContent = '⚠️ Sitzung war ungültig — bitte neu einloggen!'; err.style.display = 'block'; }
+      }, 500);
+      return;
+    }
+    // IMPORTANT: always (re-)run the SAME setup a fresh login does — an
+    // auto-restored session (page reload, or coming back from the Zoo)
+    // used to skip this entirely, since setCurrentPlayer() was only ever
+    // called from doLogin(). That meant session-watch (kicks you out if
+    // another device logs in), the activity timeout, and the localStorage
+    // backup never got (re-)established for anyone who didn't JUST type
+    // their password — some buttons/actions that implicitly depend on
+    // those being active could then silently do nothing, until logging
+    // out and back in ran doLogin() properly. Safe to call repeatedly.
+    if (player && player.name) { try{ State.setCurrentPlayer(player); }catch(e){} }
     // Contest freeze announcement — shows once per page load while frozen (14.–16.08.2026)
     if (typeof Contest!=='undefined' && Contest.phase()==='frozen' && !this._contestPopupShown) {
       this._contestPopupShown = true;
@@ -2277,7 +2302,15 @@ const App = {
     setTimeout(() => {
       const ga = document.getElementById('game-area');
       const btn = document.getElementById('zoom-btn');
-      if (!ga || window.innerWidth >= 700) return; // desktop: no auto-zoom
+      // Skip auto-zoom only for a REAL desktop (no touch, wide screen) — an
+      // iPad is basically always ≥700px wide even held in portrait, so
+      // this used to treat it as "desktop" and skip fitting the game to
+      // its screen entirely, regardless of orientation. Any touch device
+      // (phone, iPad, Android tablet) now goes through the same fit logic
+      // that phones already used — this doesn't change anything for phones
+      // (they were always <700px and already went through this path).
+      const _isTouchDevice = (navigator.maxTouchPoints||0)>0 || 'ontouchstart' in window;
+      if (!ga || (window.innerWidth >= 700 && !_isTouchDevice)) return; // desktop: no auto-zoom
       const setZoom = (z) => {
         this._zoomLevel = z;
         ga.style.transform = `scale(${z})`;
@@ -2286,6 +2319,7 @@ const App = {
         ga.style.marginRight = Math.round((z-1)*ga.offsetWidth*0.5)+'px';
         if (btn) { btn.textContent = `🔍 ${Math.round(z*100)}%`; btn.style.background = 'rgba(41,182,246,.25)'; }
       };
+      const screenW = window.innerWidth;
       // Tennis/Pong: measure actual game content and fit to screen
       if (_taskType === 'pong') {
         const pongCanvas = ga.querySelector('canvas');
@@ -2298,7 +2332,6 @@ const App = {
       // Other games: auto-fill screen
       const inner = ga.querySelector('canvas') || ga.querySelector('div');
       const gameW = inner ? (inner.offsetWidth || inner.scrollWidth) : ga.scrollWidth;
-      const screenW = window.innerWidth;
       if (gameW > 10 && screenW > gameW * 1.05) {
         const idealZoom = Math.min(screenW / gameW, 2.5);
         const steps = [0.85, 1, 1.1, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];

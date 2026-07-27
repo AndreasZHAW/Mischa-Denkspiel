@@ -1035,6 +1035,26 @@ const State = {
         new Promise(r => setTimeout(() => r(null), 3000))
       ]);
       if (cloud) {
+        // An explicit admin reset (see ZAdmin.resetScore) DELIBERATELY
+        // reduces progress — the "only trust cloud if it has MORE
+        // completed tasks" rule below exists to protect fresh local
+        // progress from a slow sync, but it also means a reset could
+        // never actually reach the player's own browser: cloud always
+        // looks "behind" local after one, so local (the stale pre-reset
+        // copy) kept winning forever. If the cloud carries a NEWER reset
+        // timestamp than whatever's already reflected locally, trust it
+        // unconditionally — this is a real, deliberate reset, not staleness.
+        if (cloud.lastAdminReset && (!local || !local.lastAdminReset || cloud.lastAdminReset > local.lastAdminReset)) {
+          this.currentPlayer = cloud;
+          try{ this._local.save(cloud); }catch(e){}
+          try {
+            if(this._repairZeroMt(this.currentPlayer)) {
+              this._local.save(this.currentPlayer);
+              if(typeof this.savePlayer==='function') this.savePlayer(this.currentPlayer).catch(()=>{});
+            }
+          } catch(e) {}
+          return this.currentPlayer;
+        }
         // Compare MT values: local MT should NEVER be overwritten by lower cloud MT
         const getPlayerMT = (p) => {
           try {

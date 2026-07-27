@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v393 -->
+<!-- ZOO v397 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=393"></script>
-<script src="rewardchests.js?v=393"></script>
-<script src="personality.js?v=393"></script>
+<script src="lang.js?v=397"></script>
+<script src="rewardchests.js?v=397"></script>
+<script src="personality.js?v=397"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v393','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v397','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -488,8 +488,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=393"></script>
-<script src="worlds.js?v=393"></script>
+<script src="firebase-state.js?v=397"></script>
+<script src="worlds.js?v=397"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -880,7 +880,7 @@ const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
-  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:1,  range:12},
+  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:0,  range:12},
   {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:2,  range:15},
   {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:3,  range:18},
   {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:4,  range:21},
@@ -953,7 +953,23 @@ const ZS={
   nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
   maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
-  lk(){const z=this.zoo;let l=z?.luck||1;if((z?.tb?.lucky||0)>Date.now())l*=2;if(ZG.ev?.id==='night')l*=1.5;return l;},
+  lk(){
+    const z=this.zoo; if(!z) return 1;
+    // z.luck is the PERMANENT value from shop purchases (_bLuck) — never
+    // touched by anything else. Admin's temporary luck boost used to
+    // write directly into this same field, which meant: buying luck could
+    // silently do nothing (if admin's boost was still higher and never
+    // got reverted), and admin's boost could get overwritten/lost the
+    // next time someone bought a tier, with nothing ever restoring it
+    // once its timer ran out — because nothing ever checked the timer.
+    let l=z.luck||1;
+    if(z.adminLuckMult && z.adminLuckExp && z.adminLuckExp>Date.now()){
+      l=Math.max(l, z.adminLuckMult); // temporary — only counts while it's both active AND better than your own
+    }
+    if((z.tb?.lucky||0)>Date.now())l*=2;
+    if(ZG.ev?.id==='night')l*=1.5;
+    return l;
+  },
   async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));
     // Keep the Denkspiel-side deviceId in sync with whichever device is
     // ACTUALLY playing the Zoo right now (once per session, not every 15s
@@ -1131,6 +1147,34 @@ const ZS={
       // Private servers are isolated — not part of the shared instance pool.
       this.instanceId = 'private_'+name;
       this.mySlot = 0;
+      return;
+    }
+    // Champions League: a fixed, SHARED instance separate from the normal
+    // zoo — everyone flagged for it (via the admin panel) ends up in the
+    // same place and can see/interact with each other, but is completely
+    // invisible to (and can't see) anyone in the regular "main" instance.
+    // Their own zoo data (MT, animals, insurances, upgrades — all of
+    // ZS.zoo) is untouched by this; only which OTHER PLAYERS they share a
+    // 3D world with changes.
+    if(mode==='main' && this.zoo?.inChampionsLeague){
+      this.instanceId = 'champions_league';
+      this.mySlot = preferredSlot;
+      if(!(typeof _rtdb!=='undefined' && _rtdb && State._useCloud())) return;
+      try{
+        const cutoff = Date.now() - 20000;
+        const snap = await _rtdb.ref('zoo_hot/champions_league').once('value');
+        const all = snap.val() || {};
+        const taken = new Set();
+        Object.keys(all).forEach(key=>{
+          const d = all[key];
+          if(!d || key===name) return;
+          if((d.t||0) < cutoff) return;
+          if(typeof d.slotIdx==='number') taken.add(d.slotIdx);
+        });
+        let slot = preferredSlot, tries = 0;
+        while(taken.has(slot) && tries<20){ slot=(slot+1)%20; tries++; }
+        this.mySlot = slot;
+      }catch(e){}
       return;
     }
     this.instanceId = 'main';
@@ -4583,7 +4627,7 @@ const ZG={
     const combined=(ZS.dsMT||0)+(z.mt||0);
     G('hmoney').textContent='🌀 '+$mt(combined).replace('🌀','');
     G('hvis').textContent='👥 '+(z.tv||0).toLocaleString();
-    const m=[];if((z.rebirthMult||1)>1)m.push(`×${(z.rebirthMult||1).toFixed(1)}`);if((z.luck||1)>1)m.push(`🍀×${z.luck}`);(this.evs||[]).filter(e=>e.end>Date.now()).forEach(e=>m.push(e.n));
+    const m=[];if((z.rebirthMult||1)>1)m.push(`×${(z.rebirthMult||1).toFixed(1)}`);{const _effLuck=(typeof ZS!=='undefined'&&ZS.lk)?ZS.lk():(z.luck||1);if(_effLuck>1)m.push(`🍀×${_effLuck}`);}(this.evs||[]).filter(e=>e.end>Date.now()).forEach(e=>m.push(e.n));
     G('hmult').textContent=m.join(' · ');
     const b=G('lwbadge');if(b){b.style.display=LW.spins>0?'inline':'none';b.textContent=LW.spins>0?LW.spins:'';}
   },
@@ -4741,12 +4785,12 @@ const ZG={
     // tradeoff being: stronger slaps stun longer, giving more time to
     // snatch a carried animal, but bite into your balance more to use.
     const total=(ZS.dsMT||0)+z.mt;
-    const cost=Math.round(total*(sl.pct||2)/100*10)/10;
+    const cost=Math.round(total*(sl.pct??2)/100*10)/10;
     z.mt-=cost;
     if(!owned){ z.slapPacks=z.slapPacks||{}; z.slapPacks[sl.id]=Math.max(0,packLeft-1); }
     this.slapCD=sl.cd;
     ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
-    ZP.toast(sl.e+' '+sl.n+'! −'+$mt(cost)+' ('+(sl.pct||2)+'%)'+(!owned?' · Paket: '+z.slapPacks[sl.id]+' übrig':''),1200);
+    ZP.toast(sl.e+' '+sl.n+'! '+(cost>0?'−'+$mt(cost)+' ('+(sl.pct??2)+'%)':'(kostenlos!)')+(!owned?' · Paket: '+z.slapPacks[sl.id]+' übrig':''),1200);
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
     this._trackWeaponUse();
     this._updWBar(); ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
@@ -5096,7 +5140,7 @@ const ZG={
         oncontextmenu="ZG.unequipSlap();return false;"
         ontouchstart="ZG._slapTouchStart('${sl.id}',event)"
         ontouchend="ZG._slapTouchEnd(event)"
-        title="${sl.n} — ${sl.pct||2}% vom Vermögen pro Slap · Reichweite ${sl.range||8}m — Gedrückt halten zum Abwählen">
+        title="${sl.n} — ${(sl.pct??2)===0?'Kostenlos':(sl.pct??2)+'% vom Vermögen'} pro Slap · Reichweite ${sl.range||8}m — Gedrückt halten zum Abwählen">
         <div class="si ${isEq?'eq':''}" style="background:${rbd||bg};border:${border};position:relative">
           <span style="font-size:1.65rem">${sl.e}</span>
           ${onCD ? `<div class="scd">${cdS}s</div>` : ''}
@@ -5937,6 +5981,11 @@ const ZG={
       // our OWN in-memory state to match right now, then re-save immediately
       // so the correction sticks even if our autosave was about to fire.
       if(z){ z.mt=cmd.mt; z.enc=Array(5).fill(null); this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); ZP.toast('🔄 Admin hat deinen Punktestand auf '+cmd.mt+' gesetzt.',3000); }
+    }else if(cmd.type==='cl_move'){
+      // Purely informational — no data mutation. See ZAdmin.toggleChampionsLeague.
+      const msg=cmd.goingIn?'🏆 Du wurdest in die Champions League verschoben! Lade neu...':'↩️ Du wurdest zurück in den normalen Zoo verschoben! Lade neu...';
+      ZP.toast(msg,3000);
+      setTimeout(()=>location.reload(),2000);
     }else if(cmd.type==='hard_reset'){
       // Full wipe (not just mt/enc): replace our in-memory zoo entirely with
       // a fresh one, matching the fresh doc the admin just wrote to Firestore,
@@ -5964,9 +6013,13 @@ const ZG={
     }
     else if(cmd.type==='give_slap'){const sid=cmd.slapId||'lucky';this._grantSlap(z,sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;this._updWBar();ZP.toast(`👑 Admin: ${SLAPS.find(s=>s.id===sid)?.e} Slap!`,3000);}
     else if(cmd.type==='admin_luck'){
-      // Only apply if admin luck is higher than current player luck
+      // Temporary boost, kept SEPARATE from z.luck (the permanent value
+      // from shop purchases) — see ZS.lk() for how they combine. Used to
+      // overwrite z.luck directly, which silently broke both "buying more
+      // luck" (could look like it did nothing) and the admin boost itself
+      // (nothing ever reverted it once the timer ran out).
       const adminMult=cmd.mult||2;
-      if((z.luck||1)<adminMult){ z.luck=adminMult; z.adminLuckExp=cmd.startTs+(cmd.durationMs||600000); ZS.save&&ZS.save(); }
+      z.adminLuckMult=adminMult; z.adminLuckExp=cmd.startTs+(cmd.durationMs||600000); ZS.save&&ZS.save();
       const mins=Math.round((cmd.durationMs||600000)/60000);
       ZP.toast('🍀 Mischa hat ×'+adminMult+' Glück angemacht für '+mins+' Min!',5000);
       const ann2=document.createElement('div');
@@ -7189,7 +7242,7 @@ const ZP={
     }
     ZSound.buy();const rareSound=['ultralegendary','god','mythic','secret'].includes(g.a.r);if(rareSound)setTimeout(()=>ZSound.rare(),300);this.toast('✅ '+g.a.e+' '+g.a.n+' läuft ins Gehege '+(slot+1)+'! 🏃',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');},
-  _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(((ZS.dsMT||0)+z.mt)<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;this.toast('✅ '+u.l);this._rLuck();ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
+  _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(((ZS.dsMT||0)+z.mt)<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;ZS.save&&ZS.save();this.toast('✅ '+u.l);this._rLuck();ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
   // INDEX
   _rIndex(){
@@ -8522,7 +8575,7 @@ const ZP={
     const cmd={id:'luck_'+Date.now(),type:'admin_luck',mult,durationMs:mins*60000,startTs:Date.now(),exp:Date.now()+mins*60000+5000,target:'_all'};
     // Apply locally for admin first
     const z=ZS.zoo;
-    if(z&&(z.luck||1)<mult){z.luck=mult;z.adminLuckExp=Date.now()+mins*60000;ZS.save&&ZS.save();ZG._updHUD&&ZG._updHUD();}
+    if(z){z.adminLuckMult=mult;z.adminLuckExp=Date.now()+mins*60000;ZS.save&&ZS.save();ZG._updHUD&&ZG._updHUD();}
     // Send to all other players via Firebase
     await this._cmd(cmd);
     ZP.toast('🍀 ×'+mult+' Glück für ALLE für '+mins+' Min aktiv!',3000);
@@ -10010,7 +10063,7 @@ const ZAdmin = {
       const zd=doc.data()||{};
       players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: zd.deviceId||null,
         loginCount: zd.loginCount||0, lastLogin: zd.lastLogin||0, playtimeSec: zd.totalPlaytimeSec||0,
-        currentMt: (typeof zd.mt==='number'&&isFinite(zd.mt)?zd.mt:0) });
+        currentMt: (typeof zd.mt==='number'&&isFinite(zd.mt)?zd.mt:0), inChampionsLeague: !!zd.inChampionsLeague, reb: zd.reb||0 });
     });
     mpSnap.forEach(doc=>{
       const d=doc.data()||{};
@@ -10109,11 +10162,36 @@ const ZAdmin = {
           <button onclick="ZAdmin.resetScore('${nameEsc}')" title="Punktestand auf einen Wert setzen" style="background:rgba(241,196,15,.15);border:1px solid rgba(241,196,15,.35);color:#f1c40f;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Reset</button>
           <button onclick="ZAdmin.banDevice('${nameEsc}')" title="Gerät sperren (auch unter neuem Namen blockiert)" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.35);color:#9b59b6;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🔒 Gerät</button>
           <button onclick="ZAdmin.deletePlayer('${nameEsc}')" title="Spieler löschen" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🗑️ Löschen</button>
+          <button onclick="ZAdmin.toggleChampionsLeague('${nameEsc}',${p.inChampionsLeague?'true':'false'})" title="${p.inChampionsLeague?'Zurück in den normalen Zoo verschieben':'In die Champions League verschieben (eigener, abgetrennter Zoo — Geld/Tiere/Versicherungen bleiben erhalten)'}" style="background:${p.inChampionsLeague?'rgba(255,215,0,.25)':'rgba(255,215,0,.1)'};border:1px solid rgba(255,215,0,.4);color:#FFD700;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">${p.inChampionsLeague?'🏆 In CL':'🏆 → CL'}</button>
         </div>
       </div>`;
     }).join('');
   },
 
+  async toggleChampionsLeague(name, currentlyIn){
+    const goingIn=!currentlyIn;
+    if(!(await showConfirm(goingIn
+      ? '🏆 «'+name+'» in die Champions League verschieben? Eigener, abgetrennter Zoo — MT, Tiere und Versicherungen bleiben erhalten, normale Zoo-Spieler sehen diesen Spieler danach nicht mehr.'
+      : '↩️ «'+name+'» zurück in den normalen Zoo verschieben?')))return;
+    try{
+      if(typeof _db==='undefined'||!_db){ this.toast('❌ Keine Datenbankverbindung.'); return; }
+      const k='zoo_'+name.toLowerCase();
+      await _db.collection('zoos').doc(k).set({inChampionsLeague:goingIn},{merge:true});
+      // If they're actively in the zoo right now, force their client to
+      // rejoin with the correct instance immediately rather than waiting
+      // for their next natural re-entry (assignInstance() only runs once,
+      // at zoo start).
+      // IMPORTANT: NOT hard_reset — that wipes the entire zoo inventory,
+      // which is the opposite of what we want here (data must survive the
+      // move intact). This is purely informational: show a message and
+      // reload, so assignInstance() re-runs and picks up the now-updated
+      // inChampionsLeague flag on the next natural page load.
+      const cmd={id:'cl_'+Date.now(),type:'cl_move',target:name.toLowerCase(),goingIn,exp:Date.now()+60000};
+      await this._cmd(cmd).catch(()=>{});
+      this.toast(goingIn?'🏆 '+name+' ist jetzt in der Champions League!':'↩️ '+name+' ist zurück im normalen Zoo.');
+      this._loadPlayersTab();
+    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+  },
   async deletePlayer(name){
     if(!(await showConfirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)')))return;
     const k='zoo_'+name.toLowerCase();
@@ -10219,6 +10297,17 @@ const ZAdmin = {
           p.currentWorld = 1;
           p.worlds = State._emptyWorlds();
           p.langBonusMT = 0;
+          // Mark this as an explicit admin reset — refreshCurrentPlayer()
+          // (firebase-state.js) normally refuses to let a cloud read
+          // overwrite the browser's local cache unless the cloud shows
+          // MORE completed tasks, specifically to protect fresh local
+          // progress from a slow sync. But that same rule makes a RESET
+          // (which deliberately reduces progress) impossible to ever sync
+          // back down to the player's own device — their browser just
+          // keeps re-preferring its stale pre-reset local copy forever.
+          // This timestamp lets that check recognize "this is a real
+          // reset, not staleness" and trust the cloud regardless.
+          p.lastAdminReset = Date.now();
           const dsShare = hasZooAccount ? 0 : targetVal; // only carries the value if there's no Zoo account to hold it
           p.totalScore = dsShare;
           if(dsShare){
@@ -10499,7 +10588,7 @@ const ZAdmin = {
     // Special codes — shown in admin panel
     const CODES = {
       'KONAMI':   ()=>{ if(ZS.zoo){ZS.zoo.mt+=50;ZG._updHUD();ZP.toast('🎮 +50 MT!',2000);} },
-      'LUCKY777': ()=>{ if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*2;ZP.toast('🍀 ×2 Luck für 5 Min!',2500);setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=2;},300000);} },
+      'LUCKY777': ()=>{ if(ZS.zoo){ const z=ZS.zoo, exp=Date.now()+300000; z.adminLuckMult=Math.max(z.adminLuckMult&&z.adminLuckExp>Date.now()?z.adminLuckMult:0, 2); z.adminLuckExp=exp; ZP.toast('🍀 ×2 Luck für 5 Min!',2500);} },
       'FASTTRAIN':()=>{ if(ZS.zoo){ZS.zoo.upg=ZS.zoo.upg||{};ZS.zoo.upg.gondola=(ZS.zoo.upg.gondola||0)+1;ZG._updHUD();ZP.toast('🚂 Gondel beschleunigt!',2000);} },
       'SUPERZOO': ()=>{ ZP.toast('🦁 SUPER ZOO! ×3 für 10 Min!',3000);if(ZS.zoo){const old=ZS.zoo.rebirthMult||1;ZS.zoo.rebirthMult=old*3;setTimeout(()=>{if(ZS.zoo)ZS.zoo.rebirthMult=old;},600000);} },
       'SNOWFALL': ()=>{ ZG.startEv(EVENTS.find(e=>e.id==='snow')||EVENTS[0],300000); ZP.toast('❄️ Schneesturm gestartet!',2000); },
@@ -11272,7 +11361,18 @@ const SECRETS = {
     if(type==='speedbuy'){
       this.unlocked['speedbuy']=true; this._saveUnlocked();
       this._reveal('⚡ SPEED BUYER!','5 Tiere in unter 5 Min! ×3 Einnahmen für 10 Min!','#F39C12');
-      if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*3;setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=3;},600000);}
+      // Was: ZS.zoo.luck=(ZS.zoo.luck||1)*3, reverted via /=3 after a
+      // timeout — this directly mutated the PERMANENT, purchased luck
+      // value. If the player bought a different luck tier while this was
+      // still active, the revert would divide the WRONG (new) number,
+      // silently corrupting z.luck from then on — exactly why "buying
+      // luck did nothing" for some players. Now uses the same temporary
+      // slot ZS.lk() already combines safely (see admin luck boost above).
+      if(ZS.zoo){
+        const z=ZS.zoo, exp=Date.now()+600000;
+        z.adminLuckMult=Math.max(z.adminLuckMult&&z.adminLuckExp>Date.now()?z.adminLuckMult:0, 3);
+        z.adminLuckExp=exp;
+      }
     }
   },
   
@@ -11333,7 +11433,13 @@ const SECRETS = {
     if(h===17&&!this.unlocked['goldenhour']){
       this.unlocked['goldenhour']=true; this._saveUnlocked();
       this._reveal('🌅 GOLDENE STUNDE!','17 Uhr - Goldene Stunde! ×2 Einnahmen für 30 Min!','#F39C12');
-      if(ZS.zoo){ZS.zoo.luck=(ZS.zoo.luck||1)*2;setTimeout(()=>{if(ZS.zoo)ZS.zoo.luck/=2;},1800000);}
+      // Same fix as SPEED BUYER above — see that comment for why direct
+      // z.luck mutation was unsafe.
+      if(ZS.zoo){
+        const z=ZS.zoo, exp=Date.now()+1800000;
+        z.adminLuckMult=Math.max(z.adminLuckMult&&z.adminLuckExp>Date.now()?z.adminLuckMult:0, 2);
+        z.adminLuckExp=exp;
+      }
       ZP.toast('🌅 Goldene Stunde! ×2 Einnahmen 30 Min!',5000);
     }
   },
