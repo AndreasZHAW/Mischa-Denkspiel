@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v399';
+const APP_VERSION = 'v400';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -342,7 +342,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v399 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v400 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -857,10 +857,10 @@ const App = {
   _showLangBonusPopup(amount, langName) {
     const T = (k,fb) => (typeof t!=='undefined' ? t(k) : fb);
     const ov = document.createElement('div');
-    ov.style.cssText = 'position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif;overflow-y:auto';
     ov.onclick = (e) => { if(e.target===ov) ov.remove(); };
     const card = document.createElement('div');
-    card.style.cssText = 'background:linear-gradient(135deg,#1a4a1a,#134d13);border:2px solid #FFD700;border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 0 40px rgba(255,215,0,.3)';
+    card.style.cssText = 'background:linear-gradient(135deg,#1a4a1a,#134d13);border:2px solid #FFD700;border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 0 40px rgba(255,215,0,.3);margin:auto';
     card.innerHTML = `
       <div style="font-size:2.4rem;margin-bottom:8px">🎉</div>
       <div style="color:#FFD700;font-weight:900;font-size:1.1rem;margin-bottom:10px">${T('langbonus.title','Sprach-Bonus erhalten!')}</div>
@@ -1444,10 +1444,10 @@ const App = {
   showLanguagePicker() {
     const ov = document.createElement('div');
     ov.id = 'lang-picker-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif;overflow-y:auto';
     ov.onclick = (e) => { if(e.target===ov) ov.remove(); };
     const card = document.createElement('div');
-    card.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center';
+    card.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center;margin:auto';
     const title = document.createElement('div');
     title.style.cssText = 'color:#fff;font-weight:900;font-size:1.15rem;margin-bottom:16px';
     title.textContent = '🌐 Sprache / Language / Langue';
@@ -1467,10 +1467,10 @@ const App = {
   showAbout() {
     const ov = document.createElement('div');
     ov.id = 'about-overlay';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif;overflow-y:auto';
     ov.onclick = (e) => { if(e.target===ov) ov.remove(); };
     const card = document.createElement('div');
-    card.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,215,0,.25);border-radius:20px;padding:26px;max-width:400px;width:100%;text-align:center';
+    card.style.cssText = 'background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,215,0,.25);border-radius:20px;padding:26px;max-width:400px;width:100%;text-align:center;margin:auto';
     const title = document.createElement('div');
     title.style.cssText = 'color:#FFD700;font-weight:900;font-size:1.2rem;margin-bottom:14px';
     title.textContent = typeof t!=='undefined'?t('wm.about_title'):'ℹ️ Über dieses Spiel';
@@ -2007,8 +2007,8 @@ const App = {
                   onclick="App.startTask(${worldId},${i})"
                   style="touch-action:manipulation"
                   title="${task.name||task.title||'Spiel '+(i+1)}">
-                  <span class="task-icon" style="font-size:2.1rem;display:block;margin-bottom:3px;line-height:1">${task.icon||'🎮'}</span>
-                  <span class="task-name" style="font-size:1.05rem;font-weight:700;line-height:1.2;display:block">${task.name||('Spiel '+(i+1))}</span>
+                  <span class="task-icon" style="font-size:clamp(1.2rem, 2.1rem, 28px);display:block;margin-bottom:3px;line-height:1">${task.icon||'🎮'}</span>
+                  <span class="task-name" style="font-size:clamp(0.6rem, 1.05rem, 14px);font-weight:700;line-height:1.2;display:block;overflow-wrap:break-word;hyphens:auto">${task.name||('Spiel '+(i+1))}</span>
                   ${mtEarned!==''?`<span style="font-size:0.97rem;color:#FFD700">🌀${mtEarned}</span>`:''}
                 </button>`;
             }).join('')}
@@ -2873,9 +2873,14 @@ Grund: ${reason}`))) return;
   },
 
   async _confirmLeave(worldId) {
+    console.log('[iOS-debug] _confirmLeave() aufgerufen, worldId='+worldId);
     this._zoomLevel = 1; // Reset zoom on leave
     if(typeof SokobanGame !== 'undefined' && SokobanGame._cleanup) SokobanGame._cleanup();
-    if (await showConfirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.')) {
+    let confirmed=false;
+    try{ confirmed = await showConfirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.'); }
+    catch(err){ console.warn('[iOS-debug] showConfirm() Fehler: '+(err&&err.message)); }
+    console.log('[iOS-debug] showConfirm() Ergebnis: '+confirmed);
+    if (confirmed) {
       // Stop any running timers in games
       try { clearInterval(MemoryGame._timerInterval); } catch(e){}
       try { clearInterval(DifferencesGame._timerInterval); } catch(e){}

@@ -198,11 +198,32 @@ const BalloonGame = {
       };
       if(modeBtn) modeBtn.addEventListener('click',()=>{
         useTilt=!useTilt;
+        console.log('[Snake/iOS-debug] Neigen-Knopf gedrückt. useTilt='+useTilt+' UA='+navigator.userAgent.slice(0,60));
         modeBtn.textContent=useTilt?(typeof t!=='undefined'?t('snake.mode_tilt'):'📱 Neigen'):(typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten');
         modeBtn.style.background=useTilt?'#8e44ad':'#2c3e50';
         showSensorBtns(useTilt);
         if(useTilt&&typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
-          DeviceMotionEvent.requestPermission().then(r=>{if(r!=='granted'){useTilt=false;modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten';showSensorBtns(false);}}).catch(()=>{useTilt=false;});
+          console.log('[Snake/iOS-debug] Rufe DeviceMotionEvent.requestPermission() auf (iOS-spezifisch)...');
+          // Safety timeout — if the permission promise never settles (has
+          // happened on some iOS versions under certain conditions), don't
+          // leave the game silently stuck in "tilt mode" forever with no
+          // visible feedback. Falls back to button controls after 5s.
+          let settled=false;
+          const timeoutId=setTimeout(()=>{
+            if(settled)return;
+            settled=true;
+            console.warn('[Snake/iOS-debug] requestPermission() hat nach 5s nicht geantwortet — falle auf Tasten zurück.');
+            useTilt=false;modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten';showSensorBtns(false);
+          },5000);
+          DeviceMotionEvent.requestPermission().then(r=>{
+            if(settled)return; settled=true; clearTimeout(timeoutId);
+            console.log('[Snake/iOS-debug] requestPermission() Ergebnis: '+r);
+            if(r!=='granted'){useTilt=false;modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten';showSensorBtns(false);}
+          }).catch((err)=>{
+            if(settled)return; settled=true; clearTimeout(timeoutId);
+            console.warn('[Snake/iOS-debug] requestPermission() Fehler: '+(err&&err.message));
+            useTilt=false;modeBtn.textContent=typeof t!=='undefined'?t('snake.mode_buttons'):'🎮 Tasten';showSensorBtns(false);
+          });
         }
       });
       if(sensBtn) sensBtn.addEventListener('click',()=>{
