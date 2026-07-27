@@ -29,7 +29,7 @@ const WordSearchGame = {
 
   _getWords(worldId) {
     const sets = {
-      1:  { de:['AUTO','KARTE','REISE','STRASSE','TANK'], en:['CAR','MAP','TRIP','ROAD','TANK'], fr:['AUTO','CARTE','VOYAGE','ROUTE','ESSENCE'] },
+      1:  { de:['MISCHA','JANOSCH','BENNY','JONAS','HANNES','NINA','RAPHI'], en:['MISCHA','JANOSCH','BENNY','JONAS','HANNES','NINA','RAPHI'], fr:['MISCHA','JANOSCH','BENNY','JONAS','HANNES','NINA','RAPHI'] },
       2:  { de:['BURG','RITTER','KOENIG','TURM','SCHWERT'], en:['CASTLE','KNIGHT','KING','TOWER','SWORD'], fr:['CHATEAU','CHEVALIER','ROI','TOUR','EPEE'] },
       3:  { de:['POOL','SOMMER','SONNE','WASSER','TAUCHEN'], en:['POOL','SUMMER','SUN','WATER','DIVING'], fr:['PISCINE','ETE','SOLEIL','EAU','PLONGEE'] },
       4:  { de:['TENNIS','BALL','NETZ','PUNKT','MATCH'], en:['TENNIS','BALL','NET','POINT','MATCH'], fr:['TENNIS','BALLE','FILET','POINT','MATCH'] },

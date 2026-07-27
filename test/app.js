@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v406';
+const APP_VERSION = 'v407';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -343,7 +343,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v406 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v407 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2132,8 +2132,14 @@ const App = {
         this._zoomLevel = z;
         ga.style.transform = `scale(${z})`;
         ga.style.transformOrigin = 'top left';
-        ga.style.marginBottom = Math.round((z-1)*ga.offsetHeight*0.5)+'px';
-        ga.style.marginRight = Math.round((z-1)*ga.offsetWidth*0.5)+'px';
+        // Only compensate with a margin when ENLARGING (z>1) — a shrink
+        // (z<1) would otherwise get a NEGATIVE margin here, which could
+        // reduce the page's scrollable height and cut off content that
+        // the shrink didn't fully fit, instead of just leaving a bit of
+        // harmless extra space below. Safer to never go negative.
+        const marginFactor = Math.max(0, z-1);
+        ga.style.marginBottom = Math.round(marginFactor*ga.offsetHeight*0.5)+'px';
+        ga.style.marginRight = Math.round(marginFactor*ga.offsetWidth*0.5)+'px';
         if (btn) { btn.textContent = `🔍 ${Math.round(z*100)}%`; btn.style.background = 'rgba(41,182,246,.25)'; }
       };
       const screenW = window.innerWidth;

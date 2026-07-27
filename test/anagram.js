@@ -6,9 +6,9 @@
 const AnagramGame = {
   current: null, _lastConfig: null,
   _wordSets: {
-    1: { de:['AUTO','KARTE','REISE','STRASSE','FAHRT','TANK','NACHT','WALD'],
-         en:['CAR','MAP','TRIP','ROAD','DRIVE','TANK','NIGHT','FOREST'],
-         fr:['AUTO','CARTE','VOYAGE','ROUTE','TRAJET','RESERVOIR','NUIT','FORET'] },
+    1: { de:['DART','JANOSCH','MISCHA','FUSSBALL','TENNIS','SCHLOSS','FRANKREICH'],
+         en:['DARTS','JANOSCH','MISCHA','FOOTBALL','TENNIS','CASTLE','FRANCE'],
+         fr:['FLECHETTES','JANOSCH','MISCHA','FOOTBALL','TENNIS','CHATEAU','FRANCE'] },
     2: { de:['BURG','RITTER','SCHLOSS','KOENIG','TURM','HELD','RUESTUNG'],
          en:['CASTLE','KNIGHT','TOWER','KING','HERO','ARMOR','SWORD'],
          fr:['CHATEAU','CHEVALIER','TOUR','ROI','HEROS','ARMURE','EPEE'] },
