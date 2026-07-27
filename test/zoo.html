@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v404 -->
+<!-- ZOO v405 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=404"></script>
-<script src="rewardchests.js?v=404"></script>
-<script src="personality.js?v=404"></script>
+<script src="lang.js?v=405"></script>
+<script src="rewardchests.js?v=405"></script>
+<script src="personality.js?v=405"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v404','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v405','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=404"></script>
-<script src="worlds.js?v=404"></script>
+<script src="firebase-state.js?v=405"></script>
+<script src="worlds.js?v=405"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -10246,7 +10246,7 @@ const ZAdmin = {
       ? '🏆 «'+name+'» in die Champions League verschieben? Eigener, abgetrennter Zoo — MT, Tiere und Versicherungen bleiben erhalten, normale Zoo-Spieler sehen diesen Spieler danach nicht mehr.'
       : '↩️ «'+name+'» zurück in den normalen Zoo verschieben?')))return;
     try{
-      if(typeof _db==='undefined'||!_db){ this.toast('❌ Keine Datenbankverbindung.'); return; }
+      if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Keine Datenbankverbindung.'); return; }
       const k='zoo_'+name.toLowerCase();
       console.log('[CL-debug] Schreibe inChampionsLeague='+goingIn+' für Doc "'+k+'"...');
       await _db.collection('zoos').doc(k).set({inChampionsLeague:goingIn},{merge:true});
@@ -10265,9 +10265,9 @@ const ZAdmin = {
       // inChampionsLeague flag on the next natural page load.
       const cmd={id:'cl_'+Date.now(),type:'cl_move',target:name.toLowerCase(),goingIn,exp:Date.now()+60000};
       await this._cmd(cmd).catch(()=>{});
-      this.toast(goingIn?'🏆 '+name+' ist jetzt in der Champions League!':'↩️ '+name+' ist zurück im normalen Zoo.');
+      ZP.toast(goingIn?'🏆 '+name+' ist jetzt in der Champions League!':'↩️ '+name+' ist zurück im normalen Zoo.');
       this._loadPlayersTab();
-    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   async deletePlayer(name){
     if(!(await showConfirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)')))return;
@@ -10884,34 +10884,34 @@ const ZAdmin = {
     const price=parseFloat(G('padmin-markt-price')?.value||'');
     const animalId=G('padmin-markt-animal')?.value;
     const shiny=G('padmin-markt-shiny')?.checked||false;
-    if(!seller){ this.toast('❗ Verkäufer-Name eingeben!'); return; }
-    if(!animalId){ this.toast('❗ Tier auswählen!'); return; }
-    if(!price||price<=0){ this.toast('❗ Gültigen Preis eingeben!'); return; }
+    if(!seller){ ZP.toast('❗ Verkäufer-Name eingeben!'); return; }
+    if(!animalId){ ZP.toast('❗ Tier auswählen!'); return; }
+    if(!price||price<=0){ ZP.toast('❗ Gültigen Preis eingeben!'); return; }
     const a=(window.ANIMALS||[]).find(x=>x.id===animalId);
-    if(!a){ this.toast('❌ Tier nicht gefunden.'); return; }
-    if(typeof _rtdb==='undefined'||!_rtdb){ this.toast('❌ RTDB nicht verfügbar.'); return; }
+    if(!a){ ZP.toast('❌ Tier nicht gefunden.'); return; }
+    if(typeof _rtdb==='undefined'||!_rtdb){ ZP.toast('❌ RTDB nicht verfügbar.'); return; }
     try{
       const sh=shiny?{id:'rainbow',...(SHINY?.rainbow||{})}:null;
       const animalData={animal:{...a},shiny:sh,traits:[],addedAt:Date.now()};
       const doc={seller, sellerKey:seller.toLowerCase(), n:a.n, e:a.e, r:a.r, p:price, sh, tr:[], d:animalData, createdAt:Date.now()};
       await _rtdb.ref('zoo_trades').push(JSON.parse(JSON.stringify(doc)));
-      this.toast('✅ '+(a.e||'')+' '+a.n+' für '+seller+' angeboten ('+price+' MT)!');
+      ZP.toast('✅ '+(a.e||'')+' '+a.n+' für '+seller+' angeboten ('+price+' MT)!');
       const priceEl=G('padmin-markt-price'); if(priceEl) priceEl.value='';
       this.loadTrades();
-    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   _trades: [],
   async clearChat(){
     if(!(await showConfirm('⚠️ Wirklich den GESAMTEN Chat-Verlauf löschen? Kann nicht rückgängig gemacht werden.')))return;
     try{
-      if(typeof _db==='undefined'||!_db){ this.toast('❌ Keine Datenbankverbindung.'); return; }
+      if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Keine Datenbankverbindung.'); return; }
       const snap=await _db.collection('zoo_chat').get();
       const batchSize=snap.size;
       await Promise.all(snap.docs.map(doc=>doc.ref.delete().catch(()=>{})));
       // Clear it locally too, for whoever's looking at it right now
       const el=document.getElementById('chat-msgs'); if(el) el.innerHTML='';
-      this.toast('🗑️ Chat-Verlauf gelöscht ('+batchSize+' Nachrichten).');
-    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+      ZP.toast('🗑️ Chat-Verlauf gelöscht ('+batchSize+' Nachrichten).');
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   async loadTrades(){
     const el=G('padmin-trades-list'), sum=G('padmin-trades-summary');
@@ -10940,20 +10940,20 @@ const ZAdmin = {
     if(!(await showConfirm('Dieses Angebot wirklich löschen?')))return;
     try{
       if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_trades/'+id).remove();
-      this.toast('🗑️ Angebot gelöscht.');
+      ZP.toast('🗑️ Angebot gelöscht.');
       this.loadTrades();
-    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   async deleteAllTrades(){
-    if(!this._trades.length){ this.toast('❌ Erst laden!'); return; }
+    if(!this._trades.length){ ZP.toast('❌ Erst laden!'); return; }
     if(!(await showConfirm('⚠️ Wirklich ALLE '+this._trades.length+' Marktplatz-Angebote löschen? Kann nicht rückgängig gemacht werden.')))return;
     try{
       if(typeof _rtdb!=='undefined'&&_rtdb){
         await Promise.all(this._trades.map(o=>_rtdb.ref('zoo_trades/'+o.id).remove().catch(()=>{})));
       }
-      this.toast('🗑️ Alle Angebote gelöscht.');
+      ZP.toast('🗑️ Alle Angebote gelöscht.');
       this.loadTrades();
-    }catch(e){ this.toast('❌ Fehler: '+e.message); }
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   showSecrets(){
     const ALL_SECRETS = [
