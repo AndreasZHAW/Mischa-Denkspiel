@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v416';
+const APP_VERSION = 'v417';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -343,7 +343,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v416 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v417 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1577,7 +1577,7 @@ const App = {
   },
 
   // ---- GLOBAL LEADERBOARD ----
-  async showGlobalLeaderboard() {
+  async showGlobalLeaderboard(clOnly=false) {
     this._loading('Rangliste laden...');
     const contestPhase = (typeof Contest!=='undefined') ? Contest.phase() : 'ended';
     const player = State.currentPlayer;
@@ -1659,6 +1659,7 @@ const App = {
         .map(p => ({
           ...p,
           reb: zoosAll[p.name?.toLowerCase()]?.reb||0,
+          inCL: !!zoosAll[p.name?.toLowerCase()]?.inChampionsLeague,
           _mt: (() => {
           // dsMTFor handles both task rewards AND the one-time language bonus,
           // then we sanitize + add zoo MT for the combined leaderboard total.
@@ -1673,6 +1674,11 @@ const App = {
         return sanitizeMT(dsSum + _zooMTForChecked(player));
       })();
     }
+
+    // Champions League view — a completely separate, smaller ranking
+    // (only players an admin has moved there), not just a re-sorted slice
+    // of the same list everyone else sees.
+    if(clOnly) players = players.filter(p=>p.inCL);
 
     let online = new Set();
     try{ if(typeof getOnlineNames==='function') online = await getOnlineNames(); }catch(e){}
@@ -1701,10 +1707,13 @@ const App = {
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
       <div class="page" style="padding-top:10px">
         <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:1rem">← Zurück</button>
-            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">🌍 Rangliste</h2>
+            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">${clOnly?'🏆 Champions League':'🌍 Rangliste'}</h2>
             ${player ? `<div style="font-size:1rem;color:#FFD700">Du: 🌀${formatMT(myMT)} MT</div>` : ''}
+          </div>
+          <div style="text-align:center;margin-bottom:10px">
+            <span onclick="App.showGlobalLeaderboard(${!clOnly})" style="cursor:pointer;font-size:.7rem;color:${clOnly?'rgba(255,255,255,.5)':'rgba(255,215,0,.7)'};border:1px solid ${clOnly?'rgba(255,255,255,.2)':'rgba(255,215,0,.3)'};padding:3px 10px;border-radius:20px;display:inline-block">${clOnly?'← Normale Rangliste':'🏆 Champions League Rangliste →'}</span>
           </div>
           ${contestPhase==='countdown' ? `<div id="contest-countdown" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center"></div>` : ''}
           ${contestPhase==='frozen' ? `<div style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:center">
@@ -1712,7 +1721,7 @@ const App = {
             <div style="color:#FFD700;font-weight:700;font-size:.92rem">Ergebnis fixiert bis ${(typeof Contest!=='undefined' && Contest.END) ? new Date(Contest.END).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'}) + ', ' + new Date(Contest.END).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '—'}</div>
             <div style="color:rgba(255,255,255,.5);font-size:.72rem;margin-top:2px">Danach geht's mit allem, was zwischenzeitlich verdient wurde, normal weiter.</div>
           </div>` : ''}
-          ${rows || '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>'}
+          ${rows || (clOnly ? '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Noch keine Champions-League-Teilnehmer</div>' : '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>')}
         </div>
       </div>`);
     if (contestPhase==='countdown' && typeof Contest!=='undefined') {

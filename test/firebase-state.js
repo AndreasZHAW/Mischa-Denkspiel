@@ -1517,7 +1517,7 @@ const Contest = {
         const ws = p?.worlds?.[1] || p?.worlds?.['1'] || {};
         const dsMT = dsMTFor(p);
         const z = zoosAll[name?.toLowerCase()];
-        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name, p)), reb: z?.reb||0 };
+        return { name: p?.name || name, _mt: sanitizeMT(sanitizeMT(dsMT) + _zooMTFor(name, p)), reb: z?.reb||0, inCL: !!z?.inChampionsLeague };
       })
       .sort((a,b) => b._mt - a._mt);
     return players;

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v416 -->
+<!-- ZOO v417 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=416"></script>
-<script src="rewardchests.js?v=416"></script>
-<script src="personality.js?v=416"></script>
+<script src="lang.js?v=417"></script>
+<script src="rewardchests.js?v=417"></script>
+<script src="personality.js?v=417"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v416','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v417','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -381,8 +381,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="zp off" id="p-rank"><div class="zpi">
   <button class="pcls" onclick="ZP.close('rank')">✕</button>
   <div class="pmenu-title">🏆 Rangliste (Welt 1 + Zoo)</div>
+  <div style="text-align:center;margin-bottom:6px">
+    <span onclick="ZP.showChampionsLeagueRangliste()" style="cursor:pointer;font-size:.7rem;color:rgba(255,215,0,.7);border:1px solid rgba(255,215,0,.3);padding:3px 10px;border-radius:20px;display:inline-block">🏆 Champions League Rangliste →</span>
+  </div>
   <div id="p-rank-countdown" style="margin-bottom:10px;text-align:center"></div>
   <div id="p-rank-content" style="max-height:60vh;overflow-y:auto"></div>
+</div></div>
+
+<div class="zp off" id="p-cl-rank"><div class="zpi">
+  <button class="pcls" onclick="ZP.close('cl-rank')">✕</button>
+  <div class="pmenu-title">🏆 Champions League Rangliste</div>
+  <div style="text-align:center;margin-bottom:6px">
+    <span onclick="ZP.close('cl-rank');ZP.showZooRangliste();" style="cursor:pointer;font-size:.7rem;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:20px;display:inline-block">← Normale Rangliste</span>
+  </div>
+  <div id="p-cl-rank-content" style="max-height:60vh;overflow-y:auto"></div>
 </div></div>
 
 <div class="zp off" id="p-report"><div class="zpi">
@@ -489,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=416"></script>
-<script src="worlds.js?v=416"></script>
+<script src="firebase-state.js?v=417"></script>
+<script src="worlds.js?v=417"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6959,6 +6971,42 @@ const ZP={
       const isMe = p.name?.toLowerCase()===myName;
       const isOnline = online.has(p.name?.toLowerCase());
       return `<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:4px;background:${isMe?'rgba(41,182,246,.15)':'rgba(255,255,255,.04)'}">
+        <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
+        <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
+        <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
+        <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
+      </div>`;
+    }).join('');
+  },
+
+  async showChampionsLeagueRangliste(){
+    this.open('cl-rank');
+    const el=document.getElementById('p-cl-rank-content');
+    if(!el)return;
+    el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.5)">⏳ Lade...</div>';
+    let standings=[];
+    try{
+      if(typeof Contest!=='undefined' && Contest._computeStandings){
+        standings = await Contest._computeStandings();
+      }
+    }catch(e){}
+    // Only Champions League participants — this is a completely separate,
+    // smaller ranking, not just a filtered view of the same numbers as
+    // the main leaderboard (players there don't see CL members at all,
+    // matching the same visibility split as the 3D world itself).
+    standings = standings.filter(p=>p.inCL);
+    if(!standings.length){
+      el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.4)">Noch keine Champions-League-Teilnehmer.</div>';
+      return;
+    }
+    let online=new Set();
+    try{ if(typeof getOnlineNames==='function') online=await getOnlineNames(); }catch(e){}
+    const medals=['🥇','🥈','🥉'];
+    const myName = ZS.player?.toLowerCase();
+    el.innerHTML = standings.map((p,i)=>{
+      const isMe = p.name?.toLowerCase()===myName;
+      const isOnline = online.has(p.name?.toLowerCase());
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:4px;background:${isMe?'rgba(255,215,0,.15)':'rgba(255,255,255,.04)'}">
         <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
