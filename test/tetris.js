@@ -107,9 +107,22 @@ const TetrisGame = {
       }
       if(cleared){
         lines+=cleared; score+=[0,100,300,500,800][cleared]*(level);
-        level=Math.floor(lines/10)+1; dropInt=Math.max(80,800-level*65);
       }
+      _updSpeed();
       newPiece();
+    };
+    // Speed ramps up over time too, not just from cleared lines — in
+    // progressively SHORTER intervals (accelerating, not linear), so a
+    // player who isn't clearing many lines still gets overwhelmed by pure
+    // speed eventually, rather than the difficulty staying flat until a
+    // sudden time-based cutoff. Combined with lines cleared (good play is
+    // still rewarded with an earlier ramp-up too).
+    const _updSpeed=()=>{
+      const elapsedSec=(Date.now()-tStart)/1000;
+      const timeLevel=Math.floor(Math.pow(Math.max(0,elapsedSec)/22,1.3));
+      const lineLevel=Math.floor(lines/10);
+      level=lineLevel+timeLevel+1;
+      dropInt=Math.max(80,800-level*55);
     };
 
     // NES-style block drawing
@@ -192,6 +205,7 @@ const TetrisGame = {
     const loop=(ts)=>{
       if(!running)return;
       animId=requestAnimationFrame(loop);
+      _updSpeed();
       if(ts-lastTime>dropInt){
         lastTime=ts;
         if(valid(cur,curX,curY+1))curY++; else place();
@@ -201,6 +215,10 @@ const TetrisGame = {
     newPiece();
     animId=requestAnimationFrame(loop);
     const cleanupTetris=()=>{running=false;cancelAnimationFrame(animId);holdIntervals.forEach(clearInterval);holdIntervals=[];window.removeEventListener('keydown',onKey);};
-    setTimeout(()=>{if(running){cleanupTetris();onComplete({rawScore:Math.min(100,Math.round(score/80+lines)),timeMs:Date.now()-tStart,errors:0,passed:score>100});}},180000);
+    // Overall session cap raised from 3 to 4 minutes — with the speed
+    // ramp above, most players should naturally top out (stack up and
+    // lose) well before this from sheer speed pressure; this is now a
+    // true backstop for anyone still going, not the main way the game ends.
+    setTimeout(()=>{if(running){cleanupTetris();onComplete({rawScore:Math.min(100,Math.round(score/80+lines)),timeMs:Date.now()-tStart,errors:0,passed:score>100});}},240000);
   }
 };

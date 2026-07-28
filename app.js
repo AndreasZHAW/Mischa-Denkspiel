@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v410';
+const APP_VERSION = 'v414';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -343,7 +343,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v410 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v414 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2176,15 +2176,11 @@ const App = {
         const idealZoomW = screenW / gameW;
         const idealZoomH = gameH > 10 ? (screenH * 0.92) / gameH : idealZoomW;
         const idealZoom = Math.min(idealZoomW, idealZoomH, 2.5);
-        // Never shrink below 100% — a value under 1 here was the actual
-        // trigger for Tetris/Bomber controls getting cut off on some
-        // devices where touch-detection turned out unreliable (Firefox on
-        // certain Windows/touchscreen combos kept reporting as touch-
-        // primary despite two different detection attempts). Auto-zoom's
-        // real job was always to help small canvases fill a bigger screen
-        // (the iPad-landscape case) — shrinking never had any known
-        // legitimate use, so removing it here is strictly safer.
-        const steps = [1, 1.1, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
+        // Shrinking (< 1) is allowed again now that #game-area no longer
+        // clips overflow (see main.css) — it can genuinely help fit
+        // everything (header + board + buttons) on screen without
+        // needing to scroll, instead of being the thing that hid content.
+        const steps = [0.85, 1, 1.1, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5];
         const snapped = steps.reduce((a,b) => Math.abs(b-idealZoom)<Math.abs(a-idealZoom)?b:a);
         if (snapped > 1.05) setZoom(snapped);
       }
@@ -2895,7 +2891,7 @@ Grund: ${reason}`))) return;
   },
   
   _toggleZoom() {
-    const levels = [1, 1.25, 1.5, 1.75, 2.0, 2.5];
+    const levels = [1, 0.85, 1.25, 1.5, 1.75, 2.0, 2.5];
     this._zoomLevel = this._zoomLevel || 1;
     const currentIdx = levels.findIndex(l => Math.abs(l - this._zoomLevel) < 0.05);
     this._zoomLevel = levels[(currentIdx + 1) % levels.length];

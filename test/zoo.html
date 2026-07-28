@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v410 -->
+<!-- ZOO v414 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -154,7 +154,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 @keyframes rob{0%{transform:translateX(0) rotate(-5deg)}100%{transform:translateX(38px) rotate(5deg)}}
 .gitm{font-size:2.4rem;font-weight:900;color:#00ff88;text-shadow:0 0 20px rgba(0,255,136,.6)}
 /* Toast */
-#zt{position:fixed;top:54px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-size:.87rem;font-weight:900;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:280px;line-height:1.3;background:rgba(0,0,0,.7);padding:6px 14px;border-radius:50px}
+#zt{position:fixed;top:54px;left:50%;transform:translateX(-50%);z-index:500;color:#fff;font-size:.87rem;font-weight:900;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;pointer-events:none;max-width:280px;line-height:1.3;background:rgba(0,0,0,.7);padding:6px 14px;border-radius:50px;white-space:pre-line}
 /* Tutorial */
 #tut{position:fixed;inset:0;z-index:600;pointer-events:auto;display:none}
 .tbox{position:absolute;background:rgba(0,0,0,.92);border:2px solid #FFD700;border-radius:14px;padding:12px 16px;font-size:.84rem;font-weight:900;max-width:205px;text-align:center;animation:pop .4s ease;color:#FFD700;line-height:1.4}
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=410"></script>
-<script src="rewardchests.js?v=410"></script>
-<script src="personality.js?v=410"></script>
+<script src="lang.js?v=414"></script>
+<script src="rewardchests.js?v=414"></script>
+<script src="personality.js?v=414"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v410','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v414','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=410"></script>
-<script src="worlds.js?v=410"></script>
+<script src="firebase-state.js?v=414"></script>
+<script src="worlds.js?v=414"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1552,7 +1552,7 @@ const ZG={
     this._ivs.push(setInterval(()=>{
       if(!ZS.player||!ZS.zoo)return;
       try{ this._checkInstanceMismatch(); }catch(e){}
-    }, 60000));
+    }, 20000));
     this._ivs.push(setInterval(()=>this._checkMarketExpiry(),5*60000));
     this._listenMarketStalls();
     this._gondTick();
@@ -10296,7 +10296,20 @@ const ZAdmin = {
       // inChampionsLeague flag on the next natural page load.
       const cmd={id:'cl_'+Date.now(),type:'cl_move',target:name.toLowerCase(),goingIn,exp:Date.now()+60000};
       await this._cmd(cmd).catch(()=>{});
-      ZP.toast(goingIn?'🏆 '+name+' ist jetzt in der Champions League!':'↩️ '+name+' ist zurück im normalen Zoo.');
+      // Be explicit about what actually needs to happen next — this
+      // ISN'T instant magic. If the player is currently INSIDE the zoo,
+      // the reload command above (or the 60s self-check) should catch it
+      // automatically. If they're NOT currently in the zoo (e.g. sitting
+      // on the world map, or the reload command missed them), they simply
+      // need to (re-)ENTER the zoo normally — a full logout isn't needed,
+      // just leaving the zoo (if inside) and going back in re-runs the
+      // instance assignment fresh every time.
+      ZP.toast(
+        (goingIn?'🏆 '+name+' ist jetzt für die Champions League markiert!':'↩️ '+name+' ist zurück für den normalen Zoo markiert!')+
+        '\n📌 Falls '+name+' GERADE im Zoo ist: passiert automatisch innert ~60 Sek. (oder direkt, falls online).\n'+
+        '📌 Falls '+name+' NICHT im Zoo ist: einfach normal in den Zoo gehen — kein Ausloggen nötig, das Verlassen+Neubetreten reicht.',
+        8000
+      );
       this._loadPlayersTab();
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },

@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v410</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v410 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v414</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v414 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -477,6 +477,19 @@ async function runWelt1(){
     .catch(e=>{jr.push('❌ '+f+': '+e.message);})));
   document.getElementById('js-out').textContent=jr.join('\n');
 
+  // Actual live APP_VERSION — fetched fresh (cache:'no-store' bypasses any
+  // browser/CDN caching entirely), so this always reflects what's
+  // ACTUALLY deployed and served right now, not what a stale tab/cache
+  // might be showing. This is the single most useful line for "did my
+  // update actually go live" questions.
+  try{
+    const r=await fetch('app.js',{cache:'no-store'});
+    const txt=await r.text();
+    const m=txt.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+    window._liveAppVersion=m?m[1]:'❓ nicht gefunden';
+    L('🔢 LIVE app.js Version (frisch vom Server, kein Cache): '+window._liveAppVersion);
+  }catch(e){ window._liveAppVersion='❌ Fehler: '+e.message; L('🔢 LIVE app.js Version: Fehler beim Abrufen — '+e.message); }
+
   // Engine checks
   const er=[];
   const checks=[
@@ -617,7 +630,7 @@ async function runMT(){
   }
   try{
     const db=firebase.firestore();
-    const [mpSnap,zoosSnap]=await Promise.all([db.collection('mischa_players').get(),db.collection('zoos').get()]);
+    const [mpSnap,zoosSnap]=await Promise.all([db.collection('mischa_players').get({source:'server'}),db.collection('zoos').get({source:'server'})]);
     // MUST match firebase-state.js's real sanitizeMT() exactly — this tool
     // previously used the raw, un-sanitized numbers, which meant it could
     // show a big "everything matches!" total for an account whose value
@@ -1199,6 +1212,7 @@ async function runAllTabsReport(){
   const sections=[];
   sections.push('=== MISCHA DENKSPIEL / ZOO — GESAMT-DIAGNOSE ===');
   sections.push(new Date().toLocaleString('de-CH'));
+  sections.push('🔢 LIVE app.js Version (frisch, kein Cache): '+(window._liveAppVersion||'❓ noch nicht ermittelt — Welt-1-Tab öffnen'));
   sections.push('');
   sections.push('── CRASH-LOG (letzte 20 Minuten) ──');
   sections.push(_grabText('crash-ring'));
