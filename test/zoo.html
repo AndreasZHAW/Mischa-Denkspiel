@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v417 -->
+<!-- ZOO v418 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=417"></script>
-<script src="rewardchests.js?v=417"></script>
-<script src="personality.js?v=417"></script>
+<script src="lang.js?v=418"></script>
+<script src="rewardchests.js?v=418"></script>
+<script src="personality.js?v=418"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v417','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v418','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=417"></script>
-<script src="worlds.js?v=417"></script>
+<script src="firebase-state.js?v=418"></script>
+<script src="worlds.js?v=418"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6941,14 +6941,21 @@ const ZP={
         standings = await Contest._computeStandings();
       }
     }catch(e){}
+    // Champions League members show up in their OWN separate ranking
+    // (see showChampionsLeagueRangliste) — keep them out of this one
+    // entirely, not just re-sorted alongside everyone else.
+    standings = standings.filter(p=>!p.inCL);
     // FIX: the standings above came from Firestore, but that read can race
     // ahead of a just-fired save() from a purchase/spend action moments
     // earlier — showing the PRE-purchase MT until a later reload happens to
     // catch up. Since we already have the viewer's own zoo balance live in
     // memory (ZS.zoo.mt, just updated by the purchase), overwrite their own
     // row with that instead of trusting the possibly-stale fetched value.
+    // Skipped entirely if the viewer is themselves a Champions League
+    // member — they belong only in that separate ranking, not force-added
+    // back into this one.
     try{
-      if(ZS.zoo && ZS.player){
+      if(ZS.zoo && ZS.player && !ZS.zoo.inChampionsLeague){
         const freshPlayer = await State.getPlayer(ZS.player);
         const dsOnly = (typeof dsMTFor==='function') ? dsMTFor(freshPlayer) : 0;
         const liveZooMt = (typeof sanitizeMT==='function') ? sanitizeMT(ZS.zoo.mt) : (ZS.zoo.mt||0);
