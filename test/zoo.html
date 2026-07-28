@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v414 -->
+<!-- ZOO v415 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=414"></script>
-<script src="rewardchests.js?v=414"></script>
-<script src="personality.js?v=414"></script>
+<script src="lang.js?v=415"></script>
+<script src="rewardchests.js?v=415"></script>
+<script src="personality.js?v=415"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v414','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v415','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=414"></script>
-<script src="worlds.js?v=414"></script>
+<script src="firebase-state.js?v=415"></script>
+<script src="worlds.js?v=415"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -568,6 +568,24 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     var msg=e.reason?.message||String(e.reason||'');
     if(!_isIgnored(msg)) _show('error',['PROMISE: '+msg]);
   };
+})();
+
+// ═══ SESSION-LEBENSZYKLUS LOGGING ═══
+// Answers exactly the kind of question that's hard to reconstruct after
+// the fact: was this a hard refresh, a plain reload, a brand-new tab, or
+// did the tab just come back into focus? All of this shows up in the
+// crash log now.
+(function(){
+  try{
+    const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+    const navType = (navEntries && navEntries[0]) ? navEntries[0].type : (performance.navigation ? ['navigate','reload','back_forward','reserved'][performance.navigation.type] : '?');
+    const isNewTab = !sessionStorage.getItem('_mischa_tab_seen');
+    sessionStorage.setItem('_mischa_tab_seen','1');
+    console.log('[Session-debug] Seite geladen — Navigationstyp: '+navType+' · Neuer Tab (kein sessionStorage-Verlauf): '+isNewTab);
+    document.addEventListener('visibilitychange', ()=>{
+      console.log('[Session-debug] Tab-Sichtbarkeit geändert: '+document.visibilityState);
+    });
+  }catch(e){}
 })();
 
 // ═══ SECURITY HELPERS ═══
@@ -971,7 +989,7 @@ const ZS={
     if(ZG.ev?.id==='night')l*=1.5;
     return l;
   },
-  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo);}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));
+  async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo,{merge:true});}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));
     // Keep the Denkspiel-side deviceId in sync with whichever device is
     // ACTUALLY playing the Zoo right now (once per session, not every 15s
     // autosave — this is just a repair mechanism, not something that needs
@@ -1011,6 +1029,7 @@ const ZS={
     if(loadedFromCloud==='empty') loadedFromCloud=false;
     if(!loadedFromCloud){
       const l=localStorage.getItem(k);
+      console.log('[Session-debug] ZS.load() nutzt LOKALE Daten für "'+k+'" (Cloud '+(State._useCloud()?'nach 3 Versuchen fehlgeschlagen':'nicht aktiv')+') · lokaler Eintrag vorhanden: '+(!!l));
       this.zoo=l?JSON.parse(l):this.nz();
       // Check if coming from teleport - add any extra MT from game world
       const teleportMT=parseInt(sessionStorage.getItem('zoo_teleport_mt')||'0');
@@ -9640,7 +9659,7 @@ const ZAdmin = {
       let slot=zoo.enc.findIndex(e=>!e||!e.animal);
       const entry={animal:{...animal},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
       if(slot>=0)zoo.enc[slot]=entry; else zoo.enc.push(entry);
-      await _db.collection('zoos').doc(zk).set(zoo);
+      await _db.collection('zoos').doc(zk).set(zoo,{merge:true});
     }catch(e){}
   },
   _saveAnimalEdit(){
