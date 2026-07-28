@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v415 -->
+<!-- ZOO v416 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=415"></script>
-<script src="rewardchests.js?v=415"></script>
-<script src="personality.js?v=415"></script>
+<script src="lang.js?v=416"></script>
+<script src="rewardchests.js?v=416"></script>
+<script src="personality.js?v=416"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v415','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v416','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -489,8 +489,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=415"></script>
-<script src="worlds.js?v=415"></script>
+<script src="firebase-state.js?v=416"></script>
+<script src="worlds.js?v=416"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1015,15 +1015,28 @@ const ZS={
     // transient failure here used to silently fall back to (potentially
     // very stale) local storage with zero indication anything was wrong,
     // which could make a genuine admin reset look like it "didn't work".
-    for(let attempt=0; attempt<3 && !loadedFromCloud; attempt++){
+    // IMPORTANT: this also now waits for Firebase itself to become ready,
+    // not just for the fetch call to succeed once Firebase IS ready. The
+    // old code did `else break` the instant State._useCloud() was false on
+    // the very first check — if the zoo's own Firebase init hadn't quite
+    // finished yet (a real, observed race — "Cloud nicht aktiv" appeared
+    // in logs half a second before "Firebase verbunden"), this gave up
+    // for the ENTIRE SESSION instead of just waiting the extra moment,
+    // silently loading stale local data instead (e.g. missing a
+    // Champions League flag an admin had just set while the player was
+    // elsewhere).
+    for(let attempt=0; attempt<6 && !loadedFromCloud; attempt++){
       try{
         if(State._useCloud()){
           const s=await _db.collection('zoos').doc(k).get();
           if(s.exists){this.zoo=s.data();this._fix();loadedFromCloud=true;console.log('[CL-debug] ZS.load() Cloud-Fetch OK für "'+k+'": inChampionsLeague='+(this.zoo.inChampionsLeague));}
           else { loadedFromCloud='empty'; } // doc genuinely doesn't exist — not a failure, stop retrying
-        } else break;
+        } else {
+          console.log('[Session-debug] ZS.load() Versuch '+(attempt+1)+'/6: Firebase noch nicht bereit (_useCloud()=false) — warte und versuche erneut...');
+          if(attempt<5) await new Promise(r=>setTimeout(r,300));
+        }
       }catch(e){
-        if(attempt<2) await new Promise(r=>setTimeout(r,400));
+        if(attempt<5) await new Promise(r=>setTimeout(r,400));
       }
     }
     if(loadedFromCloud==='empty') loadedFromCloud=false;
