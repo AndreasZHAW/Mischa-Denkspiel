@@ -1,3 +1,43 @@
+// ═══ DIAGNOSE-SEITE BRIDGE ═══
+// The diagnose tool's crash-log only ever read from zoo.html's console
+// hook — anything logged here on the Denkspiel side (including GameLog
+// entries and any plain console.log/warn/error call) was invisible to it.
+// That gap made cross-page discrepancies (like the Champions League
+// ranking differing between the Zoo and here) needlessly hard to debug —
+// there was simply no log to compare against on this side at all.
+// Writes to the SAME localStorage key zoo.html uses, merge-safe (reads
+// existing content first) since both pages can be open in different tabs
+// simultaneously and must not clobber each other's entries.
+(function(){
+  var _ring=[], _head=0, MAX=1000, _flushTimer=null;
+  var _orig={log:console.log,warn:console.warn,error:console.error};
+  function _push(level,msg){
+    var entry={ts:Date.now(),level:level,src:'ds',msg:String(msg).slice(0,250)};
+    if(_ring.length<MAX){_ring.push(entry);}else{_ring[_head]=entry;}
+    _head=(_head+1)%MAX;
+    if(!_flushTimer)_flushTimer=setInterval(function(){
+      try{
+        var cutoff=Date.now()-1200000;
+        var existing=[]; try{existing=JSON.parse(localStorage.getItem('_mischa_crash_log')||'[]');}catch(ex2){}
+        var mine=_ring.filter(function(e){return e.ts>cutoff;});
+        var seen={}; var merged=[];
+        existing.concat(mine).forEach(function(e){
+          var key=e.ts+'|'+e.src+'|'+e.msg;
+          if(seen[key])return; seen[key]=1;
+          if(e.ts>cutoff) merged.push(e);
+        });
+        merged.sort(function(a,b){return a.ts-b.ts;});
+        localStorage.setItem('_mischa_crash_log',JSON.stringify(merged.slice(-1500)));
+      }catch(ex){}
+    },4000);
+  }
+  console.log=function(){_orig.log.apply(console,arguments);_push('I',Array.from(arguments).join(' '));};
+  console.warn=function(){_orig.warn.apply(console,arguments);_push('W',Array.from(arguments).join(' '));};
+  console.error=function(){_orig.error.apply(console,arguments);_push('E',Array.from(arguments).join(' '));};
+  window.addEventListener('error',function(e){_push('E','JS-Fehler: '+e.message+' ('+(e.filename||'').split('/').pop()+':'+e.lineno+')');});
+  window.addEventListener('unhandledrejection',function(e){_push('E','PROMISE: '+(e.reason?.message||String(e.reason||'')));});
+})();
+
 // Game event logger
 const GameLog = {
   _log: [],
@@ -51,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v420';
+const APP_VERSION = 'v421';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -343,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v420 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v421 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1603,6 +1643,7 @@ const App = {
       try {
         zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]);
       } catch(e) {}
+      try{ console.log('[CL-debug] showGlobalLeaderboard(): '+Object.keys(zoosAll).length+' Zoo-Docs geladen, CL-Flag gesetzt bei: '+Object.entries(zoosAll).filter(([,z])=>z?.inChampionsLeague).map(([n])=>n).join(', ')||'(niemand)'); }catch(e){}
 
       // Merge: only ever prefer the LOCAL cache for the CURRENTLY LOGGED-IN
       // player's own entry — never for anyone else. See the matching

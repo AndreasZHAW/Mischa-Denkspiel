@@ -412,6 +412,9 @@ const STRINGS = {
   'ds.cl_rank_link': { de:'🏆 Champions League Rangliste →', en:'🏆 Champions League Ranking →', fr:'🏆 Classement Champions League →', it:'🏆 Classifica Champions League →'},
   'ds.cl_rank_back': { de:'← Normale Rangliste', en:'← Normal Ranking', fr:'← Classement normal', it:'← Classifica normale'},
   'ds.cl_rank_empty': { de:'Noch keine Champions-League-Teilnehmer', en:'No Champions League participants yet', fr:'Pas encore de participants Champions League', it:'Ancora nessun partecipante alla Champions League'},
+  'zoo.tips_label': { de:'Tipps', en:'Tips', fr:'Astuces', it:'Consigli'},
+  'zoo.tips_on': { de:'💡 Tipps aktiviert!', en:'💡 Tips enabled!', fr:'💡 Astuces activées !', it:'💡 Consigli attivati!'},
+  'zoo.tips_off': { de:'💡 Tipps deaktiviert.', en:'💡 Tips disabled.', fr:'💡 Astuces désactivées.', it:'💡 Consigli disattivati.'},
 
   // ── MINI-GAME INSTRUCTIONS (shown before each game starts) ──
   'instr.dart':        { de:'🎯 <b>Dart!</b><br>Wirf 3 Pfeile auf die Scheibe. Klicke oder tippe auf die Scheibe — je näher zur Mitte, desto mehr Punkte!<br>📱 Handy/Tablet: Das Steuerkreuz rechts neben der Scheibe zum Zielen nutzen, loslassen = Wurf.',

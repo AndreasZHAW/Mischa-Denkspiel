@@ -95,7 +95,7 @@ const State = {
   // ---- PLAYER CRUD ----
   async getAll() {
     if (this._useCloud()) {
-      const snap = await this._col().get();
+      const snap = await this._col().get({source:'server'});
       const result = {};
       snap.forEach(doc => { result[doc.id] = doc.data(); });
       return result;
@@ -115,7 +115,7 @@ const State = {
     if (this._useCloud()) {
       try {
         const doc = await Promise.race([
-          _db.collection('zoos').doc(key).get(),
+          _db.collection('zoos').doc(key).get({source:'server'}),
           new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 3000))
         ]);
         if (doc.exists) return doc.data();
@@ -135,7 +135,7 @@ const State = {
     const result = {};
     if (this._useCloud()) {
       try {
-        const snap = await _db.collection('zoos').get();
+        const snap = await _db.collection('zoos').get({source:'server'});
         snap.forEach(doc => {
           const name = doc.id.startsWith('zoo_') ? doc.id.slice(4) : doc.id;
           result[name] = doc.data();
@@ -207,7 +207,7 @@ const State = {
     if (this._useCloud()) {
       try {
         const doc = await Promise.race([
-          this._col().doc(key).get(),
+          this._col().doc(key).get({source:'server'}),
           new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000))
         ]);
         if(!doc.exists) return null;
@@ -347,7 +347,7 @@ const State = {
       const id = window.getDeviceId && window.getDeviceId();
       if (!id || !name || typeof _db === 'undefined' || !_db || !this._useCloud()) return null;
       const doc = await Promise.race([
-        this._col().doc(name.toLowerCase()).get(),
+        this._col().doc(name.toLowerCase()).get({source:'server'}),
         new Promise((_, rej) => setTimeout(() => rej(new Error('checkSessionKicked timeout')), 5000))
       ]);
       if (!doc.exists) return null;
@@ -1460,6 +1460,7 @@ const Contest = {
     try {
       zoosAll = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),4000))]);
     } catch(e) {}
+    try{ console.log('[CL-debug] _computeStandings(): '+Object.keys(zoosAll).length+' Zoo-Docs geladen, CL-Flag gesetzt bei: '+Object.entries(zoosAll).filter(([,z])=>z?.inChampionsLeague).map(([n])=>n).join(', ')||'(niemand)'); }catch(e){}
     const merged = {...firebaseAll};
     // Only ever prefer the LOCAL cache for the player actually using THIS
     // device right now — never for anyone else. localStorage's

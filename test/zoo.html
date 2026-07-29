@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v420 -->
+<!-- ZOO v421 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=420"></script>
-<script src="rewardchests.js?v=420"></script>
-<script src="personality.js?v=420"></script>
+<script src="lang.js?v=421"></script>
+<script src="rewardchests.js?v=421"></script>
+<script src="personality.js?v=421"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v420','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v421','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -287,7 +287,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   title="HUD minimieren/maximieren">⊟</button>
 
 <div class="hb" onclick="ZP._openProfile()" style="display:none"><div class="hbb" style="background:rgba(100,100,200,.8)">👤</div><div class="hbl" data-i18n="zoo.profile">Profil</div></div>
-<div class="hb" id="tipsToggleBtn" onclick="ZTips.toggle()"><div class="hbb" id="tipsToggleIcon" style="background:rgba(120,120,120,.6)">💡</div><div class="hbl">Tipps</div></div>
+<div class="hb" id="tipsToggleBtn" onclick="ZTips.toggle()"><div class="hbb" id="tipsToggleIcon" style="background:rgba(120,120,120,.6)">💡</div><div class="hbl" data-i18n="zoo.tips_label">Tipps</div></div>
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=420"></script>
-<script src="worlds.js?v=420"></script>
+<script src="firebase-state.js?v=421"></script>
+<script src="worlds.js?v=421"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -558,14 +558,28 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     }
   }
   // ── Diagnose-Seite Bridge: letzte 20min Logs per localStorage ──
+  // Merges with whatever's already stored (rather than overwriting outright)
+  // because the Denkspiel page (index.html/app.js) writes to this SAME key
+  // from a separate tab — a pure overwrite here would silently erase
+  // whatever that other tab just logged, and vice versa.
   var _crashRing=[];var _crashHead=0;var CRASH_MAX=1500;var _crashFlushTimer=null;
   function _pushCrash(level,msg){
     var entry={ts:Date.now(),level:level,src:'zoo',msg:String(msg).slice(0,250)};
     if(_crashRing.length<CRASH_MAX){_crashRing.push(entry);}else{_crashRing[_crashHead]=entry;}
     _crashHead=(_crashHead+1)%CRASH_MAX;
     if(!_crashFlushTimer)_crashFlushTimer=setInterval(function(){
-      try{var cutoff=Date.now()-1200000;var recent=_crashRing.filter(function(e){return e.ts>cutoff;});
-        localStorage.setItem('_mischa_crash_log',JSON.stringify(recent.slice(-1000)));}catch(ex){}
+      try{
+        var cutoff=Date.now()-1200000;
+        var existing=[]; try{existing=JSON.parse(localStorage.getItem('_mischa_crash_log')||'[]');}catch(ex2){}
+        var mine=_crashRing.filter(function(e){return e.ts>cutoff;});
+        var seen={}; var merged=[];
+        existing.concat(mine).forEach(function(e){
+          var key=e.ts+'|'+e.src+'|'+e.msg;
+          if(seen[key])return; seen[key]=1;
+          if(e.ts>cutoff) merged.push(e);
+        });
+        merged.sort(function(a,b){return a.ts-b.ts;});
+        localStorage.setItem('_mischa_crash_log',JSON.stringify(merged.slice(-1500)));}catch(ex){}
     },4000);
   }
   console.error=function(){_show('error',arguments);_pushCrash('E',Array.from(arguments).join(' '));};
@@ -1040,7 +1054,7 @@ const ZS={
     for(let attempt=0; attempt<6 && !loadedFromCloud; attempt++){
       try{
         if(State._useCloud()){
-          const s=await _db.collection('zoos').doc(k).get();
+          const s=await _db.collection('zoos').doc(k).get({source:'server'});
           if(s.exists){this.zoo=s.data();this._fix();loadedFromCloud=true;console.log('[CL-debug] ZS.load() Cloud-Fetch OK für "'+k+'": inChampionsLeague='+(this.zoo.inChampionsLeague));}
           else { loadedFromCloud='empty'; } // doc genuinely doesn't exist — not a failure, stop retrying
         } else {
@@ -6758,10 +6772,10 @@ const ZTips = {
     const icon = document.getElementById('tipsToggleIcon');
     if(icon) icon.style.background = nowOn ? 'rgba(255,215,0,.85)' : 'rgba(120,120,120,.6)';
     if(nowOn){
-      ZP.toast('💡 Tipps aktiviert!', 1800);
+      ZP.toast(typeof t!=='undefined'?t('zoo.tips_on'):'💡 Tipps aktiviert!', 1800);
       this.resume();
     } else {
-      ZP.toast('💡 Tipps deaktiviert.', 1500);
+      ZP.toast(typeof t!=='undefined'?t('zoo.tips_off'):'💡 Tipps deaktiviert.', 1500);
       this._hideCard();
     }
   },
@@ -8274,7 +8288,7 @@ const ZP={
       // Double-check against the FRESH cloud value before reloading —
       // ZS.zoo could itself be a bit stale, so confirm first rather than
       // reload based on a local flag that might already be outdated.
-      const doc=await _db.collection('zoos').doc('zoo_'+ZS.player.toLowerCase()).get();
+      const doc=await _db.collection('zoos').doc('zoo_'+ZS.player.toLowerCase()).get({source:'server'});
       const freshCL = !!doc.data()?.inChampionsLeague;
       if(freshCL===actuallyIsCL) return; // false alarm — local zoo was stale, already fine
       console.log('[CL-debug] Instanz-Abgleich: soll='+freshCL+' ist='+actuallyIsCL+' — lade neu.');
@@ -9735,7 +9749,7 @@ const ZAdmin = {
     try{
       if(typeof _db==='undefined'||!_db)return;
       const zk='zoo_'+playerName.toLowerCase();
-      const s=await _db.collection('zoos').doc(zk).get();
+      const s=await _db.collection('zoos').doc(zk).get({source:'server'});
       if(!s.exists)return;
       const zoo=s.data();
       if(!Array.isArray(zoo.enc))zoo.enc=[];
@@ -10384,7 +10398,7 @@ const ZAdmin = {
       console.log('[CL-debug] Schreibe inChampionsLeague='+goingIn+' für Doc "'+k+'"...');
       await _db.collection('zoos').doc(k).set({inChampionsLeague:goingIn},{merge:true});
       try{
-        const check=await _db.collection('zoos').doc(k).get();
+        const check=await _db.collection('zoos').doc(k).get({source:'server'});
         console.log('[CL-debug] Verifikation nach Schreiben: inChampionsLeague='+(check.data()?.inChampionsLeague));
       }catch(e){ console.warn('[CL-debug] Verifikation fehlgeschlagen: '+e.message); }
       // If they're actively in the zoo right now, force their client to
@@ -10429,11 +10443,11 @@ const ZAdmin = {
         // its MT) quietly survived, only to resurface if the same name was
         // ever reused. Retry once if it's still there.
         try{
-          const check=await _db.collection('zoos').doc(k).get();
+          const check=await _db.collection('zoos').doc(k).get({source:'server'});
           if(check.exists){
             zooDeleteFailed=true;
             await _db.collection('zoos').doc(k).delete().catch((e)=>{ lastErr=e; });
-            const recheck=await _db.collection('zoos').doc(k).get();
+            const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
             zooDeleteFailed = recheck.exists;
             if(zooDeleteFailed) console.error('[deletePlayer] Zoo-Dokument "'+k+'" besteht nach 2 Löschversuchen noch. Letzter Fehler:', lastErr);
           } else {
@@ -10506,7 +10520,7 @@ const ZAdmin = {
     try{
       if(typeof _db!=='undefined'&&_db){
         const k='zoo_'+name.toLowerCase();
-        const zdoc=await _db.collection('zoos').doc(k).get();
+        const zdoc=await _db.collection('zoos').doc(k).get({source:'server'});
         hasZooAccount = zdoc.exists;
         if(hasZooAccount) knownDeviceId = zdoc.data()?.deviceId || null;
       }
@@ -10560,11 +10574,11 @@ const ZAdmin = {
         await _db.collection('zoos').doc(k).delete().catch(()=>{});
         let stillThere=false;
         try{
-          const check=await _db.collection('zoos').doc(k).get();
+          const check=await _db.collection('zoos').doc(k).get({source:'server'});
           stillThere=check.exists;
           if(stillThere){
             await _db.collection('zoos').doc(k).delete().catch(()=>{});
-            const recheck=await _db.collection('zoos').doc(k).get();
+            const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
             stillThere=recheck.exists;
           }
         }catch(e){ /* couldn't verify — proceed and write the fresh doc anyway */ }
@@ -10603,7 +10617,7 @@ const ZAdmin = {
       try{
         const k='zoo_'+name.toLowerCase();
         const intendedZooMt = hasZooAccount ? targetVal : 0;
-        const recheck=await _db.collection('zoos').doc(k).get();
+        const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
         const rd = recheck.exists ? recheck.data() : null;
         const stillHasAnimal = rd && Array.isArray(rd.enc) && rd.enc.some(e=>e&&e.animal);
         if(!rd || rd.mt!==intendedZooMt || stillHasAnimal || (knownDeviceId && rd.deviceId!==knownDeviceId)){
@@ -11798,7 +11812,7 @@ async function visitZoo(playerName){
   try{
     let data=null;
     if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-      const snap=await _db.collection('zoos').doc('zoo_'+playerName.toLowerCase()).get();
+      const snap=await _db.collection('zoos').doc('zoo_'+playerName.toLowerCase()).get({source:'server'});
       if(snap.exists)data=snap.data();
     }
     if(!data){
