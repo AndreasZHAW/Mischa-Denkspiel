@@ -577,6 +577,8 @@ const STRINGS = {
   'stb.choose_sum':      { de:'Wähle Zahlen die zusammen', en:'Choose numbers that add up to', fr:'Choisis des nombres qui font ensemble' , it:'Scegli numeri che sommati fanno'},
   'stb.close':          { de:'✅ Schliessen', en:'✅ Close', fr:'✅ Fermer' , it:'✅ Chiudi'},
   'stb.cancel':         { de:'✕ Abbrechen', en:'✕ Cancel', fr:'✕ Annuler' , it:'✕ Annulla'},
+  'stb.scoring_info':   { de:'💡 Alles geschlossen = beste Wertung. Sonst: je weniger am Ende offen bleibt, desto besser.', en:'💡 Everything closed = best score. Otherwise: the less that stays open at the end, the better.', fr:'💡 Tout fermé = meilleur score. Sinon : moins il reste ouvert à la fin, mieux c\'est.', it:'💡 Tutto chiuso = punteggio migliore. Altrimenti: meno resta aperto alla fine, meglio è.'},
+  'reaction.percentile': { de:'Deine Reaktion war schneller als {n}% aller Spieler!', en:'Your reaction was faster than {n}% of all players!', fr:'Ta réaction était plus rapide que {n}% de tous les joueurs !', it:'La tua reazione è stata più veloce del {n}% di tutti i giocatori!'},
 
   // ── SOKOBAN ──
   'sokoban.controls':  { de:'Pfeiltasten/WASD · Z=Rückgängig · Wischen', en:'Arrow keys/WASD · Z=Undo · Swipe', fr:'Flèches/WASD · Z=Annuler · Glisser' , it:'Frecce/WASD · Z=Annulla · Scorri'},

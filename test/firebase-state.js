@@ -248,7 +248,7 @@ const State = {
     }
   },
 
-  async createPlayer({ name, password, birthYear, character, characterColor }) {
+  async createPlayer({ name, password, birthYear, ageRange, character, characterColor }) {
     // Special players: auto-accept Janoschtest and bu
     const nameLc = name.toLowerCase();
     if (nameLc === 'janoschtest' && password !== 'janoschtest') return null;
@@ -265,7 +265,8 @@ const State = {
     } catch(e) {}
     const player = {
       name, password,
-      birthYear: parseInt(birthYear),
+      ageRange: ageRange || null,
+      birthYear: birthYear ? parseInt(birthYear) : null,
       character,
       characterColor: characterColor || null,
       currentWorld: 1,
@@ -863,6 +864,13 @@ const State = {
   },
 
   getAgeGroup(player) {
+    // New players pick a direct age RANGE at registration (clearer for
+    // kids/parents than working out a birth year) — prefer that when
+    // present. Existing players registered before this change only have
+    // birthYear, so that path is kept as a fallback rather than forcing
+    // everyone to re-register.
+    const rangeMap = { 'u7':'sehr_einfach', '8-11':'einfach', '11-16':'mittel', '16+':'schwer' };
+    if (player?.ageRange && rangeMap[player.ageRange]) return rangeMap[player.ageRange];
     const age = this.getAge(player);
     if (age < 10)  return 'sehr_einfach';  // unter 10
     if (age <= 14) return 'einfach';        // 10-14

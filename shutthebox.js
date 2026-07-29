@@ -21,10 +21,11 @@ const ShutTheBoxGame = {
     const allClosed=openBoxes.length===0;
     const isMob='ontouchstart' in window;
 
-    // Check if any valid selection possible
-    const canClose=c.phase==='select'&&openBoxes.some(b=>{
-      return openBoxes.some(b2=>b2!==b&&b.num+b2.num===c.diceSum)||b.num===c.diceSum;
-    });
+    // Any subset of open boxes summing to the dice total counts — not just
+    // pairs/triples. With fewer boxes left open later in the game, some
+    // reachable sums genuinely need 4+ of them; capping the check at 3
+    // could wrongly call a real move "impossible".
+    const canClose=c.phase==='select'&&ShutTheBoxGame._subsetSumExists(openBoxes.map(b=>b.num), c.diceSum);
 
     document.getElementById('game-area').innerHTML=`
       <div style="max-width:420px;margin:0 auto;padding:${isMob?'6px 4px':'10px 8px'};text-align:center">
@@ -37,7 +38,7 @@ const ShutTheBoxGame = {
         </div>
 
         <!-- Number boxes - big touch targets -->
-        <div style="display:flex;gap:clamp(4px,2vw,8px);justify-content:center;margin-bottom:14px;flex-wrap:wrap;padding:0 2px">
+        <div style="display:flex;gap:clamp(4px,2vw,8px);justify-content:center;margin-bottom:6px;flex-wrap:wrap;padding:0 2px">
           ${c.boxes.map((box,i)=>`
             <div id="box-${i}" onclick="${!box.closed&&c.phase==='select'?`ShutTheBoxGame._toggleBox(${i})`:''}"
               style="width:clamp(44px,11vw,58px);height:clamp(44px,11vw,58px);border-radius:10px;
@@ -51,6 +52,9 @@ const ShutTheBoxGame = {
                 opacity:${box.closed?'0.45':'1'};transform:${box.closed?'scale(0.88)':'scale(1)'}">
               ${box.closed?'✓':box.num}
             </div>`).join('')}
+        </div>
+        <div style="font-size:.7rem;color:rgba(0,0,0,.4);margin-bottom:14px;line-height:1.3">
+          ${typeof t!=='undefined'?t('stb.scoring_info'):'💡 Alles geschlossen = beste Wertung. Sonst: je weniger am Ende offen bleibt, desto besser.'}
         </div>
 
         <!-- Dice display -->
@@ -99,6 +103,17 @@ const ShutTheBoxGame = {
       </div>`;
   },
 
+  // True if ANY subset of `nums` sums to `target` — with at most 9 open
+  // boxes this is cheap (at most 2^9=512 subsets) and correct regardless
+  // of how many boxes a valid move actually needs.
+  _subsetSumExists(nums, target){
+    if(target===0) return true;
+    if(!nums.length) return false;
+    const [first,...rest]=nums;
+    if(first<=target && this._subsetSumExists(rest, target-first)) return true;
+    return this._subsetSumExists(rest, target);
+  },
+
   _roll() {
     const c=this.current;
     if(c.phase!=='roll')return;
@@ -108,11 +123,10 @@ const ShutTheBoxGame = {
     const openBoxes=c.boxes.filter(b=>!b.closed);
     const openSum=openBoxes.reduce((s,b)=>s+b.num,0);
     if(openBoxes.length===0){this._finish(true);return;}
-    // Check if any valid move exists (single number OR sum of two)
+    // Check if any valid move exists — any subset of open boxes, not just
+    // up to 3 of them (see _subsetSumExists below for why this matters).
     const vals=openBoxes.map(b=>b.num);
-    const hasMove=vals.some(v=>v===c.diceSum)
-      ||vals.some((v,i)=>vals.some((v2,j)=>j>i&&v+v2===c.diceSum))
-      ||vals.some((v,i)=>vals.some((v2,j)=>j>i&&vals.some((v3,k)=>k>j&&v+v2+v3===c.diceSum)));
+    const hasMove=ShutTheBoxGame._subsetSumExists(vals, c.diceSum);
     if(!hasMove){
       // No valid move → bust! Game ends with remaining open sum
       c.phase='bust';
@@ -129,7 +143,7 @@ const ShutTheBoxGame = {
     const box=c.boxes[i];if(box.closed)return;
     const idx=c.selected.indexOf(i);
     if(idx>=0)c.selected.splice(idx,1);
-    else if(c.selected.length<3)c.selected.push(i);
+    else c.selected.push(i); // no cap — any combination of open boxes is fair game, matching real Shut the Box rules
     this._render();
   },
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v423 -->
+<!-- ZOO v426 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=423"></script>
-<script src="rewardchests.js?v=423"></script>
-<script src="personality.js?v=423"></script>
+<script src="lang.js?v=426"></script>
+<script src="rewardchests.js?v=426"></script>
+<script src="personality.js?v=426"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v423','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v426','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=423"></script>
-<script src="worlds.js?v=423"></script>
+<script src="firebase-state.js?v=426"></script>
+<script src="worlds.js?v=426"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6062,6 +6062,8 @@ const ZG={
       const msg=cmd.goingIn?'🏆 Du wurdest in die Champions League verschoben! Lade neu...':'↩️ Du wurdest zurück in den normalen Zoo verschoben! Lade neu...';
       ZP.toast(msg,3000);
       setTimeout(()=>location.reload(),2000);
+    }else if(cmd.type==='animal_released'){
+      ZP.toast('🌱 Umweltschützer haben ein Tier ('+(cmd.animalEmoji||'')+' '+(cmd.animalName||'')+') von «'+(cmd.from||'?')+'» freigelassen! Es läuft jetzt frei im Zoo herum.',4000);
     }else if(cmd.type==='hard_reset'){
       // Full wipe (not just mt/enc): replace our in-memory zoo entirely with
       // a fresh one, matching the fresh doc the admin just wrote to Firestore,
@@ -9644,6 +9646,7 @@ const ZAdmin = {
     const el=document.getElementById('padmin-tab-'+tab);
     if(el)el.style.display='block';
     if(tab==='tiere')this._populateAnimalGrid();
+    if(tab==='bestand')this._loadBestand();
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
     if(tab==='einst')this._populateEvents();
     if(tab==='cal')this._loadCalFromFirebase();
@@ -9704,6 +9707,79 @@ const ZAdmin = {
     const earn=document.getElementById('padmin-edit-earn');if(earn)earn.value=a.earn||10;
     const rar=document.getElementById('padmin-edit-rarity');if(rar)rar.value=a.r||'normal';
     document.querySelectorAll('[data-caid]').forEach(el=>{el.style.border=el.dataset.caid===id?'2px solid #9B59B6':'1px solid rgba(255,255,255,.1)';});
+  },
+  // ── TIERBESTAND: wer hat welche Tiere, mit Freilassen-Funktion ──
+  async _loadBestand(){
+    const el=document.getElementById('padmin-bestand-content');
+    if(!el)return;
+    el.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">⏳ Lade...</div>';
+    try{
+      const snap=await _db.collection('zoos').get({source:'server'});
+      const players=[];
+      snap.forEach(doc=>{
+        const name=doc.id.startsWith('zoo_')?doc.id.slice(4):doc.id;
+        const z=doc.data();
+        const animals=(z.enc||[]).map((e,i)=>e&&e.animal?{...e.animal,shiny:e.shiny,slot:i}:null).filter(Boolean);
+        if(animals.length) players.push({name,animals});
+      });
+      players.sort((a,b)=>b.animals.length-a.animals.length);
+      this._bestandData=players;
+      this._renderBestand();
+    }catch(e){
+      el.innerHTML='<div style="text-align:center;padding:20px;color:#E74C3C">❌ Fehler beim Laden: '+e.message+'</div>';
+    }
+  },
+  _renderBestand(){
+    const el=document.getElementById('padmin-bestand-content');
+    if(!el||!this._bestandData)return;
+    const q=(document.getElementById('padmin-bestand-search')?.value||'').toLowerCase();
+    const players=this._bestandData.filter(p=>!q||p.name.toLowerCase().includes(q));
+    if(!players.length){ el.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">Keine Treffer.</div>'; return; }
+    el.innerHTML=players.map(p=>`
+      <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;margin-bottom:8px">
+        <div style="font-weight:700;color:#2ECC71;margin-bottom:5px;font-size:.85rem">${$esc(p.name)} — ${p.animals.length} Tier${p.animals.length===1?'':'e'}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${p.animals.map(a=>`
+            <div style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 6px;display:flex;align-items:center;gap:4px;font-size:.72rem" title="${$esc(a.n)}">
+              <span style="font-size:1.1rem">${a.e}${a.shiny?'✨':''}</span>
+              <button onclick="ZAdmin.releaseAnimalFrom('${$esc(p.name)}',${a.slot})" title="Freilassen — läuft dann frei im Zoo herum"
+                style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);color:#ff6b6b;border-radius:5px;padding:2px 5px;cursor:pointer;font-size:.68rem">🕊️</button>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  },
+  async releaseAnimalFrom(playerName,slotIdx){
+    if(!(await showConfirm('🕊️ «'+playerName+'»s Tier freilassen? Es läuft dann frei im Zoo herum und kann von jedem wieder eingefangen werden.')))return;
+    try{
+      const k='zoo_'+playerName.toLowerCase();
+      const doc=await _db.collection('zoos').doc(k).get({source:'server'});
+      if(!doc.exists){ ZP.toast('❌ Kein Zoo-Konto gefunden.',2500); return; }
+      const z=doc.data();
+      const enc=z.enc||[];
+      const entry=enc[slotIdx];
+      if(!entry||!entry.animal){ ZP.toast('❌ Tier nicht mehr da — Liste wird neu geladen.',2500); this._loadBestand(); return; }
+      const animal=entry.animal, shiny=entry.shiny||null;
+      // Remove from the owner's enclosure and save.
+      enc[slotIdx]=null;
+      await _db.collection('zoos').doc(k).set({enc},{merge:true});
+      // Spawn it as a roaming animal — same zoo_dropped mechanism used for
+      // slap-drops and admin broadcasts elsewhere, so it behaves exactly
+      // like any other freed animal (wanders, catchable by anyone).
+      try{
+        if(typeof _rtdb!=='undefined'&&_rtdb){
+          const ref=_rtdb.ref('zoo_dropped').push();
+          const x=(Math.random()-0.5)*140, z2=(Math.random()-0.5)*140;
+          await ref.set({animal, shiny, traits:entry.traits||[], x, z:z2, droppedBy:'admin', slappedBy:null, speed:1, createdAt:Date.now()}).catch(()=>{});
+        }
+      }catch(e){}
+      // Announce to everyone currently online — not just the affected player.
+      try{
+        const cmd={type:'animal_released', target:'_all', from:playerName, animalName:animal.n, animalEmoji:animal.e, id:'relanim_'+Date.now(), exp:Date.now()+60000};
+        await this._cmd(cmd);
+      }catch(e){}
+      ZP.toast('🕊️ '+animal.e+' '+animal.n+' von «'+playerName+'» wurde freigelassen!',3000);
+      this._loadBestand();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
   },
   _spawnSelected(){
     const id=this._selectedAnimal;
@@ -10607,26 +10683,37 @@ const ZAdmin = {
         if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber frisch angelegt (0 MT, keine Tiere). Zielwert wurde in Welt 1 gesetzt.');
       }
     }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
-    // Safety net: wait a moment (long enough for an in-progress autosave to have
-    // landed), then re-check what's ACTUALLY stored now — not just mt, but
-    // also whether any animal crept back in. If a race condition still won
-    // and something drifted back, force it again — this time there's nothing
-    // left in flight to race against.
+    // Safety net: re-check several times over a longer window, not just
+    // once — the client's autosave runs every ~15s, so a single check at
+    // 2.5s can easily land BEFORE a stale in-memory session (which missed
+    // the hard_reset broadcast) overwrites the fresh doc on its own next
+    // autosave tick. Checking again later catches that too, and
+    // re-broadcasts the reset command in case it was simply missed the
+    // first time (same reliability concern as any other admin command).
     if(zooOk){
-      await new Promise(r=>setTimeout(r,2500));
-      try{
-        const k='zoo_'+name.toLowerCase();
-        const intendedZooMt = hasZooAccount ? targetVal : 0;
-        const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
-        const rd = recheck.exists ? recheck.data() : null;
-        const stillHasAnimal = rd && Array.isArray(rd.enc) && rd.enc.some(e=>e&&e.animal);
-        if(!rd || rd.mt!==intendedZooMt || stillHasAnimal || (knownDeviceId && rd.deviceId!==knownDeviceId)){
-          const fixZoo={...ZS.nz(), mt:intendedZooMt};
-          if(knownDeviceId) fixZoo.deviceId=knownDeviceId;
-          await _db.collection('zoos').doc(k).set(fixZoo);
-          notes.push('⚠️ Wert war zwischenzeitlich abgewichen (Spieler vermutlich gerade online) — wurde nachkorrigiert.');
-        }
-      }catch(e){}
+      for(const delay of [2500,10000,20000]){
+        await new Promise(r=>setTimeout(r,delay===2500?2500:delay-2500));
+        try{
+          const k='zoo_'+name.toLowerCase();
+          const intendedZooMt = hasZooAccount ? targetVal : 0;
+          const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
+          const rd = recheck.exists ? recheck.data() : null;
+          const stillHasAnimal = rd && Array.isArray(rd.enc) && rd.enc.some(e=>e&&e.animal);
+          if(!rd || rd.mt!==intendedZooMt || stillHasAnimal || (knownDeviceId && rd.deviceId!==knownDeviceId)){
+            const fixZoo={...ZS.nz(), mt:intendedZooMt};
+            if(knownDeviceId) fixZoo.deviceId=knownDeviceId;
+            await _db.collection('zoos').doc(k).set(fixZoo);
+            // Re-send the reset broadcast too — if the FIRST one was
+            // simply missed by an active session, this gives it another
+            // chance to actually land instead of racing back again.
+            try{
+              const cmd2={type:'hard_reset', target:name.toLowerCase(), mt:intendedZooMt, id:Date.now().toString(), exp:Date.now()+60000};
+              await _rtdb.ref('zoo_admin_cmd').set(cmd2).catch(()=>{});
+            }catch(e){}
+            if(!notes.some(n=>n.includes('nachkorrigiert'))) notes.push('⚠️ Wert war zwischenzeitlich abgewichen (Spieler vermutlich gerade online) — wurde nachkorrigiert.');
+          }
+        }catch(e){}
+      }
     }
     // Reward chest progress (RewardChests) lives entirely in THIS browser's
     // sessionStorage — not in Firestore at all, and not even namespaced per
@@ -13249,7 +13336,8 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="announce" onclick="ZAdmin.switchTab('announce')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3478f6;display:flex;align-items:center;gap:6px;background:rgba(52,120,246,.1);border:1px solid rgba(52,120,246,.3);border-radius:6px">📢 Ankündigung</div>
           <div class="padmin-tab-btn" data-tab="news" onclick="ZAdmin.switchTab('news')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#27AE60;display:flex;align-items:center;gap:6px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:6px">📰 Update-News</div>
           <div class="padmin-tab-btn" data-tab="reports" onclick="ZAdmin.switchTab('reports')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">📋 Meldungen</div>
-          <div class="padmin-tab-btn active" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1)">🐾 Tiere</div>
+          <div class="padmin-tab-btn" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:6px">🐾 Tiere</div>
+          <div class="padmin-tab-btn" data-tab="bestand" onclick="ZAdmin.switchTab('bestand')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#2ECC71;display:flex;align-items:center;gap:6px;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:6px">🦁 Tierbestand</div>
           <div class="padmin-tab-btn" data-tab="spieler" onclick="ZAdmin.switchTab('spieler')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">👥 Spieler</div>
           <div class="padmin-tab-btn" data-tab="markt" onclick="ZAdmin.switchTab('markt')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#8B5A2B;display:flex;align-items:center;gap:6px;background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:6px">🤝 Marktplatz</div>
           <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#e67e22;display:flex;align-items:center;gap:6px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px">⏱️ Timer</div>
@@ -13299,6 +13387,18 @@ window.ZooEvents = ZooEvents;
             </div>
           </div>
           <button class="padmin-btn" style="background:#2980B9;width:100%;margin-top:8px" onclick="ZAdmin._saveAnimalEdit()">💾 Änderungen speichern</button>
+        </div>
+        <!-- TAB: TIERBESTAND -->
+        <div class="padmin-tab" id="padmin-tab-bestand" style="display:none">
+          <div class="padmin-section-title">🦁 Wer hat welche Tiere?</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px">
+            Einzelne Tiere können hier freigelassen werden — sie laufen dann frei im Zoo herum und können von allen wieder eingefangen werden. Alle gerade online sind, sehen eine Meldung dazu.
+          </div>
+          <input id="padmin-bestand-search" placeholder="🔍 Spieler suchen..." oninput="ZAdmin._renderBestand()"
+            style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:6px 8px;border-radius:6px;font-size:.8rem;margin-bottom:8px;box-sizing:border-box">
+          <div id="padmin-bestand-content">
+            <div style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">⏳ Lade...</div>
+          </div>
         </div>
         <!-- TAB: CRAFTING -->
         <div class="padmin-tab" id="padmin-tab-craft" style="display:none">

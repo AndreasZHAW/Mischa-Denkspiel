@@ -399,12 +399,42 @@ const RewardChests = {
   _closeAnim(){ document.getElementById('chest-anim')?.remove(); this._animState=null; this.open(); this.updateBadge(); },
 
   // ── REWARD POOLS ──
+  // Current net worth (cash + value of owned animals) — the baseline all
+  // reward amounts scale against, so a chest never hands out something
+  // wildly disproportionate to what the player actually has (the old
+  // fixed "+1000 MT" could dwarf a brand-new player's entire balance).
+  _netWorth(){
+    try{
+      if(!this._inZoo()) return (State.currentPlayer?.totalScore)||0;
+      const z=ZS.zoo; if(!z) return 0;
+      let total=z.mt||0;
+      (z.enc||[]).forEach(e=>{
+        if(e&&e.animal){ const full=(window.ANIMALS||[]).find(a=>a.id===e.animal.id); total += (full?.p ?? e.animal.p ?? 0); }
+      });
+      return total;
+    }catch(e){ return 0; }
+  },
+  // Percentage-of-net-worth MT reward instead of a flat amount. Normally
+  // a modest slice (10-25%) scaled by chest quality; hard-capped at
+  // double the current net worth so a reward can never dwarf what the
+  // player actually has — with only a small (~6%) chance of landing
+  // exactly on that cap as a rare jackpot, rather than that being typical.
+  _mtReward(q){
+    const nw=this._netWorth();
+    const floor=Math.round(10*q); // still meaningful for a brand-new player with ~0 net worth
+    const pct=0.10+Math.random()*0.15;
+    let amt=Math.round(Math.max(floor, nw*pct*q));
+    const cap=Math.round(Math.max(floor*2, nw*2*q));
+    if(Math.random()<0.06) amt=cap; // rare jackpot
+    return Math.min(amt, cap);
+  },
   _pickReward(rarityIdx, q){
     q = q || 1;
+    const mtAmt=this._mtReward(q); // computed once — label and apply must show/give the exact same number
     const pools=[
       [{icon:'🐾',label:'Seltenes Tier!',needsSlot:true,apply:()=>this._giveAnimal('rare')}],
       [{icon:'🦁',label:'Episches Tier!',needsSlot:true,apply:()=>this._giveAnimal('epic')},
-       {icon:'🌀',label:'+'+Math.round(1000*q)+' MT',apply:()=>this._giveMT(Math.round(1000*q))},
+       {icon:'🌀',label:'+'+mtAmt+' MT',apply:()=>this._giveMT(mtAmt)},
        {icon:'🧹',label:'1× Kehrmaschine gratis',apply:()=>this._pending('freeSweep',1)}],
       [{icon:'🎡',label:(q>=5?Math.max(1,Math.round(q/5))+'× Glücksrad-Dreh!':'1 Glücksrad-Dreh!'),apply:()=>this._pending('spins',q>=5?Math.max(1,Math.round(q/5)):1)}],
       [{icon:'🎡',label:(q>=5?Math.max(1,Math.round(q/3))+'× Glücksrad-Dreh!':'1 Glücksrad-Dreh!'),apply:()=>this._pending('spins',q>=5?Math.max(1,Math.round(q/3)):1)},
@@ -459,7 +489,19 @@ const RewardChests = {
       const slot=z.enc.findIndex(e=>!e||!e.animal);
       if(slot<0){ if(typeof ZP!=='undefined')ZP.toast('🦁 Kein Platz! Tier-Belohnung wartet.',3500); return false; }
       if(rarity==='dino') z.enc[slot]={animal:{id:'chest_dino',n:'Dinosaurier',e:'🦕',r:'mythic',p:0,earn:800,w:0},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
-      else { let pool=(window.ANIMALS||[]).filter(a=>a.r===rarity); if(!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='epic'); const a=pool[Math.floor(Math.random()*pool.length)]; if(!a)return false; z.enc[slot]={animal:{...a},shiny:(rarity==='ultralegendary'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0}; }
+      else {
+        let pool=(window.ANIMALS||[]).filter(a=>a.r===rarity); if(!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='epic');
+        // Prefer an animal not already in the enclosure — a chest reward
+        // that just duplicates something already owned feels much less
+        // exciting than a genuinely new addition. Only fall back to a
+        // random (possibly duplicate) pick if every animal of this
+        // rarity is already owned.
+        const ownedIds=new Set((z.enc||[]).filter(e=>e&&e.animal).map(e=>e.animal.id));
+        const unowned=pool.filter(a=>!ownedIds.has(a.id));
+        const choicePool=unowned.length?unowned:pool;
+        const a=choicePool[Math.floor(Math.random()*choicePool.length)]; if(!a)return false;
+        z.enc[slot]={animal:{...a},shiny:(rarity==='ultralegendary'?'rainbow':null),traits:[],xm:1,addedAt:Date.now(),sl:0};
+      }
       return true;
     };
     let gaveAnimal=false;

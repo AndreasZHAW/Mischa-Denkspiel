@@ -134,8 +134,22 @@ const BalloonGame = {
       if(food)drawFood(food.x,food.y);
 
       // HUD
+      const scoreEl=document.getElementById('sn-score');
+      if(!scoreEl){
+        // The game area was replaced (player left this game) but nothing
+        // ever told this loop to stop — without this check it would keep
+        // calling requestAnimationFrame forever, crashing every frame
+        // trying to update HUD elements that no longer exist, and never
+        // cleaning up the window-level keydown/devicemotion listeners
+        // below (which would otherwise pile up, one leaked set per Snake
+        // session, for the rest of the page's life).
+        running=false;
+        try{ window.removeEventListener('keydown',onK); }catch(e){}
+        try{ if(typeof onMotion==='function') window.removeEventListener('devicemotion',onMotion); }catch(e){}
+        return;
+      }
       const elapsed=((Date.now()-tStart)/1000)|0;
-      document.getElementById('sn-score').textContent='🐍 '+score;
+      scoreEl.textContent='🐍 '+score;
       document.getElementById('sn-level').textContent='Level '+level;
       document.getElementById('sn-time').textContent='⏱ '+elapsed+'s';
 

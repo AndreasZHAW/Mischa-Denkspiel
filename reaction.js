@@ -115,7 +115,7 @@ const ReactionGame = {
     setTimeout(()=>this._nextRound(),600);
   },
 
-  _showResult() {
+  async _showResult() {
     const c=this.current;clearTimeout(c.timer);
     const correct=c.results.filter(r=>(typeof r==='object'?r.result:r)==='correct').length;
     const rts=c.results.filter(r=>typeof r==='object'&&r.rt&&r.result==='correct').map(r=>r.rt);
@@ -123,6 +123,41 @@ const ReactionGame = {
     const timeMs=Date.now()-c.startTime;
     const rawScore=Math.round((correct/c.totalRounds)*100);
     const finalScore=State.calcFinalScore({rawScore,timeMs,errors:c.errors,passed:correct>=6});
+
+    // Save this player's average reaction time to a shared pool (own,
+    // dedicated collection — not the generic 0-100 calibration store,
+    // since that tracks accuracy-based scores for every game, not raw
+    // speed in ms) so a percentile comparison against everyone else who's
+    // played can be shown below.
+    let percentile=null;
+    if(avgRt && typeof _db!=='undefined' && _db){
+      try{
+        const playerName=State.currentPlayer?.name||'anon';
+        const dedupKey=playerName.toLowerCase()+'_'+Math.floor(Date.now()/5000);
+        // Await this (with its own short timeout) — a fire-and-forget write
+        // followed immediately by a read could easily miss the round just
+        // played, since there was no guarantee it landed before the read
+        // below ran.
+        await Promise.race([
+          _db.collection('reaction_times').doc(dedupKey).set({player:playerName,avgRt,ts:Date.now()}),
+          new Promise(r=>setTimeout(r,1500))
+        ]).catch(()=>{});
+        // orderBy+limit, not just limit — without an explicit order,
+        // Firestore has no obligation to return the newest documents once
+        // the collection grows past the limit; it could just as easily
+        // keep handing back an arbitrary older slice forever, which would
+        // make it LOOK like new rounds never factor into the comparison
+        // even though they're being saved correctly.
+        const snap=await Promise.race([_db.collection('reaction_times').orderBy('ts','desc').limit(1000).get(),new Promise(r=>setTimeout(()=>r(null),3000))]);
+        if(snap){
+          const allRts=[]; snap.forEach(d=>{const v=d.data()?.avgRt; if(typeof v==='number'&&isFinite(v)&&v>0) allRts.push(v);});
+          if(allRts.length>=3){
+            const slower=allRts.filter(v=>v>avgRt).length;
+            percentile=Math.round((slower/allRts.length)*100);
+          }
+        }
+      }catch(e){}
+    }
 
     // Per-round detail list
     const detailRows=c.results.map((r,i)=>{
@@ -159,6 +194,10 @@ const ReactionGame = {
             <div style="color:var(--text-mid);font-size:clamp(0.7rem,3vw,0.8rem)">${typeof t!=='undefined'?t('math.points'):'Punkte'}</div>
           </div>
         </div>
+
+        ${percentile!==null?`<div style="background:linear-gradient(135deg,rgba(155,89,182,.12),rgba(52,152,219,.12));border-radius:10px;padding:8px 12px;margin:8px 0;font-size:clamp(0.82rem,3.8vw,0.92rem);color:var(--text-dark)">
+          🏅 ${(typeof t!=='undefined'?t('reaction.percentile'):'Deine Reaktion war schneller als {n}% aller Spieler!').replace('{n}',percentile)}
+        </div>`:''}
 
         <!-- Per-round detail -->
         <div style="margin:10px 0;max-height:240px;overflow-y:auto;border-radius:10px;background:rgba(255,255,255,.5);padding:4px">

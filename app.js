@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v423';
+const APP_VERSION = 'v426';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v423 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v426 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -831,9 +831,6 @@ const App = {
   showProfile() {
     if (!this.selectedChar) { showAlert('Bitte Charakter wählen!'); return; }
     const ch = CHARACTERS.find(c => c.id === this.selectedChar);
-    const yr = new Date().getFullYear();
-    // Years from current-5 down to 1940
-    const years = Array.from({length: yr - 1940 - 4}, (_, i) => yr - 5 - i);
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
@@ -848,30 +845,45 @@ const App = {
             <input type="text" id="p-name" placeholder="z.B. Mischa" maxlength="20" autocomplete="off"/></div>
           <div class="input-group"><label>Passwort</label>
             <input type="password" id="p-pw" placeholder="Geheimwort" maxlength="20"/></div>
-          <div class="input-group"><label>Geburtsjahr</label>
-            <select id="p-year">
-              <option value="">-- wählen --</option>
-              ${years.map(y=>`<option value="${y}">${y}</option>`).join('')}
-            </select></div>
+          <div class="input-group"><label>Alter</label>
+            <p style="font-size:.78rem;color:rgba(255,255,255,.55);margin:0 0 8px;line-height:1.4">
+              Damit die Fragen und Aufgaben zum Alter passen — nicht zu leicht, nicht zu schwer.
+            </p>
+            <div id="p-agerange" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              ${[['u7','unter 7'],['8-11','8–11'],['11-16','11–16'],['16+','16+']].map(([val,label])=>`
+                <button type="button" data-val="${val}" onclick="App._pickAgeRange('${val}')"
+                  style="padding:12px 8px;border-radius:10px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer">${label}</button>
+              `).join('')}
+            </div></div>
           <div id="p-err" style="color:#E74C3C;font-size:0.88rem;text-align:center;display:none;margin-bottom:8px"></div>
           <button class="btn btn-primary btn-full btn-big" onclick="App.createProfile()">Los geht's! 🚀</button>
         </div>
       </div>`);
   },
 
+  _selectedAgeRange: null,
+  _pickAgeRange(val){
+    this._selectedAgeRange = val;
+    document.querySelectorAll('#p-agerange button').forEach(b=>{
+      const on = b.dataset.val===val;
+      b.style.border = on ? '2px solid #29B6F6' : '2px solid rgba(255,255,255,.15)';
+      b.style.background = on ? 'rgba(41,182,246,.18)' : 'rgba(255,255,255,.05)';
+    });
+  },
+
   async createProfile() {
     const name = document.getElementById('p-name')?.value.trim();
     const pw   = document.getElementById('p-pw')?.value.trim();
-    const year = document.getElementById('p-year')?.value;
+    const ageRange = this._selectedAgeRange;
     const err  = t => { const e=document.getElementById('p-err'); if(e){e.textContent=t;e.style.display='block';} };
     if (!name||name.length<2) return err('Name mindestens 2 Zeichen!');
     if (!pw) return err('Bitte Passwort eingeben!');
-    if (!year) return err('Bitte Geburtsjahr wählen!');
+    if (!ageRange) return err('Bitte Alter wählen!');
     this._loading('Registrierung...');
     let player;
     try {
       player = await Promise.race([
-        State.createPlayer({ name, password:pw, birthYear:year, character:this.selectedChar, characterColor:this.selectedColor }),
+        State.createPlayer({ name, password:pw, ageRange, character:this.selectedChar, characterColor:this.selectedColor }),
         new Promise((_,rej) => setTimeout(() => rej(new Error('Verbindungsfehler')), 8000))
       ]);
     } catch(e) {
