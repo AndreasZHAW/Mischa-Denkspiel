@@ -21,7 +21,7 @@
     }catch(e){}
   })();
   </script>
-  <link rel="stylesheet" href="main.css?v=422">
+  <link rel="stylesheet" href="main.css?v=423">
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
   <style>
@@ -222,38 +222,38 @@
     });
   </script>
   <!-- Core -->
-  <script src="worlds.js?v=422"></script>
-  <script src="firebase-state.js?v=422"></script>
+  <script src="worlds.js?v=423"></script>
+  <script src="firebase-state.js?v=423"></script>
   <!-- Games -->
-  <script src="math.js?v=422"></script>
-  <script src="reaction.js?v=422"></script>
-  <script src="memory.js?v=422"></script>
-  <script src="sokoban.js?v=422"></script>
-  <script src="shutthebox.js?v=422"></script>
-  <script src="jenga.js?v=422"></script>
-  <script src="slider.js?v=422"></script>
-  <script src="wordsearch.js?v=422"></script>
-  <script src="typing.js?v=422"></script>
-  <script src="balloon.js?v=422"></script>
-  <script src="simon.js?v=422"></script>
-  <script src="truefalse.js?v=422"></script>
-  <script src="dart.js?v=422"></script>
-  <script src="pacman.js?v=422"></script>
-  <script src="catapult.js?v=422"></script>
-  <script src="starwars.js?v=422"></script>
-  <script src="pong2.js?v=422"></script>
-  <script src="tetris.js?v=422"></script>
-  <script src="stunt.js?v=422"></script>
-  <script src="anagram.js?v=422"></script>
-  <script src="colormix.js?v=422"></script>
-  <script src="minigames.js?v=422"></script>
-  <script src="shop.js?v=422"></script>
+  <script src="math.js?v=423"></script>
+  <script src="reaction.js?v=423"></script>
+  <script src="memory.js?v=423"></script>
+  <script src="sokoban.js?v=423"></script>
+  <script src="shutthebox.js?v=423"></script>
+  <script src="jenga.js?v=423"></script>
+  <script src="slider.js?v=423"></script>
+  <script src="wordsearch.js?v=423"></script>
+  <script src="typing.js?v=423"></script>
+  <script src="balloon.js?v=423"></script>
+  <script src="simon.js?v=423"></script>
+  <script src="truefalse.js?v=423"></script>
+  <script src="dart.js?v=423"></script>
+  <script src="pacman.js?v=423"></script>
+  <script src="catapult.js?v=423"></script>
+  <script src="starwars.js?v=423"></script>
+  <script src="pong2.js?v=423"></script>
+  <script src="tetris.js?v=423"></script>
+  <script src="stunt.js?v=423"></script>
+  <script src="anagram.js?v=423"></script>
+  <script src="colormix.js?v=423"></script>
+  <script src="minigames.js?v=423"></script>
+  <script src="shop.js?v=423"></script>
   <!-- App -->
-  <script src="french.js?v=422"></script>
-<script src="lang.js?v=422"></script>
-  <script src="rewardchests.js?v=422"></script>
-  <script src="personality.js?v=422"></script>
-  <script src="app.js?v=422"></script>
+  <script src="french.js?v=423"></script>
+<script src="lang.js?v=423"></script>
+  <script src="rewardchests.js?v=423"></script>
+  <script src="personality.js?v=423"></script>
+  <script src="app.js?v=423"></script>
   <script>
     // Prevent double-tap zoom on touch devices
     let _lastTouch = 0;
@@ -356,9 +356,47 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v422 wird geladen...';
+      if(vEl) vEl.textContent = 'v423 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
+
+      // Coming back from the Zoo (via one of its "Zurück zu Welt 1" links)
+      // is a different situation from a normal page load: the person was
+      // JUST actively playing seconds ago, so there's no need to make them
+      // click through the full welcome/login screen again. Validate the
+      // existing session against the server first — if it's still good,
+      // skip straight to the world map. This does NOT bring back the old
+      // silent-auto-login-from-local-cache behavior (that was removed for
+      // good reason — see the comment below): we still always confirm
+      // with the server before trusting anything.
+      const fromZoo = new URLSearchParams(location.search).get('fromZoo')==='1';
+      const savedName = fromZoo ? sessionStorage.getItem('mischa_current') : null;
+      if (fromZoo && savedName) {
+        if(vEl) vEl.textContent = 'Sitzung wird geprüft...';
+        try {
+          await window._firebaseLoadPromise;
+          try { initFirebase(); } catch(e) {}
+          const p = await Promise.race([State.getPlayer(savedName), new Promise(r=>setTimeout(()=>r(null),4000))]);
+          if (p) {
+            State.setCurrentPlayer(p);
+            App.showWorldMap();
+            // Still set up the background listeners below, same as the
+            // normal path, so broadcasts/discounts etc. keep working.
+            try { State.listenBroadcast(data => {
+              const seen = sessionStorage.getItem('mischa_bc_seen');
+              if (seen === data.id) return;
+              sessionStorage.setItem('mischa_bc_seen', data.id);
+              if (data.type === 'survey') showSurvey(data);
+              else showBroadcastBanner(data.text);
+            }); } catch(e) {}
+            try { State.listenDiscounts(() => {}); } catch(e) {}
+            return;
+          }
+        } catch(e) {}
+        // Fall through to the normal welcome screen if validation failed
+        // for any reason (session expired, network issue, etc.) — never
+        // silently strand the person on a blank/broken screen.
+      }
 
       // ALWAYS show the login/welcome screen first — no more instant
       // auto-restore from sessionStorage/localStorage. That used to jump
@@ -371,7 +409,8 @@
       // otherwise no longer valid, and there was no login step to
       // naturally re-establish everything cleanly. Explicit login (or the
       // player consciously choosing "stay logged in" elsewhere) is now the
-      // only way in.
+      // only way in (except the fromZoo case above, which still validates
+      // server-side rather than trusting local cache blindly).
       App.showWelcome();
 
       // Connect Firebase in background (doesn't block UI)
@@ -386,14 +425,6 @@
           else showBroadcastBanner(data.text);
         }); } catch(e) {}
         try { State.listenDiscounts(() => {}); } catch(e) {}
-        // If user had a session, check cloud
-        if (ret) {
-          State.getPlayer(ret).then(p => {
-            if (p && document.getElementById('app')?.innerHTML?.includes('Willkommen')) {
-              State.setCurrentPlayer(p); App.showWorldMap();
-            }
-          }).catch(() => {});
-        }
       }).catch(() => {});
     }
 

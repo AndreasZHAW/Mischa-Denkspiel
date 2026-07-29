@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v422 -->
+<!-- ZOO v423 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=422"></script>
-<script src="rewardchests.js?v=422"></script>
-<script src="personality.js?v=422"></script>
+<script src="lang.js?v=423"></script>
+<script src="rewardchests.js?v=423"></script>
+<script src="personality.js?v=423"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v422','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v423','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -253,7 +253,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <input class="inp" id="zpw" type="password" placeholder="Passwort" maxlength="24" onkeydown="if(event.key==='Enter')ZA.login()"/>
 <div class="err" id="zerr"></div>
 <button class="btn btng" onclick="ZA.login()">Anmelden / Registrieren ➜</button>
-<button class="btn btnd" onclick="location.href='index.html'">← Zum Denkspiel</button>
+<button class="btn btnd" onclick="location.href='index.html?fromZoo=1'">← Zurück zu Welt 1</button>
 </div></div>
 
 <!-- CHAR -->
@@ -268,7 +268,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="mhi" style="font-size:1.35rem;font-weight:900;color:#FFD700;margin-bottom:14px;text-align:center"></div>
 <div class="mc" onclick="ZA.startZoo('public')"><span style="font-size:2.8rem;display:block;margin-bottom:6px">🦁</span><div style="font-size:1.2rem;font-weight:900;color:#FFD700">Öffentlicher Server</div><div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-top:2px">3 Spieler · Trading · Tiere stehlen!</div></div>
 <div class="mc" onclick="ZA.checkPrivate()"><span style="font-size:2.8rem;display:block;margin-bottom:6px">🔐</span><div style="font-size:1.2rem;font-weight:900;color:#FFD700">Privater Server</div><div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-top:2px">Alleine · 1.000.000 MT</div></div>
-<div class="mc" onclick="location.href='index.html'" style="max-width:180px;padding:10px"><div style="font-weight:900;color:rgba(255,255,255,.4)">← Denkspiel</div></div>
+<div class="mc" onclick="location.href='index.html?fromZoo=1'" style="max-width:180px;padding:10px"><div style="font-weight:900;color:rgba(255,255,255,.4)">← Zurück zu Welt 1</div></div>
 </div>
 
 <!-- ZOO -->
@@ -478,7 +478,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="zp off" id="p-trade"><div class="zpi"><button class="pcls" onclick="ZP.close('trade')">✕</button><div class="pt">🤝 Trading</div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="tt-m" class="tab ta" onclick="ZP.tradeTab('m')">📋 Meine Angebote</button><button id="tt-a" class="tab ti" onclick="ZP.tradeTab('a')">🛒 Kaufen</button><button id="tt-n" class="tab ti" onclick="ZP.tradeTab('n')">➕ Anbieten</button></div><div id="ptrade"></div></div></div>
 <div class="zp off" id="p-reb"><div class="zpi"><button class="pcls" onclick="ZP.close('reb')">✕</button><div class="pt">🔄 Wiedergeburt</div><div id="prc"></div></div></div>
 <div class="zp off" id="p-enc"><div class="zpi"><button class="pcls" onclick="ZP.close('enc')">✕</button><div class="pt" id="pent">Gehege</div><div id="pencm"></div></div></div>
-<div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html'">← Denkspiel</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
+<div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html?fromZoo=1'">← Zurück zu Welt 1</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
 <div class="zp off" id="p-adm"><div class="zpi"><button class="pcls" onclick="ZP.close('adm')">✕</button><div class="pt">👑 Admin</div><div id="padm"></div></div></div>
 
 <script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=422"></script>
-<script src="worlds.js?v=422"></script>
+<script src="firebase-state.js?v=423"></script>
+<script src="worlds.js?v=423"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1501,7 +1501,7 @@ const ZG={
         d.style.cssText='text-align:center;color:#fff;padding:20px';
         d.innerHTML='<div style="font-size:3rem">🦁</div><div style="font-size:1.2rem;margin:12px 0">3D-Zoo lädt nicht</div><div style="font-size:.9rem;color:rgba(255,255,255,.6);margin-bottom:16px">Bitte Internet-Verbindung prüfen</div>';
         const b1=document.createElement('button');b1.textContent='🔄 Neu laden';b1.style.cssText='background:#27AE60;color:#fff;border:none;padding:12px 24px;border-radius:10px;font-size:1rem;cursor:pointer;margin:4px';b1.onclick=()=>location.reload();
-        const b2=document.createElement('button');b2.textContent='← Zurück';b2.style.cssText='background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:8px;font-size:.9rem;cursor:pointer;margin:4px';b2.onclick=()=>location.href='index.html';
+        const b2=document.createElement('button');b2.textContent='← Zurück';b2.style.cssText='background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:8px;font-size:.9rem;cursor:pointer;margin:4px';b2.onclick=()=>location.href='index.html?fromZoo=1';
         d.appendChild(b1);d.appendChild(document.createElement('br'));d.appendChild(b2);
         document.getElementById('s-zoo').appendChild(d);
       })();
@@ -7163,7 +7163,7 @@ const ZP={
         ctx.fillStyle=s.color;ctx.globalAlpha=Math.max(0,s.dist/300)*0.8;
         ctx.beginPath();ctx.arc(sx,sy,s.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;});
       frame++;
-      if(frame>90){ov.remove();window.location.href='index.html';return;}
+      if(frame>90){ov.remove();window.location.href='index.html?fromZoo=1';return;}
       requestAnimationFrame(loop);
     };
     loop();
@@ -7194,7 +7194,7 @@ const ZP={
         ctx.fillStyle=s.color;ctx.globalAlpha=Math.max(0,s.dist/300)*0.8;
         ctx.beginPath();ctx.arc(sx,sy,s.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;});
       frame++;
-      if(frame>90){ov.remove();window.location.href='index.html';return;}
+      if(frame>90){ov.remove();window.location.href='index.html?fromZoo=1';return;}
       requestAnimationFrame(loop);
     };
     loop();
@@ -12395,7 +12395,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   window.addEventListener('popstate',async ()=>{
     if(await showConfirm('Zoo verlassen?')){
       sessionStorage.setItem('from_game','1');
-      window.location.href='index.html';
+      window.location.href='index.html?fromZoo=1';
     } else { history.pushState(null,'',''); }
   });
   history.pushState(null,'','');

@@ -1282,9 +1282,10 @@ const RankNotify = {
         // same check, all missed in the same earlier pass).
         return sanitizeMT(z.mt);
       };
-      const players = Object.values(merged)
+      const players = Object.entries(merged)
+        .map(([mkey,p]) => ({...p, name: p.name || mkey}))
         .filter(p => p.name)
-        .map(p => ({ name:p.name, _mt: sanitizeMT(sanitizeMT(dsMTFor(p)) + _zooMTFor(p)) }))
+        .map(p => ({ name:p.name, _mt: sanitizeMT(sanitizeMT(dsMTFor(p)) + _zooMTFor(p)), reb: zoosAll[p.name?.toLowerCase()]?.reb||0, inCL: !!zoosAll[p.name?.toLowerCase()]?.inChampionsLeague }))
         .sort((a,b) => b._mt - a._mt);
 
       // A player who only ever played the Zoo (no mischa_players entry at all)
