@@ -51,7 +51,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v419';
+const APP_VERSION = 'v420';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -343,7 +343,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v419 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v420 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1494,8 +1494,9 @@ const App = {
     const playerName = player?.name || '';
     const current = FontScale.load();
     this._sliderPreviewSize = current;
+    const _t = (k, fb) => (typeof t!=='undefined' ? t(k) : fb) || fb;
 
-    const SAMPLE_TEXT = 'Mischa Denkspiel — 14/20 Spiele · 🌀 11.5 MT · Tippe auf die nächste Aufgabe';
+    const SAMPLE_TEXT = _t('fontslider.sample_text', 'Mischa Denkspiel — 14/20 Spiele · 🌀 11.5 MT · Tippe auf die nächste Aufgabe');
 
     this._html(`
       <div style="min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1a2a3a);
@@ -1504,9 +1505,9 @@ const App = {
 
         <div style="text-align:center;margin-bottom:20px">
           <div style="font-size:3rem;margin-bottom:8px">🔤</div>
-          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 6px">Schriftgrösse einstellen</h2>
+          <h2 style="color:#fff;font-size:1.4rem;font-weight:900;margin:0 0 6px">${_t('fontslider.title','Schriftgrösse einstellen')}</h2>
           <p style="color:rgba(255,255,255,.55);font-size:.88rem;margin:0;max-width:320px;line-height:1.4">
-            Schieb den Regler, bis es für dich passt — <b style="color:#4af">so klein wie möglich, so gross wie nötig.</b>
+            ${_t('fontslider.subtitle','Schieb den Regler, bis es für dich passt — <b style="color:#4af">so klein wie möglich, so gross wie nötig.</b>')}
           </p>
         </div>
 
@@ -1516,7 +1517,7 @@ const App = {
              padding:28px 24px;margin-bottom:20px;text-align:center">
           <div style="color:rgba(255,255,255,.35);font-size:.72rem;
                font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">
-            Vorschau
+            ${_t('fontslider.preview_label','Vorschau')}
           </div>
           <div id="font-slider-preview" style="color:#fff;font-size:${current}px;line-height:1.55;font-weight:500;transition:font-size .05s">
             ${SAMPLE_TEXT}
@@ -1529,7 +1530,7 @@ const App = {
         <!-- Slider -->
         <div style="width:100%;max-width:400px;margin-bottom:24px">
           <div style="display:flex;justify-content:space-between;color:rgba(255,255,255,.3);font-size:.68rem;margin-bottom:4px">
-            <span>A klein</span><span>A gross</span>
+            <span>${_t('fontslider.small','A klein')}</span><span>${_t('fontslider.big','A gross')}</span>
           </div>
           <input id="font-slider" type="range" min="${FontScale.MIN}" max="${FontScale.MAX}" value="${current}" step="1"
             style="width:100%;height:8px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#4af,#27AE60);border-radius:20px;outline:none;cursor:pointer"
@@ -1541,16 +1542,16 @@ const App = {
             style="background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;border:none;
                    padding:16px;border-radius:14px;font-size:1.05rem;font-weight:900;
                    cursor:pointer;min-height:52px;box-shadow:0 4px 16px rgba(39,174,96,.4)">
-            ✅ So ist es gut!
+            ${_t('fontslider.save','✅ So ist es gut!')}
           </button>
           <button onclick="App.showWorldMap()"
             style="background:none;color:rgba(255,255,255,.3);border:none;
                    padding:10px;font-size:.82rem;cursor:pointer;margin-top:4px">
-            Abbrechen
+            ${_t('fontslider.cancel','Abbrechen')}
           </button>
         </div>
         <p style="color:rgba(255,255,255,.25);font-size:.7rem;margin-top:16px">
-          Gerät: ${screen.width}x${screen.height} · Spieler: ${playerName}
+          ${_t('fontslider.device_line','Gerät: {w}x{h} · Spieler: {name}').replace('{w}',screen.width).replace('{h}',screen.height).replace('{name}',playerName)}
         </p>
       </div>`);
   },
@@ -1710,11 +1711,11 @@ const App = {
         <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:14px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <button class="btn" onclick="App.showWorldMap()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:1rem">← Zurück</button>
-            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">${clOnly?'🏆 Champions League':'🌍 Rangliste'}</h2>
+            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">${clOnly?(typeof t!=='undefined'?t('ds.cl_rank_title'):'🏆 Champions League'):(typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste')}</h2>
             ${player ? `<div style="font-size:1rem;color:#FFD700">Du: 🌀${formatMT(myMT)} MT</div>` : ''}
           </div>
           <div style="text-align:center;margin-bottom:10px">
-            <span onclick="App.showGlobalLeaderboard(${!clOnly})" style="cursor:pointer;font-size:.7rem;color:${clOnly?'rgba(255,255,255,.5)':'rgba(255,215,0,.7)'};border:1px solid ${clOnly?'rgba(255,255,255,.2)':'rgba(255,215,0,.3)'};padding:3px 10px;border-radius:20px;display:inline-block">${clOnly?'← Normale Rangliste':'🏆 Champions League Rangliste →'}</span>
+            <span onclick="App.showGlobalLeaderboard(${!clOnly})" style="cursor:pointer;font-size:.7rem;color:${clOnly?'rgba(255,255,255,.5)':'rgba(255,215,0,.7)'};border:1px solid ${clOnly?'rgba(255,255,255,.2)':'rgba(255,215,0,.3)'};padding:3px 10px;border-radius:20px;display:inline-block">${clOnly?(typeof t!=='undefined'?t('ds.cl_rank_back'):'← Normale Rangliste'):(typeof t!=='undefined'?t('ds.cl_rank_link'):'🏆 Champions League Rangliste →')}</span>
           </div>
           ${contestPhase==='countdown' ? `<div id="contest-countdown" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center"></div>` : ''}
           ${contestPhase==='frozen' ? `<div style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:center">
@@ -1722,7 +1723,7 @@ const App = {
             <div style="color:#FFD700;font-weight:700;font-size:.92rem">Ergebnis fixiert bis ${(typeof Contest!=='undefined' && Contest.END) ? new Date(Contest.END).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'}) + ', ' + new Date(Contest.END).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '—'}</div>
             <div style="color:rgba(255,255,255,.5);font-size:.72rem;margin-top:2px">Danach geht's mit allem, was zwischenzeitlich verdient wurde, normal weiter.</div>
           </div>` : ''}
-          ${rows || (clOnly ? '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Noch keine Champions-League-Teilnehmer</div>' : '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>')}
+          ${rows || (clOnly ? `<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">${typeof t!=='undefined'?t('ds.cl_rank_empty'):'Noch keine Champions-League-Teilnehmer'}</div>` : '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">Keine Spieler gefunden</div>')}
         </div>
       </div>`);
     if (contestPhase==='countdown' && typeof Contest!=='undefined') {

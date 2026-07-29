@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v419 -->
+<!-- ZOO v420 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=419"></script>
-<script src="rewardchests.js?v=419"></script>
-<script src="personality.js?v=419"></script>
+<script src="lang.js?v=420"></script>
+<script src="rewardchests.js?v=420"></script>
+<script src="personality.js?v=420"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v419','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v420','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -382,7 +382,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   <button class="pcls" onclick="ZP.close('rank')">✕</button>
   <div class="pmenu-title">🏆 Rangliste (Welt 1 + Zoo)</div>
   <div style="text-align:center;margin-bottom:6px">
-    <span onclick="ZP.showChampionsLeagueRangliste()" style="cursor:pointer;font-size:.7rem;color:rgba(255,215,0,.7);border:1px solid rgba(255,215,0,.3);padding:3px 10px;border-radius:20px;display:inline-block">🏆 Champions League Rangliste →</span>
+    <span id="cl-rank-link" onclick="ZP.showChampionsLeagueRangliste()" style="cursor:pointer;font-size:.7rem;color:rgba(255,215,0,.7);border:1px solid rgba(255,215,0,.3);padding:3px 10px;border-radius:20px;display:inline-block">🏆 Champions League Rangliste →</span>
   </div>
   <div id="p-rank-countdown" style="margin-bottom:10px;text-align:center"></div>
   <div id="p-rank-content" style="max-height:60vh;overflow-y:auto"></div>
@@ -390,9 +390,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 
 <div class="zp off" id="p-cl-rank"><div class="zpi">
   <button class="pcls" onclick="ZP.close('cl-rank')">✕</button>
-  <div class="pmenu-title">🏆 Champions League Rangliste</div>
+  <div class="pmenu-title" id="cl-rank-title">🏆 Champions League Rangliste</div>
   <div style="text-align:center;margin-bottom:6px">
-    <span onclick="ZP.close('cl-rank');ZP.showZooRangliste();" style="cursor:pointer;font-size:.7rem;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:20px;display:inline-block">← Normale Rangliste</span>
+    <span id="cl-rank-back" onclick="ZP.close('cl-rank');ZP.showZooRangliste();" style="cursor:pointer;font-size:.7rem;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:20px;display:inline-block">← Normale Rangliste</span>
   </div>
   <div id="p-cl-rank-content" style="max-height:60vh;overflow-y:auto"></div>
 </div></div>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=419"></script>
-<script src="worlds.js?v=419"></script>
+<script src="firebase-state.js?v=420"></script>
+<script src="worlds.js?v=420"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1343,7 +1343,10 @@ const ZA={
     await ZS.assignInstance(m); // find/create a shared instance + slot before the world builds
     try{
       const banner=document.getElementById('cl-banner');
-      if(banner) banner.style.display=(ZS.instanceId==='champions_league')?'block':'none';
+      if(banner){
+        banner.style.display=(ZS.instanceId==='champions_league')?'block':'none';
+        if(typeof t!=='undefined') banner.textContent=t('zoo.cl_banner');
+      }
     }catch(e){}
     try{ ZP.toast('🏠 Dein Platz: Slot '+(ZS.mySlot+1)+'/20 ('+ZS.instanceId+')', 2500); }catch(e){}
     // Wait for browser to render and give canvas real dimensions
@@ -6926,6 +6929,10 @@ const ZP={
     const el=document.getElementById('p-rank-content');
     if(!el)return;
     try{
+      const clLink=document.getElementById('cl-rank-link');
+      if(clLink && typeof t!=='undefined') clLink.textContent=t('zoo.cl_rank_link');
+    }catch(e){}
+    try{
       if(typeof Contest!=='undefined' && Contest.loadConfig) await Contest.loadConfig();
       const cdEl=document.getElementById('p-rank-countdown');
       if(cdEl && typeof Contest!=='undefined' && Contest.renderCountdown){
@@ -6990,6 +6997,14 @@ const ZP={
     this.open('cl-rank');
     const el=document.getElementById('p-cl-rank-content');
     if(!el)return;
+    try{
+      const titleEl=document.getElementById('cl-rank-title');
+      const backEl=document.getElementById('cl-rank-back');
+      if(typeof t!=='undefined'){
+        if(titleEl) titleEl.textContent=t('zoo.cl_rank_title');
+        if(backEl) backEl.textContent=t('zoo.cl_rank_back');
+      }
+    }catch(e){}
     el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.5)">⏳ Lade...</div>';
     let standings=[];
     try{
@@ -7003,7 +7018,7 @@ const ZP={
     // matching the same visibility split as the 3D world itself).
     standings = standings.filter(p=>p.inCL);
     if(!standings.length){
-      el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.4)">Noch keine Champions-League-Teilnehmer.</div>';
+      el.innerHTML='<div style="padding:20px;text-align:center;color:rgba(255,255,255,.4)">'+(typeof t!=='undefined'?t('zoo.cl_rank_empty'):'Noch keine Champions-League-Teilnehmer.')+'</div>';
       return;
     }
     let online=new Set();
