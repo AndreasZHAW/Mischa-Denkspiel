@@ -1779,11 +1779,22 @@ const PlayTime = {
       const key = kind === 'zoo' ? 'zoo_' + name.toLowerCase() : name.toLowerCase();
       const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
         ? firebase.firestore.FieldValue.increment(1) : 1;
+      // Timezone as a lightweight, privacy-friendly stand-in for "roughly
+      // where is this login coming from" — no IP lookups or third-party
+      // geolocation services involved, just what the browser already
+      // exposes locally. Good enough to flag "this name doesn't match a
+      // Swiss/local timezone" as worth a second look, without collecting
+      // anything more precise than that.
+      let tz = null;
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch(e2) {}
       await _db.collection(col).doc(key).set({
         loginCount: inc,
         lastLogin: Date.now(),
+        lastTimezone: tz,
       }, { merge: true });
-    } catch(e) {}
+    } catch(e) {
+      console.log('[Session-debug] PlayTime.recordLogin fehlgeschlagen für '+kind+'/'+name+': '+e.message);
+    }
   },
 
   // Starts a periodic accumulator that adds elapsed seconds to totalPlaytimeSec

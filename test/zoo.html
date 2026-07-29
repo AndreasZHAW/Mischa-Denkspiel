@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v426 -->
+<!-- ZOO v429 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=426"></script>
-<script src="rewardchests.js?v=426"></script>
-<script src="personality.js?v=426"></script>
+<script src="lang.js?v=429"></script>
+<script src="rewardchests.js?v=429"></script>
+<script src="personality.js?v=429"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v426','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v429','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=426"></script>
-<script src="worlds.js?v=426"></script>
+<script src="firebase-state.js?v=429"></script>
+<script src="worlds.js?v=429"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6003,7 +6003,15 @@ const ZG={
   // init (see _listenAdminCmd) instead, which only fires when an admin
   // actually sends something. Same dedup/target-check/type-handling logic
   // as before, just receiving its data as a parameter now.
-  _handleAdminCmd(cmd){if(!cmd)return;if(!cmd||cmd.exp<Date.now())return;const fm=cmd.target==='_all',me=cmd.target===ZS.player?.toLowerCase();if(!fm&&!me)return;const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');if(h.includes(cmd.id))return;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
+  _handleAdminCmd(cmd){
+    if(!cmd)return;
+    const _expired=cmd.exp<Date.now();
+    const _fm=cmd.target==='_all', _me=cmd.target===ZS.player?.toLowerCase();
+    const _h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');
+    const _dup=_h.includes(cmd.id);
+    console.log('[CL-debug] _handleAdminCmd: type='+cmd.type+' target='+cmd.target+' ich='+ZS.player+' → für_alle='+_fm+' für_mich='+_me+' abgelaufen='+_expired+' bereits_verarbeitet='+_dup);
+    if(_expired)return;if(!_fm&&!_me)return;if(_dup)return;
+    const h=_h;h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));const z=ZS.zoo;if(cmd.type==='animal_edit'){
       // Apply animal edit from admin
       const a=(window.ANIMALS||[]).find(x=>x.id===cmd.animalId);
       if(a){a.n=cmd.n;a.earn=cmd.earn;a.r=cmd.r;
@@ -6062,6 +6070,18 @@ const ZG={
       const msg=cmd.goingIn?'🏆 Du wurdest in die Champions League verschoben! Lade neu...':'↩️ Du wurdest zurück in den normalen Zoo verschoben! Lade neu...';
       ZP.toast(msg,3000);
       setTimeout(()=>location.reload(),2000);
+    }else if(cmd.type==='animal_removed_sync'){
+      // Direct sync from an admin's Tierbestand release — update our own
+      // in-memory zoo immediately and re-save, so our own next autosave
+      // can't race the admin's Firestore write and restore what was just
+      // removed.
+      if(z && Array.isArray(z.enc) && typeof cmd.slotIdx==='number'){
+        z.enc[cmd.slotIdx]=null;
+        try{ this._encs&&this._encs(); }catch(e){}
+        try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+        ZS.save&&ZS.save();
+        console.log('[CL-debug] animal_removed_sync verarbeitet: Slot '+cmd.slotIdx+' entfernt und gespeichert.');
+      }
     }else if(cmd.type==='animal_released'){
       ZP.toast('🌱 Umweltschützer haben ein Tier ('+(cmd.animalEmoji||'')+' '+(cmd.animalName||'')+') von «'+(cmd.from||'?')+'» freigelassen! Es läuft jetzt frei im Zoo herum.',4000);
     }else if(cmd.type==='hard_reset'){
@@ -9759,6 +9779,7 @@ const ZAdmin = {
       const entry=enc[slotIdx];
       if(!entry||!entry.animal){ ZP.toast('❌ Tier nicht mehr da — Liste wird neu geladen.',2500); this._loadBestand(); return; }
       const animal=entry.animal, shiny=entry.shiny||null;
+      console.log('[CL-debug] releaseAnimalFrom: Entferne Slot '+slotIdx+' ('+animal.n+') von «'+playerName+'» — schreibe Firestore...');
       // Remove from the owner's enclosure and save.
       enc[slotIdx]=null;
       await _db.collection('zoos').doc(k).set({enc},{merge:true});
@@ -9772,13 +9793,47 @@ const ZAdmin = {
           await ref.set({animal, shiny, traits:entry.traits||[], x, z:z2, droppedBy:'admin', slappedBy:null, speed:1, createdAt:Date.now()}).catch(()=>{});
         }
       }catch(e){}
+      // If the affected player is ONLINE RIGHT NOW, their own autosave
+      // (every ~15s) could otherwise silently overwrite the Firestore
+      // write above moments later with their still-in-memory old enc —
+      // the exact same race that could make an admin reset "not stick".
+      // Tell their live client to update its own in-memory zoo directly
+      // and re-save immediately, so there's nothing stale left to race.
+      try{
+        const syncCmd={type:'animal_removed_sync', target:playerName.toLowerCase(), slotIdx, id:'relsync_'+Date.now(), exp:Date.now()+60000};
+        console.log('[CL-debug] releaseAnimalFrom: sende animal_removed_sync an «'+playerName+'» (Slot '+slotIdx+')');
+        await this._cmd(syncCmd);
+      }catch(e){}
+      // Small gap before the second command — zoo_admin_cmd holds only a
+      // SINGLE value (not a queue), so writing the announcement immediately
+      // after the sync command risks overwriting it before the recipient's
+      // listener has actually fired on the first one, silently dropping it.
+      await new Promise(r=>setTimeout(r,600));
       // Announce to everyone currently online — not just the affected player.
       try{
         const cmd={type:'animal_released', target:'_all', from:playerName, animalName:animal.n, animalEmoji:animal.e, id:'relanim_'+Date.now(), exp:Date.now()+60000};
+        console.log('[CL-debug] releaseAnimalFrom: sende animal_released-Ankündigung an alle');
         await this._cmd(cmd);
       }catch(e){}
       ZP.toast('🕊️ '+animal.e+' '+animal.n+' von «'+playerName+'» wurde freigelassen!',3000);
       this._loadBestand();
+      // Safety net: re-check after a bit, same reasoning as resetScore() —
+      // a single write can still lose a race against an active session's
+      // autosave even with the sync command above (e.g. if it was missed).
+      setTimeout(async ()=>{
+        try{
+          const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
+          const rd=recheck.exists?recheck.data():null;
+          const stillThere=rd && Array.isArray(rd.enc) && rd.enc[slotIdx] && rd.enc[slotIdx].animal;
+          if(stillThere){
+            console.log('[CL-debug] releaseAnimalFrom: Tier war nach 12s wieder da (Race mit Autosave) — korrigiere erneut.');
+            const enc2=rd.enc; enc2[slotIdx]=null;
+            await _db.collection('zoos').doc(k).set({enc:enc2},{merge:true});
+            const syncCmd2={type:'animal_removed_sync', target:playerName.toLowerCase(), slotIdx, id:'relsync_'+Date.now(), exp:Date.now()+60000};
+            await this._cmd(syncCmd2);
+          }
+        }catch(e){}
+      },12000);
     }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
   },
   _spawnSelected(){
@@ -10355,7 +10410,7 @@ const ZAdmin = {
       const zd=doc.data()||{};
       players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: zd.deviceId||null,
         loginCount: zd.loginCount||0, lastLogin: zd.lastLogin||0, playtimeSec: zd.totalPlaytimeSec||0,
-        currentMt: (typeof zd.mt==='number'&&isFinite(zd.mt)?zd.mt:0), inChampionsLeague: !!zd.inChampionsLeague, reb: zd.reb||0 });
+        currentMt: (typeof zd.mt==='number'&&isFinite(zd.mt)?zd.mt:0), inChampionsLeague: !!zd.inChampionsLeague, reb: zd.reb||0, lastTimezone: zd.lastTimezone||null });
     });
     mpSnap.forEach(doc=>{
       const d=doc.data()||{};
@@ -10371,13 +10426,18 @@ const ZAdmin = {
           existing.playtimeSec = (existing.playtimeSec||0) + (d.totalPlaytimeSec||0);
           existing.lastLogin = Math.max(existing.lastLogin||0, d.lastLogin||0);
           existing.currentMt = (existing.currentMt||0) + dsMt;
+          // Whichever side has the more recent lastLogin wins the shown
+          // timezone (existing.lastLogin has already been updated to the
+          // max of both just above, so this comparison picks the DS side
+          // only when it's actually the more recent one).
+          if(!existing.lastTimezone || (d.lastLogin||0) >= (existing.lastLogin||0)) existing.lastTimezone = d.lastTimezone || existing.lastTimezone;
         }
         return;
       }
       namesSeen.add(name.toLowerCase());
       players.push({ name, char:'🧭', online: onlineNames.has(name.toLowerCase()), deviceId: d.deviceId||null,
         loginCount: d.loginCount||0, lastLogin: d.lastLogin||0, playtimeSec: d.totalPlaytimeSec||0,
-        currentMt: dsMt });
+        currentMt: dsMt, lastTimezone: d.lastTimezone||null });
     });
     players.sort((a,b)=> (b.online-a.online) || a.name.localeCompare(b.name));
     return players;
@@ -10448,7 +10508,7 @@ const ZAdmin = {
           ${p.inChampionsLeague?'<span style="font-size:.72rem;font-weight:900;color:#FFD700;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);padding:3px 8px;border-radius:20px">🏆 Champions League</span>':''}
         </div>
         <div style="font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:8px">
-          🌀 ${(p.currentMt||0).toFixed(1)} MT aktuell · 🔑 ${p.loginCount||0}× eingeloggt · 🕓 zuletzt: ${lastLoginStr} · ⏱️ ${hrs}h Gesamtspielzeit
+          🌀 ${(p.currentMt||0).toFixed(1)} MT aktuell · 🔑 ${p.loginCount||0}× eingeloggt · 🕓 zuletzt: ${lastLoginStr} · ⏱️ ${hrs}h Gesamtspielzeit${p.lastTimezone?' · 🌍 '+$esc(p.lastTimezone):''}
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="ZAdmin.selectPlayer('${nameEsc}','${(p.char||'🧭')}')" title="Als Ziel auswählen" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:.75rem">🎯 Ziel</button>

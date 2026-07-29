@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v426';
+const APP_VERSION = 'v429';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v426 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v429 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -442,12 +442,23 @@ const App = {
     try { mt = (typeof combinedMTFor === 'function') ? await combinedMTFor(p) : ((typeof dsMTFor === 'function') ? dsMTFor(p) : 0); }
     catch(_e) { mt = (typeof dsMTFor === 'function') ? dsMTFor(p) : 0; }
     const cost = 15;
-    // Once unlocked (visited before), gate stays open permanently
+    // Once unlocked (visited before), gate stays open permanently — checked
+    // both locally (fast) AND on the player record itself (p.zooEverUnlocked,
+    // synced via the cloud). The localStorage-only version used to mean the
+    // unlock didn't follow the player to a different device, or survive
+    // clearing browser data — exactly the "lost my Zoo MT, logged out, now
+    // locked out again" scenario this is meant to prevent.
     const _playerKey = p.name.toLowerCase();
-    const _hasUnlocked = localStorage.getItem('zoo_unlocked_' + _playerKey) === '1';
+    const _hasUnlocked = localStorage.getItem('zoo_unlocked_' + _playerKey) === '1' || p.zooEverUnlocked === true;
     if (!_hasUnlocked && mt < cost) { showAlert('🦁 Zoo noch gesperrt! Du brauchst ' + cost + ' MT.\nDu hast: ' + formatMT(mt) + ' MT'); return; }
-    // Remember unlock permanently
-    if (mt >= cost) localStorage.setItem('zoo_unlocked_' + _playerKey, '1');
+    // Remember unlock permanently — locally AND on the player record.
+    if (mt >= cost) {
+      localStorage.setItem('zoo_unlocked_' + _playerKey, '1');
+      if (!p.zooEverUnlocked) {
+        p.zooEverUnlocked = true;
+        try { await State.savePlayer(p); } catch(e) {}
+      }
+    }
     if (!(await showConfirm('🦁 In den Zoo teleportieren?'))) return;
     // Zoo is FREE once unlocked - no MT deduction
     sessionStorage.setItem('mischa_current', p.name.toLowerCase());
@@ -846,13 +857,13 @@ const App = {
           <div class="input-group"><label>Passwort</label>
             <input type="password" id="p-pw" placeholder="Geheimwort" maxlength="20"/></div>
           <div class="input-group"><label>Alter</label>
-            <p style="font-size:.78rem;color:rgba(255,255,255,.55);margin:0 0 8px;line-height:1.4">
+            <p style="font-size:.78rem;color:var(--text-mid);margin:0 0 8px;line-height:1.4;text-transform:none;font-weight:400">
               Damit die Fragen und Aufgaben zum Alter passen — nicht zu leicht, nicht zu schwer.
             </p>
             <div id="p-agerange" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               ${[['u7','unter 7'],['8-11','8–11'],['11-16','11–16'],['16+','16+']].map(([val,label])=>`
                 <button type="button" data-val="${val}" onclick="App._pickAgeRange('${val}')"
-                  style="padding:12px 8px;border-radius:10px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer">${label}</button>
+                  style="padding:12px 8px;border-radius:10px;border:2px solid #D0D7E2;background:#F4F7FB;color:var(--text-dark);font-weight:700;font-size:.95rem;cursor:pointer">${label}</button>
               `).join('')}
             </div></div>
           <div id="p-err" style="color:#E74C3C;font-size:0.88rem;text-align:center;display:none;margin-bottom:8px"></div>
@@ -866,8 +877,9 @@ const App = {
     this._selectedAgeRange = val;
     document.querySelectorAll('#p-agerange button').forEach(b=>{
       const on = b.dataset.val===val;
-      b.style.border = on ? '2px solid #29B6F6' : '2px solid rgba(255,255,255,.15)';
-      b.style.background = on ? 'rgba(41,182,246,.18)' : 'rgba(255,255,255,.05)';
+      b.style.border = on ? '2px solid #29B6F6' : '2px solid #D0D7E2';
+      b.style.background = on ? 'rgba(41,182,246,.15)' : '#F4F7FB';
+      b.style.color = on ? '#1976A8' : 'var(--text-dark)';
     });
   },
 
