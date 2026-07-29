@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v431';
+const APP_VERSION = 'v433';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v431 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v433 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1258,20 +1258,31 @@ const App = {
       const _appliedSize = FontScale.applyForPlayer(player.name);
       // Apply user personality (color + avatar)
       if(typeof Personality!=='undefined') Personality.init();
-      // Check admin announcement (once per announcement)
-      setTimeout(async ()=>{
-        try{
-          let ann=null;
-          if(typeof _db!=='undefined'&&State._useCloud()){
-            const doc=await _db.collection('config').doc('zoo_announcement').get().catch(()=>null);
-            if(doc&&doc.exists) ann=doc.data();
-          }
-          if(!ann) ann=JSON.parse(localStorage.getItem('zoo_announcement')||'null');
+      // Check admin announcement — live listener, not a one-time check.
+      // A one-time .get() a few seconds after load would only ever catch
+      // whatever was already set BEFORE this player's session started;
+      // anyone already on the World Map when the admin sends a new one
+      // would never see it until their next reload.
+      if(typeof _db!=='undefined'&&State._useCloud()){
+        if(this._annUnsub) this._annUnsub();
+        this._annUnsub=_db.collection('config').doc('zoo_announcement').onSnapshot(doc=>{
+          if(!doc||!doc.exists) return;
+          const ann=doc.data();
           if(!ann||!ann.id) return;
-          // Always show announcement (no seen filter)
+          if(this._lastShownAnnId===ann.id) return;
+          this._lastShownAnnId=ann.id;
+          localStorage.setItem('zoo_announcement',JSON.stringify(ann));
           if(typeof _showDenkspielAnnouncement==='function') _showDenkspielAnnouncement(ann);
-        }catch(e){}
-      },2000);
+        }, ()=>{});
+      } else {
+        setTimeout(async ()=>{
+          try{
+            const ann=JSON.parse(localStorage.getItem('zoo_announcement')||'null');
+            if(!ann||!ann.id) return;
+            if(typeof _showDenkspielAnnouncement==='function') _showDenkspielAnnouncement(ann);
+          }catch(e){}
+        },2000);
+      }
       // Check update news (once per id)
       setTimeout(async ()=>{
         try{

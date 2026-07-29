@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v431 -->
+<!-- ZOO v433 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=431"></script>
-<script src="rewardchests.js?v=431"></script>
-<script src="personality.js?v=431"></script>
+<script src="lang.js?v=433"></script>
+<script src="rewardchests.js?v=433"></script>
+<script src="personality.js?v=433"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v431','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v433','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=431"></script>
-<script src="worlds.js?v=431"></script>
+<script src="firebase-state.js?v=433"></script>
+<script src="worlds.js?v=433"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1659,7 +1659,7 @@ const ZG={
     applyI18n();
     LW.init();ZSound.loadStyle();ZSound.startMelody();setTimeout(()=>ZG._listenWheelBroadcast(),2000);
     // Check for admin announcement
-    setTimeout(()=>_checkAnnouncement(),1500);
+    setTimeout(()=>_listenAnnouncement(),1500);
     // Check for update news (shown once per news id)
     setTimeout(()=>_checkNews(),2200);
     ZChat.show(); ZChat._startListen(); _announceSecrets();
@@ -2876,7 +2876,7 @@ const ZG={
       if(!row){
         row=document.createElement('div');
         row.id='carry-alert-'+op.name;
-        row.style.cssText='background:rgba(0,0,0,.88);border:2px solid #FFD700;border-radius:12px;padding:9px 16px;color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;pointer-events:auto;box-shadow:0 3px 12px rgba(0,0,0,.6);animation:carryAlertPop .3s ease;text-align:center;white-space:nowrap';
+        row.style.cssText='position:relative;display:block;width:max-content;max-width:92vw;box-sizing:border-box;margin:0;background:rgba(0,0,0,.88);border:2px solid #FFD700;border-radius:12px;padding:9px 16px;color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;pointer-events:auto;box-shadow:0 3px 12px rgba(0,0,0,.6);animation:carryAlertPop .3s ease;text-align:center;white-space:nowrap';
         row.onclick=()=>ZG._teleportNextTo(op.name);
         panel.appendChild(row);
         console.log('[carry-alerts] created row for', op.name);
@@ -3858,6 +3858,13 @@ const ZG={
       const si=G('stun-indicator');if(si)si.style.display='none';
       this._stunType=null;
     }
+    // Gondola station: no movement while the animal-selection panel is
+    // open. Without this, a player could start walking toward the
+    // enclosure (input still processed underneath the overlay) before
+    // actually finishing their selection, arriving there before the
+    // "now carrying this animal" state was even set up — breaking the
+    // whole walk-there-while-carrying mechanic.
+    if(!G('p-gond')?.classList.contains('off')) return;
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
     const carry_mod=this.carrying?0.21:1.2; // additional 30% slower on top of the existing 70% penalty (0.3×0.7=0.21) — makes carriers realistically catchable, 20% faster empty-handed
     const trash_mod=this._trashActive?(this._trashSpeedMul||0.5):1; // injured = slow in trash room
@@ -12078,6 +12085,33 @@ function applyI18n(root){
 window.applyI18n = applyI18n;
 
 // ── ADMIN ANNOUNCEMENTS ──
+let _annUnsub=null;
+function _listenAnnouncement(){
+  // Was a one-time check via .get(), 1.5s after page load only — meaning
+  // anyone already actively in the Zoo when the admin sent a NEW
+  // announcement would never see it until they happened to reload. A
+  // live onSnapshot listener means every currently-open session gets it
+  // the moment the admin sends it, not just whoever's session happens to
+  // (re)start afterward.
+  if(_annUnsub) return; // already listening
+  try{
+    if(typeof _db!=='undefined'&&State._useCloud()){
+      _annUnsub=_db.collection('config').doc('zoo_announcement').onSnapshot(doc=>{
+        if(!doc||!doc.exists) return;
+        const ann=doc.data();
+        if(!ann||!ann.id) return;
+        if(_lastShownAnnId===ann.id) return; // don't re-show the same one on every snapshot tick
+        _lastShownAnnId=ann.id;
+        localStorage.setItem('zoo_announcement',JSON.stringify(ann));
+        _showAnnouncementModal(ann);
+      }, err=>{ console.log('[Session-debug] Ankündigungs-Listener Fehler: '+err.message); });
+      return;
+    }
+  }catch(e){}
+  // Offline/local fallback: no live push possible, just check once like before.
+  _checkAnnouncement();
+}
+let _lastShownAnnId=null;
 async function _checkAnnouncement(){
   try{
     let ann=null;
@@ -12089,6 +12123,7 @@ async function _checkAnnouncement(){
     // Fallback to localStorage
     if(!ann) ann=JSON.parse(localStorage.getItem('zoo_announcement')||'null');
     if(!ann||!ann.id) return;
+    _lastShownAnnId=ann.id;
     // Show every time the zoo is entered (no "already seen" filter)
     _showAnnouncementModal(ann);
   }catch(e){}

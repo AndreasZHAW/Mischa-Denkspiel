@@ -447,8 +447,10 @@ const RewardChests = {
     return pool[Math.floor(Math.random()*pool.length)];
   },
   _pickHell(){
-    const p=[{icon:'💀',label:'-10.000 MT',apply:()=>this._giveMT(-10000)},
-             {icon:'🔥',label:'-5.000 MT',apply:()=>this._giveMT(-5000)},
+    const nw=this._netWorth();
+    const pct1=Math.round(nw*0.20), pct2=Math.round(nw*0.10);
+    const p=[{icon:'💀',label:'-'+pct1+' MT (-20%)',apply:()=>this._giveMT(-pct1)},
+             {icon:'🔥',label:'-'+pct2+' MT (-10%)',apply:()=>this._giveMT(-pct2)},
              {icon:'🚜',label:'Unfall!',apply:()=>{ try{sessionStorage.setItem('mischa_pending_accident','1');}catch(e){} }},
              {icon:'🕳️',label:'Nichts...',apply:()=>{}}];
     return p[Math.floor(Math.random()*p.length)];

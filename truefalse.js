@@ -172,43 +172,66 @@ const TrueFalseGame = {
     const { worldId = 1, ageGroup = 'einfach', onComplete } = config;
     TrueFalseGame._lastConfig = config;
     const pool = this._questions[worldId] || this._questions[1];
-    // Age-based difficulty: strictly separate question pools.
-    // NOTE: each pool only has ~10 questions, so filtering down to a
-    // percentage (30%/40%/60%) can leave FEWER than 10 candidates. Padding
-    // via reshuffled repeats guarantees a full 10-question round even when
-    // the age-appropriate subset is small — better than silently serving
-    // fewer questions than promised.
-    const padTo10 = (arr) => {
-      if (!arr.length) return [];
-      let result = [];
-      while (result.length < 10) {
-        result = result.concat([...arr].sort(()=>Math.random()-0.5));
+    const hard = this._hardQuestions?.[worldId] || [];
+    // Each topic has exactly 10 "normal" questions (and, for some topics,
+    // up to 10 more "hard" ones) — nowhere near enough to slice into four
+    // separate non-overlapping difficulty tiers of 10 unique questions
+    // each. The old approach filtered down to a percentage of the pool
+    // and then padded back up to 10 by repeating already-used questions,
+    // which is exactly why the same question could show up twice in one
+    // round. Instead: draw 10 questions WITHOUT repetition from the
+    // combined pool+hard set, weighting which half of that combined set
+    // gets picked from more heavily based on age, but never repeating a
+    // question unless the combined set is smaller than 10 (which no
+    // longer happens for any topic that has a hard set, and for topics
+    // without one we just use the full unique 10-question pool for
+    // everyone rather than force repeats).
+    const combined = [...pool, ...hard];
+    const pickWithoutRepeat = (primary, secondary, total) => {
+      // primary/secondary are arrays of (already deduped) candidates;
+      // fill from primary first, then secondary, then (only as a last
+      // resort, if the combined set itself is under `total`) allow repeats.
+      const seen = new Set();
+      const result = [];
+      const tryAdd = (list) => {
+        const shuffled = [...list].sort(()=>Math.random()-0.5);
+        for (const q of shuffled) {
+          if (result.length >= total) break;
+          const key = q.q.de; // question text is unique per entry
+          if (seen.has(key)) continue;
+          seen.add(key); result.push(q);
+        }
+      };
+      tryAdd(primary);
+      tryAdd(secondary);
+      if (result.length < total && combined.length) {
+        // Combined pool genuinely has fewer than 10 unique questions for
+        // this topic — pad with reshuffled repeats as a last resort so a
+        // round is never shorter than promised.
+        while (result.length < total) {
+          const shuffled = [...combined].sort(()=>Math.random()-0.5);
+          for (const q of shuffled) { if (result.length>=total) break; result.push(q); }
+        }
       }
-      return result.slice(0,10);
+      return result.slice(0, total);
     };
     let questions;
-    const hard = this._hardQuestions?.[worldId] || [];
-    if(ageGroup === 'schwer') {
-      // Adults 18+: use ONLY hard questions (if enough), else fill with pool
-      if(hard.length >= 10) {
-        questions = padTo10(hard);
-      } else {
-        // Not enough hard → filter pool to medium+ difficulty + add hard
-        const medPool = pool.filter((_,i)=>i>=pool.length*0.6); // last 40% = harder ones
-        questions = padTo10([...medPool,...hard]);
-      }
-    } else if(ageGroup === 'mittel') {
-      // Teens 14-18: mix medium from pool + some hard
-      const medPool = pool.filter((_,i)=>i>=pool.length*0.4);
-      questions = padTo10([...medPool,...hard.slice(0,5)]);
-    } else if(ageGroup === 'einfach') {
-      // Kids 10-14: first 60% of pool
-      questions = padTo10(pool.slice(0,Math.ceil(pool.length*0.6)));
+    if (ageGroup === 'schwer') {
+      // 16+: mostly hard, filled out with the harder half of the normal pool
+      questions = pickWithoutRepeat(hard, pool.slice(Math.ceil(pool.length*0.5)), 10);
+    } else if (ageGroup === 'mittel') {
+      // 11-16: an even mix of normal and hard
+      questions = pickWithoutRepeat(pool, hard, 10);
+    } else if (ageGroup === 'einfach') {
+      // 8-11: mostly the normal pool, with at most a couple of hard ones
+      // mixed in for variety — NOT sliced down to a shrunk subset, since
+      // that's what forced repeats before.
+      questions = pickWithoutRepeat(pool, hard.slice(0, 2), 10);
     } else {
-      // sehr_einfach: first 30% of pool
-      questions = padTo10(pool.slice(0,Math.ceil(pool.length*0.3)));
+      // under 7: normal pool only, no hard questions at all
+      questions = pickWithoutRepeat(pool, [], 10);
     }
-    console.log('[TF] worldId='+worldId+' ageGroup='+ageGroup+' pool='+questions.length);
+    console.log('[TF] worldId='+worldId+' ageGroup='+ageGroup+' pool='+questions.length+' (eindeutig: '+new Set(questions.map(q=>q.q.de)).size+')');
     this.current = {
       questions, index:0,
       results:[], errors:0,
