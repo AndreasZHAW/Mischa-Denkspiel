@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v430 -->
+<!-- ZOO v431 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=430"></script>
-<script src="rewardchests.js?v=430"></script>
-<script src="personality.js?v=430"></script>
+<script src="lang.js?v=431"></script>
+<script src="rewardchests.js?v=431"></script>
+<script src="personality.js?v=431"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v430','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v431','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=430"></script>
-<script src="worlds.js?v=430"></script>
+<script src="firebase-state.js?v=431"></script>
+<script src="worlds.js?v=431"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8787,7 +8787,21 @@ const ZP={
     await this._cmd(cmd);
     ZP.toast('🍀 ×'+mult+' Glück für ALLE für '+mins+' Min aktiv!',3000);
   },
-  async _cmd(cmd){try{if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())await _rtdb.ref('zoo_admin_cmd').set(cmd);}catch(e){}localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));},
+  async _cmd(cmd){
+    const _hasRtdb = typeof _rtdb!=='undefined'&&_rtdb;
+    const _cloud = State._useCloud();
+    if(!_hasRtdb || !_cloud){
+      console.log('[CL-debug] _cmd(): KONNTE NICHT SENDEN — _rtdb vorhanden='+_hasRtdb+' Cloud aktiv='+_cloud+' (type='+cmd.type+')');
+    } else {
+      try{
+        await _rtdb.ref('zoo_admin_cmd').set(cmd);
+        console.log('[CL-debug] _cmd(): erfolgreich an RTDB geschrieben (type='+cmd.type+', target='+cmd.target+')');
+      }catch(e){
+        console.log('[CL-debug] _cmd(): SCHREIBEN FEHLGESCHLAGEN — '+e.message+' (type='+cmd.type+')');
+      }
+    }
+    localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));
+  },
 };
 
 
