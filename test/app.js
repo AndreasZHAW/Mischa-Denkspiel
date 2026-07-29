@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v421';
+const APP_VERSION = 'v422';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v421 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v422 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1711,6 +1711,10 @@ const App = {
         }))
         .sort((a,b) => b._mt - a._mt);
 
+      try{ console.log('[CL-debug] showGlobalLeaderboard() nach merged+map: '+players.length+' Spieler: '+players.map(p=>p.name+'(inCL='+p.inCL+',mt='+p._mt+')').join(', ')); }catch(e){}
+      try{ console.log('[CL-debug] merged (roh, vor Filter/Map): '+Object.keys(merged).length+' Einträge: '+Object.keys(merged).join(', ')); }catch(e){}
+      try{ console.log('[CL-debug] firebaseAll (State.getAll() Rohergebnis): '+Object.keys(firebaseAll).length+' Einträge, firebaseFetchOk='+firebaseFetchOk); }catch(e){}
+
       myMT = (() => {
         const dsSum = sanitizeMT(dsMTFor(player));
         return sanitizeMT(dsSum + _zooMTForChecked(player));
@@ -1722,6 +1726,7 @@ const App = {
     // of the same list everyone else sees.
     if(clOnly) players = players.filter(p=>p.inCL);
     else players = players.filter(p=>!p.inCL); // keep them fully out of the normal ranking too
+    try{ console.log('[CL-debug] showGlobalLeaderboard() nach CL-Filter (clOnly='+clOnly+'): '+players.length+' Spieler: '+players.map(p=>p.name).join(', ')); }catch(e){}
 
     let online = new Set();
     try{ if(typeof getOnlineNames==='function') online = await getOnlineNames(); }catch(e){}
