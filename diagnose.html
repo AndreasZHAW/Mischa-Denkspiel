@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v429</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v429 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v430</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v430 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -489,6 +489,21 @@ async function runWelt1(){
     window._liveAppVersion=m?m[1]:'❓ nicht gefunden';
     L('🔢 LIVE app.js Version (frisch vom Server, kein Cache): '+window._liveAppVersion);
   }catch(e){ window._liveAppVersion='❌ Fehler: '+e.message; L('🔢 LIVE app.js Version: Fehler beim Abrufen — '+e.message); }
+
+  // Same check for zoo.html — app.js and zoo.html are separate pages with
+  // completely separate caches. A Zoo tab left open across a deploy could
+  // easily still be running an OLDER zoo.html even while app.js already
+  // shows the newest version, silently missing any Zoo-side fix (new
+  // admin command types, etc.) with no obvious symptom other than
+  // "nothing happened" — exactly the kind of gap that's hard to tell
+  // apart from a genuine bug without this.
+  try{
+    const rz=await fetch('zoo.html',{cache:'no-store'});
+    const txtz=await rz.text();
+    const mz=txtz.match(/<!--\s*ZOO\s*(v\d+)\s*-->/);
+    window._liveZooVersion=mz?mz[1]:'❓ nicht gefunden';
+    L('🔢 LIVE zoo.html Version (frisch vom Server, kein Cache): '+window._liveZooVersion);
+  }catch(e){ window._liveZooVersion='❌ Fehler: '+e.message; L('🔢 LIVE zoo.html Version: Fehler beim Abrufen — '+e.message); }
 
   // Engine checks
   const er=[];
@@ -1213,6 +1228,7 @@ async function runAllTabsReport(){
   sections.push('=== MISCHA DENKSPIEL / ZOO — GESAMT-DIAGNOSE ===');
   sections.push(new Date().toLocaleString('de-CH'));
   sections.push('🔢 LIVE app.js Version (frisch, kein Cache): '+(window._liveAppVersion||'❓ noch nicht ermittelt — Welt-1-Tab öffnen'));
+  sections.push('🔢 LIVE zoo.html Version (frisch, kein Cache): '+(window._liveZooVersion||'❓ noch nicht ermittelt'));
   sections.push('');
   sections.push('── CRASH-LOG (letzte 20 Minuten) ──');
   sections.push(_grabText('crash-ring'));
