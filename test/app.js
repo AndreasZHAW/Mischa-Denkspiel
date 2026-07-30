@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v437';
+const APP_VERSION = 'v439';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v437 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v439 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1486,16 +1486,6 @@ const App = {
                 <span style="font-size:1.3rem">${completed?'🏆':unlocked?'▶':'🔒'}</span>
               </div>`;
           }).join('')}
-        </div>
-
-        <!-- Floating gift button -->
-        <div style="position:fixed;bottom:24px;right:20px;z-index:50">
-          <button onclick="Shop.openGiftSelector()" style="width:54px;height:54px;border-radius:50%;
-            background:linear-gradient(135deg,#FF69B4,#E91E8C);border:none;cursor:pointer;
-            font-size:1.5rem;box-shadow:0 6px 20px rgba(233,30,140,0.4);
-            display:flex;align-items:center;justify-content:center">
-            🎁
-          </button>
         </div>
       </div>`);
     // Start reward-chest badge timer
@@ -3387,8 +3377,8 @@ const DSChat = {
     inp.value = '';
     const me = State.currentPlayer?.name||'?';
     const data = { from: me, msg, at: Date.now(), to: to||null };
-    this._addMsg(data.from, data.msg, true, to);
-    try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).catch(()=>{}); }catch(e){}
+    const el = this._addMsg(data.from, data.msg, true, to);
+    try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{}); }catch(e){}
   },
   async pickImage(){
     const hasScreenCapture = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function');
@@ -3453,13 +3443,14 @@ const DSChat = {
       const to=targetSel?(targetSel.value||null):null;
       const me=State.currentPlayer?.name||'?';
       const data={ from:me, msg:'', at:Date.now(), to:to||null, img:compressed };
-      this._addMsg(data.from,'',true,to,compressed);
-      if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).catch(()=>{});
+      const el = this._addMsg(data.from,'',true,to,compressed);
+      if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{});
     }catch(e){}
   },
-  _addMsg(from, msg, isMine, to, img){
+  _addMsg(from, msg, isMine, to, img, id){
     const el=document.getElementById('ds-chat-msgs'); if(!el) return;
     const d=document.createElement('div');
+    if(id) d.dataset.msgId = id;
     d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
     const escFn = typeof $esc==='function' ? $esc : (s)=>String(s||'').replace(/</g,'&lt;');
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+escFn(to):'')+'</span><br>' : '';
@@ -3473,7 +3464,14 @@ const DSChat = {
     }
     el.appendChild(d); el.scrollTop=el.scrollHeight;
     while(el.children.length>50) el.removeChild(el.firstChild);
+    return d;
   },
+  _removeMsg(id){
+    const el=document.getElementById('ds-chat-msgs'); if(!el) return;
+    const row = el.querySelector('[data-msg-id="'+CSS.escape(id)+'"]');
+    if(row) row.remove();
+  },
+  _shownIds: new Set(),
   _startListen(attempt){
     if(this._msgUnsub) return;
     try{
@@ -3483,14 +3481,14 @@ const DSChat = {
       }
       const RETENTION_MS = 8*24*3600*1000;
       const historyStart = Date.now()-RETENTION_MS;
-      const listenStart = Date.now();
       const me = (State.currentPlayer?.name||'').toLowerCase();
       _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
-        const docs=[]; snap.forEach(doc=>docs.push(doc.data()));
+        const docs=[]; snap.forEach(doc=>docs.push({id:doc.id,...doc.data()}));
         console.log('[Chat-debug] DSChat Verlauf geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
         docs.reverse().forEach(d=>{
+          this._shownIds.add(d.id);
           if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
-          if(d.from!==State.currentPlayer?.name) this._addMsg(d.from,d.msg,false,d.to,d.img);
+          if(d.from!==State.currentPlayer?.name) this._addMsg(d.from,d.msg,false,d.to,d.img,d.id);
         });
       }).catch(e=>{ console.log('[Chat-debug] DSChat Verlauf-Ladefehler: '+e.message); });
       if(!this._cleanupDone){
@@ -3502,16 +3500,29 @@ const DSChat = {
           batch.commit().then(()=>console.log('[Chat-debug] DSChat Aufräumen: '+snap.size+' alte Nachrichten gelöscht.')).catch(e=>console.log('[Chat-debug] DSChat Aufräum-Löschfehler: '+e.message));
         }).catch(e=>{ console.log('[Chat-debug] DSChat Aufräum-Abfragefehler: '+e.message); });
       }
-      this._msgUnsub = _db.collection('zoo_chat').where('at','>',listenStart).onSnapshot(snap=>{
+      // Watches the FULL retention window (not just messages sent after
+      // this moment) so a 'removed' change — an admin deleting a message,
+      // individually or via "clear all" — is caught for any visible
+      // message, not just brand-new ones.
+      this._msgUnsub = _db.collection('zoo_chat').where('at','>',historyStart).onSnapshot(snap=>{
         snap.docChanges().forEach(ch=>{
+          const id = ch.doc.id;
+          if(ch.type==='removed'){
+            this._shownIds.delete(id);
+            this._removeMsg(id);
+            console.log('[Chat-debug] DSChat Nachricht entfernt (gelöscht): '+id);
+            return;
+          }
           if(ch.type!=='added') return;
+          if(this._shownIds.has(id)) return;
+          this._shownIds.add(id);
           const d=ch.doc.data();
           if(d.from===State.currentPlayer?.name) return;
           if(d.to && d.to!==me) return;
-          this._addMsg(d.from,d.msg,false,d.to,d.img);
+          this._addMsg(d.from,d.msg,false,d.to,d.img,id);
           this._autoOpen();
         });
-      });
+      }, e=>{ console.log('[Chat-debug] DSChat Live-Listener-Fehler: '+e.message); });
     }catch(e){
       if((attempt||0)<5) setTimeout(()=>this._startListen((attempt||0)+1),1000);
     }
@@ -3529,7 +3540,7 @@ const DSChat = {
       b=document.createElement('button');
       b.id='ds-chat-toggle-btn';
       b.onclick=()=>DSChat.toggle();
-      b.style.cssText='position:fixed;bottom:12px;left:12px;z-index:8999;background:#2980B9;border:none;color:#fff;width:48px;height:48px;border-radius:50%;font-size:1.3rem;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.4)';
+      b.style.cssText='position:fixed;bottom:12px;left:12px;z-index:8999;background:#2980B9;border:none;color:#fff;width:96px;height:96px;border-radius:50%;font-size:2.6rem;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.4)';
       b.textContent='💬';
       document.body.appendChild(b);
     }

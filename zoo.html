@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v437 -->
+<!-- ZOO v439 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=437"></script>
-<script src="rewardchests.js?v=437"></script>
-<script src="personality.js?v=437"></script>
+<script src="lang.js?v=439"></script>
+<script src="rewardchests.js?v=439"></script>
+<script src="personality.js?v=439"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v437','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v439','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=437"></script>
-<script src="worlds.js?v=437"></script>
+<script src="firebase-state.js?v=439"></script>
+<script src="worlds.js?v=439"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9441,11 +9441,11 @@ const ZChat = {
       return;
     }
     const data = { from: ZS.player||'?', msg, at: Date.now(), to: to||null };
-    this._addMsg(data.from, data.msg, true, to);
+    const el = this._addMsg(data.from, data.msg, true, to);
     // Save to Firebase
     try{
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-        _db.collection('zoo_chat').add(data).catch(()=>{});
+        _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{});
       }
     }catch(e){}
   },
@@ -9532,18 +9532,19 @@ const ZChat = {
       const targetSel = document.getElementById('chat-target');
       const to = targetSel ? (targetSel.value||null) : null;
       const data = { from: ZS.player||'?', msg:'', at: Date.now(), to: to||null, img: compressed };
-      this._addMsg(data.from, '', true, to, compressed);
+      const el = this._addMsg(data.from, '', true, to, compressed);
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-        _db.collection('zoo_chat').add(data).catch(()=>{ ZP.toast('❌ Bild konnte nicht gesendet werden.',2500); });
+        _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{ ZP.toast('❌ Bild konnte nicht gesendet werden.',2500); });
       }
     }catch(e){ ZP.toast('❌ Fehler beim Senden: '+e.message,3000); }
   },
 
   // Add message to UI
-  _addMsg(from, msg, isMine, to, img){
+  _addMsg(from, msg, isMine, to, img, id){
     const el = document.getElementById('chat-msgs');
     if(!el) return;
     const d = document.createElement('div');
+    if(id) d.dataset.msgId = id;
     d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+$esc(to):'')+'</span><br>' : '';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
@@ -9558,9 +9559,11 @@ const ZChat = {
     el.scrollTop = el.scrollHeight;
     // Keep max 50 messages
     while(el.children.length > 50) el.removeChild(el.firstChild);
+    return d;
   },
   
   // Listen for incoming chat messages
+  _shownIds: new Set(),
   _startListen(attempt){
     if(this._msgUnsub) return;
     try{
@@ -9575,13 +9578,13 @@ const ZChat = {
       // 8 days (the agreed default retention window).
       const RETENTION_MS = 8*24*3600*1000;
       const historyStart = Date.now() - RETENTION_MS;
-      const listenStart = Date.now();
       _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
-        const docs=[]; snap.forEach(doc=>docs.push(doc.data()));
+        const docs=[]; snap.forEach(doc=>docs.push({id:doc.id,...doc.data()}));
         console.log('[Chat-debug] Verlauf geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
         docs.reverse().forEach(d=>{
+          this._shownIds.add(d.id); // track even messages we don't render, so a later delete of e.g. someone else's private msg doesn't error
           if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
-          if(d.from!==ZS.player) this._addMsg(d.from, d.msg, false, d.to, d.img);
+          if(d.from!==ZS.player) this._addMsg(d.from, d.msg, false, d.to, d.img, d.id);
         });
       }).catch(e=>{ console.log('[Chat-debug] Verlauf-Ladefehler: '+e.message); });
       // Opportunistic cleanup: once per session, quietly delete anything
@@ -9598,22 +9601,47 @@ const ZChat = {
           batch.commit().then(()=>console.log('[Chat-debug] Aufräumen: '+snap.size+' alte Nachrichten gelöscht.')).catch(e=>console.log('[Chat-debug] Aufräum-Löschfehler: '+e.message));
         }).catch(e=>{ console.log('[Chat-debug] Aufräum-Abfragefehler: '+e.message); });
       }
+      // Listens across the FULL retention window (not just messages sent
+      // after this exact moment) so that a 'removed' change — an admin
+      // deleting a message, individually or via "clear all" — is caught
+      // for ANY currently-visible message, not just brand-new ones. The
+      // _shownIds set prevents re-displaying messages already shown via
+      // the history load above when this listener's initial snapshot
+      // fires for existing docs.
       this._msgUnsub = _db.collection('zoo_chat')
-        .where('at', '>', listenStart)
+        .where('at', '>', historyStart)
         .onSnapshot(snap => {
           snap.docChanges().forEach(ch => {
-            if(ch.type!=='added') return;
+            const id = ch.doc.id;
+            if(ch.type === 'removed'){
+              this._shownIds.delete(id);
+              this._removeMsg(id);
+              console.log('[Chat-debug] Nachricht entfernt (gelöscht): '+id);
+              return;
+            }
+            if(ch.type !== 'added') return;
+            if(this._shownIds.has(id)) return; // already shown via history load
+            this._shownIds.add(id);
             const d = ch.doc.data();
             if(d.from === ZS.player) return; // already shown locally when sent
             if(d.to && d.to!==(ZS.player||'').toLowerCase()) return; // private message not addressed to me
-            this._addMsg(d.from, d.msg, false, d.to, d.img);
+            this._addMsg(d.from, d.msg, false, d.to, d.img, id);
             ZSound.coin && ZSound.coin();
             this._autoOpen();
           });
-        });
+        }, e=>{ console.log('[Chat-debug] Live-Listener-Fehler: '+e.message); });
     }catch(e){
       if((attempt||0)<5) setTimeout(()=>this._startListen((attempt||0)+1),1000);
     }
+  },
+  // Remove a single message from the visible chat by its Firestore doc ID
+  // — used both for individual admin deletes and (fired once per doc) a
+  // full "clear all" wipe.
+  _removeMsg(id){
+    const el = document.getElementById('chat-msgs');
+    if(!el) return;
+    const row = el.querySelector('[data-msg-id="'+CSS.escape(id)+'"]');
+    if(row) row.remove();
   },
   
   _stopListen(){
