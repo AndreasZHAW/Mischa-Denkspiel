@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v442 -->
+<!-- ZOO v443 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=442"></script>
-<script src="rewardchests.js?v=442"></script>
-<script src="personality.js?v=442"></script>
+<script src="lang.js?v=443"></script>
+<script src="rewardchests.js?v=443"></script>
+<script src="personality.js?v=443"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v442','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v443','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=442"></script>
-<script src="worlds.js?v=442"></script>
+<script src="firebase-state.js?v=443"></script>
+<script src="worlds.js?v=443"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9970,7 +9970,7 @@ const ZAdmin = {
       try{
         const syncCmd={type:'animal_removed_sync', target:playerName.toLowerCase(), slotIdx, id:'relsync_'+Date.now(), exp:Date.now()+60000};
         console.log('[CL-debug] releaseAnimalFrom: sende animal_removed_sync an «'+playerName+'» (Slot '+slotIdx+')');
-        await this._cmd(syncCmd);
+        await ZP._cmd(syncCmd);
       }catch(e){}
       // Small gap before the second command — zoo_admin_cmd holds only a
       // SINGLE value (not a queue), so writing the announcement immediately
@@ -9981,7 +9981,7 @@ const ZAdmin = {
       try{
         const cmd={type:'animal_released', target:'_all', from:playerName, animalName:animal.n, animalEmoji:animal.e, id:'relanim_'+Date.now(), exp:Date.now()+60000};
         console.log('[CL-debug] releaseAnimalFrom: sende animal_released-Ankündigung an alle');
-        await this._cmd(cmd);
+        await ZP._cmd(cmd);
       }catch(e){}
       ZP.toast('🕊️ '+animal.e+' '+animal.n+' von «'+playerName+'» wurde freigelassen!',3000);
       this._loadBestand();
@@ -9998,7 +9998,7 @@ const ZAdmin = {
             const enc2=rd.enc; enc2[slotIdx]=null;
             await _db.collection('zoos').doc(k).set({enc:enc2},{merge:true});
             const syncCmd2={type:'animal_removed_sync', target:playerName.toLowerCase(), slotIdx, id:'relsync_'+Date.now(), exp:Date.now()+60000};
-            await this._cmd(syncCmd2);
+            await ZP._cmd(syncCmd2);
           }
         }catch(e){}
       },12000);
@@ -10239,7 +10239,7 @@ const ZAdmin = {
     ZG.startEv(ev,dur,true);
     // Send to ALL other players via Firebase
     const cmd={id:'ev_'+Date.now(),type:'start_event',target:'_all',eventId:id,dur,exp:Date.now()+dur+10000};
-    await this._cmd(cmd);
+    await ZP._cmd(cmd);
     console.log('[Event-debug] Event-Befehl gesendet: '+JSON.stringify(cmd));
     ZP.toast('⚡ '+ev.n+' für ALLE gestartet für '+(dur/60000)+' Min!',3000);
     try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}
@@ -10764,7 +10764,7 @@ const ZAdmin = {
       // reload, so assignInstance() re-runs and picks up the now-updated
       // inChampionsLeague flag on the next natural page load.
       const cmd={id:'cl_'+Date.now(),type:'cl_move',target:name.toLowerCase(),goingIn,exp:Date.now()+60000};
-      await this._cmd(cmd).catch(()=>{});
+      await ZP._cmd(cmd).catch(()=>{});
       // Be explicit about what actually needs to happen next — this
       // ISN'T instant magic. If the player is currently INSIDE the zoo,
       // the reload command above (or the 60s self-check) should catch it
