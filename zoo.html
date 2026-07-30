@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v446 -->
+<!-- ZOO v448 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=446"></script>
-<script src="rewardchests.js?v=446"></script>
-<script src="personality.js?v=446"></script>
+<script src="lang.js?v=448"></script>
+<script src="rewardchests.js?v=448"></script>
+<script src="personality.js?v=448"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v446','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v448','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -512,8 +512,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=446"></script>
-<script src="worlds.js?v=446"></script>
+<script src="firebase-state.js?v=448"></script>
+<script src="worlds.js?v=448"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6203,9 +6203,12 @@ const LW={
       {l:'5.000 MT',mt:5000,c:27,col:'#002395'},{l:'15.000 MT',mt:15000,c:18,col:'#ED2939'},
       {l:'30.000 MT',mt:30000,c:14,col:'#002395'},{l:'80.000 MT',mt:80000,c:11,col:'#ED2939'},
       {l:'🥖 Baguette-Hund!',mt:0,c:3,col:'#002395',animal:{id:'frenchdog',n:'Baguette-Hund',e:'🐩',r:'rare',p:0,earn:50},exclusive:true},
+      {l:'🐓 Gallischer Hahn!',mt:0,c:1.2,col:'#ED2939',animal:{id:'gallicrooster',n:'Gallischer Hahn',e:'🐓',r:'legendary',p:0,earn:350},exclusive:true},
       {l:'🗼 Eiffelturm-Katze!',mt:0,c:.3,col:'#ED2939',animal:{id:'frenchcat',n:'Eiffelturm-Katze',e:'🐱',r:'god',p:0,earn:700},exclusive:true},
+      {l:'🦢 Königsschwan!',mt:0,c:.5,col:'#FFD700',animal:{id:'royalswan',n:'Königsschwan',e:'🦢',r:'ultralegendary',p:0,earn:2500},exclusive:true},
       {l:'200.000 MT',mt:200000,c:8,col:'#27AE60'},{l:'500.000 MT',mt:500000,c:5,col:'#FFD700'},
       {l:'1.000.000 MT',mt:1000000,c:3,col:'#fff'},{l:'🗼 France Slap!',mt:0,c:.5,col:'#ED2939',slap:'france'},
+      {l:'🍀 Lucky Slap!',mt:0,c:10,col:'#FFD700',slap:'lucky'},
     ]},
     weekend:{name:'Wochenend-Rad',emoji:'🎉',glowCol:'#cc00ff',prizes:[
       {l:'3.000 MT',mt:3000,c:25,col:'#8E44AD'},{l:'12.000 MT',mt:12000,c:19,col:'#cc00ff'},
@@ -8750,7 +8753,8 @@ const ZP={
   // (via the flag icon on the Welt-1 leaderboard) already checks, rather
   // than creating a second, separate reporting system just for the Zoo.
   _goReportPlayer(name){
-    location.href='index.html?fromZoo=1&reportPlayer='+encodeURIComponent(name);
+    const me=ZS.player||sessionStorage.getItem('mischa_current')||'';
+    location.href='index.html?fromZoo=1&reportPlayer='+encodeURIComponent(name)+(me?'&me='+encodeURIComponent(me):'');
   },
   async _sendReport(){
     const text=document.getElementById('report-text')?.value?.trim();
