@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v434 -->
+<!-- ZOO v435 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=434"></script>
-<script src="rewardchests.js?v=434"></script>
-<script src="personality.js?v=434"></script>
+<script src="lang.js?v=435"></script>
+<script src="rewardchests.js?v=435"></script>
+<script src="personality.js?v=435"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v434','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v435','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=434"></script>
-<script src="worlds.js?v=434"></script>
+<script src="firebase-state.js?v=435"></script>
+<script src="worlds.js?v=435"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1116,6 +1116,7 @@ const ZS={
       }
     } catch(e) {}
   },
+
   _fix(){
     const z=this.zoo;
     // ── Migrate ALL old field names to new short names ──
@@ -9448,20 +9449,60 @@ const ZChat = {
       }
     }catch(e){}
   },
-  
+
+  // Send an image/screenshot — resized+compressed client-side via canvas
+  // so the base64 result comfortably fits in a single Firestore document
+  // (1MB limit), then stored in the same zoo_chat collection as a normal
+  // message but with an `img` field instead of/alongside text.
+  pickImage(){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = () => { if(inp.files?.[0]) this._sendImageFile(inp.files[0]); };
+    inp.click();
+  },
+  async _sendImageFile(file){
+    try{
+      const dataUrl = await new Promise((res,rej)=>{
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(file);
+      });
+      const img = await new Promise((res,rej)=>{
+        const im = new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=dataUrl;
+      });
+      const maxDim = 500;
+      const scale = Math.min(1, maxDim/Math.max(img.width,img.height));
+      const cw = Math.round(img.width*scale), ch = Math.round(img.height*scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+      const compressed = canvas.toDataURL('image/jpeg', 0.6);
+      if(compressed.length > 900000){ ZP.toast('❌ Bild zu gross, bitte ein kleineres wählen.',3000); return; }
+      const targetSel = document.getElementById('chat-target');
+      const to = targetSel ? (targetSel.value||null) : null;
+      const data = { from: ZS.player||'?', msg:'', at: Date.now(), to: to||null, img: compressed };
+      this._addMsg(data.from, '', true, to, compressed);
+      if(typeof _db!=='undefined'&&_db&&State._useCloud()){
+        _db.collection('zoo_chat').add(data).catch(()=>{ ZP.toast('❌ Bild konnte nicht gesendet werden.',2500); });
+      }
+    }catch(e){ ZP.toast('❌ Fehler beim Senden des Bildes: '+e.message,3000); }
+  },
+
   // Add message to UI
-  _addMsg(from, msg, isMine, to){
+  _addMsg(from, msg, isMine, to, img){
     const el = document.getElementById('chat-msgs');
     if(!el) return;
     const d = document.createElement('div');
     d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+$esc(to):'')+'</span><br>' : '';
+    const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
     if(isMine){
       d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)';d.style.alignSelf='flex-end';
-      d.innerHTML = privTag + '<span style="color:#4af;font-size:.75rem">Du</span><br>' + $esc(msg);
+      d.innerHTML = privTag + '<span style="color:#4af;font-size:.75rem">Du</span><br>' + $esc(msg||'') + imgHtml;
     } else {
       d.style.background=to?'rgba(230,126,34,.2)':'rgba(255,255,255,.07)';d.style.alignSelf='flex-start';
-      d.innerHTML = privTag + '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + (to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'') + '</span><br>' + $esc(msg);
+      d.innerHTML = privTag + '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + (to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'') + '</span><br>' + $esc(msg||'') + imgHtml;
     }
     el.appendChild(d);
     el.scrollTop = el.scrollHeight;
@@ -9480,16 +9521,31 @@ const ZChat = {
       }
       // Load recent HISTORY first — old messages should stay visible when
       // you open the chat, not just whatever gets sent from this exact
-      // moment onward. Shows up to the last 50 messages from the last 24h.
-      const historyStart = Date.now() - 24*3600*1000;
+      // moment onward. Shows up to the last 200 messages from the last
+      // 8 days (the agreed default retention window).
+      const RETENTION_MS = 8*24*3600*1000;
+      const historyStart = Date.now() - RETENTION_MS;
       const listenStart = Date.now();
-      _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(50).get().then(snap=>{
+      _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
         const docs=[]; snap.forEach(doc=>docs.push(doc.data()));
         docs.reverse().forEach(d=>{
           if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
-          if(d.from!==ZS.player) this._addMsg(d.from, d.msg, false, d.to);
+          if(d.from!==ZS.player) this._addMsg(d.from, d.msg, false, d.to, d.img);
         });
       }).catch(()=>{});
+      // Opportunistic cleanup: once per session, quietly delete anything
+      // older than the retention window instead of running a scheduled
+      // job server-side. Cheap and self-correcting — worst case it just
+      // runs again next time someone opens chat.
+      if(!ZChat._cleanupDone){
+        ZChat._cleanupDone = true;
+        _db.collection('zoo_chat').where('at','<',historyStart).limit(300).get().then(snap=>{
+          if(snap.empty) return;
+          const batch=_db.batch();
+          snap.forEach(doc=>batch.delete(doc.ref));
+          batch.commit().catch(()=>{});
+        }).catch(()=>{});
+      }
       this._msgUnsub = _db.collection('zoo_chat')
         .where('at', '>', listenStart)
         .onSnapshot(snap => {
@@ -9498,7 +9554,7 @@ const ZChat = {
             const d = ch.doc.data();
             if(d.from === ZS.player) return; // already shown locally when sent
             if(d.to && d.to!==(ZS.player||'').toLowerCase()) return; // private message not addressed to me
-            this._addMsg(d.from, d.msg, false, d.to);
+            this._addMsg(d.from, d.msg, false, d.to, d.img);
             ZSound.coin && ZSound.coin();
             this._autoOpen();
           });
@@ -11287,6 +11343,43 @@ const ZAdmin = {
       const el=document.getElementById('chat-msgs'); if(el) el.innerHTML='';
       ZP.toast('🗑️ Chat-Verlauf gelöscht ('+batchSize+' Nachrichten).');
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _loadChatMod(){
+    const el=document.getElementById('padmin-chatmod-content');
+    if(!el)return;
+    el.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,.4)">⏳ Lade...</div>';
+    try{
+      if(typeof _db==='undefined'||!_db){ el.innerHTML='<div style="color:rgba(255,255,255,.4);padding:10px">Keine Verbindung.</div>'; return; }
+      const snap=await _db.collection('zoo_chat').orderBy('at','desc').limit(100).get();
+      const msgs=[]; snap.forEach(doc=>msgs.push({id:doc.id,...doc.data()}));
+      this._chatModData=msgs;
+      this._renderChatMod();
+    }catch(e){ el.innerHTML='<div style="color:#E74C3C;padding:10px">❌ '+e.message+'</div>'; }
+  },
+  _renderChatMod(){
+    const el=document.getElementById('padmin-chatmod-content');
+    if(!el||!this._chatModData)return;
+    if(!this._chatModData.length){ el.innerHTML='<div style="color:rgba(255,255,255,.4);padding:10px">Keine Nachrichten.</div>'; return; }
+    el.innerHTML=this._chatModData.map(m=>{
+      const time=new Date(m.at||0).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const body=m.img?'<img src="'+m.img+'" style="max-width:80px;max-height:80px;border-radius:6px">':$esc(m.msg||'');
+      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,.04);margin-bottom:4px;font-size:.75rem">
+        <div style="min-width:0;flex:1">
+          <div style="color:#FFD700;font-weight:700">${$esc(m.from||'?')}${m.to?' → '+$esc(m.to):''} <span style="color:rgba(255,255,255,.35);font-weight:400">${time}</span></div>
+          <div style="color:rgba(255,255,255,.8);word-break:break-word">${body}</div>
+        </div>
+        <button onclick="ZAdmin._deleteChatMsg('${m.id}')" title="Diese Nachricht löschen"
+          style="background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);color:#ff6b6b;border-radius:5px;padding:4px 8px;cursor:pointer;flex-shrink:0">🗑️</button>
+      </div>`;
+    }).join('');
+  },
+  async _deleteChatMsg(id){
+    try{
+      await _db.collection('zoo_chat').doc(id).delete();
+      this._chatModData=(this._chatModData||[]).filter(m=>m.id!==id);
+      this._renderChatMod();
+      ZP.toast('🗑️ Nachricht gelöscht.',2000);
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
   },
   async loadTrades(){
     const el=G('padmin-trades-list'), sum=G('padmin-trades-summary');
@@ -13458,6 +13551,7 @@ window.ZooEvents = ZooEvents;
     <input id="chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off" 
       style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
       onkeydown="if(event.key==='Enter')ZChat.send()">
+    <button onclick="ZChat.pickImage()" title="Bild/Screenshot senden" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
     <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
   </div>
 </div>
@@ -13765,6 +13859,8 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-section-title">🔐 Secrets</div>
           <button class="padmin-btn" style="background:#333;width:100%" onclick="ZAdmin.showSecrets()">🔐 Alle Secrets anzeigen</button>
           <div class="padmin-section-title">💬 Chat</div>
+          <button class="padmin-btn" style="background:#555;width:100%;margin-bottom:8px" onclick="ZAdmin._loadChatMod()">🔍 Letzte Nachrichten anzeigen</button>
+          <div id="padmin-chatmod-content" style="max-height:280px;overflow-y:auto;margin-bottom:8px"></div>
           <button class="padmin-btn" style="background:#E74C3C;width:100%" onclick="ZAdmin.clearChat()">🗑️ Chat-Verlauf komplett löschen</button>
           <div class="padmin-section-title" style="margin-top:10px">📊 Umfragen-Ergebnisse</div>
           <div id="padmin-poll-results" style="font-size:.75rem;color:rgba(255,255,255,.5)">Keine aktive Umfrage</div>

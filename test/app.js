@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v434';
+const APP_VERSION = 'v435';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v434 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v435 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1500,6 +1500,9 @@ const App = {
       </div>`);
     // Start reward-chest badge timer
     if(typeof RewardChests!=='undefined'){ RewardChests.startBadgeTimer(); }
+    // Chat button — same shared chat as the Zoo, so players can talk to
+    // each other regardless of which "world" they're currently in.
+    try{ if(typeof DSChat!=='undefined') DSChat.showButton(); }catch(e){}
   },
 
   goToAdmin() {
@@ -3303,11 +3306,172 @@ function getTaskInstruction(type, worldId) {
 
 
 // ══════════════════════════════════════════════
-// REWARD CHESTS — Brawl-Stars-style timed chests (test mode)
+// DSCHAT — Welt-1-Chat, teilt dieselbe zoo_chat-Sammlung mit dem Zoo,
+// damit alle eingeloggten Spieler miteinander chatten können, egal ob sie
+// gerade in Welt 1 oder im Zoo sind. Bewusst kompakt gehalten (kein Voice
+// Chat wie im Zoo) — Text, Bilder, private Nachrichten reichen hier.
 // ══════════════════════════════════════════════
-/* RewardChests is loaded from rewardchests.js */
+const DSChat = {
+  open: false, _msgUnsub: null, _cleanupDone: false,
+  toggle(){
+    this.open = !this.open;
+    const p = document.getElementById('ds-chat-panel');
+    if(p) p.style.display = this.open ? 'flex' : 'none';
+    if(this.open){ this._ensurePanel(); this._startListen(); this._refreshTargets(); }
+  },
+  close(){ this.open=false; const p=document.getElementById('ds-chat-panel'); if(p)p.style.display='none'; },
+  _ensurePanel(){
+    if(document.getElementById('ds-chat-panel')) return;
+    const div = document.createElement('div');
+    div.id = 'ds-chat-panel';
+    div.style.cssText = 'position:fixed;bottom:0;left:0;width:min(420px,94vw);max-height:80vh;z-index:9000;display:none;flex-direction:column;background:#12202e;border-radius:10px 10px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.5);font-family:Arial,sans-serif';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.1)">
+        <span style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
+        <button onclick="DSChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
+      </div>
+      <div style="padding:6px 10px">
+        <select id="ds-chat-target" onfocus="DSChat._refreshTargets()" style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:5px 8px;border-radius:6px;font-size:.78rem;outline:none">
+          <option value="">🌍 An alle</option>
+        </select>
+      </div>
+      <div id="ds-chat-msgs" style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-height:min(300px,40vh);max-height:min(440px,55vh)"></div>
+      <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:8px;display:flex;gap:6px">
+        <input id="ds-chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off"
+          style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
+          onkeydown="if(event.key==='Enter')DSChat.send()">
+        <button onclick="DSChat.pickImage()" title="Bild senden" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
+        <button onclick="DSChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
+      </div>`;
+    document.body.appendChild(div);
+  },
+  async _refreshTargets(){
+    const sel=document.getElementById('ds-chat-target'); if(!sel) return;
+    const prevVal=sel.value;
+    try{
+      let online=new Set();
+      if(typeof getOnlineNames==='function') online=await getOnlineNames();
+      const names=[...online].filter(n=>n!==(State.currentPlayer?.name||'').toLowerCase());
+      sel.innerHTML='<option value="">🌍 An alle</option>'+names.map(n=>`<option value="${n}">👤 ${n}</option>`).join('');
+      if(names.includes(prevVal)) sel.value=prevVal;
+    }catch(e){}
+  },
+  send(){
+    const inp = document.getElementById('ds-chat-in');
+    if(!inp||!inp.value.trim()) return;
+    const msg = inp.value.trim().slice(0,200);
+    const targetSel = document.getElementById('ds-chat-target');
+    const to = targetSel ? (targetSel.value||null) : null;
+    inp.value = '';
+    const me = State.currentPlayer?.name||'?';
+    const data = { from: me, msg, at: Date.now(), to: to||null };
+    this._addMsg(data.from, data.msg, true, to);
+    try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).catch(()=>{}); }catch(e){}
+  },
+  pickImage(){
+    const inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*';
+    inp.onchange = () => { if(inp.files?.[0]) this._sendImageFile(inp.files[0]); };
+    inp.click();
+  },
+  async _sendImageFile(file){
+    try{
+      const dataUrl = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+      const img = await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=dataUrl; });
+      const maxDim=500, scale=Math.min(1,maxDim/Math.max(img.width,img.height));
+      const cw=Math.round(img.width*scale), ch=Math.round(img.height*scale);
+      const canvas=document.createElement('canvas'); canvas.width=cw; canvas.height=ch;
+      canvas.getContext('2d').drawImage(img,0,0,cw,ch);
+      const compressed=canvas.toDataURL('image/jpeg',0.6);
+      if(compressed.length>900000){ if(typeof showAlert==='function') showAlert('❌ Bild zu gross, bitte ein kleineres wählen.'); return; }
+      const targetSel=document.getElementById('ds-chat-target');
+      const to=targetSel?(targetSel.value||null):null;
+      const me=State.currentPlayer?.name||'?';
+      const data={ from:me, msg:'', at:Date.now(), to:to||null, img:compressed };
+      this._addMsg(data.from,'',true,to,compressed);
+      if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).catch(()=>{});
+    }catch(e){}
+  },
+  _addMsg(from, msg, isMine, to, img){
+    const el=document.getElementById('ds-chat-msgs'); if(!el) return;
+    const d=document.createElement('div');
+    d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;';
+    const escFn = typeof $esc==='function' ? $esc : (s)=>String(s||'').replace(/</g,'&lt;');
+    const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+escFn(to):'')+'</span><br>' : '';
+    const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
+    if(isMine){
+      d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)'; d.style.alignSelf='flex-end';
+      d.innerHTML=privTag+'<span style="color:#4af;font-size:.75rem">Du</span><br>'+escFn(msg||'')+imgHtml;
+    }else{
+      d.style.background=to?'rgba(230,126,34,.2)':'rgba(255,255,255,.07)'; d.style.alignSelf='flex-start';
+      d.innerHTML=privTag+'<span style="color:#FFD700;font-size:.75rem">'+escFn(from)+(to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'')+'</span><br>'+escFn(msg||'')+imgHtml;
+    }
+    el.appendChild(d); el.scrollTop=el.scrollHeight;
+    while(el.children.length>50) el.removeChild(el.firstChild);
+  },
+  _startListen(attempt){
+    if(this._msgUnsub) return;
+    try{
+      if(typeof _db==='undefined'||!_db||!State._useCloud()){
+        if((attempt||0)<20) setTimeout(()=>this._startListen((attempt||0)+1),200);
+        return;
+      }
+      const RETENTION_MS = 8*24*3600*1000;
+      const historyStart = Date.now()-RETENTION_MS;
+      const listenStart = Date.now();
+      const me = (State.currentPlayer?.name||'').toLowerCase();
+      _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
+        const docs=[]; snap.forEach(doc=>docs.push(doc.data()));
+        docs.reverse().forEach(d=>{
+          if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
+          if(d.from!==State.currentPlayer?.name) this._addMsg(d.from,d.msg,false,d.to,d.img);
+        });
+      }).catch(()=>{});
+      if(!this._cleanupDone){
+        this._cleanupDone=true;
+        _db.collection('zoo_chat').where('at','<',historyStart).limit(300).get().then(snap=>{
+          if(snap.empty) return;
+          const batch=_db.batch(); snap.forEach(doc=>batch.delete(doc.ref)); batch.commit().catch(()=>{});
+        }).catch(()=>{});
+      }
+      this._msgUnsub = _db.collection('zoo_chat').where('at','>',listenStart).onSnapshot(snap=>{
+        snap.docChanges().forEach(ch=>{
+          if(ch.type!=='added') return;
+          const d=ch.doc.data();
+          if(d.from===State.currentPlayer?.name) return;
+          if(d.to && d.to!==me) return;
+          this._addMsg(d.from,d.msg,false,d.to,d.img);
+          this._autoOpen();
+        });
+      });
+    }catch(e){
+      if((attempt||0)<5) setTimeout(()=>this._startListen((attempt||0)+1),1000);
+    }
+  },
+  _autoOpen(){
+    if(this.open) return;
+    this.open=true;
+    this._ensurePanel();
+    const p=document.getElementById('ds-chat-panel');
+    if(p) p.style.display='flex';
+  },
+  showButton(){
+    let b=document.getElementById('ds-chat-toggle-btn');
+    if(!b){
+      b=document.createElement('button');
+      b.id='ds-chat-toggle-btn';
+      b.onclick=()=>DSChat.toggle();
+      b.style.cssText='position:fixed;bottom:12px;left:12px;z-index:8999;background:#2980B9;border:none;color:#fff;width:48px;height:48px;border-radius:50%;font-size:1.3rem;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.4)';
+      b.textContent='💬';
+      document.body.appendChild(b);
+    }
+    b.style.display='block';
+    this._startListen();
+  }
+};
+window.DSChat = DSChat;
 
-window.App = App;
+
 window.mountainSVG = mountainSVG;
 window.worldPathSVG = worldPathSVG;
 window.getTaskInstruction = getTaskInstruction;
