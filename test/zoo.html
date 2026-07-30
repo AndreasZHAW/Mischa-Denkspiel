@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v441 -->
+<!-- ZOO v442 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=441"></script>
-<script src="rewardchests.js?v=441"></script>
-<script src="personality.js?v=441"></script>
+<script src="lang.js?v=442"></script>
+<script src="rewardchests.js?v=442"></script>
+<script src="personality.js?v=442"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v441','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v442','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=441"></script>
-<script src="worlds.js?v=441"></script>
+<script src="firebase-state.js?v=442"></script>
+<script src="worlds.js?v=442"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2567,7 +2567,7 @@ const ZG={
             if(Date.now()-d.at>5000)return; // ignore old
             const ev=EVENTS.find(e=>e.id===d.eventId);
             if(ev&&(!this.ev||this.ev.id!==d.eventId)){
-              this.startEv(ev,d.dur);
+              this.startEv(ev,d.dur,true);
               ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
             }
           });
@@ -5366,9 +5366,10 @@ const ZG={
   },
 
   startEv(ev,dur,byAdmin){
+    console.log('[Event-debug] startEv() aufgerufen: '+ev.n+' (byAdmin='+!!byAdmin+', dauer='+dur+'ms, aktuell laufende Events vorher='+(this.evs?this.evs.length:0)+')');
     if(!this.evs) this.evs=[];
     // Max 3 concurrent events (auto system only - admin bypasses this)
-    if(!byAdmin && this.evs.length>=3){ ZP.toast('⚡ Max 3 Events gleichzeitig!',2000); return; }
+    if(!byAdmin && this.evs.length>=3){ ZP.toast('⚡ Max 3 Events gleichzeitig!',2000); console.log('[Event-debug] startEv() abgebrochen — Limit von 3 gleichzeitigen Events erreicht (nicht-Admin-Quelle).'); return; }
     // Remove if already running (restart it)
     this.evs=this.evs.filter(e=>e.id!==ev.id);
     const end=Date.now()+dur;
@@ -6099,7 +6100,7 @@ const ZG={
       // the old values a moment later.
       ZS.zoo={...ZS.nz(), mt:cmd.mt}; this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZG._updWBar&&ZG._updWBar(); ZS.save&&ZS.save();
       ZP.toast('🔄 Admin hat deinen Zoo komplett zurückgesetzt ('+cmd.mt+' MT).',3000);
-    }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);if(ev)this.startEv(ev,cmd.dur||ev.dur);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
+    }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);console.log('[Event-debug] Empfangen: start_event id='+cmd.eventId+' gefunden='+(!!ev)+' dauer='+(cmd.dur||ev?.dur));if(ev)this.startEv(ev,cmd.dur||ev.dur,true);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
       const pollDiv=document.createElement('div');
@@ -10233,11 +10234,13 @@ const ZAdmin = {
   async _selEv(id){
     const ev=(window.EVENTS||[]).find(e=>e.id===id); if(!ev)return;
     const dur=this._selectedEventDur||300000;
+    console.log('[Event-debug] Admin löst Event aus: '+ev.n+' (id='+id+', dauer='+dur+'ms)');
     // Start locally for admin
     ZG.startEv(ev,dur,true);
     // Send to ALL other players via Firebase
     const cmd={id:'ev_'+Date.now(),type:'start_event',target:'_all',eventId:id,dur,exp:Date.now()+dur+10000};
     await this._cmd(cmd);
+    console.log('[Event-debug] Event-Befehl gesendet: '+JSON.stringify(cmd));
     ZP.toast('⚡ '+ev.n+' für ALLE gestartet für '+(dur/60000)+' Min!',3000);
     try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}
     document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #FFD700':'2px solid transparent';});
