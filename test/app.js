@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v436';
+const APP_VERSION = 'v437';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v436 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v437 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -3329,9 +3329,9 @@ const DSChat = {
     this._fullscreen = !this._fullscreen;
     if(this._fullscreen){
       panel.style.top='0'; panel.style.right='0'; panel.style.left='0'; panel.style.bottom='0';
-      panel.style.width='100vw'; panel.style.maxHeight='100vh'; panel.style.height='100vh';
+      panel.style.width='100vw'; panel.style.maxHeight='100dvh'; panel.style.height='100dvh';
       panel.style.borderRadius='0';
-      if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; msgs.style.maxHeight='none'; }
+      if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; msgs.style.maxHeight='none'; msgs.style.minHeight='0'; }
       if(btn){ btn.textContent='🗗'; btn.title='Vollbild verlassen'; }
     } else {
       panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
@@ -3391,6 +3391,9 @@ const DSChat = {
     try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).catch(()=>{}); }catch(e){}
   },
   async pickImage(){
+    const hasScreenCapture = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function');
+    console.log('[Chat-debug] DSChat.pickImage() aufgerufen — getDisplayMedia verfügbar: '+hasScreenCapture);
+    if(!hasScreenCapture){ this._pickImageFile(); return; }
     try{
       const stream = await navigator.mediaDevices.getDisplayMedia({video:true});
       const video = document.createElement('video');
@@ -3401,10 +3404,23 @@ const DSChat = {
       canvas.width = video.videoWidth; canvas.height = video.videoHeight;
       canvas.getContext('2d').drawImage(video, 0, 0);
       stream.getTracks().forEach(t=>t.stop());
+      console.log('[Chat-debug] Screenshot erfasst: '+canvas.width+'x'+canvas.height);
       this._showScreenshotPreview(canvas.toDataURL('image/png'));
     }catch(e){
+      console.log('[Chat-debug] getDisplayMedia fehlgeschlagen: '+e.name+' — '+e.message);
       if(e.name!=='NotAllowedError' && typeof showAlert==='function') showAlert('❌ Screenshot fehlgeschlagen: '+e.message);
     }
+  },
+  _pickImageFile(){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = () => {
+      if(!inp.files?.[0]) return;
+      const reader = new FileReader();
+      reader.onload = () => this._showScreenshotPreview(reader.result);
+      reader.readAsDataURL(inp.files[0]);
+    };
+    inp.click();
   },
   _showScreenshotPreview(dataUrl){
     const existing=document.getElementById('ds-screenshot-preview'); if(existing) existing.remove();
@@ -3471,17 +3487,20 @@ const DSChat = {
       const me = (State.currentPlayer?.name||'').toLowerCase();
       _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
         const docs=[]; snap.forEach(doc=>docs.push(doc.data()));
+        console.log('[Chat-debug] DSChat Verlauf geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
         docs.reverse().forEach(d=>{
           if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
           if(d.from!==State.currentPlayer?.name) this._addMsg(d.from,d.msg,false,d.to,d.img);
         });
-      }).catch(()=>{});
+      }).catch(e=>{ console.log('[Chat-debug] DSChat Verlauf-Ladefehler: '+e.message); });
       if(!this._cleanupDone){
         this._cleanupDone=true;
         _db.collection('zoo_chat').where('at','<',historyStart).limit(300).get().then(snap=>{
+          console.log('[Chat-debug] DSChat Aufräumen: '+snap.size+' Nachrichten älter als 8 Tage gefunden.');
           if(snap.empty) return;
-          const batch=_db.batch(); snap.forEach(doc=>batch.delete(doc.ref)); batch.commit().catch(()=>{});
-        }).catch(()=>{});
+          const batch=_db.batch(); snap.forEach(doc=>batch.delete(doc.ref));
+          batch.commit().then(()=>console.log('[Chat-debug] DSChat Aufräumen: '+snap.size+' alte Nachrichten gelöscht.')).catch(e=>console.log('[Chat-debug] DSChat Aufräum-Löschfehler: '+e.message));
+        }).catch(e=>{ console.log('[Chat-debug] DSChat Aufräum-Abfragefehler: '+e.message); });
       }
       this._msgUnsub = _db.collection('zoo_chat').where('at','>',listenStart).onSnapshot(snap=>{
         snap.docChanges().forEach(ch=>{

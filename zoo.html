@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v436 -->
+<!-- ZOO v437 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=436"></script>
-<script src="rewardchests.js?v=436"></script>
-<script src="personality.js?v=436"></script>
+<script src="lang.js?v=437"></script>
+<script src="rewardchests.js?v=437"></script>
+<script src="personality.js?v=437"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v436','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v437','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=436"></script>
-<script src="worlds.js?v=436"></script>
+<script src="firebase-state.js?v=437"></script>
+<script src="worlds.js?v=437"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9367,9 +9367,9 @@ const ZChat = {
     this._fullscreen = !this._fullscreen;
     if(this._fullscreen){
       panel.style.top='0'; panel.style.right='0'; panel.style.left='0'; panel.style.bottom='0';
-      panel.style.width='100vw'; panel.style.maxHeight='100vh'; panel.style.height='100vh';
+      panel.style.width='100vw'; panel.style.maxHeight='100dvh'; panel.style.height='100dvh';
       panel.style.borderRadius='0';
-      if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; }
+      if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; msgs.style.minHeight='0'; }
       if(btn){ btn.textContent='🗗'; btn.title='Vollbild verlassen'; }
     } else {
       panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
@@ -9454,12 +9454,17 @@ const ZChat = {
   // so the base64 result comfortably fits in a single Firestore document
   // (1MB limit), then stored in the same zoo_chat collection as a normal
   // message but with an `img` field instead of/alongside text.
-  // Take a screenshot directly (screen/tab capture), show a preview with
-  // a confirm/cancel step, then send only if the person actually confirms.
+  // Take a screenshot directly (screen/tab capture) where the browser
+  // supports it — desktop Chrome/Edge/Firefox. Mobile browsers (Android
+  // Chrome included) don't implement getDisplayMedia at all, so there we
+  // fall back to the normal photo/gallery picker instead of showing a
+  // hard error with no way to send an image at all.
   async pickImage(){
+    const hasScreenCapture = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function');
+    console.log('[Chat-debug] pickImage() aufgerufen — getDisplayMedia verfügbar: '+hasScreenCapture);
+    if(!hasScreenCapture){ this._pickImageFile(); return; }
     try{
       const stream = await navigator.mediaDevices.getDisplayMedia({video:true});
-      const track = stream.getVideoTracks()[0];
       const video = document.createElement('video');
       video.srcObject = stream;
       await video.play();
@@ -9471,12 +9476,27 @@ const ZChat = {
       canvas.getContext('2d').drawImage(video, 0, 0);
       stream.getTracks().forEach(t=>t.stop());
       const fullDataUrl = canvas.toDataURL('image/png');
+      console.log('[Chat-debug] Screenshot erfasst: '+canvas.width+'x'+canvas.height);
       this._showScreenshotPreview(fullDataUrl);
     }catch(e){
+      console.log('[Chat-debug] getDisplayMedia fehlgeschlagen: '+e.name+' — '+e.message);
       // Person cancelled the share picker, or the browser doesn't support
       // it — either way, no error toast needed for a simple cancel.
       if(e.name!=='NotAllowedError') ZP.toast('❌ Screenshot fehlgeschlagen: '+e.message,3000);
     }
+  },
+  // Fallback for browsers without screen-capture support: normal
+  // photo/gallery file picker, same preview+confirm flow afterward.
+  _pickImageFile(){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = () => {
+      if(!inp.files?.[0]) return;
+      const reader = new FileReader();
+      reader.onload = () => this._showScreenshotPreview(reader.result);
+      reader.readAsDataURL(inp.files[0]);
+    };
+    inp.click();
   },
   _showScreenshotPreview(dataUrl){
     const existing=document.getElementById('screenshot-preview'); if(existing) existing.remove();
@@ -9558,11 +9578,12 @@ const ZChat = {
       const listenStart = Date.now();
       _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
         const docs=[]; snap.forEach(doc=>docs.push(doc.data()));
+        console.log('[Chat-debug] Verlauf geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
         docs.reverse().forEach(d=>{
           if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
           if(d.from!==ZS.player) this._addMsg(d.from, d.msg, false, d.to, d.img);
         });
-      }).catch(()=>{});
+      }).catch(e=>{ console.log('[Chat-debug] Verlauf-Ladefehler: '+e.message); });
       // Opportunistic cleanup: once per session, quietly delete anything
       // older than the retention window instead of running a scheduled
       // job server-side. Cheap and self-correcting — worst case it just
@@ -9570,11 +9591,12 @@ const ZChat = {
       if(!ZChat._cleanupDone){
         ZChat._cleanupDone = true;
         _db.collection('zoo_chat').where('at','<',historyStart).limit(300).get().then(snap=>{
+          console.log('[Chat-debug] Aufräumen: '+snap.size+' Nachrichten älter als 8 Tage gefunden (Grenze: '+new Date(historyStart).toISOString()+')');
           if(snap.empty) return;
           const batch=_db.batch();
           snap.forEach(doc=>batch.delete(doc.ref));
-          batch.commit().catch(()=>{});
-        }).catch(()=>{});
+          batch.commit().then(()=>console.log('[Chat-debug] Aufräumen: '+snap.size+' alte Nachrichten gelöscht.')).catch(e=>console.log('[Chat-debug] Aufräum-Löschfehler: '+e.message));
+        }).catch(e=>{ console.log('[Chat-debug] Aufräum-Abfragefehler: '+e.message); });
       }
       this._msgUnsub = _db.collection('zoo_chat')
         .where('at', '>', listenStart)
