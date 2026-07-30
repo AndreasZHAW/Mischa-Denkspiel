@@ -205,8 +205,12 @@ body { font-size: var(--fluid-base); }
   }
 }
 
-/* Landscape on mobile: maximize game space */
-@media (max-height: 500px) and (orientation: landscape) {
+/* Landscape: maximize game space. Widened from the old 500px cutoff
+   (phones only) to 900px so tablets in landscape — iPad is typically
+   ~750-830px tall in CSS pixels — get the same treatment; without this
+   they fell through to the portrait-oriented default sizing and could
+   end up with controls pushed below the visible area. */
+@media (max-height: 900px) and (orientation: landscape) {
   .mountain-bg { display: none !important; }
   .page { padding: 0 !important; }
   .game-container { margin: 0 !important; border-radius: 0 !important; }

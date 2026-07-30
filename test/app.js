@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v443';
+const APP_VERSION = 'v444';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v443 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v444 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -3323,12 +3323,14 @@ const DSChat = {
       panel.style.borderRadius='0';
       if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; msgs.style.maxHeight='none'; msgs.style.minHeight='0'; }
       if(btn){ btn.textContent='🗗'; btn.title='Vollbild verlassen'; }
+      document.querySelectorAll('#ds-chat-msgs .chat-ts').forEach(s=>s.style.display='inline');
     } else {
       panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
       panel.style.width='min(420px,94vw)'; panel.style.maxHeight='80vh'; panel.style.height='';
       panel.style.borderRadius='';
       if(msgs){ msgs.style.height=''; msgs.style.flex=''; msgs.style.maxHeight='min(440px,55vh)'; }
       if(btn){ btn.textContent='⛶'; btn.title='Vollbild'; }
+      document.querySelectorAll('#ds-chat-msgs .chat-ts').forEach(s=>s.style.display='none');
     }
   },
   _ensurePanel(){
@@ -3378,7 +3380,7 @@ const DSChat = {
     inp.value = '';
     const me = State.currentPlayer?.name||'?';
     const data = { from: me, msg, at: Date.now(), to: to||null };
-    const el = this._addMsg(data.from, data.msg, true, to);
+    const el = this._addMsg(data.from, data.msg, true, to, undefined, undefined, data.at);
     try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{}); }catch(e){}
   },
   async pickImage(){
@@ -3444,24 +3446,25 @@ const DSChat = {
       const to=targetSel?(targetSel.value||null):null;
       const me=State.currentPlayer?.name||'?';
       const data={ from:me, msg:'', at:Date.now(), to:to||null, img:compressed };
-      const el = this._addMsg(data.from,'',true,to,compressed);
+      const el = this._addMsg(data.from,'',true,to,compressed,undefined,data.at);
       if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{});
     }catch(e){}
   },
-  _addMsg(from, msg, isMine, to, img, id){
+  _addMsg(from, msg, isMine, to, img, id, at){
     const el=document.getElementById('ds-chat-msgs'); if(!el) return;
     const d=document.createElement('div');
     if(id) d.dataset.msgId = id;
     d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
     const escFn = typeof $esc==='function' ? $esc : (s)=>String(s||'').replace(/</g,'&lt;');
+    const tsHtml = at ? '<span class="chat-ts" style="display:'+(this._fullscreen?'inline':'none')+';color:rgba(255,255,255,.4);font-size:.65rem;float:right;margin-left:8px">'+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>' : '';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+escFn(to):'')+'</span><br>' : '';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
     if(isMine){
       d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)'; d.style.alignSelf='flex-end';
-      d.innerHTML=privTag+'<span style="color:#4af;font-size:.75rem">Du</span><br>'+escFn(msg||'')+imgHtml;
+      d.innerHTML=tsHtml+privTag+'<span style="color:#4af;font-size:.75rem">Du</span><br>'+escFn(msg||'')+imgHtml;
     }else{
       d.style.background=to?'rgba(230,126,34,.2)':'rgba(255,255,255,.07)'; d.style.alignSelf='flex-start';
-      d.innerHTML=privTag+'<span style="color:#FFD700;font-size:.75rem">'+escFn(from)+(to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'')+'</span><br>'+escFn(msg||'')+imgHtml;
+      d.innerHTML=tsHtml+privTag+'<span style="color:#FFD700;font-size:.75rem">'+escFn(from)+(to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'')+'</span><br>'+escFn(msg||'')+imgHtml;
     }
     el.appendChild(d); el.scrollTop=el.scrollHeight;
     while(el.children.length>50) el.removeChild(el.firstChild);
@@ -3490,7 +3493,7 @@ const DSChat = {
       docs.reverse().forEach(d=>{
         this._shownIds.add(d.id);
         if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
-        this._addMsg(d.from,d.msg,d.from===State.currentPlayer?.name,d.to,d.img,d.id);
+        this._addMsg(d.from,d.msg,d.from===State.currentPlayer?.name,d.to,d.img,d.id,d.at);
       });
     }).catch(e=>{ console.log('[Chat-debug] DSChat Verlauf-Ladefehler: '+e.message); });
   },
@@ -3532,7 +3535,7 @@ const DSChat = {
           const d=ch.doc.data();
           if(d.from===State.currentPlayer?.name) return;
           if(d.to && d.to!==me) return;
-          this._addMsg(d.from,d.msg,false,d.to,d.img,id);
+          this._addMsg(d.from,d.msg,false,d.to,d.img,id,d.at);
           this._autoOpen();
         });
       }, e=>{ console.log('[Chat-debug] DSChat Live-Listener-Fehler: '+e.message); });

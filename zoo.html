@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v443 -->
+<!-- ZOO v444 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=443"></script>
-<script src="rewardchests.js?v=443"></script>
-<script src="personality.js?v=443"></script>
+<script src="lang.js?v=444"></script>
+<script src="rewardchests.js?v=444"></script>
+<script src="personality.js?v=444"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v443','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v444','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=443"></script>
-<script src="worlds.js?v=443"></script>
+<script src="firebase-state.js?v=444"></script>
+<script src="worlds.js?v=444"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9372,12 +9372,14 @@ const ZChat = {
       panel.style.borderRadius='0';
       if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; msgs.style.minHeight='0'; }
       if(btn){ btn.textContent='🗗'; btn.title='Vollbild verlassen'; }
+      document.querySelectorAll('#chat-msgs .chat-ts').forEach(s=>s.style.display='inline');
     } else {
       panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
       panel.style.width='min(420px,94vw)'; panel.style.maxHeight='80vh'; panel.style.height='';
       panel.style.borderRadius='';
       if(msgs){ msgs.style.height='min(440px,58vh)'; msgs.style.flex=''; }
       if(btn){ btn.textContent='⛶'; btn.title='Vollbild'; }
+      document.querySelectorAll('#chat-msgs .chat-ts').forEach(s=>s.style.display='none');
     }
   },
 
@@ -9443,7 +9445,7 @@ const ZChat = {
       return;
     }
     const data = { from: ZS.player||'?', msg, at: Date.now(), to: to||null };
-    const el = this._addMsg(data.from, data.msg, true, to);
+      const el = this._addMsg(data.from, data.msg, true, to, undefined, undefined, data.at);
     // Save to Firebase
     try{
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
@@ -9534,7 +9536,7 @@ const ZChat = {
       const targetSel = document.getElementById('chat-target');
       const to = targetSel ? (targetSel.value||null) : null;
       const data = { from: ZS.player||'?', msg:'', at: Date.now(), to: to||null, img: compressed };
-      const el = this._addMsg(data.from, '', true, to, compressed);
+      const el = this._addMsg(data.from, '', true, to, compressed, undefined, data.at);
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
         _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{ ZP.toast('❌ Bild konnte nicht gesendet werden.',2500); });
       }
@@ -9542,20 +9544,21 @@ const ZChat = {
   },
 
   // Add message to UI
-  _addMsg(from, msg, isMine, to, img, id){
+  _addMsg(from, msg, isMine, to, img, id, at){
     const el = document.getElementById('chat-msgs');
     if(!el) return;
     const d = document.createElement('div');
     if(id) d.dataset.msgId = id;
     d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
+    const tsHtml = at ? '<span class="chat-ts" style="display:'+(this._fullscreen?'inline':'none')+';color:rgba(255,255,255,.4);font-size:.65rem;float:right;margin-left:8px">'+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>' : '';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+$esc(to):'')+'</span><br>' : '';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
     if(isMine){
       d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)';d.style.alignSelf='flex-end';
-      d.innerHTML = privTag + '<span style="color:#4af;font-size:.75rem">Du</span><br>' + $esc(msg||'') + imgHtml;
+      d.innerHTML = tsHtml + privTag + '<span style="color:#4af;font-size:.75rem">Du</span><br>' + $esc(msg||'') + imgHtml;
     } else {
       d.style.background=to?'rgba(230,126,34,.2)':'rgba(255,255,255,.07)';d.style.alignSelf='flex-start';
-      d.innerHTML = privTag + '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + (to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'') + '</span><br>' + $esc(msg||'') + imgHtml;
+      d.innerHTML = tsHtml + privTag + '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + (to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'') + '</span><br>' + $esc(msg||'') + imgHtml;
     }
     el.appendChild(d);
     el.scrollTop = el.scrollHeight;
@@ -9584,7 +9587,7 @@ const ZChat = {
       docs.reverse().forEach(d=>{
         this._shownIds.add(d.id); // track even messages we don't render, so a later delete of e.g. someone else's private msg doesn't error
         if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
-        this._addMsg(d.from, d.msg, d.from===ZS.player, d.to, d.img, d.id);
+        this._addMsg(d.from, d.msg, d.from===ZS.player, d.to, d.img, d.id, d.at);
       });
     }).catch(e=>{ console.log('[Chat-debug] Verlauf-Ladefehler: '+e.message); });
   },
@@ -9636,7 +9639,7 @@ const ZChat = {
             const d = ch.doc.data();
             if(d.from === ZS.player) return; // already shown locally when sent
             if(d.to && d.to!==(ZS.player||'').toLowerCase()) return; // private message not addressed to me
-            this._addMsg(d.from, d.msg, false, d.to, d.img, id);
+            this._addMsg(d.from, d.msg, false, d.to, d.img, id, d.at);
             ZSound.coin && ZSound.coin();
             this._autoOpen();
           });

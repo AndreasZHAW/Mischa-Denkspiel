@@ -9,7 +9,17 @@ const PacmanGame = {
     if (!el) { if(typeof GameLog!=='undefined')GameLog.error('pacman','game-area not found'); return; }
     if(typeof GameLog!=='undefined')GameLog.log('pacman','start()');
 
-    const CELL=24, COLS=19, ROWS=21;
+    const COLS=19, ROWS=21;
+    const isTouch = 'ontouchstart' in window;
+    // Reserve space for the header/controls row above and the button grid
+    // + tilt hint below (touch devices only) — without this, a wide-but-
+    // short viewport (tablet landscape) could size the maze purely from
+    // width and leave no room for the control buttons underneath.
+    const reservedV = isTouch ? 260 : 70;
+    const availH = Math.max(200, window.innerHeight - reservedV);
+    const availW = Math.min(window.innerWidth-16, 460);
+    const CELL = Math.max(12, Math.min(24, Math.floor(availW/COLS), Math.floor(availH/ROWS)));
+    console.log('[Bomber-debug] Layout: innerWidth='+window.innerWidth+' innerHeight='+window.innerHeight+' isTouch='+isTouch+' reservedV='+reservedV+' availH='+availH+' CELL='+CELL);
     // Legend: 1=wall (indestructible), 0=floor, 2=power stone (extends blast),
     // 3=floor (was 3 before too, kept for compatibility). Cage in the middle
     // now has an actual exit (row 7 col 9 opened up) so ghosts can leave.
@@ -38,7 +48,6 @@ const PacmanGame = {
     ];
 
     const W=COLS*CELL, H=ROWS*CELL;
-    const isTouch = 'ontouchstart' in window;
 
     el.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
@@ -69,6 +78,16 @@ const PacmanGame = {
       </div>`;
 
     const cv = document.getElementById('pccv');
+    requestAnimationFrame(()=>{
+      try{
+        const btns=document.getElementById('pc-btns');
+        if(btns){
+          const r=btns.getBoundingClientRect();
+          const hidden = r.bottom > window.innerHeight || r.top < 0;
+          console.log('[Bomber-debug] Steuerknöpfe-Position: top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' → '+(hidden?'⚠️ AUSSERHALB des sichtbaren Bereichs!':'✅ sichtbar'));
+        }
+      }catch(e){}
+    });
     const ctx = cv.getContext('2d');
     let maze = MAZE_TEMPLATE.map(r => [...r]);
     let running=true, tStart=Date.now(), animId, frameN=0;

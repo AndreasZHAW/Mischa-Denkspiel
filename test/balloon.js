@@ -5,9 +5,20 @@ const BalloonGame = {
     const el = document.getElementById('game-area');
     if (!el) return;
     const isMob = 'ontouchstart' in window;
-    const GRID = 20, CELL = Math.min(22, Math.floor((Math.min(window.innerWidth-8,440)-10) / GRID));
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const GRID = 20;
+    // Reserve space for header/score row (~50px) and, on touch devices,
+    // the control buttons below the canvas (~220px) — without this, a
+    // wide-but-short viewport (tablet landscape, e.g. iPad) could size
+    // the canvas purely from width and end up taller than what's actually
+    // left on screen, pushing the buttons below the visible area entirely.
+    const reservedV = isMob ? 270 : 60;
+    const availH = Math.max(160, window.innerHeight - reservedV);
+    const availW = Math.min(window.innerWidth-8, 440);
+    const CELL = Math.min(22, Math.floor((availW-10) / GRID), Math.floor(availH / GRID));
     const CW = GRID*CELL, CH = GRID*CELL;
     const DPR = Math.min(window.devicePixelRatio||1,2);
+    console.log('[Snake-debug] Layout: innerWidth='+window.innerWidth+' innerHeight='+window.innerHeight+' isMob='+isMob+' isLandscape='+isLandscape+' reservedV='+reservedV+' availH='+availH+' CELL='+CELL+' Canvas='+CW+'x'+CH);
 
     el.innerHTML=`<div style="font-family:sans-serif;user-select:none;-webkit-user-select:none;text-align:center">
       <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
@@ -42,6 +53,21 @@ const BalloonGame = {
       <div style="font-size:.7rem;color:rgba(255,255,255,.18);margin-top:5px">${typeof t!=='undefined'?t('snake.controls'):'Pfeiltasten / Wischen / Neigen'}</div>
     </div>`;
     function B(c){return `background:${c};color:#fff;border:none;padding:${isMob?'clamp(16px,5vw,22px) clamp(14px,5vw,20px)':'10px 8px'};border-radius:12px;font-size:${isMob?'clamp(1.5rem,8vw,2rem)':'1rem'};font-weight:900;cursor:pointer;touch-action:none;min-height:${isMob?'clamp(65px,18vw,80px)':'40px'};min-width:${isMob?'clamp(65px,18vw,80px)':'40px'};box-shadow:0 4px 0 rgba(0,0,0,.4)`;}
+    // Check whether the control buttons actually ended up inside the
+    // visible viewport, once the browser has laid everything out — this
+    // is the concrete, measurable version of the long-standing "buttons
+    // hidden below the game area" complaint, so it shows up in the
+    // diagnose.html crash log instead of only being visible by eye.
+    requestAnimationFrame(()=>{
+      try{
+        const btns=document.getElementById('sn-btns')||document.getElementById('sn-hint');
+        if(btns){
+          const r=btns.getBoundingClientRect();
+          const hidden = r.bottom > window.innerHeight || r.top < 0;
+          console.log('[Snake-debug] Steuerknöpfe-Position: top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' → '+(hidden?'⚠️ AUSSERHALB des sichtbaren Bereichs!':'✅ sichtbar'));
+        }
+      }catch(e){}
+    });
 
     const cv=document.getElementById('sncv'),ctx=cv.getContext('2d');
     ctx.scale(DPR,DPR);
