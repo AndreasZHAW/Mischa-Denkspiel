@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v435';
+const APP_VERSION = 'v436';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v435 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v436 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -3320,14 +3320,36 @@ const DSChat = {
     if(this.open){ this._ensurePanel(); this._startListen(); this._refreshTargets(); }
   },
   close(){ this.open=false; const p=document.getElementById('ds-chat-panel'); if(p)p.style.display='none'; },
+  _fullscreen: false,
+  toggleFullscreen(){
+    const panel = document.getElementById('ds-chat-panel');
+    const msgs = document.getElementById('ds-chat-msgs');
+    const btn = document.getElementById('ds-chat-fs-btn');
+    if(!panel) return;
+    this._fullscreen = !this._fullscreen;
+    if(this._fullscreen){
+      panel.style.top='0'; panel.style.right='0'; panel.style.left='0'; panel.style.bottom='0';
+      panel.style.width='100vw'; panel.style.maxHeight='100vh'; panel.style.height='100vh';
+      panel.style.borderRadius='0';
+      if(msgs){ msgs.style.height='auto'; msgs.style.flex='1'; msgs.style.maxHeight='none'; }
+      if(btn){ btn.textContent='🗗'; btn.title='Vollbild verlassen'; }
+    } else {
+      panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
+      panel.style.width='min(420px,94vw)'; panel.style.maxHeight='80vh'; panel.style.height='';
+      panel.style.borderRadius='';
+      if(msgs){ msgs.style.height=''; msgs.style.flex=''; msgs.style.maxHeight='min(440px,55vh)'; }
+      if(btn){ btn.textContent='⛶'; btn.title='Vollbild'; }
+    }
+  },
   _ensurePanel(){
     if(document.getElementById('ds-chat-panel')) return;
     const div = document.createElement('div');
     div.id = 'ds-chat-panel';
-    div.style.cssText = 'position:fixed;bottom:0;left:0;width:min(420px,94vw);max-height:80vh;z-index:9000;display:none;flex-direction:column;background:#12202e;border-radius:10px 10px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.5);font-family:Arial,sans-serif';
+    div.style.cssText = 'position:fixed;bottom:0;left:0;width:min(420px,94vw);max-height:80vh;z-index:9000;display:none;flex-direction:column;background:#12202e;border-radius:10px 10px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.5);font-family:Arial,sans-serif;transition:all .25s ease';
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.1)">
         <span style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
+        <button id="ds-chat-fs-btn" onclick="DSChat.toggleFullscreen()" title="Vollbild" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">⛶</button>
         <button onclick="DSChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
       </div>
       <div style="padding:6px 10px">
@@ -3340,7 +3362,7 @@ const DSChat = {
         <input id="ds-chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off"
           style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
           onkeydown="if(event.key==='Enter')DSChat.send()">
-        <button onclick="DSChat.pickImage()" title="Bild senden" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
+        <button onclick="DSChat.pickImage()" title="Screenshot machen" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
         <button onclick="DSChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
       </div>`;
     document.body.appendChild(div);
@@ -3368,22 +3390,49 @@ const DSChat = {
     this._addMsg(data.from, data.msg, true, to);
     try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).catch(()=>{}); }catch(e){}
   },
-  pickImage(){
-    const inp = document.createElement('input');
-    inp.type='file'; inp.accept='image/*';
-    inp.onchange = () => { if(inp.files?.[0]) this._sendImageFile(inp.files[0]); };
-    inp.click();
-  },
-  async _sendImageFile(file){
+  async pickImage(){
     try{
-      const dataUrl = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+      const stream = await navigator.mediaDevices.getDisplayMedia({video:true});
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+      await new Promise(r=>setTimeout(r,150));
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      stream.getTracks().forEach(t=>t.stop());
+      this._showScreenshotPreview(canvas.toDataURL('image/png'));
+    }catch(e){
+      if(e.name!=='NotAllowedError' && typeof showAlert==='function') showAlert('❌ Screenshot fehlgeschlagen: '+e.message);
+    }
+  },
+  _showScreenshotPreview(dataUrl){
+    const existing=document.getElementById('ds-screenshot-preview'); if(existing) existing.remove();
+    const ov=document.createElement('div');
+    ov.id='ds-screenshot-preview';
+    ov.style.cssText='position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.innerHTML=`
+      <div style="background:#12202e;border-radius:16px;padding:16px;max-width:min(500px,92vw);max-height:90vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+        <div style="color:#FFD700;font-weight:700;font-size:1rem;text-align:center">📸 Screenshot senden?</div>
+        <img src="${dataUrl}" style="max-width:100%;max-height:55vh;border-radius:10px;object-fit:contain;align-self:center">
+        <div style="display:flex;gap:8px">
+          <button id="ds-ss-cancel" style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">✕ Abbrechen</button>
+          <button id="ds-ss-confirm" style="flex:1;background:#2980B9;border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">✅ Senden</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    document.getElementById('ds-ss-cancel').onclick=()=>ov.remove();
+    document.getElementById('ds-ss-confirm').onclick=()=>{ ov.remove(); this._sendImageDataUrl(dataUrl); };
+  },
+  async _sendImageDataUrl(dataUrl){
+    try{
       const img = await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=dataUrl; });
-      const maxDim=500, scale=Math.min(1,maxDim/Math.max(img.width,img.height));
+      const maxDim=700, scale=Math.min(1,maxDim/Math.max(img.width,img.height));
       const cw=Math.round(img.width*scale), ch=Math.round(img.height*scale);
       const canvas=document.createElement('canvas'); canvas.width=cw; canvas.height=ch;
       canvas.getContext('2d').drawImage(img,0,0,cw,ch);
-      const compressed=canvas.toDataURL('image/jpeg',0.6);
-      if(compressed.length>900000){ if(typeof showAlert==='function') showAlert('❌ Bild zu gross, bitte ein kleineres wählen.'); return; }
+      const compressed=canvas.toDataURL('image/jpeg',0.65);
+      if(compressed.length>900000){ if(typeof showAlert==='function') showAlert('❌ Bild zu gross zum Senden.'); return; }
       const targetSel=document.getElementById('ds-chat-target');
       const to=targetSel?(targetSel.value||null):null;
       const me=State.currentPlayer?.name||'?';
@@ -3395,7 +3444,7 @@ const DSChat = {
   _addMsg(from, msg, isMine, to, img){
     const el=document.getElementById('ds-chat-msgs'); if(!el) return;
     const d=document.createElement('div');
-    d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;';
+    d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
     const escFn = typeof $esc==='function' ? $esc : (s)=>String(s||'').replace(/</g,'&lt;');
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+escFn(to):'')+'</span><br>' : '';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';

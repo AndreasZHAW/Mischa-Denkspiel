@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v435 -->
+<!-- ZOO v436 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=435"></script>
-<script src="rewardchests.js?v=435"></script>
-<script src="personality.js?v=435"></script>
+<script src="lang.js?v=436"></script>
+<script src="rewardchests.js?v=436"></script>
+<script src="personality.js?v=436"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v435','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v436','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=435"></script>
-<script src="worlds.js?v=435"></script>
+<script src="firebase-state.js?v=436"></script>
+<script src="worlds.js?v=436"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9454,31 +9454,61 @@ const ZChat = {
   // so the base64 result comfortably fits in a single Firestore document
   // (1MB limit), then stored in the same zoo_chat collection as a normal
   // message but with an `img` field instead of/alongside text.
-  pickImage(){
-    const inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = 'image/*';
-    inp.onchange = () => { if(inp.files?.[0]) this._sendImageFile(inp.files[0]); };
-    inp.click();
-  },
-  async _sendImageFile(file){
+  // Take a screenshot directly (screen/tab capture), show a preview with
+  // a confirm/cancel step, then send only if the person actually confirms.
+  async pickImage(){
     try{
-      const dataUrl = await new Promise((res,rej)=>{
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      });
+      const stream = await navigator.mediaDevices.getDisplayMedia({video:true});
+      const track = stream.getVideoTracks()[0];
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+      // Grab a single frame, then immediately stop sharing — we only
+      // need one still image, not an ongoing screen share.
+      await new Promise(r=>setTimeout(r,150)); // let the first frame actually render
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      stream.getTracks().forEach(t=>t.stop());
+      const fullDataUrl = canvas.toDataURL('image/png');
+      this._showScreenshotPreview(fullDataUrl);
+    }catch(e){
+      // Person cancelled the share picker, or the browser doesn't support
+      // it — either way, no error toast needed for a simple cancel.
+      if(e.name!=='NotAllowedError') ZP.toast('❌ Screenshot fehlgeschlagen: '+e.message,3000);
+    }
+  },
+  _showScreenshotPreview(dataUrl){
+    const existing=document.getElementById('screenshot-preview'); if(existing) existing.remove();
+    const ov=document.createElement('div');
+    ov.id='screenshot-preview';
+    ov.style.cssText='position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.innerHTML=`
+      <div style="background:#12202e;border-radius:16px;padding:16px;max-width:min(500px,92vw);max-height:90vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+        <div style="color:#FFD700;font-weight:700;font-size:1rem;text-align:center">📸 Screenshot senden?</div>
+        <img src="${dataUrl}" style="max-width:100%;max-height:55vh;border-radius:10px;object-fit:contain;align-self:center">
+        <div style="display:flex;gap:8px">
+          <button id="ss-cancel" style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">✕ Abbrechen</button>
+          <button id="ss-confirm" style="flex:1;background:#2980B9;border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">✅ Senden</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    document.getElementById('ss-cancel').onclick=()=>ov.remove();
+    document.getElementById('ss-confirm').onclick=()=>{ ov.remove(); this._sendImageDataUrl(dataUrl); };
+  },
+  async _sendImageDataUrl(dataUrl){
+    try{
       const img = await new Promise((res,rej)=>{
         const im = new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=dataUrl;
       });
-      const maxDim = 500;
+      const maxDim = 700;
       const scale = Math.min(1, maxDim/Math.max(img.width,img.height));
       const cw = Math.round(img.width*scale), ch = Math.round(img.height*scale);
       const canvas = document.createElement('canvas');
       canvas.width = cw; canvas.height = ch;
       canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
-      const compressed = canvas.toDataURL('image/jpeg', 0.6);
-      if(compressed.length > 900000){ ZP.toast('❌ Bild zu gross, bitte ein kleineres wählen.',3000); return; }
+      const compressed = canvas.toDataURL('image/jpeg', 0.65);
+      if(compressed.length > 900000){ ZP.toast('❌ Bild zu gross zum Senden.',3000); return; }
       const targetSel = document.getElementById('chat-target');
       const to = targetSel ? (targetSel.value||null) : null;
       const data = { from: ZS.player||'?', msg:'', at: Date.now(), to: to||null, img: compressed };
@@ -9486,7 +9516,7 @@ const ZChat = {
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
         _db.collection('zoo_chat').add(data).catch(()=>{ ZP.toast('❌ Bild konnte nicht gesendet werden.',2500); });
       }
-    }catch(e){ ZP.toast('❌ Fehler beim Senden des Bildes: '+e.message,3000); }
+    }catch(e){ ZP.toast('❌ Fehler beim Senden: '+e.message,3000); }
   },
 
   // Add message to UI
@@ -9494,7 +9524,7 @@ const ZChat = {
     const el = document.getElementById('chat-msgs');
     if(!el) return;
     const d = document.createElement('div');
-    d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;';
+    d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+$esc(to):'')+'</span><br>' : '';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
     if(isMine){
@@ -13551,7 +13581,7 @@ window.ZooEvents = ZooEvents;
     <input id="chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off" 
       style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
       onkeydown="if(event.key==='Enter')ZChat.send()">
-    <button onclick="ZChat.pickImage()" title="Bild/Screenshot senden" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
+    <button onclick="ZChat.pickImage()" title="Screenshot machen" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
     <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
   </div>
 </div>
