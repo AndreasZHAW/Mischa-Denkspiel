@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v444 -->
+<!-- ZOO v446 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=444"></script>
-<script src="rewardchests.js?v=444"></script>
-<script src="personality.js?v=444"></script>
+<script src="lang.js?v=446"></script>
+<script src="rewardchests.js?v=446"></script>
+<script src="personality.js?v=446"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v444','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v446','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -399,12 +399,23 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 
 <div class="zp off" id="p-report"><div class="zpi">
   <button class="pcls" onclick="ZP.close('report')">✕</button>
-  <div class="pmenu-title">📢 Frage / Fehler melden</div>
-  <div style="padding:4px">
+  <div class="pmenu-title">📢 Melden</div>
+  <div id="report-choice" style="padding:4px">
+    <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:12px">Was möchtest du melden?</div>
+    <button onclick="ZP._showReportKind('bug')" style="width:100%;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:13px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">🐛 Frage / Fehler melden</button>
+    <button onclick="ZP._showReportKind('player')" style="width:100%;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:13px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">🚩 Spieler melden</button>
+  </div>
+  <div id="report-bug" style="padding:4px;display:none">
     <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:8px">Schreibe deine Frage oder melde einen Fehler. Der Admin sieht deine Meldung.</div>
     <textarea id="report-text" placeholder="z.B. Der Shop lädt nicht richtig..." maxlength="300" rows="4" style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.9rem;resize:none;box-sizing:border-box;margin-bottom:8px"></textarea>
     <button onclick="ZP._sendReport()" style="width:100%;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:13px;border-radius:10px;font-weight:900;font-size:.95rem;cursor:pointer">📢 Meldung absenden</button>
     <div id="report-status" style="text-align:center;font-size:.78rem;color:rgba(255,255,255,.4);margin-top:8px"></div>
+    <div onclick="ZP._backToReportChoice()" style="text-align:center;font-size:.78rem;color:rgba(255,255,255,.4);margin-top:10px;cursor:pointer">← Zurück</div>
+  </div>
+  <div id="report-player" style="padding:4px;display:none">
+    <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:8px">Welchen Spieler möchtest du melden? Du wirst danach zur ausführlichen Meldeseite weitergeleitet (dieselbe wie im Denkspiel — mit Grund und Beschreibung).</div>
+    <div id="report-player-list" style="max-height:260px;overflow-y:auto;margin-bottom:8px"></div>
+    <div onclick="ZP._backToReportChoice()" style="text-align:center;font-size:.78rem;color:rgba(255,255,255,.4);margin-top:6px;cursor:pointer">← Zurück</div>
   </div>
 </div></div>
 <div class="zp off" id="p-sound"><div class="zpi">
@@ -501,8 +512,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=444"></script>
-<script src="worlds.js?v=444"></script>
+<script src="firebase-state.js?v=446"></script>
+<script src="worlds.js?v=446"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2654,6 +2665,15 @@ const ZG={
             if(d.type==='animal_walk'&&d.buyer!==ZS.player){
               ZP.toast(`${d.animal.e} ${d.animal.n} läuft zu ${d.buyer}'s Zoo! ⚔️`,3000);
               this._animalWalk(d.animal,d.slot,'#ff6b6b');
+            }
+            // Every other admin-issued event in this same collection
+            // (give spins, guarantee a spin, freeze/launch/jail a player,
+            // bring/possess, etc.) used to be written here but never had
+            // anything actually listening for it — _handleAdminEvent()
+            // existed with all the right logic, it just wasn't wired up
+            // to any subscription at all.
+            else if(d.type && d.type!=='animal_walk'){
+              try{ if(typeof _handleAdminEvent==='function') _handleAdminEvent(d); }catch(e){}
             }
           });
         });
@@ -6195,6 +6215,13 @@ const LW={
       {l:'300.000 MT',mt:300000,c:8,col:'#FF4500'},{l:'800.000 MT',mt:800000,c:5,col:'#fff'},
       {l:'2x Glück 1h',mt:0,c:4,col:'#27AE60',boost:'lucky'},{l:'🎉 Wochenend-Slap!',mt:0,c:.5,col:'#ff69b4',slap:'weekend'},
     ]},
+    winter:{name:'Winter-Rad',emoji:'❄️',glowCol:'#5DADE2',prizes:[
+      {l:'2.500 MT',mt:2500,c:27,col:'#5DADE2'},{l:'9.000 MT',mt:9000,c:20,col:'#AED6F1'},
+      {l:'28.000 MT',mt:28000,c:14,col:'#5DADE2'},{l:'75.000 MT',mt:75000,c:9,col:'#2980B9'},
+      {l:'180.000 MT',mt:180000,c:4,col:'#fff'},
+      {l:'🐧 Pinguin!',mt:0,c:2.5,col:'#5DADE2',animal:{id:'penguin_winter',n:'Pinguin',e:'🐧',r:'epic',p:0,earn:45},exclusive:true},
+      {l:'❄️ Ice Slap!',mt:0,c:1.5,col:'#00CFFF',slap:'ice'},
+    ]},
     christmas:{name:'Weihnachts-Rad',emoji:'🎄',glowCol:'#C0392B',prizes:[
       {l:'2.000 MT',mt:2000,c:28,col:'#C0392B'},{l:'8.000 MT',mt:8000,c:21,col:'#27AE60'},
       {l:'25.000 MT',mt:25000,c:15,col:'#C0392B'},{l:'70.000 MT',mt:70000,c:10,col:'#27AE60'},
@@ -8669,6 +8696,61 @@ const ZP={
     if(s)s.textContent='';
     const ta=document.getElementById('report-text');
     if(ta)ta.value='';
+    this._backToReportChoice();
+  },
+  _backToReportChoice(){
+    const choice=document.getElementById('report-choice');
+    const bug=document.getElementById('report-bug');
+    const player=document.getElementById('report-player');
+    if(choice)choice.style.display='block';
+    if(bug)bug.style.display='none';
+    if(player)player.style.display='none';
+  },
+  async _showReportKind(kind){
+    const choice=document.getElementById('report-choice');
+    const bug=document.getElementById('report-bug');
+    const player=document.getElementById('report-player');
+    if(choice)choice.style.display='none';
+    if(kind==='bug'){
+      if(bug)bug.style.display='block';
+      if(player)player.style.display='none';
+      return;
+    }
+    // kind === 'player'
+    if(bug)bug.style.display='none';
+    if(player)player.style.display='block';
+    const listEl=document.getElementById('report-player-list');
+    if(listEl)listEl.innerHTML='<div style="text-align:center;padding:14px;color:rgba(255,255,255,.4)">⏳ Lade Spieler...</div>';
+    try{
+      // Same player list source used elsewhere (admin panel, leaderboard) —
+      // everyone with either a Zoo or Denkspiel account, deduplicated.
+      const names=new Set();
+      if(typeof _db!=='undefined'&&_db){
+        const [zoosSnap,mpSnap]=await Promise.all([
+          _db.collection('zoos').get({source:'server'}).catch(()=>null),
+          _db.collection('mischa_players').get({source:'server'}).catch(()=>null)
+        ]);
+        if(zoosSnap)zoosSnap.forEach(doc=>{const n=doc.id.startsWith('zoo_')?doc.id.slice(4):doc.id; if(n)names.add(n);});
+        if(mpSnap)mpSnap.forEach(doc=>{const n=doc.data()?.name||doc.id; if(n)names.add(n);});
+      }
+      names.delete((ZS.player||'').toLowerCase());
+      names.delete(ZS.player||'');
+      const sorted=[...names].filter(n=>n&&n.toLowerCase()!==(ZS.player||'').toLowerCase()).sort((a,b)=>a.localeCompare(b));
+      if(!sorted.length){ if(listEl)listEl.innerHTML='<div style="text-align:center;padding:14px;color:rgba(255,255,255,.4)">Keine anderen Spieler gefunden.</div>'; return; }
+      if(listEl)listEl.innerHTML=sorted.map(n=>`
+        <div onclick="ZP._goReportPlayer('${$esc(n)}')" style="padding:10px 14px;margin-bottom:4px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:10px;border:1.5px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)">
+          <span style="font-size:1.1rem">👤</span><span style="flex:1;font-weight:700">${$esc(n)}</span><span style="color:rgba(255,255,255,.3)">→</span>
+        </div>`).join('');
+    }catch(e){
+      if(listEl)listEl.innerHTML='<div style="text-align:center;padding:14px;color:#E74C3C">❌ Fehler: '+e.message+'</div>';
+    }
+  },
+  // Hands off to the exact same player-report page used in the Denkspiel
+  // (App.reportPlayer) — reports land in the identical place the admin
+  // (via the flag icon on the Welt-1 leaderboard) already checks, rather
+  // than creating a second, separate reporting system just for the Zoo.
+  _goReportPlayer(name){
+    location.href='index.html?fromZoo=1&reportPlayer='+encodeURIComponent(name);
   },
   async _sendReport(){
     const text=document.getElementById('report-text')?.value?.trim();
@@ -11627,17 +11709,38 @@ const ZAdmin = {
     if(targetInput) targetInput.value='';
   },
 
+  // Globally switches the active lucky wheel for ALL players — reuses the
+  // exact same broadcast mechanism as ZP._setWheel() (which already works
+  // correctly), since ZAdmin.setWheel() didn't exist at all before this.
+  setWheel(type){
+    if(typeof LW==='undefined'||!LW.WHEELS?.[type]){ZP.toast('❌ Unbekannter Rad-Typ: '+type,2500);return;}
+    LW.setType(type,0);
+    const names={normal:'Glücksrad',halloween:'Halloween-Rad',winter:'Winter-Rad',spring:'Frühlings-Rad',france:'Frankreich-Rad',weekend:'Wochenend-Rad',christmas:'Weihnachts-Rad'};
+    const label=names[type]||LW.W?.name||type;
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        _db.collection('zoo_broadcast').doc('wheel').set({type,at:Date.now(),name:label});
+      }
+    }catch(e){}
+    ZP.toast((LW.W?.emoji||'🎡')+' '+label+' für alle aktiviert!',2500);
+    this.close?.('adm');
+  },
   guaranteeSpin(){
-    if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
+    let targetName=this.target?.name;
+    if(!targetName){
+      const fieldVal=document.getElementById('padmin-spins-target')?.value?.trim();
+      targetName=fieldVal||prompt('Für welchen Spieler soll der nächste Spin garantiert werden?','')?.trim();
+    }
+    if(!targetName){ZP.toast('❗ Spieler auswählen oder Namen eingeben!',2000);return;}
     const prizeId=document.getElementById('padmin-spin-prize')?.value||'lucky';
     if(!this._checkCD('guaranteeSpin'))return;
     try{if(typeof _db!=='undefined'&&_db){
       _db.collection('zoo_events').add({
-        type:'admin_spin_guarantee',target:this.target.name.toLowerCase(),
+        type:'admin_spin_guarantee',target:targetName.toLowerCase(),
         prizeId,from:ZS.player,at:Date.now()
       }).catch(()=>{});
     }}catch(e){}
-    ZP.toast('🎯 '+this.target.name+': nächster Spin = '+prizeId+'!',2500);
+    ZP.toast('🎯 '+targetName+': nächster Spin = '+prizeId+'!',2500);
   },
 
   triggerEvent(){
@@ -13811,7 +13914,7 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#2980B9" onclick="ZAdmin.setWheel('winter')">❄️ Winter</button>
             <button class="padmin-btn" style="background:#27AE60" onclick="ZAdmin.setWheel('spring')">🌸 Frühling</button>
             <button class="padmin-btn" style="background:#3498DB" onclick="ZAdmin.setWheel('france')">🇫🇷 Frankreich</button>
-            <button class="padmin-btn" style="background:#8E44AD" onclick="ZAdmin.guaranteedSpin()">⭐ Garantiert nächster</button>
+            <button class="padmin-btn" style="background:#8E44AD" onclick="ZAdmin.guaranteeSpin()">⭐ Garantiert nächster</button>
           </div>
         </div>
         <!-- TAB: BELOHNUNGEN -->
