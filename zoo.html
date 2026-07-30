@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v439 -->
+<!-- ZOO v441 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=439"></script>
-<script src="rewardchests.js?v=439"></script>
-<script src="personality.js?v=439"></script>
+<script src="lang.js?v=441"></script>
+<script src="rewardchests.js?v=441"></script>
+<script src="personality.js?v=441"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v439','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v441','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -501,8 +501,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=439"></script>
-<script src="worlds.js?v=439"></script>
+<script src="firebase-state.js?v=441"></script>
+<script src="worlds.js?v=441"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9348,7 +9348,7 @@ const ZChat = {
     const b = document.getElementById('chat-toggle-btn');
     if(p) p.style.display = this.open ? 'flex' : 'none';
     if(p) p.style.flexDirection = 'column';
-    if(this.open){ this._startListen(); this._refreshTargets(); }
+    if(this.open){ this._loadHistory(); this._startListen(); this._refreshTargets(); }
     else this._stopListen();
   },
   
@@ -9402,6 +9402,7 @@ const ZChat = {
       p.style.width = 'clamp(260px, 25vw, 420px)';
       p.style.maxHeight = 'clamp(200px, 25vh, 400px)';
     }
+    this._loadHistory();
     this._startListen();
   },
   
@@ -9564,6 +9565,28 @@ const ZChat = {
   
   // Listen for incoming chat messages
   _shownIds: new Set(),
+  // Always safe to call repeatedly (e.g. every time the chat panel is
+  // opened) — clears whatever's currently rendered and reloads fresh
+  // from the database. This is what guarantees messages reappear
+  // correctly after logout/login or any other reset, instead of relying
+  // on a single one-time load that could be skipped or get out of sync.
+  _loadHistory(){
+    if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+    const el = document.getElementById('chat-msgs');
+    if(el) el.innerHTML='';
+    this._shownIds = new Set();
+    const RETENTION_MS = 8*24*3600*1000;
+    const historyStart = Date.now() - RETENTION_MS;
+    _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
+      const docs=[]; snap.forEach(doc=>docs.push({id:doc.id,...doc.data()}));
+      console.log('[Chat-debug] Verlauf (neu) geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
+      docs.reverse().forEach(d=>{
+        this._shownIds.add(d.id); // track even messages we don't render, so a later delete of e.g. someone else's private msg doesn't error
+        if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
+        this._addMsg(d.from, d.msg, d.from===ZS.player, d.to, d.img, d.id);
+      });
+    }).catch(e=>{ console.log('[Chat-debug] Verlauf-Ladefehler: '+e.message); });
+  },
   _startListen(attempt){
     if(this._msgUnsub) return;
     try{
@@ -9572,21 +9595,8 @@ const ZChat = {
         if((attempt||0)<20) setTimeout(()=>this._startListen((attempt||0)+1),200);
         return;
       }
-      // Load recent HISTORY first — old messages should stay visible when
-      // you open the chat, not just whatever gets sent from this exact
-      // moment onward. Shows up to the last 200 messages from the last
-      // 8 days (the agreed default retention window).
       const RETENTION_MS = 8*24*3600*1000;
       const historyStart = Date.now() - RETENTION_MS;
-      _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
-        const docs=[]; snap.forEach(doc=>docs.push({id:doc.id,...doc.data()}));
-        console.log('[Chat-debug] Verlauf geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
-        docs.reverse().forEach(d=>{
-          this._shownIds.add(d.id); // track even messages we don't render, so a later delete of e.g. someone else's private msg doesn't error
-          if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
-          if(d.from!==ZS.player) this._addMsg(d.from, d.msg, false, d.to, d.img, d.id);
-        });
-      }).catch(e=>{ console.log('[Chat-debug] Verlauf-Ladefehler: '+e.message); });
       // Opportunistic cleanup: once per session, quietly delete anything
       // older than the retention window instead of running a scheduled
       // job server-side. Cheap and self-correcting — worst case it just
@@ -13610,6 +13620,7 @@ window.ZooEvents = ZooEvents;
   <!-- Header -->
   <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
     <span id="chat-title" style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
+    <span title="Nachrichten werden automatisch nach 8 Tagen gelöscht. Ein Administrator kann einzelne Nachrichten jederzeit löschen." style="color:rgba(255,255,255,.5);font-size:.9rem;cursor:help;padding:0 2px">ℹ️</span>
     <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">🎤</button>
     <button id="chat-fs-btn" onclick="ZChat.toggleFullscreen()" title="Vollbild" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">⛶</button>
     <button onclick="ZChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>

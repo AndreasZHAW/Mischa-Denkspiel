@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v439';
+const APP_VERSION = 'v441';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v439 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v441 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -3307,7 +3307,7 @@ const DSChat = {
     this.open = !this.open;
     const p = document.getElementById('ds-chat-panel');
     if(p) p.style.display = this.open ? 'flex' : 'none';
-    if(this.open){ this._ensurePanel(); this._startListen(); this._refreshTargets(); }
+    if(this.open){ this._ensurePanel(); this._loadHistory(); this._startListen(); this._refreshTargets(); }
   },
   close(){ this.open=false; const p=document.getElementById('ds-chat-panel'); if(p)p.style.display='none'; },
   _fullscreen: false,
@@ -3339,6 +3339,7 @@ const DSChat = {
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.1)">
         <span style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
+        <span title="Nachrichten werden automatisch nach 8 Tagen gelöscht. Ein Administrator kann einzelne Nachrichten jederzeit löschen." style="color:rgba(255,255,255,.5);font-size:.9rem;cursor:help;padding:0 2px">ℹ️</span>
         <button id="ds-chat-fs-btn" onclick="DSChat.toggleFullscreen()" title="Vollbild" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">⛶</button>
         <button onclick="DSChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
       </div>
@@ -3472,6 +3473,27 @@ const DSChat = {
     if(row) row.remove();
   },
   _shownIds: new Set(),
+  // Always safe to call repeatedly — clears whatever's rendered and
+  // reloads fresh from the database. Guarantees messages reappear
+  // correctly after logout/login, instead of relying on a one-time load.
+  _loadHistory(){
+    if(typeof _db==='undefined'||!_db||!State._useCloud()) return;
+    const el=document.getElementById('ds-chat-msgs');
+    if(el) el.innerHTML='';
+    this._shownIds = new Set();
+    const RETENTION_MS = 8*24*3600*1000;
+    const historyStart = Date.now()-RETENTION_MS;
+    const me = (State.currentPlayer?.name||'').toLowerCase();
+    _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
+      const docs=[]; snap.forEach(doc=>docs.push({id:doc.id,...doc.data()}));
+      console.log('[Chat-debug] DSChat Verlauf (neu) geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
+      docs.reverse().forEach(d=>{
+        this._shownIds.add(d.id);
+        if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
+        this._addMsg(d.from,d.msg,d.from===State.currentPlayer?.name,d.to,d.img,d.id);
+      });
+    }).catch(e=>{ console.log('[Chat-debug] DSChat Verlauf-Ladefehler: '+e.message); });
+  },
   _startListen(attempt){
     if(this._msgUnsub) return;
     try{
@@ -3482,15 +3504,6 @@ const DSChat = {
       const RETENTION_MS = 8*24*3600*1000;
       const historyStart = Date.now()-RETENTION_MS;
       const me = (State.currentPlayer?.name||'').toLowerCase();
-      _db.collection('zoo_chat').where('at','>',historyStart).orderBy('at','desc').limit(200).get().then(snap=>{
-        const docs=[]; snap.forEach(doc=>docs.push({id:doc.id,...doc.data()}));
-        console.log('[Chat-debug] DSChat Verlauf geladen: '+docs.length+' Nachrichten (Fenster: 8 Tage)');
-        docs.reverse().forEach(d=>{
-          this._shownIds.add(d.id);
-          if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
-          if(d.from!==State.currentPlayer?.name) this._addMsg(d.from,d.msg,false,d.to,d.img,d.id);
-        });
-      }).catch(e=>{ console.log('[Chat-debug] DSChat Verlauf-Ladefehler: '+e.message); });
       if(!this._cleanupDone){
         this._cleanupDone=true;
         _db.collection('zoo_chat').where('at','<',historyStart).limit(300).get().then(snap=>{
@@ -3531,6 +3544,7 @@ const DSChat = {
     if(this.open) return;
     this.open=true;
     this._ensurePanel();
+    this._loadHistory();
     const p=document.getElementById('ds-chat-panel');
     if(p) p.style.display='flex';
   },
