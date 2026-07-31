@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v455';
+const APP_VERSION = 'v456';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -360,8 +360,10 @@ const App = {
   // become visible to anyone else in the chat.
   _modUnsub: null,
   async showImageModeration(){
+    console.log('[Chat-debug] Bildkontrolle: showImageModeration() aufgerufen.');
     await window._firebaseLoadPromise.catch(()=>{});
     try { initFirebase(); } catch(e) {}
+    console.log('[Chat-debug] Bildkontrolle: Firebase-Init abgeschlossen. _db verfügbar='+(typeof _db!=='undefined'&&!!_db));
     this._html(`
       <div style="min-height:100vh;background:#0d1520;padding:20px;font-family:Arial,sans-serif">
         <div style="max-width:640px;margin:0 auto">
@@ -383,12 +385,27 @@ const App = {
   },
   _listenImageModeration(){
     if(this._modUnsub) return;
-    if(typeof _db==='undefined'||!_db){ setTimeout(()=>this._listenImageModeration(),500); return; }
-    this._modUnsub = _db.collection('zoo_chat').where('pending','==',true).orderBy('at','desc').limit(100)
+    console.log('[Chat-debug] Bildkontrolle: _listenImageModeration() aufgerufen. _db verfügbar='+(typeof _db!=='undefined'&&!!_db));
+    if(typeof _db==='undefined'||!_db){ console.log('[Chat-debug] Bildkontrolle: _db noch nicht bereit, versuche in 500ms erneut.'); setTimeout(()=>this._listenImageModeration(),500); return; }
+    const el=document.getElementById('img-mod-list');
+    if(el) el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.4);padding:30px">⏳ Verbinde mit Datenbank...</div>';
+    // No orderBy here on purpose — combining an equality filter (pending)
+    // with orderBy on a DIFFERENT field (at) needs a Firestore composite
+    // index, which almost certainly doesn't exist yet for this brand-new
+    // query. Without it the query fails outright and the UI would just
+    // sit on "Lade..." forever with the actual error only visible in the
+    // console. Sorting the (small) result client-side avoids that entirely.
+    this._modUnsub = _db.collection('zoo_chat').where('pending','==',true).limit(100)
       .onSnapshot(snap=>{
         const items=[]; snap.forEach(doc=>items.push({id:doc.id,...doc.data()}));
+        items.sort((a,b)=>(b.at||0)-(a.at||0));
+        console.log('[Chat-debug] Bildkontrolle: '+items.length+' unbestätigte Bilder geladen.');
         this._renderImageModeration(items);
-      }, e=>{ console.log('[Chat-debug] Bildkontrolle-Listener-Fehler: '+e.message); });
+      }, e=>{
+        console.log('[Chat-debug] Bildkontrolle-Listener-Fehler: '+e.code+' — '+e.message);
+        const el2=document.getElementById('img-mod-list');
+        if(el2) el2.innerHTML='<div style="text-align:center;color:#E74C3C;padding:30px">❌ Fehler beim Laden: '+e.message+'</div>';
+      });
   },
   _renderImageModeration(items){
     const el=document.getElementById('img-mod-list');
@@ -441,7 +458,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v455 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v456 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
