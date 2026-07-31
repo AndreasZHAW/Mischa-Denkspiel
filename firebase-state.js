@@ -289,14 +289,14 @@ const State = {
   },
 
   async login(name, password) {
-    // First try local storage (instant, no network needed)
     const localPlayer = this._local.get(name.toLowerCase());
-    if (localPlayer && localPlayer.password === password) {
-      this._syncDeviceIdOnLogin(localPlayer);
-      await this._claimSession(localPlayer.name).catch(()=>{});
-      return { ok: true, player: localPlayer };
-    }
-    // Then try cloud with timeout
+    // Always try the cloud FIRST — it's the only place that reflects
+    // progress made on any OTHER device/browser since this one was last
+    // used. Trusting local storage first (the old behavior) meant that
+    // switching between browsers/devices could silently lose progress:
+    // whichever browser you happened to open next would show its own
+    // stale cached data instead of the actual latest state, and could
+    // even overwrite the cloud with that stale data on its next save.
     let player = null;
     try {
       player = await Promise.race([
@@ -304,17 +304,23 @@ const State = {
         new Promise(r => setTimeout(() => r(null), 5000))
       ]);
     } catch(e) { player = null; }
-    if (!player) {
-      // If local exists but wrong pw
-      if (localPlayer) return { ok: false, error: 'Falsches Passwort' };
-      return { ok: false, error: 'Spieler nicht gefunden (Verbindungsproblem?)' };
+    if (player) {
+      if (player.password !== password) return { ok: false, error: 'Falsches Passwort' };
+      this._local.save(player);
+      this._syncDeviceIdOnLogin(player);
+      await this._claimSession(player.name).catch(()=>{});
+      return { ok: true, player };
     }
-    if (player.password !== password) return { ok: false, error: 'Falsches Passwort' };
-    // Cache locally
-    this._local.save(player);
-    this._syncDeviceIdOnLogin(player);
-    await this._claimSession(player.name).catch(()=>{});
-    return { ok: true, player };
+    // Cloud unreachable (offline / slow connection) — fall back to
+    // whatever's cached locally on THIS device, so the game still works
+    // without a connection, just without the cross-device guarantee.
+    if (localPlayer && localPlayer.password === password) {
+      this._syncDeviceIdOnLogin(localPlayer);
+      await this._claimSession(localPlayer.name).catch(()=>{});
+      return { ok: true, player: localPlayer };
+    }
+    if (localPlayer) return { ok: false, error: 'Falsches Passwort' };
+    return { ok: false, error: 'Spieler nicht gefunden (Verbindungsproblem?)' };
   },
 
   // ── SESSION LOCK ── one active device per account. A second device

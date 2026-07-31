@@ -8,7 +8,12 @@ const TetrisGame = {
     const isMobile = window.innerWidth < 750;
     // Cell size: fit both width AND height of available space
     const elW = Math.max(el.offsetWidth||320, window.innerWidth * 0.5);
-    const elH = window.innerHeight - 200; // space for header/buttons
+    // iOS Safari's toolbar can retract/expand during play, so
+    // window.innerHeight at game-start isn't necessarily the height
+    // that's actually available a moment later — reserve extra margin
+    // (was 200px) so the control buttons below the board don't end up
+    // pushed just past the edge once the toolbar reappears.
+    const elH = window.innerHeight - (isMobile ? 260 : 200);
     const csFromW = Math.floor((Math.min(elW, isMobile ? 420 : 340)) / COLS);
     const csFromH = Math.floor(elH / ROWS);
     const CS = Math.max(18, Math.min(csFromW, csFromH));
@@ -60,6 +65,18 @@ const TetrisGame = {
     </div>`;
 
     function BTN(c){return `background:${c};color:#fff;border:2px solid rgba(255,255,255,.2);padding:12px 4px 10px;border-radius:12px;font-size:1.7rem;font-weight:900;cursor:pointer;width:100%;touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.7);-webkit-tap-highlight-color:transparent;line-height:1.2;text-align:center`;}
+
+    console.log('[Tetris-debug] Layout: innerWidth='+window.innerWidth+' innerHeight='+window.innerHeight+' isMobile='+isMobile+' CS='+CS+' Board='+BW+'x'+BH);
+    requestAnimationFrame(()=>{
+      try{
+        const btnRow=document.getElementById('tr-left')?.closest('div');
+        if(btnRow){
+          const r=btnRow.getBoundingClientRect();
+          const hidden=r.bottom>window.innerHeight||r.top<0;
+          console.log('[Tetris-debug] Steuerknöpfe-Position: top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' → '+(hidden?'⚠️ AUSSERHALB des sichtbaren Bereichs!':'✅ sichtbar'));
+        }
+      }catch(e){}
+    });
 
     const cv=document.getElementById('trcv');
     const nxCv=document.getElementById('tr-next');
