@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v452';
+const APP_VERSION = 'v455';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -354,6 +354,64 @@ const App = {
   },
 
   // ---- WELCOME ----
+  // ── BILDKONTROLLE — dedicated, single-purpose review queue for chat
+  // images. Deliberately has no other capability (no player data, no
+  // admin actions) — just approve or reject pending images before they
+  // become visible to anyone else in the chat.
+  _modUnsub: null,
+  async showImageModeration(){
+    await window._firebaseLoadPromise.catch(()=>{});
+    try { initFirebase(); } catch(e) {}
+    this._html(`
+      <div style="min-height:100vh;background:#0d1520;padding:20px;font-family:Arial,sans-serif">
+        <div style="max-width:640px;margin:0 auto">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+            <div style="color:#FFD700;font-size:1.3rem;font-weight:900">🖼️ Bildkontrolle</div>
+            <button onclick="App._closeImageModeration()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer">🔒 Abmelden</button>
+          </div>
+          <div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:16px">Neue Bilder erscheinen hier automatisch. Erst nach Freigabe werden sie im Chat für alle sichtbar.</div>
+          <div id="img-mod-list" style="display:flex;flex-direction:column;gap:14px">
+            <div style="text-align:center;color:rgba(255,255,255,.4);padding:30px">⏳ Lade...</div>
+          </div>
+        </div>
+      </div>`);
+    this._listenImageModeration();
+  },
+  _closeImageModeration(){
+    if(this._modUnsub){ this._modUnsub(); this._modUnsub=null; }
+    this.showWelcome();
+  },
+  _listenImageModeration(){
+    if(this._modUnsub) return;
+    if(typeof _db==='undefined'||!_db){ setTimeout(()=>this._listenImageModeration(),500); return; }
+    this._modUnsub = _db.collection('zoo_chat').where('pending','==',true).orderBy('at','desc').limit(100)
+      .onSnapshot(snap=>{
+        const items=[]; snap.forEach(doc=>items.push({id:doc.id,...doc.data()}));
+        this._renderImageModeration(items);
+      }, e=>{ console.log('[Chat-debug] Bildkontrolle-Listener-Fehler: '+e.message); });
+  },
+  _renderImageModeration(items){
+    const el=document.getElementById('img-mod-list');
+    if(!el) return;
+    if(!items.length){ el.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.4);padding:30px">✅ Keine Bilder zur Prüfung.</div>'; return; }
+    el.innerHTML=items.map(it=>{
+      const time=new Date(it.at||0).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      return `<div style="background:#16222f;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="color:#FFD700;font-size:.85rem;font-weight:700">${(it.from||'?').replace(/</g,'&lt;')} <span style="color:rgba(255,255,255,.4);font-weight:400">· ${time}</span></div>
+        <img src="${it.img}" style="max-width:100%;border-radius:8px;object-fit:contain;max-height:400px">
+        <div style="display:flex;gap:8px">
+          <button onclick="App._rejectImage('${it.id}')" style="flex:1;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.4);color:#ff6b6b;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">🗑️ Ablehnen</button>
+          <button onclick="App._approveImage('${it.id}')" style="flex:1;background:#2ECC71;border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer;font-weight:700">✅ Freigeben</button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+  async _approveImage(id){
+    try{ await _db.collection('zoo_chat').doc(id).update({pending:false}); }catch(e){}
+  },
+  async _rejectImage(id){
+    try{ await _db.collection('zoo_chat').doc(id).delete(); }catch(e){}
+  },
   showWelcome() {
     // Apply saved font size immediately (new v267 single-key system)
     try { FontScale.apply(FontScale.load()); } catch(e) {}
@@ -383,7 +441,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v452 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v455 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -3348,7 +3406,7 @@ const DSChat = {
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.1)">
         <span style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
-        <span title="Nachrichten werden automatisch nach 8 Tagen gelöscht. Ein Administrator kann einzelne Nachrichten jederzeit löschen." style="color:rgba(255,255,255,.5);font-size:.9rem;cursor:help;padding:0 2px">ℹ️</span>
+        <span title="Nachrichten werden automatisch nach 8 Tagen gelöscht. Ein Administrator kann einzelne Nachrichten jederzeit löschen. Bilder werden vor der Darstellung auf ihren Inhalt geprüft und erscheinen erst danach für andere sichtbar." style="color:rgba(255,255,255,.5);font-size:.9rem;cursor:help;padding:0 2px">ℹ️</span>
         <button id="ds-chat-fs-btn" onclick="DSChat.toggleFullscreen()" title="Vollbild" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">⛶</button>
         <button onclick="DSChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
       </div>
@@ -3452,8 +3510,8 @@ const DSChat = {
       const targetSel=document.getElementById('ds-chat-target');
       const to=targetSel?(targetSel.value||null):null;
       const me=State.currentPlayer?.name||'?';
-      const data={ from:me, msg:'', at:Date.now(), to:to||null, img:compressed };
-      const el = this._addMsg(data.from,'',true,to,compressed,undefined,data.at);
+      const data={ from:me, msg:'', at:Date.now(), to:to||null, img:compressed, pending:true };
+      const el = this._addMsg(data.from,'⏳ Bild wird geprüft, bevor es andere sehen können...',true,to,compressed,undefined,data.at);
       if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{});
     }catch(e){}
   },
@@ -3500,7 +3558,9 @@ const DSChat = {
       docs.reverse().forEach(d=>{
         this._shownIds.add(d.id);
         if(d.to && d.to!==me && d.from!==State.currentPlayer?.name) return;
-        this._addMsg(d.from,d.msg,d.from===State.currentPlayer?.name,d.to,d.img,d.id,d.at);
+        if(d.img && d.pending && d.from!==State.currentPlayer?.name) return;
+        const txt = (d.img && d.pending) ? '⏳ Bild wird geprüft, bevor es andere sehen können...' : d.msg;
+        this._addMsg(d.from,txt,d.from===State.currentPlayer?.name,d.to,d.img,d.id,d.at);
       });
     }).catch(e=>{ console.log('[Chat-debug] DSChat Verlauf-Ladefehler: '+e.message); });
   },
@@ -3536,12 +3596,23 @@ const DSChat = {
             console.log('[Chat-debug] DSChat Nachricht entfernt (gelöscht): '+id);
             return;
           }
+          if(ch.type==='modified'){
+            const d=ch.doc.data();
+            if(d.img && !d.pending && !this._shownIds.has(id) && d.from!==State.currentPlayer?.name){
+              if(d.to && d.to!==me) return;
+              this._shownIds.add(id);
+              this._addMsg(d.from,d.msg,false,d.to,d.img,id,d.at);
+              this._autoOpen();
+            }
+            return;
+          }
           if(ch.type!=='added') return;
           if(this._shownIds.has(id)) return;
-          this._shownIds.add(id);
           const d=ch.doc.data();
           if(d.from===State.currentPlayer?.name) return;
           if(d.to && d.to!==me) return;
+          if(d.img && d.pending) return;
+          this._shownIds.add(id);
           this._addMsg(d.from,d.msg,false,d.to,d.img,id,d.at);
           this._autoOpen();
         });

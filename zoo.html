@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v452 -->
+<!-- ZOO v455 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=452"></script>
-<script src="rewardchests.js?v=452"></script>
-<script src="personality.js?v=452"></script>
+<script src="lang.js?v=455"></script>
+<script src="rewardchests.js?v=455"></script>
+<script src="personality.js?v=455"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v452','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v455','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -512,8 +512,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=452"></script>
-<script src="worlds.js?v=452"></script>
+<script src="firebase-state.js?v=455"></script>
+<script src="worlds.js?v=455"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9623,8 +9623,12 @@ const ZChat = {
       if(compressed.length > 900000){ ZP.toast('❌ Bild zu gross zum Senden.',3000); return; }
       const targetSel = document.getElementById('chat-target');
       const to = targetSel ? (targetSel.value||null) : null;
-      const data = { from: ZS.player||'?', msg:'', at: Date.now(), to: to||null, img: compressed };
-      const el = this._addMsg(data.from, '', true, to, compressed, undefined, data.at);
+      // Images go through content moderation before anyone else sees them
+      // — pending:true means only the sender (shown locally right away,
+      // with a "wird geprüft" note) and the image-review account can see
+      // it until it's approved.
+      const data = { from: ZS.player||'?', msg:'', at: Date.now(), to: to||null, img: compressed, pending: true };
+      const el = this._addMsg(data.from, '⏳ Bild wird geprüft, bevor es andere sehen können...', true, to, compressed, undefined, data.at);
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
         _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{ ZP.toast('❌ Bild konnte nicht gesendet werden.',2500); });
       }
@@ -9675,7 +9679,11 @@ const ZChat = {
       docs.reverse().forEach(d=>{
         this._shownIds.add(d.id); // track even messages we don't render, so a later delete of e.g. someone else's private msg doesn't error
         if(d.to && d.to!==(ZS.player||'').toLowerCase() && d.from!==ZS.player) return; // not for me
-        this._addMsg(d.from, d.msg, d.from===ZS.player, d.to, d.img, d.id, d.at);
+        // Pending images (not yet content-reviewed) stay invisible to
+        // everyone except the sender until approved.
+        if(d.img && d.pending && d.from!==ZS.player) return;
+        const txt = (d.img && d.pending) ? '⏳ Bild wird geprüft, bevor es andere sehen können...' : d.msg;
+        this._addMsg(d.from, txt, d.from===ZS.player, d.to, d.img, d.id, d.at);
       });
     }).catch(e=>{ console.log('[Chat-debug] Verlauf-Ladefehler: '+e.message); });
   },
@@ -9721,12 +9729,27 @@ const ZChat = {
               console.log('[Chat-debug] Nachricht entfernt (gelöscht): '+id);
               return;
             }
+            if(ch.type === 'modified'){
+              // A pending image just got approved (or rejected-but-not-deleted,
+              // shouldn't happen) — if we haven't shown it yet and it's no
+              // longer pending, show it now.
+              const d = ch.doc.data();
+              if(d.img && !d.pending && !this._shownIds.has(id) && d.from!==ZS.player){
+                if(d.to && d.to!==(ZS.player||'').toLowerCase()) return;
+                this._shownIds.add(id);
+                this._addMsg(d.from, d.msg, false, d.to, d.img, id, d.at);
+                ZSound.coin && ZSound.coin();
+                this._autoOpen();
+              }
+              return;
+            }
             if(ch.type !== 'added') return;
             if(this._shownIds.has(id)) return; // already shown via history load
-            this._shownIds.add(id);
             const d = ch.doc.data();
             if(d.from === ZS.player) return; // already shown locally when sent
             if(d.to && d.to!==(ZS.player||'').toLowerCase()) return; // private message not addressed to me
+            if(d.img && d.pending) return; // pending image — not visible to others yet
+            this._shownIds.add(id);
             this._addMsg(d.from, d.msg, false, d.to, d.img, id, d.at);
             ZSound.coin && ZSound.coin();
             this._autoOpen();
@@ -10874,12 +10897,17 @@ const ZAdmin = {
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   async deletePlayer(name){
-    if(!(await showConfirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)')))return;
+    console.log('[CL-debug] deletePlayer("'+name+'") aufgerufen — zeige Bestätigungsdialog...');
+    const confirmed = await showConfirm('⚠️ Wirklich «'+name+'» KOMPLETT löschen?\n(Zoo-Fortschritt UND Denkspiel-Account inkl. Rangliste-Eintrag — kann nicht rückgängig gemacht werden!)');
+    console.log('[CL-debug] deletePlayer("'+name+'") Bestätigungsdialog-Ergebnis: '+confirmed);
+    if(!confirmed)return;
     const k='zoo_'+name.toLowerCase();
+    console.log('[CL-debug] deletePlayer("'+name+'"): starte Löschvorgang. Doc-ID="'+k+'" _db verfügbar='+(typeof _db!=='undefined'&&!!_db)+' State.deletePlayer verfügbar='+(typeof State!=='undefined'&&typeof State.deletePlayer==='function'));
     let zooDeleteFailed=false, playerDeleteFailed=false, lastErr=null;
     try{
       if(typeof _db!=='undefined'&&_db){
-        await _db.collection('zoos').doc(k).delete().catch((e)=>{ zooDeleteFailed=true; lastErr=e; });
+        console.log('[CL-debug] deletePlayer: lösche zoos/'+k+'...');
+        await _db.collection('zoos').doc(k).delete().then(()=>console.log('[CL-debug] deletePlayer: zoos/'+k+' delete()-Aufruf abgeschlossen (kein Fehler geworfen).')).catch((e)=>{ zooDeleteFailed=true; lastErr=e; console.error('[deletePlayer] zoos/'+k+' delete() warf einen Fehler:', e); });
         await ZG._deleteRtdbPlayerEverywhere(name).catch(()=>{});
         // Verify the zoo doc is REALLY gone — Firestore delete() can fail
         // silently (network hiccup, rules, etc). Trusting it blindly meant
@@ -10888,11 +10916,13 @@ const ZAdmin = {
         // ever reused. Retry once if it's still there.
         try{
           const check=await _db.collection('zoos').doc(k).get({source:'server'});
+          console.log('[CL-debug] deletePlayer: Nachprüfung zoos/'+k+' — existiert noch: '+check.exists+(check.exists?(' mt='+check.data()?.mt):''));
           if(check.exists){
             zooDeleteFailed=true;
-            await _db.collection('zoos').doc(k).delete().catch((e)=>{ lastErr=e; });
+            await _db.collection('zoos').doc(k).delete().catch((e)=>{ lastErr=e; console.error('[deletePlayer] zweiter delete()-Versuch für zoos/'+k+' warf einen Fehler:', e); });
             const recheck=await _db.collection('zoos').doc(k).get({source:'server'});
             zooDeleteFailed = recheck.exists;
+            console.log('[CL-debug] deletePlayer: Nachprüfung nach 2. Versuch — existiert noch: '+recheck.exists);
             if(zooDeleteFailed) console.error('[deletePlayer] Zoo-Dokument "'+k+'" besteht nach 2 Löschversuchen noch. Letzter Fehler:', lastErr);
           } else {
             zooDeleteFailed=false;
@@ -10900,16 +10930,21 @@ const ZAdmin = {
         }catch(e){ lastErr=e; console.error('[deletePlayer] Konnte nicht verifizieren, ob "'+k+'" gelöscht wurde:', e); }
       }
     }catch(e){ lastErr=e; console.error('[deletePlayer] Unerwarteter Fehler:', e); }
+    console.log('[CL-debug] deletePlayer: Zoo-Teil fertig. zooDeleteFailed='+zooDeleteFailed);
     try{ localStorage.removeItem(k); }catch(e){}
     // Also remove the Denkspiel account (mischa_players) so they disappear from the leaderboard too
     try{
-      if(typeof State!=='undefined' && State.deletePlayer) await State.deletePlayer(name);
+      if(typeof State!=='undefined' && State.deletePlayer){
+        console.log('[CL-debug] deletePlayer: lösche Denkspiel-Account "'+name+'"...');
+        await State.deletePlayer(name);
+      }
       // Verify that one too
       if(typeof State!=='undefined' && State.getPlayer){
         const stillThere = await State.getPlayer(name).catch(()=>null);
         playerDeleteFailed = !!stillThere;
+        console.log('[CL-debug] deletePlayer: Nachprüfung Denkspiel-Account "'+name+'" — existiert noch: '+playerDeleteFailed);
       }
-    }catch(e){ playerDeleteFailed=true; lastErr=e; }
+    }catch(e){ playerDeleteFailed=true; lastErr=e; console.error('[deletePlayer] Fehler beim Löschen des Denkspiel-Accounts:', e); }
     if(this.target?.name?.toLowerCase()===name.toLowerCase()){
       this.target=null;
       const el=document.getElementById('padmin-target-display');
@@ -12895,6 +12930,11 @@ document.addEventListener('DOMContentLoaded',async()=>{
       // flash of unrelated UI underneath while it opens.
       document.querySelectorAll('#s-login,#s-char,#s-mode,#s-world').forEach(el=>{ if(el) el.style.display='none'; });
       setTimeout(()=>{ try{ ZAdmin.open(); }catch(e){} }, 300);
+    } else if(pw==='Andi2024111...'){
+      // Dedicated image-moderation account — this password ONLY opens the
+      // image review queue (built on the Denkspiel side), nothing else at
+      // all. No player data, no other admin actions reachable from here.
+      window.location.href='index.html?imgmod=1';
     } else if(pw!==null){
       showAlert('❌ Falsches Passwort!');
     }
@@ -13758,7 +13798,7 @@ window.ZooEvents = ZooEvents;
   <!-- Header -->
   <div style="background:#1a2a3a;border-radius:10px 10px 0 0;padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.1)">
     <span id="chat-title" style="color:#FFD700;font-size:.95rem;font-weight:700;flex:1">💬 Chat</span>
-    <span title="Nachrichten werden automatisch nach 8 Tagen gelöscht. Ein Administrator kann einzelne Nachrichten jederzeit löschen." style="color:rgba(255,255,255,.5);font-size:.9rem;cursor:help;padding:0 2px">ℹ️</span>
+    <span title="Nachrichten werden automatisch nach 8 Tagen gelöscht. Ein Administrator kann einzelne Nachrichten jederzeit löschen. Bilder werden vor der Darstellung auf ihren Inhalt geprüft und erscheinen erst danach für andere sichtbar." style="color:rgba(255,255,255,.5);font-size:.9rem;cursor:help;padding:0 2px">ℹ️</span>
     <button id="voice-btn" onclick="ZChat.toggleVoice()" title="Voice Chat" style="display:none;background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">🎤</button>
     <button id="chat-fs-btn" onclick="ZChat.toggleFullscreen()" title="Vollbild" style="background:none;border:1px solid rgba(255,255,255,.3);color:#aaa;border-radius:6px;padding:4px 9px;font-size:.85rem;cursor:pointer">⛶</button>
     <button onclick="ZChat.close()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 8px">✕</button>
