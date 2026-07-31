@@ -16,7 +16,15 @@ const TetrisGame = {
     const elH = window.innerHeight - (isMobile ? 260 : 200);
     const csFromW = Math.floor((Math.min(elW, isMobile ? 420 : 340)) / COLS);
     const csFromH = Math.floor(elH / ROWS);
-    const CS = Math.max(18, Math.min(csFromW, csFromH));
+    // The old hard floor of 18px-per-cell could FORCE the board to be
+    // taller than the actual available space on a genuinely small/zoomed
+    // screen — the height-based limit (csFromH) was being overridden
+    // rather than respected, which is exactly how the control buttons
+    // ended up pushed off-screen no matter how much margin was reserved
+    // above. Floor lowered to 12px (still just about legible) so the
+    // height constraint actually wins when the screen is this tight.
+    const CS = Math.max(12, Math.min(csFromW, csFromH));
+    console.log('[Tetris-debug] Vor Berechnung: window='+window.innerWidth+'x'+window.innerHeight+' el.offsetWidth='+(el.offsetWidth||'?')+' isMobile='+isMobile+' elW='+elW+' elH='+elH+' csFromW='+csFromW+' csFromH='+csFromH+' → gewähltes CS='+CS+(csFromH<12?' ⚠️ csFromH lag unter dem Minimum — Feld ist trotzdem zu hoch für den Platz!':''));
     const BW = COLS * CS, BH = ROWS * CS;
     const SBW = Math.max(80, CS*4); // sidebar for desktop
 
@@ -31,7 +39,7 @@ const TetrisGame = {
     ];
 
     // Layout: responsive for mobile/desktop
-    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${BW+SBW+24}px;margin:0 auto">
+    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${BW+SBW+24}px;max-height:100dvh;overflow-y:auto;margin:0 auto">
       <!-- Stats row above canvas -->
       <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;margin-bottom:4px">
         <div style="text-align:center">
@@ -67,16 +75,22 @@ const TetrisGame = {
     function BTN(c){return `background:${c};color:#fff;border:2px solid rgba(255,255,255,.2);padding:12px 4px 10px;border-radius:12px;font-size:1.7rem;font-weight:900;cursor:pointer;width:100%;touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.7);-webkit-tap-highlight-color:transparent;line-height:1.2;text-align:center`;}
 
     console.log('[Tetris-debug] Layout: innerWidth='+window.innerWidth+' innerHeight='+window.innerHeight+' isMobile='+isMobile+' CS='+CS+' Board='+BW+'x'+BH);
-    requestAnimationFrame(()=>{
+    const _checkBtnVisibility=(when)=>{
       try{
+        const outer=document.getElementById('trcv')?.closest('div[style*="max-width"]');
         const btnRow=document.getElementById('tr-left')?.closest('div');
         if(btnRow){
           const r=btnRow.getBoundingClientRect();
           const hidden=r.bottom>window.innerHeight||r.top<0;
-          console.log('[Tetris-debug] Steuerknöpfe-Position: top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' → '+(hidden?'⚠️ AUSSERHALB des sichtbaren Bereichs!':'✅ sichtbar'));
+          const outerInfo = outer ? (' outerScrollHeight='+outer.scrollHeight+' outerClientHeight='+outer.clientHeight+' outerScrollTop='+outer.scrollTop+' istScrollbar='+(outer.scrollHeight>outer.clientHeight)) : '';
+          console.log('[Tetris-debug] ('+when+') Steuerknöpfe-Position: top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' devicePixelRatio='+window.devicePixelRatio+outerInfo+' → '+(hidden?'⚠️ AUSSERHALB des sichtbaren Bereichs (aber per Scrollen im Container erreichbar, falls istScrollbar=true)!':'✅ sichtbar'));
         }
       }catch(e){}
-    });
+    };
+    requestAnimationFrame(()=>_checkBtnVisibility('initial'));
+    setTimeout(()=>_checkBtnVisibility('nach 1s'),1000);
+    window.addEventListener('resize',()=>_checkBtnVisibility('resize'));
+    window.addEventListener('orientationchange',()=>setTimeout(()=>_checkBtnVisibility('orientationchange'),300));
 
     const cv=document.getElementById('trcv');
     const nxCv=document.getElementById('tr-next');
