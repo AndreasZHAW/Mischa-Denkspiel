@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v450';
+const APP_VERSION = 'v452';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -383,7 +383,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v450 · 2026-07-20</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v452 · 2026-07-20</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1364,7 +1364,14 @@ const App = {
     }
     if (player && !player.worlds) player.worlds = {};
     const _isRef = player.name.toLowerCase() === 'janoschtest';
-    const _isAdmin = ['mischa','admin'].includes(player.name.toLowerCase());
+    // Recognize admin the same way the Zoo does (via the secret-unlock
+    // mechanism, localStorage 'zoo_secret_admin'), not just the two
+    // hardcoded names — otherwise a player who has full admin access in
+    // the Zoo (like Bu) wouldn't see the "⚑ Meldungen" button here at
+    // all, purely because their name isn't literally "mischa" or "admin".
+    let _hasZooAdmin = false;
+    try{ _hasZooAdmin = localStorage.getItem('zoo_secret_admin')?.toLowerCase() === player.name.toLowerCase(); }catch(e){}
+    const _isAdmin = ['mischa','admin'].includes(player.name.toLowerCase()) || _hasZooAdmin;
     // Bu gets displayed with special black/gold style
     // Avatar from Personality module (if any)
     const _avatarHTML = (typeof Personality!=='undefined') ? Personality.getAvatarHTML(36) : '';
