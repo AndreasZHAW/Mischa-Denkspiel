@@ -2529,7 +2529,8 @@ const ZG={
       // exactly as designed, but easy to mistake for a bug without this
       // being visible anywhere.
       const isProtected = this.carrying.protected;
-      cind.textContent = '🐾 Trägst: '+this.carrying.animal.e+' '+this.carrying.animal.n+' → Gehege '+(this.carrying.slot+1)+' | 70% 🐌'+(isProtected?' · 🛡️ geschützt':'');
+      const hasBoots = !isProtected && !!(ZS.zoo?.upg?.hikingboots);
+      cind.textContent = '🐾 Trägst: '+this.carrying.animal.e+' '+this.carrying.animal.n+' → Gehege '+(this.carrying.slot+1)+' | 70% 🐌'+(isProtected?' · 🛡️ geschützt +50%':(hasBoots?' · 🥾 Wanderschuhe +30%':''));
       cind.style.display='block';
     } else {
       if(cind) cind.style.display='none';
@@ -3887,7 +3888,25 @@ const ZG={
     // whole walk-there-while-carrying mechanic.
     if(!G('p-gond')?.classList.contains('off')) return;
     const steal_mod=window.ZSteal?ZSteal.speedMod():1;
-    const carry_mod=this.carrying?0.21:1.2; // additional 30% slower on top of the existing 70% penalty (0.3×0.7=0.21) — makes carriers realistically catchable, 20% faster empty-handed
+    // Carry speed: base penalty is 0.21 (additional 30% slower on top of
+    // the existing 70% penalty, 0.3×0.7=0.21) — makes carriers realistically
+    // catchable, 20% faster empty-handed (1.2).
+    // Two ways to carry faster:
+    //  · The PROTECTED first-ever animal always carries 50% faster (0.21×1.5)
+    //    — free, automatic, no purchase needed, so a new player's very
+    //    first walk to an enclosure never feels punishingly slow.
+    //  · Every OTHER (non-protected) animal carries 30% faster (0.21×1.3)
+    //    only if the player owns the Wanderschuhe/hiking boots upgrade —
+    //    these boots do nothing for general running speed, only carrying.
+    //    The two bonuses never stack; boots have no effect while carrying
+    //    the protected animal.
+    let carry_mod;
+    if(this.carrying){
+      if(this.carrying.protected) carry_mod=0.21*1.5;
+      else carry_mod=(ZS.zoo?.upg?.hikingboots)?0.21*1.3:0.21;
+    }else{
+      carry_mod=1.2;
+    }
     const trash_mod=this._trashActive?(this._trashSpeedMul||0.5):1; // injured = slow in trash room
     // Base speed doubled (14/24 instead of 7/12) — the v320 ring-layout
     // enlarged the walkable map (WR 45→180, RING_R 45→140) but movement
@@ -7671,7 +7690,7 @@ const ZP={
   _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
-  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'Nochmal +50% (braucht rote Schuhe) — tippen für Details',p:500,shoe:true,col:'#FFD700',req:'redshoes'},{id:'platinumshoes',n:'💎 Platin-Turnschuhe',d:'Nochmal +50%, plus Platin-Rush beim Geradeauslaufen (braucht goldene Schuhe) — tippen für Details',p:2000,shoe:true,col:'#B9F2FF',req:'goldshoes'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50}];
+  {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'Nochmal +50% (braucht rote Schuhe) — tippen für Details',p:500,shoe:true,col:'#FFD700',req:'redshoes'},{id:'platinumshoes',n:'💎 Platin-Turnschuhe',d:'Nochmal +50%, plus Platin-Rush beim Geradeauslaufen (braucht goldene Schuhe) — tippen für Details',p:2000,shoe:true,col:'#B9F2FF',req:'goldshoes'},{id:'hikingboots',n:'🥾 Wanderschuhe',d:'+30% Tragegeschwindigkeit beim Tragen von Tieren — tippen für Details',p:100,shoe:true,col:'#8B5E3C'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50}];
     const insCost=Math.max(1, Math.round((z.tv||0)/100));
     IT.push({id:'insurance',n:'🛡️ Versicherung',d:$mt(insCost)+' alle 5 Min · keine Unfallkosten — tippen für Details',p:0,insurance:true});
     IT.push({id:'rebirth',n:'🔄 Rebirth',d:'Setzt fast alles zurück, für einen dauerhaften Bonus — tippen für Details',p:0,rebirth:true});
@@ -8243,6 +8262,7 @@ const ZP={
       redshoes:{col:'#E74C3C',emoji:'👟',titleKey:'zoo.shoe_red_title',descKey:'zoo.shoe_red_desc',boost:'+50%',price:100},
       goldshoes:{col:'#FFD700',emoji:'✨',titleKey:'zoo.shoe_gold_title',descKey:'zoo.shoe_gold_desc',boost:'+50%',price:500},
       platinumshoes:{col:'#B9F2FF',emoji:'💎',titleKey:'zoo.shoe_platinum_title',descKey:'zoo.shoe_platinum_desc',boost:'+50% + Rush',price:2000},
+      hikingboots:{col:'#8B5E3C',emoji:'🥾',titleKey:'zoo.shoe_hiking_title',descKey:'zoo.shoe_hiking_desc',boost:'+30%',price:100,boostLabel:'Tragegeschwindigkeit'},
     };
     const m=meta[id]; if(!m) return;
     const title=(typeof t!=='undefined')?t(m.titleKey):id;
@@ -8256,7 +8276,7 @@ const ZP={
       <div style="font-weight:900;font-size:1.1rem;color:${m.col};margin:6px 0">${title}</div>
       <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:12px;line-height:1.5">${desc}</div>
       <div style="display:flex;justify-content:space-around;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:14px">
-        <div>🏃 <b style="color:#fff">${m.boost}</b><br>Laufgeschwindigkeit</div>
+        <div>🏃 <b style="color:#fff">${m.boost}</b><br>${m.boostLabel||'Laufgeschwindigkeit'}</div>
         <div>💰 <b style="color:#fff">${$mt(m.price)}</b><br>einmalig</div>
         <div>♾️ <b style="color:#fff">${owned?'Aktiv':'Dauerhaft'}</b><br>${owned?'':'nach Kauf'}</div>
       </div>
