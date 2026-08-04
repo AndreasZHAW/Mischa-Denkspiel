@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v461 -->
+<!-- ZOO v462 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -238,7 +238,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js?v=459"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v461','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v462','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -4767,9 +4767,22 @@ const ZG={
     const el=G('evt'); if(!el)return;
     const now=Date.now();
     const active=(this.evs||[]).filter(e=>e.end>now);
-    if(!active.length){el.style.display='none';return;}
+    // Active temporary boosts (z.tb) — e.g. an admin-activated "🍀 Glück
+    // ×2" or a wheel-won "💰 Geld ×2" — shown in the SAME box as world
+    // events, each with its own live countdown. This function already
+    // reruns every game tick (~10×/sec, see the main loop above), so once
+    // `until` passes, the entry just stops being included here — no
+    // separate cleanup needed, it disappears on its own.
+    const BOOST_META={lucky:{e:'🍀',n:'Glück ×2'},coin:{e:'💰',n:'Geld ×2'},storm:{e:'🌊',n:'Besucher ×8'},vis2x:{e:'👥',n:'Besucher ×2'}};
+    const z=ZS.zoo;
+    const activeBoosts=(z&&z.tb)?Object.entries(z.tb).filter(([id,until])=>until>now && BOOST_META[id]):[];
+    // Admin-activated global luck (z.adminLuckMult/z.adminLuckExp) is a
+    // separate mechanism from the z.tb boosts above (see _setAdminLuck /
+    // 'admin_luck' broadcast command) — shown the same way here.
+    const adminLuckActive=z&&z.adminLuckMult&&z.adminLuckExp&&z.adminLuckExp>now;
+    if(!active.length && !activeBoosts.length && !adminLuckActive){el.style.display='none';return;}
     el.style.display='block';
-    el.innerHTML=active.map(ev=>{
+    const evHtml=active.map(ev=>{
       const r=Math.ceil((ev.end-now)/1000);
       return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
         <span style="font-size:.8rem">${ev.n.split(' ')[0]}</span>
@@ -4777,6 +4790,26 @@ const ZG={
         <span style="color:#FFD700;font-size:.65rem;font-weight:900">⏱${r}s</span>
       </div>`;
     }).join('');
+    const boostHtml=activeBoosts.map(([id,until])=>{
+      const m=BOOST_META[id];
+      const r=Math.ceil((until-now)/1000);
+      const rStr=r>=60?Math.floor(r/60)+'m '+(r%60)+'s':r+'s';
+      return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+        <span style="font-size:.8rem">${m.e}</span>
+        <span style="font-size:.65rem;color:rgba(255,255,255,.6);flex:1">${m.n}</span>
+        <span style="color:#27AE60;font-size:.65rem;font-weight:900">⏱${rStr}</span>
+      </div>`;
+    }).join('');
+    const adminLuckHtml=adminLuckActive?(()=>{
+      const r=Math.ceil((z.adminLuckExp-now)/1000);
+      const rStr=r>=60?Math.floor(r/60)+'m '+(r%60)+'s':r+'s';
+      return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+        <span style="font-size:.8rem">🍀</span>
+        <span style="font-size:.65rem;color:rgba(255,255,255,.6);flex:1">Admin-Glück ×${z.adminLuckMult}</span>
+        <span style="color:#27AE60;font-size:.65rem;font-weight:900">⏱${rStr}</span>
+      </div>`;
+    })():'';
+    el.innerHTML=evHtml+boostHtml+adminLuckHtml;
   },
 
   _interact(){
