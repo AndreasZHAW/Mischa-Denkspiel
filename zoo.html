@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v462 -->
+<!-- ZOO v463 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -238,7 +238,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js?v=459"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v462','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v463','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -4362,6 +4362,30 @@ const ZG={
     const btn=document.getElementById('todToggleBtn');
     if(btn){ btn.style.background=enabled?'#27AE60':'#555'; btn.textContent=enabled?'✓ An':'✗ Aus'; }
   },
+  // Event-Effekte: the falling/rising emoji particles (fall()/rise()) that
+  // _startEvFX() spawns for world events (❄️ Schneesturm, 🎉 Konzert,
+  // ✨ Goldregen, etc). Some players find these distracting or too much
+  // going on — this lets them turn just the particles off, independent
+  // from everything else about the event (the event's actual bonuses,
+  // the colored overlay/top-bar tint, and the event timer/toast all stay
+  // exactly the same either way).
+  _evFxEnabled(){ try{return localStorage.getItem('zoo_evfx')!=='0';}catch(e){return true;} },
+  setEvFx(enabled){
+    try{ localStorage.setItem('zoo_evfx', enabled?'1':'0'); }catch(e){}
+    const btn=document.getElementById('evfxToggleBtn');
+    if(btn){ btn.style.background=enabled?'#27AE60':'#555'; btn.textContent=enabled?'✓ An':'✗ Aus'; }
+    // Immediately clear any particles from currently-running events —
+    // otherwise the change would only take effect the next time an event
+    // starts, and existing ones would keep falling until they end.
+    if(!enabled && this._evFXEls){
+      Object.values(this._evFXEls).forEach(els=>(els||[]).forEach(e=>{
+        // Only remove the actual falling/rising particles, not the
+        // overlay tint or top bar — those aren't controlled by this
+        // setting and should keep working normally.
+        if(e.style.animationName==='zsfall'||e.style.animationName==='zsrise'||(e.style.animation||'').includes('zsfall')||(e.style.animation||'').includes('zsrise')) e.remove();
+      }));
+    }
+  },
   _updateTimeOfDay(){
     if(!this._skyMat)return;
     let enabled=true; try{enabled=localStorage.getItem('zoo_tod')!=='0';}catch(e){}
@@ -5492,8 +5516,8 @@ const ZG={
     if(!this._evFXEls) this._evFXEls={};
     const els=[]; const zoo=G('s-zoo'); if(!zoo) return;
     const id=ev.id;
-    const fall=(emoji,n,css='')=>{for(let i=0;i<n;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-30px;font-size:${0.9+Math.random()*0.6}rem;animation:zsfall ${1.5+Math.random()*3}s linear ${Math.random()*4}s infinite;pointer-events:none;z-index:90;${css}`;e.textContent=emoji;zoo.appendChild(e);els.push(e);}};
-    const rise=(emoji,n)=>{for(let i=0;i<n;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;bottom:15%;font-size:${0.9+Math.random()*0.7}rem;animation:zsrise ${1+Math.random()*2}s linear ${Math.random()*2}s infinite;pointer-events:none;z-index:90`;e.textContent=emoji;zoo.appendChild(e);els.push(e);}};
+    const fall=(emoji,n,css='')=>{if(!this._evFxEnabled())return;for(let i=0;i<n;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-30px;font-size:${0.9+Math.random()*0.6}rem;animation:zsfall ${1.5+Math.random()*3}s linear ${Math.random()*4}s infinite;pointer-events:none;z-index:90;${css}`;e.textContent=emoji;zoo.appendChild(e);els.push(e);}};
+    const rise=(emoji,n)=>{if(!this._evFxEnabled())return;for(let i=0;i<n;i++){const e=document.createElement('div');e.style.cssText=`position:fixed;left:${Math.random()*100}vw;bottom:15%;font-size:${0.9+Math.random()*0.7}rem;animation:zsrise ${1+Math.random()*2}s linear ${Math.random()*2}s infinite;pointer-events:none;z-index:90`;e.textContent=emoji;zoo.appendChild(e);els.push(e);}};
     const overlay=(bg,opacity=.18)=>{const e=document.createElement('div');e.style.cssText=`position:fixed;inset:0;background:${bg};opacity:${opacity};pointer-events:none;z-index:85;transition:opacity 2s`;zoo.appendChild(e);els.push(e);return e;};
     const topBar=(bg)=>{const e=document.createElement('div');e.style.cssText=`position:fixed;top:0;left:0;right:0;height:5px;background:${bg};z-index:95;pointer-events:none`;zoo.appendChild(e);els.push(e);};
 
@@ -8814,12 +8838,17 @@ const ZP={
     const z=ZS.zoo;
     const soundStyle=(typeof ZSound!=='undefined'?ZSound.style:'normal')||'normal';
     let todOn=true; try{todOn=localStorage.getItem('zoo_tod')!=='0';}catch(e){}
+    let evfxOn=true; try{evfxOn=localStorage.getItem('zoo_evfx')!=='0';}catch(e){}
     G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left;font-size:.78rem;line-height:1.85;color:rgba(255,255,255,.6)">${ZS._personalityAvatar()} <b style="color:#fff">${ZS.player}</b><br>🌀 ${$mt(z.mt)}<br>📈 ${$mt(z.te||0)} verdient<br>🐾 ${z.enc.filter(e=>e).length}/${ZS.maxE()} Tiere<br>🔄 ${z.reb||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}</div>
       <div style="background:linear-gradient(135deg,rgba(255,107,0,.3),rgba(255,165,0,.2));border:2px solid #FFA500;border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
         <div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px;text-align:center;letter-spacing:1px">${typeof t!=='undefined'?t('menu.settings'):'⚙️ EINSTELLUNGEN ⚙️'}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px">
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">🌅 Tageszeiten</span>
           <button id="todToggleBtn" onclick="ZG.setTimeOfDay(!ZG._todEnabled())" style="background:${todOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${todOn?'✓ An':'✗ Aus'}</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="color:rgba(255,255,255,.75);font-size:.78rem">🌧️ Event-Effekte (fallende Sachen)</span>
+          <button id="evfxToggleBtn" onclick="ZG.setEvFx(!ZG._evFxEnabled())" style="background:${evfxOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${evfxOn?'✓ An':'✗ Aus'}</button>
         </div>
       </div>`;
   },
