@@ -630,12 +630,31 @@ function _annMarkSeenD(id){const s=JSON.parse(localStorage.getItem('zoo_ann_seen
 async function _annNotifyD(id,title,eventTs){
   _annMarkSeenD(id); document.getElementById('ann-modal-d')?.remove();
   if(!('Notification' in window)){showAlert('❌ Benachrichtigungen nicht unterstützt.');return;}
+  // See zoo.html's _annNotify for why this check matters: once the person
+  // has declined the native browser prompt once, the browser itself blocks
+  // any further prompt for this site — requestPermission() would just
+  // silently resolve to 'denied' again with no UI. Catching that here lets
+  // us show real guidance instead of repeating a dead-end error.
+  if(Notification.permission==='denied'){ _showNotifyBlockedHelpD(); return; }
   const perm=await Notification.requestPermission();
   if(perm!=='granted'){showAlert('❌ Nicht erlaubt.');return;}
   const delay=eventTs-5*60*1000-Date.now();
   if(delay<0){showAlert('⏰ Zu spät für Erinnerung!');return;}
   setTimeout(()=>{try{new Notification('🎮 '+title,{body:'In 5 Minuten: '+title});}catch(e){}},delay);
   showAlert('✅ Erinnerung gesetzt! Du wirst 5 Min vorher benachrichtigt.');
+}
+function _showNotifyBlockedHelpD(){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
+  el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+  el.innerHTML=`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #E74C3C;border-radius:16px;padding:22px;max-width:340px;text-align:center;color:#fff">
+    <div style="font-size:2.4rem">🔕</div>
+    <div style="font-weight:900;font-size:1.05rem;color:#E74C3C;margin:6px 0">Benachrichtigungen blockiert</div>
+    <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:12px;line-height:1.5">Du hast das einmal abgelehnt — dein Browser fragt danach nicht automatisch nochmal. Du musst es einmal manuell erlauben:</div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.65);text-align:left;background:rgba(0,0,0,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;line-height:1.6">Tippe auf das 🔒- oder ⓘ-Symbol links neben der Internetadresse → Berechtigungen/Website-Einstellungen → Benachrichtigungen → Erlauben. Danach die Seite neu laden.</div>
+    <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#E74C3C;color:#fff;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">Verstanden</button>
+  </div>`;
+  document.body.appendChild(el);
 }
 </script>
 </body>

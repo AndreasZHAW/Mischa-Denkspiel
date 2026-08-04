@@ -1008,7 +1008,7 @@ const ZS={
   player:null,char:null,zoo:null,isAdmin:false,isPrivate:false,
   nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
   maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
-  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
+  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.tb?.vis2x||0)>Date.now())ms/=2;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
   lk(){
     const z=this.zoo; if(!z) return 1;
     // z.luck is the PERMANENT value from shop purchases (_bLuck) — never
@@ -2638,7 +2638,7 @@ const ZG={
         if(Date.now()-d.at>10000)return; // ignore old events
         if(LW.activeType!==d.type){
           LW.setType(d.type,0);
-          const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄'};
+          const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Chaos-Glücksrad 🔥'};
           // Admin announcement banner
           const a1=document.createElement('div');
           a1.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px;text-align:center;font-weight:900;font-size:1rem;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000';
@@ -6361,6 +6361,18 @@ const LW={
       {l:'🌈 Rainbow Slap!',mt:0,c:1,col:'#FF69B4',slap:'rainbow'},
       {l:'🌷 Lucky Slap!',mt:0,c:.7,col:'#27AE60',slap:'lucky'},
     ]},
+    chaos:{name:'Chaos-Rad',emoji:'🔥',glowCol:'#E74C3C',prizes:[
+      {l:'20.000 MT',mt:20000,c:20,col:'#000'},{l:'60.000 MT',mt:60000,c:16,col:'#8B0000'},
+      {l:'150.000 MT',mt:150000,c:12,col:'#000'},{l:'400.000 MT',mt:400000,c:8,col:'#8B0000'},
+      {l:'1.000.000 MT',mt:1000000,c:5,col:'#000'},{l:'2.500.000 MT',mt:2500000,c:2,col:'#FFD700'},
+      {l:'🎡 +2 Drehungen!',mt:0,c:6,col:'#8B0000',spins:2},
+      {l:'👑 Königs-Wolf!',mt:0,c:2,col:'#000',animal:{id:'kingwolf',n:'Königs-Wolf',e:'🐺',r:'legendary',p:0,earn:400},exclusive:true},
+      {l:'⚡ 3 Zufalls-Events!',mt:0,c:3,col:'#8B0000',randomEvents:3},
+      {l:'👥 2x Besucher 5 Min!',mt:0,c:5,col:'#000',boost:'vis2x',boostDur:300000},
+      {l:'💰 2x Geld 5 Min!',mt:0,c:5,col:'#8B0000',boost:'coin',boostDur:300000},
+      {l:'🗼 10× France Slap!',mt:0,c:2,col:'#ED2939',slapPack:{id:'france',n:10}},
+      {l:'🍀 Lucky Slap!',mt:0,c:8,col:'#FFD700',slap:'lucky'},
+    ]},
   },
 
   get W(){return this.WHEELS[this.activeType];},
@@ -6409,6 +6421,47 @@ const LW={
   },
 
   open(){
+    // First-ever time a player opens the Chaos-Rad, play a dramatic
+    // black/red intro before the normal wheel UI appears. Tracked on the
+    // zoo save (persists across sessions/devices), not localStorage.
+    if(this.activeType==='chaos' && ZS.zoo && !ZS.zoo.chaosWheelIntroSeen){
+      ZS.zoo.chaosWheelIntroSeen=true;
+      try{ ZS.save&&ZS.save(); }catch(e){}
+      this._playChaosIntro(()=>this._openWheelUI());
+      return;
+    }
+    this._openWheelUI();
+  },
+
+  // Full-screen black/red flash-in with a shaking "🔥 CHAOS-RAD 🔥" title
+  // and pulsing rays, ~2.2s, then fades out into the normal wheel panel.
+  _playChaosIntro(cb){
+    if(!document.getElementById('chaos-intro-style')){
+      const st=document.createElement('style');
+      st.id='chaos-intro-style';
+      st.textContent=
+        '@keyframes chaosFlash{0%{opacity:0}8%{opacity:1}92%{opacity:1}100%{opacity:0}}'+
+        '@keyframes chaosRay{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}'+
+        '@keyframes chaosTitlePop{0%{transform:scale(.3) rotate(-8deg);opacity:0}55%{transform:scale(1.15) rotate(4deg);opacity:1}75%{transform:scale(.95) rotate(-2deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}'+
+        '@keyframes chaosShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}'+
+        '@keyframes chaosEmoji{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}';
+      document.head.appendChild(st);
+    }
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;z-index:9800;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:chaosFlash 2.2s ease forwards';
+    el.innerHTML=
+      '<div style="position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,#8B0000 0deg 10deg,#000 10deg 20deg);opacity:.35;animation:chaosRay 6s linear infinite"></div>'+
+      '<div style="position:relative;text-align:center;animation:chaosShake .5s ease .3s 3">'+
+        '<div style="font-size:5rem;animation:chaosEmoji 1s ease infinite">🔥</div>'+
+        '<div style="font-size:clamp(1.8rem,8vw,3rem);font-weight:900;color:#E74C3C;text-shadow:0 0 20px #8B0000,0 0 40px #000;letter-spacing:3px;animation:chaosTitlePop .7s ease">CHAOS-RAD</div>'+
+        '<div style="color:#fff;font-weight:700;font-size:1rem;margin-top:8px;opacity:.85">👑 Admin-Event-Glücksrad</div>'+
+      '</div>';
+    document.body.appendChild(el);
+    try{ ZSound.slap&&ZSound.slap(); }catch(e){}
+    setTimeout(()=>{ el.remove(); cb(); },2200);
+  },
+
+  _openWheelUI(){
     const w=G('lwrap');w.style.display='flex';
     try{ if(typeof ZTips!=='undefined') ZTips.notify('wheel'); }catch(e){}
     // Update title
@@ -6422,7 +6475,8 @@ const LW={
       normal:'rgba(10,10,20,.95)',
       france:'rgba(0,35,149,.92)',
       weekend:'rgba(50,0,80,.95)',
-      christmas:'rgba(0,40,0,.95)'
+      christmas:'rgba(0,40,0,.95)',
+      chaos:'rgba(20,0,0,.96)'
     };
     w.style.background=themes[this.activeType]||themes.normal;
     this._draw(this.angle);
@@ -6586,9 +6640,38 @@ const LW={
         ex.innerHTML='<div style="font-size:5rem">'+p.animal.e+'</div><div style="font-size:1.4rem;font-weight:900;color:#FFD700;margin:10px 0">EXKLUSIV!</div><div>'+p.animal.n+'</div><div style="font-size:.75rem;color:#888;margin-top:6px">Nur vom '+this.W.name+' erhältlich!</div><button onclick="this.parentElement.remove()" style="margin-top:14px;background:#FFD700;color:#000;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:900">Awesome!</button>';
         document.body.appendChild(ex);
       }
+    }else if(p.spins){
+      this.spins+=p.spins; this._saveSpins();
+      ZG._updHUD&&ZG._updHUD();
+      ZP.toast('🎡 +'+p.spins+' Drehungen erhalten!',4000);
+      const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';
+      pop.innerHTML='<div style="font-size:3rem">🎡</div><div style="font-weight:900;color:#E74C3C;font-size:1.3rem">+'+p.spins+' Drehungen!</div>';
+      document.body.appendChild(pop);setTimeout(()=>pop.remove(),4500);
+    }else if(p.randomEvents){
+      // Pick N distinct random events and start them all (byAdmin=true
+      // bypasses the normal "max 3 simultaneous events" cap — this is a
+      // deliberate chaos-wheel jackpot, meant to stack).
+      const pool=[...EVENTS]; const picked=[];
+      for(let i=0;i<p.randomEvents && pool.length;i++){
+        const idx=Math.floor(Math.random()*pool.length);
+        picked.push(pool.splice(idx,1)[0]);
+      }
+      picked.forEach(ev=>{ try{ ZG.startEv(ev,ev.dur||300000,true); }catch(e){} });
+      ZP.toast('⚡ '+picked.length+' Zufalls-Events gestartet: '+picked.map(e=>e.n).join(', '),5000);
+    }else if(p.slapPack){
+      const z2=ZS.zoo;
+      if(!z2.slapPacks)z2.slapPacks={};
+      z2.slapPacks[p.slapPack.id]=(z2.slapPacks[p.slapPack.id]||0)+p.slapPack.n;
+      ZG._updWBar&&ZG._updWBar();
+      const sd=SLAPS.find(s=>s.id===p.slapPack.id);
+      ZP.toast((sd?.e||'✨')+' +'+p.slapPack.n+'× '+(sd?.n||p.slapPack.id)+' erhalten! Im Waffenring auswählen.',5000);
     }else if(p.boost){
-      if(!z.tb)z.tb={};z.tb[p.boost]=Date.now()+2*60*60*1000;
-      ZP.toast('🍀 Glück ×2 für 2 Stunden!',4000);
+      if(!z.tb)z.tb={};
+      const dur=p.boostDur||2*60*60*1000;
+      z.tb[p.boost]=Date.now()+dur;
+      const mins=Math.round(dur/60000);
+      const boostLabels={coin:'💰 Geld ×2',lucky:'🍀 Glück ×2',storm:'🌊 Besucher ×8',vis2x:'👥 Besucher ×2'};
+      ZP.toast((boostLabels[p.boost]||p.l)+' für '+mins+' Min aktiv!',4000);
     }else{
       // Was a fixed p.mt amount — now a % of CURRENT balance (see
       // _makeWheelPrizesIncomeRelative below), computed fresh at spin
@@ -8715,6 +8798,8 @@ const ZP={
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px">'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="weekend" style="font-size:.76rem;padding:8px;background:rgba(204,0,255,.18)">🎉 Wochenende</button>'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="christmas" style="font-size:.76rem;padding:8px;background:rgba(192,57,43,.18)">🎄 Weihnachten</button></div>'+
+      '<div style="display:grid;grid-template-columns:1fr;gap:5px;margin-bottom:6px">'+
+        '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="chaos" style="font-size:.76rem;padding:8px;background:linear-gradient(135deg,#000,#8B0000);color:#E74C3C;border:1px solid #E74C3C">🔥 Chaos-Rad (Admin-Event)</button></div>'+
       '<div style="font-size:.73rem;color:rgba(255,255,255,.4);margin-bottom:3px">Spins schenken (an Ziel):</div>'+
       '<div style="display:flex;gap:5px">'+
         '<input id="aspins" type="number" min="1" max="99" value="1" style="flex:1;padding:8px;border-radius:8px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);font-size:.88rem;-webkit-appearance:none"/>'+
@@ -8779,7 +8864,7 @@ const ZP={
     const w=btn.dataset.w;
     LW.setType(w,0);
     // Show admin broadcast announcement
-    const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄'};
+    const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Chaos-Glücksrad 🔥'};
     const ann=document.createElement('div');
     ann.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:14px;text-align:center;font-weight:900;font-size:1.05rem;animation:pop .4s ease';
     ann.style.background='linear-gradient(135deg,#FFD700,#FFA500)';
@@ -11891,7 +11976,7 @@ const ZAdmin = {
   setWheel(type){
     if(typeof LW==='undefined'||!LW.WHEELS?.[type]){ZP.toast('❌ Unbekannter Rad-Typ: '+type,2500);return;}
     LW.setType(type,0);
-    const names={normal:'Glücksrad',halloween:'Halloween-Rad',winter:'Winter-Rad',spring:'Frühlings-Rad',france:'Frankreich-Rad',weekend:'Wochenend-Rad',christmas:'Weihnachts-Rad'};
+    const names={normal:'Glücksrad',halloween:'Halloween-Rad',winter:'Winter-Rad',spring:'Frühlings-Rad',france:'Frankreich-Rad',weekend:'Wochenend-Rad',christmas:'Weihnachts-Rad',chaos:'Chaos-Rad 🔥'};
     const label=names[type]||LW.W?.name||type;
     try{
       if(typeof _db!=='undefined'&&_db){
@@ -12711,6 +12796,14 @@ async function _annNotify(id,title,eventTs){
   document.getElementById('ann-modal')?.remove();
   // Request push permission + schedule
   if(!('Notification' in window)){ZP.toast('❌ Benachrichtigungen nicht unterstützt.',3000);return;}
+  // Browsers only ever show the native "Erlauben?"-Popup ONCE per site. If
+  // the person tapped "Nein" before, Notification.permission is now stuck
+  // on 'denied' — calling requestPermission() again is silently ignored by
+  // the browser (no popup, immediate 'denied'). Detecting this beforehand
+  // lets us show honest, useful guidance instead of a dead-end error that
+  // makes it look like OUR app is refusing, when really only the browser's
+  // own site settings can re-enable it.
+  if(Notification.permission==='denied'){ _showNotifyBlockedHelp(); return; }
   const perm=await Notification.requestPermission();
   if(perm!=='granted'){ZP.toast('❌ Benachrichtigung nicht erlaubt.',3000);return;}
   // Show 5 min before
@@ -12721,6 +12814,23 @@ async function _annNotify(id,title,eventTs){
     try{new Notification('🎮 '+title,{body:'In 5 Minuten beginnt: '+title,icon:'/favicon.ico'});}catch(e){}
   },delay);
   ZP.toast('✅ Erinnerung gesetzt! Du wirst 5 Min vorher benachrichtigt.',4000);
+}
+// Shown instead of a plain error once the browser itself has permanently
+// blocked the native prompt for this site. Explains why re-tapping the
+// button alone won't work, and how to fix it manually (varies slightly by
+// browser, so keep it general).
+function _showNotifyBlockedHelp(){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px';
+  el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+  el.innerHTML=`<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #E74C3C;border-radius:16px;padding:22px;max-width:340px;text-align:center;color:#fff">
+    <div style="font-size:2.4rem">🔕</div>
+    <div style="font-weight:900;font-size:1.05rem;color:#E74C3C;margin:6px 0">Benachrichtigungen blockiert</div>
+    <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:12px;line-height:1.5">Du hast das einmal abgelehnt — dein Browser fragt danach nicht automatisch nochmal. Du musst es einmal manuell erlauben:</div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.65);text-align:left;background:rgba(0,0,0,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;line-height:1.6">Tippe auf das 🔒- oder ⓘ-Symbol links neben der Internetadresse → Berechtigungen/Website-Einstellungen → Benachrichtigungen → Erlauben. Danach die Seite neu laden.</div>
+    <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#E74C3C;color:#fff;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">Verstanden</button>
+  </div>`;
+  document.body.appendChild(el);
 }
 function $esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
@@ -14095,6 +14205,7 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#2980B9" onclick="ZAdmin.setWheel('winter')">❄️ Winter</button>
             <button class="padmin-btn" style="background:#27AE60" onclick="ZAdmin.setWheel('spring')">🌸 Frühling</button>
             <button class="padmin-btn" style="background:#3498DB" onclick="ZAdmin.setWheel('france')">🇫🇷 Frankreich</button>
+            <button class="padmin-btn" style="background:linear-gradient(135deg,#000,#8B0000);color:#E74C3C;border:1px solid #E74C3C" onclick="ZAdmin.setWheel('chaos')">🔥 Chaos-Rad</button>
             <button class="padmin-btn" style="background:#8E44AD" onclick="ZAdmin.guaranteeSpin()">⭐ Garantiert nächster</button>
           </div>
         </div>
