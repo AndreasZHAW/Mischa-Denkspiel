@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v463';
+const APP_VERSION = 'v465';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -458,7 +458,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v463 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v465 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2193,20 +2193,6 @@ const App = {
       </div>`);
   },
 
-  async showJokerMenu(worldId) {
-    const player = await State.refreshCurrentPlayer();
-    const ws = (player.worlds?.[worldId] || player.worlds?.[String(worldId)] || {});
-    if (!ws) return;
-    const activeTask = ws.tasks.findIndex(t=>!t||!t.done);
-    if (activeTask<0) return;
-    const rem = State.getJokersRemaining(player, worldId);
-    if (rem === 0) { showAlert('Keine Joker mehr in dieser Welt!'); return; }
-    if (await showConfirm(`🃏 Joker einsetzen?\nNoch ${rem} Joker in dieser Welt.\nDie aktuelle Aufgabe zählt als geschafft.`)) {
-      await State.useJoker(player.name, worldId, activeTask);
-      this.showWorld(worldId);
-    }
-  },
-
   // ---- TASK INSTRUCTION ----
   startTask(worldId, taskIndex) {
     const world = WORLDS.find(w=>w.id===worldId);
@@ -2259,7 +2245,7 @@ const App = {
             <div class="rotate-hint" style="display:none;background:rgba(255,165,0,.9);color:#000;padding:3px 8px;border-radius:6px;font-size:.72rem;font-weight:700;align-items:center;gap:4px">
               📱↻ Querformat
             </div>
-            <div style="display:flex;gap:6px;align-items:center">
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
               <button onclick="App._toggleZoom()" id="zoom-btn"
                 style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">
                 🔍
@@ -2268,10 +2254,6 @@ const App = {
                 style="background:#FFF5F5;border:2px solid #E74C3C;color:#E74C3C;padding:5px 10px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer">
                 ✕ Verlassen
               </button>
-              <div class="joker-badge ${ws.jokerUsed?'used':''}"
-                onclick="${ws.jokerUsed?'':  `App.useJokerInGame(${worldId},${taskIndex})`}">
-                🃏
-              </div>
             </div>
           </div>
           <div id="game-area" style="width:100%;transition:transform .2s;will-change:transform">
@@ -2475,6 +2457,10 @@ const App = {
     };
 
     setTimeout(() => {
+      // Remote diagnostics: see State._sendDeviceDiagSnapshot for why this
+      // exists (localStorage crash logs never leave the device they were
+      // written on). Fire-and-forget, never blocks the game from starting.
+      try { State._sendDeviceDiagSnapshot(State.currentPlayer, 'game_open:' + task.type).catch(()=>{}); } catch(e) {}
       switch (task.type) {
         case 'math':        MathGame.start({ ageGroup, worldId, onComplete }); break;
         case 'reaction':    ReactionGame.start({ onComplete }); break;
@@ -3075,6 +3061,19 @@ Grund: ${reason}`))) return;
       btn.textContent = this._zoomLevel === 1 ? '🔍' : `🔍 ${Math.round(this._zoomLevel*100)}%`;
       btn.style.background = this._zoomLevel !== 1 ? 'rgba(41,182,246,.25)' : 'rgba(41,182,246,.12)';
     }
+    // transform:scale() shrinks/grows the VISUAL rendering only — it does
+    // NOT reflow layout, so anything inside #game-area that positions
+    // itself based on window.innerWidth/innerHeight (e.g. Tetris's own
+    // control-button placement, see tetris.js _checkBtnVisibility) has no
+    // idea this happened. Log the resulting geometry every time so a
+    // manual zoom tap that pushes content out of view shows up clearly in
+    // the crash log / remote device-diag snapshot instead of just being a
+    // silent "buttons gone" report with no visible cause.
+    try{
+      const r = ga ? ga.getBoundingClientRect() : null;
+      console.log('[Zoom-debug] _toggleZoom() → '+this._zoomLevel+'x. #game-area rect: top='+(r?Math.round(r.top):'?')+' bottom='+(r?Math.round(r.bottom):'?')+' left='+(r?Math.round(r.left):'?')+' right='+(r?Math.round(r.right):'?')+' viewport='+window.innerWidth+'x'+window.innerHeight+(r&&(r.bottom>window.innerHeight||r.right>window.innerWidth||r.left<0)?' ⚠️ ragt über den sichtbaren Bereich hinaus':''));
+    }catch(e){}
+    try{ if(typeof _checkTetrisBtnVisibility==='function') _checkTetrisBtnVisibility('nach Zoom-Wechsel'); }catch(e){}
   },
 
   async _confirmLeave(worldId) {
@@ -3091,15 +3090,6 @@ Grund: ${reason}`))) return;
       try { clearInterval(DifferencesGame._timerInterval); } catch(e){}
       try { clearTimeout(ReactionGame.current?.timer); } catch(e){}
       this.showWorld(worldId);
-    }
-  },
-
-  async useJokerInGame(worldId, taskIndex) {
-    const player = await State.refreshCurrentPlayer();
-    if (State.getJokersRemaining(player, worldId) === 0) return;
-    if (await showConfirm('🃏 Joker einsetzen? Aufgabe zählt als geschafft!')) {
-      await State.useJoker(player.name, worldId, taskIndex);
-      this._showTaskComplete(worldId, taskIndex, { rawScore:0, timeMs:0, errors:0, passed:true }, true);
     }
   },
 

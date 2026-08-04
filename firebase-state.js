@@ -308,6 +308,7 @@ const State = {
       if (player.password !== password) return { ok: false, error: 'Falsches Passwort' };
       this._local.save(player);
       this._syncDeviceIdOnLogin(player);
+      this._sendDeviceDiagSnapshot(player, 'login').catch(()=>{});
       await this._claimSession(player.name).catch(()=>{});
       return { ok: true, player };
     }
@@ -316,6 +317,7 @@ const State = {
     // without a connection, just without the cross-device guarantee.
     if (localPlayer && localPlayer.password === password) {
       this._syncDeviceIdOnLogin(localPlayer);
+      this._sendDeviceDiagSnapshot(localPlayer, 'login_offline_fallback').catch(()=>{});
       await this._claimSession(localPlayer.name).catch(()=>{});
       return { ok: true, player: localPlayer };
     }
@@ -414,6 +416,64 @@ const State = {
     // Touch + medium viewport but portrait-ish aspect = likely tablet/phone
     if(touch && maxDim < 1100) return minDim < 600 ? 'android' : 'tablet';
     return 'desktop';
+  },
+
+  // ── REMOTE DEVICE-DIAGNOSTICS SNAPSHOT ──
+  // Why this exists: the crash log (_mischa_crash_log, see zoo.html/app.js
+  // console interceptors) only ever lives in localStorage — 100% local to
+  // whichever device wrote it. An admin running diagnose.html on a desktop
+  // has zero access to what a child's iPhone actually logged; the two
+  // localStorages have never met. That gap is exactly why display-only
+  // bugs (e.g. Tetris control buttons pushed off-screen on one specific
+  // phone) were impossible to diagnose remotely — the tool showed nothing
+  // because it was looking in the wrong place.
+  //
+  // Fix: push a SMALL, OVERWRITTEN (not appended) snapshot per device to
+  // Firebase RTDB, so diagnose.html can pull it from anywhere. Deliberately
+  // NOT continuous/background — only at two low-frequency trigger points
+  // (login, and each time a Welt-1 game opens) to keep traffic minimal
+  // (see cost note below). One node per device, always overwritten, so
+  // storage never grows — only the traffic of writing it does.
+  //
+  // Rough size: device info (~300 bytes) + last 40 crash-log lines
+  // (capped 250 chars each, usually far shorter) ≈ 3-6 KB per write.
+  // At maybe 10-15 writes/session (1 login + a handful of game opens) for
+  // ~20 active kids playing a few times a day, that's roughly 3-10 MB/day
+  // of upload traffic — negligible against Firebase RTDB's free-tier
+  // limits (GB-scale), and since each write OVERWRITES the same node,
+  // total stored size stays at "a few KB × number of devices", not
+  // growing over time.
+  async _sendDeviceDiagSnapshot(player, context) {
+    try {
+      if (!this._useCloud() || typeof _rtdb === 'undefined' || !_rtdb) return;
+      const id = window.getDeviceId && window.getDeviceId();
+      if (!id) return;
+      let fontSize = null;
+      try { fontSize = localStorage.getItem('mischa_font_size'); } catch(e) {}
+      // Tail of the shared local crash log (written by BOTH app.js and
+      // zoo.html's console interceptors into the same localStorage key) —
+      // last 40 entries is enough to show what led up to `context`
+      // without inflating the payload with the full 1500-entry ring.
+      let crashTail = [];
+      try {
+        const all = JSON.parse(localStorage.getItem('_mischa_crash_log') || '[]');
+        crashTail = all.slice(-40);
+      } catch(e) {}
+      const snap = {
+        ts: Date.now(),
+        player: player?.name || ZS?.player || '?',
+        context,
+        device: this._detectDevice(),
+        ua: (typeof navigator!=='undefined' ? navigator.userAgent : '').slice(0,200),
+        vw: typeof window!=='undefined' ? window.innerWidth : null,
+        vh: typeof window!=='undefined' ? window.innerHeight : null,
+        dpr: typeof window!=='undefined' ? (window.devicePixelRatio||1) : null,
+        orientation: (typeof window!=='undefined' && window.innerWidth>window.innerHeight) ? 'landscape' : 'portrait',
+        fontSize,
+        crashTail
+      };
+      await _rtdb.ref('zoo_device_diag/' + id).set(snap).catch(()=>{});
+    } catch(e) {}
   },
 
   _cleanPoisonedCal() {

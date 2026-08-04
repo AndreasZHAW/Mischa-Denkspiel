@@ -223,7 +223,7 @@
   </script>
   <!-- Core -->
   <script src="worlds.js?v=459"></script>
-  <script src="firebase-state.js?v=459"></script>
+  <script src="firebase-state.js?v=464"></script>
   <!-- Games -->
   <script src="math.js?v=459"></script>
   <script src="reaction.js?v=459"></script>
@@ -356,7 +356,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v463 wird geladen...';
+      if(vEl) vEl.textContent = 'v465 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
 

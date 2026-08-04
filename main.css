@@ -137,8 +137,6 @@ html, body {
     max-width: 100vw !important;
     overflow-x: hidden !important;
   }
-  /* Joker button */
-  .joker-btn { min-height: 44px !important; font-size: 0.9rem !important; }
   /* Nav buttons (Rangliste, Kontoauszug, Garderobe) */
   .nav-btn, [class*="nav"] button {
     font-size: clamp(0.78rem, 3.3vw, 0.9rem) !important;
@@ -393,10 +391,8 @@ html,body{width:100%;min-height:100vh;font-family:Arial, 'Helvetica Neue', sans-
 .task-btn.joker{background:linear-gradient(135deg,#FFD700,#FFA500);border-color:#FFA500;color:white}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,144,217,0.5)}50%{box-shadow:0 0 0 8px rgba(74,144,217,0)}}
 .game-container{background:rgba(255,255,255,0.95);border-radius:var(--radius);padding:10px;width:100%;max-width:100%;box-shadow:var(--shadow-big);box-sizing:border-box}
-.game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.game-title{font-family:Arial,cursive;font-size:1.15rem;color:var(--mountain-dark)}
-.joker-badge{background:linear-gradient(135deg,#FFD700,#FFA500);color:#5D3A00;padding:5px 12px;border-radius:50px;font-weight:800;font-size:0.8rem;cursor:pointer;transition:transform 0.15s}
-.joker-badge.used{background:#DDD;color:#999;cursor:not-allowed}
+.game-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin-bottom:16px}
+.game-title{font-family:Arial,cursive;font-size:1.15rem;color:var(--mountain-dark);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto}
 .progress-bar-wrap{background:#E8F5E9;border-radius:50px;height:11px;overflow:hidden;margin:8px 0}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--meadow),#27AE60);border-radius:50px;transition:width 0.5s ease}
 .score-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--gold),#FFA500);color:var(--text-dark);padding:5px 14px;border-radius:50px;font-family:Arial,cursive;font-size:0.95rem;box-shadow:0 4px 12px rgba(255,165,0,0.3)}

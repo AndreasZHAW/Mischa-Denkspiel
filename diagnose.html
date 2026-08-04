@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v463</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v463 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v465</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v465 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -60,6 +60,7 @@ try {
   <div class="tab" onclick="switchTab('mt')">💰 MT-Diagnose</div>
   <div class="tab" onclick="switchTab('trade')">🤝 Trade-Diagnose</div>
   <div class="tab" onclick="switchTab('mp')">👥 Multiplayer-Diagnose</div>
+  <div class="tab" onclick="switchTab('devicediag')">📡 Geräte-Diagnose</div>
   <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
   <div class="tab" onclick="switchTab('special')">🎁 Spezial-Gegenstände</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
@@ -195,6 +196,29 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: GERÄTE-DIAGNOSE (Fernwartung, z.B. iPhone ohne physischen Zugriff) ══ -->
+<div id="tab-devicediag" class="tab-content">
+  <div class="box blue">
+    <h2>📡 Geräte-Diagnose (Realtime Database) — Logs von JEDEM Gerät, auch ohne Zugriff darauf</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Der normale Crash-Log oben ("── CRASH-LOG ──") liegt NUR in localStorage — also nur auf dem
+      Gerät, auf dem diese Diagnose gerade läuft. Ein iPhone, zu dem man keinen Zugriff hat, taucht
+      dort nie auf, egal was darauf schiefgeht. Diese Tabelle liest stattdessen den Pfad
+      <code>zoo_device_diag</code> in der Realtime Database — jedes Gerät schreibt dorthin (überschreibt
+      seinen EIGENEN Eintrag, wächst also nicht mit der Zeit) bei jedem Login und bei jedem Öffnen
+      eines Welt-1-Spiels: Bildschirmgrösse, Pixel-Dichte, Ausrichtung, Schriftgrösse-Einstellung,
+      Gerätetyp/Browser, und die letzten ~40 Zeilen seines eigenen Crash-Logs zu diesem Zeitpunkt.
+      Damit ist ein entferntes Gerät (z.B. ein Kind-iPhone) genauso einsehbar wie das eigene.
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runDeviceDiag()" class="info">🔄 Neu laden</button>
+      <button onclick="copyDeviceDiag()" class="sec">📋 Alles kopieren</button>
+    </div>
+    <div id="devicediag-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="devicediag-out"><pre>⏳</pre></div>
+  </div>
+</div>
+
 <!-- ══ TAB: ROAMING-DIAGNOSE ══ -->
 <div id="tab-roam" class="tab-content">
   <div class="box blue">
@@ -321,6 +345,7 @@ function switchTab(id){
   if(id==='mt'&&!_ran.mt){_ran.mt=true;runMT();}
   if(id==='trade'&&!_ran.trade){_ran.trade=true;runTrade();}
   if(id==='mp'&&!_ran.mp){_ran.mp=true;runMP();}
+  if(id==='devicediag'&&!_ran.devicediag){_ran.devicediag=true;runDeviceDiag();}
   if(id==='roam'&&!_ran.roam){_ran.roam=true;runRoam();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
@@ -920,6 +945,64 @@ function copyMP(){
   navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Kopiert!'));
 }
 
+// ══ GERÄTE-DIAGNOSE (remote, via zoo_device_diag in RTDB) ══
+// See firebase-state.js: State._sendDeviceDiagSnapshot() for what writes
+// here and why (login + every Welt-1 game open, one node per device,
+// always overwritten — never grows).
+let _deviceDiagText='';
+async function runDeviceDiag(){
+  L('=== Geräte-Diagnose gestartet ===');
+  const out=document.getElementById('devicediag-out');
+  const summary=document.getElementById('devicediag-summary');
+  out.innerHTML='<pre>⏳ Lade Realtime-Database-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>'; return;
+  }
+  if(!firebase.database){
+    out.innerHTML='<pre class="err">❌ Realtime-Database-SDK nicht geladen.</pre>'; return;
+  }
+  try{
+    const rtdb=firebase.database();
+    const snap=await rtdb.ref('zoo_device_diag').once('value');
+    const all=snap.val()||{};
+    const now=Date.now();
+    const rows=Object.entries(all).map(([deviceId,d])=>({deviceId, ...d, ageMs: now-(d.ts||0)}));
+    rows.sort((a,b)=>a.ageMs-b.ageMs);
+    summary.innerHTML=`📡 ${rows.length} Gerät${rows.length===1?'':'e'} haben je einen aktuellen Eintrag.`
+      +(rows.length?` Neuester vor ${(rows[0].ageMs/1000).toFixed(0)}s (${rows[0].player||'?'}, ${rows[0].device||'?'}).`:'');
+    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v465+.</div>'; _deviceDiagText=''; return; }
+    let txt='';
+    out.innerHTML=rows.map(r=>{
+      const ageMin=(r.ageMs/60000).toFixed(1);
+      const old=r.ageMs>3600000; // older than 1h — probably not "what's happening right now"
+      const crashLines=(r.crashTail||[]).map(e=>{
+        const ts=new Date(e.ts).toISOString().slice(11,23);
+        return `[${ts}][${e.level}|${e.src}] ${(e.msg||'')}`;
+      }).join('\n');
+      txt+=`── ${r.player||'?'} · ${r.device||'?'} · ${r.context||'?'} · vor ${ageMin}min ──\n`
+        +`UA: ${r.ua||'?'}\n`
+        +`Viewport: ${r.vw}×${r.vh} · DPR: ${r.dpr} · ${r.orientation||'?'} · Schriftgrösse: ${r.fontSize||'(Standard)'}\n`
+        +(crashLines?`Crash-Log (letzte ${(r.crashTail||[]).length} Zeilen):\n${crashLines}\n`:'Crash-Log: (leer)\n')
+        +`\n`;
+      return `<div class="box" style="margin-bottom:10px;${old?'opacity:.55':''}">`
+        +`<div style="font-weight:900;color:#4af;margin-bottom:4px">${r.player||'?'} · ${r.device||'?'} · <span style="color:#999;font-weight:400">${r.context||'?'} · vor ${ageMin} Min${old?' ⚠️ älter als 1h':''}</span></div>`
+        +`<div style="font-size:.72rem;color:#999;margin-bottom:4px">UA: ${(r.ua||'?').replace(/</g,'&lt;')}</div>`
+        +`<div style="font-size:.72rem;color:#999;margin-bottom:6px">Viewport: <b style="color:#ccc">${r.vw}×${r.vh}</b> · DPR: <b style="color:#ccc">${r.dpr}</b> · ${r.orientation||'?'} · Schriftgrösse: <b style="color:#ccc">${r.fontSize||'(Standard)'}</b></div>`
+        +`<pre style="max-height:220px;overflow-y:auto;background:#050505;border:1px solid #1a1a1a;border-radius:4px;padding:6px;font-size:10px;white-space:pre-wrap">${crashLines?crashLines.replace(/</g,'&lt;'):'(kein Crash-Log in diesem Snapshot)'}</pre>`
+        +`</div>`;
+    }).join('');
+    _deviceDiagText=txt;
+    L('Geräte-Diagnose: '+rows.length+' Geräte.');
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
+    L('❌ Geräte-Diagnose Fehler: '+e.message,'err');
+  }
+}
+function copyDeviceDiag(){
+  if(!_deviceDiagText){alert('Erst laden!');return;}
+  navigator.clipboard.writeText(_deviceDiagText).then(()=>alert('✅ Kopiert!'));
+}
+
 // ══ ROAMING-DIAGNOSE ══
 // Raw read of zoo_dropped — every animal currently loose in the zoo,
 // regardless of source (slap-drop, market expiry, TikTok event). This is
@@ -1211,6 +1294,7 @@ async function runAllTabsReport(){
     ['MT-Diagnose', async()=>{await runMT();}],
     ['Trade-Diagnose', async()=>{await runTrade();}],
     ['Multiplayer-Diagnose', async()=>{await runMP();}],
+    ['Geräte-Diagnose', async()=>{await runDeviceDiag();}],
     ['Roaming-Diagnose', async()=>{await runRoam();}],
     ['Spezial-Gegenstände', async()=>{await runSpecials();}],
     ['Schrift', async()=>{runFont();}],
@@ -1232,6 +1316,9 @@ async function runAllTabsReport(){
   sections.push('');
   sections.push('── CRASH-LOG (letzte 20 Minuten) ──');
   sections.push(_grabText('crash-ring'));
+  sections.push('');
+  sections.push('── GERÄTE-DIAGNOSE (alle Geräte, via Firebase — auch ohne Zugriff darauf) ──');
+  sections.push(_deviceDiagText||'(keine Geräte-Snapshots)');
   sections.push('');
   sections.push('── WELT 1: Spieler & Fortschritt ──');
   sections.push(_grabText('player-out'));

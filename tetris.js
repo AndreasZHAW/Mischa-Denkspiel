@@ -91,6 +91,11 @@ const TetrisGame = {
     setTimeout(()=>_checkBtnVisibility('nach 1s'),1000);
     window.addEventListener('resize',()=>_checkBtnVisibility('resize'));
     window.addEventListener('orientationchange',()=>setTimeout(()=>_checkBtnVisibility('orientationchange'),300));
+    // Exposed globally so App._toggleZoom() (app.js) can trigger a recheck
+    // right after a manual zoom change — transform:scale() doesn't reflow
+    // layout, so Tetris's own resize/orientationchange listeners above
+    // would never otherwise notice a zoom tap moved its buttons out of view.
+    window._checkTetrisBtnVisibility=_checkBtnVisibility;
 
     const cv=document.getElementById('trcv');
     const nxCv=document.getElementById('tr-next');
