@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v459 -->
+<!-- ZOO v461 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -238,7 +238,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="personality.js?v=459"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v459','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v461','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -5216,16 +5216,27 @@ const ZG={
   // growing the weapon bar forever as rebirths/gifts/craft rewards add more.
   _grantSlap(z, id){
     if(!z.ownSlaps) z.ownSlaps=['basic'];
-    if(z.ownSlaps.includes(id)) return;
+    if(z.ownSlaps.includes(id)){ console.log('[Slap-debug] _grantSlap('+id+') — bereits im Besitz, nichts zu tun. ownSlaps='+JSON.stringify(z.ownSlaps)); return; }
     z.ownSlaps.push(id);
+    console.log('[Slap-debug] _grantSlap('+id+') — hinzugefügt. ownSlaps='+JSON.stringify(z.ownSlaps));
     const MAX=4;
     if(z.ownSlaps.length>MAX){
-      const evictable=z.ownSlaps.filter(sid=>sid!=='basic');
+      // Never evict the slap that was JUST granted — a player must always
+      // actually keep whatever they just won/were given, even if it has a
+      // lower base "pct" than something they already own. Bug found:
+      // e.g. winning 🍀 Lucky Slap (pct 9) while already owning Weihnachts-
+      // (10), Wochenend- (11) and France-Slap (12) meant Lucky Slap was
+      // the lowest-pct item of the (now 4) non-basic slaps — including
+      // itself — so it got evicted in this very call, right after being
+      // announced as won. Excluding `id` here means only an OLDER slap
+      // can ever be the one kicked out.
+      const evictable=z.ownSlaps.filter(sid=>sid!=='basic' && sid!==id);
       evictable.sort((a,b)=>(SLAPS.find(s=>s.id===a)?.pct||0)-(SLAPS.find(s=>s.id===b)?.pct||0));
       const worst=evictable[0];
       if(worst){
         z.ownSlaps=z.ownSlaps.filter(sid=>sid!==worst);
         const worstDef=SLAPS.find(s=>s.id===worst), newDef=SLAPS.find(s=>s.id===id);
+        console.log('[Slap-debug] _grantSlap('+id+') — Limit erreicht, '+worst+' ausgetauscht. ownSlaps jetzt='+JSON.stringify(z.ownSlaps));
         try{ ZP.toast('🗑️ Max. 4 Slaps! '+(worstDef?.e||'')+' '+(worstDef?.n||worst)+' wurde durch '+(newDef?.e||'')+' '+(newDef?.n||id)+' ersetzt.',3500); }catch(e){}
         if(z.eq===worst) z.eq='basic';
       }
@@ -6327,7 +6338,7 @@ const LW={
       {l:'🦢 Königsschwan!',mt:0,c:.5,col:'#FFD700',animal:{id:'royalswan',n:'Königsschwan',e:'🦢',r:'ultralegendary',p:0,earn:2500},exclusive:true},
       {l:'200.000 MT',mt:200000,c:8,col:'#27AE60'},{l:'500.000 MT',mt:500000,c:5,col:'#FFD700'},
       {l:'1.000.000 MT',mt:1000000,c:3,col:'#fff'},{l:'🗼 France Slap!',mt:0,c:.5,col:'#ED2939',slap:'france'},
-      {l:'🍀 Lucky Slap!',mt:0,c:10,col:'#FFD700',slap:'lucky'},
+      {l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
     ]},
     weekend:{name:'Wochenend-Rad',emoji:'🎉',glowCol:'#cc00ff',prizes:[
       {l:'3.000 MT',mt:3000,c:25,col:'#8E44AD'},{l:'12.000 MT',mt:12000,c:19,col:'#cc00ff'},
@@ -6379,7 +6390,7 @@ const LW={
       {l:'👥 2x Besucher 5 Min!',mt:0,c:5,col:'#000',boost:'vis2x',boostDur:300000},
       {l:'💰 2x Geld 5 Min!',mt:0,c:5,col:'#8B0000',boost:'coin',boostDur:300000},
       {l:'🗼 10× France Slap!',mt:0,c:2,col:'#ED2939',slapPack:{id:'france',n:10}},
-      {l:'🍀 Lucky Slap!',mt:0,c:8,col:'#FFD700',slap:'lucky'},
+      {l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
     ]},
   },
 
@@ -6615,7 +6626,18 @@ const LW={
     const z=ZS.zoo;
     if(p.slap){
       if(!z.ownSlaps)z.ownSlaps=['basic'];
-      this._grantSlap(z,p.slap);
+      console.log('[Slap-debug] Glücksrad-Preis: '+p.l+' (slap='+p.slap+') — verarbeite...');
+      // BUG FIX: this used to be `this._grantSlap(...)`. _prize() runs as
+      // a method of LW (the wheel), but _grantSlap is only ever defined
+      // on ZG — LW has no such method. That made this line throw a
+      // TypeError every single time ANY wheel landed on a slap prize
+      // (🍀 Lucky Slap, 🗼 France Slap, 🎉 Weekend Slap, 🎄 Christmas
+      // Slap), silently aborting the rest of _prize() right here since
+      // it runs inside a setTimeout with nothing catching the error —
+      // no toast, no popup, no grant, ever, on any wheel, regardless of
+      // which slaps you already owned. Using ZG._grantSlap (like every
+      // other call site in the codebase already correctly does) fixes it.
+      ZG._grantSlap(z,p.slap);
       const sd=SLAPS.find(s=>s.id===p.slap);
       ZG._updWBar();ZP.toast((sd?.e||'✨')+' '+p.l+' erhalten!',5000);
       const pop=document.createElement('div');pop.style.cssText='position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);z-index:700;text-align:center;animation:pop .5s ease;pointer-events:none';
