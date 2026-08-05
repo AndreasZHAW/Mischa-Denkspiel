@@ -27,6 +27,10 @@ const TetrisGame = {
     console.log('[Tetris-debug] Vor Berechnung: window='+window.innerWidth+'x'+window.innerHeight+' el.offsetWidth='+(el.offsetWidth||'?')+' isMobile='+isMobile+' elW='+elW+' elH='+elH+' csFromW='+csFromW+' csFromH='+csFromH+' → gewähltes CS='+CS+(csFromH<12?' ⚠️ csFromH lag unter dem Minimum — Feld ist trotzdem zu hoch für den Platz!':''));
     const BW = COLS * CS, BH = ROWS * CS;
     const SBW = Math.max(80, CS*4); // sidebar for desktop
+    // Height reserved for the fixed control bar at the bottom of the
+    // viewport (see below) — used as bottom padding on the scrollable
+    // board so the board's own content never sits underneath it.
+    const CTRL_H = 104;
 
     const PIECES=[
       {cells:[[1,1,1,1]],           col:'#00f0f0',dark:'#009999',name:'I'},
@@ -39,7 +43,19 @@ const TetrisGame = {
     ];
 
     // Layout: responsive for mobile/desktop
-    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${BW+SBW+24}px;max-height:100dvh;overflow-y:auto;margin:0 auto">
+    // Control buttons are NOT nested inside the scrollable board container
+    // below — they're a separately fixed-position bar (see further down).
+    // Why: the board container relies on overflow-y:auto (+ max-height) to
+    // let you scroll down to the buttons if the board is taller than the
+    // screen. That's exactly the kind of nested-scroll-container that iOS
+    // Safari has a long, well-documented history of NOT handling reliably
+    // via touch (works fine with a mouse on desktop, and Android's WebView/
+    // Chrome handles nested overflow scrolling fine too) — matching
+    // exactly the reported pattern: broken on iPhone AND iPad, fine on
+    // Android and PC. Pinning the buttons to the viewport with
+    // position:fixed sidesteps the whole question of whether the nested
+    // scroll works at all: they're always on-screen, full stop.
+    el.innerHTML=`<div style="font-family:'Courier New',monospace;user-select:none;-webkit-user-select:none;background:#000;border:3px solid #555;border-radius:8px;padding:6px;touch-action:none;max-width:${BW+SBW+24}px;max-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 auto;padding-bottom:${CTRL_H}px;box-sizing:border-box">
       <!-- Stats row above canvas -->
       <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px;margin-bottom:4px">
         <div style="text-align:center">
@@ -63,16 +79,26 @@ const TetrisGame = {
       <!-- Full-width canvas -->
       <canvas id="trcv" width="${BW*DPR}" height="${BH*DPR}"
         style="width:${BW}px;height:${BH}px;display:block;border:2px solid #444;background:#000014;margin:0 auto"></canvas>
-      <!-- Ergonomic buttons BELOW — full width, 4 big buttons -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-top:6px">
-        <button id="tr-left"  style="${BTN('#1a40c0')}">◀<br><span style="font-size:.58rem;opacity:.75">Links</span></button>
-        <button id="tr-rot"   style="${BTN('#8800aa')}">↻<br><span style="font-size:.58rem;opacity:.75">Drehen</span></button>
-        <button id="tr-down"  style="${BTN('#bb0000')}">▼<br><span style="font-size:.58rem;opacity:.75">Schnell</span></button>
-        <button id="tr-right" style="${BTN('#1a40c0')}">▶<br><span style="font-size:.58rem;opacity:.75">Rechts</span></button>
-      </div>
     </div>`;
 
     function BTN(c){return `background:${c};color:#fff;border:2px solid rgba(255,255,255,.2);padding:12px 4px 10px;border-radius:12px;font-size:1.7rem;font-weight:900;cursor:pointer;width:100%;touch-action:none;box-shadow:0 4px 0 rgba(0,0,0,.7);-webkit-tap-highlight-color:transparent;line-height:1.2;text-align:center`;}
+
+    // Fixed control bar — appended straight to <body>, positioned by the
+    // VIEWPORT (not by anything inside #game-area), so no ancestor's
+    // scroll state, height calc, or overflow setting can ever push it out
+    // of view. Any stale one from a previous Tetris session is removed
+    // first (defensive — also cleaned up on leaving, see app.js
+    // _confirmLeave/_showTaskComplete/launchGame).
+    document.getElementById('tetris-fixed-controls')?.remove();
+    const ctrlBar=document.createElement('div');
+    ctrlBar.id='tetris-fixed-controls';
+    ctrlBar.style.cssText=`position:fixed;left:0;right:0;bottom:0;z-index:9500;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:rgba(0,0,0,.92);backdrop-filter:blur(4px);box-sizing:border-box`;
+    ctrlBar.innerHTML=`
+      <button id="tr-left"  style="${BTN('#1a40c0')}">◀<br><span style="font-size:.58rem;opacity:.75">Links</span></button>
+      <button id="tr-rot"   style="${BTN('#8800aa')}">↻<br><span style="font-size:.58rem;opacity:.75">Drehen</span></button>
+      <button id="tr-down"  style="${BTN('#bb0000')}">▼<br><span style="font-size:.58rem;opacity:.75">Schnell</span></button>
+      <button id="tr-right" style="${BTN('#1a40c0')}">▶<br><span style="font-size:.58rem;opacity:.75">Rechts</span></button>`;
+    document.body.appendChild(ctrlBar);
 
     console.log('[Tetris-debug] Layout: innerWidth='+window.innerWidth+' innerHeight='+window.innerHeight+' isMobile='+isMobile+' CS='+CS+' Board='+BW+'x'+BH);
     const _checkBtnVisibility=(when)=>{
@@ -82,8 +108,12 @@ const TetrisGame = {
         if(btnRow){
           const r=btnRow.getBoundingClientRect();
           const hidden=r.bottom>window.innerHeight||r.top<0;
-          const outerInfo = outer ? (' outerScrollHeight='+outer.scrollHeight+' outerClientHeight='+outer.clientHeight+' outerScrollTop='+outer.scrollTop+' istScrollbar='+(outer.scrollHeight>outer.clientHeight)) : '';
-          console.log('[Tetris-debug] ('+when+') Steuerknöpfe-Position: top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' devicePixelRatio='+window.devicePixelRatio+outerInfo+' → '+(hidden?'⚠️ AUSSERHALB des sichtbaren Bereichs (aber per Scrollen im Container erreichbar, falls istScrollbar=true)!':'✅ sichtbar'));
+          const outerInfo = outer ? (' boardScrollHeight='+outer.scrollHeight+' boardClientHeight='+outer.clientHeight+' boardScrollTop='+outer.scrollTop+' boardHatScrollbar='+(outer.scrollHeight>outer.clientHeight)) : '';
+          // Buttons are position:fixed now (see #tetris-fixed-controls
+          // above) so `hidden` here should never be true — this check
+          // stays purely as a confidence log / early warning in case some
+          // future change or an unusual browser breaks that assumption.
+          console.log('[Tetris-debug] ('+when+') Steuerknöpfe-Position (fixed): top='+Math.round(r.top)+' bottom='+Math.round(r.bottom)+' viewportHeight='+window.innerHeight+' devicePixelRatio='+window.devicePixelRatio+outerInfo+' → '+(hidden?'⚠️ UNERWARTET ausserhalb des sichtbaren Bereichs trotz position:fixed!':'✅ sichtbar'));
         }
       }catch(e){}
     };
