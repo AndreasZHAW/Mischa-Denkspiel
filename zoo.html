@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v466 -->
+<!-- ZOO v467 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=466"></script>
-<script src="rewardchests.js?v=466"></script>
-<script src="personality.js?v=466"></script>
+<script src="lang.js?v=467"></script>
+<script src="rewardchests.js?v=467"></script>
+<script src="personality.js?v=467"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v466','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v467','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -512,8 +512,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=466"></script>
-<script src="worlds.js?v=466"></script>
+<script src="firebase-state.js?v=467"></script>
+<script src="worlds.js?v=467"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -11194,6 +11194,20 @@ const ZAdmin = {
     console.log('[CL-debug] deletePlayer("'+name+'") Bestätigungsdialog-Ergebnis: '+confirmed);
     if(!confirmed)return;
     const k='zoo_'+name.toLowerCase();
+    // Captured BEFORE deleting, so the 15s/30s safety net below (which
+    // redeletes the doc if it "comes back") can tell a zombie stale-tab
+    // autosave apart from a deliberate, legitimate re-registration under
+    // the same name. Bug found: someone could delete "Andi" and
+    // immediately re-register "Andi" with a NEW password within that
+    // 30s window — the safety net saw the doc existed again, assumed it
+    // was the stale-session ghost it was built to catch, and silently
+    // deleted the brand-new account too. Comparing the password lets the
+    // two cases be told apart: same old password = ghost, redelete it;
+    // different password = a real new account, leave it alone.
+    let oldPlayerSnapshot = null;
+    try{ if(typeof State!=='undefined' && State.getPlayer) oldPlayerSnapshot = await State.getPlayer(name); }catch(e){}
+    const oldPassword = oldPlayerSnapshot?.password;
+    console.log('[CL-debug] deletePlayer: altes Passwort vor Löschung erfasst='+(oldPassword!==undefined&&oldPassword!==null)+' (für Geister-Erkennung im 15s/30s-Recheck).');
     console.log('[CL-debug] deletePlayer("'+name+'"): starte Löschvorgang. Doc-ID="'+k+'" _db verfügbar='+(typeof _db!=='undefined'&&!!_db)+' State.deletePlayer verfügbar='+(typeof State!=='undefined'&&typeof State.deletePlayer==='function'));
     let zooDeleteFailed=false, playerDeleteFailed=false, lastErr=null;
     try{
@@ -11268,8 +11282,16 @@ const ZAdmin = {
           }
           const recheckPlayer=await (typeof State!=='undefined'&&State.getPlayer?State.getPlayer(name):null);
           if(recheckPlayer && typeof State!=='undefined' && State.deletePlayer){
-            console.log('[CL-debug] deletePlayer: Denkspiel-Account "'+name+'" war nach '+(delay/1000)+'s wieder da — lösche erneut.');
-            await State.deletePlayer(name).catch(()=>{});
+            if(oldPassword!==undefined && recheckPlayer.password!==oldPassword){
+              // Different password = a deliberate, legitimate new account
+              // under the same name, created in the window after the
+              // deletion — NOT the stale-session ghost this safety net
+              // exists to catch. Leave it alone.
+              console.log('[CL-debug] deletePlayer: "'+name+'" existiert nach '+(delay/1000)+'s wieder, aber mit ANDEREM Passwort als vorher — vermutlich bewusst neu angelegt, NICHT gelöscht.');
+            } else {
+              console.log('[CL-debug] deletePlayer: Denkspiel-Account "'+name+'" war nach '+(delay/1000)+'s wieder da (gleiches Passwort wie vor der Löschung → Geister-Sitzung) — lösche erneut.');
+              await State.deletePlayer(name).catch(()=>{});
+            }
           }
         }catch(e){}
       },delay);

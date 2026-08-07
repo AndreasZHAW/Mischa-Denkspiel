@@ -304,12 +304,14 @@ const State = {
         new Promise(r => setTimeout(() => r(null), 5000))
       ]);
     } catch(e) { player = null; }
+    console.log('[Login-debug] login("'+name+'"): cloud-Lookup ergab '+(player?('Account gefunden, Passwort stimmt='+(player.password===password)+' createdAt='+player.createdAt):'nichts gefunden')+' · lokaler Cache vorhanden='+!!localPlayer+(localPlayer?(' lokales Passwort stimmt='+(localPlayer.password===password)):''));
     if (player) {
-      if (player.password !== password) return { ok: false, error: 'Falsches Passwort' };
+      if (player.password !== password) { console.log('[Login-debug] login("'+name+'"): ABGELEHNT — falsches Passwort gegen Cloud-Stand.'); return { ok: false, error: 'Falsches Passwort' }; }
       this._local.save(player);
       this._syncDeviceIdOnLogin(player);
       this._sendDeviceDiagSnapshot(player, 'login').catch(()=>{});
       await this._claimSession(player.name).catch(()=>{});
+      console.log('[Login-debug] login("'+name+'"): ERFOLG via Cloud.');
       return { ok: true, player };
     }
     // Cloud unreachable (offline / slow connection) — fall back to
@@ -319,9 +321,11 @@ const State = {
       this._syncDeviceIdOnLogin(localPlayer);
       this._sendDeviceDiagSnapshot(localPlayer, 'login_offline_fallback').catch(()=>{});
       await this._claimSession(localPlayer.name).catch(()=>{});
+      console.log('[Login-debug] login("'+name+'"): ERFOLG via lokalem Offline-Fallback (Cloud nicht erreichbar oder Account dort nicht gefunden).');
       return { ok: true, player: localPlayer };
     }
-    if (localPlayer) return { ok: false, error: 'Falsches Passwort' };
+    if (localPlayer) { console.log('[Login-debug] login("'+name+'"): ABGELEHNT — Cloud fand nichts, lokaler Cache existiert aber mit ANDEREM Passwort (möglicherweise ein alter, gelöschter Account-Stand).'); return { ok: false, error: 'Falsches Passwort' }; }
+    console.log('[Login-debug] login("'+name+'"): ABGELEHNT — weder Cloud noch lokaler Cache kennen diesen Namen.');
     return { ok: false, error: 'Spieler nicht gefunden (Verbindungsproblem?)' };
   },
 
