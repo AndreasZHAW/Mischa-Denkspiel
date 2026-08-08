@@ -1315,8 +1315,6 @@ const RankNotify = {
     try {
       if (!playerName) return;
       const key = playerName.toLowerCase();
-      const rankKey = 'mischa_notified_rank_' + key;
-      const timeKey = 'mischa_rank_notif_time_' + key;
 
       const localAll = State._local.getAll() || {};
       let firebaseAll = {};
@@ -1369,11 +1367,26 @@ const RankNotify = {
       // A player who only ever played the Zoo (no mischa_players entry at all)
       // still needs to appear in the ranking — add them in if missing.
       if (!players.some(p => p.name.toLowerCase() === key) && zoosAll[key]) {
-        players.push({ name: playerName, _mt: _zooMTFor(playerName) });
+        players.push({ name: playerName, _mt: _zooMTFor(playerName), inCL: !!zoosAll[key]?.inChampionsLeague });
         players.sort((a,b) => b._mt - a._mt);
       }
 
-      const myIdx = players.findIndex(p => p.name.toLowerCase() === key);
+      // Bug found: rank was always computed against the FULL combined list
+      // (normal + Champions-League players together) — someone genuinely
+      // #2 on the normal leaderboard could see "Platz 9" just because CL
+      // players (a separate competition) were sitting above them in that
+      // shared list. Fix: split into two independent brackets and only
+      // ever rank/compare within the bracket the player is actually in —
+      // each bracket also gets its own remembered baseline rank (separate
+      // localStorage keys) so switching between CL and normal doesn't
+      // itself look like a rank change.
+      const myInCL = !!zoosAll[key]?.inChampionsLeague;
+      const bracket = players.filter(p => !!p.inCL === myInCL);
+      const bracketKey = myInCL ? '_cl' : '_normal';
+      const rankKey = 'mischa_notified_rank_' + key + bracketKey;
+      const timeKey = 'mischa_rank_notif_time_' + key + bracketKey;
+
+      const myIdx = bracket.findIndex(p => p.name.toLowerCase() === key);
       if (myIdx === -1) return;
       const newRank = myIdx + 1;
 
@@ -1388,32 +1401,35 @@ const RankNotify = {
 
       const improved = newRank < prevRank;
       // Neighbor heuristic: who I likely just passed / who just passed me
-      const neighbor = improved ? players[myIdx+1] : players[myIdx-1];
+      // — from the SAME bracket, never across CL/normal.
+      const neighbor = improved ? bracket[myIdx+1] : bracket[myIdx-1];
       const neighborName = neighbor ? neighbor.name : null;
 
       localStorage.setItem(rankKey, String(newRank));
       localStorage.setItem(timeKey, String(Date.now()));
 
-      this._showToast(newRank, improved, neighborName);
+      this._showToast(newRank, improved, neighborName, myInCL);
       if (improved) this._playSound(newRank === 1);
     } catch(e) {}
   },
 
-  _showToast(newRank, improved, neighborName) {
+  _showToast(newRank, improved, neighborName, isCL) {
     const medal = newRank===1?'🥇':newRank===2?'🥈':newRank===3?'🥉':'📊';
     const _tt = (key, vars) => {
       let s = (typeof t!=='undefined' && typeof t==='function') ? t(key) : null;
       if (!s || s===key) {
         const fallback = { 'rank.now_first':'🎉 Du bist jetzt Platz 1!', 'rank.now_place':'📈 Du bist jetzt Platz {n}!',
-          'rank.now_place_down':'📉 Du bist jetzt Platz {n}.', 'rank.you_passed':'Du hast {name} überholt!', 'rank.passed_you':'{name} hat dich überholt!' };
+          'rank.now_place_down':'📉 Du bist jetzt Platz {n}.', 'rank.you_passed':'Du hast {name} überholt!', 'rank.passed_you':'{name} hat dich überholt!',
+          'rank.now_first_cl':'🎉 Du bist jetzt Platz 1 der Champions League!', 'rank.now_place_cl':'📈 Du bist jetzt Platz {n} der Champions League!',
+          'rank.now_place_down_cl':'📉 Du bist jetzt Platz {n} der Champions League.' };
         s = fallback[key] || key;
       }
       if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
       return s;
     };
     const headline = improved
-      ? (newRank===1 ? _tt('rank.now_first') : _tt('rank.now_place', {n:newRank}))
-      : _tt('rank.now_place_down', {n:newRank});
+      ? (newRank===1 ? _tt(isCL?'rank.now_first_cl':'rank.now_first') : _tt(isCL?'rank.now_place_cl':'rank.now_place', {n:newRank}))
+      : _tt(isCL?'rank.now_place_down_cl':'rank.now_place_down', {n:newRank});
     const sub = neighborName
       ? (improved ? _tt('rank.you_passed', {name:neighborName}) : _tt('rank.passed_you', {name:neighborName}))
       : '';

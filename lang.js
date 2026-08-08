@@ -653,6 +653,9 @@ const STRINGS = {
   'rank.now_first':    { de:'🎉 Du bist jetzt Platz 1!', en:'🎉 You\'re now #1!', fr:'🎉 Tu es maintenant 1er !' , it:'🎉 Ora sei 1°!'},
   'rank.now_place':    { de:'📈 Du bist jetzt Platz {n}!', en:'📈 You\'re now #{n}!', fr:'📈 Tu es maintenant {n}e !' , it:'📈 Ora sei {n}°!'},
   'rank.now_place_down': { de:'📉 Du bist jetzt Platz {n}.', en:'📉 You\'re now #{n}.', fr:'📉 Tu es maintenant {n}e.' , it:'📉 Ora sei {n}°.'},
+  'rank.now_first_cl':    { de:'🎉 Du bist jetzt Platz 1 der Champions League!', en:'🎉 You\'re now #1 in the Champions League!', fr:'🎉 Tu es maintenant 1er de la Champions League !' , it:'🎉 Ora sei 1° nella Champions League!'},
+  'rank.now_place_cl':    { de:'📈 Du bist jetzt Platz {n} der Champions League!', en:'📈 You\'re now #{n} in the Champions League!', fr:'📈 Tu es maintenant {n}e de la Champions League !' , it:'📈 Ora sei {n}° nella Champions League!'},
+  'rank.now_place_down_cl': { de:'📉 Du bist jetzt Platz {n} der Champions League.', en:'📉 You\'re now #{n} in the Champions League.', fr:'📉 Tu es maintenant {n}e de la Champions League.' , it:'📉 Ora sei {n}° nella Champions League.'},
   'rank.you_passed':   { de:'Du hast {name} überholt!', en:'You passed {name}!', fr:'Tu as dépassé {name} !' , it:'Hai superato {name}!'},
   'rank.passed_you':   { de:'{name} hat dich überholt!', en:'{name} passed you!', fr:'{name} t\'a dépassé !' , it:'{name} ti ha superato!'},
 
