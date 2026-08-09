@@ -175,6 +175,15 @@ const RewardChests = {
   open(){
     this._initAudioUnlock(); this._unlockAudio();
     try{ if(typeof ZTips!=='undefined') ZTips.notify('gifts'); }catch(e){}
+    // BUG FIX: open() rebuilds the WHOLE overlay from scratch — including
+    // every time a tier becomes ready, which re-triggers open() from the
+    // 1s countdown interval below. A brand-new element always starts
+    // scrolled to the top, so if you'd scrolled down to see the last
+    // chest, it would suddenly snap back up the moment any timer ticked
+    // over — "die unterste Truhe ist verdeckt und rutscht immer wieder
+    // hoch". Remembering the previous scroll position and restoring it on
+    // the new element fixes that.
+    const _prevScroll = document.getElementById('chest-overlay')?.scrollTop || 0;
     document.getElementById('chest-overlay')?.remove();
     const tiers=this._tiers(), round=this._round();
     const cards=tiers.map(t=>{
@@ -196,7 +205,7 @@ const RewardChests = {
       '</div>';
     }).join('');
     const ov=document.createElement('div'); ov.id='chest-overlay';
-    ov.style.cssText='position:fixed;inset:0;z-index:99970;background:linear-gradient(160deg,#0a0e1a,#161b2e);overflow:auto;font-family:Arial,sans-serif;color:#fff';
+    ov.style.cssText='position:fixed;inset:0;z-index:99970;background:linear-gradient(160deg,#0a0e1a,#161b2e);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:Arial,sans-serif;color:#fff';
     ov.innerHTML=
       '<div style="position:sticky;top:0;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 14px,#3a1010 14px,#3a1010 28px);border-bottom:2px solid #c0392b;padding:10px;text-align:center;z-index:5">'+
         '<button onclick="document.getElementById(\'chest-overlay\').remove()" style="position:absolute;left:12px;top:8px;background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:1.2rem;cursor:pointer">✕</button>'+
@@ -207,8 +216,9 @@ const RewardChests = {
         '<div style="color:rgba(255,255,255,.55);font-size:.85rem">Spielzeit: '+Math.floor(this._minsPlayed())+' Min</div>'+
         (round<2?'<div style="color:#FFD700;font-size:.8rem;margin-top:4px;font-weight:700">✨ Alle öffnen → VIEL bessere Runde 2!</div>':'<div style="color:#9b59ff;font-size:.8rem;margin-top:4px;font-weight:700">🌌 Runde '+round+' — stärkere Truhen!</div>')+
       '</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 20px;max-width:900px;margin:0 auto">'+cards+'</div>';
+      '<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 14px 40px;max-width:900px;margin:0 auto">'+cards+'</div>';
     document.body.appendChild(ov);
+    if(_prevScroll) ov.scrollTop=_prevScroll;
     // Live-update the countdowns every second while the panel is open —
     // they used to be a static snapshot computed once at render time,
     // which looked like a frozen/broken timer since the numbers never
