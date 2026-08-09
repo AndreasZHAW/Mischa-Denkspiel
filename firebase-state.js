@@ -228,6 +228,28 @@ const State = {
 
   async savePlayer(player) {
     const key = player.name.toLowerCase();
+    // PROGRESS-LOSS WATCHDOG: every single save (task completion, admin
+    // action, reset, whatever) goes through this one function, so it's the
+    // one place that can reliably catch "a player's progress just went
+    // DOWN" regardless of which code path caused it. A legitimate admin
+    // reset (ZAdmin.resetScore) or prestige reset (App._doReset /
+    // giftReset) always bumps either lastAdminReset or resets — if
+    // neither moved and completed-task count dropped anyway, that's
+    // exactly the "player lost their points" bug report: log it loudly,
+    // with a stack trace, so the next occurrence is traceable instead of
+    // another guessing game.
+    try {
+      const before = this._local.get(key);
+      if (before) {
+        const doneCount = (p) => { try { const ws=p?.worlds?.['1']||p?.worlds?.[1]||{}; return (ws.tasks||[]).filter(t=>t&&t.done).length; } catch(e){ return 0; } };
+        const beforeDone = doneCount(before), afterDone = doneCount(player);
+        const beforeScore = before.totalScore||0, afterScore = player.totalScore||0;
+        const legitReset = (player.lastAdminReset && player.lastAdminReset !== before.lastAdminReset) || (player.resets||0) > (before.resets||0);
+        if (!legitReset && (afterDone < beforeDone || afterScore < beforeScore - 0.01)) {
+          console.error('[SaveWatchdog] ⚠️ PROGRESS-VERLUST bei savePlayer("'+player.name+'")! Tasks: '+beforeDone+'→'+afterDone+' · totalScore: '+beforeScore+'→'+afterScore+' · lastAdminReset unverändert='+(player.lastAdminReset===before.lastAdminReset)+' · resets unverändert='+((player.resets||0)===(before.resets||0))+' · Aufrufer:\n'+(new Error().stack||'(kein Stack verfügbar)'));
+        }
+      }
+    } catch(e) {}
     // Only attach a device ID if this player doesn't already have one recorded —
     // otherwise an admin action (e.g. resetting someone else's score) would end up
     // stamping the ADMIN's own device ID over the target player's real one.
@@ -1057,12 +1079,21 @@ const State = {
   _resetActivityTimer() {
     clearTimeout(this._activityTimer);
     this._activityTimer = setTimeout(() => {
+      console.log('[Logout-debug] Automatischer Logout wegen Inaktivität (TIMEOUT_MS='+this.TIMEOUT_MS+'ms). Spieler="'+(this.currentPlayer?.name||'?')+'". Kein Datenverlust hier — es werden nur Session-Zeiger gelöscht, keine Spielerdaten.');
       this.logout();
       window.location.href = 'index.html';
     }, this.TIMEOUT_MS);
   },
 
   logout() {
+    const outgoingName = this.currentPlayer?.name;
+    console.log('[Logout-debug] logout() aufgerufen für "'+(outgoingName||'?')+'". Löscht nur Session-Zeiger (sessionStorage/mischa_current_backup) — Spielerdaten selbst (worlds/totalScore) bleiben unangetastet in localStorage+Cloud. Aufrufer:\n'+(new Error().stack||'(kein Stack verfügbar)'));
+    if (outgoingName && typeof PlayTime !== 'undefined') {
+      // Stop both — whichever kind (ds/zoo) wasn't actually tracking in
+      // this page's realm is just a harmless no-op.
+      try { PlayTime.stopTracking('ds', outgoingName); } catch(e) {}
+      try { PlayTime.stopTracking('zoo', outgoingName); } catch(e) {}
+    }
     this.currentPlayer = null;
     sessionStorage.removeItem('mischa_current');
     localStorage.removeItem('mischa_current_backup');
@@ -1085,10 +1116,11 @@ const State = {
     try {
       const p = await Promise.race([
         this.getPlayer(name),
-        new Promise(r => setTimeout(() => r(this._local.get(name)), 3000))
+        new Promise(r => setTimeout(() => { console.log('[Connectivity-debug] getCurrentPlayer("'+name+'"): Cloud-Abruf nach 3s nicht fertig — nutze lokalen Cache als Fallback (Daten bleiben erhalten, nur evtl. nicht ganz aktuell).'); r(this._local.get(name)); }, 3000))
       ]);
       this.currentPlayer = p;
     } catch(e) {
+      console.log('[Connectivity-debug] getCurrentPlayer("'+name+'"): Cloud-Abruf warf einen Fehler ('+e.message+') — nutze lokalen Cache als Fallback.');
       this.currentPlayer = this._local.get(name);
     }
     // If still null: player not found locally and Firebase unavailable
@@ -1207,6 +1239,7 @@ const State = {
   async giftReset(targetName) {
     const target = await this.getPlayer(targetName);
     if (!target) return false;
+    console.log('[GiftReset-debug] giftReset("'+targetName+'") aufgerufen — resets vorher='+(target.resets||0)+' totalScore vorher='+(target.totalScore||0));
     target.resets = (target.resets || 0) + 1;
     const mult = this._resetMultiplier(target.resets);
     target.resetMultiplier = mult;
@@ -1304,6 +1337,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.State = State;
 
+// MT milestones tracked for the "time to reach X" player stats (see
+// RankNotify.check below, which is where they actually get recorded).
+const MT_MILESTONES = [100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000];
+
 // ============================================================
 // RANK NOTIFICATIONS — shared between Denkspiel (app.js) and Zoo (zoo.html)
 // ============================================================
@@ -1389,6 +1426,30 @@ const RankNotify = {
       const myIdx = bracket.findIndex(p => p.name.toLowerCase() === key);
       if (myIdx === -1) return;
       const newRank = myIdx + 1;
+
+      // MT milestones — recorded once each, the first time this combined-MT
+      // check (which already runs periodically for rank notifications) sees
+      // the player cross each threshold. Stored on the Welt-1 player doc
+      // since that's the one both index.html and zoo.html can read back
+      // from consistently. firstMillionAt (from before this was
+      // generalized) is kept as a fallback read for the 1,000,000 entry so
+      // nobody's already-recorded milestone is lost.
+      try {
+        const myCombinedMT = bracket[myIdx]._mt;
+        const rawPlayer = merged[key];
+        if (rawPlayer) {
+          if (!rawPlayer.milestones) rawPlayer.milestones = {};
+          let changed = false;
+          for (const ms of MT_MILESTONES) {
+            if (myCombinedMT >= ms && !rawPlayer.milestones[ms] && !(ms===1000000 && rawPlayer.firstMillionAt)) {
+              rawPlayer.milestones[ms] = Date.now();
+              changed = true;
+              console.log('[Milestone-debug] "'+rawPlayer.name+'" hat zum ersten Mal '+ms+' MT erreicht.');
+            }
+          }
+          if (changed) State.savePlayer(rawPlayer).catch(()=>{});
+        }
+      } catch(e) {}
 
       const prevRank = parseInt(localStorage.getItem(rankKey) || '0');
       if (!prevRank) { localStorage.setItem(rankKey, String(newRank)); return; } // first check, just establish baseline
@@ -1884,14 +1945,44 @@ const PlayTime = {
   },
 
   // Starts a periodic accumulator that adds elapsed seconds to totalPlaytimeSec
-  // every 60s while this tab/session stays open. Call once after login.
+  // every 60s while this tab/session stays open and VISIBLE. Call once after login.
+  //
+  // Two real bugs fixed here (this is very likely why "Gesamtspielzeit"
+  // looked wrong):
+  //  1. Nothing EVER stopped this interval before — no pause on a hidden/
+  //     backgrounded tab, no stop on logout. A tab nobody bothers to close
+  //     (completely normal browser behaviour) kept silently adding 60s of
+  //     "playtime" every minute for as long as it stayed open in memory —
+  //     hours or days of wildly inflated numbers for a few minutes of
+  //     actual play.
+  //  2. index.html (Welt 1) and zoo.html are separate pages/JS realms —
+  //     a player with BOTH open at once (very common: finish a task, hop
+  //     into the Zoo to spend the MT, leave the Welt-1 tab open in the
+  //     background) got counted by TWO independent accumulators running
+  //     in parallel, and the admin panel just adds both totals together
+  //     as one combined "Gesamtspielzeit" — double-counting every minute
+  //     both tabs were open.
   startTracking(kind, name) {
     try {
       const col = kind === 'zoo' ? 'zoos' : 'mischa_players';
       const key = kind === 'zoo' ? 'zoo_' + name.toLowerCase() : name.toLowerCase();
       if (this._intervals[key]) return; // already tracking
+
+      // Shared cross-page mutex (same-origin localStorage, so both
+      // index.html and zoo.html can see it): whichever page's tick fires
+      // first in a given ~60s window "claims" it; the other page's tick
+      // for that same real-world minute is skipped. Fixes bug #2 above.
+      const mutexKey = 'mischa_playtime_tick_' + name.toLowerCase();
+
       this._intervals[key] = setInterval(async () => {
         try {
+          // Fixes bug #1: don't add time while this tab isn't the one
+          // actually being looked at.
+          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+          const now = Date.now();
+          const lastClaim = parseInt(localStorage.getItem(mutexKey) || '0');
+          if (now - lastClaim < 55000) return; // another page already claimed this window
+          localStorage.setItem(mutexKey, String(now));
           if (typeof _db === 'undefined' || !_db) return;
           const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
             ? firebase.firestore.FieldValue.increment(60) : 60;
@@ -1908,6 +1999,16 @@ const PlayTime = {
         ping();
         this._heartbeats[key] = setInterval(ping, 15000);
       }
+    } catch(e) {}
+  },
+
+  // Stops accumulating playtime for this player — call on logout so a
+  // closed-out session doesn't keep silently ticking (see bug #1 above).
+  stopTracking(kind, name) {
+    try {
+      const key = kind === 'zoo' ? 'zoo_' + name.toLowerCase() : name.toLowerCase();
+      if (this._intervals[key]) { clearInterval(this._intervals[key]); delete this._intervals[key]; }
+      if (this._heartbeats && this._heartbeats[key]) { clearInterval(this._heartbeats[key]); delete this._heartbeats[key]; }
     } catch(e) {}
   },
 };

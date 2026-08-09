@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v468';
+const APP_VERSION = 'v471';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -458,7 +458,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v468 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v471 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1857,6 +1857,7 @@ const App = {
         <div style="text-align:right">
           <div style="font-size:1rem;font-weight:900;color:${parseFloat(mt)>=10?'#27AE60':parseFloat(mt)>=5?'#FFD700':'#E67E22'}">🌀${mt} MT</div>
         </div>
+        ${isMe ? `<button onclick="App.showMyStats()" style="background:none;border:1px solid rgba(41,182,246,.4);color:#29B6F6;padding:3px 7px;border-radius:6px;cursor:pointer;font-size:1rem;touch-action:manipulation" title="Deine Statistiken">ℹ️</button>` : ''}
         ${!isMe && contestPhase!=='frozen' ?
           `<button onclick="App.reportPlayer('${p.name}')" style="background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.6);padding:3px 7px;border-radius:6px;cursor:pointer;font-size:1.18rem;touch-action:manipulation" title="Spieler melden">⚑</button>` : ''}
       </div>`;
@@ -1886,6 +1887,98 @@ const App = {
     if (contestPhase==='countdown' && typeof Contest!=='undefined') {
       Contest.renderCountdown(document.getElementById('contest-countdown'));
     }
+  },
+
+  // ---- MY STATS (info-icon popup from the Rangliste, own stats only) ----
+  _fmtDur(ms) {
+    if (!ms || ms < 0) return '—';
+    const s = Math.floor(ms/1000);
+    const d = Math.floor(s/86400), h = Math.floor((s%86400)/3600), m = Math.floor((s%3600)/60);
+    if (d > 0) return d+'T '+h+'Std';
+    if (h > 0) return h+'Std '+m+'Min';
+    return m+'Min';
+  },
+  // Returns a short badge string ("🏆 Bester Wert!", "Top 10%", "Besser als
+  // 63% der Spieler") comparing myValue against the comparison group, or
+  // null if there aren't enough other players with this stat to make a
+  // comparison meaningful (avoids "Top 100%!" nonsense with 1-2 data points).
+  _percentileBadge(myValue, others, lowerIsBetter) {
+    if (others.length < 3) return null;
+    const better = others.filter(v => lowerIsBetter ? v < myValue : v > myValue).length;
+    if (better === 0) return '🏆 Bester Wert!';
+    const pct = Math.round((1 - better/others.length) * 100);
+    if (pct >= 90) return '🌟 Top '+(100-pct+1)+'%';
+    return 'Besser als '+pct+'% der Spieler';
+  },
+  async showMyStats() {
+    this._loading('Statistiken laden...');
+    const player = await State.refreshCurrentPlayer();
+    if (!player) { this.showGlobalLeaderboard(); return; }
+    let myZoo = null, allPlayers = {}, allZoos = {};
+    try { myZoo = await Promise.race([State.getZoo(player.name), new Promise(r=>setTimeout(()=>r(null),3000))]); } catch(e) {}
+    try { allPlayers = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r({}),3000))]); } catch(e) {}
+    try { allZoos = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]); } catch(e) {}
+
+    const ws = player.worlds?.['1'] || player.worlds?.[1] || {};
+    const tasksDone = (ws.tasks||[]).filter(t=>t?.done).length;
+    const rebirths = myZoo?.reb || 0;
+    const animalsNow = myZoo ? (myZoo.enc||[]).filter(e=>e).length : 0;
+    const myCombinedMT = sanitizeMT(dsMTFor(player)) + (myZoo ? sanitizeMT(myZoo.mt) : 0);
+    const myPlaytimeSec = (player.totalPlaytimeSec||0) + (myZoo?.totalPlaytimeSec||0);
+    const myMtPerHour = myPlaytimeSec > 60 ? myCombinedMT / (myPlaytimeSec/3600) : null;
+    const registeredAt = player.createdAt || null;
+    const milestones = {...(player.milestones||{})};
+    if (player.firstMillionAt && !milestones[1000000]) milestones[1000000] = player.firstMillionAt;
+
+    // Build comparison groups from every other player, for the percentile badges.
+    const othersMtPerHour = [], othersMilestoneTime = {}; // {threshold: [durationMs, ...]}
+    MT_MILESTONES.forEach(ms => othersMilestoneTime[ms] = []);
+    Object.entries(allPlayers).forEach(([name, p]) => {
+      if (name === player.name.toLowerCase()) return;
+      const z = allZoos[name];
+      const pt = (p.totalPlaytimeSec||0) + (z?.totalPlaytimeSec||0);
+      const cmt = sanitizeMT(dsMTFor(p)) + (z ? sanitizeMT(z.mt) : 0);
+      if (pt > 60) othersMtPerHour.push(cmt/(pt/3600));
+      const pms = {...(p.milestones||{})};
+      if (p.firstMillionAt && !pms[1000000]) pms[1000000] = p.firstMillionAt;
+      if (p.createdAt) MT_MILESTONES.forEach(ms => { if (pms[ms]) othersMilestoneTime[ms].push(pms[ms]-p.createdAt); });
+    });
+
+    const mtPerHourBadge = myMtPerHour!==null ? this._percentileBadge(myMtPerHour, othersMtPerHour, false) : null;
+
+    const milestoneRows = MT_MILESTONES.map(ms => {
+      const label = ms>=1000000000?(ms/1000000000)+' Mrd':ms>=1000000?(ms/1000000)+' Mio':ms>=1000?(ms/1000)+"'000":ms;
+      if (!milestones[ms]) return `<div style="display:flex;justify-content:space-between;padding:4px 0;color:rgba(255,255,255,.3);font-size:.82rem"><span>🔒 ${label} MT</span><span>noch nicht erreicht</span></div>`;
+      const dur = milestones[ms] - (registeredAt||milestones[ms]);
+      const badge = registeredAt ? this._percentileBadge(dur, othersMilestoneTime[ms], true) : null;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.82rem">
+        <span>✅ ${label} MT</span>
+        <span style="text-align:right">${registeredAt?this._fmtDur(dur):'✓'}${badge?`<br><span style="color:#27AE60;font-size:.72rem">${badge}</span>`:''}</span>
+      </div>`;
+    }).join('');
+
+    this._html(`
+      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
+      <div class="page" style="padding-top:10px">
+        <div class="card" style="background:linear-gradient(135deg,rgba(5,10,25,.97),rgba(10,20,45,.95));border:1px solid rgba(41,182,246,.3);padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <button class="btn" onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,.1);color:#fff;padding:5px 12px;font-size:1rem">← Zurück</button>
+            <h2 style="flex:1;font-family:Arial,sans-serif;color:#29B6F6;font-size:1.1rem;margin:0">📊 Deine Statistiken</h2>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.9">
+            <div>📅 Dabei seit: <b>${registeredAt?new Date(registeredAt).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'}):'unbekannt'}</b></div>
+            <div>⏱️ Gesamtspielzeit: <b>${this._fmtDur(myPlaytimeSec*1000)}</b></div>
+            <div>📝 Aufgaben gelöst: <b>${tasksDone}/20</b></div>
+            <div>🔄 Rebirths: <b>${rebirths}</b></div>
+            <div>🐾 Tiere aktuell: <b>${animalsNow}</b></div>
+            <div>⚡ MT pro Spielstunde: <b>${myMtPerHour!==null?formatMT(myMtPerHour):'—'}</b>${mtPerHourBadge?` <span style="color:#27AE60;font-size:.78rem">(${mtPerHourBadge})</span>`:''}</div>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px">
+            <div style="font-weight:700;color:#FFD700;margin-bottom:6px;font-size:.92rem">🏁 Meilensteine (Zeit ab Registrierung)</div>
+            ${milestoneRows}
+          </div>
+        </div>
+      </div>`);
   },
 
   // ---- KONTOAUSZUG ----

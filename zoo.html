@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v468 -->
+<!-- ZOO v471 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -95,7 +95,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 #hud{position:fixed;inset:0;pointer-events:none;z-index:110}
 #hud.off{display:none!important}
 /* Money - above joystick bottom-left */
-#hm{position:absolute;bottom:186px;left:14px;pointer-events:none}
+#hm{position:absolute;bottom:186px;left:55px;pointer-events:none}
 .mv{font-size:1.9rem;font-weight:900;color:#00FF88;text-shadow:0 2px 8px rgba(0,255,136,.4),-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
 .ms{font-size:.72rem;color:rgba(255,255,255,.8);text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
 /* LEFT sidebar */
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=468"></script>
-<script src="rewardchests.js?v=468"></script>
-<script src="personality.js?v=468"></script>
+<script src="lang.js?v=471"></script>
+<script src="rewardchests.js?v=471"></script>
+<script src="personality.js?v=471"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v468','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v471','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -512,8 +512,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=468"></script>
-<script src="worlds.js?v=468"></script>
+<script src="firebase-state.js?v=471"></script>
+<script src="worlds.js?v=471"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -7345,8 +7345,92 @@ const ZP={
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
         <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
+        ${isMe ? `<button onclick="ZP.showMyStats()" style="background:none;border:1px solid rgba(41,182,246,.4);color:#29B6F6;padding:2px 6px;border-radius:6px;cursor:pointer;font-size:.95rem" title="Deine Statistiken">ℹ️</button>` : ''}
       </div>`;
     }).join('');
+  },
+
+  _fmtDur(ms){
+    if(!ms||ms<0) return '—';
+    const s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60);
+    if(d>0) return d+'T '+h+'Std';
+    if(h>0) return h+'Std '+m+'Min';
+    return m+'Min';
+  },
+  _percentileBadge(myValue, others, lowerIsBetter){
+    if(others.length<3) return null;
+    const better = others.filter(v=>lowerIsBetter?v<myValue:v>myValue).length;
+    if(better===0) return '🏆 Bester Wert!';
+    const pct = Math.round((1-better/others.length)*100);
+    if(pct>=90) return '🌟 Top '+(100-pct+1)+'%';
+    return 'Besser als '+pct+'% der Spieler';
+  },
+  async showMyStats(){
+    if(!ZS.player) return;
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto';
+    el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(5,10,25,.98),rgba(10,20,45,.97));border:1px solid rgba(41,182,246,.3);border-radius:16px;padding:18px;max-width:420px;width:100%;color:#fff"><div style="text-align:center;padding:30px">⏳ Lade Statistiken...</div></div>';
+    document.body.appendChild(el);
+    try{
+      const player = await State.getPlayer(ZS.player);
+      if(!player){ el.remove(); return; }
+      const myZoo = ZS.zoo || await State.getZoo(ZS.player).catch(()=>null);
+      let allPlayers={}, allZoos={};
+      try{ allPlayers = await Promise.race([State.getAll(), new Promise(r=>setTimeout(()=>r({}),3000))]); }catch(e){}
+      try{ allZoos = await Promise.race([State.getAllZoos(), new Promise(r=>setTimeout(()=>r({}),3000))]); }catch(e){}
+
+      const ws = player.worlds?.['1']||player.worlds?.[1]||{};
+      const tasksDone = (ws.tasks||[]).filter(t=>t?.done).length;
+      const rebirths = myZoo?.reb||0;
+      const animalsNow = myZoo ? (myZoo.enc||[]).filter(e=>e).length : 0;
+      const myCombinedMT = sanitizeMT(dsMTFor(player)) + (myZoo?sanitizeMT(myZoo.mt):0);
+      const myPlaytimeSec = (player.totalPlaytimeSec||0) + (myZoo?.totalPlaytimeSec||0);
+      const myMtPerHour = myPlaytimeSec>60 ? myCombinedMT/(myPlaytimeSec/3600) : null;
+      const registeredAt = player.createdAt||null;
+      const milestones = {...(player.milestones||{})};
+      if(player.firstMillionAt && !milestones[1000000]) milestones[1000000]=player.firstMillionAt;
+
+      const othersMtPerHour=[], othersMilestoneTime={};
+      MT_MILESTONES.forEach(ms=>othersMilestoneTime[ms]=[]);
+      Object.entries(allPlayers).forEach(([name,p])=>{
+        if(name===ZS.player.toLowerCase()) return;
+        const z=allZoos[name];
+        const pt=(p.totalPlaytimeSec||0)+(z?.totalPlaytimeSec||0);
+        const cmt=sanitizeMT(dsMTFor(p))+(z?sanitizeMT(z.mt):0);
+        if(pt>60) othersMtPerHour.push(cmt/(pt/3600));
+        const pms={...(p.milestones||{})};
+        if(p.firstMillionAt && !pms[1000000]) pms[1000000]=p.firstMillionAt;
+        if(p.createdAt) MT_MILESTONES.forEach(ms=>{ if(pms[ms]) othersMilestoneTime[ms].push(pms[ms]-p.createdAt); });
+      });
+
+      const mtPerHourBadge = myMtPerHour!==null ? this._percentileBadge(myMtPerHour, othersMtPerHour, false) : null;
+      const milestoneRows = MT_MILESTONES.map(ms=>{
+        const label = ms>=1000000000?(ms/1000000000)+' Mrd':ms>=1000000?(ms/1000000)+' Mio':ms>=1000?(ms/1000)+"'000":ms;
+        if(!milestones[ms]) return '<div style="display:flex;justify-content:space-between;padding:4px 0;color:rgba(255,255,255,.3);font-size:.82rem"><span>🔒 '+label+' MT</span><span>noch nicht erreicht</span></div>';
+        const dur = milestones[ms]-(registeredAt||milestones[ms]);
+        const badge = registeredAt ? this._percentileBadge(dur, othersMilestoneTime[ms], true) : null;
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.82rem"><span>✅ '+label+' MT</span><span style="text-align:right">'+(registeredAt?this._fmtDur(dur):'✓')+(badge?'<br><span style="color:#27AE60;font-size:.72rem">'+badge+'</span>':'')+'</span></div>';
+      }).join('');
+
+      el.querySelector('div').innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <h2 style="flex:1;color:#29B6F6;font-size:1.1rem;margin:0">📊 Deine Statistiken</h2>
+          <button onclick="this.closest('div[style*=fixed]').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.9">
+          <div>📅 Dabei seit: <b>${registeredAt?new Date(registeredAt).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'}):'unbekannt'}</b></div>
+          <div>⏱️ Gesamtspielzeit: <b>${this._fmtDur(myPlaytimeSec*1000)}</b></div>
+          <div>📝 Aufgaben gelöst: <b>${tasksDone}/20</b></div>
+          <div>🔄 Rebirths: <b>${rebirths}</b></div>
+          <div>🐾 Tiere aktuell: <b>${animalsNow}</b></div>
+          <div>⚡ MT pro Spielstunde: <b>${myMtPerHour!==null?$mt(myMtPerHour):'—'}</b>${mtPerHourBadge?' <span style="color:#27AE60;font-size:.78rem">('+mtPerHourBadge+')</span>':''}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px">
+          <div style="font-weight:700;color:#FFD700;margin-bottom:6px;font-size:.92rem">🏁 Meilensteine (Zeit ab Registrierung)</div>
+          ${milestoneRows}
+        </div>`;
+    }catch(e){ el.remove(); this.toast('❌ Statistiken konnten nicht geladen werden.',2500); }
   },
 
   async showChampionsLeagueRangliste(){
@@ -7389,6 +7473,7 @@ const ZP={
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
         <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
+        ${isMe ? `<button onclick="ZP.showMyStats()" style="background:none;border:1px solid rgba(41,182,246,.4);color:#29B6F6;padding:2px 6px;border-radius:6px;cursor:pointer;font-size:.95rem" title="Deine Statistiken">ℹ️</button>` : ''}
       </div>`;
     }).join('');
   },
@@ -11317,7 +11402,9 @@ const ZAdmin = {
   },
 
   async resetScore(name){
+    console.log('[CL-debug] resetScore("'+name+'") aufgerufen von Admin "'+(ZS.player||'?')+'" — zeige Zahlen-Prompt...');
     const targetVal = await showNumberPrompt('🔄 Punktestand setzen für «'+name+'»', 'Neuer GESAMT-Punktestand (Welt 1 + Zoo zusammen). Normalerweise 0 — kann aber z.B. auch 10 sein.\nAchtung: Alle Zoo-Tiere werden dabei ebenfalls entfernt!', 0);
+    console.log('[CL-debug] resetScore("'+name+'"): Prompt-Ergebnis='+targetVal+' (null=abgebrochen)');
     if(targetVal===null || isNaN(targetVal)) return;
     const notes = [];
     let dsOk = false, zooOk = false;
