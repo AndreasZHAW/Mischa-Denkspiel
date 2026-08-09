@@ -31,6 +31,7 @@ service cloud.firestore {
 - zoo_news (Live-Neuigkeiten-Banner)
 - zoos (Gespeicherte Zoos)
 - players (Denkspiel-Spielerdaten)
+- zoo_quests (NEU: Deko-Quests, vom Admin erstellt — Firestore-Collection)
 
 ---
 
@@ -60,6 +61,6 @@ oben — Realtime Database hat eigene Regeln, getrennt von Firestore.
 
 5. Klicke "Veröffentlichen" (Publish)
 
-Das gibt allen bestehenden Pfaden (zoo_hot, zoo_broadcast, zoo_admin_cmd, zoo_device_diag, usw.)
+Das gibt allen bestehenden Pfaden (zoo_hot, zoo_broadcast, zoo_admin_cmd, zoo_device_diag, zoo_friend_requests (NEU: Freundschaftsanfragen), usw.)
 und jedem zukünftigen Pfad automatisch Zugriff — kein erneuter Rules-Fix nötig, wenn später mal
 ein neuer Pfad dazukommt.
