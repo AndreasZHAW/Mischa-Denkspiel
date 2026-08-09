@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v478 -->
+<!-- ZOO v482 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=478"></script>
-<script src="rewardchests.js?v=478"></script>
-<script src="personality.js?v=478"></script>
+<script src="lang.js?v=482"></script>
+<script src="rewardchests.js?v=482"></script>
+<script src="personality.js?v=482"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v478','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v482','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -429,7 +429,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:7px">
 <span>🟢 <span id="gsrv">Online</span></span>
 <span id="lwbadge" style="display:none;cursor:pointer;color:#FFD700;font-weight:900" onclick="LW.open()">🍀 Spin!</span>
-<span id="hunterbadge" style="display:none;cursor:pointer;color:#E74C3C;font-weight:900;margin-left:8px" onclick="ZP._openHunterWheel()">🎯 Jäger-Rad 🧪</span>
+<span id="hunterbadge" style="display:none;cursor:pointer;color:#E74C3C;font-weight:900;margin-left:8px" onclick="ZP._openHunterWheel()">🎯 Jäger-Rad</span>
 <span data-i18n="zoo.next">Nächste:</span> <b id="gtimer" style="color:#FFD700">2.5s</b>
 </div>
 <div class="gcars" id="gcars"></div>
@@ -514,8 +514,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=478"></script>
-<script src="worlds.js?v=478"></script>
+<script src="firebase-state.js?v=482"></script>
+<script src="worlds.js?v=482"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1031,7 +1031,7 @@ const ZS={
     // gondola-only special case — ZS.lk() is, in practice, only ever
     // consumed by the gondola's animal draw (_mkG), so this already
     // scopes the effect to exactly "in der Gondel" without extra plumbing.
-    if(window.MISCHA_TESTMODE && z.luck50Until && z.luck50Until>Date.now()) l*=50;
+    if(z.luck50Until && z.luck50Until>Date.now()) l*=50;
     return l;
   },
   async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo,{merge:true});}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));
@@ -4275,7 +4275,7 @@ const ZG={
             if(!players.length){el.innerHTML='<div style="color:rgba(255,255,255,.4)">Keine Spieler</div>';return;}
             const medals=['🥇','🥈','🥉'];
             el.innerHTML=players.map((p,i)=>{
-              const mt=((p.worlds?.['1']||p.worlds?.[1]||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0).toFixed(1);
+              const mt=formatMTRank(((p.worlds?.['1']||p.worlds?.[1]||{}).tasks||[]).reduce((s,t)=>s+(t?.mt||0),0));
               return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span style="font-size:.9rem;min-width:20px">'+(medals[i]||('#'+(i+1)))+'</span><span style="flex:1;font-weight:700">'+p.name+'</span><span style="color:#FFD700;font-weight:900">🌀'+mt+' MT</span></div>';
             }).join('');
           }).catch(()=>{el.innerHTML='<div style="color:rgba(255,255,255,.3)">Nicht verfügbar</div>';});
@@ -7383,7 +7383,7 @@ const ZP={
         <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
-        <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
+        <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${formatMTRank(p._mt)} MT</span>
         ${isMe ? `<button onclick="ZP.showMyStats()" style="background:none;border:1px solid rgba(41,182,246,.4);color:#29B6F6;padding:2px 6px;border-radius:6px;cursor:pointer;font-size:.95rem" title="Deine Statistiken">ℹ️</button>` : ''}
       </div>`;
     }).join('');
@@ -7515,7 +7515,7 @@ const ZP={
         <span style="font-size:1rem;min-width:26px;text-align:center">${medals[i]||('#'+(i+1))}</span>
         <span style="width:8px;height:8px;border-radius:50%;background:${isOnline?'#27AE60':'rgba(255,255,255,.15)'};flex-shrink:0" title="${isOnline?'Online':'Offline'}"></span>
         <span style="flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${'👑'.repeat(Math.min(3,p.reb||0))}${isMe?' (Du)':''}</span>
-        <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${p._mt.toFixed(1)} MT</span>
+        <span style="color:#FFD700;font-weight:900;font-size:.9rem">🌀${formatMTRank(p._mt)} MT</span>
         ${isMe ? `<button onclick="ZP.showMyStats()" style="background:none;border:1px solid rgba(41,182,246,.4);color:#29B6F6;padding:2px 6px;border-radius:6px;cursor:pointer;font-size:.95rem" title="Deine Statistiken">ℹ️</button>` : ''}
       </div>`;
     }).join('');
@@ -7589,7 +7589,7 @@ const ZP={
     // Close all others first
     ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
-    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');this._rLuck();this._rLuck50();if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();const hb=G('hunterbadge');if(hb)hb.style.display=window.MISCHA_TESTMODE?'inline':'none';}
+    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');try{this._rLuck();}catch(e){console.log('[Luck50-debug] _rLuck() warf einen Fehler: '+e.message);}try{this._rLuck50();}catch(e){console.log('[Luck50-debug] _rLuck50() warf einen Fehler: '+e.message);}if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();const hb=G('hunterbadge');if(hb)hb.style.display='inline';}
     if(p==='index')this._rIndex();
     if(p==='shop'){if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();}
     if(p==='trade'){this._rTrade('m');try{if(typeof ZTips!=='undefined')ZTips.notify('trade');}catch(e){}}
@@ -7849,19 +7849,16 @@ const ZP={
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');},
   _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(((ZS.dsMT||0)+z.mt)<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;ZS.save&&ZS.save();this.toast('✅ '+u.l);this._rLuck();this._rLuck50();ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
-  // ── TEST-MODE ONLY: temporary ×50 Glücks-Bonus (Gondel) ──
-  // Only exists under /test/ (window.MISCHA_TESTMODE) — a testing ground
-  // for game-balance ideas before they'd ever go out to everyone. Needs
-  // the permanent ×10 luck upgrade already owned (LUCK_UPS' last tier,
-  // z.luckLv===LUCK_UPS.length) — that stays unlocked forever once bought,
-  // per how the permanent tiers already work. Costs 30% of CURRENT
-  // combined balance, lasts 5 minutes, and can be bought again as soon as
-  // the previous one has expired.
+  // ── Temporärer ×50 Glücks-Bonus (Gondel) ──
+  // Needs the permanent ×10 luck upgrade already owned (LUCK_UPS' last
+  // tier, z.luckLv===LUCK_UPS.length) — that stays unlocked forever once
+  // bought, per how the permanent tiers already work. Costs 30% of
+  // CURRENT combined balance, lasts 5 minutes, and can be bought again as
+  // soon as the previous one has expired.
   _rLuck50(){
-    if(!window.MISCHA_TESTMODE) return;
     const z=ZS.zoo, el=G('gluck50'); if(!el)return;
     const unlocked = (z.luckLv||0) >= LUCK_UPS.length;
-    if(!unlocked){ el.innerHTML='<div class="ac" style="opacity:.4"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×50 GLÜCKS-BONUS 🧪</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">Erst ×10 👑 MAX freischalten</div></div></div>'; return; }
+    if(!unlocked){ el.innerHTML='<div class="ac" style="opacity:.4"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×50 GLÜCKS-BONUS</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">Erst ×10 👑 MAX freischalten</div></div></div>'; return; }
     const now=Date.now(), until=z.luck50Until||0, active=until>now;
     if(active){
       const secLeft=Math.ceil((until-now)/1000), mm=Math.floor(secLeft/60), ss=secLeft%60;
@@ -7871,10 +7868,9 @@ const ZP={
       return;
     }
     const combined=(ZS.dsMT||0)+z.mt, cost=Math.round(combined*0.3*10)/10;
-    el.innerHTML='<div class="ac"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×50 GLÜCKS-BONUS 🧪</div><div style="font-size:.7rem;color:#00CFFF">'+$mt(cost)+' (30% Guthaben) · 5 Min</div></div><button class="ab" '+(combined<cost||cost<=0?'disabled':'')+' onclick="ZP._bLuck50()">Kaufen</button></div>';
+    el.innerHTML='<div class="ac"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×50 GLÜCKS-BONUS</div><div style="font-size:.7rem;color:#00CFFF">'+$mt(cost)+' (30% Guthaben) · 5 Min</div></div><button class="ab" '+(combined<cost||cost<=0?'disabled':'')+' onclick="ZP._bLuck50()">Kaufen</button></div>';
   },
   _bLuck50(){
-    if(!window.MISCHA_TESTMODE) return;
     const z=ZS.zoo;
     if((z.luckLv||0) < LUCK_UPS.length){ this.toast('❌ Erst ×10 👑 MAX freischalten!'); return; }
     if(z.luck50Until && z.luck50Until>Date.now()){ this.toast('❌ Läuft schon!'); return; }
@@ -7886,14 +7882,12 @@ const ZP={
     this._rLuck50(); ZG._updHUD();
   },
 
-  // ── TEST-MODE ONLY: "Jäger-Rad" — a wheel exclusively for whoever is
-  // NOT currently #1 on the combined leaderboard, with better odds than
-  // the normal wheel, to give someone far behind a real shot at catching
-  // up. Rank is checked fresh at click-time rather than kept live-updated
-  // on the badge, to keep this simple — the badge itself just always
-  // shows under test mode, and clicking it is what actually checks.
+  // ── "Jäger-Rad" — a wheel exclusively for whoever is NOT currently #1
+  // on the combined leaderboard, with better odds than the normal wheel,
+  // to give someone far behind a real shot at catching up. Rank is
+  // checked fresh at click-time rather than kept live-updated on the
+  // badge, to keep this simple.
   async _openHunterWheel(){
-    if(!window.MISCHA_TESTMODE) return;
     this.toast('🔍 Prüfe Rang...',1200);
     try{
       const [allPlayers,allZoos]=await Promise.all([State.getAll(),State.getAllZoos()]);
@@ -8996,14 +8990,12 @@ const ZP={
       // kicks off 3 random world events (5 min each) as a celebratory
       // bonus. Reuses the exact same "3 random events" mechanic already
       // built for the Admin-/Chaos-Rad wheel prize.
-      if(window.MISCHA_TESTMODE){
-        try{
-          const pool=[...EVENTS]; const picked=[];
-          for(let i=0;i<3 && pool.length;i++){ const idx=Math.floor(Math.random()*pool.length); picked.push(pool.splice(idx,1)[0]); }
-          picked.forEach(ev=>{ try{ ZG.startEv(ev,ev.dur||300000,true); }catch(e){} });
-          ZP.toast('🎉 '+g.a.e+' '+g.a.n+' ist RIESIG selten! 3 Zufalls-Events gestartet: '+picked.map(e=>e.n).join(', '),6000);
-        }catch(e){}
-      }
+      try{
+        const pool=[...EVENTS]; const picked=[];
+        for(let i=0;i<3 && pool.length;i++){ const idx=Math.floor(Math.random()*pool.length); picked.push(pool.splice(idx,1)[0]); }
+        picked.forEach(ev=>{ try{ ZG.startEv(ev,ev.dur||300000,true); }catch(e){} });
+        ZP.toast('🎉 '+g.a.e+' '+g.a.n+' ist RIESIG selten! 3 Zufalls-Events gestartet: '+picked.map(e=>e.n).join(', '),6000);
+      }catch(e){}
     }
   },
   _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();try{ZNews.push('animal_sold',{animal:enc.animal.n,emoji:enc.animal.e});}catch(e){}},

@@ -2143,6 +2143,22 @@ window._supDigits = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6
 window._toSup = function(numStr) {
   return String(numStr).split('').map(c => window._supDigits[c] || c).join('');
 };
+// Rangliste-Anzeige: wie formatMT, aber ganz ohne Kommazahlen — auf der
+// Rangliste ging es bei sehr grossen Kontoständen (Hunderte Millionen,
+// Milliarden...) so weit, dass die lange Zahl den Spielernamen fast ganz
+// aus der Zeile verdrängte. Unter 1 Mio. wird einfach gerundet; ab 1 Mio.
+// dieselbe kompakte "1×10⁶"-Schreibweise wie formatMT, nur ohne
+// Nachkommastellen in der Mantisse.
+window.formatMTRank = function(n) {
+  if (typeof n !== 'number' || isNaN(n) || !isFinite(n)) return '0';
+  const neg = n < 0; const abs = Math.abs(n);
+  if (abs < 1000000) return (neg ? '-' : '') + Math.round(abs);
+  const exp = Math.floor(Math.log10(abs));
+  let mantissa = abs / Math.pow(10, exp);
+  let expFinal = exp;
+  if (Math.round(mantissa) >= 10) { mantissa /= 10; expFinal += 1; }
+  return (neg ? '-' : '') + Math.round(mantissa) + '×10' + window._toSup(expFinal);
+};
 window.formatMT = function(n) {
   if (typeof n !== 'number' || isNaN(n) || !isFinite(n)) return '0.0';
   const neg = n < 0; const abs = Math.abs(n);
