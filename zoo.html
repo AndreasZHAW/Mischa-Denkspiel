@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v472 -->
+<!-- ZOO v476 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=472"></script>
-<script src="rewardchests.js?v=472"></script>
-<script src="personality.js?v=472"></script>
+<script src="lang.js?v=476"></script>
+<script src="rewardchests.js?v=476"></script>
+<script src="personality.js?v=476"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v472','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v476','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -512,8 +512,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=472"></script>
-<script src="worlds.js?v=472"></script>
+<script src="firebase-state.js?v=476"></script>
+<script src="worlds.js?v=476"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1347,7 +1347,7 @@ const ZA={
   _showChar(){hide('s-login');show('s-char');const C=[{id:'sb',e:'🧽',n:'SpongeBob'},{id:'mario',e:'🍄',n:'Mario'},{id:'ninja',e:'🥷',n:'Ninja'},{id:'astro',e:'🧑‍🚀',n:'Astro'},{id:'princess',e:'👸',n:'Prinzessin'},{id:'knight',e:'⚔️',n:'Ritter'},{id:'girl',e:'👧',n:'Mädchen'},{id:'boy',e:'👦',n:'Junge'},{id:'wolf',e:'🐺',n:'Wolf'},{id:'panda',e:'🐼',n:'Panda'},{id:'lion',e:'🦁',n:'Löwe'},{id:'det',e:'🕵️',n:'Detektiv'}];G('cgr').innerHTML=C.map(c=>`<div class="co" id="co-${c.id}" onclick="ZA._sel('${c.id}','${c.e}')"><span style="font-size:1.9rem;display:block">${c.e}</span><span style="font-size:.58rem;color:rgba(255,255,255,.5)">${c.n}</span></div>`).join('');},
   _sel(id,e){this._c={id,e};document.querySelectorAll('.co').forEach(el=>el.classList.remove('sel'));G('co-'+id)?.classList.add('sel');G('chbtn').style.display='block';},
   confirmChar(){if(!this._c)return;const us=JSON.parse(localStorage.getItem('zoo_users')||'{}'),k=ZS.player.toLowerCase();if(us[k])us[k].ch=this._c;localStorage.setItem('zoo_users',JSON.stringify(us));ZS.char=this._c;this._showMode();},
-  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}
+  _showMode(){hide('s-char');hide('s-login');show('s-mode');G('mhi').innerHTML=`${ZS._personalityAvatar()} Hallo ${ZS.player}!`;try{if(typeof PlayTime!=='undefined'&&ZS.player){PlayTime.recordLogin('zoo',ZS.player);PlayTime.startTracking('zoo',ZS.player);}}catch(e){}try{if(typeof State!=='undefined'&&State._startPendingSaveFlusher)State._startPendingSaveFlusher();}catch(e){}
     try{
       if(typeof State!=='undefined'&&State._claimSession&&ZS.player){
         State._claimSession(ZS.player);
@@ -7373,6 +7373,10 @@ const ZP={
     el.innerHTML='<div style="background:linear-gradient(135deg,rgba(5,10,25,.98),rgba(10,20,45,.97));border:1px solid rgba(41,182,246,.3);border-radius:16px;padding:18px;max-width:420px;width:100%;color:#fff"><div style="text-align:center;padding:30px">⏳ Lade Statistiken...</div></div>';
     document.body.appendChild(el);
     try{
+      // See app.js showMyStats for why this runs here — milestones only
+      // ever get recorded at specific gameplay moments, never just from
+      // opening this page.
+      try{ if(typeof RankNotify!=='undefined') await RankNotify.check(ZS.player); }catch(e){}
       const player = await State.getPlayer(ZS.player);
       if(!player){ el.remove(); return; }
       const myZoo = ZS.zoo || await State.getZoo(ZS.player).catch(()=>null);
@@ -10336,6 +10340,7 @@ const ZAdmin = {
     if(tab==='markt'){this.loadTrades();this._populateMarktAnimalSelect();}
     if(tab==='timer')this._loadTimerStatus();
     if(tab==='spieler')this._loadPlayersTab();
+    if(tab==='stats')this._loadStatsTab();
   },
   _populateAnimalGrid(){
     const grid=document.getElementById('padmin-animal-grid');if(!grid)return;
@@ -11229,6 +11234,66 @@ const ZAdmin = {
         </div>
       </div>`;
     }).join('');
+  },
+
+  // ── "📊 Statistiken" tab: same stats as the ℹ️ info-popup, for every player ──
+  async _loadStatsTab(){
+    const el=document.getElementById('padmin-stats-table');
+    if(!el)return;
+    el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Lade...</div>';
+    if(typeof _db==='undefined'||!_db){ el.innerHTML='<div style="color:rgba(255,165,0,.8);font-size:.8rem">⚠️ Firebase nicht verfügbar.</div>'; return; }
+    let zoosSnap, mpSnap;
+    try{
+      [zoosSnap, mpSnap] = await Promise.all([
+        _db.collection('zoos').get({source:'server'}),
+        _db.collection('mischa_players').get({source:'server'}),
+      ]);
+    }catch(e){ el.innerHTML='<div style="color:rgba(255,165,0,.8);font-size:.8rem">⚠️ Fehler beim Laden: '+e.message+'</div>'; return; }
+    const zoos={}; zoosSnap.forEach(doc=>{ const name=(doc.id.startsWith('zoo_')?doc.id.slice(4):doc.id).toLowerCase(); zoos[name]=doc.data()||{}; });
+    const mplayers={}; mpSnap.forEach(doc=>{ const d=doc.data()||{}; mplayers[(d.name||doc.id).toLowerCase()]=d; });
+    const allNames=new Set([...Object.keys(zoos),...Object.keys(mplayers)]);
+
+    const rows=[];
+    allNames.forEach(nameLc=>{
+      const p=mplayers[nameLc]||{};
+      const z=zoos[nameLc]||null;
+      const name=p.name||(z&&z.name)||nameLc;
+      const ws=p.worlds?.['1']||p.worlds?.[1]||{};
+      const tasksDone=(ws.tasks||[]).filter(t=>t?.done).length;
+      const rebirths=z?.reb||0;
+      const animalsNow=z?(z.enc||[]).filter(e=>e).length:0;
+      const combinedMT=sanitizeMT(dsMTFor(p))+(z?sanitizeMT(z.mt):0);
+      const playtimeSec=(p.totalPlaytimeSec||0)+(z?.totalPlaytimeSec||0);
+      const mtPerHour=playtimeSec>60?combinedMT/(playtimeSec/3600):null;
+      const registeredAt=p.createdAt||null;
+      const milestones={...(p.milestones||{})};
+      if(p.firstMillionAt && !milestones[1000000]) milestones[1000000]=p.firstMillionAt;
+      let topMs=null;
+      MT_MILESTONES.forEach(ms=>{ if(milestones[ms]) topMs=ms; });
+      rows.push({name, registeredAt, playtimeSec, tasksDone, rebirths, animalsNow, combinedMT, mtPerHour, topMs, topMsAt: topMs?milestones[topMs]:null, topMsDur: (topMs&&registeredAt)?(milestones[topMs]-registeredAt):null});
+    });
+    rows.sort((a,b)=>b.combinedMT-a.combinedMT);
+
+    if(!rows.length){ el.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.8rem">Keine Spieler gefunden.</div>'; return; }
+    const msLabel=(ms)=>!ms?'—':(ms>=1000000000?(ms/1000000000)+' Mrd':ms>=1000000?(ms/1000000)+' Mio':ms>=1000?(ms/1000)+"'000":ms);
+    el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:.75rem;color:#fff;min-width:820px">
+      <thead><tr style="text-align:left;color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.15)">
+        <th style="padding:6px 8px">Spieler</th><th style="padding:6px 8px">Dabei seit</th><th style="padding:6px 8px">Spielzeit</th>
+        <th style="padding:6px 8px">Aufgaben</th><th style="padding:6px 8px">Rebirths</th><th style="padding:6px 8px">Tiere</th>
+        <th style="padding:6px 8px">MT gesamt</th><th style="padding:6px 8px">MT/h</th><th style="padding:6px 8px">Höchster Meilenstein</th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+        <td style="padding:6px 8px;font-weight:700">${$esc(r.name)}</td>
+        <td style="padding:6px 8px">${r.registeredAt?new Date(r.registeredAt).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—'}</td>
+        <td style="padding:6px 8px">${ZP._fmtDur(r.playtimeSec*1000)}</td>
+        <td style="padding:6px 8px">${r.tasksDone}/20</td>
+        <td style="padding:6px 8px">${r.rebirths}</td>
+        <td style="padding:6px 8px">${r.animalsNow}</td>
+        <td style="padding:6px 8px;color:#FFD700;font-weight:700">${$mt(r.combinedMT)}</td>
+        <td style="padding:6px 8px">${r.mtPerHour!==null?$mt(r.mtPerHour):'—'}</td>
+        <td style="padding:6px 8px">${r.topMs?msLabel(r.topMs)+(r.topMsDur?' <span style="color:rgba(255,255,255,.4)">('+ZP._fmtDur(r.topMsDur)+')</span>':''):'🔒 —'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
   },
 
   async toggleChampionsLeague(name, currentlyIn){
@@ -14286,6 +14351,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="tiere" onclick="ZAdmin.switchTab('tiere')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FFD700;display:flex;align-items:center;gap:6px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:6px">🐾 Tiere</div>
           <div class="padmin-tab-btn" data-tab="bestand" onclick="ZAdmin.switchTab('bestand')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#2ECC71;display:flex;align-items:center;gap:6px;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:6px">🦁 Tierbestand</div>
           <div class="padmin-tab-btn" data-tab="spieler" onclick="ZAdmin.switchTab('spieler')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3498db;display:flex;align-items:center;gap:6px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);border-radius:6px">👥 Spieler</div>
+          <div class="padmin-tab-btn" data-tab="stats" onclick="ZAdmin.switchTab('stats')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#29B6F6;display:flex;align-items:center;gap:6px;background:rgba(41,182,246,.1);border:1px solid rgba(41,182,246,.3);border-radius:6px">📊 Statistiken</div>
           <div class="padmin-tab-btn" data-tab="markt" onclick="ZAdmin.switchTab('markt')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#8B5A2B;display:flex;align-items:center;gap:6px;background:rgba(139,90,43,.1);border:1px solid rgba(139,90,43,.3);border-radius:6px">🤝 Marktplatz</div>
           <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#e67e22;display:flex;align-items:center;gap:6px;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px">⏱️ Timer</div>
           <div class="padmin-tab-btn" data-tab="deadline" onclick="ZAdmin.switchTab('deadline')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#9b59b6;display:flex;align-items:center;gap:6px;background:rgba(155,89,182,.1);border:1px solid rgba(155,89,182,.3);border-radius:6px">📅 Deadline</div>
@@ -14674,6 +14740,15 @@ window.ZooEvents = ZooEvents;
           </div>
 
           <div id="padmin-players-table" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <div class="padmin-tab" id="padmin-tab-stats" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="padmin-section-title" style="margin-bottom:0">📊 Statistiken aller Spieler</div>
+            <button onclick="ZAdmin._loadStatsTab()" style="background:rgba(41,182,246,.15);border:1px solid rgba(41,182,246,.3);color:#29B6F6;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Aktualisieren</button>
+          </div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Dieselben Werte wie im ℹ️-Info-Popup in der Rangliste, hier für alle Spieler auf einen Blick. Höchster Meilenstein = teuerste MT-Schwelle, die schon erreicht wurde.</div>
+          <div id="padmin-stats-table" style="overflow-x:auto"></div>
         </div>
 
         <div class="padmin-tab" id="padmin-tab-timer" style="display:none">

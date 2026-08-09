@@ -81,7 +81,10 @@ const SokobanGame = {
     const allCols = LEVELS.map(l=>Math.max(...l.map.map(r=>r.length)));
     const maxLvlCols = Math.max(...allCols);
     // Bigger tiles on desktop, smaller on mobile
-    const isMob = window.innerWidth < 500;
+    // Same fix as tetris.js: width-only missed touch tablets (iPad
+    // portrait etc. can be well over 500-750px wide but still needs the
+    // touch-friendly sizing).
+    const isMob = window.innerWidth < 500 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     const TILE = isMob
       ? Math.max(22, Math.floor(maxW / (maxLvlCols+1)))
       : Math.max(40, Math.min(64, Math.floor(maxW / maxLvlCols))); // 40-64px on desktop

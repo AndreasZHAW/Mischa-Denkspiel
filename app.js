@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v472';
+const APP_VERSION = 'v476';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -458,7 +458,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v472 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v476 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -982,6 +982,7 @@ const App = {
     State.setCurrentPlayer(player);
     FontScale.applyForPlayer(player?.name||'');
     try{ if(typeof PlayTime!=='undefined'&&player?.name){ PlayTime.recordLogin('ds',player.name); PlayTime.startTracking('ds',player.name); } }catch(e){}
+    try{ if(typeof State!=='undefined'&&State._startPendingSaveFlusher) State._startPendingSaveFlusher(); }catch(e){}
     this.showWorldMap();
     // One-time language bonus popup (only right after registration)
     if (player.langBonusGranted) {
@@ -1175,6 +1176,7 @@ const App = {
     if(typeof Personality!=='undefined')Personality.init();
       if(typeof LANG!=='undefined')LANG.load();
     try{ if(typeof PlayTime!=='undefined'&&State.currentPlayer?.name){ PlayTime.recordLogin('ds',State.currentPlayer.name); PlayTime.startTracking('ds',State.currentPlayer.name); } }catch(e){}
+    try{ if(typeof State!=='undefined'&&State._startPendingSaveFlusher) State._startPendingSaveFlusher(); }catch(e){}
     // Rank-change notifications used to only fire right after completing a
     // task — same fix as the Zoo side (see zoo.html init): RankNotify.check()
     // already throttles the actual popup to once per hour, so a periodic
@@ -1296,6 +1298,7 @@ const App = {
   },
 
   async showWorldMap() {
+    document.getElementById('tetris-fixed-controls')?.remove(); // see launchGame for why this matters
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
     // If a session got auto-restored (from sessionStorage/localStorage
@@ -1912,6 +1915,14 @@ const App = {
   },
   async showMyStats() {
     this._loading('Statistiken laden...');
+    // Bug found: milestones (see MT_MILESTONES/RankNotify.check) only ever
+    // get recorded at specific gameplay moments — finishing a task, a zoo
+    // purchase, a rebirth. Nothing ever triggered that check just from
+    // opening this stats page, so if a player's MT jumped (e.g. an admin
+    // reset) without doing one of those things since, every milestone
+    // still showed "not reached yet" even though they were already far
+    // past it. Running the check here catches it up immediately.
+    try { if (State.currentPlayer?.name && typeof RankNotify!=='undefined') await RankNotify.check(State.currentPlayer.name); } catch(e) {}
     const player = await State.refreshCurrentPlayer();
     if (!player) { this.showGlobalLeaderboard(); return; }
     let myZoo = null, allPlayers = {}, allZoos = {};
@@ -2550,6 +2561,18 @@ const App = {
     };
 
     setTimeout(() => {
+      // BUG FIX: Tetris's control bar is appended straight to
+      // document.body (position:fixed) specifically so it survives
+      // outside #game-area's scrollable container — but that also meant
+      // nothing ever removed it when LEAVING Tetris for a different game.
+      // It stayed permanently stuck on screen, on top of everything that
+      // came after (a player reporting "no buttons" in Sokoban on a tablet
+      // was actually seeing Tetris's own leftover bar covering Sokoban's
+      // real D-pad). Tetris itself only ever cleaned up a stale copy of
+      // its OWN bar when Tetris re-started — never on exit to somewhere
+      // else. Removing it here, unconditionally, right before ANY game
+      // launches, guarantees it can never survive into the next screen.
+      document.getElementById('tetris-fixed-controls')?.remove();
       // Remote diagnostics: see State._sendDeviceDiagSnapshot for why this
       // exists (localStorage crash logs never leave the device they were
       // written on). Fire-and-forget, never blocks the game from starting.
@@ -3173,6 +3196,7 @@ Grund: ${reason}`))) return;
     console.log('[iOS-debug] _confirmLeave() aufgerufen, worldId='+worldId);
     this._zoomLevel = 1; // Reset zoom on leave
     if(typeof SokobanGame !== 'undefined' && SokobanGame._cleanup) SokobanGame._cleanup();
+    document.getElementById('tetris-fixed-controls')?.remove(); // see launchGame for why this matters
     let confirmed=false;
     try{ confirmed = await showConfirm('Aufgabe verlassen?\nDein Fortschritt in dieser Aufgabe geht verloren.'); }
     catch(err){ console.warn('[iOS-debug] showConfirm() Fehler: '+(err&&err.message)); }
@@ -3187,6 +3211,7 @@ Grund: ${reason}`))) return;
   },
 
   async _showTaskComplete(worldId, taskIndex, result, wasJoker=false) {
+    document.getElementById('tetris-fixed-controls')?.remove(); // see launchGame for why this matters
     let player;
     try {
       player = await Promise.race([

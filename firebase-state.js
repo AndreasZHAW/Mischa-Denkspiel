@@ -226,6 +226,50 @@ const State = {
     return _pl2;
   },
 
+  // ── PENDING-SAVE RETRY QUEUE ──
+  // A small localStorage-backed queue of player saves whose cloud write
+  // failed. Flushed periodically (_startPendingSaveFlusher) and once at
+  // boot, so a temporary connection drop never silently loses progress —
+  // it just waits until the connection is back.
+  _pendingSaveKey: 'mischa_pending_cloud_saves',
+  _queuePendingSave(key, data) {
+    try {
+      const q = JSON.parse(localStorage.getItem(this._pendingSaveKey) || '{}');
+      q[key] = data;
+      localStorage.setItem(this._pendingSaveKey, JSON.stringify(q));
+    } catch(e) {}
+  },
+  _clearPendingSave(key) {
+    try {
+      const q = JSON.parse(localStorage.getItem(this._pendingSaveKey) || '{}');
+      if (q[key]) { delete q[key]; localStorage.setItem(this._pendingSaveKey, JSON.stringify(q)); }
+    } catch(e) {}
+  },
+  async _flushPendingSaves() {
+    try {
+      if (!this._useCloud()) return;
+      const q = JSON.parse(localStorage.getItem(this._pendingSaveKey) || '{}');
+      const keys = Object.keys(q);
+      if (!keys.length) return;
+      console.log('[SaveRetry] '+keys.length+' aufgeschobene(r) Speichervorgang/-vorgänge werden nachgeholt: '+keys.join(', '));
+      for (const key of keys) {
+        try {
+          await this._col().doc(key).set(q[key]);
+          this._clearPendingSave(key);
+          console.log('[SaveRetry] "'+key+'" erfolgreich nachgeholt.');
+        } catch(e) {
+          console.warn('[SaveRetry] "'+key+'" erneut fehlgeschlagen ('+e.message+') — bleibt in der Warteschlange.');
+        }
+      }
+    } catch(e) {}
+  },
+  _pendingSaveFlushIv: null,
+  _startPendingSaveFlusher() {
+    if (this._pendingSaveFlushIv) return;
+    this._flushPendingSaves();
+    this._pendingSaveFlushIv = setInterval(() => this._flushPendingSaves(), 30000);
+  },
+
   async savePlayer(player) {
     const key = player.name.toLowerCase();
     // PROGRESS-LOSS WATCHDOG: every single save (task completion, admin
@@ -258,8 +302,23 @@ const State = {
     this._local.save(data); // Always save locally FIRST (instant)
     this.currentPlayer = data; // Update in-memory state immediately
     if (this._useCloud()) {
-      // Fire and forget for Firebase - local is already updated
-      this._col().doc(key).set(data).catch(()=>{});
+      // Fire and forget for Firebase - local is already updated. BUT: if
+      // this write fails (flaky wifi — very plausible on a tablet that
+      // moves around the house — or a brief Firestore hiccup), it used to
+      // just vanish with .catch(()=>{}) and nothing ever tried again. The
+      // local copy survived, but combined with login() historically
+      // trusting cloud unconditionally (see the bug fix in login() above),
+      // that stale cloud copy could later overwrite the correct local
+      // progress on the next login — "everything in Welt 1 has to be
+      // redone". Queuing failed writes for retry closes the other half of
+      // that hole: an unreliable connection no longer means the write is
+      // gone for good.
+      this._col().doc(key).set(data).then(()=>{
+        this._clearPendingSave(key);
+      }).catch((e)=>{
+        console.warn('[SaveRetry] Cloud-Schreibvorgang für "'+player.name+'" fehlgeschlagen ('+e.message+') — für Wiederholung vorgemerkt.');
+        this._queuePendingSave(key, data);
+      });
       try {
         // Also try with legacy await for callers that depend on it
         await Promise.race([
@@ -329,12 +388,38 @@ const State = {
     console.log('[Login-debug] login("'+name+'"): cloud-Lookup ergab '+(player?('Account gefunden, Passwort stimmt='+(player.password===password)+' createdAt='+player.createdAt):'nichts gefunden')+' · lokaler Cache vorhanden='+!!localPlayer+(localPlayer?(' lokales Passwort stimmt='+(localPlayer.password===password)):''));
     if (player) {
       if (player.password !== password) { console.log('[Login-debug] login("'+name+'"): ABGELEHNT — falsches Passwort gegen Cloud-Stand.'); return { ok: false, error: 'Falsches Passwort' }; }
-      this._local.save(player);
-      this._syncDeviceIdOnLogin(player);
-      this._sendDeviceDiagSnapshot(player, 'login').catch(()=>{});
-      await this._claimSession(player.name).catch(()=>{});
-      console.log('[Login-debug] login("'+name+'"): ERFOLG via Cloud.');
-      return { ok: true, player };
+      // BUG FIX — this is very likely why "progress gets lost, everything
+      // in Welt 1 has to be redone after logging back in" happened: this
+      // used to unconditionally overwrite the local cache with whatever
+      // the cloud returned, no matter what. If an earlier task-completion
+      // save's cloud write silently failed (flaky wifi, tablet — this is
+      // a fire-and-forget write in savePlayer(), nothing retries it), the
+      // cloud copy stays stuck on the OLD, pre-completion state forever.
+      // The next login — even on the very SAME device — would then pull
+      // that stale cloud copy and stomp the correct local progress with
+      // it, permanently discarding it. Comparing task-count/MT and only
+      // trusting cloud when it's actually at least as current (same
+      // policy refreshCurrentPlayer() already uses) closes that hole; a
+      // genuine admin reset (lastAdminReset newer than local) still always
+      // wins, same as before.
+      const doneCount = (p) => { try { const ws=p?.worlds?.['1']||p?.worlds?.[1]||{}; return (ws.tasks||[]).filter(t=>t&&t.done).length; } catch(e) { return 0; } };
+      const isDeliberateReset = player.lastAdminReset && (!localPlayer || !localPlayer.lastAdminReset || player.lastAdminReset > localPlayer.lastAdminReset);
+      let effectivePlayer = player;
+      if (!isDeliberateReset && localPlayer && localPlayer.password === password) {
+        const localDone = doneCount(localPlayer), cloudDone = doneCount(player);
+        const localScore = localPlayer.totalScore||0, cloudScore = player.totalScore||0;
+        if (localDone > cloudDone || (localDone === cloudDone && localScore > cloudScore)) {
+          console.log('[Login-debug] login("'+name+'"): Cloud-Stand ist VERALTET (Cloud: '+cloudDone+' Aufgaben/'+cloudScore+' MT vs. lokal: '+localDone+' Aufgaben/'+localScore+' MT) — behalte lokalen Stand und schreibe ihn zurück in die Cloud.');
+          effectivePlayer = localPlayer;
+          this.savePlayer(localPlayer).catch(()=>{});
+        }
+      }
+      this._local.save(effectivePlayer);
+      this._syncDeviceIdOnLogin(effectivePlayer);
+      this._sendDeviceDiagSnapshot(effectivePlayer, 'login').catch(()=>{});
+      await this._claimSession(effectivePlayer.name).catch(()=>{});
+      console.log('[Login-debug] login("'+name+'"): ERFOLG via '+(effectivePlayer===player?'Cloud':'lokalem Stand (Cloud war veraltet)')+'.');
+      return { ok: true, player: effectivePlayer };
     }
     // Cloud unreachable (offline / slow connection) — fall back to
     // whatever's cached locally on THIS device, so the game still works
