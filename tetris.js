@@ -5,7 +5,20 @@ const TetrisGame = {
     if (!el) return;
     const COLS=10, ROWS=20;
     const DPR = Math.min(window.devicePixelRatio||1,2);
-    const isMobile = window.innerWidth < 750;
+    // BUG FIX: width-only was misclassifying tablets. An iPad in portrait
+    // is commonly 768-834px wide — over the old 750px cutoff — so it got
+    // treated as "desktop" and given the SMALLER margin (200px) and
+    // TIGHTER width cap (340px), even though it's a touch device with the
+    // exact same dynamic browser-toolbar height behavior as a phone. That
+    // let the calculated board end up taller than what was actually still
+    // visible once the toolbar settled — and since this container relies
+    // on iOS's notoriously unreliable nested touch-scrolling to reach the
+    // rest, the bottom rows (where pieces land) were effectively
+    // unreachable: pieces visually "sink into the ground". Any touch
+    // device — not just narrow ones — now gets the more generous mobile
+    // treatment regardless of its width.
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const isMobile = window.innerWidth < 750 || isTouch;
     // Cell size: fit both width AND height of available space
     const elW = Math.max(el.offsetWidth||320, window.innerWidth * 0.5);
     // iOS Safari's toolbar can retract/expand during play, so
@@ -24,7 +37,7 @@ const TetrisGame = {
     // above. Floor lowered to 12px (still just about legible) so the
     // height constraint actually wins when the screen is this tight.
     const CS = Math.max(12, Math.min(csFromW, csFromH));
-    console.log('[Tetris-debug] Vor Berechnung: window='+window.innerWidth+'x'+window.innerHeight+' el.offsetWidth='+(el.offsetWidth||'?')+' isMobile='+isMobile+' elW='+elW+' elH='+elH+' csFromW='+csFromW+' csFromH='+csFromH+' → gewähltes CS='+CS+(csFromH<12?' ⚠️ csFromH lag unter dem Minimum — Feld ist trotzdem zu hoch für den Platz!':''));
+    console.log('[Tetris-debug] Vor Berechnung: window='+window.innerWidth+'x'+window.innerHeight+' el.offsetWidth='+(el.offsetWidth||'?')+' isMobile='+isMobile+' isTouch='+isTouch+' elW='+elW+' elH='+elH+' csFromW='+csFromW+' csFromH='+csFromH+' → gewähltes CS='+CS+(csFromH<12?' ⚠️ csFromH lag unter dem Minimum — Feld ist trotzdem zu hoch für den Platz!':''));
     const BW = COLS * CS, BH = ROWS * CS;
     const SBW = Math.max(80, CS*4); // sidebar for desktop
     // Height reserved for the fixed control bar at the bottom of the

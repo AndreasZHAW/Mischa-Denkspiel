@@ -1974,20 +1974,28 @@ const PlayTime = {
       // for that same real-world minute is skipped. Fixes bug #2 above.
       const mutexKey = 'mischa_playtime_tick_' + name.toLowerCase();
 
+      // BUG FIX (found after "Andi" showed only 13 min despite playing much
+      // longer): document.visibilityState was unreliable across devices —
+      // on at least one tablet it apparently reported "hidden" while the
+      // game was genuinely being played, silently skipping ticks. Removed
+      // that check entirely; browsers already throttle truly-backgrounded
+      // tabs' timers on their own. Also: the cross-page mutex used to be
+      // claimed BEFORE checking _db was even ready, so a tick that
+      // couldn't write anyway (common right after page load, especially
+      // on slower devices) still silently burned that ~55s window for
+      // BOTH pages. Now only claimed right before the actual write.
       this._intervals[key] = setInterval(async () => {
         try {
-          // Fixes bug #1: don't add time while this tab isn't the one
-          // actually being looked at.
-          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+          if (typeof _db === 'undefined' || !_db) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') übersprungen: Firebase noch nicht bereit.'); return; }
           const now = Date.now();
           const lastClaim = parseInt(localStorage.getItem(mutexKey) || '0');
-          if (now - lastClaim < 55000) return; // another page already claimed this window
+          if (now - lastClaim < 55000) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') übersprungen: vor '+Math.round((now-lastClaim)/1000)+'s schon von der anderen Seite (Welt1/Zoo) beansprucht.'); return; }
           localStorage.setItem(mutexKey, String(now));
-          if (typeof _db === 'undefined' || !_db) return;
           const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
             ? firebase.firestore.FieldValue.increment(60) : 60;
           await _db.collection(col).doc(key).set({ totalPlaytimeSec: inc }, { merge: true });
-        } catch(e) {}
+          console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') geschrieben: +60s.');
+        } catch(e) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') Fehler: '+e.message); }
       }, 60000);
       // Separate, faster heartbeat so the admin panel's "online now" check also
       // recognizes Welt-1 (Denkspiel) activity — previously "online" only ever
