@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v485 -->
+<!-- ZOO v486 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=485"></script>
-<script src="rewardchests.js?v=485"></script>
-<script src="personality.js?v=485"></script>
+<script src="lang.js?v=486"></script>
+<script src="rewardchests.js?v=486"></script>
+<script src="personality.js?v=486"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v485','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v486','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -514,8 +514,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=485"></script>
-<script src="worlds.js?v=485"></script>
+<script src="firebase-state.js?v=486"></script>
+<script src="worlds.js?v=486"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -7558,6 +7558,7 @@ const ZP={
     ZG._backfillAlbum();
     const owned=z.everOwned||[];
     const el=document.createElement('div');
+    el.id='album-overlay';
     el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto';
     el.onclick=(e)=>{ if(e.target===el) el.remove(); };
     const sections=RARITY_ORDER.map(r=>{
@@ -7576,11 +7577,12 @@ const ZP={
         +'</div>'
         +'<div style="display:flex;flex-wrap:wrap;gap:5px">'+grid+'</div></div>';
     }).join('');
-    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(20,5,30,.98),rgba(35,10,45,.97));border:1px solid rgba(155,89,182,.4);border-radius:16px;padding:18px;max-width:480px;width:100%;color:#fff">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><h2 style="flex:1;color:#c39bd3;font-size:1.1rem;margin:0">📖 Sammelalbum</h2>'
-      +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button></div>'
+    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(20,5,30,.98),rgba(35,10,45,.97));border:1px solid rgba(155,89,182,.4);border-radius:16px;padding:0;max-width:480px;width:100%;color:#fff;max-height:85vh;overflow-y:auto">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:18px 18px 0;position:sticky;top:0;background:rgba(20,5,30,.98);z-index:1;padding-bottom:10px;margin-bottom:4px"><h2 style="flex:1;color:#c39bd3;font-size:1.1rem;margin:0">📖 Sammelalbum</h2>'
+      +'<button onclick="console.log(\'[Album-debug] Schliessen-Knopf geklickt\'); document.getElementById(\'album-overlay\')?.remove();" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0">✕</button></div>'
+      +'<div style="padding:0 18px 18px">'
       +'<div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:14px">Jede Tierart, die du jemals besessen hast, bleibt hier für immer eingetragen — auch wenn das Tier längst wieder weg ist. Komplette Seltenheitsstufe = einmaliger MT-Bonus.</div>'
-      +sections+'</div>';
+      +sections+'</div></div>';
     document.body.appendChild(el);
   },
 
@@ -7663,7 +7665,7 @@ const ZP={
     el.querySelector('div').innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <h2 style="flex:1;color:#f0a852;font-size:1.1rem;margin:0">🎯 Deko-Quests</h2>
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+        <button onclick="console.log('[Quests-debug] Schliessen-Knopf geklickt'); document.getElementById('quests-overlay')?.remove();" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
       </div>
       <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;margin-bottom:14px">
         <div style="font-weight:700;color:#F0A852;font-size:.85rem;margin-bottom:6px">🏆 Meine Dekos</div>
@@ -7673,11 +7675,11 @@ const ZP={
   },
 
   async _renderFriends(el){
-    const z=ZS.zoo, myKey=(ZS.player||'').toLowerCase();
+    const z=ZS.zoo, myKey=$rtdbKey(ZS.player||'');
     const friends=z.friends||[];
     let requests={};
     try{ if(typeof _rtdb!=='undefined'&&_rtdb){ const snap=await _rtdb.ref('zoo_friend_requests/'+myKey).once('value'); requests=snap.val()||{}; } }catch(e){}
-    const friendRows=friends.length?friends.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px;margin-bottom:6px"><span>👤 '+$esc(f)+'</span><button onclick="ZP._removeFriend(\''+f.toLowerCase()+'\')" style="background:rgba(231,76,60,.2);border:none;color:#e74c3c;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">Entfernen</button></div>').join('')
+    const friendRows=friends.length?friends.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px;margin-bottom:6px"><span>👤 '+$esc(f)+'</span><button onclick="ZP._removeFriend(\''+$rtdbKey(f)+'\')" style="background:rgba(231,76,60,.2);border:none;color:#e74c3c;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">Entfernen</button></div>').join('')
       : '<div style="color:rgba(255,255,255,.35);font-size:.8rem">Noch keine Freunde.</div>';
     const reqRows=Object.entries(requests).map(([fromKey,r])=>'<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:8px 10px;margin-bottom:6px"><span>📩 '+$esc(r.from||fromKey)+'</span><span><button onclick="ZP._acceptFriend(\''+fromKey+'\',\''+$esc(r.from||fromKey)+'\')" style="background:#27AE60;border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;margin-right:4px">✓</button><button onclick="ZP._declineFriend(\''+fromKey+'\')" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">✕</button></span></div>').join('');
     // BUG FIX (was free-text before): pick a player from a list instead of
@@ -7688,28 +7690,44 @@ const ZP={
     if(friends.length<3){
       try{
         const all=await State.getAll();
-        const candidates=Object.keys(all).filter(k=>k!==myKey && !friends.some(f=>f.toLowerCase()===k) && !requests[k]);
+        // State.getAll() keys are plain name.toLowerCase() (from the
+        // Welt-1 player collection), while myKey/friends comparisons here
+        // use $rtdbKey (extra-sanitized for RTDB paths) — comparing the
+        // two directly would let players with special characters in
+        // their name slip through the "already a friend"/"that's you"
+        // filters. Sanitize both sides the same way before comparing.
+        const candidates=Object.keys(all).filter(k=>$rtdbKey(k)!==myKey && !friends.some(f=>$rtdbKey(f)===$rtdbKey(k)) && !requests[$rtdbKey(k)]);
         addList=candidates.length ? '<div style="max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">'+candidates.map(k=>{
           const displayName=all[k].name||k;
-          return '<div onclick="ZP._sendFriendReq(\''+$esc(displayName)+'\')" style="cursor:pointer;padding:7px 10px;border-radius:8px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.25);font-size:.8rem">👤 '+$esc(displayName)+'</div>';
+          return '<div class="friend-cand" data-name="'+$esc(displayName)+'" style="cursor:pointer;padding:7px 10px;border-radius:8px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.25);font-size:.8rem">👤 '+$esc(displayName)+'</div>';
         }).join('')+'</div>' : '<div style="color:rgba(255,255,255,.35);font-size:.72rem">Keine weiteren Spieler verfügbar.</div>';
       }catch(e){ addList='<div style="color:rgba(255,165,0,.7);font-size:.72rem">Spielerliste konnte nicht geladen werden.</div>'; }
     }
     el.querySelector('div').innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <h2 style="flex:1;color:#5dade2;font-size:1.1rem;margin:0">👥 Freunde (${friends.length}/3)</h2>
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+        <button onclick="console.log('[Friends-debug] Schliessen-Knopf geklickt'); document.getElementById('friends-overlay')?.remove();" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
       </div>
       ${reqRows?'<div style="font-weight:700;color:#27AE60;font-size:.8rem;margin-bottom:6px">Anfragen an dich</div>'+reqRows+'<div style="height:8px"></div>':''}
       <div style="font-weight:700;color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:6px">Deine Freunde</div>
       ${friendRows}
       ${friends.length<3?'<div style="font-weight:700;color:rgba(255,255,255,.6);font-size:.8rem;margin:12px 0 6px">Freund hinzufügen</div>'+addList:'<div style="color:rgba(255,255,255,.35);font-size:.72rem;margin-top:10px">Maximal 3 Freunde erreicht.</div>'}
       <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:12px">Sind du und ein Freund gleichzeitig online, gibt's gelegentlich einen kleinen MT-Bonus.</div>`;
+    // Bind clicks in JS (not inline onclick strings) — no risk of a name
+    // with an apostrophe or other special character breaking the handler.
+    el.querySelectorAll('.friend-cand').forEach(node=>{
+      node.addEventListener('click', ()=>{
+        const nm=node.dataset.name;
+        console.log('[Friends-debug] Spieler-Kandidat angeklickt: '+nm);
+        this._sendFriendReq(nm);
+      });
+    });
   },
   async _sendFriendReq(name){
-    const z=ZS.zoo, myKey=(ZS.player||'').toLowerCase(), targetKey=name.toLowerCase();
+    console.log('[Friends-debug] _sendFriendReq("'+name+'") aufgerufen.');
+    const z=ZS.zoo, myKey=$rtdbKey(ZS.player||''), targetKey=$rtdbKey(name);
     if(targetKey===myKey){ this.toast('❌ Das bist du selbst!'); return; }
-    if((z.friends||[]).some(f=>f.toLowerCase()===targetKey)){ this.toast('❌ Schon befreundet!'); return; }
+    if((z.friends||[]).some(f=>$rtdbKey(f)===targetKey)){ this.toast('❌ Schon befreundet!'); return; }
     if((z.friends||[]).length>=3){ this.toast('❌ Maximal 3 Freunde!'); return; }
     try{
       if(typeof _rtdb!=='undefined'&&_rtdb){
@@ -7720,28 +7738,38 @@ const ZP={
     }catch(e){ this.toast('❌ Anfrage fehlgeschlagen.'); }
   },
   async _acceptFriend(fromKey,fromName){
-    const z=ZS.zoo, myKey=(ZS.player||'').toLowerCase();
+    const z=ZS.zoo, myKey=$rtdbKey(ZS.player||'');
     if((z.friends||[]).length>=3){ this.toast('❌ Du hast schon 3 Freunde!'); return; }
     try{
       if(!z.friends)z.friends=[];
-      if(!z.friends.some(f=>f.toLowerCase()===fromKey)){ z.friends.push(fromName); z.friendsAddedTotal=(z.friendsAddedTotal||0)+1; }
+      if(!z.friends.some(f=>$rtdbKey(f)===fromKey)){ z.friends.push(fromName); z.friendsAddedTotal=(z.friendsAddedTotal||0)+1; }
       ZS.save&&ZS.save();
-      // Auch beim anderen Spieler eintragen (beidseitig)
+      // Auch beim anderen Spieler eintragen (beidseitig) — direkt auf
+      // dessen ZOO-Dokument, NICHT über State.savePlayer (das ist für
+      // Welt-1-Denkspiel-Accounts, nicht für Zoo-Daten — der falsche
+      // Aufruf hier hätte den Denkspiel-Account des anderen Spielers
+      // mit Zoo-Daten überschreiben können).
       const otherZoo=await State.getZoo(fromName);
-      if(otherZoo){ if(!otherZoo.friends)otherZoo.friends=[]; if(!otherZoo.friends.some(f=>f.toLowerCase()===myKey)&&otherZoo.friends.length<3){ otherZoo.friends.push(ZS.player); await State.savePlayer?.(otherZoo).catch?.(()=>{}); try{ await _db.collection('zoos').doc('zoo_'+fromKey).set(otherZoo,{merge:true}); }catch(e){} } }
+      if(otherZoo){
+        if(!otherZoo.friends)otherZoo.friends=[];
+        if(!otherZoo.friends.some(f=>$rtdbKey(f)===myKey)&&otherZoo.friends.length<3){
+          otherZoo.friends.push(ZS.player);
+          try{ await _db.collection('zoos').doc('zoo_'+fromKey).set(otherZoo,{merge:true}); }catch(e){}
+        }
+      }
       if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_friend_requests/'+myKey+'/'+fromKey).remove();
       this.toast('🎉 Jetzt befreundet mit '+fromName+'!',3000);
       const el=document.getElementById('friends-overlay'); if(el) this._renderFriends(el);
     }catch(e){ this.toast('❌ Fehler beim Annehmen.'); }
   },
   async _declineFriend(fromKey){
-    const myKey=(ZS.player||'').toLowerCase();
+    const myKey=$rtdbKey(ZS.player||'');
     try{ if(typeof _rtdb!=='undefined'&&_rtdb) await _rtdb.ref('zoo_friend_requests/'+myKey+'/'+fromKey).remove(); }catch(e){}
     const el=document.getElementById('friends-overlay'); if(el) this._renderFriends(el);
   },
   _removeFriend(fromKey){
     const z=ZS.zoo;
-    z.friends=(z.friends||[]).filter(f=>f.toLowerCase()!==fromKey);
+    z.friends=(z.friends||[]).filter(f=>$rtdbKey(f)!==fromKey);
     ZS.save&&ZS.save();
     const el=document.getElementById('friends-overlay'); if(el) this._renderFriends(el);
   },
@@ -11752,24 +11780,32 @@ const ZAdmin = {
   _questSelected: [],
   _questDeco: null,
   _loadQuestsTab(){
+    console.log('[Quest-debug] _loadQuestsTab() aufgerufen.');
     this._questSelected=[];
     this._questDeco=null;
     const decoPicker=document.getElementById('quest-deco-picker');
+    console.log('[Quest-debug] quest-deco-picker gefunden='+!!decoPicker+' DECORATION_POOL Länge='+(typeof DECORATION_POOL!=='undefined'?DECORATION_POOL.length:'UNDEFINED'));
     if(decoPicker){
-      decoPicker.innerHTML=DECORATION_POOL.map((d,i)=>`<div id="qdeco-${i}" onclick="ZAdmin._pickQuestDeco(${i})" style="cursor:pointer;text-align:center;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.05);border:2px solid transparent" title="${d.n}"><div style="font-size:1.4rem">${d.e}</div></div>`).join('');
+      try{
+        decoPicker.innerHTML=DECORATION_POOL.map((d,i)=>`<div id="qdeco-${i}" onclick="ZAdmin._pickQuestDeco(${i})" style="cursor:pointer;text-align:center;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.05);border:2px solid transparent" title="${d.n}"><div style="font-size:1.4rem">${d.e}</div></div>`).join('');
+      }catch(e){ console.log('[Quest-debug] Fehler beim Rendern der Deko-Kacheln: '+e.message); }
     }
     this._updQuestDecoLabel();
     const picker=document.getElementById('quest-task-picker');
+    console.log('[Quest-debug] quest-task-picker gefunden='+!!picker+' QUEST_TASK_POOL Länge='+(typeof QUEST_TASK_POOL!=='undefined'?QUEST_TASK_POOL.length:'UNDEFINED'));
     if(picker){
-      picker.innerHTML=QUEST_TASK_POOL.map(task=>{
-        const col=QUEST_DIFF_COLOR[task.diff];
-        return `<div id="qtask-${task.id}" onclick="ZAdmin._toggleQuestTask('${task.id}')" style="cursor:pointer;padding:8px 10px;border-radius:8px;background:${col}22;border:1px solid ${col}55;font-size:.78rem;color:#fff;display:flex;justify-content:space-between"><span>${task.label}</span><span style="color:${col};font-weight:900">${task.diff==='easy'?'Leicht':task.diff==='medium'?'Mittel':'Schwer'}</span></div>`;
-      }).join('');
+      try{
+        picker.innerHTML=QUEST_TASK_POOL.map(task=>{
+          const col=QUEST_DIFF_COLOR[task.diff];
+          return `<div id="qtask-${task.id}" onclick="ZAdmin._toggleQuestTask('${task.id}')" style="cursor:pointer;padding:8px 10px;border-radius:8px;background:${col}22;border:1px solid ${col}55;font-size:.78rem;color:#fff;display:flex;justify-content:space-between"><span>${task.label}</span><span style="color:${col};font-weight:900">${task.diff==='easy'?'Leicht':task.diff==='medium'?'Mittel':'Schwer'}</span></div>`;
+        }).join('');
+      }catch(e){ console.log('[Quest-debug] Fehler beim Rendern der Aufgaben-Kacheln: '+e.message); }
     }
     this._updQuestCount();
     this._loadExistingQuests();
   },
   _pickQuestDeco(i){
+    console.log('[Quest-debug] _pickQuestDeco('+i+') aufgerufen.');
     this._questDeco=DECORATION_POOL[i];
     DECORATION_POOL.forEach((d,j)=>{ const el=document.getElementById('qdeco-'+j); if(el) el.style.border=j===i?'2px solid #FFD700':'2px solid transparent'; });
     this._updQuestDecoLabel();
@@ -11779,6 +11815,7 @@ const ZAdmin = {
     if(el) el.textContent=this._questDeco ? ('Ausgewählt: '+this._questDeco.e+' '+this._questDeco.n) : 'Keine Deko ausgewählt';
   },
   _toggleQuestTask(id){
+    console.log('[Quest-debug] _toggleQuestTask("'+id+'") aufgerufen. Vorher ausgewählt: '+this._questSelected.length);
     const idx=this._questSelected.indexOf(id);
     if(idx>=0){ this._questSelected.splice(idx,1); }
     else{ if(this._questSelected.length>=15){ ZP.toast('❌ Maximal 15 Aufgaben!'); return; } this._questSelected.push(id); }
@@ -11791,15 +11828,17 @@ const ZAdmin = {
     if(el) el.textContent=this._questSelected.length+' Aufgaben ausgewählt (mind. 3, max. 15)';
   },
   async saveQuest(){
+    console.log('[Quest-debug] saveQuest() aufgerufen. Deko='+(this._questDeco?this._questDeco.n:'keine')+' Aufgaben='+this._questSelected.length+' _db verfügbar='+(typeof _db!=='undefined'&&!!_db));
     if(!this._questDeco){ ZP.toast('❌ Erst eine Deko auswählen!'); return; }
     if(this._questSelected.length<3){ ZP.toast('❌ Mindestens 3 Aufgaben auswählen (aktuell '+this._questSelected.length+')!'); return; }
-    if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Firebase nicht verfügbar!'); return; }
+    if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Firebase nicht verfügbar!'); console.log('[Quest-debug] Abbruch: _db nicht verfügbar.'); return; }
     try{
       const id='quest_'+Date.now();
       await _db.collection('zoo_quests').doc(id).set({id,decoEmoji:this._questDeco.e,decoName:this._questDeco.n,taskIds:[...this._questSelected],createdAt:Date.now(),createdBy:ZS.player||'admin'});
+      console.log('[Quest-debug] Quest erfolgreich in Firestore gespeichert: '+id);
       ZP.toast('✅ Quest "'+this._questDeco.n+'" erstellt — für alle Spieler sichtbar!',3500);
       this._loadQuestsTab();
-    }catch(e){ ZP.toast('❌ Fehler beim Speichern: '+e.message,4000); }
+    }catch(e){ console.log('[Quest-debug] Fehler beim Speichern: '+e.message); ZP.toast('❌ Fehler beim Speichern: '+e.message,4000); }
   },
   async _loadExistingQuests(){
     const el=document.getElementById('quest-existing-list'); if(!el)return;
@@ -13623,7 +13662,15 @@ function _showNotifyBlockedHelp(){
   </div>`;
   document.body.appendChild(el);
 }
-function $esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// $esc() is defined once, near the top ("SECURITY HELPERS") — a second,
+// incomplete duplicate used to live here (missing single-quote escaping),
+// which silently overwrote the good one for the ENTIRE file, since two
+// function declarations with the same name in the same scope don't
+// coexist — whichever is LAST in source order wins, everywhere, even for
+// code that runs before this line. Any player name containing an
+// apostrophe could break inline onclick="...('name')" handlers built
+// with the broken version (the quote wasn't escaped, so it terminated
+// the JS string early) — silently doing nothing when clicked.
 
 function _announceSecrets(){
   // Check time-based secrets on load
