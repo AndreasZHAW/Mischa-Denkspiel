@@ -247,6 +247,7 @@ const RewardChests = {
     this._unlockAudio();
     const tier=this._tiers().find(t=>t.min===min); if(!tier)return;
     if(!this._isReady(tier))return;
+    try{ if(typeof ZS!=='undefined'&&ZS.zoo){ ZS.zoo.chestsOpenedTotal=(ZS.zoo.chestsOpenedTotal||0)+1; } }catch(e){}
     // Roll hell first
     const isHell=Math.random()<tier.hell;
     // Start at Normal (0), upgrade happens per-click

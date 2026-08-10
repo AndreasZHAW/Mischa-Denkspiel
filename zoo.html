@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v484 -->
+<!-- ZOO v485 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -233,12 +233,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=484"></script>
-<script src="rewardchests.js?v=484"></script>
-<script src="personality.js?v=484"></script>
+<script src="lang.js?v=485"></script>
+<script src="rewardchests.js?v=485"></script>
+<script src="personality.js?v=485"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v484','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v485','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -514,8 +514,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=484"></script>
-<script src="worlds.js?v=484"></script>
+<script src="firebase-state.js?v=485"></script>
+<script src="worlds.js?v=485"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -967,8 +967,40 @@ const QUEST_TASK_POOL=[
   {id:'album_epic',diff:'hard',label:'Alle epischen Tierarten je besessen',check:(z,c)=>ANIMALS.filter(a=>a.r==='epic').every(a=>(z.everOwned||[]).includes(a.id))},
   {id:'mt100m',diff:'hard',label:'100 Millionen MT erreichen',check:(z,c)=>c>=100000000},
   {id:'firstlegendary',diff:'hard',label:'Erste legendäre Tierart besitzen',check:(z,c)=>(z.everOwned||[]).some(id=>ANIMALS.find(a=>a.id===id)?.r==='legendary')},
+  // ── zusätzlich vorgeschlagene Aufgaben ──
+  {id:'spin1',diff:'easy',label:'1× am Glücksrad drehen',check:(z,c)=>(z.wheelSpinsTotal||0)>=1},
+  {id:'chest1',diff:'easy',label:'1 Truhe öffnen',check:(z,c)=>(z.chestsOpenedTotal||0)>=1},
+  {id:'slap5',diff:'easy',label:'5× slapen',check:(z,c)=>(z.slapsGivenTotal||0)>=5},
+  {id:'spin2',diff:'medium',label:'2× am Glücksrad drehen',check:(z,c)=>(z.wheelSpinsTotal||0)>=2},
+  {id:'chest30',diff:'medium',label:'Die 30-Minuten-Truhe öffnen',check:(z,c)=>(z.chestsOpenedTotal||0)>=1},
+  {id:'slap15',diff:'medium',label:'15× slapen',check:(z,c)=>(z.slapsGivenTotal||0)>=15},
+  {id:'slapped15',diff:'medium',label:'15× geslapt werden',check:(z,c)=>(z.timesSlappedTotal||0)>=15},
+  {id:'addfriend1',diff:'medium',label:'Einen Freund hinzufügen',check:(z,c)=>(z.friendsAddedTotal||0)>=1},
+  {id:'spin5',diff:'hard',label:'5× am Glücksrad drehen',check:(z,c)=>(z.wheelSpinsTotal||0)>=5},
+  {id:'chest120',diff:'hard',label:'Die 120-Minuten-Truhe öffnen',check:(z,c)=>(z.chestsOpenedTotal||0)>=1},
+  {id:'slapped30',diff:'hard',label:'30× geslapt werden',check:(z,c)=>(z.timesSlappedTotal||0)>=30},
+  {id:'addfriend2',diff:'hard',label:'2 neue Freunde hinzufügen',check:(z,c)=>(z.friendsAddedTotal||0)>=2},
+  {id:'slap50',diff:'hard',label:'50× slapen',check:(z,c)=>(z.slapsGivenTotal||0)>=50},
 ];
 const QUEST_DIFF_COLOR={easy:'#27AE60',medium:'#F1C40F',hard:'#E74C3C'};
+
+// ── DEKORATIONEN: vorgefertigter Katalog, aus dem der Admin EINE als
+// Belohnung für eine Quest auswählt (statt freien Emoji+Text-Feldern).
+const DECORATION_POOL=[
+  {e:'🎄',n:'Tannenbaum'},{e:'⛱️',n:'Sonnenschirm'},{e:'⛲',n:'Springbrunnen'},{e:'🗿',n:'Steinstatue'},
+  {e:'🏛️',n:'Säulen-Pavillon'},{e:'🎪',n:'Zirkuszelt'},{e:'🌸',n:'Kirschbaum'},{e:'🌴',n:'Palme'},
+  {e:'🌵',n:'Kaktus'},{e:'🪴',n:'Zierpflanze'},{e:'🌻',n:'Sonnenblumen-Beet'},{e:'🌷',n:'Tulpenbeet'},
+  {e:'🍄',n:'Riesenpilz'},{e:'🎋',n:'Bambus-Hain'},{e:'🪨',n:'Felsformation'},{e:'⛰️',n:'Mini-Berg'},
+  {e:'🏰',n:'Sandburg'},{e:'🗽',n:'Mini-Statue'},{e:'🎡',n:'Mini-Riesenrad'},{e:'🎠',n:'Karussell'},
+  {e:'🛝',n:'Rutsche'},{e:'⛩️',n:'Torii-Tor'},{e:'🕌',n:'Kuppelbau'},{e:'🏯',n:'Pagode'},
+  {e:'🌉',n:'Brücke'},{e:'🚧',n:'Zaun-Deko'},{e:'🪑',n:'Sitzbank'},{e:'🛋️',n:'Picknick-Ecke'},
+  {e:'🏮',n:'Laterne'},{e:'💡',n:'Lichterkette'},{e:'🕯️',n:'Kerzen-Deko'},{e:'🎆',n:'Feuerwerk-Deko'},
+  {e:'🎇',n:'Wunderkerzen-Deko'},{e:'❄️',n:'Schneemann'},{e:'⛄',n:'Schneefigur'},{e:'🎃',n:'Kürbis-Deko'},
+  {e:'👻',n:'Geister-Deko'},{e:'🦇',n:'Fledermaus-Deko'},{e:'🕸️',n:'Spinnennetz-Deko'},{e:'🥚',n:'Oster-Nest'},
+  {e:'🐇',n:'Osterhasen-Statue'},{e:'🎁',n:'Geschenk-Deko'},{e:'🔔',n:'Glocken-Deko'},{e:'⭐',n:'Sternen-Deko'},
+  {e:'🌈',n:'Regenbogen-Deko'},{e:'💧',n:'Wasserfall'},{e:'🪷',n:'Seerosenteich'},{e:'🐚',n:'Muschel-Deko'},
+  {e:'⚓',n:'Anker-Deko'},{e:'🧭',n:'Kompass-Statue'},{e:'🔥',n:'Feuerschale'},{e:'🪵',n:'Holzstapel'},
+];
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
@@ -1060,12 +1092,12 @@ const ZS={
     }
     if((z.tb?.lucky||0)>Date.now())l*=2;
     if(ZG.ev?.id==='night')l*=1.5;
-    // TEST-MODE ONLY: temporary ×50 Glücks-Bonus, bought in the Gondel
+    // Temporary ×100 Glücks-Bonus, bought in the Gondel
     // (see ZP._bLuck50). Deliberately applied here rather than a
     // gondola-only special case — ZS.lk() is, in practice, only ever
     // consumed by the gondola's animal draw (_mkG), so this already
     // scopes the effect to exactly "in der Gondel" without extra plumbing.
-    if(z.luck50Until && z.luck50Until>Date.now()) l*=50;
+    if(z.luck50Until && z.luck50Until>Date.now()) l*=100; // war x50, laut Rückmeldung zu schwach
     return l;
   },
   async save(){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud())await _db.collection('zoos').doc(k).set(this.zoo,{merge:true});}catch(e){}localStorage.setItem(k,JSON.stringify(this.zoo));
@@ -2737,6 +2769,7 @@ const ZG={
   _applyReceivedSlap(d){
     const slapDur=d.dur||2000;
     ZG._slapStunEnd=Date.now()+slapDur; if(window.ZSteal)ZSteal.loseOnSlap(); SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
+    try{ if(ZS.zoo){ ZS.zoo.timesSlappedTotal=(ZS.zoo.timesSlappedTotal||0)+1; } }catch(e){}
     // Drop carried animal if carrying
     if(ZG.carrying) ZG._dropCarried(d.from||'?');
     ZG._stunType='slap';
@@ -5020,6 +5053,9 @@ const ZG={
     if(!owned){ z.slapPacks=z.slapPacks||{}; z.slapPacks[sl.id]=Math.max(0,packLeft-1); }
     this.slapCD=sl.cd;
     ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
+    if(!z.slapUsage) z.slapUsage={};
+    z.slapUsage[sl.id]=(z.slapUsage[sl.id]||0)+1;
+    z.slapsGivenTotal=(z.slapsGivenTotal||0)+1;
     ZP.toast(sl.e+' '+sl.n+'! '+(cost>0?'−'+$mt(cost)+' ('+(sl.pct??2)+'%)':'(kostenlos!)')+(!owned?' · Paket: '+z.slapPacks[sl.id]+' übrig':''),1200);
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
     this._trackWeaponUse();
@@ -6729,6 +6765,7 @@ const LW={
   spin(){
     if(this.spinning||this.spins<=0)return;
     this.spinning=true;this.spins--;this._saveSpins();
+    try{ if(ZS.zoo){ ZS.zoo.wheelSpinsTotal=(ZS.zoo.wheelSpinsTotal||0)+1; } }catch(e){}
     G('lwbtn').disabled=true;G('lwbtn').textContent='🌀 Dreht...';
     const prizes=this.W.prizes;const tot=prizes.reduce((s,p)=>s+p.c,0);
     // Check if a guaranteed prize was set by admin
@@ -7518,6 +7555,7 @@ const ZP={
   // ── SAMMELALBUM ──
   showAlbum(){
     const z=ZS.zoo; if(!z)return;
+    ZG._backfillAlbum();
     const owned=z.everOwned||[];
     const el=document.createElement('div');
     el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto';
@@ -7642,6 +7680,21 @@ const ZP={
     const friendRows=friends.length?friends.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px;margin-bottom:6px"><span>👤 '+$esc(f)+'</span><button onclick="ZP._removeFriend(\''+f.toLowerCase()+'\')" style="background:rgba(231,76,60,.2);border:none;color:#e74c3c;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">Entfernen</button></div>').join('')
       : '<div style="color:rgba(255,255,255,.35);font-size:.8rem">Noch keine Freunde.</div>';
     const reqRows=Object.entries(requests).map(([fromKey,r])=>'<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:8px 10px;margin-bottom:6px"><span>📩 '+$esc(r.from||fromKey)+'</span><span><button onclick="ZP._acceptFriend(\''+fromKey+'\',\''+$esc(r.from||fromKey)+'\')" style="background:#27AE60;border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem;margin-right:4px">✓</button><button onclick="ZP._declineFriend(\''+fromKey+'\')" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.72rem">✕</button></span></div>').join('');
+    // BUG FIX (was free-text before): pick a player from a list instead of
+    // typing their exact name — avoids typos/case-mismatches and is much
+    // easier to use. Excludes yourself, current friends, and anyone with
+    // a pending outgoing/incoming request already.
+    let addList='<div style="color:rgba(255,255,255,.35);font-size:.72rem">Lade Spielerliste...</div>';
+    if(friends.length<3){
+      try{
+        const all=await State.getAll();
+        const candidates=Object.keys(all).filter(k=>k!==myKey && !friends.some(f=>f.toLowerCase()===k) && !requests[k]);
+        addList=candidates.length ? '<div style="max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">'+candidates.map(k=>{
+          const displayName=all[k].name||k;
+          return '<div onclick="ZP._sendFriendReq(\''+$esc(displayName)+'\')" style="cursor:pointer;padding:7px 10px;border-radius:8px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.25);font-size:.8rem">👤 '+$esc(displayName)+'</div>';
+        }).join('')+'</div>' : '<div style="color:rgba(255,255,255,.35);font-size:.72rem">Keine weiteren Spieler verfügbar.</div>';
+      }catch(e){ addList='<div style="color:rgba(255,165,0,.7);font-size:.72rem">Spielerliste konnte nicht geladen werden.</div>'; }
+    }
     el.querySelector('div').innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <h2 style="flex:1;color:#5dade2;font-size:1.1rem;margin:0">👥 Freunde (${friends.length}/3)</h2>
@@ -7650,21 +7703,19 @@ const ZP={
       ${reqRows?'<div style="font-weight:700;color:#27AE60;font-size:.8rem;margin-bottom:6px">Anfragen an dich</div>'+reqRows+'<div style="height:8px"></div>':''}
       <div style="font-weight:700;color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:6px">Deine Freunde</div>
       ${friendRows}
-      ${friends.length<3?'<div style="display:flex;gap:6px;margin-top:12px"><input id="friend-add-input" placeholder="Spielername..." style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px;color:#fff;font-size:.85rem"><button onclick="ZP._sendFriendReq()" style="background:#3498db;border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:700">Anfrage</button></div>':'<div style="color:rgba(255,255,255,.35);font-size:.72rem;margin-top:10px">Maximal 3 Freunde erreicht.</div>'}
+      ${friends.length<3?'<div style="font-weight:700;color:rgba(255,255,255,.6);font-size:.8rem;margin:12px 0 6px">Freund hinzufügen</div>'+addList:'<div style="color:rgba(255,255,255,.35);font-size:.72rem;margin-top:10px">Maximal 3 Freunde erreicht.</div>'}
       <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:12px">Sind du und ein Freund gleichzeitig online, gibt's gelegentlich einen kleinen MT-Bonus.</div>`;
   },
-  async _sendFriendReq(){
-    const input=G('friend-add-input'); const name=(input?.value||'').trim(); if(!name)return;
+  async _sendFriendReq(name){
     const z=ZS.zoo, myKey=(ZS.player||'').toLowerCase(), targetKey=name.toLowerCase();
     if(targetKey===myKey){ this.toast('❌ Das bist du selbst!'); return; }
     if((z.friends||[]).some(f=>f.toLowerCase()===targetKey)){ this.toast('❌ Schon befreundet!'); return; }
     if((z.friends||[]).length>=3){ this.toast('❌ Maximal 3 Freunde!'); return; }
     try{
-      const targetZoo=await State.getZoo(name);
-      if(!targetZoo){ this.toast('❌ Spieler nicht gefunden.'); return; }
       if(typeof _rtdb!=='undefined'&&_rtdb){
         await _rtdb.ref('zoo_friend_requests/'+targetKey+'/'+myKey).set({from:ZS.player,at:Date.now()});
         this.toast('✅ Anfrage an '+name+' gesendet!',2500);
+        const el=document.getElementById('friends-overlay'); if(el) this._renderFriends(el);
       }
     }catch(e){ this.toast('❌ Anfrage fehlgeschlagen.'); }
   },
@@ -7673,7 +7724,7 @@ const ZP={
     if((z.friends||[]).length>=3){ this.toast('❌ Du hast schon 3 Freunde!'); return; }
     try{
       if(!z.friends)z.friends=[];
-      if(!z.friends.some(f=>f.toLowerCase()===fromKey)) z.friends.push(fromName);
+      if(!z.friends.some(f=>f.toLowerCase()===fromKey)){ z.friends.push(fromName); z.friendsAddedTotal=(z.friendsAddedTotal||0)+1; }
       ZS.save&&ZS.save();
       // Auch beim anderen Spieler eintragen (beidseitig)
       const otherZoo=await State.getZoo(fromName);
@@ -8072,7 +8123,7 @@ const ZP={
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');},
   _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(((ZS.dsMT||0)+z.mt)<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;ZS.save&&ZS.save();this.toast('✅ '+u.l);this._rLuck();this._rLuck50();ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
-  // ── Temporärer ×50 Glücks-Bonus (Gondel) ──
+  // ── Temporärer ×100 Glücks-Bonus (Gondel) ──
   // Needs the permanent ×10 luck upgrade already owned (LUCK_UPS' last
   // tier, z.luckLv===LUCK_UPS.length) — that stays unlocked forever once
   // bought, per how the permanent tiers already work. Costs 30% of
@@ -8081,17 +8132,17 @@ const ZP={
   _rLuck50(){
     const z=ZS.zoo, el=G('gluck50'); if(!el)return;
     const unlocked = (z.luckLv||0) >= LUCK_UPS.length;
-    if(!unlocked){ el.innerHTML='<div class="ac" style="opacity:.4"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×50 GLÜCKS-BONUS</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">Erst ×10 👑 MAX freischalten</div></div></div>'; return; }
+    if(!unlocked){ el.innerHTML='<div class="ac" style="opacity:.4"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×100 GLÜCKS-BONUS</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">Erst ×10 👑 MAX freischalten</div></div></div>'; return; }
     const now=Date.now(), until=z.luck50Until||0, active=until>now;
     if(active){
       const secLeft=Math.ceil((until-now)/1000), mm=Math.floor(secLeft/60), ss=secLeft%60;
-      el.innerHTML='<div class="ac" style="background:rgba(255,215,0,.12)"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900;color:#FFD700">×50 AKTIV!</div><div style="font-size:.68rem;color:#FFD700">⏱ '+mm+':'+String(ss).padStart(2,'0')+' übrig</div></div></div>';
+      el.innerHTML='<div class="ac" style="background:rgba(255,215,0,.12)"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900;color:#FFD700">×100 AKTIV!</div><div style="font-size:.68rem;color:#FFD700">⏱ '+mm+':'+String(ss).padStart(2,'0')+' übrig</div></div></div>';
       if(this._luck50Iv) clearInterval(this._luck50Iv);
       this._luck50Iv=setInterval(()=>{ if(!G('gluck50')){clearInterval(this._luck50Iv);return;} this._rLuck50(); },1000);
       return;
     }
     const combined=(ZS.dsMT||0)+z.mt, cost=Math.round(combined*0.3*10)/10;
-    el.innerHTML='<div class="ac"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×50 GLÜCKS-BONUS</div><div style="font-size:.7rem;color:#00CFFF">'+$mt(cost)+' (30% Guthaben) · 5 Min</div></div><button class="ab" '+(combined<cost||cost<=0?'disabled':'')+' onclick="ZP._bLuck50()">Kaufen</button></div>';
+    el.innerHTML='<div class="ac"><div>🌟</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">×100 GLÜCKS-BONUS</div><div style="font-size:.7rem;color:#00CFFF">'+$mt(cost)+' (30% Guthaben) · 5 Min</div></div><button class="ab" '+(combined<cost||cost<=0?'disabled':'')+' onclick="ZP._bLuck50()">Kaufen</button></div>';
   },
   _bLuck50(){
     const z=ZS.zoo;
@@ -8101,7 +8152,7 @@ const ZP={
     if(combined<cost||cost<=0){ this.toast('❌ Zu wenig!'); return; }
     z.mt-=cost; z.luck50Until=Date.now()+5*60*1000;
     ZS.save&&ZS.save();
-    this.toast('🌟 ×50 Glücks-Bonus aktiv für 5 Min!',3500);
+    this.toast('🌟 ×100 Glücks-Bonus aktiv für 5 Min!',3500);
     this._rLuck50(); ZG._updHUD();
   },
 
@@ -9208,21 +9259,50 @@ const ZP={
       if(!z.everOwned) z.everOwned=[];
       if(z.everOwned.includes(a.id)) return;
       z.everOwned.push(a.id);
-      const tierAnimals=ANIMALS.filter(x=>x.r===a.r);
-      const allOwned=tierAnimals.length>0 && tierAnimals.every(x=>z.everOwned.includes(x.id));
-      if(allOwned){
-        if(!z.albumClaimed) z.albumClaimed={};
-        if(!z.albumClaimed[a.r]){
-          z.albumClaimed[a.r]=true;
-          const pct=ALBUM_BONUS_PCT[a.r]||.02;
-          const combined=(ZS.dsMT||0)+z.mt;
-          const bonus=Math.round(combined*pct*10)/10;
-          z.mt+=bonus;
-          setTimeout(()=>{ ZP.toast('📖 Sammelalbum "'+(RARITY_LABELS[a.r]||a.r)+'" komplett! +'+$mt(bonus)+' Bonus!',6000); },600);
-        }
-      }
+      this._checkAlbumTier(a.r);
       ZS.save&&ZS.save();
     }catch(e){}
+  },
+  // Shared by _trackOwned (new acquisitions) and _backfillAlbum (catching
+  // up animals owned before the album existed) — both need to check
+  // completion and pay the bonus the same way.
+  _checkAlbumTier(rarity){
+    const z=ZS.zoo; if(!z)return false;
+    const tierAnimals=ANIMALS.filter(x=>x.r===rarity);
+    const allOwned=tierAnimals.length>0 && tierAnimals.every(x=>(z.everOwned||[]).includes(x.id));
+    if(allOwned){
+      if(!z.albumClaimed) z.albumClaimed={};
+      if(!z.albumClaimed[rarity]){
+        z.albumClaimed[rarity]=true;
+        const pct=ALBUM_BONUS_PCT[rarity]||.02;
+        const combined=(ZS.dsMT||0)+z.mt;
+        const bonus=Math.round(combined*pct*10)/10;
+        z.mt+=bonus;
+        setTimeout(()=>{ ZP.toast('📖 Sammelalbum "'+(RARITY_LABELS[rarity]||rarity)+'" komplett! +'+$mt(bonus)+' Bonus!',6000); },600);
+        return true;
+      }
+    }
+    return false;
+  },
+  // BUG FIX: z.everOwned only started filling up from the moment this
+  // feature shipped — every animal a player already owned BEFORE that
+  // (their whole existing collection) was invisible to the album and
+  // could never trigger a tier bonus. Called once whenever the album is
+  // opened: adds every animal CURRENTLY in the zoo that isn't in
+  // everOwned yet, then re-checks each affected tier for completion.
+  _backfillAlbum(){
+    const z=ZS.zoo; if(!z)return;
+    if(!z.everOwned) z.everOwned=[];
+    const touchedTiers=new Set();
+    (z.enc||[]).forEach(e=>{
+      if(e && e.animal && e.animal.id && !z.everOwned.includes(e.animal.id)){
+        z.everOwned.push(e.animal.id);
+        touchedTiers.add(e.animal.r);
+      }
+    });
+    let anyBonus=false;
+    touchedTiers.forEach(r=>{ if(this._checkAlbumTier(r)) anyBonus=true; });
+    if(touchedTiers.size) ZS.save&&ZS.save();
   },
 
   _buyGondolaIdx(carIdx){
@@ -11670,8 +11750,15 @@ const ZAdmin = {
 
   // ── DEKO-QUESTS: Admin-Editor ──
   _questSelected: [],
+  _questDeco: null,
   _loadQuestsTab(){
     this._questSelected=[];
+    this._questDeco=null;
+    const decoPicker=document.getElementById('quest-deco-picker');
+    if(decoPicker){
+      decoPicker.innerHTML=DECORATION_POOL.map((d,i)=>`<div id="qdeco-${i}" onclick="ZAdmin._pickQuestDeco(${i})" style="cursor:pointer;text-align:center;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.05);border:2px solid transparent" title="${d.n}"><div style="font-size:1.4rem">${d.e}</div></div>`).join('');
+    }
+    this._updQuestDecoLabel();
     const picker=document.getElementById('quest-task-picker');
     if(picker){
       picker.innerHTML=QUEST_TASK_POOL.map(task=>{
@@ -11682,31 +11769,37 @@ const ZAdmin = {
     this._updQuestCount();
     this._loadExistingQuests();
   },
+  _pickQuestDeco(i){
+    this._questDeco=DECORATION_POOL[i];
+    DECORATION_POOL.forEach((d,j)=>{ const el=document.getElementById('qdeco-'+j); if(el) el.style.border=j===i?'2px solid #FFD700':'2px solid transparent'; });
+    this._updQuestDecoLabel();
+  },
+  _updQuestDecoLabel(){
+    const el=document.getElementById('quest-deco-selected');
+    if(el) el.textContent=this._questDeco ? ('Ausgewählt: '+this._questDeco.e+' '+this._questDeco.n) : 'Keine Deko ausgewählt';
+  },
   _toggleQuestTask(id){
     const idx=this._questSelected.indexOf(id);
     if(idx>=0){ this._questSelected.splice(idx,1); }
-    else{ if(this._questSelected.length>=15){ ZP.toast('❌ Schon 15 ausgewählt!'); return; } this._questSelected.push(id); }
+    else{ if(this._questSelected.length>=15){ ZP.toast('❌ Maximal 15 Aufgaben!'); return; } this._questSelected.push(id); }
     const el=document.getElementById('qtask-'+id);
     if(el) el.style.outline=idx>=0?'none':'3px solid #FFD700';
     this._updQuestCount();
   },
   _updQuestCount(){
     const el=document.getElementById('quest-picker-count');
-    if(el) el.textContent=this._questSelected.length+'/15 ausgewählt';
+    if(el) el.textContent=this._questSelected.length+' Aufgaben ausgewählt (mind. 3, max. 15)';
   },
   async saveQuest(){
-    const emoji=(document.getElementById('quest-deco-emoji')?.value||'').trim();
-    const name=(document.getElementById('quest-deco-name')?.value||'').trim();
-    if(!emoji||!name){ ZP.toast('❌ Emoji und Name eingeben!'); return; }
-    if(this._questSelected.length!==15){ ZP.toast('❌ Genau 15 Aufgaben auswählen (aktuell '+this._questSelected.length+')!'); return; }
+    if(!this._questDeco){ ZP.toast('❌ Erst eine Deko auswählen!'); return; }
+    if(this._questSelected.length<3){ ZP.toast('❌ Mindestens 3 Aufgaben auswählen (aktuell '+this._questSelected.length+')!'); return; }
+    if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Firebase nicht verfügbar!'); return; }
     try{
       const id='quest_'+Date.now();
-      await _db.collection('zoo_quests').doc(id).set({id,decoEmoji:emoji,decoName:name,taskIds:this._questSelected,createdAt:Date.now(),createdBy:ZS.player});
-      ZP.toast('✅ Quest "'+name+'" erstellt!',3000);
+      await _db.collection('zoo_quests').doc(id).set({id,decoEmoji:this._questDeco.e,decoName:this._questDeco.n,taskIds:[...this._questSelected],createdAt:Date.now(),createdBy:ZS.player||'admin'});
+      ZP.toast('✅ Quest "'+this._questDeco.n+'" erstellt — für alle Spieler sichtbar!',3500);
       this._loadQuestsTab();
-      document.getElementById('quest-deco-emoji').value='';
-      document.getElementById('quest-deco-name').value='';
-    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+    }catch(e){ ZP.toast('❌ Fehler beim Speichern: '+e.message,4000); }
   },
   async _loadExistingQuests(){
     const el=document.getElementById('quest-existing-list'); if(!el)return;
@@ -14944,8 +15037,16 @@ window.ZooEvents = ZooEvents;
               <option value="20">×20 Glück</option>
               <option value="25">×25 Glück</option>
               <option value="30">×30 Glück</option>
+              <option value="40">×40 Glück</option>
+              <option value="50">×50 Glück</option>
+              <option value="60">×60 Glück</option>
+              <option value="70">×70 Glück</option>
+              <option value="80">×80 Glück</option>
+              <option value="90">×90 Glück</option>
+              <option value="100">×100 Glück</option>
             </select>
             <select id="admin-luck-dur" style="flex:1;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px;font-size:.82rem">
+              <option value="1">1 Min</option>
               <option value="5">5 Min</option>
               <option value="10" selected>10 Min</option>
               <option value="15">15 Min</option>
@@ -15181,13 +15282,12 @@ window.ZooEvents = ZooEvents;
 
         <div class="padmin-tab" id="padmin-tab-quests" style="display:none">
           <div class="padmin-section-title">🎯 Deko-Quests verwalten</div>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Erstelle eine neue Quest: Name + Emoji der Deko-Belohnung, dann genau 15 Aufgaben aus dem Pool auswählen (grün=leicht, gelb=mittel, rot=schwer). Sobald ein Spieler alle 15 erfüllt, bekommt er die Deko automatisch.</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <input id="quest-deco-emoji" placeholder="🎄" maxlength="4" style="width:60px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px;color:#fff;text-align:center;font-size:1.1rem">
-            <input id="quest-deco-name" placeholder="Deko-Name (z.B. Tannenbaum)" style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px;color:#fff">
-          </div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Erstelle eine neue Quest: Deko-Belohnung aus dem Katalog auswählen, dann mindestens 3 (bis maximal 15) Aufgaben aus dem Pool auswählen (grün=leicht, gelb=mittel, rot=schwer). Sobald ein Spieler alle ausgewählten Aufgaben erfüllt, bekommt er die Deko automatisch.</div>
+          <div style="font-weight:700;color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:6px">Deko-Belohnung auswählen</div>
+          <div id="quest-deco-picker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;max-height:160px;overflow-y:auto;margin-bottom:6px;background:rgba(255,255,255,.03);border-radius:10px;padding:8px"></div>
+          <div id="quest-deco-selected" style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:14px">Keine Deko ausgewählt</div>
           <div id="quest-task-picker" style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;margin-bottom:10px"></div>
-          <div id="quest-picker-count" style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px">0/15 ausgewählt</div>
+          <div id="quest-picker-count" style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px">0 Aufgaben ausgewählt (mind. 3, max. 15)</div>
           <button onclick="ZAdmin.saveQuest()" style="width:100%;background:linear-gradient(135deg,#E67E22,#F0A852);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900;margin-bottom:16px">Quest erstellen</button>
           <div class="padmin-section-title" style="margin-top:6px">Bestehende Quests</div>
           <div id="quest-existing-list" style="display:flex;flex-direction:column;gap:6px"></div>
