@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v496 -->
+<!-- ZOO v498 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=496"></script>
-<script src="rewardchests.js?v=496"></script>
-<script src="personality.js?v=496"></script>
+<script src="lang.js?v=498"></script>
+<script src="rewardchests.js?v=498"></script>
+<script src="personality.js?v=498"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v496','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v498','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -268,7 +268,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="s-mode" class="scr off">
 <div id="mhi" style="font-size:1.35rem;font-weight:900;color:#FFD700;margin-bottom:14px;text-align:center"></div>
 <div class="mc" onclick="ZA.startZoo('public')"><span style="font-size:2.8rem;display:block;margin-bottom:6px">🦁</span><div style="font-size:1.2rem;font-weight:900;color:#FFD700">Öffentlicher Server</div><div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-top:2px">3 Spieler · Trading · Tiere stehlen!</div></div>
-<div class="mc" onclick="ZA.checkPrivate()"><span style="font-size:2.8rem;display:block;margin-bottom:6px">🔐</span><div style="font-size:1.2rem;font-weight:900;color:#FFD700">Privater Server</div><div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-top:2px">Alleine · 1.000.000 MT</div></div>
+
 <div class="mc" onclick="location.href='index.html?fromZoo=1'" style="max-width:180px;padding:10px"><div style="font-weight:900;color:rgba(255,255,255,.4)">← Zurück zu Welt 1</div></div>
 </div>
 
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=496"></script>
-<script src="worlds.js?v=496"></script>
+<script src="firebase-state.js?v=498"></script>
+<script src="worlds.js?v=498"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1639,11 +1639,6 @@ const ZA={
       }
     }catch(e){}
   },
-  async checkPrivate(){const _lb = document.getElementById('zoo-load-bar');
-    const _ls = document.getElementById('zoo-load-status');
-    if(_lb) _lb.style.width='30%'; if(_ls) _ls.textContent='Lade Daten...';
-    await ZS.load();
-    if(_lb) _lb.style.width='60%'; if(_ls) _ls.textContent='Starte 3D-Welt...';if((ZS.zoo?.mt||0)<1000000){ZP.toast('❌ Kostet 1.000.000 MT! Hast: '+$mt(ZS.zoo?.mt||0),3000);return;}if(!(await showConfirm('Privaten Server starten? Kostet 1.000.000 MT')))return;ZS.isPrivate=true;ZS.zoo.mt-=1000000;this.startZoo('private');},
   async startZoo(m){hide('s-mode');show('s-zoo');show('hud');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
     if(ZS.player) localStorage.setItem('zoo_visited_'+ZS.player,'1');
@@ -14327,12 +14322,25 @@ const Battle = {
     const el=document.createElement('div');
     el.id='battle-overlay';
     el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto';
-    el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+    el.onclick=(e)=>{ if(e.target===el) Battle.close(); };
     el.innerHTML='<div style="background:linear-gradient(135deg,rgba(30,5,5,.98),rgba(45,10,10,.97));border:1px solid rgba(231,76,60,.4);border-radius:16px;padding:18px;max-width:480px;width:100%;color:#fff"><div style="text-align:center;padding:30px">⏳ Lade...</div></div>';
     document.body.appendChild(el);
     if(this._pollIv) clearInterval(this._pollIv);
     this._pollIv=setInterval(()=>{ if(!document.getElementById('battle-overlay')){ clearInterval(this._pollIv); return; } this._render(); },2500);
     await this._render();
+  },
+
+  // Closing never cancels a battle that's already been sent/created (that
+  // stays exactly where it was in Firestore — reopening Battle brings the
+  // same lobby right back). What it DOES do: clear any in-progress
+  // player-selection that hasn't been sent yet as a challenge, so
+  // reopening the "wähle Spieler"-screen always starts from a clean
+  // slate rather than half-remembering a stale, unsent selection.
+  close(){
+    this._selected=null;
+    const el=document.getElementById('battle-overlay');
+    if(el) el.remove();
+    if(this._pollIv){ clearInterval(this._pollIv); this._pollIv=null; }
   },
 
   async _myActiveBattle(){
@@ -14368,7 +14376,7 @@ const Battle = {
     el.querySelector('div').innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
         <h2 style="flex:1;color:#e74c3c;font-size:1.1rem;margin:0">⚔️ Battle</h2>
-        <button onclick="document.getElementById('battle-overlay')?.remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
+        <button onclick="Battle.close()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
       </div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Wähle bis zu 5 Spieler zum Herausfordern aus (mit dir zusammen max. 6). Du brauchst mindestens 2 freie Plätze im Zoo.</div>
       <div style="max-height:220px;overflow-y:auto;margin-bottom:10px">${list}</div>
@@ -14528,14 +14536,14 @@ const Battle = {
         ${totalsRows}
         <div style="font-weight:700;font-size:.8rem;margin:12px 0 6px">Tier-Übergabe:</div>
         ${transferRows}
-        <button onclick="document.getElementById('battle-overlay')?.remove()" style="width:100%;margin-top:14px;background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">Schliessen</button>
+        <button onclick="Battle.close()" style="width:100%;margin-top:14px;background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">Schliessen</button>
       </div>`;
     }
 
     el.querySelector('div').innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
         <h2 style="flex:1;color:#e74c3c;font-size:1.1rem;margin:0">⚔️ Battle</h2>
-        <button onclick="document.getElementById('battle-overlay')?.remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
+        <button onclick="Battle.close()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
       </div>
       ${body}`;
   },
