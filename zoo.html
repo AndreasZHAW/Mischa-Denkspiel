@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v488 -->
+<!-- ZOO v489 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=488"></script>
-<script src="rewardchests.js?v=488"></script>
-<script src="personality.js?v=488"></script>
+<script src="lang.js?v=489"></script>
+<script src="rewardchests.js?v=489"></script>
+<script src="personality.js?v=489"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v488','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v489','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -431,7 +431,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:7px">
 <span>🟢 <span id="gsrv">Online</span></span>
 <span id="lwbadge" style="display:none;cursor:pointer;color:#FFD700;font-weight:900" onclick="LW.open()">🍀 Spin!</span>
-<span id="hunterbadge" style="display:none;cursor:pointer;color:#E74C3C;font-weight:900;margin-left:8px" onclick="ZP._openHunterWheel()">🎯 Jäger-Rad</span>
+
 <span data-i18n="zoo.next">Nächste:</span> <b id="gtimer" style="color:#FFD700">2.5s</b>
 </div>
 <div class="gcars" id="gcars"></div>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=488"></script>
-<script src="worlds.js?v=488"></script>
+<script src="firebase-state.js?v=489"></script>
+<script src="worlds.js?v=489"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6678,21 +6678,6 @@ const LW={
       {l:'🗼 10× France Slap!',mt:0,c:2,col:'#ED2939',slapPack:{id:'france',n:10}},
       {l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
     ]},
-    // TEST-MODE ONLY (see ZP._openHunterWheel) — noticeably better odds
-    // than the normal wheel (bigger MT prizes relative to weight, more
-    // weight on the exclusive animal/spins/slap prizes) but not as
-    // extreme as the admin/chaos wheel — this is meant as a fair
-    // catch-up mechanic, not a jackpot.
-    hunter:{name:'Jäger-Rad',emoji:'🎯',glowCol:'#E74C3C',prizes:[
-      {l:'5.000 MT',mt:5000,c:20,col:'#000'},{l:'15.000 MT',mt:15000,c:16,col:'#8B0000'},
-      {l:'40.000 MT',mt:40000,c:12,col:'#000'},{l:'100.000 MT',mt:100000,c:8,col:'#8B0000'},
-      {l:'300.000 MT',mt:300000,c:4,col:'#000'},
-      {l:'🎡 +1 Drehung!',mt:0,c:8,col:'#8B0000',spins:1},
-      {l:'🦁 Löwe!',mt:0,c:3,col:'#000',animal:{id:'lion',n:'Löwe',e:'🦁',r:'legendary',p:0,earn:80}},
-      {l:'👥 2x Besucher 5 Min!',mt:0,c:6,col:'#000',boost:'vis2x',boostDur:300000},
-      {l:'💰 2x Geld 5 Min!',mt:0,c:6,col:'#8B0000',boost:'coin',boostDur:300000},
-      {l:'🍀 Lucky Slap!',mt:0,c:2,col:'#FFD700',slap:'lucky'},
-    ]},
   },
 
   get W(){return this.WHEELS[this.activeType];},
@@ -6796,8 +6781,7 @@ const LW={
       france:'rgba(0,35,149,.92)',
       weekend:'rgba(50,0,80,.95)',
       christmas:'rgba(0,40,0,.95)',
-      chaos:'rgba(20,0,0,.96)',
-      hunter:'rgba(30,5,5,.95)'
+      chaos:'rgba(20,0,0,.96)'
     };
     w.style.background=themes[this.activeType]||themes.normal;
     this._draw(this.angle);
@@ -7693,7 +7677,7 @@ const ZP={
     console.log('[Album-debug] showAlbum() aufgerufen.');
     try{
     const z=ZS.zoo; if(!z){ console.log('[Album-debug] Abbruch: ZS.zoo nicht vorhanden.'); return; }
-    ZG._backfillAlbum();
+    this._backfillAlbum();
     const owned=z.everOwned||[];
     const el=document.createElement('div');
     el.id='album-overlay';
@@ -8041,7 +8025,7 @@ const ZP={
     // Close all others first
     ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
-    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');try{this._rLuck();}catch(e){console.log('[Luck50-debug] _rLuck() warf einen Fehler: '+e.message);}try{this._rLuck50();}catch(e){console.log('[Luck50-debug] _rLuck50() warf einen Fehler: '+e.message);}if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();const hb=G('hunterbadge');if(hb)hb.style.display='inline';}
+    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');try{this._rLuck();}catch(e){console.log('[Luck50-debug] _rLuck() warf einen Fehler: '+e.message);}try{this._rLuck50();}catch(e){console.log('[Luck50-debug] _rLuck50() warf einen Fehler: '+e.message);}if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
     if(p==='shop'){if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();}
     if(p==='trade'){this._rTrade('m');try{if(typeof ZTips!=='undefined')ZTips.notify('trade');}catch(e){}}
@@ -8332,28 +8316,6 @@ const ZP={
     ZS.save&&ZS.save();
     this.toast('🌟 ×100 Glücks-Bonus aktiv für 5 Min!',3500);
     this._rLuck50(); ZG._updHUD();
-  },
-
-  // ── "Jäger-Rad" — a wheel exclusively for whoever is NOT currently #1
-  // on the combined leaderboard, with better odds than the normal wheel,
-  // to give someone far behind a real shot at catching up. Rank is
-  // checked fresh at click-time rather than kept live-updated on the
-  // badge, to keep this simple.
-  async _openHunterWheel(){
-    this.toast('🔍 Prüfe Rang...',1200);
-    try{
-      const [allPlayers,allZoos]=await Promise.all([State.getAll(),State.getAllZoos()]);
-      const myKey=(ZS.player||'').toLowerCase();
-      const rows=Object.entries(allPlayers).map(([k,p])=>{
-        const z2=allZoos[k];
-        return {k, mt: sanitizeMT(dsMTFor(p))+(z2?sanitizeMT(z2.mt):0)};
-      });
-      rows.sort((a,b)=>b.mt-a.mt);
-      const myIdx=rows.findIndex(r=>r.k===myKey);
-      if(myIdx===0){ this.toast('👑 Du bist schon #1 — das Jäger-Rad ist nur für alle dahinter!',3500); return; }
-    }catch(e){ this.toast('❌ Rang konnte nicht geprüft werden.',2500); return; }
-    LW.setType('hunter',0);
-    LW.open();
   },
 
   // INDEX
