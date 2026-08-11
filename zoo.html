@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v494 -->
+<!-- ZOO v496 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=494"></script>
-<script src="rewardchests.js?v=494"></script>
-<script src="personality.js?v=494"></script>
+<script src="lang.js?v=496"></script>
+<script src="rewardchests.js?v=496"></script>
+<script src="personality.js?v=496"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v494','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v496','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=494"></script>
-<script src="worlds.js?v=494"></script>
+<script src="firebase-state.js?v=496"></script>
+<script src="worlds.js?v=496"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -14337,9 +14337,9 @@ const Battle = {
 
   async _myActiveBattle(){
     try{
-      const myName=(ZS.player||'');
-      const snap=await _db.collection('zoo_battles').where('allNames','array-contains',myName).get();
-      const activeStatuses=['inviting','voting_teams','voting_game','picking_animal','ready'];
+      const myKey=(ZS.player||'').toLowerCase();
+      const snap=await _db.collection('zoo_battles').where('allNames','array-contains',myKey).get();
+      const activeStatuses=['inviting','voting_teams','voting_game','picking_animal','ready','round_active','resolving'];
       let best=null;
       snap.forEach(doc=>{ const d=doc.data(); if(activeStatuses.includes(d.status) && (!best||d.createdAt>best.createdAt)) best={id:doc.id,...d}; });
       return best;
@@ -14357,8 +14357,13 @@ const Battle = {
     let online=new Set();
     try{ if(typeof getOnlineNames==='function') online=await getOnlineNames(); }catch(e){}
     const myKey=(ZS.player||'').toLowerCase();
-    const names=[...online].filter(n=>n!==myKey);
-    const list=names.length ? names.map(n=>'<div class="battle-cand" data-name="'+$esc(n)+'" style="cursor:pointer;padding:8px 10px;border-radius:8px;background:rgba(231,76,60,.1);border:2px solid rgba(231,76,60,.25);font-size:.82rem;margin-bottom:5px">⚪ 👤 '+$esc(n)+'</div>').join('')
+    const keys=[...online].filter(n=>n!==myKey);
+    // getOnlineNames() only returns lowercase keys — look up the proper
+    // display-case spelling for each so the list (and everything built
+    // from it) doesn't show/store the wrong case.
+    let displayMap={};
+    try{ const all=await State.getAll(); Object.entries(all).forEach(([k,p])=>{ displayMap[k]=p.name||k; }); }catch(e){}
+    const list=keys.length ? keys.map(k=>'<div class="battle-cand" data-key="'+k+'" data-name="'+$esc(displayMap[k]||k)+'" style="cursor:pointer;padding:8px 10px;border-radius:8px;background:rgba(231,76,60,.1);border:2px solid rgba(231,76,60,.25);font-size:.82rem;margin-bottom:5px">⚪ 👤 '+$esc(displayMap[k]||k)+'</div>').join('')
       : '<div style="color:rgba(255,255,255,.35);font-size:.8rem">Gerade niemand online.</div>';
     el.querySelector('div').innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -14369,12 +14374,12 @@ const Battle = {
       <div style="max-height:220px;overflow-y:auto;margin-bottom:10px">${list}</div>
       <div id="battle-sel-count" style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px">0 ausgewählt</div>
       <button onclick="Battle._sendInvites()" style="width:100%;background:linear-gradient(135deg,#E74C3C,#C0392B);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">Herausfordern</button>`;
-    this._selected=new Set();
+    this._selected=new Map(); // key -> displayName
     el.querySelectorAll('.battle-cand').forEach(node=>{
       node.addEventListener('click',()=>{
-        const nm=node.dataset.name;
-        if(this._selected.has(nm)){ this._selected.delete(nm); node.style.border='2px solid rgba(231,76,60,.25)'; node.textContent='⚪ 👤 '+nm; }
-        else{ if(this._selected.size>=5){ ZP.toast('❌ Maximal 5 Spieler!'); return; } this._selected.add(nm); node.style.border='2px solid #E74C3C'; node.textContent='🔴 👤 '+nm; }
+        const key=node.dataset.key, nm=node.dataset.name;
+        if(this._selected.has(key)){ this._selected.delete(key); node.style.border='2px solid rgba(231,76,60,.25)'; node.textContent='⚪ 👤 '+nm; }
+        else{ if(this._selected.size>=5){ ZP.toast('❌ Maximal 5 Spieler!'); return; } this._selected.set(key,nm); node.style.border='2px solid #E74C3C'; node.textContent='🔴 👤 '+nm; }
         const cEl=document.getElementById('battle-sel-count'); if(cEl) cEl.textContent=this._selected.size+' ausgewählt';
       });
     });
@@ -14383,13 +14388,16 @@ const Battle = {
   async _sendInvites(){
     const z=ZS.zoo;
     if(!z||(z.enc||[]).filter(e=>!e).length<2){ ZP.toast('❌ Du brauchst 2 freie Plätze im Zoo!',3000); return; }
+    if(!z||(z.enc||[]).filter(e=>e&&e.animal).length<1){ ZP.toast('❌ Du brauchst mindestens 1 Tier im Zoo, um mitzumachen!',3000); return; }
     if(!this._selected||!this._selected.size){ ZP.toast('❌ Wähle mindestens 1 Spieler aus!'); return; }
-    const myName=ZS.player;
-    const invited=[...this._selected];
+    const myKey=(ZS.player||'').toLowerCase();
+    const invited=[...this._selected.keys()];
+    const displayNames={[myKey]:ZS.player};
+    this._selected.forEach((nm,k)=>{ displayNames[k]=nm; });
     try{
       const id='battle_'+Date.now();
       await _db.collection('zoo_battles').doc(id).set({
-        id, creator:myName, participants:[myName], invited, allNames:[myName,...invited],
+        id, creator:myKey, participants:[myKey], invited, allNames:[myKey,...invited], displayNames,
         status:'inviting', teamVotes:{}, gameVotes:{}, wagers:{}, ready:{},
         createdAt:Date.now(),
       });
@@ -14399,33 +14407,34 @@ const Battle = {
   },
 
   async _renderLobby(el,battle){
-    const myName=ZS.player, isCreator=battle.creator===myName;
-    const amInvited=(battle.invited||[]).includes(myName);
-    const amParticipant=(battle.participants||[]).includes(myName);
+    const myKey=(ZS.player||'').toLowerCase(), isCreator=battle.creator===myKey;
+    const dn=(k)=>(battle.displayNames&&battle.displayNames[k])||k;
+    const amInvited=(battle.invited||[]).includes(myKey);
+    const amParticipant=(battle.participants||[]).includes(myKey);
     let body='';
 
     if(amInvited && !amParticipant){
       body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
-        <div style="font-weight:900;margin-bottom:8px">⚔️ ${$esc(battle.creator)} möchte dich zu einem Duell herausfordern!</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:10px">Teilnehmer bisher: ${$esc(battle.participants.join(', '))}</div>
+        <div style="font-weight:900;margin-bottom:8px">⚔️ ${$esc(dn(battle.creator))} möchte dich zu einem Duell herausfordern!</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:10px">Teilnehmer bisher: ${$esc(battle.participants.map(dn).join(', '))}</div>
         <div style="display:flex;gap:8px">
           <button onclick="Battle._respond('${battle.id}',true)" style="flex:1;background:#27AE60;border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">✓ Annehmen</button>
           <button onclick="Battle._respond('${battle.id}',false)" style="flex:1;background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">✕ Ablehnen</button>
         </div>
       </div>`;
     } else if(battle.status==='inviting'){
-      const pendingList=(battle.invited||[]).map(n=>'<div style="font-size:.75rem;color:rgba(255,255,255,.5)">⏳ '+$esc(n)+' — wartet auf Antwort</div>').join('');
+      const pendingList=(battle.invited||[]).map(n=>'<div style="font-size:.75rem;color:rgba(255,255,255,.5)">⏳ '+$esc(dn(n))+' — wartet auf Antwort</div>').join('');
       body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
         <div style="font-weight:900;margin-bottom:8px">Warteraum</div>
-        <div style="font-size:.8rem;color:#27AE60;margin-bottom:6px">✅ Dabei: ${$esc(battle.participants.join(', '))}</div>
+        <div style="font-size:.8rem;color:#27AE60;margin-bottom:6px">✅ Dabei: ${$esc(battle.participants.map(dn).join(', '))}</div>
         ${pendingList}
         ${isCreator?`<button onclick="Battle._startVoting('${battle.id}')" ${battle.participants.length<2?'disabled':''} style="width:100%;margin-top:12px;background:linear-gradient(135deg,#E74C3C,#C0392B);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900;${battle.participants.length<2?'opacity:.4':''}">⚔️ Duell starten (${battle.participants.length}/6)</button>`
-          : `<div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:10px">Warte, bis ${$esc(battle.creator)} startet...</div>`}
+          : `<div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:10px">Warte, bis ${$esc(dn(battle.creator))} startet...</div>`}
         <button onclick="Battle._cancel('${battle.id}')" style="width:100%;margin-top:8px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:8px;border-radius:10px;cursor:pointer;font-size:.78rem">Abbrechen</button>
       </div>`;
     } else if(battle.status==='voting_teams'){
       const splits=this.TEAM_SPLITS[battle.participants.length]||['1v1'];
-      const myVote=battle.teamVotes?.[myName];
+      const myVote=battle.teamVotes?.[myKey];
       const voteCount=Object.keys(battle.teamVotes||{}).length;
       body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
         <div style="font-weight:900;margin-bottom:8px">🗳️ Team-Modus wählen</div>
@@ -14434,7 +14443,7 @@ const Battle = {
         <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:6px">${voteCount}/${battle.participants.length} haben abgestimmt</div>
       </div>`;
     } else if(battle.status==='voting_game'){
-      const myVote=battle.gameVotes?.[myName];
+      const myVote=battle.gameVotes?.[myKey];
       const voteCount=Object.keys(battle.gameVotes||{}).length;
       body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
         <div style="font-weight:900;margin-bottom:4px">🎮 Team-Modus: ${battle.finalTeamSplit}</div>
@@ -14446,13 +14455,13 @@ const Battle = {
       </div>`;
     } else if(battle.status==='picking_animal'){
       const gameDef=this.GAME_OPTIONS.find(g=>g.id===battle.finalGame);
-      const myWager=battle.wagers?.[myName];
+      const myWager=battle.wagers?.[myKey];
       const z=ZS.zoo;
       const animalCards=(z.enc||[]).filter(e=>e&&e.animal).map((e,i)=>{
         const a=e.animal;
         return `<div onclick="Battle._pickAnimal('${battle.id}','${a.id}','${$esc(a.n)}','${a.e}','${a.r}')" style="cursor:pointer;background:rgba(255,255,255,.05);border:2px solid ${myWager&&myWager.id===a.id?'#E74C3C':'transparent'};border-radius:10px;padding:8px;text-align:center;min-width:70px"><div style="font-size:1.5rem">${a.e}</div><div style="font-size:.62rem;color:#fff">${a.n}</div><div style="font-size:.58rem;color:rgba(255,255,255,.4)">${RARITY_LABELS[a.r]||a.r}</div></div>`;
       }).join('');
-      const wagerRows=Object.entries(battle.wagers||{}).map(([n,w])=>`<div style="display:flex;align-items:center;gap:6px;font-size:.75rem;margin-bottom:3px">${w.e} <b>${$esc(n)}</b>: ${$esc(w.n)} <span style="color:rgba(255,255,255,.4)">(${RARITY_LABELS[w.r]||w.r})</span></div>`).join('')||'<div style="color:rgba(255,255,255,.35);font-size:.72rem">Noch niemand hat gewählt.</div>';
+      const wagerRows=Object.entries(battle.wagers||{}).map(([k,w])=>`<div style="display:flex;align-items:center;gap:6px;font-size:.75rem;margin-bottom:3px">${w.e} <b>${$esc(dn(k))}</b>: ${$esc(w.n)} <span style="color:rgba(255,255,255,.4)">(${RARITY_LABELS[w.r]||w.r})</span></div>`).join('')||'<div style="color:rgba(255,255,255,.35);font-size:.72rem">Noch niemand hat gewählt.</div>';
       body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
         <div style="font-weight:900;margin-bottom:4px">🎮 Spiel: ${gameDef?gameDef.e+' '+gameDef.n:battle.finalGame}</div>
         <div style="font-weight:900;margin-bottom:8px">🐾 Wähle dein Einsatz-Tier</div>
@@ -14461,24 +14470,26 @@ const Battle = {
         ${wagerRows}
       </div>`;
     } else if(battle.status==='ready'){
-      // All wagers are in — kick off round 1 automatically. Transaction-
-      // guarded so a slower second client rendering this moments later
-      // can't re-initialize roundScores and wipe out a score someone
-      // already submitted for round 1 in the meantime.
-      try{
-        await _db.runTransaction(async(tx)=>{
-          const ref=_db.collection('zoo_battles').doc(battle.id);
-          const doc=await tx.get(ref);
-          if(doc.data().status!=='ready') return;
-          tx.update(ref,{status:'round_active',round:1,roundScores:{1:{},2:{},3:{}}});
-        });
-      }catch(e){}
-      body='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5)">⏳ Runde 1 wird vorbereitet...</div>';
+      const wagerRows=Object.entries(battle.wagers||{}).map(([k,w])=>`<div style="display:flex;align-items:center;gap:6px;font-size:.8rem;margin-bottom:4px">${w.e} <b>${$esc(dn(k))}</b>: ${$esc(w.n)} <span style="color:rgba(255,255,255,.4)">(${RARITY_LABELS[w.r]||w.r})</span></div>`).join('');
+      const readyConfirm=battle.readyConfirm||{};
+      const amReady=!!readyConfirm[myKey];
+      const readyCount=Object.keys(readyConfirm).length;
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px;text-align:center">
+        <div style="font-size:2rem">⚔️</div>
+        <div style="font-weight:900;font-size:1.1rem;margin:8px 0">Alle Einsätze stehen fest!</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.6);margin-bottom:10px">${battle.finalTeamSplit} · ${this.GAME_OPTIONS.find(g=>g.id===battle.finalGame)?.n||battle.finalGame}</div>
+        ${wagerRows}
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin:10px 0">${readyCount}/${battle.participants.length} bereit</div>
+        ${amReady
+          ? '<div style="color:#27AE60;font-weight:900;font-size:.85rem">✅ Du bist bereit — warte auf die anderen...</div>'
+          : `<button onclick="Battle._confirmStart('${battle.id}')" style="width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);border:none;color:#fff;padding:12px;border-radius:10px;cursor:pointer;font-weight:900;font-size:1rem">🚀 Los geht's!</button>`}
+        <button onclick="Battle._cancel('${battle.id}')" style="width:100%;margin-top:8px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:8px;border-radius:10px;cursor:pointer;font-size:.78rem">Abbrechen</button>
+      </div>`;
     } else if(battle.status==='round_active'){
       const round=battle.round||1;
       const gameDef=this.GAME_OPTIONS.find(g=>g.id===battle.finalGame);
       const scoresThisRound=battle.roundScores?.[round]||{};
-      const myScore=scoresThisRound[myName];
+      const myScore=scoresThisRound[myKey];
       const doneCount=Object.keys(scoresThisRound).length;
       // Auto-advance once everyone has submitted this round's score.
       if(doneCount>=battle.participants.length){
@@ -14492,7 +14503,7 @@ const Battle = {
       } else {
         const rows=battle.participants.map(n=>{
           const s=scoresThisRound[n];
-          return '<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:4px 0"><span>'+(s!==undefined?'✅':'⏳')+' '+$esc(n)+'</span><span>'+(s!==undefined?s+' Pkt.':'spielt noch...')+'</span></div>';
+          return '<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:4px 0"><span>'+(s!==undefined?'✅':'⏳')+' '+$esc(dn(n))+'</span><span>'+(s!==undefined?s+' Pkt.':'spielt noch...')+'</span></div>';
         }).join('');
         body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
           <div style="font-weight:900;margin-bottom:4px">🎮 ${gameDef?gameDef.e+' '+gameDef.n:battle.finalGame} — Runde ${round}/3</div>
@@ -14502,13 +14513,15 @@ const Battle = {
             : '<div style="text-align:center;margin-top:12px;color:#27AE60;font-size:.8rem">✅ Du bist fertig — warte auf die anderen...</div>'}
         </div>`;
       }
+    } else if(battle.status==='resolving'){
+      body='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5)">⏳ Ergebnis wird berechnet...</div>';
     } else if(battle.status==='finished'){
       const r=battle.result||{};
       const teamTotals=r.teamTotals||{};
       const winnerLabel=r.winningTeam!==undefined?'Team '+(r.winningTeam+1):'—';
       const totalsRows=Object.entries(teamTotals).map(([team,total])=>'<div style="font-size:.85rem;padding:3px 0">'+(parseInt(team)===r.winningTeam?'🏆 ':'')+'Team '+(parseInt(team)+1)+': <b>'+total+' Pkt.</b></div>').join('');
-      const transferRows=(r.transfers||[]).map(t=>'<div style="font-size:.75rem;padding:2px 0">'+t.emoji+' '+$esc(t.animal)+': '+$esc(t.from)+' → '+$esc(t.to)+'</div>').join('')||'<div style="color:rgba(255,255,255,.35);font-size:.75rem">Keine Tiere übergeben.</div>';
-      const amWinner=(r.winningNames||[]).includes(myName);
+      const transferRows=(r.transfers||[]).map(t=>'<div style="font-size:.75rem;padding:2px 0">'+t.emoji+' '+$esc(t.animal)+': '+$esc(dn(t.from))+' → '+$esc(dn(t.to))+'</div>').join('')||'<div style="color:rgba(255,255,255,.35);font-size:.75rem">Keine Tiere übergeben.</div>';
+      const amWinner=(r.winningNames||[]).includes(myKey);
       body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px;text-align:center">
         <div style="font-size:2.4rem">${amWinner?'🏆':'😢'}</div>
         <div style="font-weight:900;font-size:1.2rem;margin:8px 0">${winnerLabel} gewinnt!</div>
@@ -14565,24 +14578,25 @@ const Battle = {
 
       const transfers=[];
       let winnerCycle=0;
+      const myKey=(ZS.player||'').toLowerCase();
       for(const loser of losingNames){
         const wager=b.wagers?.[loser];
         if(!wager) continue;
         const winnerName=winningNames[winnerCycle % winningNames.length]; winnerCycle++;
         try{
-          const loserZoo = loser===ZS.player ? ZS.zoo : await State.getZoo(loser);
+          const loserZoo = loser===myKey ? ZS.zoo : await State.getZoo(loser);
           if(!loserZoo) continue;
           const idx=(loserZoo.enc||[]).findIndex(e=>e&&e.animal&&e.animal.id===wager.id);
           if(idx<0) continue; // they no longer have it (sold/traded meanwhile) — skip gracefully
           const animalData=loserZoo.enc[idx];
           loserZoo.enc[idx]=null;
-          if(loser===ZS.player){ ZS.save&&ZS.save(); } else { await _db.collection('zoos').doc('zoo_'+loser.toLowerCase()).set(loserZoo,{merge:true}); }
-          const winnerZoo = winnerName===ZS.player ? ZS.zoo : await State.getZoo(winnerName);
+          if(loser===myKey){ ZS.save&&ZS.save(); } else { await _db.collection('zoos').doc('zoo_'+loser).set(loserZoo,{merge:true}); }
+          const winnerZoo = winnerName===myKey ? ZS.zoo : await State.getZoo(winnerName);
           if(!winnerZoo) continue;
           const slot=(winnerZoo.enc||[]).findIndex(e=>!e);
           if(slot<0) continue; // no free space — skip gracefully rather than overwrite something
           winnerZoo.enc[slot]=animalData;
-          if(winnerName===ZS.player){ ZS.save&&ZS.save(); } else { await _db.collection('zoos').doc('zoo_'+winnerName.toLowerCase()).set(winnerZoo,{merge:true}); }
+          if(winnerName===myKey){ ZS.save&&ZS.save(); } else { await _db.collection('zoos').doc('zoo_'+winnerName).set(winnerZoo,{merge:true}); }
           transfers.push({animal:wager.n, emoji:wager.e, from:loser, to:winnerName});
         }catch(e){ console.log('[Battle-debug] Transfer-Fehler für '+loser+': '+e.message); }
       }
@@ -14592,18 +14606,19 @@ const Battle = {
   },
 
   async _respond(battleId,accept){
-    const myName=ZS.player;
+    const myKey=(ZS.player||'').toLowerCase();
     try{
       const ref=_db.collection('zoo_battles').doc(battleId);
       const doc=await ref.get(); if(!doc.exists)return;
       const b=doc.data();
-      const invited=(b.invited||[]).filter(n=>n!==myName);
+      const invited=(b.invited||[]).filter(n=>n!==myKey);
       const update={invited};
       if(accept){
         const z=ZS.zoo;
         if(!z||(z.enc||[]).filter(e=>!e).length<2){ ZP.toast('❌ Du brauchst 2 freie Plätze im Zoo!',3000); return; }
-        update.participants=[...(b.participants||[]),myName];
-        update.allNames=[...(b.allNames||[]),myName];
+    if(!z||(z.enc||[]).filter(e=>e&&e.animal).length<1){ ZP.toast('❌ Du brauchst mindestens 1 Tier im Zoo, um mitzumachen!',3000); return; }
+        update.participants=[...(b.participants||[]),myKey];
+        update.allNames=[...(b.allNames||[]),myKey];
       }
       await ref.update(update);
       this._render();
@@ -14619,7 +14634,7 @@ const Battle = {
   async _voteTeam(battleId,split){
     try{
       const ref=_db.collection('zoo_battles').doc(battleId);
-      await ref.update({['teamVotes.'+ZS.player]:split});
+      await ref.update({['teamVotes.'+(ZS.player||'').toLowerCase()]:split});
       const doc=await ref.get(); const b=doc.data();
       if(Object.keys(b.teamVotes||{}).length>=b.participants.length){
         const chosen=this._weightedPick(b.teamVotes);
@@ -14632,7 +14647,7 @@ const Battle = {
   async _voteGame(battleId,gameId){
     try{
       const ref=_db.collection('zoo_battles').doc(battleId);
-      await ref.update({['gameVotes.'+ZS.player]:gameId});
+      await ref.update({['gameVotes.'+(ZS.player||'').toLowerCase()]:gameId});
       const doc=await ref.get(); const b=doc.data();
       if(Object.keys(b.gameVotes||{}).length>=b.participants.length){
         const chosen=this._weightedPick(b.gameVotes);
@@ -14644,11 +14659,29 @@ const Battle = {
   async _pickAnimal(battleId,animalId,name,emoji,rarity){
     try{
       const ref=_db.collection('zoo_battles').doc(battleId);
-      await ref.update({['wagers.'+ZS.player]:{id:animalId,n:name,e:emoji,r:rarity}});
+      await ref.update({['wagers.'+(ZS.player||'').toLowerCase()]:{id:animalId,n:name,e:emoji,r:rarity}});
       const doc=await ref.get(); const b=doc.data();
       if(Object.keys(b.wagers||{}).length>=b.participants.length){
         await ref.update({status:'ready'});
       }
+      this._render();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _confirmStart(battleId){
+    const myKey=(ZS.player||'').toLowerCase();
+    try{
+      const ref=_db.collection('zoo_battles').doc(battleId);
+      await ref.update({['readyConfirm.'+myKey]:true});
+      // Transaction-guarded — same reasoning as elsewhere: several
+      // participants' clicks landing at nearly the same moment shouldn't
+      // let more than one of them flip the actual round-1 start.
+      await _db.runTransaction(async(tx)=>{
+        const doc=await tx.get(ref);
+        const d=doc.data();
+        if(d.status!=='ready') return;
+        if(Object.keys(d.readyConfirm||{}).length<d.participants.length) return;
+        tx.update(ref,{status:'round_active',round:1,roundScores:{1:{},2:{},3:{}}});
+      });
       this._render();
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
@@ -14674,8 +14707,8 @@ const Battle = {
 
   async checkIncoming(){
     try{
-      const myName=(ZS.player||''); if(!myName) return;
-      const snap=await _db.collection('zoo_battles').where('invited','array-contains',myName).where('status','==','inviting').get();
+      const myKey=(ZS.player||'').toLowerCase(); if(!myKey) return;
+      const snap=await _db.collection('zoo_battles').where('invited','array-contains',myKey).where('status','==','inviting').get();
       const badge=document.getElementById('battle-badge');
       if(snap.empty){ if(badge) badge.style.display='none'; return; }
       if(badge) badge.style.display='flex';
@@ -14683,7 +14716,8 @@ const Battle = {
         if(!this._seenInvites.has(doc.id)){
           this._seenInvites.add(doc.id);
           const b=doc.data();
-          ZP.toast('⚔️ '+b.creator+' möchte dich zu einem Duell herausfordern!',4000);
+          const creatorName=(b.displayNames&&b.displayNames[b.creator])||b.creator;
+          ZP.toast('⚔️ '+creatorName+' möchte dich zu einem Duell herausfordern!',4000);
         }
       });
     }catch(e){}
