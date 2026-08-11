@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v491 -->
+<!-- ZOO v492 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=491"></script>
-<script src="rewardchests.js?v=491"></script>
-<script src="personality.js?v=491"></script>
+<script src="lang.js?v=492"></script>
+<script src="rewardchests.js?v=492"></script>
+<script src="personality.js?v=492"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v491','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v492','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -279,7 +279,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="ztips-card-wrap" style="position:fixed;top:64px;left:14px;z-index:860;max-width:min(320px,80vw)"></div>
 <div id="hud" class="off">
 <div id="cl-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,#B8860B,#FFD700,#B8860B);color:#1a1a1a;text-align:center;padding:6px 10px;font-weight:900;font-size:.85rem;letter-spacing:1px;box-shadow:0 2px 10px rgba(0,0,0,.4)">🏆 CHAMPIONS LEAGUE ZOO 🏆</div>
-<div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div></div>
+<div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div><div class="ms" id="weatherBadge" style="display:none"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
 <div id="hleft">
 <!-- HUD toggle button -->
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=491"></script>
-<script src="worlds.js?v=491"></script>
+<script src="firebase-state.js?v=492"></script>
+<script src="worlds.js?v=492"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -785,6 +785,59 @@ const ScreenTime = {
     if(this.isExemptPlayer()) return false;
     const z=ZS.zoo;
     return !!(z && z.screenTimeCooldownUntil && z.screenTimeCooldownUntil>Date.now());
+  },
+};
+
+// ── WETTER-SYSTEM ──
+// Rein ambientes Feature: wechselt alle paar Minuten zufällig zwischen
+// Sonnig/Regen/Nebel (Himmelsfarbe, wie die World-Events es auch schon
+// machen — nicht aktiv, wenn gerade ein echtes Event läuft, damit sie
+// sich nicht um die Himmelsfarbe streiten). Regen gibt einen kleinen
+// Verdienst-Bonus. Ein/Aus umschaltbar im Menü (wie Tageszeiten/
+// Event-Effekte), Zustand in localStorage wie die anderen beiden.
+const Weather = {
+  current: 'clear',
+  _iv: null,
+  isEnabled(){ try{ return localStorage.getItem('zoo_weather')!=='0'; }catch(e){ return true; } },
+  setEnabled(on){
+    try{ localStorage.setItem('zoo_weather', on?'1':'0'); }catch(e){}
+    if(!on){ this.current='clear'; this._apply(); if(this._iv) clearInterval(this._iv); }
+    else { this._cycle(); this.startCycle(); }
+    try{ ZP._rMenu(); }catch(e){}
+  },
+  startCycle(){
+    if(!this.isEnabled()) return;
+    this._cycle();
+    if(this._iv) clearInterval(this._iv);
+    this._iv = setInterval(()=>this._cycle(), 5*60*1000);
+  },
+  _cycle(){
+    if(!this.isEnabled()) return;
+    const r=Math.random();
+    this.current = r<0.5 ? 'clear' : (r<0.8 ? 'rain' : 'fog');
+    console.log('[Weather-debug] Wetter gewechselt zu: '+this.current);
+    this._apply();
+  },
+  _apply(){
+    try{
+      // Don't fight with an active world event's own sky color.
+      if(typeof ZG!=='undefined' && (!ZG.evs || ZG.evs.length===0) && ZG.renderer){
+        if(this.current==='rain') ZG.renderer.setClearColor(0x5a6b7a);
+        else if(this.current==='fog') ZG.renderer.setClearColor(0xb0b0b0);
+        else ZG.renderer.setClearColor(0x87CEEB);
+      }
+    }catch(e){}
+    const badge=document.getElementById('weatherBadge');
+    if(badge){
+      const on=this.isEnabled();
+      badge.style.display=on?'inline':'none';
+      if(on) badge.textContent = this.current==='rain'?'🌧️ Regen':this.current==='fog'?'🌫️ Nebel':'☀️ Sonnig';
+    }
+  },
+  // Small earn() bonus while raining — consumed by earn().
+  mult(){
+    if(!this.isEnabled()) return 1;
+    return this.current==='rain' ? 1.1 : 1;
   },
 };
 
@@ -1217,7 +1270,7 @@ function rTr(ev){
   return got.slice(0,5);
 }
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();
   // EARLY GAME PACING: with just the first animal and no rebirth yet, income
   // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
   // that to roughly 7 minutes so the very beginning isn't instantly rushed —
@@ -3354,6 +3407,7 @@ const ZG={
     if(window._log) window._log('✅ Welt: '+this.scene.children.length+' Objekte');
     try{ ScreenTime.init(); }catch(e){}
     try{ ZP._updDecoBar(); }catch(e){}
+    try{ Weather.startCycle(); }catch(e){}
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
@@ -3572,6 +3626,23 @@ const ZG={
         const fLbl=this._txt('🍬 LECKERLI-AUTOMAT',0.6,'#a8e063'); fLbl.position.set(fx,6.8,fz); fLbl.scale.set(8,2,1); sc.add(fLbl);
         const fLbl2=this._txt('Tier füttern! Antippen 🍬',0.5,'#fff'); fLbl2.position.set(fx,5.8,fz); fLbl2.scale.set(7,1.4,1); sc.add(fLbl2);
         this._feederPositions.push({x:fx,z:fz});
+      });
+    }
+
+    // ═══ ZUCHT-MASCHINE (breed 2 identical animals into a rarer one) ═══
+    this._breedPositions = [];
+    {
+      this.ZONES.forEach((zone)=>{
+        const bx=zone.x+24, bz=zone.z-8; // clear of the gold machine (z+8) and feeder (x-24,z+8)
+        const bBase=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,0.6,8),new THREE.MeshBasicMaterial({color:0x3a1a4a}));
+        bBase.position.set(bx,0.3,bz); sc.add(bBase);
+        const bBody=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,3,8),new THREE.MeshBasicMaterial({color:0xE056FD}));
+        bBody.position.set(bx,2,bz); sc.add(bBody);
+        const bGlass=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,10),new THREE.MeshBasicMaterial({color:0xF8C6FF,transparent:true,opacity:.6}));
+        bGlass.position.set(bx,4,bz); sc.add(bGlass);
+        const bLbl=this._txt('🧬 ZUCHT-MASCHINE',0.6,'#E056FD'); bLbl.position.set(bx,6.6,bz); bLbl.scale.set(8,2,1); sc.add(bLbl);
+        const bLbl2=this._txt('2 gleiche Tiere kombinieren! 🧬',0.5,'#fff'); bLbl2.position.set(bx,5.6,bz); bLbl2.scale.set(7,1.4,1); sc.add(bLbl2);
+        this._breedPositions.push({x:bx,z:bz});
       });
     }
   },
@@ -3904,6 +3975,7 @@ const ZG={
       if(this._nearGoldMachine){GoldMachine.open();return;}
       if(this._nearFeeder){Feeder.open();return;}
       if(this._nearSweeper){Sweeper.open();return;}
+      if(this._nearBreedMachine){BreedMachine.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0)this._interact();
@@ -3945,13 +4017,14 @@ const ZG={
         if(this._nearGoldMachine){GoldMachine.open();return;}
       if(this._nearFeeder){Feeder.open();return;}
       if(this._nearSweeper){Sweeper.open();return;}
+      if(this._nearBreedMachine){BreedMachine.open();return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
         this.slap(t.clientX, t.clientY);
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -3998,7 +4071,7 @@ const ZG={
         const speed = 6;
         const nx = m.position.x + Math.sin(this._sweeperHeading)*speed*dt;
         const nz = m.position.z + Math.cos(this._sweeperHeading)*speed*dt;
-        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[])];
+        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[])];
         const PLAZA_R = 26; // stays well clear of the 45-radius enclosure ring
         const zc = (this.ZONES && this.ZONES[0]) || {x:0,z:55};
         let blocked = Math.hypot(nx-zc.x, nz-zc.z) > PLAZA_R;
@@ -4539,6 +4612,12 @@ const ZG={
       if(this._nearSweeper && !this._swHinted){ this._swHinted=true; ZP.toast('🧹 Tippe die Kehrmaschine an!',2500); }
       else if(!this._nearSweeper){ this._swHinted=false; }
     }
+    // Zucht-Maschine proximity
+    let _brDist=999;
+    (this._breedPositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_brDist)_brDist=d;});
+    this._nearBreedMachine = _brDist < 6;
+    if(this._nearBreedMachine && !this._brHinted){ this._brHinted=true; ZP.toast('🧬 Tippe die Zucht-Maschine an!',2500); }
+    else if(!this._nearBreedMachine){ this._brHinted=false; }
     if(this._nearGoldMachine && !this._gmHinted){
       this._gmHinted=true;
       const isTouch=('ontouchstart' in window);
@@ -5129,6 +5208,7 @@ const ZG={
     if(this._nearGoldMachine){GoldMachine.open();return;}
     if(this._nearFeeder){Feeder.open();return;}
     if(this._nearSweeper){Sweeper.open();return;}
+    if(this._nearBreedMachine){BreedMachine.open();return;}
   },
 
   _useTool(sl, clientX, clientY){
@@ -9433,6 +9513,7 @@ const ZP={
     const soundStyle=(typeof ZSound!=='undefined'?ZSound.style:'normal')||'normal';
     let todOn=true; try{todOn=localStorage.getItem('zoo_tod')!=='0';}catch(e){}
     let evfxOn=true; try{evfxOn=localStorage.getItem('zoo_evfx')!=='0';}catch(e){}
+    let weatherOn=true; try{weatherOn=localStorage.getItem('zoo_weather')!=='0';}catch(e){}
     G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left;font-size:.78rem;line-height:1.85;color:rgba(255,255,255,.6)">${ZS._personalityAvatar()} <b style="color:#fff">${ZS.player}</b><br>🌀 ${$mt(z.mt)}<br>📈 ${$mt(z.te||0)} verdient<br>🐾 ${z.enc.filter(e=>e).length}/${ZS.maxE()} Tiere<br>🔄 ${z.reb||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}</div>
       <div style="background:linear-gradient(135deg,rgba(255,107,0,.3),rgba(255,165,0,.2));border:2px solid #FFA500;border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
         <div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px;text-align:center;letter-spacing:1px">${typeof t!=='undefined'?t('menu.settings'):'⚙️ EINSTELLUNGEN ⚙️'}</div>
@@ -9440,9 +9521,13 @@ const ZP={
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">🌅 Tageszeiten</span>
           <button id="todToggleBtn" onclick="ZG.setTimeOfDay(!ZG._todEnabled())" style="background:${todOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${todOn?'✓ An':'✗ Aus'}</button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px">
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">🌧️ Event-Effekte (fallende Sachen)</span>
           <button id="evfxToggleBtn" onclick="ZG.setEvFx(!ZG._evFxEnabled())" style="background:${evfxOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${evfxOn?'✓ An':'✗ Aus'}</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="color:rgba(255,255,255,.75);font-size:.78rem">⛅ Wetter (wechselt von selbst)</span>
+          <button id="weatherToggleBtn" onclick="Weather.setEnabled(!Weather.isEnabled())" style="background:${weatherOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${weatherOn?'✓ An':'✗ Aus'}</button>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -14150,6 +14235,67 @@ document.addEventListener('DOMContentLoaded',async()=>{
 // ══════════════════════════════════════════════
 // GOLD MACHINE — Upgrade animals through tiers
 // ══════════════════════════════════════════════
+// ── ZUCHT-MASCHINE: 2 identische Tiere kombinieren → 1 zufälliges Tier
+// aus der nächsthöheren Seltenheitsstufe. Braucht keinen extra MT-Preis —
+// zwei eigene Tiere herzugeben IST schon der Preis.
+const BreedMachine = {
+  open(){
+    const existing=document.getElementById('breed-panel'); if(existing) existing.remove();
+    const z=ZS.zoo; if(!z) return;
+    const enc=(z.enc||[]).filter(e=>e&&e.animal);
+    const groups={};
+    enc.forEach((e,idx)=>{ const id=e.animal.id; if(!groups[id]) groups[id]=[]; groups[id].push(idx); });
+    const pairs=Object.entries(groups).filter(([id,idxs])=>idxs.length>=2);
+    const panel=document.createElement('div');
+    panel.id='breed-panel';
+    panel.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    if(!pairs.length){
+      panel.innerHTML='<div style="background:linear-gradient(135deg,#2a1a3e,#1e1030);border:1px solid rgba(224,86,253,.4);border-radius:16px;padding:24px;max-width:340px;text-align:center;color:#fff"><div style="font-size:2rem">🧬</div><div style="font-weight:900;margin:8px 0">Zucht-Maschine</div><div style="font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:16px">Du brauchst mindestens 2 identische Tiere derselben Art, um zu züchten.</div><button onclick="document.getElementById(\'breed-panel\').remove()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 20px;border-radius:10px;cursor:pointer">Schliessen</button></div>';
+      panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+      document.body.appendChild(panel);
+      return;
+    }
+    const cards=pairs.map(([id,idxs])=>{
+      const a=enc.find(e=>e.animal.id===id).animal;
+      const nextR=this._nextRarity(a.r);
+      return '<div onclick="BreedMachine._breed(\''+id+'\')" style="cursor:pointer;background:rgba(224,86,253,.12);border:2px solid rgba(224,86,253,.4);border-radius:12px;padding:10px 8px;text-align:center;min-width:90px">'
+        +'<div style="font-size:1.8rem">'+a.e+' + '+a.e+'</div>'
+        +'<div style="font-size:.72rem;color:#fff;font-weight:700;margin:4px 0">'+a.n+' ('+idxs.length+'x)</div>'
+        +'<div style="font-size:.62rem;color:#E056FD">→ zufälliges '+(RARITY_LABELS[nextR]||nextR)+'-Tier</div>'
+        +'</div>';
+    }).join('');
+    panel.innerHTML='<div style="background:linear-gradient(135deg,#2a1a3e,#1e1030);border:1px solid rgba(224,86,253,.4);border-radius:16px;padding:20px;max-width:480px;width:95%;max-height:85vh;overflow-y:auto">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><h2 style="flex:1;color:#E056FD;font-size:1.1rem;margin:0">🧬 Zucht-Maschine</h2><button onclick="document.getElementById(\'breed-panel\').remove()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer">✕</button></div>'
+      +'<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:12px">2 gleiche Tiere werden verbraucht, dafür kommt 1 zufälliges Tier aus der nächsthöheren Seltenheitsstufe heraus.</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px">'+cards+'</div></div>';
+    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    document.body.appendChild(panel);
+  },
+  _nextRarity(r){
+    const idx=RARITY_ORDER.indexOf(r);
+    if(idx<0||idx>=RARITY_ORDER.length-1) return r; // already top tier (secret) — stays same
+    return RARITY_ORDER[idx+1];
+  },
+  _breed(id){
+    const z=ZS.zoo; if(!z) return;
+    const idxs=[]; (z.enc||[]).forEach((e,i)=>{ if(e&&e.animal&&e.animal.id===id) idxs.push(i); });
+    if(idxs.length<2){ ZP.toast('❌ Nicht mehr genug davon!'); return; }
+    const parentAnimal=z.enc[idxs[0]].animal;
+    const nextR=this._nextRarity(parentAnimal.r);
+    const pool=ANIMALS.filter(a=>a.r===nextR);
+    const child=pool.length ? pool[Math.floor(Math.random()*pool.length)] : parentAnimal;
+    // Remove the 2 consumed animals (free their slots), then place the child in one of them
+    z.enc[idxs[0]]=null; z.enc[idxs[1]]=null;
+    const slot=idxs[0];
+    z.enc[slot]={animal:{...child},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
+    try{ ZG._trackOwned(child); }catch(e){}
+    ZS.save&&ZS.save();
+    document.getElementById('breed-panel')?.remove();
+    ZP.toast('🧬 Gezüchtet: '+child.e+' '+child.n+' ('+(RARITY_LABELS[nextR]||nextR)+')!',4000);
+    try{ ZG._rGond&&ZG._rGond(); }catch(e){}
+  },
+};
+
 const GoldMachine = {
   _TIERS: [
     {n:'Normal',    emoji:'⚪', mult:1,    tokens:0, waitMin:0,   color:'#95a5a6'},
