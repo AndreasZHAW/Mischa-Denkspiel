@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v498 -->
+<!-- ZOO v499 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=498"></script>
-<script src="rewardchests.js?v=498"></script>
-<script src="personality.js?v=498"></script>
+<script src="lang.js?v=499"></script>
+<script src="rewardchests.js?v=499"></script>
+<script src="personality.js?v=499"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v498','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v499','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=498"></script>
-<script src="worlds.js?v=498"></script>
+<script src="firebase-state.js?v=499"></script>
+<script src="worlds.js?v=499"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1285,7 +1285,7 @@ function tB(ts){return(ts||[]).map(t=>`<span class="tb ${t.c}">${t.n}</span>`).j
 const ZS={
   player:null,char:null,zoo:null,isAdmin:false,isPrivate:false,
   nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
-  maxE(){return 5;}, // Always max 5 enclosures (even after rebirth)
+  maxE(){return 5+(this.zoo?.xenc||0);}, // BUG FIX: this used to be hardcoded to a flat 5 no matter what, silently ignoring z.xenc entirely — the rebirth reward ("+2 extra Gehege"), the shop's "+1 Extra Gehege" item, and the "Gondel-Meister" secret achievement ("+5 extra Gehege") ALL correctly incremented z.xenc, but nothing ever actually acted on it, so none of those promised extra enclosures ever showed up.
   visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.tb?.vis2x||0)>Date.now())ms/=2;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
   lk(){
     const z=this.zoo; if(!z) return 1;
@@ -5753,7 +5753,20 @@ const ZG={
         }
       }
     }
-    if(this.gCD<=0){this.gCD=2500;this.gQ.shift();this.gQ.push(this._mkG());if(ZSound.style!=='important')ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}
+    if(this.gCD<=0){this.gCD=2500;
+      // BUG FIX: this used to unconditionally shift the queue and
+      // re-render #ganim (the buy card) every 2.5s, no matter what.
+      // If that landed in the exact moment someone was tapping "Kaufen",
+      // the button's content got replaced mid-click — the layout below
+      // it (the "Alle Tiere nach Seltenheit" list) could shift up right
+      // under their finger, so the tap landed there instead and the
+      // animal (sometimes an ultra-rare!) was gone before they could
+      // actually buy it. Skip the swap entirely while a buy click on
+      // THIS exact car is still being processed (see _buyG's guard).
+      if(!ZP._buyInFlight){
+        this.gQ.shift();this.gQ.push(this._mkG());if(ZSound.style!=='important')ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}
+      }
+    }
   },100);this._ivs.push(iv);},
 
   // ═══ EVENTS ═══
@@ -6194,7 +6207,7 @@ const ZG={
     // Reuse the same gondola display as the main panel
     const g=ZG.gQ[0];if(!g){el.innerHTML='<div style="color:rgba(255,255,255,.3)">Keine Gondel</div>';return;}
     const{a,sh,tr,xm}=g;const tm=ZP._tMul?.(sh,tr)||tMul(sh,tr);const z=ZS.zoo;const can=((ZS.dsMT||0)+z.mt)>=a.p,hasSlot=z.enc.some(e=>!e);
-    el.innerHTML=`<div style="text-align:center"><div style="font-size:3rem">${a.e}</div><div style="font-weight:900;font-size:.9rem;color:#fff">${a.n}</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin:4px 0">💰 ${$mt(a.earn*xm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.85rem;padding:8px 18px;margin-top:4px" onclick="ZP._buyG();ZP._syncGintGondola?.()">${!can?'❌ Zu wenig':!hasSlot?'❌ Voll':'🛒 Kaufen'}</button></div>`;
+    el.innerHTML=`<div style="text-align:center"><div style="font-size:3rem">${a.e}</div><div style="font-weight:900;font-size:.9rem;color:#fff">${a.n}</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin:4px 0">💰 ${$mt(a.earn*xm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.85rem;padding:8px 18px;margin-top:4px" onpointerdown="ZP._buyInFlight=true" onclick="ZP._buyG('${a.id}');ZP._syncGintGondola?.()">${!can?'❌ Zu wenig':!hasSlot?'❌ Voll':'🛒 Kaufen'}</button></div>`;
     // Sync timer
     const t=G('gint-gtimer');const t2=G('gtimer');if(t&&t2)t.textContent=t2.textContent;
   },
@@ -8211,11 +8224,19 @@ const ZP={
     });
     el.innerHTML=out;
   },
-  _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onclick="${isA?'ZP._buyG()':'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
+  _rGCars(){const el=G('gcars');if(!el)return;const q=ZG.gQ.slice(0,3);el.innerHTML=q.map((g,i)=>{const isA=i===0;const col=['#c8a050','#8B5E3C','#4a2a10'][i];const sz=isA?52:38;return`<div onpointerdown="${isA?'ZP._buyInFlight=true':''}" onclick="${isA?`ZP._buyG('${g.a.id}')`:'void(0)'}" style="text-align:center;cursor:${isA?'pointer':'default'};opacity:${isA?1:.5}"><div style="width:2px;height:${isA?22:15}px;background:rgba(255,255,255,.3);margin:0 auto"></div><div style="width:${sz}px;height:${sz*.6}px;border-radius:8px;background:${col};border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:${isA?1.5:.85}rem;margin:0 auto">${g.a.e}</div>${isA?`<div style="font-size:.63rem;font-weight:900;color:#FFD700;margin-top:1px">${g.a.n}</div>`:'<div style="font-size:.55rem;color:rgba(255,255,255,.3)">🔒</div>'}</div>`;}).join('');},
   _rGond(){const g=ZG.gQ[0],el=G('ganim');if(!g||!el)return;const{a,sh,tr,xm}=g;const tm=tMul(sh,tr)*xm;const z=ZS.zoo;const locked=(z.gondLockUntil||0)>Date.now();
     const _gt=(k,de,vars)=>{let s=(typeof t!=='undefined')?t(k):null;if(!s||s===k)s=de;if(vars)Object.keys(vars).forEach(vk=>{s=s.split('{'+vk+'}').join(vars[vk]);});return s;};
     if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">'+_gt('zoo.gondola_locked_police','🚓🔒 Gondel gesperrt!').replace('🚓🔒 ','')+'</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">'+_gt('zoo.police_raid','Polizei-Razzia · noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)})+'</div></div>';return;}const can=((ZS.dsMT||0)+z.mt)>=a.p,hasSlot=z.enc.some(e=>!e);const rd=RAR[a.r];el.innerHTML=`<div style="text-align:center;animation:pop .4s ease"><div style="font-size:3.6rem">${a.e}</div><div style="font-size:1rem;font-weight:900;margin-top:3px">${sB(sh)} ${a.n}</div><div class="${rd.c}" style="font-size:.76rem;margin:2px 0">${rd.n}</div>${tB(tr)}${xm>1?`<div style="color:#FFD700;font-size:.7rem;margin-top:2px">✨ ×${xm.toFixed(1)} Event!</div>`:''}<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin:4px 0">${a.isEgg?_gt('zoo.open_after_buy','🥚 Sofort öffnen nach Kauf!'):'💰 '+$mt(a.earn*tm)+'/👤'} · ${$mt(a.p)}</div><button class="ab" ${(!can)?'disabled':''} style="font-size:.88rem;padding:9px 20px;${a.isEgg?'background:linear-gradient(135deg,#9b59b6,#6c3483);':''}" onclick="ZP._buyG()">${!can?_gt('zoo.too_little','❌ Zu wenig'):a.isEgg?_gt('zoo.buy_and_open','🥚 Kaufen & Öffnen!'):_gt('zoo.buy_cart','🛒 Kaufen')}</button></div>`;},
-  _buyG(){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;
+  _buyG(expectedId){const z=ZS.zoo,g=ZG.gQ[0];if(!g)return;
+    // See ZG's 2.5s auto-cycle tick for why this exists: the animal id
+    // is baked into the button's onclick at RENDER time. If the 2.5s
+    // auto-cycle swapped the car in the moments between rendering the
+    // button and the click actually firing, expectedId (the old value,
+    // frozen in that already-sent onclick string) won't match what's
+    // in the queue anymore — a real, meaningful check, unlike comparing
+    // against a value read fresh inside this same synchronous call.
+    if(expectedId && g.a.id!==expectedId){ this.toast('❌ Die Gondel ist schon weitergefahren — dieses Tier ist weg.',3000); this._buyInFlight=false; return; }
     const _gt=(k,de,vars)=>{let s=(typeof t!=='undefined')?t(k):null;if(!s||s===k)s=de;if(vars)Object.keys(vars).forEach(vk=>{s=s.split('{'+vk+'}').join(vars[vk]);});return s;};
     if((z.gondLockUntil||0)>Date.now()){this.toast(_gt('zoo.gondola_locked_toast','🚓 Gondel gesperrt (Polizei)! Noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)}),3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast(_gt('zoo.all_enc_full','❌ Alle Gehege belegt!'));return;}if(((ZS.dsMT||0)+z.mt)<g.a.p){this.toast(_gt('zoo.too_little_mt','❌ Zu wenig MT!'));return;}
     // Deduct cost + advance queue
@@ -9110,6 +9131,17 @@ const ZP={
   _cT(i){
     const o=this._myTrades&&this._myTrades[i]; if(!o)return;
     const z=ZS.zoo;
+    // BUG FIX: retrieving your OWN offer used to have no cost check at
+    // all — only a free-slot check. That let someone list an animal for
+    // an absurdly high price (so nobody else could ever afford to buy
+    // it), do a rebirth, and then pull it straight back for free even
+    // though rebirth is supposed to reset their MT — effectively
+    // shielding an animal from rebirth's cost entirely. Requiring the
+    // same MT the offer asks for (checked, not spent — it's already
+    // your own animal) closes that: after a real rebirth reset, you
+    // genuinely can't afford to reclaim a high-priced listing anymore.
+    const total=(ZS.dsMT||0)+z.mt;
+    if(total<o.p){ this.toast('❌ Du brauchst '+$mt(o.p)+' um es zurückzuholen (hast '+$mt(total)+')!',3500); return; }
     const slot=z.enc.findIndex(e=>!e);
     if(slot<0){this.toast('❌ Kein freies Gehege — kann Tier gerade nicht zurücknehmen!');return;}
     z.enc[slot]={...o.d,addedAt:Date.now()};
@@ -9269,7 +9301,18 @@ const ZP={
     if((z.reb||0)>=REBIRTH_MAX){ ZP.toast('🏆 Maximum von '+REBIRTH_MAX+' Wiedergeburten bereits erreicht!',3000); return; }
     const req=rebReq(z.reb||0);
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
-    if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;z.enc=Array(5).fill(null);if(kept.length)z.enc[0]=kept[0];z.mt=10;z.xenc=0;z.luck=1;z.luckLv=0;z._rebNotified=false;ZS._fix();ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}},
+    if(!(await showConfirm('Wirklich? Fast alle Tiere und MT verlieren!')))return;const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];z.reb=(z.reb||0)+1;z.rebirthMult=Math.round((1+z.reb*.5)*100)/100;
+    // BUG FIX: this used to hardcode z.enc to exactly 5 slots and reset
+    // z.xenc to 0 — actively UNDOING any extra enclosures from previous
+    // rebirths, the shop's "+1 Extra Gehege" item, or the "Gondel-
+    // Meister" secret achievement, on every single rebirth. The rebirth
+    // screen promises "+2 extra Gehege" as part of the reward — this now
+    // actually adds 2 (cumulative, so it grows every rebirth) instead of
+    // wiping everything back to the base 5. ZS._fix() (called below)
+    // resizes z.enc to match the new, correct maxE() automatically.
+    z.xenc=(z.xenc||0)+2;z.enc=[];z.mt=10;z.luck=1;z.luckLv=0;z._rebNotified=false;ZS._fix();if(kept.length)z.enc[0]=kept[0];ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}
+    ZS.save&&ZS.save();
+  },
 
   // ENCLOSURE
   _rEnc(i){
