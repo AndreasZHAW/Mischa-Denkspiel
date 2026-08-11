@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v492 -->
+<!-- ZOO v494 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=492"></script>
-<script src="rewardchests.js?v=492"></script>
-<script src="personality.js?v=492"></script>
+<script src="lang.js?v=494"></script>
+<script src="rewardchests.js?v=494"></script>
+<script src="personality.js?v=494"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v492','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v494','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -295,6 +295,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.showZooRangliste()"><div class="hbb" style="background:rgba(255,215,0,.85)">🏆</div><div class="hbl">Rangliste</div></div>
+<div class="hb" onclick="Battle.open()" style="position:relative"><div class="hbb" style="background:rgba(231,76,60,.85)">⚔️</div><div class="hbl">Battle</div><span id="battle-badge" style="display:none;position:absolute;top:-4px;right:2px;background:#FFD700;color:#000;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl" data-i18n="zoo.sound">Sound</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
 <div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
@@ -516,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=492"></script>
-<script src="worlds.js?v=492"></script>
+<script src="firebase-state.js?v=494"></script>
+<script src="worlds.js?v=494"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3408,6 +3409,8 @@ const ZG={
     try{ ScreenTime.init(); }catch(e){}
     try{ ZP._updDecoBar(); }catch(e){}
     try{ Weather.startCycle(); }catch(e){}
+    try{ Battle.checkIncoming(); setInterval(()=>Battle.checkIncoming(),20000); }catch(e){}
+    try{ if(new URLSearchParams(location.search).get('fromBattle')==='1') setTimeout(()=>Battle.open(),500); }catch(e){}
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
@@ -14293,6 +14296,397 @@ const BreedMachine = {
     document.getElementById('breed-panel')?.remove();
     ZP.toast('🧬 Gezüchtet: '+child.e+' '+child.n+' ('+(RARITY_LABELS[nextR]||nextR)+')!',4000);
     try{ ZG._rGond&&ZG._rGond(); }catch(e){}
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════
+// ⚔️ BATTLE-SYSTEM — STUFE 1
+// Herausfordern → Team-Abstimmung → Spiel-Abstimmung → Tier-Einsatz →
+// Bereit. Das eigentliche Duell (3 Runden live spielen, Punkte
+// vergleichen, Tiere übergeben) ist bewusst NOCH NICHT gebaut — das ist
+// die eigentlich grosse, riskante Baustelle (mehrere Geräte müssten in
+// Echtzeit synchron ein Minispiel spielen, jedes Minispiel läuft bisher
+// komplett unabhängig pro Gerät). Bis dahin passiert bei "Bereit" nur
+// eine Anzeige, dass es gleich losgeht — es werden noch KEINE Tiere
+// wirklich übergeben, damit nichts kaputtgehen oder verschwinden kann,
+// solange die Auflösung noch fehlt.
+// ══════════════════════════════════════════════════════════════════
+const Battle = {
+  GAME_OPTIONS: [
+    {id:'tetris',n:'Tetris',e:'🧱'},{id:'sokoban',n:'Sokoban',e:'📦'},
+    {id:'pacman',n:'Pacman',e:'👻'},{id:'memory',n:'Memory',e:'🧠'},
+    {id:'simon',n:'Simon',e:'🎵'},{id:'jenga',n:'Jenga',e:'🧩'},
+    {id:'math',n:'Mathe-Blitz',e:'➕'},{id:'reaction',n:'Reaktion',e:'⚡'},
+  ],
+  TEAM_SPLITS: {2:['1v1'],3:['1v1v1','2v1'],4:['2v2','1v1v1v1'],5:['1v1v1v1v1','2v2v1'],6:['2v2v2','1v1v1v1v1v1','3v3']},
+  _pollIv: null,
+  _seenInvites: new Set(),
+
+  async open(){
+    console.log('[Battle-debug] open() aufgerufen.');
+    const el=document.createElement('div');
+    el.id='battle-overlay';
+    el.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto';
+    el.onclick=(e)=>{ if(e.target===el) el.remove(); };
+    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(30,5,5,.98),rgba(45,10,10,.97));border:1px solid rgba(231,76,60,.4);border-radius:16px;padding:18px;max-width:480px;width:100%;color:#fff"><div style="text-align:center;padding:30px">⏳ Lade...</div></div>';
+    document.body.appendChild(el);
+    if(this._pollIv) clearInterval(this._pollIv);
+    this._pollIv=setInterval(()=>{ if(!document.getElementById('battle-overlay')){ clearInterval(this._pollIv); return; } this._render(); },2500);
+    await this._render();
+  },
+
+  async _myActiveBattle(){
+    try{
+      const myName=(ZS.player||'');
+      const snap=await _db.collection('zoo_battles').where('allNames','array-contains',myName).get();
+      const activeStatuses=['inviting','voting_teams','voting_game','picking_animal','ready'];
+      let best=null;
+      snap.forEach(doc=>{ const d=doc.data(); if(activeStatuses.includes(d.status) && (!best||d.createdAt>best.createdAt)) best={id:doc.id,...d}; });
+      return best;
+    }catch(e){ console.log('[Battle-debug] _myActiveBattle Fehler: '+e.message); return null; }
+  },
+
+  async _render(){
+    const el=document.getElementById('battle-overlay'); if(!el)return;
+    const battle=await this._myActiveBattle();
+    if(battle){ this._renderLobby(el,battle); return; }
+    this._renderChallengeScreen(el);
+  },
+
+  async _renderChallengeScreen(el){
+    let online=new Set();
+    try{ if(typeof getOnlineNames==='function') online=await getOnlineNames(); }catch(e){}
+    const myKey=(ZS.player||'').toLowerCase();
+    const names=[...online].filter(n=>n!==myKey);
+    const list=names.length ? names.map(n=>'<div class="battle-cand" data-name="'+$esc(n)+'" style="cursor:pointer;padding:8px 10px;border-radius:8px;background:rgba(231,76,60,.1);border:2px solid rgba(231,76,60,.25);font-size:.82rem;margin-bottom:5px">⚪ 👤 '+$esc(n)+'</div>').join('')
+      : '<div style="color:rgba(255,255,255,.35);font-size:.8rem">Gerade niemand online.</div>';
+    el.querySelector('div').innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <h2 style="flex:1;color:#e74c3c;font-size:1.1rem;margin:0">⚔️ Battle</h2>
+        <button onclick="document.getElementById('battle-overlay')?.remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
+      </div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Wähle bis zu 5 Spieler zum Herausfordern aus (mit dir zusammen max. 6). Du brauchst mindestens 2 freie Plätze im Zoo.</div>
+      <div style="max-height:220px;overflow-y:auto;margin-bottom:10px">${list}</div>
+      <div id="battle-sel-count" style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:8px">0 ausgewählt</div>
+      <button onclick="Battle._sendInvites()" style="width:100%;background:linear-gradient(135deg,#E74C3C,#C0392B);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">Herausfordern</button>`;
+    this._selected=new Set();
+    el.querySelectorAll('.battle-cand').forEach(node=>{
+      node.addEventListener('click',()=>{
+        const nm=node.dataset.name;
+        if(this._selected.has(nm)){ this._selected.delete(nm); node.style.border='2px solid rgba(231,76,60,.25)'; node.textContent='⚪ 👤 '+nm; }
+        else{ if(this._selected.size>=5){ ZP.toast('❌ Maximal 5 Spieler!'); return; } this._selected.add(nm); node.style.border='2px solid #E74C3C'; node.textContent='🔴 👤 '+nm; }
+        const cEl=document.getElementById('battle-sel-count'); if(cEl) cEl.textContent=this._selected.size+' ausgewählt';
+      });
+    });
+  },
+
+  async _sendInvites(){
+    const z=ZS.zoo;
+    if(!z||(z.enc||[]).filter(e=>!e).length<2){ ZP.toast('❌ Du brauchst 2 freie Plätze im Zoo!',3000); return; }
+    if(!this._selected||!this._selected.size){ ZP.toast('❌ Wähle mindestens 1 Spieler aus!'); return; }
+    const myName=ZS.player;
+    const invited=[...this._selected];
+    try{
+      const id='battle_'+Date.now();
+      await _db.collection('zoo_battles').doc(id).set({
+        id, creator:myName, participants:[myName], invited, allNames:[myName,...invited],
+        status:'inviting', teamVotes:{}, gameVotes:{}, wagers:{}, ready:{},
+        createdAt:Date.now(),
+      });
+      ZP.toast('✅ Herausforderung an '+invited.length+' Spieler gesendet!',3000);
+      this._render();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message,3000); }
+  },
+
+  async _renderLobby(el,battle){
+    const myName=ZS.player, isCreator=battle.creator===myName;
+    const amInvited=(battle.invited||[]).includes(myName);
+    const amParticipant=(battle.participants||[]).includes(myName);
+    let body='';
+
+    if(amInvited && !amParticipant){
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:900;margin-bottom:8px">⚔️ ${$esc(battle.creator)} möchte dich zu einem Duell herausfordern!</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:10px">Teilnehmer bisher: ${$esc(battle.participants.join(', '))}</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="Battle._respond('${battle.id}',true)" style="flex:1;background:#27AE60;border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">✓ Annehmen</button>
+          <button onclick="Battle._respond('${battle.id}',false)" style="flex:1;background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">✕ Ablehnen</button>
+        </div>
+      </div>`;
+    } else if(battle.status==='inviting'){
+      const pendingList=(battle.invited||[]).map(n=>'<div style="font-size:.75rem;color:rgba(255,255,255,.5)">⏳ '+$esc(n)+' — wartet auf Antwort</div>').join('');
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:900;margin-bottom:8px">Warteraum</div>
+        <div style="font-size:.8rem;color:#27AE60;margin-bottom:6px">✅ Dabei: ${$esc(battle.participants.join(', '))}</div>
+        ${pendingList}
+        ${isCreator?`<button onclick="Battle._startVoting('${battle.id}')" ${battle.participants.length<2?'disabled':''} style="width:100%;margin-top:12px;background:linear-gradient(135deg,#E74C3C,#C0392B);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900;${battle.participants.length<2?'opacity:.4':''}">⚔️ Duell starten (${battle.participants.length}/6)</button>`
+          : `<div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:10px">Warte, bis ${$esc(battle.creator)} startet...</div>`}
+        <button onclick="Battle._cancel('${battle.id}')" style="width:100%;margin-top:8px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:#e74c3c;padding:8px;border-radius:10px;cursor:pointer;font-size:.78rem">Abbrechen</button>
+      </div>`;
+    } else if(battle.status==='voting_teams'){
+      const splits=this.TEAM_SPLITS[battle.participants.length]||['1v1'];
+      const myVote=battle.teamVotes?.[myName];
+      const voteCount=Object.keys(battle.teamVotes||{}).length;
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:900;margin-bottom:8px">🗳️ Team-Modus wählen</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">Alle stimmen ab, dann entscheidet der Zufall gewichtet nach den Stimmen (nicht automatisch die Mehrheit!).</div>
+        ${splits.map(s=>`<button onclick="Battle._voteTeam('${battle.id}','${s}')" style="width:100%;margin-bottom:6px;background:${myVote===s?'rgba(231,76,60,.3)':'rgba(255,255,255,.06)'};border:2px solid ${myVote===s?'#E74C3C':'transparent'};color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:700">${s}</button>`).join('')}
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:6px">${voteCount}/${battle.participants.length} haben abgestimmt</div>
+      </div>`;
+    } else if(battle.status==='voting_game'){
+      const myVote=battle.gameVotes?.[myName];
+      const voteCount=Object.keys(battle.gameVotes||{}).length;
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:900;margin-bottom:4px">🎮 Team-Modus: ${battle.finalTeamSplit}</div>
+        <div style="font-weight:900;margin-bottom:8px">🗳️ Spiel wählen</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        ${this.GAME_OPTIONS.map(g=>`<button onclick="Battle._voteGame('${battle.id}','${g.id}')" style="background:${myVote===g.id?'rgba(231,76,60,.3)':'rgba(255,255,255,.06)'};border:2px solid ${myVote===g.id?'#E74C3C':'transparent'};color:#fff;padding:10px 6px;border-radius:10px;cursor:pointer;font-size:.8rem">${g.e} ${g.n}</button>`).join('')}
+        </div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.4)">${voteCount}/${battle.participants.length} haben abgestimmt</div>
+      </div>`;
+    } else if(battle.status==='picking_animal'){
+      const gameDef=this.GAME_OPTIONS.find(g=>g.id===battle.finalGame);
+      const myWager=battle.wagers?.[myName];
+      const z=ZS.zoo;
+      const animalCards=(z.enc||[]).filter(e=>e&&e.animal).map((e,i)=>{
+        const a=e.animal;
+        return `<div onclick="Battle._pickAnimal('${battle.id}','${a.id}','${$esc(a.n)}','${a.e}','${a.r}')" style="cursor:pointer;background:rgba(255,255,255,.05);border:2px solid ${myWager&&myWager.id===a.id?'#E74C3C':'transparent'};border-radius:10px;padding:8px;text-align:center;min-width:70px"><div style="font-size:1.5rem">${a.e}</div><div style="font-size:.62rem;color:#fff">${a.n}</div><div style="font-size:.58rem;color:rgba(255,255,255,.4)">${RARITY_LABELS[a.r]||a.r}</div></div>`;
+      }).join('');
+      const wagerRows=Object.entries(battle.wagers||{}).map(([n,w])=>`<div style="display:flex;align-items:center;gap:6px;font-size:.75rem;margin-bottom:3px">${w.e} <b>${$esc(n)}</b>: ${$esc(w.n)} <span style="color:rgba(255,255,255,.4)">(${RARITY_LABELS[w.r]||w.r})</span></div>`).join('')||'<div style="color:rgba(255,255,255,.35);font-size:.72rem">Noch niemand hat gewählt.</div>';
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:900;margin-bottom:4px">🎮 Spiel: ${gameDef?gameDef.e+' '+gameDef.n:battle.finalGame}</div>
+        <div style="font-weight:900;margin-bottom:8px">🐾 Wähle dein Einsatz-Tier</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;max-height:140px;overflow-y:auto;margin-bottom:10px">${animalCards}</div>
+        <div style="font-weight:700;font-size:.8rem;margin-bottom:4px">Bisherige Einsätze:</div>
+        ${wagerRows}
+      </div>`;
+    } else if(battle.status==='ready'){
+      // All wagers are in — kick off round 1 automatically. Transaction-
+      // guarded so a slower second client rendering this moments later
+      // can't re-initialize roundScores and wipe out a score someone
+      // already submitted for round 1 in the meantime.
+      try{
+        await _db.runTransaction(async(tx)=>{
+          const ref=_db.collection('zoo_battles').doc(battle.id);
+          const doc=await tx.get(ref);
+          if(doc.data().status!=='ready') return;
+          tx.update(ref,{status:'round_active',round:1,roundScores:{1:{},2:{},3:{}}});
+        });
+      }catch(e){}
+      body='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5)">⏳ Runde 1 wird vorbereitet...</div>';
+    } else if(battle.status==='round_active'){
+      const round=battle.round||1;
+      const gameDef=this.GAME_OPTIONS.find(g=>g.id===battle.finalGame);
+      const scoresThisRound=battle.roundScores?.[round]||{};
+      const myScore=scoresThisRound[myName];
+      const doneCount=Object.keys(scoresThisRound).length;
+      // Auto-advance once everyone has submitted this round's score.
+      if(doneCount>=battle.participants.length){
+        if(round<3){
+          try{ await _db.collection('zoo_battles').doc(battle.id).update({round:round+1}); }catch(e){}
+          body='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5)">⏳ Runde '+(round+1)+' wird vorbereitet...</div>';
+        } else {
+          await this._resolve(battle);
+          body='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.5)">⏳ Ergebnis wird berechnet...</div>';
+        }
+      } else {
+        const rows=battle.participants.map(n=>{
+          const s=scoresThisRound[n];
+          return '<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:4px 0"><span>'+(s!==undefined?'✅':'⏳')+' '+$esc(n)+'</span><span>'+(s!==undefined?s+' Pkt.':'spielt noch...')+'</span></div>';
+        }).join('');
+        body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px">
+          <div style="font-weight:900;margin-bottom:4px">🎮 ${gameDef?gameDef.e+' '+gameDef.n:battle.finalGame} — Runde ${round}/3</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:10px">${battle.finalTeamSplit}</div>
+          ${rows}
+          ${myScore===undefined?`<a href="index.html?fromZoo=1&battle=${battle.id}&round=${round}&game=${battle.finalGame}" style="display:block;text-align:center;margin-top:12px;background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;padding:10px;border-radius:10px;font-weight:900;text-decoration:none">▶️ Runde ${round} spielen!</a>`
+            : '<div style="text-align:center;margin-top:12px;color:#27AE60;font-size:.8rem">✅ Du bist fertig — warte auf die anderen...</div>'}
+        </div>`;
+      }
+    } else if(battle.status==='finished'){
+      const r=battle.result||{};
+      const teamTotals=r.teamTotals||{};
+      const winnerLabel=r.winningTeam!==undefined?'Team '+(r.winningTeam+1):'—';
+      const totalsRows=Object.entries(teamTotals).map(([team,total])=>'<div style="font-size:.85rem;padding:3px 0">'+(parseInt(team)===r.winningTeam?'🏆 ':'')+'Team '+(parseInt(team)+1)+': <b>'+total+' Pkt.</b></div>').join('');
+      const transferRows=(r.transfers||[]).map(t=>'<div style="font-size:.75rem;padding:2px 0">'+t.emoji+' '+$esc(t.animal)+': '+$esc(t.from)+' → '+$esc(t.to)+'</div>').join('')||'<div style="color:rgba(255,255,255,.35);font-size:.75rem">Keine Tiere übergeben.</div>';
+      const amWinner=(r.winningNames||[]).includes(myName);
+      body=`<div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:12px;text-align:center">
+        <div style="font-size:2.4rem">${amWinner?'🏆':'😢'}</div>
+        <div style="font-weight:900;font-size:1.2rem;margin:8px 0">${winnerLabel} gewinnt!</div>
+        ${totalsRows}
+        <div style="font-weight:700;font-size:.8rem;margin:12px 0 6px">Tier-Übergabe:</div>
+        ${transferRows}
+        <button onclick="document.getElementById('battle-overlay')?.remove()" style="width:100%;margin-top:14px;background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-weight:900">Schliessen</button>
+      </div>`;
+    }
+
+    el.querySelector('div').innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <h2 style="flex:1;color:#e74c3c;font-size:1.1rem;margin:0">⚔️ Battle</h2>
+        <button onclick="document.getElementById('battle-overlay')?.remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button>
+      </div>
+      ${body}`;
+  },
+
+  // BUG-RISK AVOIDED: every participant's own device polls independently
+  // and could all notice "round 3 done" within moments of each other —
+  // without a guard, more than one of them could run the animal-transfer
+  // logic simultaneously, duplicating or corrupting transfers. A Firestore
+  // transaction claims the resolve job atomically (flips status to
+  // 'resolving' only if it's still 'round_active') so only ONE caller's
+  // resolve actually runs, no matter how many clients notice at once.
+  async _resolve(battle){
+    try{
+      const ref=_db.collection('zoo_battles').doc(battle.id);
+      let claimed=false;
+      await _db.runTransaction(async(tx)=>{
+        const doc=await tx.get(ref);
+        const d=doc.data();
+        if(d.status!=='round_active') return; // someone else already claimed it, or it's done
+        tx.update(ref,{status:'resolving'});
+        claimed=true;
+      });
+      if(!claimed) return;
+
+      const doc=await ref.get(); const b=doc.data();
+      const teams=b.teams||{};
+      const teamTotals={};
+      b.participants.forEach(name=>{
+        const teamIdx=teams[name]??0;
+        let total=0;
+        [1,2,3].forEach(r=>{ total += (b.roundScores?.[r]?.[name])||0; });
+        teamTotals[teamIdx]=(teamTotals[teamIdx]||0)+total;
+      });
+      const teamIndices=Object.keys(teamTotals).map(Number);
+      let maxTotal=-1, winners=[];
+      teamIndices.forEach(t=>{ if(teamTotals[t]>maxTotal){ maxTotal=teamTotals[t]; winners=[t]; } else if(teamTotals[t]===maxTotal){ winners.push(t); } });
+      const winningTeam = winners.length>1 ? winners[Math.floor(Math.random()*winners.length)] : winners[0];
+      const winningNames = b.participants.filter(n=>teams[n]===winningTeam);
+      const losingNames = b.participants.filter(n=>teams[n]!==winningTeam);
+
+      const transfers=[];
+      let winnerCycle=0;
+      for(const loser of losingNames){
+        const wager=b.wagers?.[loser];
+        if(!wager) continue;
+        const winnerName=winningNames[winnerCycle % winningNames.length]; winnerCycle++;
+        try{
+          const loserZoo = loser===ZS.player ? ZS.zoo : await State.getZoo(loser);
+          if(!loserZoo) continue;
+          const idx=(loserZoo.enc||[]).findIndex(e=>e&&e.animal&&e.animal.id===wager.id);
+          if(idx<0) continue; // they no longer have it (sold/traded meanwhile) — skip gracefully
+          const animalData=loserZoo.enc[idx];
+          loserZoo.enc[idx]=null;
+          if(loser===ZS.player){ ZS.save&&ZS.save(); } else { await _db.collection('zoos').doc('zoo_'+loser.toLowerCase()).set(loserZoo,{merge:true}); }
+          const winnerZoo = winnerName===ZS.player ? ZS.zoo : await State.getZoo(winnerName);
+          if(!winnerZoo) continue;
+          const slot=(winnerZoo.enc||[]).findIndex(e=>!e);
+          if(slot<0) continue; // no free space — skip gracefully rather than overwrite something
+          winnerZoo.enc[slot]=animalData;
+          if(winnerName===ZS.player){ ZS.save&&ZS.save(); } else { await _db.collection('zoos').doc('zoo_'+winnerName.toLowerCase()).set(winnerZoo,{merge:true}); }
+          transfers.push({animal:wager.n, emoji:wager.e, from:loser, to:winnerName});
+        }catch(e){ console.log('[Battle-debug] Transfer-Fehler für '+loser+': '+e.message); }
+      }
+      await ref.update({status:'finished', result:{winningTeam, teamTotals, winningNames, transfers}});
+      console.log('[Battle-debug] Duell abgeschlossen. Gewinner: Team '+winningTeam+', '+transfers.length+' Tier(e) übergeben.');
+    }catch(e){ console.log('[Battle-debug] _resolve Fehler: '+e.message); }
+  },
+
+  async _respond(battleId,accept){
+    const myName=ZS.player;
+    try{
+      const ref=_db.collection('zoo_battles').doc(battleId);
+      const doc=await ref.get(); if(!doc.exists)return;
+      const b=doc.data();
+      const invited=(b.invited||[]).filter(n=>n!==myName);
+      const update={invited};
+      if(accept){
+        const z=ZS.zoo;
+        if(!z||(z.enc||[]).filter(e=>!e).length<2){ ZP.toast('❌ Du brauchst 2 freie Plätze im Zoo!',3000); return; }
+        update.participants=[...(b.participants||[]),myName];
+        update.allNames=[...(b.allNames||[]),myName];
+      }
+      await ref.update(update);
+      this._render();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _cancel(battleId){
+    try{ await _db.collection('zoo_battles').doc(battleId).update({status:'cancelled'}); }catch(e){}
+    this._render();
+  },
+  async _startVoting(battleId){
+    try{ await _db.collection('zoo_battles').doc(battleId).update({status:'voting_teams',invited:[]}); this._render(); }catch(e){}
+  },
+  async _voteTeam(battleId,split){
+    try{
+      const ref=_db.collection('zoo_battles').doc(battleId);
+      await ref.update({['teamVotes.'+ZS.player]:split});
+      const doc=await ref.get(); const b=doc.data();
+      if(Object.keys(b.teamVotes||{}).length>=b.participants.length){
+        const chosen=this._weightedPick(b.teamVotes);
+        const teams=this._assignTeams(b.participants,chosen);
+        await ref.update({status:'voting_game',finalTeamSplit:chosen,teams});
+      }
+      this._render();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _voteGame(battleId,gameId){
+    try{
+      const ref=_db.collection('zoo_battles').doc(battleId);
+      await ref.update({['gameVotes.'+ZS.player]:gameId});
+      const doc=await ref.get(); const b=doc.data();
+      if(Object.keys(b.gameVotes||{}).length>=b.participants.length){
+        const chosen=this._weightedPick(b.gameVotes);
+        await ref.update({status:'picking_animal',finalGame:chosen});
+      }
+      this._render();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _pickAnimal(battleId,animalId,name,emoji,rarity){
+    try{
+      const ref=_db.collection('zoo_battles').doc(battleId);
+      await ref.update({['wagers.'+ZS.player]:{id:animalId,n:name,e:emoji,r:rarity}});
+      const doc=await ref.get(); const b=doc.data();
+      if(Object.keys(b.wagers||{}).length>=b.participants.length){
+        await ref.update({status:'ready'});
+      }
+      this._render();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  // Weighted-random pick from a {name: choice} votes map — proportional
+  // to how many people voted for each option, NOT simple majority.
+  _weightedPick(votesMap){
+    const counts={};
+    Object.values(votesMap||{}).forEach(v=>{ counts[v]=(counts[v]||0)+1; });
+    const entries=Object.entries(counts);
+    const total=entries.reduce((s,[,c])=>s+c,0);
+    let r=Math.random()*total;
+    for(const [choice,c] of entries){ r-=c; if(r<=0) return choice; }
+    return entries[0]?.[0];
+  },
+  _assignTeams(participants,split){
+    const sizes=split.split('v').map(Number);
+    const shuffled=[...participants].sort(()=>Math.random()-0.5);
+    const teams={};
+    let idx=0;
+    sizes.forEach((size,teamIdx)=>{ for(let i=0;i<size;i++){ teams[shuffled[idx]]=teamIdx; idx++; } });
+    return teams;
+  },
+
+  async checkIncoming(){
+    try{
+      const myName=(ZS.player||''); if(!myName) return;
+      const snap=await _db.collection('zoo_battles').where('invited','array-contains',myName).where('status','==','inviting').get();
+      const badge=document.getElementById('battle-badge');
+      if(snap.empty){ if(badge) badge.style.display='none'; return; }
+      if(badge) badge.style.display='flex';
+      snap.forEach(doc=>{
+        if(!this._seenInvites.has(doc.id)){
+          this._seenInvites.add(doc.id);
+          const b=doc.data();
+          ZP.toast('⚔️ '+b.creator+' möchte dich zu einem Duell herausfordern!',4000);
+        }
+      });
+    }catch(e){}
   },
 };
 
