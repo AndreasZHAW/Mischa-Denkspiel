@@ -61,6 +61,6 @@ oben — Realtime Database hat eigene Regeln, getrennt von Firestore.
 
 5. Klicke "Veröffentlichen" (Publish)
 
-Das gibt allen bestehenden Pfaden (zoo_hot, zoo_broadcast, zoo_admin_cmd, zoo_device_diag, zoo_friend_requests (NEU: Freundschaftsanfragen), usw.)
+Das gibt allen bestehenden Pfaden (zoo_hot, zoo_broadcast, zoo_admin_cmd, zoo_device_diag, usw.)
 und jedem zukünftigen Pfad automatisch Zugriff — kein erneuter Rules-Fix nötig, wenn später mal
 ein neuer Pfad dazukommt.
