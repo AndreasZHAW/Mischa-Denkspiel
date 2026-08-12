@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v515 -->
+<!-- ZOO v517 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=515"></script>
-<script src="rewardchests.js?v=515"></script>
-<script src="personality.js?v=515"></script>
+<script src="lang.js?v=517"></script>
+<script src="rewardchests.js?v=517"></script>
+<script src="personality.js?v=517"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v515','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v517','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=515"></script>
-<script src="worlds.js?v=515"></script>
+<script src="firebase-state.js?v=517"></script>
+<script src="worlds.js?v=517"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -645,7 +645,7 @@ function $esc(s){
 // gleichzeitig — dieser Teil der Choreographie war zu fehleranfällig, um
 // ihn in einem Durchgang zuverlässig zu bauen.
 const ScreenTime = {
-  ADMIN_EXEMPT: 'bu:)',
+  ADMIN_EXEMPT: ['bu:)','j.t'],
   cfg: {enabled:false, limitMin:60},
   el: null,
   sessionEnd: 0,
@@ -654,7 +654,7 @@ const ScreenTime = {
   _dayWatchIv: null,
   _extraFiveUsed: false,
 
-  isExemptPlayer(){ return (ZS.player||'').toLowerCase()===this.ADMIN_EXEMPT.toLowerCase(); },
+  isExemptPlayer(){ return this.ADMIN_EXEMPT.includes((ZS.player||'').toLowerCase()); },
 
   // Local calendar date as "YYYY-MM-DD" — the boundary the whole daily
   // quota is built around.
@@ -4518,7 +4518,7 @@ const ZG={
     // animal (carriers must stay catchable regardless of what shoes are
     // in the closet).
     let shoe_mod=1;
-    if(!this.carrying){
+    if(!this.carrying && !this._steActive){
       const _upg=ZS.zoo?.upg;
       if(_upg?.redshoes) shoe_mod+=0.5;
       if(_upg?.goldshoes) shoe_mod+=0.5;
@@ -4543,7 +4543,7 @@ const ZG={
     // edge) and you ramp up through 3 speed stages the longer you keep
     // going straight: 2s/3s/4s. Changing direction resets it immediately.
     // Never active while carrying — carriers must stay catchable.
-    const _hasPlatinum = !!(ZS.zoo?.upg?.platinumshoes) && !this.carrying;
+    const _hasPlatinum = !!(ZS.zoo?.upg?.platinumshoes) && !this.carrying && !this._steActive;
     const _keyMoving=(this.keys['KeyW']||this.keys['ArrowUp']||this.keys['KeyS']||this.keys['ArrowDown']||this.keys['KeyA']||this.keys['ArrowLeft']||this.keys['KeyD']||this.keys['ArrowRight']);
     const _fullPower = _hasPlatinum && l>0 && (this.joy.on ? _joyFullPower : _keyMoving);
     if(!_fullPower){
@@ -4619,7 +4619,7 @@ const ZG={
         const halfW=pw/2+0.5, halfD=pd/2+0.5;
         if(Math.abs(this.pl.x-px)<halfW && Math.abs(this.pl.z-pz)<halfD){
           // Player is above platform XZ footprint
-          if(this.pl.y<=SURFACE+0.3 && this.pl.y>=SURFACE-2.5 && this._jumpV<=0.5){
+          if(this.pl.y<=SURFACE+0.3 && this.pl.y>=SURFACE-6 && this._jumpV<=15){
             this.pl.y=SURFACE; this._jumpV=0; landed=true;
           }
         }
@@ -15244,18 +15244,28 @@ const SpeedTemple = {
     ZG._checkpoints=[];
     ZG._checkpointIdx=0;
     const sc=ZG.scene;
+    // ── EIGENE WELT: alles weit weg vom Zoo verschoben (kein Durchblick
+    // auf die Gehege mehr), eigener dunkler Himmel + eigener Boden, damit
+    // sich das wirklich wie ein anderer Ort anfühlt statt "über dem Zoo".
+    const OX=8000, OZ=8000;
+    ZG._steOX=OX; ZG._steOZ=OZ;
+    ZG._steOldClearColor=0x87CEEB;
+    try{ ZG.renderer.setClearColor(0x1a0a2e,1); }catch(e){}
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(400,400),new THREE.MeshBasicMaterial({color:0x0a0518}));
+    floor.rotation.x=-Math.PI/2; floor.position.set(OX,10,OZ); sc.add(floor); ZG._jumpMeshes.push(floor);
     const platMat=new THREE.MeshBasicMaterial({color:0x9B59B6});
     const goalMat=new THREE.MeshBasicMaterial({color:0xFFD700});
-    let platforms=[];
+    let raw=[];
     if(idx===0){
-      platforms=[[0,25,50,10,8],[4,25,38,7,6],[-3,26,26,7,6],[3,26,14,7,6],[0,26,2,7,6],[0,26,-10,12,8]];
+      raw=[[0,25,50,10,8],[4,25,38,7,6],[-3,26,26,7,6],[3,26,14,7,6],[0,26,2,7,6],[0,26,-10,12,8]];
     } else if(idx===1){
-      platforms=[[0,25,50,10,8],[5,26,36,6,5],[-5,27,22,6,5],[5,28,8,6,5],[-3,28,-6,6,5],[0,27,-18,12,8]];
+      raw=[[0,25,50,10,8],[5,26,36,6,5],[-5,27,22,6,5],[5,28,8,6,5],[-3,28,-6,6,5],[0,27,-18,12,8]];
     } else if(idx===2){
-      platforms=[[0,25,50,10,8],[3,26,34,4,4],[-3,27,20,4,4],[3,28,6,4,4],[-3,28,-8,4,4],[0,29,-20,4,4],[0,27,-32,12,8]];
-    } else if(idx===3){ // Boss
-      platforms=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
+      raw=[[0,25,50,10,8],[3,26,34,4,4],[-3,27,20,4,4],[3,28,6,4,4],[-3,28,-8,4,4],[0,29,-20,4,4],[0,27,-32,12,8]];
+    } else if(idx===3){
+      raw=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
     }
+    const platforms=raw.map(([x,y,z,w,d])=>[x+OX,y,z+OZ,w,d]);
     platforms.forEach(([x,y,z,w,d],i)=>{
       const isGoal=i===platforms.length-1;
       const plat=new THREE.Mesh(new THREE.BoxGeometry(w,1.2,d),isGoal?goalMat:platMat);
@@ -15270,26 +15280,58 @@ const SpeedTemple = {
     });
     ZG._jumpPlatforms=platforms;
     if(idx===3){
-      const boss=new THREE.Mesh(new THREE.SphereGeometry(2.5,12,12),new THREE.MeshBasicMaterial({color:0xE74C3C}));
-      boss.position.set(0,29,-10); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss; ZG._bossAngle=0;
+      // Schneller, verfolgender Boss statt einer nur kreisenden Kugel —
+      // jagt direkt hinter dem Spieler her, schneller als normales Tempo.
+      const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0xE74C3C}));
+      boss.position.set(OX,29,OZ-10); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss;
       ZG._bossIv=setInterval(()=>{
-        if(!ZG._bossMesh)return;
-        ZG._bossAngle+=0.03;
-        ZG._bossMesh.position.x=Math.sin(ZG._bossAngle)*8;
-        ZG._bossMesh.position.z=-10+Math.cos(ZG._bossAngle)*4;
+        if(!ZG._bossMesh||!ZG._jumpActive)return;
+        const bp=ZG._bossMesh.position;
+        const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
+        const d=Math.sqrt(dx*dx+dz*dz)||1;
+        const chaseSpeed=0.24; // schneller als normales Lauftempo
+        bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
+        try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
     }
-    ZG.pl.x=0; ZG.pl.y=27; ZG.pl.z=50; ZG.yaw=0; ZG._jumpV=0; ZG._jumpOnGround=true;
+    ZG.pl.x=OX; ZG.pl.y=27; ZG.pl.z=OZ+50; ZG.yaw=0; ZG._jumpV=0; ZG._jumpOnGround=true;
+    this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
     this._showRoomHUD(idx);
+    this._showSpeedHUD();
+  },
+  _showSpeedHUD(){
+    document.getElementById('speedtemple-speed-hud')?.remove();
+    const el=document.createElement('div');
+    el.id='speedtemple-speed-hud';
+    el.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(0,0,0,.75);color:#E056FD;font-weight:900;padding:6px 16px;border-radius:20px;text-align:center;font-size:.85rem;pointer-events:none';
+    document.body.appendChild(el);
+    this._updSpeedHUD();
+  },
+  _updSpeedHUD(){
+    const el=document.getElementById('speedtemple-speed-hud'); if(!el) return;
+    const z=ZS.zoo; if(!z) return;
+    el.textContent='⚡ '+Math.round(z.escSpeed||0)+' Speed';
   },
   _checkCollision(){
     if(!ZG._jumpPlatforms) return;
     const px=ZG.pl.x, py=ZG.pl.y, pz=ZG.pl.z;
+    this._updSpeedHUD();
+    // Fußschritt-Ton, solange man sich laufend auf einer Plattform bewegt.
+    if(ZG._jumpOnGround){
+      const moved=Math.abs(px-(this._lastFootX??px))>0.02 || Math.abs(pz-(this._lastFootZ??pz))>0.02;
+      const now=Date.now();
+      if(moved && now-(this._lastFootstep||0)>260){
+        this._lastFootstep=now;
+        try{ ZSound._tone&&ZSound._tone(130,0.07,'square',0.035); }catch(e){}
+      }
+    }
+    this._lastFootX=px; this._lastFootZ=pz;
+    const startPos={x:ZG._steOX+0, y:27, z:ZG._steOZ+50};
     const backToCheckpoint=()=>{
       const cp=ZG._checkpoints&&ZG._checkpoints[ZG._checkpointIdx-1];
       if(cp){ ZG.pl.x=cp.x; ZG.pl.y=cp.y; ZG.pl.z=cp.z; }
-      else { ZG.pl.x=0; ZG.pl.y=27; ZG.pl.z=50; }
+      else { ZG.pl.x=startPos.x; ZG.pl.y=startPos.y; ZG.pl.z=startPos.z; }
       ZG._jumpV=0;
     };
     if(py<15){ ZP.toast('↩️ Runtergefallen — zurück zum Kontrollpunkt!',1500); backToCheckpoint(); return; }
@@ -15304,7 +15346,7 @@ const SpeedTemple = {
     }
     if(ZG._bossMesh){
       const bd=Math.sqrt((px-ZG._bossMesh.position.x)**2+(py-ZG._bossMesh.position.y)**2+(pz-ZG._bossMesh.position.z)**2);
-      if(bd<3){ ZP.toast('💥 Vom Wächter getroffen!',1500); backToCheckpoint(); }
+      if(bd<3){ ZP.toast('💥 Vom Boss erwischt!',1500); backToCheckpoint(); }
     }
     if(ZG._goalPos){
       const gp=ZG._goalPos, dx=px-gp.x, dz=pz-gp.z;
@@ -15327,7 +15369,9 @@ const SpeedTemple = {
     if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
     ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null;
+    try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
+    document.getElementById('speedtemple-speed-hud')?.remove();
     if(ZG._steZooSave){ const s=ZG._steZooSave; ZG.pl.x=s.x; ZG.pl.y=s.y; ZG.pl.z=s.z; ZG.yaw=s.yaw; }
   },
   _showRoomHUD(idx){
