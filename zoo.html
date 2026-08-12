@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v517 -->
+<!-- ZOO v518 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=517"></script>
-<script src="rewardchests.js?v=517"></script>
-<script src="personality.js?v=517"></script>
+<script src="lang.js?v=518"></script>
+<script src="rewardchests.js?v=518"></script>
+<script src="personality.js?v=518"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v517','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v518','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=517"></script>
-<script src="worlds.js?v=517"></script>
+<script src="firebase-state.js?v=518"></script>
+<script src="worlds.js?v=518"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3905,7 +3905,7 @@ const ZG={
       });
     }
 
-    // ═══ SPEED-TEMPEL PORTAL (Escape-World, 3 Rebirths + 1 Mrd MT nötig) ═══
+    // ═══ SPEED-TEMPEL PORTAL (Escape-World, 1 Rebirth nötig) ═══
     this._speedTemplePositions = [];
     {
       this.ZONES.forEach((zone)=>{
@@ -3917,7 +3917,7 @@ const ZG={
         const core=new THREE.Mesh(new THREE.CircleGeometry(2.4,24),new THREE.MeshBasicMaterial({color:0x2a0a3a,transparent:true,opacity:.85}));
         core.position.set(px,3.2,pz); sc.add(core);
         const pLbl=this._txt('⚡ SPEED-TEMPEL',0.65,'#E056FD'); pLbl.position.set(px,7.2,pz); pLbl.scale.set(8,2,1); sc.add(pLbl);
-        const pLbl2=this._txt('Braucht 3 Rebirths + 1 Mrd MT ⚡',0.5,'#fff'); pLbl2.position.set(px,6.2,pz); pLbl2.scale.set(7.5,1.4,1); sc.add(pLbl2);
+        const pLbl2=this._txt('Braucht 1 Rebirth ⚡',0.5,'#fff'); pLbl2.position.set(px,6.2,pz); pLbl2.scale.set(7.5,1.4,1); sc.add(pLbl2);
         this._speedTemplePositions.push({x:px,z:pz,ring1,ring2});
       });
     }
@@ -15157,7 +15157,7 @@ const CollectionTerminal = {
 };
 
 // ══════════════════════════════════════════════════════════════════
-// ⚡ SPEED-TEMPEL: eigene Welt, freigeschaltet ab 3 Rebirths + 1 Mrd MT.
+// ⚡ SPEED-TEMPEL: eigene Welt, freigeschaltet ab 1 Rebirth.
 // Geschwindigkeits-Stat wächst automatisch (alle 10s um den Verdienst
 // aller eigenen Tiere zusammen) und schaltet damit nach und nach mehr
 // der 15 Räume frei. STUFE 1: erste 3 Räume + 1 Boss sind wirklich
@@ -15188,7 +15188,7 @@ const SPEEDTEMPLE_BUILT = 4; // erste 4 (3 Räume + 1 Boss) sind fertig
 const SpeedTemple = {
   isUnlocked(){
     const z=ZS.zoo; if(!z) return false;
-    return (z.reb||0)>=3 && ((ZS.dsMT||0)+z.mt)>=1000000000;
+    return (z.reb||0)>=1;
   },
   // Läuft im Hintergrund, egal wo man gerade ist — Geschwindigkeit wächst
   // mit dem Gesamtverdienst der eigenen Tiere, nicht nur im Tempel selbst.
@@ -15202,7 +15202,7 @@ const SpeedTemple = {
   },
   open(){
     if(!this.isUnlocked()){
-      ZP.toast('⚡ Braucht 3 Rebirths + insgesamt 1 Milliarde MT, um den Speed-Tempel zu betreten!',4000);
+      ZP.toast('⚡ Braucht 1 Rebirth, um den Speed-Tempel zu betreten!',4000);
       return;
     }
     this._showHub();
@@ -15245,15 +15245,24 @@ const SpeedTemple = {
     ZG._checkpointIdx=0;
     const sc=ZG.scene;
     // ── EIGENE WELT: alles weit weg vom Zoo verschoben (kein Durchblick
-    // auf die Gehege mehr), eigener dunkler Himmel + eigener Boden, damit
-    // sich das wirklich wie ein anderer Ort anfühlt statt "über dem Zoo".
+    // auf die Gehege mehr) — grüner, hell ausgeleuchteter Raum mit Wänden
+    // und Decke statt dunkler Plattformen, die im Nichts schweben.
     const OX=8000, OZ=8000;
     ZG._steOX=OX; ZG._steOZ=OZ;
     ZG._steOldClearColor=0x87CEEB;
-    try{ ZG.renderer.setClearColor(0x1a0a2e,1); }catch(e){}
-    const floor=new THREE.Mesh(new THREE.PlaneGeometry(400,400),new THREE.MeshBasicMaterial({color:0x0a0518}));
+    try{ ZG.renderer.setClearColor(0x6FE080,1); }catch(e){}
+    const roomMat=new THREE.MeshBasicMaterial({color:0x8FF0A0});
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(400,400),roomMat);
     floor.rotation.x=-Math.PI/2; floor.position.set(OX,10,OZ); sc.add(floor); ZG._jumpMeshes.push(floor);
-    const platMat=new THREE.MeshBasicMaterial({color:0x9B59B6});
+    const ceil=new THREE.Mesh(new THREE.PlaneGeometry(400,400),roomMat);
+    ceil.rotation.x=Math.PI/2; ceil.position.set(OX,60,OZ); sc.add(ceil); ZG._jumpMeshes.push(ceil);
+    [[OX-200,30,OZ,0],[OX+200,30,OZ,0],[OX,30,OZ-200,1],[OX,30,OZ+200,1]].forEach(([x,y,z,rotY])=>{
+      const wall=new THREE.Mesh(new THREE.PlaneGeometry(400,50),roomMat);
+      wall.position.set(x,y,z); wall.rotation.y=rotY?0:Math.PI/2; sc.add(wall); ZG._jumpMeshes.push(wall);
+    });
+    const glow=new THREE.PointLight(0xffffff,1.2,300);
+    glow.position.set(OX,45,OZ); sc.add(glow); ZG._jumpMeshes.push(glow);
+    const platMat=new THREE.MeshBasicMaterial({color:0xFFFFFF});
     const goalMat=new THREE.MeshBasicMaterial({color:0xFFD700});
     let raw=[];
     if(idx===0){
