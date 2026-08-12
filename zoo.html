@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v509 -->
+<!-- ZOO v512 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=509"></script>
-<script src="rewardchests.js?v=509"></script>
-<script src="personality.js?v=509"></script>
+<script src="lang.js?v=512"></script>
+<script src="rewardchests.js?v=512"></script>
+<script src="personality.js?v=512"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v509','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v512','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=509"></script>
-<script src="worlds.js?v=509"></script>
+<script src="firebase-state.js?v=512"></script>
+<script src="worlds.js?v=512"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -686,6 +686,7 @@ const ScreenTime = {
       console.log('[ScreenTime-debug] Neuer Tag ('+today+', vorher: '+(z.screenTimeDay||'nie')+') — Spielzeit auf volle '+this.cfg.limitMin+' Min aufgefrischt.');
       z.screenTimeDay=today;
       z.screenTimeUsedSec=0;
+      z.screenTimeExtraUsed=false;
       ZS.save&&ZS.save();
     }
   },
@@ -701,13 +702,47 @@ const ScreenTime = {
     if(this.isExemptPlayer() || !this.cfg.enabled) return;
     const z=ZS.zoo; if(!z) return;
 
+    // ── EINMALIGES SONDER-FENSTER: 13.8.2026 18:00–19:30, jeder darf
+    // spielen egal ob das Tageslimit schon aufgebraucht ist. Direkt nach
+    // 19:30 (einmalig, nicht bei jedem weiteren Login an dem Tag) wird
+    // die Tages-Zeit nochmal komplett aufgefrischt — "geht's von vorne
+    // los" — bevor ab dann wieder ganz normal die übliche
+    // Mitternachts-Regel gilt.
+    const SPECIAL_START=new Date(2026,7,13,18,0,0).getTime();
+    const SPECIAL_END=new Date(2026,7,13,19,30,0).getTime();
+    const now=Date.now();
+    if(now>=SPECIAL_START && now<SPECIAL_END){
+      console.log('[ScreenTime-debug] Sonder-Fenster aktiv (13.8. 18:00–19:30) — Zeitlimit komplett ausgesetzt.');
+      if(this.el){ this.el.remove(); this.el=null; }
+      document.getElementById('screentime-limit-overlay')?.remove();
+      if(this._iv){ clearInterval(this._iv); this._iv=null; }
+      if(this._dayWatchIv) clearInterval(this._dayWatchIv);
+      this._dayWatchIv=setInterval(()=>{
+        if(Date.now()>=SPECIAL_END){ console.log('[ScreenTime-debug] Sonder-Fenster vorbei — normales Limit greift wieder.'); this.init(); }
+      },5000);
+      return;
+    }
+    if(now>=SPECIAL_END && z.screenTimeSpecialResetDone!=='2026-08-13-1930'){
+      console.log('[ScreenTime-debug] Einmaliger Auffrisch-Reset um 19:30 (13.8.) durchgeführt.');
+      z.screenTimeUsedSec=0;
+      z.screenTimeDay=this._todayStr();
+      z.screenTimeSpecialResetDone='2026-08-13-1930';
+      ZS.save&&ZS.save();
+    }
+
     this._dailyResetCheck(z);
     const usedSec=z.screenTimeUsedSec||0;
     const remainingSec=Math.max(0, this.cfg.limitMin*60 - usedSec);
     console.log('[ScreenTime-debug] Heute («'+z.screenTimeDay+'») bereits gespielt: '+Math.round(usedSec/6)/10+' Min von '+this.cfg.limitMin+' Min — verbleibend: '+Math.round(remainingSec/6)/10+' Min.');
     this.sessionEnd=Date.now()+remainingSec*1000;
     this.warned=false;
-    this._extraFiveUsed=false;
+    // BUG FIX: this used to just set false unconditionally, so leaving
+    // and returning to the Zoo (a full page reload) reset the in-memory
+    // flag and quietly granted a brand-new "Noch 5 Min" every time —
+    // it's supposed to be one-time per day. Read the persisted value
+    // instead (cleared only by _dailyResetCheck above, on a genuine new
+    // day).
+    this._extraFiveUsed=!!z.screenTimeExtraUsed;
     this._showTimer();
     if(remainingSec<=0){ this._showLimitReached(); }
     else { this._tick(); }
@@ -791,6 +826,7 @@ const ScreenTime = {
       const z=ZS.zoo;
       if(z){
         z.screenTimeUsedSec=this.cfg.limitMin*60;
+        z.screenTimeExtraUsed=true;
         ZS.save&&ZS.save();
       }
       this._extraFiveUsed=true;
@@ -3680,6 +3716,23 @@ const ZG={
         this._dicePositions.push({x:dx,z:dz});
       });
     }
+
+    // ═══ SAMMLUNGS-TERMINAL (look up any player's animal collection) ═══
+    this._terminalPositions = [];
+    {
+      this.ZONES.forEach((zone)=>{
+        const tx=zone.x+34, tz=zone.z; // clear of the 4 corner machines
+        const tBase=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2,0.5,8),new THREE.MeshBasicMaterial({color:0x1a2a3a}));
+        tBase.position.set(tx,0.25,tz); sc.add(tBase);
+        const tBody=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.6,1),new THREE.MeshBasicMaterial({color:0x2C3E50}));
+        tBody.position.set(tx,1.8,tz); sc.add(tBody);
+        const tScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1.6),new THREE.MeshBasicMaterial({color:0x00CFFF}));
+        tScreen.position.set(tx,2.1,tz+0.51); sc.add(tScreen);
+        const tLbl=this._txt('🔍 SAMMLUNGS-TERMINAL',0.6,'#00CFFF'); tLbl.position.set(tx,4.6,tz); tLbl.scale.set(8,2,1); sc.add(tLbl);
+        const tLbl2=this._txt('Wer hat welche Tiere? 🔍',0.5,'#fff'); tLbl2.position.set(tx,3.6,tz); tLbl2.scale.set(7,1.4,1); sc.add(tLbl2);
+        this._terminalPositions.push({x:tx,z:tz});
+      });
+    }
   },
 
   // A small plaza between the gondola station (z=0) and the enclosure ring
@@ -4012,6 +4065,7 @@ const ZG={
       if(this._nearSweeper){Sweeper.open();return;}
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
+      if(this._nearTerminal){CollectionTerminal.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0)this._interact();
@@ -4055,13 +4109,14 @@ const ZG={
       if(this._nearSweeper){Sweeper.open();return;}
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
+      if(this._nearTerminal){CollectionTerminal.open();return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
         this.slap(t.clientX, t.clientY);
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -4108,7 +4163,7 @@ const ZG={
         const speed = 6;
         const nx = m.position.x + Math.sin(this._sweeperHeading)*speed*dt;
         const nz = m.position.z + Math.cos(this._sweeperHeading)*speed*dt;
-        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[]), ...(this._dicePositions||[])];
+        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[]), ...(this._dicePositions||[]), ...(this._terminalPositions||[])];
         const PLAZA_R = 26; // stays well clear of the 45-radius enclosure ring
         const zc = (this.ZONES && this.ZONES[0]) || {x:0,z:55};
         let blocked = Math.hypot(nx-zc.x, nz-zc.z) > PLAZA_R;
@@ -4675,6 +4730,12 @@ const ZG={
     this._nearDiceMachine = _dcDist < 6;
     if(this._nearDiceMachine && !this._dcHinted){ this._dcHinted=true; ZP.toast('🎲 Tippe die Würfel-Maschine an!',2500); }
     else if(!this._nearDiceMachine){ this._dcHinted=false; }
+    // Sammlungs-Terminal proximity
+    let _tmDist=999;
+    (this._terminalPositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_tmDist)_tmDist=d;});
+    this._nearTerminal = _tmDist < 6;
+    if(this._nearTerminal && !this._tmHinted){ this._tmHinted=true; ZP.toast('🔍 Tippe das Sammlungs-Terminal an!',2500); }
+    else if(!this._nearTerminal){ this._tmHinted=false; }
     // 💰 Geldsack-Regen: bags are collected just by walking into them —
     // no button/tap needed, matches "berühren" from the request.
     if(this._moneyBags && this._moneyBags.length){
@@ -5178,7 +5239,7 @@ const ZG={
   startMoneyBagRain(dur){
     if(!this._moneyBags) this._moneyBags=[];
     if(this._moneyBagIv) clearInterval(this._moneyBagIv);
-    const totalBags=4000; // ~20x the original amount, per request
+    const totalBags=700;
     const intervalMs=Math.max(50, Math.floor(dur/totalBags));
     const R=(this.WR||45)-5;
     let spawned=0;
@@ -5207,6 +5268,74 @@ const ZG={
       if(spawned>=totalBags){ clearInterval(this._moneyBagIv); this._moneyBagIv=null; }
     },intervalMs);
     spawnOne(); // first one immediately, don't wait a full interval
+  },
+
+  // ── 🦋 SCHMETTERLINGS-SCHWARM ── colorful butterfly sprites orbiting
+  // loosely around the player for `dur`ms, wandering gently rather than
+  // pinned exactly to them.
+  startButterflies(dur){
+    if(!this.scene) return;
+    if(this._butterflyIv) clearInterval(this._butterflyIv);
+    if(this._butterflies) this._butterflies.forEach(b=>{ if(b.sprite.parent) this.scene.remove(b.sprite); });
+    this._butterflies=[];
+    const colors=['#FF6EC7','#FFD93D','#4D96FF','#6BCB77','#FFA94D','#B388FF'];
+    for(let i=0;i<16;i++){
+      const sprite=this._txt('🦋',0.9,colors[i%colors.length]);
+      this.scene.add(sprite);
+      this._butterflies.push({
+        sprite, angle:Math.random()*Math.PI*2, radius:3+Math.random()*5,
+        speed:0.6+Math.random()*0.7, offX:(Math.random()-0.5)*22, offZ:(Math.random()-0.5)*22,
+        yBase:1.4+Math.random()*2.2,
+      });
+    }
+    const startT=performance.now();
+    this._butterflyIv=setInterval(()=>{
+      this._butterflies.forEach(b=>{
+        b.angle+=b.speed*0.05;
+        const cx=this.pl.x+b.offX, cz=this.pl.z+b.offZ;
+        b.sprite.position.x=cx+Math.cos(b.angle)*b.radius;
+        b.sprite.position.z=cz+Math.sin(b.angle)*b.radius;
+        b.sprite.position.y=b.yBase+Math.sin(b.angle*3)*0.3;
+      });
+      if(performance.now()-startT>=dur){
+        clearInterval(this._butterflyIv); this._butterflyIv=null;
+        this._butterflies.forEach(b=>{ if(b.sprite.parent) this.scene.remove(b.sprite); });
+        this._butterflies=[];
+      }
+    },50);
+  },
+
+  // ── 🌑 SONNENFINSTERNIS ── a dark "moon" disk (with a thin glowing
+  // corona ring) slides in front of the sun over the first half of
+  // `dur`, then slides back out over the second half. depthTest:false +
+  // a high renderOrder guarantee it always draws on top of the sun
+  // mesh, regardless of actual 3D distance/z-ordering.
+  startEclipse(dur){
+    if(!this.scene || !this._sunMesh) return;
+    if(this._eclipseIv) clearInterval(this._eclipseIv);
+    if(!this._moonMesh){
+      const g=new THREE.Group();
+      const moon=new THREE.Mesh(new THREE.SphereGeometry(8.3,16,16),new THREE.MeshBasicMaterial({color:0x0a0a0a,depthTest:false,depthWrite:false}));
+      moon.renderOrder=999; g.add(moon);
+      const corona=new THREE.Mesh(new THREE.RingGeometry(8.4,9.6,40),new THREE.MeshBasicMaterial({color:0xfff5b0,transparent:true,opacity:.85,side:THREE.DoubleSide,depthTest:false,depthWrite:false}));
+      corona.renderOrder=998; g.add(corona);
+      this._moonMesh=g;
+    }
+    this.scene.add(this._moonMesh);
+    const startT=performance.now(), half=dur/2;
+    this._eclipseIv=setInterval(()=>{
+      const t=performance.now()-startT;
+      const progress = t<half ? Math.min(1,t/half) : Math.max(0,1-(t-half)/half); // 0=away, 1=fully covering
+      if(this._sunMesh){
+        const sp=this._sunMesh.position;
+        const sideOffset=45*(1-progress);
+        this._moonMesh.position.set(sp.x+sideOffset, sp.y, sp.z);
+      }
+      if(t>=dur){
+        clearInterval(this._eclipseIv); this._eclipseIv=null;
+        if(this._moonMesh && this._moonMesh.parent) this.scene.remove(this._moonMesh);
+      }
+    },50);
   },
 
   _updHUD(){
@@ -5337,6 +5466,7 @@ const ZG={
     if(this._nearSweeper){Sweeper.open();return;}
     if(this._nearBreedMachine){BreedMachine.open();return;}
     if(this._nearDiceMachine){DiceMachine.open();return;}
+    if(this._nearTerminal){CollectionTerminal.open();return;}
   },
 
   _useTool(sl, clientX, clientY){
@@ -6727,6 +6857,16 @@ const ZG={
       const dur=cmd.dur||300000;
       ZP.toast('💰 Geldsack-Regen! 5 Min lang fallen Geldsäcke vom Himmel — je 500 MT beim Berühren!',5000);
       try{ this.startMoneyBagRain(dur); }catch(e){}
+    }
+    else if(cmd.type==='butterflies'){
+      const dur=cmd.dur||300000;
+      ZP.toast('🦋 Ein Schmetterlings-Schwarm zieht durch den Zoo!',4000);
+      try{ this.startButterflies(dur); }catch(e){}
+    }
+    else if(cmd.type==='eclipse'){
+      const dur=cmd.dur||300000;
+      ZP.toast('🌑 Sonnenfinsternis! Über 5 Min schiebt sich der Mond vor die Sonne...',4500);
+      try{ this.startEclipse(dur); }catch(e){}
     }
     else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
     else if(cmd.type==='poll'){
@@ -11545,6 +11685,8 @@ const ZAdmin = {
       +'<button class="padmin-btn" style="background:#FF6EC7;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerCircus()">🎪 Stiller Zirkus</button>'
       +'<button class="padmin-btn" style="background:#5DADE2;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerFrostMinute()">🧊 Frost-Minute</button>'
       +'<button class="padmin-btn" style="background:#B7950B;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerMoneyBags()">💰 Geldsack-Regen</button>'
+      +'<button class="padmin-btn" style="background:#EC7063;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerButterflies()">🦋 Schmetterlinge</button>'
+      +'<button class="padmin-btn" style="background:#17202A;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerEclipse()">🌑 Sonnenfinsternis</button>'
       +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:6px">🚨 Notfälle (an ausgewählten Spieler):</div>'
       +emergencies.map(em=>'<button class="padmin-btn" style="background:#922;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._sendEmergency(\''+em.fn+'\',\''+em.n+'\')">'+em.n+'</button>').join('');
     if(!this._selectedEventDur)this._selectedEventDur=300000;
@@ -11696,6 +11838,22 @@ const ZAdmin = {
     await ZP._cmd(cmd);
     ZP.toast('💰 Geldsack-Regen gestartet!');
     try{ZNews.push('admin_event',{eventName:'💰 Geldsack-Regen'});}catch(e){}
+  },
+  async _triggerButterflies(){
+    const dur=this._selectedEventDur||300000;
+    if(!(await showConfirm('🦋 Schmetterlings-Schwarm ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Bunte Schmetterlinge fliegen überall im Zoo herum — rein dekorativ.')))return;
+    const cmd={type:'butterflies',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('🦋 Schmetterlings-Schwarm gestartet!');
+    try{ZNews.push('admin_event',{eventName:'🦋 Schmetterlings-Schwarm'});}catch(e){}
+  },
+  async _triggerEclipse(){
+    if(!(await showConfirm('🌑 Sonnenfinsternis an ALLE Online-Spieler senden? Über 5 Minuten schiebt sich der Mond vor die Sonne und wieder zurück.')))return;
+    const dur=300000;
+    const cmd={type:'eclipse',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('🌑 Sonnenfinsternis gestartet!');
+    try{ZNews.push('admin_event',{eventName:'🌑 Sonnenfinsternis'});}catch(e){}
   },
   revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
   async _loadCalFromFirebase(){
@@ -14724,6 +14882,60 @@ const DiceMachine = {
     ZS.save&&ZS.save();
     try{ ZG._updHUD(); }catch(e){}
     if(input) input.value='';
+  },
+};
+
+// ── SAMMLUNGS-TERMINAL: beliebigen Spieler (muss nicht online sein)
+// auswählen und seine Tier-Sammlung mit Beschreibung ansehen.
+const CollectionTerminal = {
+  open(){
+    document.getElementById('terminal-panel')?.remove();
+    const panel=document.createElement('div');
+    panel.id='terminal-panel';
+    panel.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    panel.innerHTML='<div style="background:linear-gradient(135deg,#0f1f2e,#0a1520);border:1px solid rgba(0,207,255,.4);border-radius:16px;padding:22px;max-width:420px;width:95%;max-height:85vh;overflow-y:auto;color:#fff">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><h2 style="flex:1;color:#00CFFF;font-size:1.1rem;margin:0">🔍 Sammlungs-Terminal</h2><button onclick="document.getElementById(\'terminal-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
+      +'<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:10px">Wähle einen Spieler, um seine Tier-Sammlung zu sehen — muss nicht online sein.</div>'
+      +'<div id="terminal-list">⏳ Lade Spielerliste...</div></div>';
+    document.body.appendChild(panel);
+    this._loadPlayerList();
+  },
+  async _loadPlayerList(){
+    const listEl=document.getElementById('terminal-list'); if(!listEl) return;
+    try{
+      const all=await State.getAll();
+      const names=Object.values(all).map(p=>p.name||'').filter(Boolean).sort((a,b)=>a.localeCompare(b));
+      listEl.innerHTML='<div style="max-height:400px;overflow-y:auto">'+names.map(n=>'<div class="term-cand" data-name="'+$esc(n)+'" style="cursor:pointer;padding:8px 10px;border-radius:8px;background:rgba(0,207,255,.08);border:1px solid rgba(0,207,255,.2);margin-bottom:5px;font-size:.82rem">👤 '+$esc(n)+'</div>').join('')+'</div>';
+      listEl.querySelectorAll('.term-cand').forEach(node=>{
+        node.addEventListener('click',()=>this._showCollection(node.dataset.name));
+      });
+    }catch(e){ listEl.innerHTML='<div style="color:rgba(255,165,0,.7);font-size:.8rem">Spielerliste konnte nicht geladen werden.</div>'; }
+  },
+  async _showCollection(name){
+    const listEl=document.getElementById('terminal-list'); if(!listEl) return;
+    listEl.innerHTML='⏳ Lade Sammlung von '+$esc(name)+'...';
+    try{
+      const z=await State.getZoo(name);
+      const animals=(z&&z.enc)?z.enc.filter(e=>e&&e.animal):[];
+      const backBtn='<button onclick="CollectionTerminal._loadPlayerList()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.75rem;margin-bottom:10px">← Zurück zur Liste</button>';
+      if(!animals.length){
+        listEl.innerHTML=backBtn+'<div style="color:rgba(255,255,255,.5);font-size:.82rem;text-align:center;padding:14px">'+$esc(name)+' hat noch keine Tiere.</div>';
+        return;
+      }
+      const rows=animals.map(e=>{
+        const a=e.animal;
+        const tm=(typeof tMul==='function')?tMul(e.shiny,e.traits):1;
+        const perVisit=Math.round((a.earn||0)*tm*(z.rebirthMult||1)*10)/10;
+        const rarLbl=(typeof RARITY_LABELS!=='undefined'&&RARITY_LABELS[a.r])||a.r;
+        const shinyTxt=e.shiny?' ✨ Glänzend':'';
+        return '<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:6px;display:flex;gap:10px;align-items:center">'
+          +'<div style="font-size:1.8rem">'+a.e+'</div>'
+          +'<div style="flex:1"><div style="font-weight:900;font-size:.85rem">'+$esc(a.n)+shinyTxt+'</div>'
+          +'<div style="font-size:.72rem;color:rgba(255,255,255,.5)">Macht '+$mt(perVisit)+' pro Besucher · '+rarLbl+'-Tier</div></div></div>';
+      }).join('');
+      listEl.innerHTML=backBtn+'<div style="font-weight:900;color:#00CFFF;margin-bottom:8px">'+$esc(name)+' — '+animals.length+' Tiere:</div>'+rows;
+    }catch(e){ listEl.innerHTML='<div style="color:rgba(255,165,0,.7);font-size:.8rem">Sammlung konnte nicht geladen werden: '+e.message+'</div>'; }
   },
 };
 
