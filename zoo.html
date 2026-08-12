@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v512 -->
+<!-- ZOO v513 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=512"></script>
-<script src="rewardchests.js?v=512"></script>
-<script src="personality.js?v=512"></script>
+<script src="lang.js?v=513"></script>
+<script src="rewardchests.js?v=513"></script>
+<script src="personality.js?v=513"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v512','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v513','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=512"></script>
-<script src="worlds.js?v=512"></script>
+<script src="firebase-state.js?v=513"></script>
+<script src="worlds.js?v=513"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1329,7 +1329,167 @@ function rTr(ev){
   return got.slice(0,5);
 }
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;
+// ══════════════════════════════════════════════════════════════════
+// 🎫 MT-PASS: XP sammeln (Slap=10, Tier kaufen=30, Tier verkaufen=50,
+// Tier freilassen=100), Stufen freischalten (nacheinander, jede Stufe
+// braucht die vorherige), am Ende ein Super-Pass mit viel stärkeren
+// Belohnungen für vergleichsweise wenig XP. Der ganze Pass (XP +
+// freigeschaltete Stufen) setzt sich alle 2 Wochen zurück.
+// ══════════════════════════════════════════════════════════════════
+const MTPASS_SEASON_LEN_MS = 14*24*60*60*1000; // 2 Wochen
+const MTPASS_SEASON_EPOCH = new Date(2026,7,13,0,0,0).getTime(); // Referenzpunkt für die Season-Zählung
+
+const MTPASS_TIERS = [
+  {xp:50,    type:'money',   mult:2,  dur:5},
+  {xp:300,   type:'visitor', mult:2,  dur:5},
+  {xp:600,   type:'money',   mult:3,  dur:5},
+  {xp:900,   type:'spins',   amount:1},
+  {xp:1300,  type:'visitor', mult:3,  dur:5},
+  {xp:1800,  type:'money',   mult:2,  dur:10},
+  {xp:2400,  type:'luck',    mult:2,  dur:10},
+  {xp:3100,  type:'spins',   amount:2},
+  {xp:3900,  type:'xenc',    amount:1},
+  {xp:4800,  type:'money',   mult:5,  dur:5},
+  {xp:5800,  type:'visitor', mult:2,  dur:15},
+  {xp:6900,  type:'luck',    mult:3,  dur:10},
+  {xp:8100,  type:'spins',   amount:3},
+  {xp:9400,  type:'money',   mult:3,  dur:15},
+  {xp:10800, type:'visitor', mult:3,  dur:15},
+  {xp:12300, type:'luck',    mult:5,  dur:10},
+  {xp:13900, type:'money',   mult:5,  dur:10},
+  {xp:15600, type:'xenc',    amount:1},
+  {xp:17400, type:'visitor', mult:5,  dur:15},
+  {xp:19300, type:'money',   mult:10, dur:15},
+];
+const MTPASS_SUPER_TIERS = [
+  {xp:2000, type:'money',   mult:10, dur:20},
+  {xp:3000, type:'visitor', mult:5,  dur:20},
+  {xp:4000, type:'luck',    mult:10, dur:15},
+  {xp:5000, type:'xenc',    amount:2},
+  {xp:6000, type:'money',   mult:20, dur:30},
+];
+
+const MTPass = {
+  currentSeason(){ return Math.floor((Date.now()-MTPASS_SEASON_EPOCH)/MTPASS_SEASON_LEN_MS); },
+  seasonEndsAt(){ const s=this.currentSeason(); return MTPASS_SEASON_EPOCH+(s+1)*MTPASS_SEASON_LEN_MS; },
+  _ensureFresh(z){
+    const season=this.currentSeason();
+    if(z.mtPassSeason!==season){
+      console.log('[MTPass-debug] Neue Season ('+season+', vorher: '+(z.mtPassSeason??'nie')+') — XP und Stufen zurückgesetzt.');
+      z.mtPassSeason=season; z.mtPassXP=0; z.mtPassClaimed=[]; z.mtPassSuperClaimed=[];
+      ZS.save&&ZS.save();
+    }
+  },
+  addXP(amount,reason){
+    try{
+      const z=ZS.zoo; if(!z) return;
+      this._ensureFresh(z);
+      z.mtPassXP=(z.mtPassXP||0)+amount;
+      ZS.save&&ZS.save();
+      console.log('[MTPass-debug] +'+amount+' XP ('+reason+') — Gesamt: '+z.mtPassXP);
+    }catch(e){}
+  },
+  // Applies a claimed tier's reward. Timed boosts (money/visitor/luck)
+  // stack their DURATION if the same type is already running, rather
+  // than overwriting a longer one with a shorter one.
+  _applyReward(tier){
+    const z=ZS.zoo; if(!z) return '';
+    if(!z.mtPassBoosts) z.mtPassBoosts={};
+    if(tier.type==='money'||tier.type==='visitor'||tier.type==='luck'){
+      const key=tier.type;
+      const cur=z.mtPassBoosts[key];
+      const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
+      z.mtPassBoosts[key]={mult:tier.mult, until:base+tier.dur*60000};
+      ZS.save&&ZS.save();
+      const label=tier.type==='money'?'💰 Geld':tier.type==='visitor'?'👥 Besucher':'🍀 Glück';
+      return label+' ×'+tier.mult+' für '+tier.dur+' Min!';
+    } else if(tier.type==='spins'){
+      LW.spins=(LW.spins||0)+tier.amount;
+      LW._saveSpins&&LW._saveSpins();
+      return '🎡 +'+tier.amount+' Gratis-Drehs am Glücksrad!';
+    } else if(tier.type==='xenc'){
+      z.xenc=(z.xenc||0)+tier.amount;
+      ZS._fix&&ZS._fix();
+      ZS.save&&ZS.save();
+      return '🏠 +'+tier.amount+' Gehege dauerhaft freigeschaltet!';
+    }
+    return '';
+  },
+  claim(idx,isSuper){
+    const z=ZS.zoo; if(!z) return;
+    this._ensureFresh(z);
+    const tiers=isSuper?MTPASS_SUPER_TIERS:MTPASS_TIERS;
+    const claimedArr=isSuper?(z.mtPassSuperClaimed||[]):(z.mtPassClaimed||[]);
+    const tier=tiers[idx]; if(!tier) return;
+    if(claimedArr.includes(idx)){ ZP.toast('❌ Schon abgeholt!'); return; }
+    if(idx>0 && !claimedArr.includes(idx-1)){ ZP.toast('❌ Erst die vorherige Stufe freischalten!'); return; }
+    if(!isSuper && idx===0){ /* first tier has no prerequisite */ }
+    if(isSuper && idx===0 && !(z.mtPassClaimed||[]).includes(MTPASS_TIERS.length-1)){ ZP.toast('❌ Erst den ganzen normalen Pass durchspielen!'); return; }
+    if((z.mtPassXP||0)<tier.xp){ ZP.toast('❌ Nicht genug XP! Brauchst '+tier.xp+', hast '+(z.mtPassXP||0)); return; }
+    const msg=this._applyReward(tier);
+    claimedArr.push(idx);
+    if(isSuper) z.mtPassSuperClaimed=claimedArr; else z.mtPassClaimed=claimedArr;
+    ZS.save&&ZS.save();
+    ZP.toast('🎫 Stufe freigeschaltet! '+msg,3500);
+    try{ this._render(); }catch(e){}
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+  },
+  open(){
+    const z=ZS.zoo; if(!z) return;
+    this._ensureFresh(z);
+    const existing=document.getElementById('mtpass-panel'); if(existing) existing.remove();
+    const panel=document.createElement('div');
+    panel.id='mtpass-panel';
+    panel.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    panel.innerHTML='<div style="background:linear-gradient(135deg,#2a1a3e,#1a0f2e);border:1px solid rgba(255,215,0,.4);border-radius:16px;padding:20px;max-width:480px;width:95%;max-height:88vh;overflow-y:auto;color:#fff">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><h2 style="flex:1;color:#FFD700;font-size:1.15rem;margin:0">🎫 MT-Pass</h2><button onclick="document.getElementById(\'mtpass-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
+      +'<div id="mtpass-body"></div></div>';
+    document.body.appendChild(panel);
+    this._render();
+  },
+  _render(){
+    const body=document.getElementById('mtpass-body'); if(!body) return;
+    const z=ZS.zoo; if(!z) return;
+    this._ensureFresh(z);
+    const xp=z.mtPassXP||0;
+    const claimed=z.mtPassClaimed||[];
+    const superClaimed=z.mtPassSuperClaimed||[];
+    const daysLeft=Math.max(0,Math.ceil((this.seasonEndsAt()-Date.now())/(24*60*60*1000)));
+    const passDone=claimed.length>=MTPASS_TIERS.length;
+
+    const tierRow=(tier,idx,isSuper)=>{
+      const arr=isSuper?superClaimed:claimed;
+      const isClaimed=arr.includes(idx);
+      const prereqOk=idx===0 ? (isSuper?passDone:true) : arr.includes(idx-1);
+      const canAfford=xp>=tier.xp;
+      const label=tier.type==='money'?'💰 Geld ×'+tier.mult+' ('+tier.dur+' Min)'
+        :tier.type==='visitor'?'👥 Besucher ×'+tier.mult+' ('+tier.dur+' Min)'
+        :tier.type==='luck'?'🍀 Glück ×'+tier.mult+' ('+tier.dur+' Min)'
+        :tier.type==='spins'?'🎡 +'+tier.amount+' Gratis-Drehs'
+        :'🏠 +'+tier.amount+' Gehege (dauerhaft)';
+      const bg=isClaimed?'rgba(39,174,96,.15)':!prereqOk?'rgba(255,255,255,.03)':'rgba(255,215,0,.08)';
+      const border=isClaimed?'#27AE60':!prereqOk?'transparent':(canAfford?'#FFD700':'rgba(255,215,0,.3)');
+      return '<div style="background:'+bg+';border:1px solid '+border+';border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">'
+        +'<div style="font-size:.7rem;color:rgba(255,255,255,.4);min-width:24px">'+(idx+1)+'.</div>'
+        +'<div style="flex:1"><div style="font-weight:700;font-size:.8rem">'+label+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.45)">'+tier.xp+' XP</div></div>'
+        +(isClaimed?'<div style="color:#27AE60;font-weight:900;font-size:.8rem">✓</div>'
+          :!prereqOk?'<div style="font-size:.68rem;color:rgba(255,255,255,.35)">🔒</div>'
+          :'<button onclick="MTPass.claim('+idx+','+!!isSuper+')" '+(canAfford?'':'disabled')+' style="background:'+(canAfford?'#FFD700':'rgba(255,255,255,.1)')+';color:'+(canAfford?'#000':'rgba(255,255,255,.4)')+';border:none;padding:6px 12px;border-radius:8px;font-weight:900;font-size:.72rem;cursor:'+(canAfford?'pointer':'default')+'">Holen</button>')
+        +'</div>';
+    };
+
+    body.innerHTML='<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px;text-align:center">'
+      +'<div style="font-size:1.3rem;font-weight:900;color:#FFD700">'+xp+' XP</div>'
+      +'<div style="font-size:.68rem;color:rgba(255,255,255,.5)">Season endet in '+daysLeft+' Tag'+(daysLeft===1?'':'en')+' — dann alles zurückgesetzt</div>'
+      +'<div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-top:6px">Slap = 10 XP · Tier kaufen = 30 XP · Tier verkaufen = 50 XP · Tier freilassen = 100 XP</div></div>'
+      +MTPASS_TIERS.map((t,i)=>tierRow(t,i,false)).join('')
+      +'<div style="font-weight:900;color:#B388FF;margin:14px 0 6px;text-align:center">🌟 SUPER-PASS'+(passDone?'':' (erst normalen Pass ganz durchspielen)')+'</div>'
+      +MTPASS_SUPER_TIERS.map((t,i)=>tierRow(t,i,true)).join('');
+  },
+};
+
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;
   // EARLY GAME PACING: with just the first animal and no rebirth yet, income
   // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
   // that to roughly 7 minutes so the very beginning isn't instantly rushed —
@@ -1344,7 +1504,7 @@ const ZS={
   player:null,char:null,zoo:null,isAdmin:false,isPrivate:false,
   nz(){return{mt:8,te:0,tv:0,enc:Array(5).fill(null),luck:1,luckLv:0,upg:{},tb:{},reb:0,rebirthMult:1,xenc:0,st:Date.now(),lslaps:0,ownSlaps:['basic'],eq:'basic'};},
   maxE(){return 5+(this.zoo?.xenc||0);}, // BUG FIX: this used to be hardcoded to a flat 5 no matter what, silently ignoring z.xenc entirely — the rebirth reward ("+2 extra Gehege"), the shop's "+1 Extra Gehege" item, and the "Gondel-Meister" secret achievement ("+5 extra Gehege") ALL correctly incremented z.xenc, but nothing ever actually acted on it, so none of those promised extra enclosures ever showed up.
-  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.tb?.vis2x||0)>Date.now())ms/=2;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
+  visitMs(){const z=this.zoo;if(!z)return 9000;let ms=9000;if(z.upg?.vis)ms/=2;if(z.upg?.vis2)ms/=2;if(ZG.ev?.id==='rush')ms/=5;ms/=Math.max(1,1+(z.reb||0)*.4);if(z.upg?.vis_m)ms/=2;if((z.tb?.storm||0)>Date.now())ms/=8;if((z.tb?.vis2x||0)>Date.now())ms/=2;if((z.mtPassBoosts?.visitor?.until||0)>Date.now())ms/=z.mtPassBoosts.visitor.mult;if((z.sweepUntil||0)>Date.now())ms/=(1+0.012*(z.sweepStacks||1));if((z.visitorDebuffUntil||0)>Date.now())ms*=(1+(z.visitorDebuffPct||20)/100);return Math.max(500,ms);},
   lk(){
     const z=this.zoo; if(!z) return 1;
     // z.luck is the PERMANENT value from shop purchases (_bLuck) — never
@@ -1359,6 +1519,7 @@ const ZS={
       l=Math.max(l, z.adminLuckMult); // temporary — only counts while it's both active AND better than your own
     }
     if((z.tb?.lucky||0)>Date.now())l*=2;
+    if((z.mtPassBoosts?.luck?.until||0)>Date.now())l*=z.mtPassBoosts.luck.mult;
     if(ZG.ev?.id==='night')l*=1.5;
     // Temporary ×100 Glücks-Bonus, bought in the Gondel
     // (see ZP._bLuck50). Deliberately applied here rather than a
@@ -5556,6 +5717,7 @@ const ZG={
     if(sl.fly){const fly=document.createElement('div');fly.className='kofly';fly.style.cssText='left:44%;bottom:115px;';fly.textContent='🍀';document.body.appendChild(fly);setTimeout(()=>fly.remove(),1600);}
     this._trackWeaponUse();
     this._updWBar(); ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
+    try{ MTPass.addXP(10,'Slap'); }catch(e){}
     // Find and hit whichever player is actually clicked/tapped on (within range)
     this._slapNearby(sl, clientX, clientY);
   },
@@ -8617,6 +8779,7 @@ const ZP={
     if((z.gondLockUntil||0)>Date.now()){this.toast(_gt('zoo.gondola_locked_toast','🚓 Gondel gesperrt (Polizei)! Noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)}),3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast(_gt('zoo.all_enc_full','❌ Alle Gehege belegt!'));return;}if(((ZS.dsMT||0)+z.mt)<g.a.p){this.toast(_gt('zoo.too_little_mt','❌ Zu wenig MT!'));return;}
     // Deduct cost + advance queue
     z.mt-=g.a.p; ZG.gQ.shift(); ZG.gQ.push(ZG._mkG()); ZG._updHUD&&ZG._updHUD(); try{ZS.save&&ZS.save();}catch(e){}
+    try{ MTPass.addXP(30,'Tier gekauft'); }catch(e){}
     try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}
     // EGG: show crack-open animation instead of carry
     if(g.a.isEgg){ this.close('gond'); this._openGondolaEgg(g.a); return; }
@@ -9709,8 +9872,22 @@ const ZP={
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         <button class="btn btnd" style="font-size:.78rem;padding:8px" onclick="ZP._sell(${i})">🗑️ Verkaufen (${$mt(enc.animal.p*.5)})</button>
         <button class="btn btnd" style="font-size:.78rem;padding:8px;background:rgba(39,174,96,.18);border-color:rgba(39,174,96,.3);color:#27AE60" onclick="ZP._oT(${i});ZP.close('enc')">🤝 Traden</button>
+        <button class="btn btnd" style="font-size:.78rem;padding:8px;grid-column:1 / -1;background:rgba(0,207,255,.15);border-color:rgba(0,207,255,.3);color:#00CFFF" onclick="ZP._releaseOwn(${i})">🕊️ Freilassen (läuft frei im Zoo herum, +100 XP)</button>
       </div>
     </div>`;
+  },
+  async _releaseOwn(i){
+    const z=ZS.zoo, enc=z.enc[i]; if(!enc) return;
+    if(!(await showConfirm('🕊️ '+enc.animal.e+' '+enc.animal.n+' wirklich freilassen? Es läuft dann frei im Zoo herum und kann von jedem (auch dir selbst wieder) eingefangen werden.')))return;
+    const {animal,shiny,traits}=enc;
+    z.enc[i]=null;
+    try{ ZG._encs&&ZG._encs(); }catch(e){}
+    ZS.save&&ZS.save();
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    try{ ZG._releaseAsRoaming(animal,shiny,traits); }catch(e){}
+    this.close('enc');
+    this.toast('🕊️ '+animal.e+' '+animal.n+' läuft jetzt frei im Zoo herum!',3000);
+    try{ MTPass.addXP(100,'Tier freigelassen'); }catch(e){}
   },
   _animalWalk(animal, slot, tint=null){
     // 10-second walk from gondola station to enclosure
@@ -9897,7 +10074,7 @@ const ZP={
       }catch(e){}
     }
   },
-  _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();try{ZNews.push('animal_sold',{animal:enc.animal.n,emoji:enc.animal.e});}catch(e){}},
+  _sell(i){const z=ZS.zoo,enc=z.enc[i];if(!enc)return;z.mt+=enc.animal.p*.5;z.enc[i]=null;ZG._encs();this.close('enc');this.toast(`💰 ${enc.animal.e} verkauft!`);ZG._updHUD();try{ZNews.push('animal_sold',{animal:enc.animal.n,emoji:enc.animal.e});}catch(e){}try{ MTPass.addXP(50,'Tier verkauft'); }catch(e){}},
 
   // MENU
   _rSound(){
@@ -9951,6 +10128,7 @@ const ZP={
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button onclick="ZP.showAlbum()" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.4);color:#c39bd3;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem">📖 Sammelalbum</button>
         <button onclick="ZP.showQuests()" style="background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.4);color:#f0a852;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem">🎯 Deko-Quests</button>
+        <button onclick="MTPass.open()" style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);color:#FFD700;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem;grid-column:1 / -1">🎫 MT-Pass</button>
       </div>`;
   },
 
