@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v507 -->
+<!-- ZOO v508 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=507"></script>
-<script src="rewardchests.js?v=507"></script>
-<script src="personality.js?v=507"></script>
+<script src="lang.js?v=508"></script>
+<script src="rewardchests.js?v=508"></script>
+<script src="personality.js?v=508"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v507','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v508','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=507"></script>
-<script src="worlds.js?v=507"></script>
+<script src="firebase-state.js?v=508"></script>
+<script src="worlds.js?v=508"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4319,7 +4319,21 @@ const ZG={
       }
     }
     const sp=baseSp*(this._turboLevel===3?6:this._turboLevel===2?3:this._turboLevel===1?1.5:1);
-    if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
+    // ── 🧊 FROST-MINUTE (admin event): while active, movement doesn't
+    // instantly follow the input direction — it slides, like on ice.
+    // Blend current velocity toward the target instead of snapping to it.
+    const _frostActive=(ZS.zoo?.frostUntil||0)>Date.now();
+    if(_frostActive){
+      if(!this._iceVel) this._iceVel={x:0,z:0};
+      const tx=l>0?mx/l*sp:0, tz=l>0?mz/l*sp:0;
+      const blend=Math.min(1,1.4*dt); // low blend = sluggish, slidey turning
+      this._iceVel.x+=(tx-this._iceVel.x)*blend;
+      this._iceVel.z+=(tz-this._iceVel.z)*blend;
+      this.pl.x+=this._iceVel.x*dt; this.pl.z+=this._iceVel.z*dt;
+    } else {
+      this._iceVel=null;
+      if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
+    }
     if(this._trashActive){
       // Trash room: square boundary 28, no zoo collisions
       this.pl.x=Math.max(-28,Math.min(28,this.pl.x));
@@ -4661,6 +4675,21 @@ const ZG={
     this._nearDiceMachine = _dcDist < 6;
     if(this._nearDiceMachine && !this._dcHinted){ this._dcHinted=true; ZP.toast('🎲 Tippe die Würfel-Maschine an!',2500); }
     else if(!this._nearDiceMachine){ this._dcHinted=false; }
+    // 💰 Geldsack-Regen: bags are collected just by walking into them —
+    // no button/tap needed, matches "berühren" from the request.
+    if(this._moneyBags && this._moneyBags.length){
+      for(let i=this._moneyBags.length-1;i>=0;i--){
+        const bag=this._moneyBags[i];
+        const d=Math.sqrt((this.pl.x-bag.x)**2+(this.pl.z-bag.z)**2);
+        if(d<2.2){
+          if(bag.mesh && this.scene) this.scene.remove(bag.mesh);
+          this._moneyBags.splice(i,1);
+          const z=ZS.zoo;
+          if(z){ z.mt=(z.mt||0)+500; ZS.save&&ZS.save(); this._updHUD(); }
+          try{ ZP.toast('💰 +500 MT!',900); }catch(e){}
+        }
+      }
+    }
     if(this._nearGoldMachine && !this._gmHinted){
       this._gmHinted=true;
       const isTouch=('ontouchstart' in window);
@@ -5123,6 +5152,61 @@ const ZG={
     let count=0;
     z.enc.forEach((slot,i)=>{ if(slot&&slot.animal){ count++; if(count%10===0){ slot.xm=(slot.xm||1)*5; ZP.toast('🇫🇷 Tier #'+count+' bekommt ×5 Multiplier! '+slot.animal.e,3500); } } });
     ZS.save&&ZS.save(); ZG._encs&&ZG._encs(); ZG._updHUD&&ZG._updHUD();
+  },
+
+  // ── 💰 GELDSACK-REGEN (admin event) ──
+  // Procedural 3D money bag — round burlap-sack body, tied neck, gold
+  // "$" front-facing label. No external 3D model is loaded (this
+  // environment has no network access for 3D assets and no way to
+  // safely vet a random internet model's license), but this reads
+  // clearly as a money bag from any angle.
+  _makeMoneyBagMesh(){
+    const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.SphereGeometry(0.55,10,8),new THREE.MeshBasicMaterial({color:0xC9A25A}));
+    body.scale.set(1,0.85,1); body.position.y=0.5; g.add(body);
+    const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.28,0.3,8),new THREE.MeshBasicMaterial({color:0x8B5E3C}));
+    neck.position.y=1.0; g.add(neck);
+    const tie=new THREE.Mesh(new THREE.TorusGeometry(0.17,0.045,6,10),new THREE.MeshBasicMaterial({color:0x5A3A20}));
+    tie.position.y=0.95; tie.rotation.x=Math.PI/2; g.add(tie);
+    const label=this._txt('$',0.6,'#FFD700'); label.position.set(0,0.55,0.5); g.add(label);
+    return g;
+  },
+  // Spawns ~200 bags over `dur`ms at random spots across the play area,
+  // falling from above and landing on the ground — always somewhere
+  // new, so overlapping spawns really can carpet parts of the map the
+  // way the request described.
+  startMoneyBagRain(dur){
+    if(!this._moneyBags) this._moneyBags=[];
+    if(this._moneyBagIv) clearInterval(this._moneyBagIv);
+    const totalBags=200;
+    const intervalMs=Math.max(50, Math.floor(dur/totalBags));
+    const R=(this.WR||45)-5;
+    let spawned=0;
+    const spawnOne=()=>{
+      if(spawned>=totalBags || !this.scene) return;
+      spawned++;
+      const ang=Math.random()*Math.PI*2, r=Math.random()*R;
+      const x=Math.sin(ang)*r, z=Math.cos(ang)*r;
+      const mesh=this._makeMoneyBagMesh();
+      mesh.position.set(x,18,z);
+      this.scene.add(mesh);
+      const bag={mesh,x,z};
+      this._moneyBags.push(bag);
+      // Simple fall animation down to the ground, then it just sits there.
+      const fallStart=performance.now(), fallFrom=18, fallTo=0.05, fallDur=900+Math.random()*400;
+      const animateFall=(t)=>{
+        if(!mesh.parent) return; // already collected mid-fall
+        const p=Math.min(1,(t-fallStart)/fallDur);
+        mesh.position.y=fallFrom+(fallTo-fallFrom)*p;
+        if(p<1) requestAnimationFrame(animateFall);
+      };
+      requestAnimationFrame((t)=>animateFall(t));
+    };
+    this._moneyBagIv=setInterval(()=>{
+      spawnOne();
+      if(spawned>=totalBags){ clearInterval(this._moneyBagIv); this._moneyBagIv=null; }
+    },intervalMs);
+    spawnOne(); // first one immediately, don't wait a full interval
   },
 
   _updHUD(){
@@ -6632,6 +6716,17 @@ const ZG={
       ZP.toast('🎪 Stiller Zirkus! Zirkusmusik + Konfetti für '+Math.round(dur/60000)+' Min!',4000);
       try{ ZP._confettiFX(dur); }catch(e){}
       try{ ZSound.startCircusMelody(dur); }catch(e){}
+    }
+    else if(cmd.type==='frost_minute'){
+      const dur=cmd.dur||60000;
+      if(z){ z.frostUntil=Date.now()+dur; ZS.save&&ZS.save(); }
+      ZP.toast('🧊 Frost-Minute! 60 Sek. rutschige Bewegung!',4000);
+      setTimeout(()=>{ ZP.toast('🧊 Frost-Minute vorbei — Bewegung wieder normal.',3000); },dur);
+    }
+    else if(cmd.type==='money_bags'){
+      const dur=cmd.dur||300000;
+      ZP.toast('💰 Geldsack-Regen! 5 Min lang fallen Geldsäcke vom Himmel — je 500 MT beim Berühren!',5000);
+      try{ this.startMoneyBagRain(dur); }catch(e){}
     }
     else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
     else if(cmd.type==='poll'){
@@ -11448,6 +11543,8 @@ const ZAdmin = {
       +'<button class="padmin-btn" style="background:#1a1a2e;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerBlackout()">🌑 Verdunkelung</button>'
       +'<button class="padmin-btn" style="background:#8B4789;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerChaosMinute()">🌪️ Chaos-Minute</button>'
       +'<button class="padmin-btn" style="background:#FF6EC7;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerCircus()">🎪 Stiller Zirkus</button>'
+      +'<button class="padmin-btn" style="background:#5DADE2;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerFrostMinute()">🧊 Frost-Minute</button>'
+      +'<button class="padmin-btn" style="background:#B7950B;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerMoneyBags()">💰 Geldsack-Regen</button>'
       +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:6px">🚨 Notfälle (an ausgewählten Spieler):</div>'
       +emergencies.map(em=>'<button class="padmin-btn" style="background:#922;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._sendEmergency(\''+em.fn+'\',\''+em.n+'\')">'+em.n+'</button>').join('');
     if(!this._selectedEventDur)this._selectedEventDur=300000;
@@ -11583,6 +11680,22 @@ const ZAdmin = {
     await ZP._cmd(cmd);
     ZP.toast('🎪 Stiller Zirkus gestartet!');
     try{ZNews.push('admin_event',{eventName:'🎪 Stiller Zirkus'});}catch(e){}
+  },
+  async _triggerFrostMinute(){
+    if(!(await showConfirm('🧊 Frost-Minute an ALLE Online-Spieler senden? 60 Sek. lang rutschige, eisige Bewegung für alle — rein zum Spass.')))return;
+    const dur=60000;
+    const cmd={type:'frost_minute',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('🧊 Frost-Minute gestartet!');
+    try{ZNews.push('admin_event',{eventName:'🧊 Frost-Minute'});}catch(e){}
+  },
+  async _triggerMoneyBags(){
+    if(!(await showConfirm('💰 Geldsack-Regen an ALLE Online-Spieler senden? 5 Min lang fallen ~200 Geldsäcke im ganzen Zoo vom Himmel, je 500 MT beim Berühren.')))return;
+    const dur=300000;
+    const cmd={type:'money_bags',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('💰 Geldsack-Regen gestartet!');
+    try{ZNews.push('admin_event',{eventName:'💰 Geldsack-Regen'});}catch(e){}
   },
   revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
   async _loadCalFromFirebase(){
