@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v503 -->
+<!-- ZOO v504 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=503"></script>
-<script src="rewardchests.js?v=503"></script>
-<script src="personality.js?v=503"></script>
+<script src="lang.js?v=504"></script>
+<script src="rewardchests.js?v=504"></script>
+<script src="personality.js?v=504"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v503','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v504','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=503"></script>
-<script src="worlds.js?v=503"></script>
+<script src="firebase-state.js?v=504"></script>
+<script src="worlds.js?v=504"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1282,7 +1282,7 @@ function rTr(ev){
   return got.slice(0,5);
 }
 function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.round(m*100)/100;}
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;
   // EARLY GAME PACING: with just the first animal and no rebirth yet, income
   // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
   // that to roughly 7 minutes so the very beginning isn't instantly rushed —
@@ -6593,7 +6593,30 @@ const ZG={
       // the old values a moment later.
       ZS.zoo={...ZS.nz(), mt:cmd.mt}; this._encs&&this._encs(); ZG._updHUD&&ZG._updHUD(); ZG._updWBar&&ZG._updWBar(); ZS.save&&ZS.save();
       ZP.toast('🔄 Admin hat deinen Zoo komplett zurückgesetzt ('+cmd.mt+' MT).',3000);
-    }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);console.log('[Event-debug] Empfangen: start_event id='+cmd.eventId+' gefunden='+(!!ev)+' dauer='+(cmd.dur||ev?.dur));if(ev)this.startEv(ev,cmd.dur||ev.dur,true);}else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
+    }else if(cmd.type==='start_event'){const ev=EVENTS.find(e=>e.id===cmd.eventId);console.log('[Event-debug] Empfangen: start_event id='+cmd.eventId+' gefunden='+(!!ev)+' dauer='+(cmd.dur||ev?.dur));if(ev)this.startEv(ev,cmd.dur||ev.dur,true);}
+    else if(cmd.type==='money_rain'){
+      const dur=cmd.dur||20000;
+      const combined=(ZS.dsMT||0)+(z?z.mt:0);
+      const bonus=Math.max(10, Math.round(combined*0.05*10)/10);
+      if(z){ z.mt+=bonus; ZS.save&&ZS.save(); try{ZG._updHUD&&ZG._updHUD();}catch(e){} }
+      ZP.toast('💸 Geld-Regen! +'+$mt(bonus)+'!',5000);
+      try{ ZP._moneyRainFX(dur); }catch(e){}
+    }
+    else if(cmd.type==='blackout'){
+      const dur=cmd.dur||300000;
+      ZP.toast('🌑 Verdunkelung! '+Math.round(dur/60000)+' Min lang wird es dunkel...',4000);
+      try{ ZP._blackoutFX(dur); }catch(e){}
+    }
+    else if(cmd.type==='chaos_minute'){
+      const dur=cmd.dur||60000;
+      const min=1/3, max=5;
+      const mult=Math.round((min+Math.random()*(max-min))*100)/100;
+      if(z){ z.chaosMult=mult; z.chaosUntil=Date.now()+dur; ZS.save&&ZS.save(); }
+      const label=mult>=1 ? ('×'+mult) : ('÷'+Math.round((1/mult)*10)/10);
+      ZP.toast('🌪️ Chaos-Minute! Du hast '+label+' Verdienst für 60 Sek.!',5000);
+      setTimeout(()=>{ ZP.toast('🌪️ Chaos-Minute vorbei — Verdienst wieder normal.',3000); },dur);
+    }
+    else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
       const pollDiv=document.createElement('div');
@@ -7658,6 +7681,47 @@ const ZP={
     setTimeout(()=>rb.remove(), 5000);
   },
   toast(msg,ms=2500){const t=G('zt');t.textContent=msg;t.style.opacity='1';clearTimeout(this._tt);this._tt=setTimeout(()=>t.style.opacity='0',ms);},
+  // ── 💸 Geld-Regen: falling 🌀 emoji for `dur`ms, purely visual (the MT
+  // bonus itself is already credited by the caller before this runs).
+  _moneyRainFX(dur){
+    const container=document.createElement('div');
+    container.id='money-rain-fx';
+    container.style.cssText='position:fixed;inset:0;z-index:9500;pointer-events:none;overflow:hidden';
+    document.body.appendChild(container);
+    const spawnOne=()=>{
+      const d=document.createElement('div');
+      d.textContent=Math.random()<0.5?'🌀':'💰';
+      const size=1.2+Math.random()*1.4;
+      d.style.cssText='position:absolute;top:-40px;left:'+(Math.random()*100)+'vw;font-size:'+size+'rem;opacity:.9;animation:moneyRainFall '+(2.2+Math.random()*1.6)+'s linear forwards';
+      container.appendChild(d);
+      setTimeout(()=>d.remove(),4000);
+    };
+    if(!document.getElementById('money-rain-style')){
+      const style=document.createElement('style');
+      style.id='money-rain-style';
+      style.textContent='@keyframes moneyRainFall{from{transform:translateY(0) rotate(0deg);}to{transform:translateY(110vh) rotate(360deg);}}';
+      document.head.appendChild(style);
+    }
+    const iv=setInterval(spawnOne,120);
+    for(let i=0;i<8;i++) setTimeout(spawnOne,i*40);
+    setTimeout(()=>{ clearInterval(iv); setTimeout(()=>container.remove(),4000); },dur);
+  },
+  // ── 🌑 Verdunkelung: full-screen dark overlay with a soft "flashlight"
+  // circle in the middle (the camera stays roughly centered on the
+  // player in this 3rd-person view, so a fixed center-screen hole reads
+  // as following them without needing to track exact screen position).
+  _blackoutFX(dur){
+    document.getElementById('blackout-fx')?.remove();
+    const el=document.createElement('div');
+    el.id='blackout-fx';
+    el.style.cssText='position:fixed;inset:0;z-index:9400;pointer-events:none;background:radial-gradient(circle at 50% 55%, rgba(0,0,0,.15) 0%, rgba(0,0,0,.75) 22%, rgba(0,0,0,.97) 45%);opacity:0;transition:opacity 1.2s';
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>{ el.style.opacity='1'; });
+    setTimeout(()=>{
+      el.style.opacity='0';
+      setTimeout(()=>el.remove(),1200);
+    },dur);
+  },
 
   async showZooRangliste(){
     this.open('rank');
@@ -9689,6 +9753,31 @@ const ZP={
     this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
   },
   async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);try{if(typeof _rtdb!=='undefined'&&_rtdb&&ev){await _rtdb.ref('zoo_broadcast/event').set({eventId:ev.id,at:Date.now(),dur,from:ZS.player||'Admin'});}}catch(e){}if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');if(ev)try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}},
+  // ── 3 neue Server-Events, für alle Online-Spieler gleichzeitig ──
+  async _triggerMoneyRain(){
+    if(!(await showConfirm('💸 Geld-Regen an ALLE Online-Spieler senden? Jeder bekommt sofort einen Bonus + 20 Sek. Fallanimation.')))return;
+    const dur=20000;
+    const cmd={type:'money_rain',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur+30000};
+    await this._cmd(cmd);
+    this.toast('💸 Geld-Regen gestartet!');this.close('adm');
+    try{ZNews.push('admin_event',{eventName:'💸 Geld-Regen'});}catch(e){}
+  },
+  async _triggerBlackout(){
+    const dur=this._selectedEventDur||300000;
+    if(!(await showConfirm('🌑 Verdunkelung ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Der ganze Zoo wird dunkel, nur eine Taschenlampe um die eigene Figur bleibt sichtbar.')))return;
+    const cmd={type:'blackout',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await this._cmd(cmd);
+    this.toast('🌑 Verdunkelung gestartet!');this.close('adm');
+    try{ZNews.push('admin_event',{eventName:'🌑 Verdunkelung'});}catch(e){}
+  },
+  async _triggerChaosMinute(){
+    if(!(await showConfirm('🌪️ Chaos-Minute an ALLE Online-Spieler senden? Jeder bekommt für 60 Sek. einen zufälligen Verdienst-Multiplikator zwischen ÷3 und ×5.')))return;
+    const dur=60000;
+    const cmd={type:'chaos_minute',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await this._cmd(cmd);
+    this.toast('🌪️ Chaos-Minute gestartet!');this.close('adm');
+    try{ZNews.push('admin_event',{eventName:'🌪️ Chaos-Minute'});}catch(e){}
+  },
   async adSpecials(){
     if(!(await showConfirm('🎁 5 Spezial-Gegenstände jetzt im ganzen Zoo verstecken? Ersetzt alle noch nicht gefundenen von heute.')))return;
     // Global one-time write to a shared RTDB collection — every player's
@@ -11316,6 +11405,10 @@ const ZAdmin = {
     el.innerHTML=durSel
       +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:4px">🎉 Fest-Events:</div>'
       +EVENTS.map(ev=>'<button class="padmin-btn" data-evid="'+ev.id+'" style="background:'+(ev.col||'#333')+';font-size:.7rem;padding:5px 8px;border:2px solid transparent" onclick="ZAdmin._selEv(\''+ev.id+'\')">'+ev.n+'</button>').join('')
+      +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:6px">🎪 Server-Events (für alle Online-Spieler):</div>'
+      +'<button class="padmin-btn" style="background:#DAA520;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerMoneyRain()">💸 Geld-Regen</button>'
+      +'<button class="padmin-btn" style="background:#1a1a2e;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerBlackout()">🌑 Verdunkelung</button>'
+      +'<button class="padmin-btn" style="background:#8B4789;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerChaosMinute()">🌪️ Chaos-Minute</button>'
       +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:6px">🚨 Notfälle (an ausgewählten Spieler):</div>'
       +emergencies.map(em=>'<button class="padmin-btn" style="background:#922;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._sendEmergency(\''+em.fn+'\',\''+em.n+'\')">'+em.n+'</button>').join('');
     if(!this._selectedEventDur)this._selectedEventDur=300000;
