@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v500 -->
+<!-- ZOO v501 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=500"></script>
-<script src="rewardchests.js?v=500"></script>
-<script src="personality.js?v=500"></script>
+<script src="lang.js?v=501"></script>
+<script src="rewardchests.js?v=501"></script>
+<script src="personality.js?v=501"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v500','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v501','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=500"></script>
-<script src="worlds.js?v=500"></script>
+<script src="firebase-state.js?v=501"></script>
+<script src="worlds.js?v=501"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -686,6 +686,7 @@ const ScreenTime = {
       this.sessionEnd = Date.now() + this.cfg.limitMin*60000;
       z.screenTimeSessionEnd = this.sessionEnd;
       ZS.save&&ZS.save();
+      this._extraFiveUsed = false;
       console.log('[ScreenTime-debug] Neue Sitzung gestartet: '+this.cfg.limitMin+' Min.');
     }
     this.warned=false;
@@ -722,6 +723,17 @@ const ScreenTime = {
   _showLimitReached(){
     console.log('[ScreenTime-debug] Zeitlimit erreicht — zeige Aufhören/5-Min-Dialog.');
     if(this.el){ this.el.remove(); this.el=null; }
+    // BUG FIX: "Noch 5 Min" could be clicked over and over — nothing
+    // stopped the SAME dialog (with the SAME "Noch 5 Min" button) from
+    // reappearing once those 5 minutes ran out too, so a kid could just
+    // keep clicking it forever. It's a one-time extension per session:
+    // once used, running out again forces the stop flow automatically,
+    // no dialog, no way to ask for more.
+    if(this._extraFiveUsed){
+      console.log('[ScreenTime-debug] "Noch 5 Min" wurde bereits verwendet — automatischer Stopp, kein erneuter Dialog.');
+      this._stopNow();
+      return;
+    }
     const el=document.createElement('div');
     el.id='screentime-limit-overlay';
     el.style.cssText='position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px';
