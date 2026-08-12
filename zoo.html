@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v506 -->
+<!-- ZOO v507 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=506"></script>
-<script src="rewardchests.js?v=506"></script>
-<script src="personality.js?v=506"></script>
+<script src="lang.js?v=507"></script>
+<script src="rewardchests.js?v=507"></script>
+<script src="personality.js?v=507"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v506','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v507','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=506"></script>
-<script src="worlds.js?v=506"></script>
+<script src="firebase-state.js?v=507"></script>
+<script src="worlds.js?v=507"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9795,39 +9795,6 @@ const ZP={
     this.toast('✅ Spawned: '+a.e+' '+a.n+'!');this.close('adm');
   },
   async _adEv(){const evId=G('aev')?.value,dur=parseInt(G('aed')?.value||30000);const cmd={type:'start_event',target:'_all',eventId:evId,dur,id:Date.now().toString(),exp:Date.now()+60000};await this._cmd(cmd);const ev=EVENTS.find(e=>e.id===evId);try{if(typeof _rtdb!=='undefined'&&_rtdb&&ev){await _rtdb.ref('zoo_broadcast/event').set({eventId:ev.id,at:Date.now(),dur,from:ZS.player||'Admin'});}}catch(e){}if(ev)ZG.startEv(ev,dur);this.toast('✅ Event!');this.close('adm');if(ev)try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}},
-  // ── 3 neue Server-Events, für alle Online-Spieler gleichzeitig ──
-  async _triggerMoneyRain(){
-    if(!(await showConfirm('💸 Geld-Regen an ALLE Online-Spieler senden? Jeder bekommt sofort einen Bonus + 20 Sek. Fallanimation.')))return;
-    const dur=20000;
-    const cmd={type:'money_rain',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur+30000};
-    await this._cmd(cmd);
-    this.toast('💸 Geld-Regen gestartet!');this.close('adm');
-    try{ZNews.push('admin_event',{eventName:'💸 Geld-Regen'});}catch(e){}
-  },
-  async _triggerBlackout(){
-    const dur=this._selectedEventDur||300000;
-    if(!(await showConfirm('🌑 Verdunkelung ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Der ganze Zoo wird dunkel, nur eine Taschenlampe um die eigene Figur bleibt sichtbar.')))return;
-    const cmd={type:'blackout',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
-    await this._cmd(cmd);
-    this.toast('🌑 Verdunkelung gestartet!');this.close('adm');
-    try{ZNews.push('admin_event',{eventName:'🌑 Verdunkelung'});}catch(e){}
-  },
-  async _triggerChaosMinute(){
-    if(!(await showConfirm('🌪️ Chaos-Minute an ALLE Online-Spieler senden? Jeder bekommt für 60 Sek. einen zufälligen Verdienst-Multiplikator zwischen ÷3 und ×5.')))return;
-    const dur=60000;
-    const cmd={type:'chaos_minute',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
-    await this._cmd(cmd);
-    this.toast('🌪️ Chaos-Minute gestartet!');this.close('adm');
-    try{ZNews.push('admin_event',{eventName:'🌪️ Chaos-Minute'});}catch(e){}
-  },
-  async _triggerCircus(){
-    const dur=this._selectedEventDur||300000;
-    if(!(await showConfirm('🎪 Stiller Zirkus ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Zirkusmusik + Konfetti für alle gleichzeitig.')))return;
-    const cmd={type:'circus',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
-    await this._cmd(cmd);
-    this.toast('🎪 Stiller Zirkus gestartet!');this.close('adm');
-    try{ZNews.push('admin_event',{eventName:'🎪 Stiller Zirkus'});}catch(e){}
-  },
   async adSpecials(){
     if(!(await showConfirm('🎁 5 Spezial-Gegenstände jetzt im ganzen Zoo verstecken? Ersetzt alle noch nicht gefundenen von heute.')))return;
     // Global one-time write to a shared RTDB collection — every player's
@@ -11579,6 +11546,43 @@ const ZAdmin = {
     try{ZNews.push('admin_event',{eventName:ev.n});}catch(e){}
     document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border=b.dataset.evid===id?'2px solid #FFD700':'2px solid transparent';});
     setTimeout(()=>document.querySelectorAll('[data-evid]').forEach(b=>{b.style.border='2px solid transparent';}),3000);
+  },
+  // ── 4 neue Server-Events, für alle Online-Spieler gleichzeitig.
+  // BUG FIX: diese 4 waren ursprünglich versehentlich auf ZP statt
+  // ZAdmin gelandet — die Knöpfe rufen aber ZAdmin._triggerXyz() auf,
+  // darum kam sofort "ZAdmin._triggerMoneyRain is not a function" beim
+  // Klick, noch bevor der Bestätigen-Dialog überhaupt erscheinen konnte.
+  async _triggerMoneyRain(){
+    if(!(await showConfirm('💸 Geld-Regen an ALLE Online-Spieler senden? Jeder bekommt sofort einen Bonus + 20 Sek. Fallanimation.')))return;
+    const dur=20000;
+    const cmd={type:'money_rain',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur+30000};
+    await ZP._cmd(cmd);
+    ZP.toast('💸 Geld-Regen gestartet!');
+    try{ZNews.push('admin_event',{eventName:'💸 Geld-Regen'});}catch(e){}
+  },
+  async _triggerBlackout(){
+    const dur=this._selectedEventDur||300000;
+    if(!(await showConfirm('🌑 Verdunkelung ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Der ganze Zoo wird dunkel, nur eine Taschenlampe um die eigene Figur bleibt sichtbar.')))return;
+    const cmd={type:'blackout',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('🌑 Verdunkelung gestartet!');
+    try{ZNews.push('admin_event',{eventName:'🌑 Verdunkelung'});}catch(e){}
+  },
+  async _triggerChaosMinute(){
+    if(!(await showConfirm('🌪️ Chaos-Minute an ALLE Online-Spieler senden? Jeder bekommt für 60 Sek. einen zufälligen Verdienst-Multiplikator zwischen ÷3 und ×5.')))return;
+    const dur=60000;
+    const cmd={type:'chaos_minute',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('🌪️ Chaos-Minute gestartet!');
+    try{ZNews.push('admin_event',{eventName:'🌪️ Chaos-Minute'});}catch(e){}
+  },
+  async _triggerCircus(){
+    const dur=this._selectedEventDur||300000;
+    if(!(await showConfirm('🎪 Stiller Zirkus ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Zirkusmusik + Konfetti für alle gleichzeitig.')))return;
+    const cmd={type:'circus',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await ZP._cmd(cmd);
+    ZP.toast('🎪 Stiller Zirkus gestartet!');
+    try{ZNews.push('admin_event',{eventName:'🎪 Stiller Zirkus'});}catch(e){}
   },
   revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
   async _loadCalFromFirebase(){

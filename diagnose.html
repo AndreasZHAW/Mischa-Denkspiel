@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v506</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v506 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v507</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v507 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -970,7 +970,7 @@ async function runDeviceDiag(){
     rows.sort((a,b)=>a.ageMs-b.ageMs);
     summary.innerHTML=`📡 ${rows.length} Gerät${rows.length===1?'':'e'} haben je einen aktuellen Eintrag.`
       +(rows.length?` Neuester vor ${(rows[0].ageMs/1000).toFixed(0)}s (${rows[0].player||'?'}, ${rows[0].device||'?'}).`:'');
-    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v506+.</div>'; _deviceDiagText=''; return; }
+    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v507+.</div>'; _deviceDiagText=''; return; }
     let txt='';
     out.innerHTML=rows.map(r=>{
       const ageMin=(r.ageMs/60000).toFixed(1);
