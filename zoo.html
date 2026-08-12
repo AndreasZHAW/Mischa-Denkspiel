@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v519 -->
+<!-- ZOO v522 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=519"></script>
-<script src="rewardchests.js?v=519"></script>
-<script src="personality.js?v=519"></script>
+<script src="lang.js?v=522"></script>
+<script src="rewardchests.js?v=522"></script>
+<script src="personality.js?v=522"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v519','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v522','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=519"></script>
-<script src="worlds.js?v=519"></script>
+<script src="firebase-state.js?v=522"></script>
+<script src="worlds.js?v=522"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4526,11 +4526,11 @@ const ZG={
     }
     // ── SPEED-TEMPEL: der gesammelte Speed-Stat soll sich wirklich aufs
     // Lauftempo auswirken, nicht nur Räume freischalten. Gedeckelt bei
-    // +150% (also max ×2.5 Grundtempo), sonst würden Spätspieler mit
-    // hunderttausenden Speed-Punkten absurd schnell werden.
+    // +400% (also max ×5 Grundtempo) — reicht Luft für spätere, schnellere
+    // Bösse/Sprünge in weiteren Räumen.
     if(this._steActive){
       const escSpeed=ZS.zoo?.escSpeed||0;
-      shoe_mod*=1+Math.min(1.5, escSpeed/8000);
+      shoe_mod*=1+Math.min(4, escSpeed/8000);
     }
     const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
@@ -15200,11 +15200,11 @@ const SPEEDTEMPLE_ROOMS = [
   {name:'Raum 2 — Schwankende Wege',  reqSpeed:500,    luckMult:5},
   {name:'Raum 3 — Enge Sprünge',      reqSpeed:2000,   luckMult:10},
   {name:'Boss — Der Wächter',         reqSpeed:5000,   luckMult:20, boss:true},
-  {name:'Raum 5',  reqSpeed:10000,  luckMult:30},
-  {name:'Raum 6',  reqSpeed:18000,  luckMult:40},
-  {name:'Raum 7',  reqSpeed:30000,  luckMult:50},
-  {name:'Raum 8',  reqSpeed:45000,  luckMult:60},
-  {name:'Raum 9',  reqSpeed:65000,  luckMult:75},
+  {name:'🌊 Raum 5 — Tsunami-Flucht', reqSpeed:10000,  luckMult:30},
+  {name:'⚡ Raum 6 — Blitz-Sprünge',  reqSpeed:18000,  luckMult:40},
+  {name:'Boss — Der Rasende',        reqSpeed:30000,  luckMult:50, boss:true},
+  {name:'🌀 Raum 8 — Wirbel-Pfad',   reqSpeed:45000,  luckMult:60},
+  {name:'🔥 Raum 9 — Endprobe',      reqSpeed:65000,  luckMult:75, boss:true},
   {name:'Raum 10', reqSpeed:90000,  luckMult:90},
   {name:'Raum 11', reqSpeed:120000, luckMult:110},
   {name:'Raum 12', reqSpeed:160000, luckMult:130},
@@ -15212,7 +15212,7 @@ const SPEEDTEMPLE_ROOMS = [
   {name:'Raum 14', reqSpeed:270000, luckMult:175},
   {name:'Raum 15 — Endboss', reqSpeed:350000, luckMult:200, boss:true},
 ];
-const SPEEDTEMPLE_BUILT = 4; // erste 4 (3 Räume + 1 Boss) sind fertig
+const SPEEDTEMPLE_BUILT = 9; // Räume 1-9 (inkl. 2 Bösse) sind fertig
 
 const SpeedTemple = {
   isUnlocked(){
@@ -15266,6 +15266,9 @@ const SpeedTemple = {
     ZG._steActive=true;
     ZG._jumpActive=true; // reuse the existing gravity/jump physics loop
     ZG._steZooSave={x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z,yaw:ZG.yaw};
+    // Nur der Lauf-Sound aus dem Tempel selbst soll zu hören sein, nicht
+    // die Zoo-Hintergrundmusik/-Melodie gleichzeitig mit.
+    try{ ZSound.stopMelody&&ZSound.stopMelody(); }catch(e){}
     this._buildRoom(idx);
   },
   _buildRoom(idx){
@@ -15302,6 +15305,16 @@ const SpeedTemple = {
       raw=[[0,25,50,10,8],[3,26,34,4,4],[-3,27,20,4,4],[3,28,6,4,4],[-3,28,-8,4,4],[0,29,-20,4,4],[0,27,-32,12,8]];
     } else if(idx===3){
       raw=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
+    } else if(idx===4){ // 🌊 Tsunami-Flucht: lange gerade Strecke, Welle jagt von hinten
+      raw=[[0,25,80,10,8],[0,25,66,8,7],[0,26,52,8,7],[0,26,38,8,7],[0,26,24,8,7],[0,26,10,8,7],[0,26,-4,8,7],[0,27,-20,12,8]];
+    } else if(idx===5){ // ⚡ Blitz-Sprünge: kleine, weit entfernte Plattformen
+      raw=[[0,25,50,8,6],[6,26,36,3,3],[-6,27,22,3,3],[6,28,8,3,3],[-6,28,-6,3,3],[0,29,-20,3,3],[0,27,-34,12,8]];
+    } else if(idx===6){ // Boss "Der Rasende" — schnellerer Boss
+      raw=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
+    } else if(idx===7){ // 🌀 Wirbel-Pfad: rotierender Balken zum Umgehen
+      raw=[[0,25,50,10,8],[0,26,30,10,8],[0,27,10,10,8],[0,27,-10,10,8],[0,26,-30,12,8]];
+    } else if(idx===8){ // 🔥 Endprobe: enge Plattformen + sehr schneller Boss
+      raw=[[0,25,60,10,8],[4,26,44,4,4],[-4,27,28,4,4],[4,28,12,4,4],[-4,28,-4,4,4],[0,29,-20,4,4],[0,27,-36,12,8]];
     }
     const platforms=raw.map(([x,y,z,w,d])=>[x+OX,y,z+OZ,w,d]);
     platforms.forEach(([x,y,z,w,d],i)=>{
@@ -15329,6 +15342,54 @@ const SpeedTemple = {
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
         const chaseSpeed=0.24; // schneller als normales Lauftempo
+        bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
+        try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
+      },16);
+    }
+    if(idx===4){
+      // 🌊 Tsunami: riesige blaue Wand, die stur von hinten (grosses Z)
+      // nach vorne (kleines Z) durchrollt — Berührung = zurück zum
+      // Kontrollpunkt. Zwingt zum durchgehenden Vorwärtslaufen.
+      const wave=new THREE.Mesh(new THREE.BoxGeometry(60,20,4),new THREE.MeshBasicMaterial({color:0x2E86DE,transparent:true,opacity:.85}));
+      wave.position.set(OX,32,OZ+95); sc.add(wave); ZG._jumpMeshes.push(wave);
+      ZG._tsunami=wave;
+      ZG._tsunamiIv=setInterval(()=>{
+        if(!ZG._tsunami||!ZG._jumpActive)return;
+        ZG._tsunami.position.z-=0.045;
+      },16);
+    }
+    if(idx===6){
+      const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0xC0392B}));
+      boss.position.set(OX,29,OZ-10); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss;
+      ZG._bossIv=setInterval(()=>{
+        if(!ZG._bossMesh||!ZG._jumpActive)return;
+        const bp=ZG._bossMesh.position;
+        const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
+        const d=Math.sqrt(dx*dx+dz*dz)||1;
+        const chaseSpeed=0.38; // "Der Rasende" — deutlich schneller als Raum 4
+        bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
+        try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
+      },16);
+    }
+    if(idx===7){
+      // 🌀 rotierender Balken über der mittleren Plattform — Timing statt
+      // nur Springen nötig.
+      const bar=new THREE.Mesh(new THREE.BoxGeometry(10,1,1),new THREE.MeshBasicMaterial({color:0xE056FD}));
+      bar.position.set(OX,28,OZ+10); sc.add(bar); ZG._jumpMeshes.push(bar);
+      ZG._spinBar=bar;
+      ZG._spinBarIv=setInterval(()=>{ if(ZG._spinBar) ZG._spinBar.rotation.y+=0.045; },16);
+    }
+    if(idx===8){
+      const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0x8B0000}));
+      boss.position.set(OX,29,OZ-15); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss;
+      ZG._bossIv=setInterval(()=>{
+        if(!ZG._bossMesh||!ZG._jumpActive)return;
+        const bp=ZG._bossMesh.position;
+        const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
+        const d=Math.sqrt(dx*dx+dz*dz)||1;
+        const chaseSpeed=0.5; // schnellster Boss bisher
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -15366,13 +15427,19 @@ const SpeedTemple = {
     }
     this._lastFootX=px; this._lastFootZ=pz;
     const startPos={x:ZG._steOX+0, y:27, z:ZG._steOZ+50};
+    const backToStart=()=>{ ZG.pl.x=startPos.x; ZG.pl.y=startPos.y; ZG.pl.z=startPos.z; ZG._jumpV=0; };
     const backToCheckpoint=()=>{
       const cp=ZG._checkpoints&&ZG._checkpoints[ZG._checkpointIdx-1];
       if(cp){ ZG.pl.x=cp.x; ZG.pl.y=cp.y; ZG.pl.z=cp.z; }
       else { ZG.pl.x=startPos.x; ZG.pl.y=startPos.y; ZG.pl.z=startPos.z; }
       ZG._jumpV=0;
     };
-    if(py<15){ ZP.toast('↩️ Runtergefallen — zurück zum Kontrollpunkt!',1500); backToCheckpoint(); return; }
+    // BUG FIX (per Rückmeldung): Runterfallen brachte einen manchmal an
+    // eine unklare/schwierige Stelle statt an einen sicheren Ort zurück.
+    // Fürs Runterfallen speziell geht's jetzt immer garantiert an den
+    // echten Raumanfang zurück, nicht an einen Kontrollpunkt (die
+    // bleiben nur für Boss-/Hindernis-Treffer erhalten).
+    if(py<15){ ZP.toast('↩️ Runtergefallen — zurück zum Anfang!',1500); backToStart(); return; }
     if(ZG._goalStar) ZG._goalStar.rotation.y+=0.03;
     if(ZG._checkpoints){
       ZG._checkpoints.forEach((cp,i)=>{
@@ -15385,6 +15452,20 @@ const SpeedTemple = {
     if(ZG._bossMesh){
       const bd=Math.sqrt((px-ZG._bossMesh.position.x)**2+(py-ZG._bossMesh.position.y)**2+(pz-ZG._bossMesh.position.z)**2);
       if(bd<3){ ZP.toast('💥 Vom Boss erwischt!',1500); backToCheckpoint(); }
+    }
+    if(ZG._tsunami){
+      if(Math.abs(pz-ZG._tsunami.position.z)<3 && py<40){ ZP.toast('🌊 Von der Welle erwischt!',1500); backToCheckpoint(); }
+    }
+    if(ZG._spinBar){
+      const bar=ZG._spinBar, bp=bar.position;
+      // Grober Zylinder-Check um den Balken herum, dreht sich mit rotation.y
+      const dx=px-bp.x, dz=pz-bp.z;
+      const rot=bar.rotation.y;
+      const localX=dx*Math.cos(-rot)-dz*Math.sin(-rot);
+      const localZ=dx*Math.sin(-rot)+dz*Math.cos(-rot);
+      if(Math.abs(localX)<5 && Math.abs(localZ)<0.8 && Math.abs(py-bp.y)<1.5){
+        ZP.toast('🌀 Vom Balken erwischt!',1500); backToCheckpoint();
+      }
     }
     if(ZG._goalPos){
       const gp=ZG._goalPos, dx=px-gp.x, dz=pz-gp.z;
@@ -15399,18 +15480,22 @@ const SpeedTemple = {
     const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
     z.mtPassBoosts.luck={mult:room.luckMult, until:base+5*60000};
     ZS.save&&ZS.save();
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
     ZP.toast('🏆 '+room.name+' geschafft! 🍀 Glück ×'+room.luckMult+' für 5 Min!',4500);
     this._exitRoom();
   },
   _exitRoom(){
     ZG._jumpActive=false; ZG._steActive=false;
     if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
+    if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
+    if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null;
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
     document.getElementById('speedtemple-speed-hud')?.remove();
     if(ZG._steZooSave){ const s=ZG._steZooSave; ZG.pl.x=s.x; ZG.pl.y=s.y; ZG.pl.z=s.z; ZG.yaw=s.yaw; }
+    try{ ZSound.startMelody&&ZSound.startMelody(); }catch(e){}
   },
   _showRoomHUD(idx){
     document.getElementById('speedtemple-room-hud')?.remove();
