@@ -2069,18 +2069,45 @@ const PlayTime = {
       // couldn't write anyway (common right after page load, especially
       // on slower devices) still silently burned that ~55s window for
       // BOTH pages. Now only claimed right before the actual write.
+      //
+      // EXPANDED LOGGING (per request — still investigating a suspected
+      // undercount): every tick now logs a running count of successful
+      // writes THIS session, the wall-clock time elapsed since the
+      // session started, and the current document.visibilityState — so
+      // a gap between "session running for Nmin" and "successfulTicks×1min"
+      // in the logs directly shows whether ticks are being silently
+      // skipped/throttled, and page-visibility can be checked against
+      // silent gaps. Every 5th tick also reads back the actual stored
+      // totalPlaytimeSec value to confirm the increment really landed
+      // (not just that the write call didn't throw).
+      const sessionStart = Date.now();
+      if (!this._tickCounts) this._tickCounts = {};
+      this._tickCounts[key] = 0;
+      console.log('[Playtime-debug] Sitzung gestartet für "'+name+'" ('+kind+') um '+new Date(sessionStart).toLocaleTimeString()+'.');
       this._intervals[key] = setInterval(async () => {
+        const fireTime = Date.now();
+        const wallClockMin = Math.round((fireTime - sessionStart) / 6000) / 10;
         try {
-          if (typeof _db === 'undefined' || !_db) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') übersprungen: Firebase noch nicht bereit.'); return; }
+          if (typeof _db === 'undefined' || !_db) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') übersprungen: Firebase noch nicht bereit. (Sitzung läuft seit '+wallClockMin+' Min, bisher '+this._tickCounts[key]+' erfolgreiche Ticks, visibilityState='+(typeof document!=='undefined'?document.visibilityState:'?')+')'); return; }
           const now = Date.now();
           const lastClaim = parseInt(localStorage.getItem(mutexKey) || '0');
-          if (now - lastClaim < 55000) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') übersprungen: vor '+Math.round((now-lastClaim)/1000)+'s schon von der anderen Seite (Welt1/Zoo) beansprucht.'); return; }
+          if (now - lastClaim < 55000) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') übersprungen: vor '+Math.round((now-lastClaim)/1000)+'s schon von der anderen Seite (Welt1/Zoo) beansprucht. (Sitzung läuft seit '+wallClockMin+' Min, bisher '+this._tickCounts[key]+' erfolgreiche Ticks)'); return; }
           localStorage.setItem(mutexKey, String(now));
           const inc = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
             ? firebase.firestore.FieldValue.increment(60) : 60;
           await _db.collection(col).doc(key).set({ totalPlaytimeSec: inc }, { merge: true });
-          console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') geschrieben: +60s.');
-        } catch(e) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') Fehler: '+e.message); }
+          this._tickCounts[key] = (this._tickCounts[key]||0) + 1;
+          console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') geschrieben: +60s. Sitzung läuft seit '+wallClockMin+' Min, bisher '+this._tickCounts[key]+' erfolgreiche Ticks ('+(this._tickCounts[key])+' Min gezählt) · visibilityState='+(typeof document!=='undefined'?document.visibilityState:'?')+' · hasFocus='+(typeof document!=='undefined'?document.hasFocus():'?'));
+          // Read back every 5th tick to confirm the increment actually
+          // landed in Firestore (not just that the write call resolved).
+          if (this._tickCounts[key] % 5 === 0) {
+            try {
+              const doc = await _db.collection(col).doc(key).get({source:'server'});
+              const stored = doc.exists ? (doc.data().totalPlaytimeSec||0) : null;
+              console.log('[Playtime-debug] Kontrolle für "'+name+'" ('+kind+'): tatsächlich gespeicherter Wert in Firestore = '+stored+'s ('+(stored!==null?Math.round(stored/60*10)/10:'?')+' Min).');
+            } catch(e2) { console.log('[Playtime-debug] Kontroll-Lesung fehlgeschlagen: '+e2.message); }
+          }
+        } catch(e) { console.log('[Playtime-debug] Tick für "'+name+'" ('+kind+') Fehler: '+e.message+' (Sitzung läuft seit '+wallClockMin+' Min, bisher '+this._tickCounts[key]+' erfolgreiche Ticks)'); }
       }, 60000);
       // Separate, faster heartbeat so the admin panel's "online now" check also
       // recognizes Welt-1 (Denkspiel) activity — previously "online" only ever
@@ -2100,8 +2127,11 @@ const PlayTime = {
   stopTracking(kind, name) {
     try {
       const key = kind === 'zoo' ? 'zoo_' + name.toLowerCase() : name.toLowerCase();
+      const tickCount = this._tickCounts ? (this._tickCounts[key]||0) : 0;
+      console.log('[Playtime-debug] Sitzung beendet für "'+name+'" ('+kind+'): '+tickCount+' erfolgreiche Ticks diese Sitzung ('+tickCount+' Min gezählt).');
       if (this._intervals[key]) { clearInterval(this._intervals[key]); delete this._intervals[key]; }
       if (this._heartbeats && this._heartbeats[key]) { clearInterval(this._heartbeats[key]); delete this._heartbeats[key]; }
+      if (this._tickCounts) delete this._tickCounts[key];
     } catch(e) {}
   },
 };
