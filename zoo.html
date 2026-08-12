@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v513 -->
+<!-- ZOO v514 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=513"></script>
-<script src="rewardchests.js?v=513"></script>
-<script src="personality.js?v=513"></script>
+<script src="lang.js?v=514"></script>
+<script src="rewardchests.js?v=514"></script>
+<script src="personality.js?v=514"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v513','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v514','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -291,6 +291,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" id="tipsToggleBtn" onclick="ZTips.toggle()"><div class="hbb" id="tipsToggleIcon" style="background:rgba(120,120,120,.6)">💡</div><div class="hbl" data-i18n="zoo.tips_label">Tipps</div></div>
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
+<div class="hb" onclick="MTPass.open()"><div class="hbb" style="background:rgba(255,215,0,.85)">🎫</div><div class="hbl">MT-Pass</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
@@ -516,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=513"></script>
-<script src="worlds.js?v=513"></script>
+<script src="firebase-state.js?v=514"></script>
+<script src="worlds.js?v=514"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1336,8 +1337,8 @@ function tMul(sh,tr){let m=sh?sh.m:1;(tr||[]).forEach(t=>m*=t.m);return Math.rou
 // Belohnungen für vergleichsweise wenig XP. Der ganze Pass (XP +
 // freigeschaltete Stufen) setzt sich alle 2 Wochen zurück.
 // ══════════════════════════════════════════════════════════════════
-const MTPASS_SEASON_LEN_MS = 14*24*60*60*1000; // 2 Wochen
-const MTPASS_SEASON_EPOCH = new Date(2026,7,13,0,0,0).getTime(); // Referenzpunkt für die Season-Zählung
+const MTPASS_SEASON_LEN_MS = 14*24*60*60*1000; // 2 Wochen (ab dem ersten Reset)
+const MTPASS_SEASON_EPOCH = new Date(2026,8,1,0,0,0).getTime(); // 1.9.2026 — der erste Reset, nicht früher
 
 const MTPASS_TIERS = [
   {xp:50,    type:'money',   mult:2,  dur:5},
@@ -1370,8 +1371,16 @@ const MTPASS_SUPER_TIERS = [
 ];
 
 const MTPass = {
-  currentSeason(){ return Math.floor((Date.now()-MTPASS_SEASON_EPOCH)/MTPASS_SEASON_LEN_MS); },
-  seasonEndsAt(){ const s=this.currentSeason(); return MTPASS_SEASON_EPOCH+(s+1)*MTPASS_SEASON_LEN_MS; },
+  currentSeason(){
+    const now=Date.now();
+    if(now<MTPASS_SEASON_EPOCH) return 0; // eine einzige Season bis zum 1.9.26, kein Reset davor
+    return 1+Math.floor((now-MTPASS_SEASON_EPOCH)/MTPASS_SEASON_LEN_MS);
+  },
+  seasonEndsAt(){
+    const now=Date.now();
+    if(now<MTPASS_SEASON_EPOCH) return MTPASS_SEASON_EPOCH;
+    return MTPASS_SEASON_EPOCH+this.currentSeason()*MTPASS_SEASON_LEN_MS;
+  },
   _ensureFresh(z){
     const season=this.currentSeason();
     if(z.mtPassSeason!==season){
@@ -10128,7 +10137,6 @@ const ZP={
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button onclick="ZP.showAlbum()" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.4);color:#c39bd3;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem">📖 Sammelalbum</button>
         <button onclick="ZP.showQuests()" style="background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.4);color:#f0a852;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem">🎯 Deko-Quests</button>
-        <button onclick="MTPass.open()" style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);color:#FFD700;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem;grid-column:1 / -1">🎫 MT-Pass</button>
       </div>`;
   },
 
