@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v504 -->
+<!-- ZOO v506 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=504"></script>
-<script src="rewardchests.js?v=504"></script>
-<script src="personality.js?v=504"></script>
+<script src="lang.js?v=506"></script>
+<script src="rewardchests.js?v=506"></script>
+<script src="personality.js?v=506"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v504','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v506','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -516,8 +516,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=504"></script>
-<script src="worlds.js?v=504"></script>
+<script src="firebase-state.js?v=506"></script>
+<script src="worlds.js?v=506"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -650,8 +650,45 @@ const ScreenTime = {
   sessionEnd: 0,
   warned: false,
   _iv: null,
+  _dayWatchIv: null,
+  _extraFiveUsed: false,
 
   isExemptPlayer(){ return (ZS.player||'').toLowerCase()===this.ADMIN_EXEMPT.toLowerCase(); },
+
+  // Local calendar date as "YYYY-MM-DD" — the boundary the whole daily
+  // quota is built around.
+  _todayStr(){
+    const d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  },
+
+  // ── DAILY QUOTA SYSTEM (replaces the old fixed-session + 12h cooldown
+  // model entirely, per explicit request). Old behaviour: once your time
+  // ran out and you clicked "Aufhören", a flat 12h wait started — which
+  // could easily run PAST midnight (hit the limit at 23:00 → locked out
+  // until 11:00 the next day) even though a brand new day, with a brand
+  // new allowance, had already begun. Someone who never explicitly
+  // clicked "Aufhören" (just closed the tab) was even worse off: their
+  // session stayed marked as "expired" forever, with no cooldown ever
+  // starting, so every future login just re-showed the same limit
+  // dialog with no way back in — this is what happened to Jonas.
+  //
+  // New model: z.screenTimeUsedSec tracks seconds actually played
+  // TODAY, z.screenTimeDay records which calendar day that counter
+  // belongs to. Whenever those don't match "today" anymore — at
+  // init(), or the instant the date rolls over while a tab is still
+  // open (_dayWatchIv, checked every 30s) — the counter resets to 0
+  // and the FULL admin-configured limit is available again, no
+  // exceptions, no separate waiting period.
+  _dailyResetCheck(z){
+    const today=this._todayStr();
+    if(z.screenTimeDay!==today){
+      console.log('[ScreenTime-debug] Neuer Tag ('+today+', vorher: '+(z.screenTimeDay||'nie')+') — Spielzeit auf volle '+this.cfg.limitMin+' Min aufgefrischt.');
+      z.screenTimeDay=today;
+      z.screenTimeUsedSec=0;
+      ZS.save&&ZS.save();
+    }
+  },
 
   async init(){
     console.log('[ScreenTime-debug] init() aufgerufen für "'+ZS.player+'".');
@@ -663,41 +700,45 @@ const ScreenTime = {
     console.log('[ScreenTime-debug] Konfiguration: enabled='+this.cfg.enabled+' limitMin='+this.cfg.limitMin+' exempt='+this.isExemptPlayer());
     if(this.isExemptPlayer() || !this.cfg.enabled) return;
     const z=ZS.zoo; if(!z) return;
-    if(z.screenTimeCooldownUntil && z.screenTimeCooldownUntil>Date.now()){
-      this._showCooldown();
-      return;
-    }
-    // BUG FIX: this used to hand out a fresh full-length countdown every
-    // single time init() ran — including on every page reload/restart —
-    // so closing and reopening the game was a free way to dodge the
-    // limit entirely. The countdown now persists on the zoo doc
-    // (z.screenTimeSessionEnd) and is only reset to a fresh countdown
-    // when there genuinely isn't a still-relevant one yet: first time
-    // ever, or right after a 12h cooldown just finished (that clears the
-    // stored value — see _showCooldown/_stopNow). A session that had
-    // already run out before the tab was closed (dialog never resolved)
-    // still counts as run out — reopening jumps straight back to the
-    // "Aufhören/Noch 5 Min" dialog instead of quietly restarting.
-    if(z.screenTimeSessionEnd){
-      this.sessionEnd = z.screenTimeSessionEnd;
-      console.log('[ScreenTime-debug] Bestehende Sitzung fortgesetzt, endet in '+Math.round((this.sessionEnd-Date.now())/1000)+'s.');
-    } else {
-      this.sessionEnd = Date.now() + this.cfg.limitMin*60000;
-      z.screenTimeSessionEnd = this.sessionEnd;
-      ZS.save&&ZS.save();
-      this._extraFiveUsed = false;
-      console.log('[ScreenTime-debug] Neue Sitzung gestartet: '+this.cfg.limitMin+' Min.');
-    }
+
+    this._dailyResetCheck(z);
+    const usedSec=z.screenTimeUsedSec||0;
+    const remainingSec=Math.max(0, this.cfg.limitMin*60 - usedSec);
+    console.log('[ScreenTime-debug] Heute («'+z.screenTimeDay+'») bereits gespielt: '+Math.round(usedSec/6)/10+' Min von '+this.cfg.limitMin+' Min — verbleibend: '+Math.round(remainingSec/6)/10+' Min.');
+    this.sessionEnd=Date.now()+remainingSec*1000;
     this.warned=false;
+    this._extraFiveUsed=false;
     this._showTimer();
-    if(this.sessionEnd<=Date.now()){ this._showLimitReached(); return; }
-    this._tick();
+    if(remainingSec<=0){ this._showLimitReached(); }
+    else { this._tick(); }
+
+    // Keep watching for the date rolling over WHILE the tab stays open
+    // (not just at the next fresh init()), so a session left running
+    // across midnight also gets the new day's full allowance live,
+    // without needing a reload.
+    if(this._dayWatchIv) clearInterval(this._dayWatchIv);
+    this._dayWatchIv=setInterval(()=>{
+      const z2=ZS.zoo; if(!z2) return;
+      if(z2.screenTimeDay!==this._todayStr()){
+        console.log('[ScreenTime-debug] Datumsgrenze wurde überschritten, während die Seite offen war — Zeit wird sofort aufgefrischt.');
+        document.getElementById('screentime-limit-overlay')?.remove();
+        this.init();
+      }
+    },30000);
   },
 
   _tick(){
     if(this._iv) clearInterval(this._iv);
     this._iv = setInterval(()=>{
       const left = this.sessionEnd - Date.now();
+      // Persist actual used-seconds-today continuously (not just the
+      // countdown target) so the daily total stays correct even across
+      // multiple separate play sessions on the same day.
+      const z=ZS.zoo;
+      if(z){
+        const usedSec=Math.max(0, Math.round(this.cfg.limitMin*60 - left/1000));
+        z.screenTimeUsedSec=usedSec;
+      }
       if(left<=0){ clearInterval(this._iv); this._showLimitReached(); return; }
       this._updTimerText(left);
     }, 1000);
@@ -715,19 +756,16 @@ const ScreenTime = {
   _updTimerText(leftMs){
     if(!this.el) return;
     const mins=Math.max(0,Math.floor(leftMs/60000)), secs=Math.max(0,Math.floor((leftMs%60000)/1000));
-    this.el.textContent='⏱️ Spielzeit: '+mins+':'+String(secs).padStart(2,'0');
-    if(leftMs<=5*60000 && leftMs>0 && !this.warned){ this.warned=true; try{ ZP.toast('⏰ Noch 5 Minuten Spielzeit!',4000); }catch(e){} }
+    this.el.textContent='⏱️ Spielzeit heute: '+mins+':'+String(secs).padStart(2,'0');
+    if(leftMs<=5*60000 && leftMs>0 && !this.warned){ this.warned=true; try{ ZP.toast('⏰ Noch 5 Minuten Spielzeit für heute!',4000); }catch(e){} }
   },
 
   _showLimitReached(){
-    console.log('[ScreenTime-debug] Zeitlimit erreicht — zeige Aufhören/5-Min-Dialog.');
+    console.log('[ScreenTime-debug] Tageslimit erreicht — zeige Aufhören/5-Min-Dialog.');
     if(this.el){ this.el.remove(); this.el=null; }
-    // BUG FIX: "Noch 5 Min" could be clicked over and over — nothing
-    // stopped the SAME dialog (with the SAME "Noch 5 Min" button) from
-    // reappearing once those 5 minutes ran out too, so a kid could just
-    // keep clicking it forever. It's a one-time extension per session:
-    // once used, running out again forces the stop flow automatically,
-    // no dialog, no way to ask for more.
+    // "Noch 5 Min" is a one-time extension per day: once used, running
+    // out again forces the stop flow automatically, no dialog, no way
+    // to ask for more — full time comes back at midnight instead.
     if(this._extraFiveUsed){
       console.log('[ScreenTime-debug] "Noch 5 Min" wurde bereits verwendet — automatischer Stopp, kein erneuter Dialog.');
       this._stopNow();
@@ -739,7 +777,7 @@ const ScreenTime = {
     el.innerHTML='<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #FFD700;border-radius:16px;padding:24px;max-width:340px;text-align:center;color:#fff">'
       +'<div style="font-size:2.4rem">⏰</div>'
       +'<div style="font-weight:900;font-size:1.1rem;margin:8px 0">Spielzeit ist um!</div>'
-      +'<div style="font-size:.85rem;color:rgba(255,255,255,.7);margin-bottom:16px">Deine Zeit im Zoo ist für heute vorbei.</div>'
+      +'<div style="font-size:.85rem;color:rgba(255,255,255,.7);margin-bottom:16px">Deine Zeit im Zoo ist für heute vorbei. Um Mitternacht gibt es wieder die volle Zeit.</div>'
       +'<div style="display:flex;gap:8px;justify-content:center">'
       +'<button id="st-stop" style="background:#E74C3C;color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:900;cursor:pointer">Aufhören</button>'
       +'<button id="st-5min" style="background:#27AE60;color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:900;cursor:pointer">Noch 5 Min</button>'
@@ -747,10 +785,14 @@ const ScreenTime = {
     document.body.appendChild(el);
     document.getElementById('st-stop').onclick=()=>{ console.log('[ScreenTime-debug] "Aufhören" geklickt.'); this._stopNow(); };
     document.getElementById('st-5min').onclick=()=>{
-      console.log('[ScreenTime-debug] "Noch 5 Min" geklickt — genau 5 weitere Minuten, danach zwingend Teleport zu Welt 1.');
+      console.log('[ScreenTime-debug] "Noch 5 Min" geklickt — genau 5 weitere Minuten, danach zwingend Teleport zu Welt 1 (bis Mitternacht).');
       el.remove();
       this.sessionEnd=Date.now()+5*60000;
-      const z=ZS.zoo; if(z){ z.screenTimeSessionEnd=this.sessionEnd; ZS.save&&ZS.save(); }
+      const z=ZS.zoo;
+      if(z){
+        z.screenTimeUsedSec=this.cfg.limitMin*60;
+        ZS.save&&ZS.save();
+      }
       this._extraFiveUsed=true;
       this._showTimer();
       this._tick();
@@ -758,46 +800,15 @@ const ScreenTime = {
   },
 
   _stopNow(){
-    const z=ZS.zoo;
-    z.screenTimeCooldownUntil = Date.now() + 12*60*60*1000;
-    z.screenTimeSessionEnd = null;
-    ZS.save&&ZS.save();
+    // No more 12h cooldown — the daily quota resets itself at midnight
+    // (see _dailyResetCheck), so there's nothing to schedule here beyond
+    // sending the player back to Welt 1.
     location.href='index.html?fromZoo=1';
   },
 
-  _showCooldown(){
-    console.log('[ScreenTime-debug] Cooldown aktiv, zeige Warte-Overlay.');
-    document.getElementById('screentime-cooldown')?.remove();
-    const el=document.createElement('div');
-    el.id='screentime-cooldown';
-    el.style.cssText='position:fixed;inset:0;z-index:9995;background:#000;display:flex;align-items:center;justify-content:center;padding:20px';
-    document.body.appendChild(el);
-    const render=()=>{
-      const z=ZS.zoo;
-      const left=Math.max(0,(z.screenTimeCooldownUntil||0)-Date.now());
-      if(left<=0){
-        z.screenTimeCooldownUntil=0; ZS.save&&ZS.save();
-        el.remove(); clearInterval(iv);
-        console.log('[ScreenTime-debug] Wartezeit vorbei — Spiel geht normal weiter.');
-        this.init();
-        return;
-      }
-      const h=Math.floor(left/3600000), m=Math.floor((left%3600000)/60000), s=Math.floor((left%60000)/1000);
-      el.innerHTML='<div style="text-align:center;color:#fff">'
-        +'<div style="font-size:2.6rem">⏳</div>'
-        +'<div style="font-weight:900;font-size:1.2rem;margin:10px 0">Es geht wieder los in:</div>'
-        +'<div style="font-size:1.8rem;font-weight:900;color:#FFD700">'+h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'</div>'
-        +'<div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-top:14px">Solange verdienst du kein Geld.</div></div>';
-    };
-    render();
-    const iv=setInterval(render,1000);
-  },
-
-  isBlocked(){
-    if(this.isExemptPlayer()) return false;
-    const z=ZS.zoo;
-    return !!(z && z.screenTimeCooldownUntil && z.screenTimeCooldownUntil>Date.now());
-  },
+  // Kept for compatibility with earn()'s call site — there's no more
+  // cooldown state to block on, so this is always false now.
+  isBlocked(){ return false; },
 };
 
 // ── WETTER-SYSTEM ──
@@ -6616,6 +6627,12 @@ const ZG={
       ZP.toast('🌪️ Chaos-Minute! Du hast '+label+' Verdienst für 60 Sek.!',5000);
       setTimeout(()=>{ ZP.toast('🌪️ Chaos-Minute vorbei — Verdienst wieder normal.',3000); },dur);
     }
+    else if(cmd.type==='circus'){
+      const dur=cmd.dur||300000;
+      ZP.toast('🎪 Stiller Zirkus! Zirkusmusik + Konfetti für '+Math.round(dur/60000)+' Min!',4000);
+      try{ ZP._confettiFX(dur); }catch(e){}
+      try{ ZSound.startCircusMelody(dur); }catch(e){}
+    }
     else if(cmd.type==='emergency'){if(typeof ZooEvents!=='undefined'&&typeof ZooEvents[cmd.fn]==='function')ZooEvents[cmd.fn]();}else if(cmd.type==='give_spins'){LW.spins+=(cmd.amount||1);LW._saveSpins&&LW._saveSpins();if(cmd.wheelType)LW.setType(cmd.wheelType,0);ZP.toast('🎡 +'+cmd.amount+' Spin(s) erhalten!',3000);}else if(cmd.type==='tiktok_liberation'){this._doTikTokLiberation();}
     else if(cmd.type==='poll'){
       // Show poll popup for same-device players
@@ -7721,6 +7738,31 @@ const ZP={
       el.style.opacity='0';
       setTimeout(()=>el.remove(),1200);
     },dur);
+  },
+  // ── 🎪 Stiller Zirkus: continuous drifting confetti for `dur`ms.
+  _confettiFX(dur){
+    const container=document.createElement('div');
+    container.id='confetti-fx';
+    container.style.cssText='position:fixed;inset:0;z-index:9500;pointer-events:none;overflow:hidden';
+    document.body.appendChild(container);
+    const colors=['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#FF6EC7','#FFA94D','#B388FF'];
+    if(!document.getElementById('confetti-style')){
+      const style=document.createElement('style');
+      style.id='confetti-style';
+      style.textContent='@keyframes confettiFall{from{transform:translateY(-40px) rotate(0deg);opacity:1;}to{transform:translateY(110vh) rotate(720deg);opacity:.75;}}';
+      document.head.appendChild(style);
+    }
+    const spawnOne=()=>{
+      const d=document.createElement('div');
+      const c=colors[Math.floor(Math.random()*colors.length)];
+      const w=6+Math.random()*6;
+      d.style.cssText='position:absolute;top:-20px;left:'+(Math.random()*100)+'vw;width:'+w+'px;height:'+(w*0.5)+'px;background:'+c+';opacity:.9;animation:confettiFall '+(3+Math.random()*2)+'s linear forwards;border-radius:2px';
+      container.appendChild(d);
+      setTimeout(()=>d.remove(),6000);
+    };
+    const iv=setInterval(spawnOne,90);
+    for(let i=0;i<15;i++) setTimeout(spawnOne,i*30);
+    setTimeout(()=>{ clearInterval(iv); setTimeout(()=>container.remove(),6000); },dur);
   },
 
   async showZooRangliste(){
@@ -9778,6 +9820,14 @@ const ZP={
     this.toast('🌪️ Chaos-Minute gestartet!');this.close('adm');
     try{ZNews.push('admin_event',{eventName:'🌪️ Chaos-Minute'});}catch(e){}
   },
+  async _triggerCircus(){
+    const dur=this._selectedEventDur||300000;
+    if(!(await showConfirm('🎪 Stiller Zirkus ('+Math.round(dur/60000)+' Min) an ALLE Online-Spieler senden? Zirkusmusik + Konfetti für alle gleichzeitig.')))return;
+    const cmd={type:'circus',target:'_all',dur,id:Date.now().toString(),exp:Date.now()+dur};
+    await this._cmd(cmd);
+    this.toast('🎪 Stiller Zirkus gestartet!');this.close('adm');
+    try{ZNews.push('admin_event',{eventName:'🎪 Stiller Zirkus'});}catch(e){}
+  },
   async adSpecials(){
     if(!(await showConfirm('🎁 5 Spezial-Gegenstände jetzt im ganzen Zoo verstecken? Ersetzt alle noch nicht gefundenen von heute.')))return;
     // Global one-time write to a shared RTDB collection — every player's
@@ -10346,6 +10396,27 @@ const ZSound = {
     }, 2000);
   },
   stopMelody() { clearInterval(this._melodyIv); this._melodyIv = null; },
+  // ── 🎪 Stiller Zirkus admin event: bouncy circus-ish melody loop,
+  // temporarily replacing the normal ambient background music, then
+  // handing back to it automatically once the event ends.
+  startCircusMelody(dur){
+    if(this.style==='off') return;
+    this.stopMelody();
+    if(this._circusIv) clearInterval(this._circusIv);
+    const notes=[523,659,784,1047,784,659,523,392,440,523,659,784];
+    let ni=0;
+    this._circusIv=setInterval(()=>{
+      if(document.hidden) return;
+      if(this.style==='important') return;
+      this._tone(notes[ni%notes.length],0.22,'square',0.045);
+      ni++;
+    },260);
+    setTimeout(()=>this.stopCircusMelody(),dur);
+  },
+  stopCircusMelody(){
+    if(this._circusIv){ clearInterval(this._circusIv); this._circusIv=null; }
+    this.startMelody();
+  },
   _playEventMusic(id){
     if(this.style==='off'||this.style==='important') return;
     this._init();
@@ -11409,6 +11480,7 @@ const ZAdmin = {
       +'<button class="padmin-btn" style="background:#DAA520;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerMoneyRain()">💸 Geld-Regen</button>'
       +'<button class="padmin-btn" style="background:#1a1a2e;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerBlackout()">🌑 Verdunkelung</button>'
       +'<button class="padmin-btn" style="background:#8B4789;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerChaosMinute()">🌪️ Chaos-Minute</button>'
+      +'<button class="padmin-btn" style="background:#FF6EC7;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._triggerCircus()">🎪 Stiller Zirkus</button>'
       +'<div style="width:100%;font-size:.68rem;color:rgba(255,255,255,.5);margin-top:6px">🚨 Notfälle (an ausgewählten Spieler):</div>'
       +emergencies.map(em=>'<button class="padmin-btn" style="background:#922;font-size:.7rem;padding:5px 8px" onclick="ZAdmin._sendEmergency(\''+em.fn+'\',\''+em.n+'\')">'+em.n+'</button>').join('');
     if(!this._selectedEventDur)this._selectedEventDur=300000;
