@@ -32,7 +32,6 @@ service cloud.firestore {
 - zoos (Gespeicherte Zoos)
 - players (Denkspiel-Spielerdaten)
 - zoo_quests (NEU: Deko-Quests, vom Admin erstellt — Firestore-Collection)
-- zoo_battles (NEU: Battle-System, Herausforderungen/Lobbys — Firestore-Collection)
 
 ---
 

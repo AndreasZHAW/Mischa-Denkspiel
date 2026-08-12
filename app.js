@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v501';
+const APP_VERSION = 'v503';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -458,7 +458,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v501 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v503 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1295,68 +1295,6 @@ const App = {
         </div>
       </div>
     `);
-  },
-
-  // ── BATTLE-SYSTEM: eine einzelne Runde direkt starten (ohne den
-  // normalen Welt-1-Aufgaben-Ablauf), Punktzahl wird in den Zoo-
-  // Battle-Datensatz geschrieben statt normal ans Konto gutgeschrieben —
-  // die Runde ist reiner Vergleichswert fürs Duell, kein echter Verdienst.
-  async startBattleRound(battleId, round, gameId) {
-    console.log('[Battle-debug] startBattleRound: battleId='+battleId+' round='+round+' game='+gameId);
-    this._zoomLevel = 1;
-    const player = State.currentPlayer;
-    const ageGroup = player ? State.getAgeGroup(player) : 'grade1';
-    this._html(`
-      <div class="page" style="padding:2px;min-height:100vh;background:var(--bg)">
-        <div class="game-container" style="margin:0;border-radius:8px">
-          <div class="game-header">
-            <div class="game-title">⚔️ Battle — Runde ${round}/3</div>
-            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-              <button onclick="App._toggleZoom()" id="zoom-btn" style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">🔍</button>
-            </div>
-          </div>
-          <div id="game-area" style="width:100%;transition:transform .2s;will-change:transform">
-            <div style="text-align:center;padding:40px;color:var(--text-mid)">⏳ Laden...</div>
-          </div>
-        </div>
-      </div>`);
-    try { if(window.FontScale && State.currentPlayer) FontScale.applyForPlayer(State.currentPlayer.name); } catch(e){}
-    setTimeout(() => {
-      const ga = document.getElementById('game-area');
-      const _isTouchDevice = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-      if (ga && (window.innerWidth < 700 || _isTouchDevice)) {
-        const scale = Math.min(1, (window.innerWidth-16) / 480);
-        if (scale < 1) { ga.style.transform = 'scale('+scale+')'; ga.style.transformOrigin = 'top left'; }
-      }
-    }, 250);
-
-    const onComplete = async (result) => {
-      console.log('[Battle-debug] Runde beendet, result='+JSON.stringify(result));
-      let score = 0;
-      try { score = State.calcFinalScore(result) || result.rawScore || 0; } catch(e) { score = result.rawScore || 0; }
-      try {
-        await _db.collection('zoo_battles').doc(battleId).update({ ['roundScores.'+round+'.'+(player.name||'').toLowerCase()]: score });
-        console.log('[Battle-debug] Punktzahl '+score+' für Runde '+round+' gespeichert.');
-      } catch(e) { console.log('[Battle-debug] Fehler beim Speichern der Punktzahl: '+e.message); }
-      this._html(`<div class="page" style="padding:40px 16px;text-align:center;min-height:100vh;background:var(--bg)">
-        <div style="font-size:3rem">⚔️</div>
-        <div style="font-size:1.2rem;font-weight:900;margin:12px 0">Runde ${round} fertig!</div>
-        <div style="color:var(--text-mid);margin-bottom:20px">Deine Punktzahl: ${score}</div>
-        <button onclick="location.href='zoo.html?fromBattle=1'" style="background:linear-gradient(135deg,#E74C3C,#C0392B);color:#fff;border:none;padding:12px 24px;border-radius:50px;font-weight:900;cursor:pointer;font-size:1rem">Zurück zum Zoo</button>
-      </div>`);
-    };
-
-    switch (gameId) {
-      case 'tetris':   TetrisGame.start({ onComplete }); break;
-      case 'sokoban':  SokobanGame.start({ onComplete }); break;
-      case 'pacman':   PacmanGame.start({ onComplete }); break;
-      case 'reaction': ReactionGame.start({ onComplete }); break;
-      case 'simon':    SimonGame.start({ worldId:1, onComplete }); break;
-      case 'jenga':    JengaGame.start({ worldId:1, ageGroup, onComplete }); break;
-      case 'math':     MathGame.start({ ageGroup, worldId:1, onComplete }); break;
-      case 'memory':   MemoryGame.start({ emojis:['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🦒','🐘','🦓'], onComplete }); break;
-      default:         TetrisGame.start({ onComplete });
-    }
   },
 
   async showWorldMap() {
