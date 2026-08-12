@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v514 -->
+<!-- ZOO v515 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=514"></script>
-<script src="rewardchests.js?v=514"></script>
-<script src="personality.js?v=514"></script>
+<script src="lang.js?v=515"></script>
+<script src="rewardchests.js?v=515"></script>
+<script src="personality.js?v=515"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v514','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v515','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=514"></script>
-<script src="worlds.js?v=514"></script>
+<script src="firebase-state.js?v=515"></script>
+<script src="worlds.js?v=515"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3632,6 +3632,7 @@ const ZG={
     try{ ScreenTime.init(); }catch(e){}
     try{ ZP._updDecoBar(); }catch(e){}
     try{ Weather.startCycle(); }catch(e){}
+    try{ SpeedTemple.startSpeedGrowth(); }catch(e){}
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
@@ -3901,6 +3902,23 @@ const ZG={
         const tLbl=this._txt('🔍 SAMMLUNGS-TERMINAL',0.6,'#00CFFF'); tLbl.position.set(tx,4.6,tz); tLbl.scale.set(8,2,1); sc.add(tLbl);
         const tLbl2=this._txt('Wer hat welche Tiere? 🔍',0.5,'#fff'); tLbl2.position.set(tx,3.6,tz); tLbl2.scale.set(7,1.4,1); sc.add(tLbl2);
         this._terminalPositions.push({x:tx,z:tz});
+      });
+    }
+
+    // ═══ SPEED-TEMPEL PORTAL (Escape-World, 3 Rebirths + 1 Mrd MT nötig) ═══
+    this._speedTemplePositions = [];
+    {
+      this.ZONES.forEach((zone)=>{
+        const px=zone.x, pz=zone.z-34; // opposite side from the terminal
+        const ring1=new THREE.Mesh(new THREE.TorusGeometry(3.2,0.35,10,24),new THREE.MeshBasicMaterial({color:0x9B59B6}));
+        ring1.position.set(px,3.2,pz); sc.add(ring1);
+        const ring2=new THREE.Mesh(new THREE.TorusGeometry(2.6,0.22,10,24),new THREE.MeshBasicMaterial({color:0xE056FD}));
+        ring2.position.set(px,3.2,pz); sc.add(ring2);
+        const core=new THREE.Mesh(new THREE.CircleGeometry(2.4,24),new THREE.MeshBasicMaterial({color:0x2a0a3a,transparent:true,opacity:.85}));
+        core.position.set(px,3.2,pz); sc.add(core);
+        const pLbl=this._txt('⚡ SPEED-TEMPEL',0.65,'#E056FD'); pLbl.position.set(px,7.2,pz); pLbl.scale.set(8,2,1); sc.add(pLbl);
+        const pLbl2=this._txt('Braucht 3 Rebirths + 1 Mrd MT ⚡',0.5,'#fff'); pLbl2.position.set(px,6.2,pz); pLbl2.scale.set(7.5,1.4,1); sc.add(pLbl2);
+        this._speedTemplePositions.push({x:px,z:pz,ring1,ring2});
       });
     }
   },
@@ -4236,6 +4254,7 @@ const ZG={
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
+      if(this._nearSpeedTemple){SpeedTemple.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0)this._interact();
@@ -4280,13 +4299,14 @@ const ZG={
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
+      if(this._nearSpeedTemple){SpeedTemple.open();return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
         this.slap(t.clientX, t.clientY);
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -4333,7 +4353,7 @@ const ZG={
         const speed = 6;
         const nx = m.position.x + Math.sin(this._sweeperHeading)*speed*dt;
         const nz = m.position.z + Math.cos(this._sweeperHeading)*speed*dt;
-        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[]), ...(this._dicePositions||[]), ...(this._terminalPositions||[])];
+        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[]), ...(this._dicePositions||[]), ...(this._terminalPositions||[]), ...(this._speedTemplePositions||[])];
         const PLAZA_R = 26; // stays well clear of the 45-radius enclosure ring
         const zc = (this.ZONES && this.ZONES[0]) || {x:0,z:55};
         let blocked = Math.hypot(nx-zc.x, nz-zc.z) > PLAZA_R;
@@ -4906,6 +4926,15 @@ const ZG={
     this._nearTerminal = _tmDist < 6;
     if(this._nearTerminal && !this._tmHinted){ this._tmHinted=true; ZP.toast('🔍 Tippe das Sammlungs-Terminal an!',2500); }
     else if(!this._nearTerminal){ this._tmHinted=false; }
+    // Speed-Tempel-Portal proximity
+    let _stDist=999;
+    (this._speedTemplePositions||[]).forEach(p=>{
+      const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_stDist)_stDist=d;
+      if(p.ring1){p.ring1.rotation.z+=0.01;p.ring2.rotation.z-=0.015;}
+    });
+    this._nearSpeedTemple = _stDist < 6;
+    if(this._nearSpeedTemple && !this._stHinted){ this._stHinted=true; ZP.toast('⚡ Tippe das Speed-Tempel-Portal an!',2500); }
+    else if(!this._nearSpeedTemple){ this._stHinted=false; }
     // 💰 Geldsack-Regen: bags are collected just by walking into them —
     // no button/tap needed, matches "berühren" from the request.
     if(this._moneyBags && this._moneyBags.length){
@@ -5173,6 +5202,7 @@ const ZG={
     this._jumpPlatDepth=platforms.map(p=>p[4]);
   },
   _checkJumpCollision(){
+    if(this._steActive){ try{ SpeedTemple._checkCollision(); }catch(e){} return; }
     if(!this._jumpActive||!this._jumpPlatforms) return;
     const px=this.pl.x, py=this.pl.y, pz=this.pl.z;
     // Check lava (fell below y=2)
@@ -5637,6 +5667,7 @@ const ZG={
     if(this._nearBreedMachine){BreedMachine.open();return;}
     if(this._nearDiceMachine){DiceMachine.open();return;}
     if(this._nearTerminal){CollectionTerminal.open();return;}
+    if(this._nearSpeedTemple){SpeedTemple.open();return;}
   },
 
   _useTool(sl, clientX, clientY){
@@ -15122,6 +15153,190 @@ const CollectionTerminal = {
       }).join('');
       listEl.innerHTML=backBtn+'<div style="font-weight:900;color:#00CFFF;margin-bottom:8px">'+$esc(name)+' — '+animals.length+' Tiere:</div>'+rows;
     }catch(e){ listEl.innerHTML='<div style="color:rgba(255,165,0,.7);font-size:.8rem">Sammlung konnte nicht geladen werden: '+e.message+'</div>'; }
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════
+// ⚡ SPEED-TEMPEL: eigene Welt, freigeschaltet ab 3 Rebirths + 1 Mrd MT.
+// Geschwindigkeits-Stat wächst automatisch (alle 10s um den Verdienst
+// aller eigenen Tiere zusammen) und schaltet damit nach und nach mehr
+// der 15 Räume frei. STUFE 1: erste 3 Räume + 1 Boss sind wirklich
+// spielbar (wiederverwendet dieselbe Sprung-Physik-Engine wie das
+// bestehende Admin-Jump-Event), Räume 5-15 sind als Ausblick sichtbar
+// ("🚧 Bald verfügbar"), aber noch nicht gebaut — kommt in den nächsten
+// Schritten dazu.
+// ══════════════════════════════════════════════════════════════════
+const SPEEDTEMPLE_ROOMS = [
+  {name:'Raum 1 — Erste Schritte',    reqSpeed:0,      luckMult:2},
+  {name:'Raum 2 — Schwankende Wege',  reqSpeed:500,    luckMult:5},
+  {name:'Raum 3 — Enge Sprünge',      reqSpeed:2000,   luckMult:10},
+  {name:'Boss — Der Wächter',         reqSpeed:5000,   luckMult:20, boss:true},
+  {name:'Raum 5',  reqSpeed:10000,  luckMult:30},
+  {name:'Raum 6',  reqSpeed:18000,  luckMult:40},
+  {name:'Raum 7',  reqSpeed:30000,  luckMult:50},
+  {name:'Raum 8',  reqSpeed:45000,  luckMult:60},
+  {name:'Raum 9',  reqSpeed:65000,  luckMult:75},
+  {name:'Raum 10', reqSpeed:90000,  luckMult:90},
+  {name:'Raum 11', reqSpeed:120000, luckMult:110},
+  {name:'Raum 12', reqSpeed:160000, luckMult:130},
+  {name:'Raum 13', reqSpeed:210000, luckMult:150},
+  {name:'Raum 14', reqSpeed:270000, luckMult:175},
+  {name:'Raum 15 — Endboss', reqSpeed:350000, luckMult:200, boss:true},
+];
+const SPEEDTEMPLE_BUILT = 4; // erste 4 (3 Räume + 1 Boss) sind fertig
+
+const SpeedTemple = {
+  isUnlocked(){
+    const z=ZS.zoo; if(!z) return false;
+    return (z.reb||0)>=3 && ((ZS.dsMT||0)+z.mt)>=1000000000;
+  },
+  // Läuft im Hintergrund, egal wo man gerade ist — Geschwindigkeit wächst
+  // mit dem Gesamtverdienst der eigenen Tiere, nicht nur im Tempel selbst.
+  startSpeedGrowth(){
+    if(this._growthIv) clearInterval(this._growthIv);
+    this._growthIv=setInterval(()=>{
+      const z=ZS.zoo; if(!z) return;
+      const sum=(z.enc||[]).reduce((s,e)=>{ if(!e||!e.animal) return s; const tm=(typeof tMul==='function')?tMul(e.shiny,e.traits):1; return s+(e.animal.earn||0)*tm*(e.xm||1); },0);
+      if(sum>0){ z.escSpeed=(z.escSpeed||0)+sum; ZS.save&&ZS.save(); }
+    },10000);
+  },
+  open(){
+    if(!this.isUnlocked()){
+      ZP.toast('⚡ Braucht 3 Rebirths + insgesamt 1 Milliarde MT, um den Speed-Tempel zu betreten!',4000);
+      return;
+    }
+    this._showHub();
+  },
+  _showHub(){
+    document.getElementById('speedtemple-hub')?.remove();
+    const z=ZS.zoo; if(!z) return;
+    const speed=Math.round(z.escSpeed||0);
+    const panel=document.createElement('div');
+    panel.id='speedtemple-hub';
+    panel.style.cssText='position:fixed;inset:0;background:rgba(10,0,20,.94);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    const rows=SPEEDTEMPLE_ROOMS.map((r,i)=>{
+      const unlocked=speed>=r.reqSpeed;
+      const built=i<SPEEDTEMPLE_BUILT;
+      const statusTxt=!unlocked?'🔒 Braucht '+Math.round(r.reqSpeed)+' Speed':!built?'🚧 Bald verfügbar':'✅ Bereit';
+      return '<div style="background:rgba(255,255,255,.05);border:1px solid '+(unlocked&&built?'#E056FD':'rgba(255,255,255,.1)')+';border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">'
+        +'<div style="font-size:.7rem;color:rgba(255,255,255,.4);min-width:20px">'+(i+1)+'.</div>'
+        +'<div style="flex:1"><div style="font-weight:700;font-size:.82rem">'+(r.boss?'👹 ':'')+r.name+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.45)">'+statusTxt+' · Belohnung: 🍀 ×'+r.luckMult+' 5 Min</div></div>'
+        +(unlocked&&built?'<button onclick="SpeedTemple._enterRoom('+i+')" style="background:#E056FD;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-weight:900;font-size:.75rem;cursor:pointer">Rein!</button>':'')
+        +'</div>';
+    }).join('');
+    panel.innerHTML='<div style="background:linear-gradient(135deg,#2a0a3a,#1a0520);border:1px solid rgba(224,86,253,.4);border-radius:16px;padding:20px;max-width:480px;width:95%;max-height:88vh;overflow-y:auto;color:#fff">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><h2 style="flex:1;color:#E056FD;font-size:1.15rem;margin:0">⚡ Speed-Tempel</h2><button onclick="document.getElementById(\'speedtemple-hub\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
+      +'<div style="text-align:center;background:rgba(255,255,255,.05);border-radius:10px;padding:8px;margin-bottom:10px"><div style="font-size:1.2rem;font-weight:900;color:#E056FD">⚡ '+speed+' Speed</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">Wächst automatisch mit deinen Tieren zusammen</div></div>'
+      +rows+'</div>';
+    document.body.appendChild(panel);
+  },
+  _enterRoom(idx){
+    document.getElementById('speedtemple-hub')?.remove();
+    this._roomIdx=idx;
+    ZG._steActive=true;
+    ZG._jumpActive=true; // reuse the existing gravity/jump physics loop
+    ZG._steZooSave={x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z,yaw:ZG.yaw};
+    this._buildRoom(idx);
+  },
+  _buildRoom(idx){
+    ZG._jumpMeshes=[];
+    ZG._checkpoints=[];
+    ZG._checkpointIdx=0;
+    const sc=ZG.scene;
+    const platMat=new THREE.MeshBasicMaterial({color:0x9B59B6});
+    const goalMat=new THREE.MeshBasicMaterial({color:0xFFD700});
+    let platforms=[];
+    if(idx===0){
+      platforms=[[0,25,50,10,8],[4,25,38,7,6],[-3,26,26,7,6],[3,26,14,7,6],[0,26,2,7,6],[0,26,-10,12,8]];
+    } else if(idx===1){
+      platforms=[[0,25,50,10,8],[5,26,36,6,5],[-5,27,22,6,5],[5,28,8,6,5],[-3,28,-6,6,5],[0,27,-18,12,8]];
+    } else if(idx===2){
+      platforms=[[0,25,50,10,8],[3,26,34,4,4],[-3,27,20,4,4],[3,28,6,4,4],[-3,28,-8,4,4],[0,29,-20,4,4],[0,27,-32,12,8]];
+    } else if(idx===3){ // Boss
+      platforms=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
+    }
+    platforms.forEach(([x,y,z,w,d],i)=>{
+      const isGoal=i===platforms.length-1;
+      const plat=new THREE.Mesh(new THREE.BoxGeometry(w,1.2,d),isGoal?goalMat:platMat);
+      plat.position.set(x,y,z); sc.add(plat); ZG._jumpMeshes.push(plat);
+      if(isGoal){
+        const star=new THREE.Mesh(new THREE.OctahedronGeometry(1.8),new THREE.MeshBasicMaterial({color:0xFFD700}));
+        star.position.set(x,y+4,z); sc.add(star); ZG._jumpMeshes.push(star);
+        ZG._goalStar=star; ZG._goalPos={x,y:y+1.5,z,r:5};
+      } else if(i>0 && i%2===0){
+        ZG._checkpoints.push({x,y:y+1.5,z});
+      }
+    });
+    ZG._jumpPlatforms=platforms;
+    if(idx===3){
+      const boss=new THREE.Mesh(new THREE.SphereGeometry(2.5,12,12),new THREE.MeshBasicMaterial({color:0xE74C3C}));
+      boss.position.set(0,29,-10); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossAngle=0;
+      ZG._bossIv=setInterval(()=>{
+        if(!ZG._bossMesh)return;
+        ZG._bossAngle+=0.03;
+        ZG._bossMesh.position.x=Math.sin(ZG._bossAngle)*8;
+        ZG._bossMesh.position.z=-10+Math.cos(ZG._bossAngle)*4;
+      },16);
+    }
+    ZG.pl.x=0; ZG.pl.y=27; ZG.pl.z=50; ZG.yaw=0; ZG._jumpV=0; ZG._jumpOnGround=true;
+    this._showRoomHUD(idx);
+  },
+  _checkCollision(){
+    if(!ZG._jumpPlatforms) return;
+    const px=ZG.pl.x, py=ZG.pl.y, pz=ZG.pl.z;
+    const backToCheckpoint=()=>{
+      const cp=ZG._checkpoints&&ZG._checkpoints[ZG._checkpointIdx-1];
+      if(cp){ ZG.pl.x=cp.x; ZG.pl.y=cp.y; ZG.pl.z=cp.z; }
+      else { ZG.pl.x=0; ZG.pl.y=27; ZG.pl.z=50; }
+      ZG._jumpV=0;
+    };
+    if(py<15){ ZP.toast('↩️ Runtergefallen — zurück zum Kontrollpunkt!',1500); backToCheckpoint(); return; }
+    if(ZG._goalStar) ZG._goalStar.rotation.y+=0.03;
+    if(ZG._checkpoints){
+      ZG._checkpoints.forEach((cp,i)=>{
+        if(i>=ZG._checkpointIdx){
+          const d=Math.sqrt((px-cp.x)**2+(pz-cp.z)**2);
+          if(d<4 && Math.abs(py-cp.y)<3){ ZG._checkpointIdx=i+1; ZP.toast('🚩 Kontrollpunkt erreicht!',1200); }
+        }
+      });
+    }
+    if(ZG._bossMesh){
+      const bd=Math.sqrt((px-ZG._bossMesh.position.x)**2+(py-ZG._bossMesh.position.y)**2+(pz-ZG._bossMesh.position.z)**2);
+      if(bd<3){ ZP.toast('💥 Vom Wächter getroffen!',1500); backToCheckpoint(); }
+    }
+    if(ZG._goalPos){
+      const gp=ZG._goalPos, dx=px-gp.x, dz=pz-gp.z;
+      if(Math.sqrt(dx*dx+dz*dz)<(gp.r||5) && py>gp.y-2 && py<gp.y+5){ this._winRoom(); }
+    }
+  },
+  _winRoom(){
+    const idx=this._roomIdx, room=SPEEDTEMPLE_ROOMS[idx];
+    const z=ZS.zoo; if(!z) return;
+    if(!z.mtPassBoosts) z.mtPassBoosts={};
+    const cur=z.mtPassBoosts.luck;
+    const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
+    z.mtPassBoosts.luck={mult:room.luckMult, until:base+5*60000};
+    ZS.save&&ZS.save();
+    ZP.toast('🏆 '+room.name+' geschafft! 🍀 Glück ×'+room.luckMult+' für 5 Min!',4500);
+    this._exitRoom();
+  },
+  _exitRoom(){
+    ZG._jumpActive=false; ZG._steActive=false;
+    if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
+    (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null;
+    document.getElementById('speedtemple-room-hud')?.remove();
+    if(ZG._steZooSave){ const s=ZG._steZooSave; ZG.pl.x=s.x; ZG.pl.y=s.y; ZG.pl.z=s.z; ZG.yaw=s.yaw; }
+  },
+  _showRoomHUD(idx){
+    document.getElementById('speedtemple-room-hud')?.remove();
+    const el=document.createElement('div');
+    el.id='speedtemple-room-hud';
+    el.style.cssText='position:fixed;top:8%;left:50%;transform:translateX(-50%);z-index:500;background:rgba(0,0,0,.8);color:#fff;font-weight:900;padding:8px 18px;border-radius:12px;text-align:center;border:2px solid #E056FD;font-size:.85rem';
+    el.innerHTML='⚡ '+SPEEDTEMPLE_ROOMS[idx].name+' · <span style="color:#FFD700">Ziel erreichen!</span> · <button onclick="SpeedTemple._exitRoom()" style="margin-left:8px;background:rgba(255,255,255,.15);border:none;color:#fff;padding:3px 10px;border-radius:8px;cursor:pointer;font-size:.72rem">Verlassen</button>';
+    document.body.appendChild(el);
   },
 };
 
