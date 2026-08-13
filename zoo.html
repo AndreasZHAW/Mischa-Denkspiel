@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v530 -->
+<!-- ZOO v535 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=530"></script>
-<script src="rewardchests.js?v=530"></script>
-<script src="personality.js?v=530"></script>
+<script src="lang.js?v=535"></script>
+<script src="rewardchests.js?v=535"></script>
+<script src="personality.js?v=535"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v530','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v535','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -299,7 +299,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.showZooRangliste()"><div class="hbb" style="background:rgba(255,215,0,.85)">🏆</div><div class="hbl">Rangliste</div></div>
 <div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl" data-i18n="zoo.sound">Sound</div></div>
 <div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
-<div class="hb" id="admbtn" onclick="ZAdmin.open()" style="display:none"><div class="hbb" style="background:rgba(231,76,60,.8)">🔧</div><div class="hbl">Admin</div></div>
 <div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl" data-i18n="zoo.update">Update</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
@@ -518,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=530"></script>
-<script src="worlds.js?v=530"></script>
+<script src="firebase-state.js?v=535"></script>
+<script src="worlds.js?v=535"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1900,7 +1899,7 @@ const ZA={
       errBox.textContent='❌ ZOO START FEHLER:\n\n'+startErr.message+'\n\n'+startErr.stack+'\n\nAlle Logs:\n'+(window._getZooLogs?window._getZooLogs():'keine');
       document.body.appendChild(errBox);
       ZP.toast('❌ Startfehler: '+startErr.message,8000);
-    }if(ZS.isAdmin)show('admbtn');},
+    }},
   logout(){
     ZG.zStop();
     try{ if(typeof State!=='undefined'&&State.stopSessionWatch) State.stopSessionWatch(); }catch(e){}
@@ -4528,10 +4527,10 @@ const ZG={
     }
     // ── SPEED-TEMPEL: der gesammelte Speed-Stat soll sich wirklich aufs
     // Lauftempo auswirken, nicht nur Räume freischalten. Gedeckelt bei
-    // +900% (also max ×10 Grundtempo) bei 400'000 Speed.
+    // +1400% ab 60'000 Speed (also ×15 Grundtempo), Deckel bei ×50.
     if(this._steActive){
       const escSpeed=ZS.zoo?.escSpeed||0;
-      shoe_mod*=1+Math.min(9, (escSpeed/400000)*9);
+      shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     }
     const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
@@ -4611,6 +4610,7 @@ const ZG={
     if(this._jumpActive){
       // ── JUMP LEVEL MODE ──
       if(this._jumpV===undefined) this._jumpV=0;
+      const _prevPlY=this.pl.y;
       // Jump input
       const _onGround=this._jumpOnGround||false;
       if(_onGround&&(this.keys['Space']||this.keys['KeyJ'])&&this._jumpV<=0.1){
@@ -4628,7 +4628,16 @@ const ZG={
         const halfW=pw/2+0.5, halfD=pd/2+0.5;
         if(Math.abs(this.pl.x-px)<halfW && Math.abs(this.pl.z-pz)<halfD){
           // Player is above platform XZ footprint
-          if(this.pl.y<=SURFACE+0.3 && this.pl.y>=SURFACE-2 && this._jumpV<=15){
+          // BUG FIX: with several platforms lined up along the same
+          // corridor (e.g. Raum 5), a player already deep in a fall could
+          // briefly pass through a LATER platform's catch-window while
+          // still moving forward, getting phantom-caught and "saved"
+          // instead of dying — over and over, looking like an endless
+          // fall that never actually finishes. Requiring the player to
+          // have been AT or ABOVE this surface last frame means only a
+          // genuine "just arrived from above" landing counts, not a
+          // pass-through mid-fall.
+          if(this.pl.y<=SURFACE+0.3 && this.pl.y>=SURFACE-3.5 && this._jumpV<=15 && _prevPlY>=SURFACE-3.5){
             this.pl.y=SURFACE; this._jumpV=0; landed=true;
           }
         }
@@ -15305,13 +15314,21 @@ const SpeedTemple = {
       return '<div style="background:rgba(0,0,0,.75);color:'+r.col+';font-weight:900;padding:4px 10px;border-radius:14px;font-size:.78rem">'+r.e+' ×'+r.mult+' · '+mins+':'+String(secs).padStart(2,'0')+'</div>';
     }).join('');
   },
-  open(){
-    // TEMPORÄR: solange die Räume noch feingeschliffen werden, kann
-    // nur Bu:) sie überhaupt öffnen — normale Spieler kriegen stattdessen
-    // eine "bald verfügbar"-Meldung. Wieder öffnen für alle, sobald das
-    // Feintuning fertig ist.
-    if((ZS.player||'').toLowerCase()!=='bu:)'){
-      ZP.toast('⚡ Der Speed-Tempel wird gerade noch eingerichtet — bald für alle offen!',4000);
+  async open(){
+    // Ob der Tempel gerade auf "nur Bu:)" beschränkt ist, wird zentral in
+    // Firestore gespeichert (statt fest im Code), damit der Admin das im
+    // Panel ein-/ausschalten kann, ohne dass ich das erst wieder ändern
+    // muss. Fehlt der Eintrag, gilt Standard = eingeschränkt.
+    let restricted=true;
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        const snap=await _db.collection('zoo_config').doc('speedtemple').get();
+        if(snap.exists && typeof snap.data().restricted==='boolean') restricted=snap.data().restricted;
+      }
+    }catch(e){}
+    const isAdmin=(ZS.player||'').toLowerCase()==='bu:)';
+    if(restricted && !isAdmin){
+      this._showComingSoonScreen();
       return;
     }
     if(!this.isUnlocked()){
@@ -15319,6 +15336,25 @@ const SpeedTemple = {
       return;
     }
     this._showHub();
+  },
+  _showComingSoonScreen(){
+    document.getElementById('speedtemple-comingsoon')?.remove();
+    const el=document.createElement('div');
+    el.id='speedtemple-comingsoon';
+    el.style.cssText='position:fixed;inset:0;background:#000;z-index:10500;display:flex;align-items:center;justify-content:center';
+    el.innerHTML='<button onclick="document.getElementById(\'speedtemple-comingsoon\').remove()" style="position:fixed;top:14px;right:14px;background:rgba(255,255,255,.12);border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.1rem">✕</button>'
+      +'<div style="color:rgba(255,255,255,.6);font-size:1.3rem;font-weight:700;text-align:center;padding:20px">⚡ Kommt bald...</div>';
+    document.body.appendChild(el);
+  },
+  async toggleRestriction(){
+    try{
+      if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Keine Verbindung.'); return; }
+      const snap=await _db.collection('zoo_config').doc('speedtemple').get();
+      const cur=(snap.exists && typeof snap.data().restricted==='boolean')?snap.data().restricted:true;
+      const next=!cur;
+      await _db.collection('zoo_config').doc('speedtemple').set({restricted:next},{merge:true});
+      ZP.toast(next?'🔒 Speed-Tempel wieder nur für Bu:) sichtbar.':'🌍 Speed-Tempel jetzt für alle offen!',3000);
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   _showHub(){
     document.getElementById('speedtemple-hub')?.remove();
@@ -15389,25 +15425,25 @@ const SpeedTemple = {
     } else if(idx===4){ // 🌊 Tsunami-Flucht: etwas längere Sprünge, längerer Kurs
       raw=[[0,25,120,10,8],[0,25,90.3,8,7],[0,26,61.0,8,7],[0,26,31.8,8,7],[0,26,2.6,8,7],[0,26,-26.7,8,7],[0,26,-55.9,8,7],[0,26,-85.2,8,7],[0,26,-114.4,8,7],[0,27,-144.1,12,8]];
     } else if(idx===5){ // ⚡ Blitz-Sprünge: grössere Plattformen, doppelter Abstand
-      raw=[[0,25,50,8,6],[6,26,19.0,5,5],[-6,27,-11.5,5,5],[6,28,-42.0,5,5],[-6,28,-72.5,5,5],[0,29,-103.0,5,5],[0,27,-135.0,12,8]];
+      raw=[[0,25,50,8,6],[6,26,-51.4,8,8],[-6,27,-153.8,8,8],[6,25,-256.2,8,8],[-6,26,-358.6,8,8],[0,27,-461.0,12,8]];
     } else if(idx===6){ // Boss "Der Rasende": noch riesigere Arena als Raum 4
-      raw=[[0,25,70,12,10],[0,26,-2.9,75,75],[0,27,-75.8,14,10]];
+      raw=[[0,25,70,12,10],[0,26,-145.2,90,90],[0,27,-340.4,14,10]];
     } else if(idx===7){ // 🌀 Wirbel-Pfad: doppelt so lange Sprünge, etwas länger
-      raw=[[0,25,100,10,8],[0,26,55.5,10,8],[0,27,10.9,10,8],[0,27,-33.6,10,8],[0,27,-78.1,10,8],[0,26,-122.7,12,8]];
+      raw=[[0,25,100,12,8],[0,26,-116.8,12,8],[0,27,-333.5,12,8],[0,25,-550.3,12,8],[0,26,-767.0,12,8],[0,27,-983.8,12,8]];
     } else if(idx===8){ // 🔥 Endprobe: doppelt so lange Sprünge, doppelt so grosse Plattformen, riesige Boss-Arena
-      raw=[[0,25,90,10,8],[4,26,37.3,8,8],[-4,27,-15.4,8,8],[4,28,-68.1,8,8],[-4,28,-120.8,8,8],[0,29,-173.5,8,8],[0,27,-226.2,12,8]];
+      raw=[[0,25,90,12,8],[5,26,-212.5,10,10],[-5,27,-515.9,10,10],[5,25,-819.4,10,10],[-5,26,-1122.9,10,10],[5,27,-1426.3,10,10],[0,25,-1728.8,12,8]];
     } else if(idx===9){ // Raum 10: Standard-Sprünge auf Basis von 100'000 Speed
-      raw=[[0,25,50,10,8],[5,26,-16.0,6,6],[-5,27,-81.0,6,6],[5,25,-146.0,6,6],[-5,26,-211.0,6,6],[0,27,-277.0,12,8]];
+      raw=[[0,25,90,12,8],[6,26,-360.7,10,10],[-6,27,-812.4,10,10],[6,25,-1264.1,10,10],[-6,26,-1715.9,10,10],[0,27,-2166.6,12,8]];
     } else if(idx===10){ // Raum 11: lange gerade Strecke auf Basis von 150'000 Speed
-      raw=[[0,25,50,10,8],[0,26,-36.4,7,6],[0,27,-121.8,7,6],[0,25,-207.3,7,6],[0,26,-292.7,7,6],[0,27,-378.1,7,6],[0,25,-463.5,7,6],[0,26,-549.9,12,8]];
+      raw=[[0,25,90,14,10],[0,26,-573.5,12,10],[0,27,-1237.0,12,10],[0,25,-1900.5,12,10],[0,26,-2564.0,12,10],[0,27,-3227.5,12,10],[0,25,-3891.0,12,10],[0,26,-4554.5,14,10]];
     } else if(idx===11){ // Boss: riesige Arena auf Basis von 220'000 Speed
-      raw=[[0,25,50,12,10],[0,26,-103.0,80,80],[0,27,-256.0,14,10]];
+      raw=[[0,25,90,14,12],[0,26,-873.6,100,100],[0,27,-1837.3,16,12]];
     } else if(idx===12){ // Raum 13: Wirbel-Pfad auf Basis von 320'000 Speed
-      raw=[[0,25,50,10,8],[0,26,-106.9,10,8],[0,27,-263.7,10,8],[0,25,-420.6,10,8],[0,26,-577.4,12,8]];
+      raw=[[0,25,90,14,10],[0,26,-827.6,14,10],[0,27,-1745.3,14,10],[0,25,-2662.9,14,10],[0,26,-3581.5,16,12]];
     } else if(idx===13){ // Raum 14: härteste Standard-Sprünge, 450'000 Speed
-      raw=[[0,25,50,10,8],[6,26,-139.0,7,7],[-6,27,-327.6,7,7],[6,25,-516.1,7,7],[-6,26,-704.6,7,7],[0,27,-893.6,12,8]];
+      raw=[[0,25,90,14,10],[7,26,-827.6,12,10],[-7,27,-1745.3,12,10],[7,25,-2662.9,12,10],[-7,26,-3580.5,12,10],[0,27,-4498.2,14,10]];
     } else if(idx===14){ // Raum 15 — Endboss: grösste Arena, 600'000 Speed
-      raw=[[0,25,50,12,10],[0,26,-181.5,90,90],[0,27,-413.1,14,10]];
+      raw=[[0,25,90,16,12],[0,26,-878.6,110,110],[0,27,-1847.3,18,12]];
     }
     // Raumgrösse dynamisch an die tatsächliche Kurslänge anpassen — die
     // langen späten Räume (bis fast 950 Einheiten) passen nicht mehr in
@@ -15453,7 +15489,7 @@ const SpeedTemple = {
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const chaseSpeed=0.48; // doppelt so schnell wie ursprünglich, war zu einfach
+        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.48*speedMult; // skaliert mit dem eigenen Tempo, sonst holt er einen ab genug Speed nie wieder ein
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -15489,14 +15525,14 @@ const SpeedTemple = {
       // "Der Rasende" #2 — genauso riesige Arena, Fangen tötet hier NICHT,
       // setzt nur den Boss zurück (Sonderfall, siehe _checkCollision).
       const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0xC0392B}));
-      boss.position.set(OX,29,OZ-2.9); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-2.9};
+      boss.position.set(OX,29,OZ-145.2); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-145.2};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const chaseSpeed=0.76; // doppelt so schnell wie ursprünglich
+        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.76*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -15505,33 +15541,33 @@ const SpeedTemple = {
       // 🌀 rotierender Balken über der mittleren Plattform — Berührung =
       // Tod (nicht nur Zurückwerfen).
       const bar=new THREE.Mesh(new THREE.BoxGeometry(10,1,1),new THREE.MeshBasicMaterial({color:0xE056FD}));
-      bar.position.set(OX,28,OZ+10.9); sc.add(bar); ZG._jumpMeshes.push(bar);
+      bar.position.set(OX,28,OZ-333.5); sc.add(bar); ZG._jumpMeshes.push(bar);
       ZG._spinBar=bar;
       ZG._spinBarIv=setInterval(()=>{ if(ZG._spinBar) ZG._spinBar.rotation.y+=0.045; },16);
     }
     if(idx===8){
       const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0x8B0000}));
-      boss.position.set(OX,29,OZ-120); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-120};
+      boss.position.set(OX,29,OZ-819.4); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-819.4};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const chaseSpeed=0.5; // schnellster Boss bisher
+        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.5*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
     }
     if(idx===10){
       // Raum 11: noch schnellere Tsunami-Welle als Raum 5.
-      const waveSpawnZ=OZ+590;
+      const waveSpawnZ=OZ+140;
       const wave=new THREE.Mesh(new THREE.BoxGeometry(60,20,4),new THREE.MeshBasicMaterial({color:0x1B4F91,transparent:true,opacity:.85}));
       wave.position.set(OX,32,waveSpawnZ); sc.add(wave); ZG._jumpMeshes.push(wave);
       ZG._tsunami=wave; ZG._tsunamiSpawnZ=waveSpawnZ; ZG._tsunamiFrozen=true;
       ZG._tsunamiIv=setInterval(()=>{
         if(!ZG._tsunami||!ZG._jumpActive||ZG._tsunamiFrozen)return;
-        ZG._tsunami.position.z-=0.9;
+        ZG._tsunami.position.z-=2.2; // deutlich schneller als Raum 5, wie gewünscht
       },16);
       const cdEl=document.createElement('div');
       cdEl.id='speedtemple-countdown';
@@ -15549,14 +15585,14 @@ const SpeedTemple = {
     if(idx===11){
       // Raum 12: schnellster Boss bisher in einer riesigen Arena.
       const boss=new THREE.Mesh(new THREE.ConeGeometry(2,4,8),new THREE.MeshBasicMaterial({color:0xFF4500}));
-      boss.position.set(OX,29,OZ-103); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-103};
+      boss.position.set(OX,29,OZ-873.6); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-873.6};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const chaseSpeed=0.65;
+        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.65*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -15564,21 +15600,21 @@ const SpeedTemple = {
     if(idx===12){
       // Raum 13: schneller rotierender Balken über der mittleren Plattform.
       const bar=new THREE.Mesh(new THREE.BoxGeometry(12,1,1),new THREE.MeshBasicMaterial({color:0xE056FD}));
-      bar.position.set(OX,28,OZ-106.9); sc.add(bar); ZG._jumpMeshes.push(bar);
+      bar.position.set(OX,28,OZ-1745.3); sc.add(bar); ZG._jumpMeshes.push(bar);
       ZG._spinBar=bar;
       ZG._spinBarIv=setInterval(()=>{ if(ZG._spinBar) ZG._spinBar.rotation.y+=0.07; },16);
     }
     if(idx===14){
       // Raum 15 — Endboss: der schnellste, grösste Boss von allen.
       const boss=new THREE.Mesh(new THREE.ConeGeometry(2.4,4.6,8),new THREE.MeshBasicMaterial({color:0x4B0000}));
-      boss.position.set(OX,29,OZ-181.5); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-181.5};
+      boss.position.set(OX,29,OZ-878.6); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-878.6};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const chaseSpeed=0.85;
+        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.85*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -15632,6 +15668,7 @@ const SpeedTemple = {
     }
     this._lastFootX=px; this._lastFootZ=pz;
     const startPos={x:ZG._steOX+0, y:27, z:ZG._steOZ+50};
+    const backToStart=()=>{ ZG.pl.x=startPos.x; ZG.pl.y=startPos.y; ZG.pl.z=startPos.z; ZG._jumpV=0; ZG._jumpOnGround=false; };
     const resetAllHazards=()=>{
       if(ZG._bossMesh&&ZG._bossSpawn){ ZG._bossMesh.position.set(ZG._bossSpawn.x,ZG._bossSpawn.y,ZG._bossSpawn.z); }
       if(ZG._tsunami&&ZG._tsunamiSpawnZ!=null){
@@ -15648,6 +15685,18 @@ const SpeedTemple = {
     // zurück, egal wodurch man gestorben ist.
     const die=(msg)=>{
       ZP.toast(msg,1500);
+      // Klarer roter Blitz übers ganze Bild — macht sofort sichtbar, dass
+      // MAN SELBST gestorben ist. Vorher wirkte es (laut Rückmeldung) so,
+      // als würde einfach nur der Boss "verschwinden" (weil er per Reset
+      // an seine Startposition zurückgesetzt wird), ohne klares Zeichen,
+      // dass eigentlich der Spieler zurückgesetzt wurde.
+      try{
+        const flash=document.createElement('div');
+        flash.style.cssText='position:fixed;inset:0;z-index:9700;background:rgba(200,0,0,.45);pointer-events:none;transition:opacity .4s';
+        document.body.appendChild(flash);
+        requestAnimationFrame(()=>{ flash.style.opacity='0'; });
+        setTimeout(()=>flash.remove(),450);
+      }catch(e){}
       backToStart();
       resetAllHazards();
       ZG._steInvUntil=Date.now()+1200;
@@ -16699,6 +16748,7 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#F39C12" onclick="ZAdmin.giveAdmin()">👑 Admin vergeben</button>
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.revokeAdmin()">🚫 Admin entziehen</button>
             <button class="padmin-btn" style="background:#E056FD" onclick="ZAdmin.grantSpeed()">⚡ Speed vergeben</button>
+            <button class="padmin-btn" style="background:#8E44AD" onclick="SpeedTemple.toggleRestriction()">🔒 Tempel-Zugang umschalten</button>
           </div>
           <div class="padmin-section-title" style="margin-top:10px">📢 Ankündigung</div>
           <textarea id="padmin-msg" placeholder="Nachricht an alle Spieler..." rows="2"
