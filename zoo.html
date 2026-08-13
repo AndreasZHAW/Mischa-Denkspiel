@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v522 -->
+<!-- ZOO v524 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=522"></script>
-<script src="rewardchests.js?v=522"></script>
-<script src="personality.js?v=522"></script>
+<script src="lang.js?v=524"></script>
+<script src="rewardchests.js?v=524"></script>
+<script src="personality.js?v=524"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v522','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v524','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=522"></script>
-<script src="worlds.js?v=522"></script>
+<script src="firebase-state.js?v=524"></script>
+<script src="worlds.js?v=524"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3633,6 +3633,7 @@ const ZG={
     try{ ZP._updDecoBar(); }catch(e){}
     try{ Weather.startCycle(); }catch(e){}
     try{ SpeedTemple.startSpeedGrowth(); }catch(e){}
+    try{ SpeedTemple.startBoostBadge(); }catch(e){}
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
@@ -4526,11 +4527,10 @@ const ZG={
     }
     // ── SPEED-TEMPEL: der gesammelte Speed-Stat soll sich wirklich aufs
     // Lauftempo auswirken, nicht nur Räume freischalten. Gedeckelt bei
-    // +400% (also max ×5 Grundtempo) — reicht Luft für spätere, schnellere
-    // Bösse/Sprünge in weiteren Räumen.
+    // +900% (also max ×10 Grundtempo) bei 400'000 Speed.
     if(this._steActive){
       const escSpeed=ZS.zoo?.escSpeed||0;
-      shoe_mod*=1+Math.min(4, escSpeed/8000);
+      shoe_mod*=1+Math.min(9, (escSpeed/400000)*9);
     }
     const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
@@ -4613,7 +4613,7 @@ const ZG={
       // Jump input
       const _onGround=this._jumpOnGround||false;
       if(_onGround&&(this.keys['Space']||this.keys['KeyJ'])&&this._jumpV<=0.1){
-        this._jumpV=9; this._jumpOnGround=false;
+        this._jumpV=(this._steActive?13:9); this._jumpOnGround=false;
       }
       // Gravity
       this._jumpV-=22*dt;
@@ -9898,7 +9898,7 @@ const ZP={
     // actually adds 2 (cumulative, so it grows every rebirth) instead of
     // wiping everything back to the base 5. ZS._fix() (called below)
     // resizes z.enc to match the new, correct maxE() automatically.
-    z.xenc=(z.xenc||0)+2;z.enc=[];z.mt=10;z.luck=1;z.luckLv=0;z._rebNotified=false;ZS._fix();if(kept.length)z.enc[0]=kept[0];ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}
+    z.enc=[];z.mt=10;z.luck=1;z.luckLv=0;z._rebNotified=false;ZS._fix();if(kept.length)z.enc[0]=kept[0];ZG._encs();ZG._updWBar();this.close('reb');ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}
     ZS.save&&ZS.save();
   },
 
@@ -12102,6 +12102,20 @@ const ZAdmin = {
     try{ZNews.push('admin_event',{eventName:'🌑 Sonnenfinsternis'});}catch(e){}
   },
   revokeAdmin(){if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}ZP.toast('🚫 Admin entfernt',2000);},
+  async grantSpeed(){
+    if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
+    const amount=parseInt(prompt('Wie viel Speed soll "'+this.target+'" bekommen?','50000')||'0');
+    if(!amount||amount<=0)return;
+    try{
+      const k='zoo_'+this.target.toLowerCase();
+      const doc=await _db.collection('zoos').doc(k).get({source:'server'});
+      if(!doc.exists){ ZP.toast('❌ Kein Zoo-Konto gefunden.'); return; }
+      const z=doc.data();
+      const newSpeed=(z.escSpeed||0)+amount;
+      await _db.collection('zoos').doc(k).set({escSpeed:newSpeed},{merge:true});
+      ZP.toast('⚡ +'+amount+' Speed an "'+this.target+'" vergeben! (Neu: '+newSpeed+')',3000);
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
   async _loadCalFromFirebase(){
     const statusEl=document.getElementById('cal-status');
     if(statusEl)statusEl.textContent='⏳ Lade Firebase-Daten...';
@@ -15229,7 +15243,44 @@ const SpeedTemple = {
       if(sum>0){ z.escSpeed=(z.escSpeed||0)+sum; ZS.save&&ZS.save(); }
     },10000);
   },
+  // ── Eigene Anzeige unten rechts für aktive Boosts (Glück/Geld/Besucher
+  // aus MT-Pass- und Speed-Tempel-Belohnungen) — die bestehende #hmult
+  // Anzeige sitzt oben und wird leicht übersehen, das hier ist zusätzlich
+  // klar unten rechts sichtbar, wie gewünscht.
+  startBoostBadge(){
+    if(this._badgeIv) clearInterval(this._badgeIv);
+    if(!document.getElementById('speedtemple-boost-badge')){
+      const el=document.createElement('div');
+      el.id='speedtemple-boost-badge';
+      el.style.cssText='position:fixed;bottom:12px;right:12px;z-index:600;display:flex;flex-direction:column;gap:4px;align-items:flex-end;pointer-events:none';
+      document.body.appendChild(el);
+    }
+    this._badgeIv=setInterval(()=>this._updBoostBadge(),1000);
+    this._updBoostBadge();
+  },
+  _updBoostBadge(){
+    const el=document.getElementById('speedtemple-boost-badge'); if(!el) return;
+    const z=ZS.zoo; if(!z){ el.innerHTML=''; return; }
+    const b=z.mtPassBoosts||{};
+    const now=Date.now();
+    const rows=[];
+    if(b.money&&b.money.until>now) rows.push({e:'💰',mult:b.money.mult,left:b.money.until-now,col:'#FFD700'});
+    if(b.visitor&&b.visitor.until>now) rows.push({e:'👥',mult:b.visitor.mult,left:b.visitor.until-now,col:'#3498DB'});
+    if(b.luck&&b.luck.until>now) rows.push({e:'🍀',mult:b.luck.mult,left:b.luck.until-now,col:'#2ECC71'});
+    el.innerHTML=rows.map(r=>{
+      const mins=Math.floor(r.left/60000), secs=Math.floor((r.left%60000)/1000);
+      return '<div style="background:rgba(0,0,0,.75);color:'+r.col+';font-weight:900;padding:4px 10px;border-radius:14px;font-size:.78rem">'+r.e+' ×'+r.mult+' · '+mins+':'+String(secs).padStart(2,'0')+'</div>';
+    }).join('');
+  },
   open(){
+    // TEMPORÄR: solange die Räume noch feingeschliffen werden, kann
+    // nur Bu:) sie überhaupt öffnen — normale Spieler kriegen stattdessen
+    // eine "bald verfügbar"-Meldung. Wieder öffnen für alle, sobald das
+    // Feintuning fertig ist.
+    if((ZS.player||'').toLowerCase()!=='bu:)'){
+      ZP.toast('⚡ Der Speed-Tempel wird gerade noch eingerichtet — bald für alle offen!',4000);
+      return;
+    }
     if(!this.isUnlocked()){
       ZP.toast('⚡ Braucht 1 Rebirth, um den Speed-Tempel zu betreten!',4000);
       return;
@@ -15303,18 +15354,18 @@ const SpeedTemple = {
       raw=[[0,25,50,10,8],[5,26,36,6,5],[-5,27,22,6,5],[5,28,8,6,5],[-3,28,-6,6,5],[0,27,-18,12,8]];
     } else if(idx===2){
       raw=[[0,25,50,10,8],[3,26,34,4,4],[-3,27,20,4,4],[3,28,6,4,4],[-3,28,-8,4,4],[0,29,-20,4,4],[0,27,-32,12,8]];
-    } else if(idx===3){
-      raw=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
-    } else if(idx===4){ // 🌊 Tsunami-Flucht: lange gerade Strecke, Welle jagt von hinten
-      raw=[[0,25,80,10,8],[0,25,66,8,7],[0,26,52,8,7],[0,26,38,8,7],[0,26,24,8,7],[0,26,10,8,7],[0,26,-4,8,7],[0,27,-20,12,8]];
-    } else if(idx===5){ // ⚡ Blitz-Sprünge: kleine, weit entfernte Plattformen
-      raw=[[0,25,50,8,6],[6,26,36,3,3],[-6,27,22,3,3],[6,28,8,3,3],[-6,28,-6,3,3],[0,29,-20,3,3],[0,27,-34,12,8]];
-    } else if(idx===6){ // Boss "Der Rasende" — schnellerer Boss
-      raw=[[0,25,50,12,10],[0,26,10,16,14],[0,27,-30,14,10]];
-    } else if(idx===7){ // 🌀 Wirbel-Pfad: rotierender Balken zum Umgehen
-      raw=[[0,25,50,10,8],[0,26,30,10,8],[0,27,10,10,8],[0,27,-10,10,8],[0,26,-30,12,8]];
-    } else if(idx===8){ // 🔥 Endprobe: enge Plattformen + sehr schneller Boss
-      raw=[[0,25,60,10,8],[4,26,44,4,4],[-4,27,28,4,4],[4,28,12,4,4],[-4,28,-4,4,4],[0,29,-20,4,4],[0,27,-36,12,8]];
+    } else if(idx===3){ // Boss "Der Wächter": riiiieessiiiggee Ausweich-Arena
+      raw=[[0,25,60,12,10],[0,26,0,55,55],[0,27,-60,14,10]];
+    } else if(idx===4){ // 🌊 Tsunami-Flucht: etwas längere Sprünge
+      raw=[[0,25,90,10,8],[0,25,72,8,7],[0,26,54,8,7],[0,26,36,8,7],[0,26,18,8,7],[0,26,0,8,7],[0,26,-18,8,7],[0,27,-36,12,8]];
+    } else if(idx===5){ // ⚡ Blitz-Sprünge: grössere Plattformen, doppelter Abstand
+      raw=[[0,25,50,8,6],[6,26,22,5,5],[-6,27,-6,5,5],[6,28,-34,5,5],[-6,28,-62,5,5],[0,29,-90,5,5],[0,27,-118,12,8]];
+    } else if(idx===6){ // Boss "Der Rasende": genauso riesige Arena wie Raum 4
+      raw=[[0,25,60,12,10],[0,26,0,55,55],[0,27,-60,14,10]];
+    } else if(idx===7){ // 🌀 Wirbel-Pfad: doppelt so lange Sprünge
+      raw=[[0,25,80,10,8],[0,26,40,10,8],[0,27,0,10,8],[0,27,-40,10,8],[0,26,-80,12,8]];
+    } else if(idx===8){ // 🔥 Endprobe: doppelt so lange Sprünge, doppelt so grosse Plattformen, riesige Boss-Arena
+      raw=[[0,25,90,10,8],[4,26,58,8,8],[-4,27,26,8,8],[4,28,-6,8,8],[-4,28,-38,8,8],[0,29,-70,8,8],[0,27,-102,12,8]];
     }
     const platforms=raw.map(([x,y,z,w,d])=>[x+OX,y,z+OZ,w,d]);
     platforms.forEach(([x,y,z,w,d],i)=>{
@@ -15333,9 +15384,10 @@ const SpeedTemple = {
     if(idx===3){
       // Schneller, verfolgender Boss statt einer nur kreisenden Kugel —
       // jagt direkt hinter dem Spieler her, schneller als normales Tempo.
+      // Spawnt in der Mitte der riesigen Ausweich-Arena.
       const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0xE74C3C}));
-      boss.position.set(OX,29,OZ-10); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss;
+      boss.position.set(OX,29,OZ); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
@@ -15347,43 +15399,46 @@ const SpeedTemple = {
       },16);
     }
     if(idx===4){
-      // 🌊 Tsunami: riesige blaue Wand, die stur von hinten (grosses Z)
-      // nach vorne (kleines Z) durchrollt — Berührung = zurück zum
-      // Kontrollpunkt. Zwingt zum durchgehenden Vorwärtslaufen.
+      // 🌊 Tsunami: riesige blaue Wand, rollt stur von hinten nach vorne —
+      // 15× so schnell wie ursprünglich, Berührung = Tod, Welle setzt sich
+      // beim Sterben auf ihre Startposition zurück.
+      const waveSpawnZ=OZ+130;
       const wave=new THREE.Mesh(new THREE.BoxGeometry(60,20,4),new THREE.MeshBasicMaterial({color:0x2E86DE,transparent:true,opacity:.85}));
-      wave.position.set(OX,32,OZ+95); sc.add(wave); ZG._jumpMeshes.push(wave);
-      ZG._tsunami=wave;
+      wave.position.set(OX,32,waveSpawnZ); sc.add(wave); ZG._jumpMeshes.push(wave);
+      ZG._tsunami=wave; ZG._tsunamiSpawnZ=waveSpawnZ;
       ZG._tsunamiIv=setInterval(()=>{
         if(!ZG._tsunami||!ZG._jumpActive)return;
-        ZG._tsunami.position.z-=0.045;
+        ZG._tsunami.position.z-=0.675; // 15× schneller als vorher (0.045)
       },16);
     }
     if(idx===6){
+      // "Der Rasende" #2 — genauso riesige Arena, Fangen tötet hier NICHT,
+      // setzt nur den Boss zurück (Sonderfall, siehe _checkCollision).
       const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0xC0392B}));
-      boss.position.set(OX,29,OZ-10); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss;
+      boss.position.set(OX,29,OZ); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const chaseSpeed=0.38; // "Der Rasende" — deutlich schneller als Raum 4
+        const chaseSpeed=0.38; // deutlich schneller als Raum 4
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
     }
     if(idx===7){
-      // 🌀 rotierender Balken über der mittleren Plattform — Timing statt
-      // nur Springen nötig.
+      // 🌀 rotierender Balken über der mittleren Plattform — Berührung =
+      // Tod (nicht nur Zurückwerfen).
       const bar=new THREE.Mesh(new THREE.BoxGeometry(10,1,1),new THREE.MeshBasicMaterial({color:0xE056FD}));
-      bar.position.set(OX,28,OZ+10); sc.add(bar); ZG._jumpMeshes.push(bar);
+      bar.position.set(OX,28,OZ); sc.add(bar); ZG._jumpMeshes.push(bar);
       ZG._spinBar=bar;
       ZG._spinBarIv=setInterval(()=>{ if(ZG._spinBar) ZG._spinBar.rotation.y+=0.045; },16);
     }
     if(idx===8){
       const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0x8B0000}));
-      boss.position.set(OX,29,OZ-15); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss;
+      boss.position.set(OX,29,OZ-70); sc.add(boss); ZG._jumpMeshes.push(boss);
+      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-70};
       ZG._bossIv=setInterval(()=>{
         if(!ZG._bossMesh||!ZG._jumpActive)return;
         const bp=ZG._bossMesh.position;
@@ -15394,7 +15449,13 @@ const SpeedTemple = {
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
     }
-    ZG.pl.x=OX; ZG.pl.y=27; ZG.pl.z=OZ+50; ZG.yaw=0; ZG._jumpV=0; ZG._jumpOnGround=true;
+    // Spawn: normalerweise leicht vor der ersten Plattform (Z je nach
+    // Raum unterschiedlich weit vorne), Raum 9 startet weiter aussen weil
+    // seine erste Plattform bei Z=90 statt 50 liegt — man soll sanft
+    // draufplumpsen, nicht mitten drin spawnen.
+    const spawnZ = idx===8 ? OZ+95 : OZ+50;
+    ZG.pl.x=OX; ZG.pl.y=30; ZG.pl.z=spawnZ; ZG.yaw=0; ZG._jumpV=0; ZG._jumpOnGround=false;
+    ZG._steInvUntil=Date.now()+1200;
     this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
     this._showRoomHUD(idx);
     this._showSpeedHUD();
@@ -15416,7 +15477,6 @@ const SpeedTemple = {
     if(!ZG._jumpPlatforms) return;
     const px=ZG.pl.x, py=ZG.pl.y, pz=ZG.pl.z;
     this._updSpeedHUD();
-    // Fußschritt-Ton, solange man sich laufend auf einer Plattform bewegt.
     if(ZG._jumpOnGround){
       const moved=Math.abs(px-(this._lastFootX??px))>0.02 || Math.abs(pz-(this._lastFootZ??pz))>0.02;
       const now=Date.now();
@@ -15428,18 +15488,22 @@ const SpeedTemple = {
     this._lastFootX=px; this._lastFootZ=pz;
     const startPos={x:ZG._steOX+0, y:27, z:ZG._steOZ+50};
     const backToStart=()=>{ ZG.pl.x=startPos.x; ZG.pl.y=startPos.y; ZG.pl.z=startPos.z; ZG._jumpV=0; };
-    const backToCheckpoint=()=>{
-      const cp=ZG._checkpoints&&ZG._checkpoints[ZG._checkpointIdx-1];
-      if(cp){ ZG.pl.x=cp.x; ZG.pl.y=cp.y; ZG.pl.z=cp.z; }
-      else { ZG.pl.x=startPos.x; ZG.pl.y=startPos.y; ZG.pl.z=startPos.z; }
-      ZG._jumpV=0;
+    // BUG FIX: getting caught used to just knock you back to a checkpoint
+    // that could be RIGHT NEXT TO the boss/hazard that just caught you —
+    // so the very next frame it caught you again instantly, over and
+    // over, which looked exactly like "nothing happens, can't move" even
+    // though position was technically being reset every single frame.
+    // Dying now (a) sends you fully back to the room start, (b) resets
+    // the boss/wave/etc. back to ITS OWN spawn point too, and (c) grants
+    // a short invincibility window so a fresh respawn can't be caught
+    // again on the very next frame.
+    const die=(msg,resetHazard)=>{
+      ZP.toast(msg,1500);
+      backToStart();
+      if(resetHazard) resetHazard();
+      ZG._steInvUntil=Date.now()+1200;
     };
-    // BUG FIX (per Rückmeldung): Runterfallen brachte einen manchmal an
-    // eine unklare/schwierige Stelle statt an einen sicheren Ort zurück.
-    // Fürs Runterfallen speziell geht's jetzt immer garantiert an den
-    // echten Raumanfang zurück, nicht an einen Kontrollpunkt (die
-    // bleiben nur für Boss-/Hindernis-Treffer erhalten).
-    if(py<15){ ZP.toast('↩️ Runtergefallen — zurück zum Anfang!',1500); backToStart(); return; }
+    if(py<15){ die('↩️ Runtergefallen — zurück zum Anfang!',null); return; }
     if(ZG._goalStar) ZG._goalStar.rotation.y+=0.03;
     if(ZG._checkpoints){
       ZG._checkpoints.forEach((cp,i)=>{
@@ -15449,22 +15513,35 @@ const SpeedTemple = {
         }
       });
     }
-    if(ZG._bossMesh){
+    const invincible=Date.now()<(ZG._steInvUntil||0);
+    if(!invincible && ZG._bossMesh){
       const bd=Math.sqrt((px-ZG._bossMesh.position.x)**2+(py-ZG._bossMesh.position.y)**2+(pz-ZG._bossMesh.position.z)**2);
-      if(bd<3){ ZP.toast('💥 Vom Boss erwischt!',1500); backToCheckpoint(); }
+      if(bd<3){
+        const resetBoss=()=>{ if(ZG._bossMesh&&ZG._bossSpawn){ ZG._bossMesh.position.set(ZG._bossSpawn.x,ZG._bossSpawn.y,ZG._bossSpawn.z); } };
+        if(this._roomIdx===6){
+          // Raum 7 (Boss "Der Rasende" #2): Fangen tötet hier absichtlich
+          // NICHT — nur der Boss wird zurückgesetzt, kein Neustart.
+          ZP.toast('💥 Erwischt! Boss wird zurückgesetzt.',1300);
+          resetBoss();
+          ZG._steInvUntil=Date.now()+1200;
+        } else {
+          die('💀 Vom Boss erwischt — zurück zum Anfang!',resetBoss);
+        }
+      }
     }
-    if(ZG._tsunami){
-      if(Math.abs(pz-ZG._tsunami.position.z)<3 && py<40){ ZP.toast('🌊 Von der Welle erwischt!',1500); backToCheckpoint(); }
+    if(!invincible && ZG._tsunami){
+      if(Math.abs(pz-ZG._tsunami.position.z)<3 && py<40){
+        die('💀 Von der Tsunami-Welle erwischt!',()=>{ if(ZG._tsunami&&ZG._tsunamiSpawnZ!=null) ZG._tsunami.position.z=ZG._tsunamiSpawnZ; });
+      }
     }
-    if(ZG._spinBar){
+    if(!invincible && ZG._spinBar){
       const bar=ZG._spinBar, bp=bar.position;
-      // Grober Zylinder-Check um den Balken herum, dreht sich mit rotation.y
       const dx=px-bp.x, dz=pz-bp.z;
       const rot=bar.rotation.y;
       const localX=dx*Math.cos(-rot)-dz*Math.sin(-rot);
       const localZ=dx*Math.sin(-rot)+dz*Math.cos(-rot);
       if(Math.abs(localX)<5 && Math.abs(localZ)<0.8 && Math.abs(py-bp.y)<1.5){
-        ZP.toast('🌀 Vom Balken erwischt!',1500); backToCheckpoint();
+        die('💀 Vom lilanen Balken erwischt!',null);
       }
     }
     if(ZG._goalPos){
@@ -15481,6 +15558,7 @@ const SpeedTemple = {
     z.mtPassBoosts.luck={mult:room.luckMult, until:base+5*60000};
     ZS.save&&ZS.save();
     try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    try{ SpeedTemple._updBoostBadge(); }catch(e){}
     ZP.toast('🏆 '+room.name+' geschafft! 🍀 Glück ×'+room.luckMult+' für 5 Min!',4500);
     this._exitRoom();
   },
@@ -15490,7 +15568,7 @@ const SpeedTemple = {
     if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._steInvUntil=0;
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
     document.getElementById('speedtemple-speed-hud')?.remove();
@@ -16470,6 +16548,7 @@ window.ZooEvents = ZooEvents;
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
             <button class="padmin-btn" style="background:#F39C12" onclick="ZAdmin.giveAdmin()">👑 Admin vergeben</button>
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.revokeAdmin()">🚫 Admin entziehen</button>
+            <button class="padmin-btn" style="background:#E056FD" onclick="ZAdmin.grantSpeed()">⚡ Speed vergeben</button>
           </div>
           <div class="padmin-section-title" style="margin-top:10px">📢 Ankündigung</div>
           <textarea id="padmin-msg" placeholder="Nachricht an alle Spieler..." rows="2"
