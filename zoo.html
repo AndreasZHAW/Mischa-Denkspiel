@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v525 -->
+<!-- ZOO v527 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=525"></script>
-<script src="rewardchests.js?v=525"></script>
-<script src="personality.js?v=525"></script>
+<script src="lang.js?v=527"></script>
+<script src="rewardchests.js?v=527"></script>
+<script src="personality.js?v=527"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v525','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v527','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -292,6 +292,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="MTPass.open()"><div class="hbb" style="background:rgba(255,215,0,.85)">🎫</div><div class="hbl">MT-Pass</div></div>
+<div class="hb" id="hb-footstep-style" onclick="SpeedTemple.toggleFootstepStyle()"><div class="hbb" style="background:rgba(224,86,253,.85)">🔊</div><div class="hbl">Schritt-Ton</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
@@ -517,8 +518,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=525"></script>
-<script src="worlds.js?v=525"></script>
+<script src="firebase-state.js?v=527"></script>
+<script src="worlds.js?v=527"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -10598,7 +10599,10 @@ const ZSound = {
   },
   // ── SPEED-TEMPEL Schritt-Geräusch: kurzer gefilterter Rausch-Stoß statt
   // eines reinen Tons — klingt eher nach einem echten Tritt/Crunch auf dem
-  // Boden. (Konnte den verlinkten YouTube-Clip nicht einbinden — kein
+  // Boden. Zwei wählbare Stile (links im Menü einstellbar): "normal"
+  // (sanfter Tritt) und "knackig" (schärfer, mit zweitem kurzen
+  // Biss-Nachklang direkt danach — angelehnt an ASMR-Ess-Videos).
+  // (Konnte den verlinkten YouTube-Clip nicht einbinden — kein
   // Internetzugriff für Audio-Dateien in dieser Umgebung, und fremdes
   // Video-Audio direkt zu übernehmen wäre ausserdem ein Urheberrechts-
   // Problem — das hier ist die nächstbeste eigene Lösung.)
@@ -10606,16 +10610,33 @@ const ZSound = {
     if (this.style === 'off') return;
     this._init();
     if (!this.ctx) return;
-    const dur=0.09;
+    const crunchy=(typeof localStorage!=='undefined' && localStorage.getItem('mischa_footstep_style')==='crunchy');
+    const dur=crunchy?0.05:0.09;
     const bufSize=Math.floor(this.ctx.sampleRate*dur);
     const buf=this.ctx.createBuffer(1,bufSize,this.ctx.sampleRate);
     const data=buf.getChannelData(0);
     for(let i=0;i<bufSize;i++){ data[i]=(Math.random()*2-1)*(1-i/bufSize); } // weißes Rauschen, ausklingend
     const src=this.ctx.createBufferSource(); src.buffer=buf;
-    const filter=this.ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.setValueAtTime(900,this.ctx.currentTime);
-    const gain=this.ctx.createGain(); gain.gain.setValueAtTime(0.18,this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
+    const filter=this.ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.setValueAtTime(crunchy?2600:900,this.ctx.currentTime);
+    const gain=this.ctx.createGain(); gain.gain.setValueAtTime(crunchy?0.28:0.18,this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
     src.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
     src.start(); src.stop(this.ctx.currentTime+dur);
+    if(crunchy){
+      // Zweiter, kürzerer heller "Biss"-Nachklang für den ASMR-Crunch-Effekt.
+      setTimeout(()=>{
+        if(!this.ctx) return;
+        const dur2=0.035;
+        const bs2=Math.floor(this.ctx.sampleRate*dur2);
+        const buf2=this.ctx.createBuffer(1,bs2,this.ctx.sampleRate);
+        const data2=buf2.getChannelData(0);
+        for(let i=0;i<bs2;i++){ data2[i]=(Math.random()*2-1)*(1-i/bs2); }
+        const src2=this.ctx.createBufferSource(); src2.buffer=buf2;
+        const filter2=this.ctx.createBiquadFilter(); filter2.type='highpass'; filter2.frequency.setValueAtTime(1800,this.ctx.currentTime);
+        const gain2=this.ctx.createGain(); gain2.gain.setValueAtTime(0.15,this.ctx.currentTime); gain2.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur2);
+        src2.connect(filter2); filter2.connect(gain2); gain2.connect(this.ctx.destination);
+        src2.start(); src2.stop(this.ctx.currentTime+dur2);
+      },25);
+    }
   },
 
   // Real short audio clips (CC0 — Kenney "Interface Sounds" pack by
@@ -15238,6 +15259,11 @@ const SpeedTemple = {
   startSpeedGrowth(){
     if(this._growthIv) clearInterval(this._growthIv);
     this._growthIv=setInterval(()=>{
+      // Speed wächst jetzt NUR, wenn der Tempel freigeschaltet ist UND
+      // man gerade aktiv in einem Raum spielt — nicht mehr passiv im
+      // Hintergrund überall im Zoo.
+      if(!ZG._steActive) return;
+      if(!this.isUnlocked()) return;
       const z=ZS.zoo; if(!z) return;
       const sum=(z.enc||[]).reduce((s,e)=>{ if(!e||!e.animal) return s; const tm=(typeof tMul==='function')?tMul(e.shiny,e.traits):1; return s+(e.animal.earn||0)*tm*(e.xm||1); },0);
       if(sum>0){ z.escSpeed=(z.escSpeed||0)+sum; ZS.save&&ZS.save(); }
@@ -15247,6 +15273,13 @@ const SpeedTemple = {
   // aus MT-Pass- und Speed-Tempel-Belohnungen) — die bestehende #hmult
   // Anzeige sitzt oben und wird leicht übersehen, das hier ist zusätzlich
   // klar unten rechts sichtbar, wie gewünscht.
+  toggleFootstepStyle(){
+    const cur=(typeof localStorage!=='undefined' && localStorage.getItem('mischa_footstep_style'))||'normal';
+    const next=cur==='crunchy'?'normal':'crunchy';
+    try{ localStorage.setItem('mischa_footstep_style',next); }catch(e){}
+    ZP.toast(next==='crunchy'?'🔊 Schritt-Ton: Knackig (ASMR)':'🔊 Schritt-Ton: Normal',2000);
+    try{ ZSound._footstep&&ZSound._footstep(); }catch(e){} // gleich anhören
+  },
   startBoostBadge(){
     if(this._badgeIv) clearInterval(this._badgeIv);
     if(!document.getElementById('speedtemple-boost-badge')){
@@ -15320,6 +15353,14 @@ const SpeedTemple = {
     // Nur der Lauf-Sound aus dem Tempel selbst soll zu hören sein, nicht
     // die Zoo-Hintergrundmusik/-Melodie gleichzeitig mit.
     try{ ZSound.stopMelody&&ZSound.stopMelody(); }catch(e){}
+    // Im Tempel soll links nur noch der Schritt-Ton-Knopf sichtbar/klickbar
+    // sein — der Rest vom normalen Zoo-Menü blendet sich aus, bis man
+    // wieder zurück im Zoo ist.
+    try{
+      document.querySelectorAll('#hleft > .hb').forEach(el=>{
+        if(el.id!=='hb-footstep-style') el.style.display='none';
+      });
+    }catch(e){}
     this._buildRoom(idx);
   },
   _buildRoom(idx){
@@ -15525,7 +15566,7 @@ const SpeedTemple = {
       resetAllHazards();
       ZG._steInvUntil=Date.now()+1200;
     };
-    if(py<15){ die('↩️ Runtergefallen — zurück zum Anfang!'); return; }
+    if(py<20){ die('↩️ Runtergefallen — zurück zum Anfang!'); return; }
     if(ZG._goalStar) ZG._goalStar.rotation.y+=0.03;
     if(ZG._checkpoints){
       ZG._checkpoints.forEach((cp,i)=>{
@@ -15596,6 +15637,7 @@ const SpeedTemple = {
     document.getElementById('speedtemple-speed-hud')?.remove();
     if(ZG._steZooSave){ const s=ZG._steZooSave; ZG.pl.x=s.x; ZG.pl.y=s.y; ZG.pl.z=s.z; ZG.yaw=s.yaw; }
     try{ ZSound.startMelody&&ZSound.startMelody(); }catch(e){}
+    try{ document.querySelectorAll('#hleft > .hb').forEach(el=>{ el.style.display=''; }); }catch(e){}
   },
   _showRoomHUD(idx){
     document.getElementById('speedtemple-room-hud')?.remove();
