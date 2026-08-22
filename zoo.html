@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v537 -->
+<!-- ZOO v538 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=537"></script>
-<script src="rewardchests.js?v=537"></script>
-<script src="personality.js?v=537"></script>
+<script src="lang.js?v=538"></script>
+<script src="rewardchests.js?v=538"></script>
+<script src="personality.js?v=538"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v537','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v538','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=537"></script>
-<script src="worlds.js?v=537"></script>
+<script src="firebase-state.js?v=538"></script>
+<script src="worlds.js?v=538"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -15682,12 +15682,18 @@ const SpeedTemple = {
   // (siehe die Formel weiter oben in der Bewegungssteuerung) — bei
   // wenig Speed quält man sich durch, bei viel Speed geht's zügig.
   // ══════════════════════════════════════════════════════════════════
-  _genMazePath(turns, dx, dz){
-    const pts=[{x:0,z:60}];
-    let curX=0, curZ=60, dir=1;
+  _genMazePath(turns){
+    // Unregelmässige Schrittweiten statt immer gleich lang — sieht mehr
+    // nach echtem Labyrinth aus statt nach exakter Treppenstufe, und mit
+    // deutlich mehr Abstand zwischen den Gängen, damit sich benachbarte
+    // Korridore nicht mehr optisch zu einem Klumpen verschmelzen.
+    const dxOpts=[26,34,22,38,30];
+    const dzOpts=[30,24,36,28];
+    const pts=[{x:0,z:80}];
+    let curX=0, curZ=80, dir=1;
     for(let i=0;i<turns;i++){
-      curX+=dir*dx; pts.push({x:curX,z:curZ});
-      curZ-=dz; pts.push({x:curX,z:curZ});
+      curX+=dir*dxOpts[i%dxOpts.length]; pts.push({x:curX,z:curZ});
+      curZ-=dzOpts[i%dzOpts.length]; pts.push({x:curX,z:curZ});
       dir*=-1;
     }
     return pts;
@@ -15717,18 +15723,18 @@ const SpeedTemple = {
     ZG._steOX=OX; ZG._steOZ=OZ;
     ZG._steOldClearColor=0x87CEEB;
     try{ ZG.renderer.setClearColor(0x0d0110,1); }catch(e){}
-    const floorY=25.75, corridorHalf=4, wallThick=1.5, wallH=6;
-    // Räume 10→15 (idx 9→14): 6,8,10,12,14,16 Abbiegungen — wird also
-    // spürbar dichter/länger je später der Raum.
-    const turns=[6,8,10,12,14,16][idx-9];
-    const path=this._genMazePath(turns,16,22);
+    // Deutlich grösserer Korridor (5→6) und mehr Abbiegungen pro Raum,
+    // per Rückmeldung: "zu klein" und "nicht so einfach".
+    const floorY=25.75, corridorHalf=6, wallThick=1.2, wallH=7;
+    const turns=[8,10,12,14,16,18][idx-9];
+    const path=this._genMazePath(turns);
     const walls=this._wallsFromPath(path,corridorHalf,wallThick,wallH,floorY);
     ZG._mazeWalls=walls.map(([x,y,z,w,d])=>[x+OX,y,z+OZ,w,d]);
     ZG._mazeGoal={x:path[path.length-1].x+OX,z:path[path.length-1].z+OZ};
     // Boden + Deckel, grosszügig um den Kurs herum
     const xs=path.map(p=>p.x), zs=path.map(p=>p.z);
-    const minX=Math.min(...xs)-20, maxX=Math.max(...xs)+20;
-    const minZ=Math.min(...zs)-20, maxZ=60+20;
+    const minX=Math.min(...xs)-25, maxX=Math.max(...xs)+25;
+    const minZ=Math.min(...zs)-25, maxZ=80+25;
     const w=maxX-minX, d=maxZ-minZ, cx=(minX+maxX)/2+OX, cz=(minZ+maxZ)/2+OZ;
     const roomMat=new THREE.MeshBasicMaterial({color:0x1a0322});
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(w,d),roomMat);
@@ -15746,7 +15752,9 @@ const SpeedTemple = {
     goalMarker.position.set(ZG._mazeGoal.x,floorY,ZG._mazeGoal.z); sc.add(goalMarker); ZG._jumpMeshes.push(goalMarker);
     const goalGlow=new THREE.PointLight(0xFFD700,1.5,20);
     goalGlow.position.set(ZG._mazeGoal.x,floorY+3,ZG._mazeGoal.z); sc.add(goalGlow); ZG._jumpMeshes.push(goalGlow);
-    ZG.pl.x=path[0].x+OX; ZG.pl.y=floorY+1.5; ZG.pl.z=path[0].z+OZ; ZG.yaw=Math.PI;
+    ZG.pl.x=path[0].x+OX; ZG.pl.y=floorY+1.5; ZG.pl.z=path[0].z+OZ;
+    // In Richtung des ersten Gangs schauen, statt einer festen Blickrichtung.
+    { const dxx=path[1].x-path[0].x, dzz=path[1].z-path[0].z; ZG.yaw=Math.atan2(-dxx,-dzz); }
     ZG._jumpV=0; ZG._jumpOnGround=true;
     this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
     this._showRoomHUD(idx);
