@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v541 -->
+<!-- ZOO v542 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=541"></script>
-<script src="rewardchests.js?v=541"></script>
-<script src="personality.js?v=541"></script>
+<script src="lang.js?v=542"></script>
+<script src="rewardchests.js?v=542"></script>
+<script src="personality.js?v=542"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v541','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v542','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=541"></script>
-<script src="worlds.js?v=541"></script>
+<script src="firebase-state.js?v=542"></script>
+<script src="worlds.js?v=542"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4593,27 +4593,31 @@ const ZG={
     } else {
       this._iceVel=null;
       if(l>0){
-        if(this._mazeActive && ZG._mazeWalls){
+        if(this._mazeActive && ZG._mazeAreas){
           // Labyrinth: Bewegung in kleine Zwischenschritte aufteilen, statt
           // nur die Endposition zu prüfen — bei hohem Speed konnte man
           // sonst in einem einzigen Frame durch eine dünne Wand
-          // "hindurchspringen" (Tunneling), weil die Bewegung pro Frame
-          // dann grösser war als die Wanddicke. Pro Achse einzeln, damit
-          // man an Wänden entlang gleiten kann statt steckenzubleiben.
+          // "hindurchspringen" (Tunneling). Pro Achse einzeln, damit man
+          // an Rändern entlang gleiten kann statt steckenzubleiben.
+          // Gültig = Position liegt in mindestens einem begehbaren
+          // Bereich (dieselbe Liste, die auch den leuchtenden Boden
+          // zeichnet) — kann also nie im Widerspruch zum echten Weg
+          // stehen, anders als die alte separate Wand-Berechnung.
           const totalDx=mx/l*sp*dt, totalDz=mz/l*sp*dt;
           const dist=Math.sqrt(totalDx*totalDx+totalDz*totalDz);
           const steps=Math.max(1,Math.ceil(dist/0.5));
           const stepDx=totalDx/steps, stepDz=totalDz/steps;
-          const hitsWall=(px,pz)=>{
-            for(const [wx,wy,wz,ww,wd] of ZG._mazeWalls){
-              if(Math.abs(px-wx)<ww/2+0.6 && Math.abs(pz-wz)<wd/2+0.6) return true;
+          const inArea=(px,pz)=>{
+            const m=0.6;
+            for(const a of ZG._mazeAreas){
+              if(px>=a.x1-m && px<=a.x2+m && pz>=a.z1-m && pz<=a.z2+m) return true;
             }
             return false;
           };
           for(let s=0;s<steps;s++){
             const nx=this.pl.x+stepDx, nz=this.pl.z+stepDz;
-            if(!hitsWall(nx,this.pl.z)) this.pl.x=nx;
-            if(!hitsWall(this.pl.x,nz)) this.pl.z=nz;
+            if(inArea(nx,this.pl.z)) this.pl.x=nx;
+            if(inArea(this.pl.x,nz)) this.pl.z=nz;
           }
         } else {
           this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;
@@ -15740,13 +15744,27 @@ const SpeedTemple = {
     ZG._steOX=OX; ZG._steOZ=OZ;
     ZG._steOldClearColor=0x87CEEB;
     try{ ZG.renderer.setClearColor(0x0d0110,1); }catch(e){}
-    // Deutlich grösserer Korridor (5→6) und mehr Abbiegungen pro Raum,
-    // per Rückmeldung: "zu klein" und "nicht so einfach".
     const floorY=25.75, corridorHalf=12, wallThick=2, wallH=10;
     const turns=[8,10,12,14,16,18][idx-9];
     const path=this._genMazePath(turns);
-    const walls=this._wallsFromPath(path,corridorHalf,wallThick,wallH,floorY);
-    ZG._mazeWalls=walls.map(([x,y,z,w,d])=>[x+OX,y,z+OZ,w,d]);
+    // BUG FIX: die alte Wand-Berechnung erzeugte Wände UNABHÄNGIG vom
+    // begehbaren Bereich — an manchen Abbiegungen (je nach Richtung)
+    // reichte eine Wand dadurch zu weit in den nächsten Gang hinein und
+    // versperrte den einzig echten Weg. Jetzt gilt umgekehrt: der
+    // begehbare Bereich (ein Quadrat pro Wegpunkt + ein Rechteck pro
+    // Gang-Abschnitt) wird zuerst berechnet — das ist die einzige
+    // Wahrheitsquelle. Kollision UND die sichtbare Boden-Fläche kommen
+    // beide direkt aus dieser Liste, können also nie auseinanderlaufen.
+    const areas=[];
+    path.forEach(p=>{ areas.push({x1:p.x-corridorHalf,x2:p.x+corridorHalf,z1:p.z-corridorHalf,z2:p.z+corridorHalf}); });
+    for(let i=0;i<path.length-1;i++){
+      const p1=path[i], p2=path[i+1];
+      areas.push({
+        x1:Math.min(p1.x,p2.x)-corridorHalf, x2:Math.max(p1.x,p2.x)+corridorHalf,
+        z1:Math.min(p1.z,p2.z)-corridorHalf, z2:Math.max(p1.z,p2.z)+corridorHalf,
+      });
+    }
+    ZG._mazeAreas=areas.map(a=>({x1:a.x1+OX,x2:a.x2+OX,z1:a.z1+OZ,z2:a.z2+OZ}));
     ZG._mazeGoal={x:path[path.length-1].x+OX,z:path[path.length-1].z+OZ};
     // Boden + Deckel, grosszügig um den Kurs herum
     const xs=path.map(p=>p.x), zs=path.map(p=>p.z);
@@ -15758,12 +15776,50 @@ const SpeedTemple = {
     floor.rotation.x=-Math.PI/2; floor.position.set(cx,floorY,cz); sc.add(floor); ZG._jumpMeshes.push(floor);
     const ceil=new THREE.Mesh(new THREE.PlaneGeometry(w,d),roomMat);
     ceil.rotation.x=Math.PI/2; ceil.position.set(cx,floorY+wallH+3,cz); sc.add(ceil); ZG._jumpMeshes.push(ceil);
-    // Lilane Korridor-Wände
-    const wallMat=new THREE.MeshBasicMaterial({color:0xC026D3});
-    ZG._mazeWalls.forEach(([x,y,z,ww,dd])=>{
-      const wm=new THREE.Mesh(new THREE.BoxGeometry(ww,wallH,dd),wallMat);
-      wm.position.set(x,y,z); sc.add(wm); ZG._jumpMeshes.push(wm);
+    // Leuchtender Weg-Boden: exakt über den begehbaren Bereichen, damit
+    // sichtbarer Pfad und begehbarer Pfad garantiert identisch sind.
+    const pathMat=new THREE.MeshBasicMaterial({color:0x3a0a4a});
+    areas.forEach(a=>{
+      const pm=new THREE.Mesh(new THREE.PlaneGeometry(a.x2-a.x1,a.z2-a.z1),pathMat);
+      pm.rotation.x=-Math.PI/2; pm.position.set((a.x1+a.x2)/2+OX,floorY+0.05,(a.z1+a.z2)/2+OZ);
+      sc.add(pm); ZG._jumpMeshes.push(pm);
     });
+    // Lilane Wände: rein optisch, entlang der Aussenkanten jedes
+    // Gang-Abschnitts — dürfen jetzt ruhig grosszügig sein, weil sie die
+    // Kollision nicht mehr steuern.
+    const wallMat=new THREE.MeshBasicMaterial({color:0xC026D3});
+    for(let i=0;i<path.length-1;i++){
+      const p1=path[i], p2=path[i+1];
+      if(Math.abs(p1.z-p2.z)<0.01){
+        const z0=p1.z, xMin=Math.min(p1.x,p2.x)-corridorHalf, xMax=Math.max(p1.x,p2.x)+corridorHalf;
+        const wLen=xMax-xMin, cx2=(xMin+xMax)/2;
+        [z0-corridorHalf-wallThick/2, z0+corridorHalf+wallThick/2].forEach(wz=>{
+          const wm=new THREE.Mesh(new THREE.BoxGeometry(wLen,wallH,wallThick),wallMat);
+          wm.position.set(cx2+OX,floorY+wallH/2,wz+OZ); sc.add(wm); ZG._jumpMeshes.push(wm);
+        });
+      } else {
+        const x0=p1.x, zMin=Math.min(p1.z,p2.z)-corridorHalf, zMax=Math.max(p1.z,p2.z)+corridorHalf;
+        const wLen=zMax-zMin, cz2=(zMin+zMax)/2;
+        [x0-corridorHalf-wallThick/2, x0+corridorHalf+wallThick/2].forEach(wx=>{
+          const wm=new THREE.Mesh(new THREE.BoxGeometry(wallThick,wallH,wLen),wallMat);
+          wm.position.set(wx+OX,floorY+wallH/2,cz2+OZ); sc.add(wm); ZG._jumpMeshes.push(wm);
+        });
+      }
+    }
+    // Echte Abschlusswände vorne (Eingang) und hinten (Ziel) — bisher
+    // war da einfach offener Raum, kein sichtbarer Abschluss.
+    const capMat=new THREE.MeshBasicMaterial({color:0xC026D3});
+    const startDir={x:path[1].x-path[0].x, z:path[1].z-path[0].z};
+    const startDirLen=Math.sqrt(startDir.x**2+startDir.z**2);
+    const startCapPos={x:path[0].x-startDir.x/startDirLen*(corridorHalf+wallThick/2), z:path[0].z-startDir.z/startDirLen*(corridorHalf+wallThick/2)};
+    const startCap=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(startDir.x)>0.01?wallThick:corridorHalf*2+wallThick, wallH, Math.abs(startDir.x)>0.01?corridorHalf*2+wallThick:wallThick),capMat);
+    startCap.position.set(startCapPos.x+OX,floorY+wallH/2,startCapPos.z+OZ); sc.add(startCap); ZG._jumpMeshes.push(startCap);
+    const gp1=path[path.length-2], gp2=path[path.length-1];
+    const endDir={x:gp2.x-gp1.x, z:gp2.z-gp1.z};
+    const endDirLen=Math.sqrt(endDir.x**2+endDir.z**2);
+    const endCapPos={x:gp2.x+endDir.x/endDirLen*(corridorHalf+wallThick/2), z:gp2.z+endDir.z/endDirLen*(corridorHalf+wallThick/2)};
+    const endCap=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(endDir.x)>0.01?wallThick:corridorHalf*2+wallThick, wallH, Math.abs(endDir.x)>0.01?corridorHalf*2+wallThick:wallThick),capMat);
+    endCap.position.set(endCapPos.x+OX,floorY+wallH/2,endCapPos.z+OZ); sc.add(endCap); ZG._jumpMeshes.push(endCap);
     // Start- und Ziel-Markierung
     const startMarker=new THREE.Mesh(new THREE.CylinderGeometry(corridorHalf-1,corridorHalf-1,0.3,16),new THREE.MeshBasicMaterial({color:0x4ADE80}));
     startMarker.position.set(path[0].x+OX,floorY,path[0].z+OZ); sc.add(startMarker); ZG._jumpMeshes.push(startMarker);
@@ -15910,7 +15966,7 @@ const SpeedTemple = {
     if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeGoal=null;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null;
     document.getElementById('speedtemple-countdown')?.remove();
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
