@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v535 -->
+<!-- ZOO v536 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=535"></script>
-<script src="rewardchests.js?v=535"></script>
-<script src="personality.js?v=535"></script>
+<script src="lang.js?v=536"></script>
+<script src="rewardchests.js?v=536"></script>
+<script src="personality.js?v=536"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v535','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v536','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=535"></script>
-<script src="worlds.js?v=535"></script>
+<script src="firebase-state.js?v=536"></script>
+<script src="worlds.js?v=536"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4526,9 +4526,16 @@ const ZG={
       if(_upg?.platinumshoes) shoe_mod+=0.5;
     }
     // ── SPEED-TEMPEL: der gesammelte Speed-Stat soll sich wirklich aufs
-    // Lauftempo auswirken, nicht nur Räume freischalten. Gedeckelt bei
-    // +1400% ab 60'000 Speed (also ×15 Grundtempo), Deckel bei ×50.
-    if(this._steActive){
+    // Lauftempo auswirken, nicht nur Räume freischalten.
+    if(this._mazeActive){
+      // Labyrinth-Formel: bei sehr wenig Speed richtig quälend langsam
+      // (Speed 10 → 100× langsamer), bei brauchbarem Speed nur noch
+      // moderat schneller (Speed 15'000 → ×2) — Potenzfunktion statt
+      // linear, damit der Anfang besonders schmerzt.
+      const escSpeed=ZS.zoo?.escSpeed||0;
+      shoe_mod*=0.001885*Math.pow(Math.max(escSpeed,1),0.7246);
+    } else if(this._steActive){
+      // Sprung-Räume: +1400% ab 60'000 Speed (also ×15 Grundtempo), Deckel bei ×50.
       const escSpeed=ZS.zoo?.escSpeed||0;
       shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     }
@@ -4585,7 +4592,23 @@ const ZG={
       this.pl.x+=this._iceVel.x*dt; this.pl.z+=this._iceVel.z*dt;
     } else {
       this._iceVel=null;
-      if(l>0){this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;}
+      if(l>0){
+        if(this._mazeActive && ZG._mazeWalls){
+          // Labyrinth: pro Achse einzeln prüfen, damit man an Wänden
+          // entlang gleiten kann statt einfach steckenzubleiben.
+          const nx=this.pl.x+mx/l*sp*dt, nz=this.pl.z+mz/l*sp*dt;
+          const hitsWall=(px,pz)=>{
+            for(const [wx,wy,wz,ww,wd] of ZG._mazeWalls){
+              if(Math.abs(px-wx)<ww/2+0.6 && Math.abs(pz-wz)<wd/2+0.6) return true;
+            }
+            return false;
+          };
+          if(!hitsWall(nx,this.pl.z)) this.pl.x=nx;
+          if(!hitsWall(this.pl.x,nz)) this.pl.z=nz;
+        } else {
+          this.pl.x+=mx/l*sp*dt;this.pl.z+=mz/l*sp*dt;
+        }
+      }
     }
     if(this._trashActive){
       // Trash room: square boundary 28, no zoo collisions
@@ -4768,6 +4791,7 @@ const ZG={
     const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),this.pitch);
     this.cam.quaternion.copy(qY).multiply(qX);
     if(this._jumpActive) this._checkJumpCollision();
+    if(this._mazeActive){ try{ SpeedTemple._checkMazeCollision(); }catch(e){} }
   },
 
   _minimap(){
@@ -15249,12 +15273,12 @@ const SPEEDTEMPLE_ROOMS = [
   {name:'Boss — Der Rasende',        reqSpeed:30000,  luckMult:50, boss:true},
   {name:'🌀 Raum 8 — Wirbel-Pfad',   reqSpeed:45000,  luckMult:60},
   {name:'🔥 Raum 9 — Endprobe',      reqSpeed:65000,  luckMult:75, boss:true},
-  {name:'Raum 10',                   reqSpeed:100000, luckMult:90},
-  {name:'🌊 Raum 11 — Mega-Tsunami', reqSpeed:150000, luckMult:110},
-  {name:'Boss — Der Verheerer',      reqSpeed:220000, luckMult:130, boss:true},
-  {name:'🌀 Raum 13 — Turbo-Wirbel', reqSpeed:320000, luckMult:150},
-  {name:'Raum 14',                   reqSpeed:450000, luckMult:175},
-  {name:'Raum 15 — Endboss',         reqSpeed:600000, luckMult:200, boss:true},
+  {name:'🟣 Raum 10 — Labyrinth',     reqSpeed:100000, luckMult:90},
+  {name:'🟣 Raum 11 — Labyrinth',     reqSpeed:150000, luckMult:110},
+  {name:'🟣 Raum 12 — Labyrinth',     reqSpeed:220000, luckMult:130},
+  {name:'🟣 Raum 13 — Labyrinth',     reqSpeed:320000, luckMult:150},
+  {name:'🟣 Raum 14 — Labyrinth',     reqSpeed:450000, luckMult:175},
+  {name:'🟣 Raum 15 — Endlabyrinth',  reqSpeed:600000, luckMult:200},
 ];
 const SPEEDTEMPLE_BUILT = 15; // alle 15 Räume sind fertig
 
@@ -15384,7 +15408,6 @@ const SpeedTemple = {
     document.getElementById('speedtemple-hub')?.remove();
     this._roomIdx=idx;
     ZG._steActive=true;
-    ZG._jumpActive=true; // reuse the existing gravity/jump physics loop
     ZG._steZooSave={x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z,yaw:ZG.yaw};
     // Nur der Lauf-Sound aus dem Tempel selbst soll zu hören sein, nicht
     // die Zoo-Hintergrundmusik/-Melodie gleichzeitig mit.
@@ -15397,7 +15420,11 @@ const SpeedTemple = {
         if(el.id!=='hb-footstep-style') el.style.display='none';
       });
     }catch(e){}
-    this._buildRoom(idx);
+    // Räume 10-15 (idx≥9): Labyrinthe statt Sprung-Parcours — reines
+    // Laufen auf ebenem Boden, keine Sprungphysik nötig, dafür
+    // Wand-Kollision. Räume 1-9: wie gehabt die Sprung-Engine.
+    if(idx>=9){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
+    else { ZG._jumpActive=true; ZG._mazeActive=false; this._buildRoom(idx); }
   },
   _buildRoom(idx){
     ZG._jumpMeshes=[];
@@ -15649,6 +15676,97 @@ const SpeedTemple = {
     document.body.appendChild(el);
     this._updSpeedHUD();
   },
+  // ══════════════════════════════════════════════════════════════════
+  // 🟣 LABYRINTHE (Räume 10-15): kein Springen, reines Laufen durch
+  // enge, lilane Korridore. Tempo hängt extrem stark vom Speed-Stat ab
+  // (siehe die Formel weiter oben in der Bewegungssteuerung) — bei
+  // wenig Speed quält man sich durch, bei viel Speed geht's zügig.
+  // ══════════════════════════════════════════════════════════════════
+  _genMazePath(turns, dx, dz){
+    const pts=[{x:0,z:60}];
+    let curX=0, curZ=60, dir=1;
+    for(let i=0;i<turns;i++){
+      curX+=dir*dx; pts.push({x:curX,z:curZ});
+      curZ-=dz; pts.push({x:curX,z:curZ});
+      dir*=-1;
+    }
+    return pts;
+  },
+  _wallsFromPath(pts, corridorHalf, wallThick, wallH, floorY){
+    const walls=[]; const wallY=floorY+wallH/2;
+    for(let i=0;i<pts.length-1;i++){
+      const p1=pts[i], p2=pts[i+1];
+      if(Math.abs(p1.z-p2.z)<0.01){
+        const z0=p1.z, xMin=Math.min(p1.x,p2.x)-corridorHalf, xMax=Math.max(p1.x,p2.x)+corridorHalf;
+        const wLen=xMax-xMin, cx=(xMin+xMax)/2;
+        walls.push([cx,wallY,z0-corridorHalf-wallThick/2,wLen,wallThick]);
+        walls.push([cx,wallY,z0+corridorHalf+wallThick/2,wLen,wallThick]);
+      } else {
+        const x0=p1.x, zMin=Math.min(p1.z,p2.z)-corridorHalf, zMax=Math.max(p1.z,p2.z)+corridorHalf;
+        const wLen=zMax-zMin, cz=(zMin+zMax)/2;
+        walls.push([x0-corridorHalf-wallThick/2,wallY,cz,wallThick,wLen]);
+        walls.push([x0+corridorHalf+wallThick/2,wallY,cz,wallThick,wLen]);
+      }
+    }
+    return walls;
+  },
+  _buildMaze(idx){
+    ZG._jumpMeshes=[];
+    const sc=ZG.scene;
+    const OX=8000, OZ=8000;
+    ZG._steOX=OX; ZG._steOZ=OZ;
+    ZG._steOldClearColor=0x87CEEB;
+    try{ ZG.renderer.setClearColor(0x0d0110,1); }catch(e){}
+    const floorY=25.75, corridorHalf=4, wallThick=1.5, wallH=6;
+    // Räume 10→15 (idx 9→14): 6,8,10,12,14,16 Abbiegungen — wird also
+    // spürbar dichter/länger je später der Raum.
+    const turns=[6,8,10,12,14,16][idx-9];
+    const path=this._genMazePath(turns,16,22);
+    const walls=this._wallsFromPath(path,corridorHalf,wallThick,wallH,floorY);
+    ZG._mazeWalls=walls.map(([x,y,z,w,d])=>[x+OX,y,z+OZ,w,d]);
+    ZG._mazeGoal={x:path[path.length-1].x+OX,z:path[path.length-1].z+OZ};
+    // Boden + Deckel, grosszügig um den Kurs herum
+    const xs=path.map(p=>p.x), zs=path.map(p=>p.z);
+    const minX=Math.min(...xs)-20, maxX=Math.max(...xs)+20;
+    const minZ=Math.min(...zs)-20, maxZ=60+20;
+    const w=maxX-minX, d=maxZ-minZ, cx=(minX+maxX)/2+OX, cz=(minZ+maxZ)/2+OZ;
+    const roomMat=new THREE.MeshBasicMaterial({color:0x1a0322});
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(w,d),roomMat);
+    floor.rotation.x=-Math.PI/2; floor.position.set(cx,floorY-1.5,cz); sc.add(floor); ZG._jumpMeshes.push(floor);
+    // Lilane Korridor-Wände
+    const wallMat=new THREE.MeshBasicMaterial({color:0xC026D3});
+    ZG._mazeWalls.forEach(([x,y,z,ww,dd])=>{
+      const wm=new THREE.Mesh(new THREE.BoxGeometry(ww,wallH,dd),wallMat);
+      wm.position.set(x,y,z); sc.add(wm); ZG._jumpMeshes.push(wm);
+    });
+    // Start- und Ziel-Markierung
+    const startMarker=new THREE.Mesh(new THREE.CylinderGeometry(corridorHalf-1,corridorHalf-1,0.3,16),new THREE.MeshBasicMaterial({color:0x4ADE80}));
+    startMarker.position.set(path[0].x+OX,floorY,path[0].z+OZ); sc.add(startMarker); ZG._jumpMeshes.push(startMarker);
+    const goalMarker=new THREE.Mesh(new THREE.CylinderGeometry(corridorHalf-1,corridorHalf-1,0.3,16),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    goalMarker.position.set(ZG._mazeGoal.x,floorY,ZG._mazeGoal.z); sc.add(goalMarker); ZG._jumpMeshes.push(goalMarker);
+    const goalGlow=new THREE.PointLight(0xFFD700,1.5,20);
+    goalGlow.position.set(ZG._mazeGoal.x,floorY+3,ZG._mazeGoal.z); sc.add(goalGlow); ZG._jumpMeshes.push(goalGlow);
+    ZG.pl.x=path[0].x+OX; ZG.pl.y=floorY+1.5; ZG.pl.z=path[0].z+OZ; ZG.yaw=Math.PI;
+    ZG._jumpV=0; ZG._jumpOnGround=true;
+    this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
+    this._showRoomHUD(idx);
+    this._showSpeedHUD();
+  },
+  _checkMazeCollision(){
+    if(!ZG._mazeGoal) return;
+    this._updSpeedHUD();
+    if(ZG._jumpOnGround!==false){
+      const now=Date.now();
+      const moved=Math.abs(ZG.pl.x-(this._lastFootX??ZG.pl.x))>0.02 || Math.abs(ZG.pl.z-(this._lastFootZ??ZG.pl.z))>0.02;
+      if(moved && now-(this._lastFootstep||0)>260){
+        this._lastFootstep=now;
+        try{ ZSound._footstep&&ZSound._footstep(); }catch(e){}
+      }
+    }
+    this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
+    const dx=ZG.pl.x-ZG._mazeGoal.x, dz=ZG.pl.z-ZG._mazeGoal.z;
+    if(Math.sqrt(dx*dx+dz*dz)<3){ this._winRoom(); }
+  },
   _updSpeedHUD(){
     const el=document.getElementById('speedtemple-speed-hud'); if(!el) return;
     const z=ZS.zoo; if(!z) return;
@@ -15760,12 +15878,12 @@ const SpeedTemple = {
     this._exitRoom();
   },
   _exitRoom(){
-    ZG._jumpActive=false; ZG._steActive=false;
+    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false;
     if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
     if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeGoal=null;
     document.getElementById('speedtemple-countdown')?.remove();
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
