@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v542 -->
+<!-- ZOO v543 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=542"></script>
-<script src="rewardchests.js?v=542"></script>
-<script src="personality.js?v=542"></script>
+<script src="lang.js?v=543"></script>
+<script src="rewardchests.js?v=543"></script>
+<script src="personality.js?v=543"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v542','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v543','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=542"></script>
-<script src="worlds.js?v=542"></script>
+<script src="firebase-state.js?v=543"></script>
+<script src="worlds.js?v=543"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4527,7 +4527,13 @@ const ZG={
     }
     // ── SPEED-TEMPEL: der gesammelte Speed-Stat soll sich wirklich aufs
     // Lauftempo auswirken, nicht nur Räume freischalten.
-    if(this._mazeActive){
+    if(this._iceRoomActive || this._windRoomActive){
+      // 🧊 Eis-Parcours & 💨 Windböen-Gang: bewusst KEINE Speed-Stat-
+      // Skalierung — man braucht den Speed-Stat nur, um den Raum
+      // freizuschalten, drinnen ist man fest so schnell wie mit roten
+      // Turnschuhen im Zoo. Reines Können statt Speed-Grinding.
+      shoe_mod=1.5;
+    } else if(this._mazeActive){
       // Labyrinth-Formel: bei sehr wenig Speed richtig quälend langsam
       // (Speed 10 → 100× langsamer), bei brauchbarem Speed nur noch
       // moderat schneller (Speed 15'000 → ×2) — Potenzfunktion statt
@@ -4582,7 +4588,7 @@ const ZG={
     // ── 🧊 FROST-MINUTE (admin event): while active, movement doesn't
     // instantly follow the input direction — it slides, like on ice.
     // Blend current velocity toward the target instead of snapping to it.
-    const _frostActive=(ZS.zoo?.frostUntil||0)>Date.now();
+    const _frostActive=((ZS.zoo?.frostUntil||0)>Date.now()) || this._iceRoomActive;
     if(_frostActive){
       if(!this._iceVel) this._iceVel={x:0,z:0};
       const tx=l>0?mx/l*sp:0, tz=l>0?mz/l*sp:0;
@@ -15300,8 +15306,14 @@ const SPEEDTEMPLE_ROOMS = [
   {name:'🟣 Raum 13 — Labyrinth',     reqSpeed:320000, luckMult:150},
   {name:'🟣 Raum 14 — Labyrinth',     reqSpeed:450000, luckMult:175},
   {name:'🟣 Raum 15 — Endlabyrinth',  reqSpeed:600000, luckMult:200},
+  {name:'🧊 Raum 16 — Eis-Parcours',  reqSpeed:75000,  luckMult:80},
+  {name:'💨 Raum 17 — Windböen-Gang', reqSpeed:85000,  luckMult:85},
 ];
-const SPEEDTEMPLE_BUILT = 9; // Räume 1-9 offen, 10-15 (Labyrinthe) noch "Bald verfügbar" bis sie rund laufen
+// Set statt einfacher Schwelle, damit nicht-fortlaufende Räume (16, 17)
+// trotzdem als "verfügbar" markiert werden können, während 10-15 (Labyrinthe)
+// weiterhin "Bald verfügbar" zeigen.
+const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,15,16]);
+
 
 const SpeedTemple = {
   isUnlocked(){
@@ -15395,7 +15407,7 @@ const SpeedTemple = {
     panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
     const rows=SPEEDTEMPLE_ROOMS.map((r,i)=>{
       const unlocked=speed>=r.reqSpeed;
-      const built=i<SPEEDTEMPLE_BUILT;
+      const built=SPEEDTEMPLE_BUILT_SET.has(i);
       const statusTxt=!unlocked?'🔒 Braucht '+Math.round(r.reqSpeed)+' Speed':!built?'🚧 Bald verfügbar':'✅ Bereit';
       return '<div style="background:rgba(255,255,255,.05);border:1px solid '+(unlocked&&built?'#E056FD':'rgba(255,255,255,.1)')+';border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">'
         +'<div style="font-size:.7rem;color:rgba(255,255,255,.4);min-width:20px">'+(i+1)+'.</div>'
@@ -15425,10 +15437,12 @@ const SpeedTemple = {
         if(el.id!=='hb-footstep-style') el.style.display='none';
       });
     }catch(e){}
-    // Räume 10-15 (idx≥9): Labyrinthe statt Sprung-Parcours — reines
-    // Laufen auf ebenem Boden, keine Sprungphysik nötig, dafür
-    // Wand-Kollision. Räume 1-9: wie gehabt die Sprung-Engine.
-    if(idx>=9){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
+    // Räume 10-15 (idx 9-14): Labyrinthe — reines Laufen, Wand-Kollision.
+    // Räume 16-17 (idx 15,16): feste "rote Turnschuhe"-Geschwindigkeit,
+    // reines Können statt Speed-Stat-Skalierung. Räume 1-9: Sprung-Engine.
+    if(idx===15){ ZG._jumpActive=true; ZG._mazeActive=false; ZG._iceRoomActive=true; this._buildRoom(idx); }
+    else if(idx===16){ ZG._jumpActive=false; ZG._mazeActive=true; ZG._windRoomActive=true; this._buildWindRoom(idx); }
+    else if(idx>=9){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
     else { ZG._jumpActive=true; ZG._mazeActive=false; this._buildRoom(idx); }
   },
   _buildRoom(idx){
@@ -15443,7 +15457,7 @@ const SpeedTemple = {
     ZG._steOX=OX; ZG._steOZ=OZ;
     ZG._steOldClearColor=0x87CEEB;
     try{ ZG.renderer.setClearColor(0x6FE080,1); }catch(e){}
-    const platMat=new THREE.MeshBasicMaterial({color:0xFFFFFF});
+    const platMat=new THREE.MeshBasicMaterial({color:idx===15?0xAEEFFF:0xFFFFFF});
     const goalMat=new THREE.MeshBasicMaterial({color:0xFFD700});
     let raw=[];
     if(idx===0){
@@ -15464,6 +15478,8 @@ const SpeedTemple = {
       raw=[[0,25,100,12,8],[0,26,-116.8,12,8],[0,27,-333.5,12,8],[0,25,-550.3,12,8],[0,26,-767.0,12,8],[0,27,-983.8,12,8]];
     } else if(idx===8){ // 🔥 Endprobe: doppelt so lange Sprünge, doppelt so grosse Plattformen, riesige Boss-Arena
       raw=[[0,25,90,12,8],[5,26,-212.5,10,10],[-5,27,-515.9,10,10],[5,25,-819.4,10,10],[-5,26,-1122.9,10,10],[5,27,-1426.3,10,10],[0,25,-1728.8,12,8]];
+    } else if(idx===15){ // 🧊 Eis-Parcours: feste Geschwindigkeit (rote Turnschuhe), Sprünge entsprechend klein gehalten
+      raw=[[0,25,50,10,8],[3,26,26,7,6],[-3,27,2,7,6],[3,28,-22,7,6],[-3,28,-46,7,6],[3,27,-70,7,6],[0,26,-94,12,8]];
     } else if(idx===9){ // Raum 10: Standard-Sprünge auf Basis von 100'000 Speed
       raw=[[0,25,90,12,8],[6,26,-360.7,10,10],[-6,27,-812.4,10,10],[6,25,-1264.1,10,10],[-6,26,-1715.9,10,10],[0,27,-2166.6,12,8]];
     } else if(idx===10){ // Raum 11: lange gerade Strecke auf Basis von 150'000 Speed
@@ -15831,8 +15847,80 @@ const SpeedTemple = {
       }
     }
     this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
+    // 💨 Windböen-Gang: in einer aktiven Böe stehen = ein Stück
+    // zurückgeschleudert werden. Reines Timing, keine Speed-Abfrage —
+    // wer im richtigen Moment durchläuft, kommt einfach durch.
+    if(ZG._windGusts){
+      const invincible=Date.now()<(ZG._windInvUntil||0);
+      if(!invincible){
+        for(const g of ZG._windGusts){
+          if(g.active && Math.abs(ZG.pl.z-g.z)<g.halfDepth){
+            ZP.toast('💨 Von der Windböe erwischt!',1200);
+            ZG.pl.z+=18; // zurück in Richtung Start
+            ZG._windInvUntil=Date.now()+900;
+            break;
+          }
+        }
+      }
+    }
     const dx=ZG.pl.x-ZG._mazeGoal.x, dz=ZG.pl.z-ZG._mazeGoal.z;
     if(Math.sqrt(dx*dx+dz*dz)<3){ this._winRoom(); }
+  },
+  _buildWindRoom(idx){
+    ZG._jumpMeshes=[];
+    const sc=ZG.scene;
+    const OX=8000, OZ=8000;
+    ZG._steOX=OX; ZG._steOZ=OZ;
+    ZG._steOldClearColor=0x87CEEB;
+    try{ ZG.renderer.setClearColor(0x0d1a22,1); }catch(e){}
+    const floorY=25.75;
+    const startZ=60, endZ=-180, corridorHalfW=14;
+    ZG._mazeAreas=null; // offener Gang, keine Wand-Kollision nötig
+    ZG._mazeGoal={x:OX,z:OZ+endZ};
+    const roomMat=new THREE.MeshBasicMaterial({color:0x0f2530});
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(corridorHalfW*2+20,startZ-endZ+40),roomMat);
+    floor.rotation.x=-Math.PI/2; floor.position.set(OX,floorY,OZ+(startZ+endZ)/2); sc.add(floor); ZG._jumpMeshes.push(floor);
+    // Sichtbare Randmarkierung (rein optisch, keine Kollision)
+    const edgeMat=new THREE.MeshBasicMaterial({color:0x2EC4E0,transparent:true,opacity:.5});
+    [-corridorHalfW,corridorHalfW].forEach(ex=>{
+      const edge=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.6,startZ-endZ+40),edgeMat);
+      edge.position.set(OX+ex,floorY+0.3,OZ+(startZ+endZ)/2); sc.add(edge); ZG._jumpMeshes.push(edge);
+    });
+    // Windböen: mehrere Positionen entlang des Gangs, jede mit eigenem
+    // Takt (aktiv/inaktiv), damit sie nicht alle synchron sind.
+    ZG._windGusts=[];
+    const gustCount=5, gustSpacing=(startZ-endZ-40)/gustCount;
+    for(let i=0;i<gustCount;i++){
+      const gz=startZ-30-i*gustSpacing;
+      const gust={z:gz+OZ, halfDepth:6, active:false, phase:i*470};
+      const sprite=this._txt('💨',2.2,'#2EC4E0');
+      sprite.position.set(OX,floorY+2.5,gz+OZ);
+      sc.add(sprite); ZG._jumpMeshes.push(sprite);
+      gust.sprite=sprite;
+      ZG._windGusts.push(gust);
+    }
+    ZG._windIv=setInterval(()=>{
+      if(!ZG._windGusts||!ZG._steActive)return;
+      const t=Date.now();
+      ZG._windGusts.forEach(g=>{
+        const cyc=(t+g.phase)%2600;
+        g.active=cyc<1100; // 1.1s aktiv, 1.5s Pause
+        if(g.sprite) g.sprite.material.opacity=g.active?1:0.25;
+        if(g.sprite) g.sprite.material.transparent=true;
+      });
+    },50);
+    // Start- und Ziel-Markierung
+    const startMarker=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.3,16),new THREE.MeshBasicMaterial({color:0x4ADE80}));
+    startMarker.position.set(OX,floorY,OZ+startZ); sc.add(startMarker); ZG._jumpMeshes.push(startMarker);
+    const goalMarker=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.3,16),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    goalMarker.position.set(ZG._mazeGoal.x,floorY,ZG._mazeGoal.z); sc.add(goalMarker); ZG._jumpMeshes.push(goalMarker);
+    const goalGlow=new THREE.PointLight(0xFFD700,1.5,20);
+    goalGlow.position.set(ZG._mazeGoal.x,floorY+3,ZG._mazeGoal.z); sc.add(goalGlow); ZG._jumpMeshes.push(goalGlow);
+    ZG.pl.x=OX; ZG.pl.y=floorY+1.5; ZG.pl.z=OZ+startZ; ZG.yaw=0;
+    ZG._jumpV=0; ZG._jumpOnGround=true;
+    this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
+    this._showRoomHUD(idx);
+    this._showSpeedHUD();
   },
   _updSpeedHUD(){
     const el=document.getElementById('speedtemple-speed-hud'); if(!el) return;
@@ -15945,12 +16033,13 @@ const SpeedTemple = {
     this._exitRoom();
   },
   _exitRoom(){
-    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false;
+    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false; ZG._iceRoomActive=false; ZG._windRoomActive=false;
     if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
     if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
+    if(ZG._windIv){ clearInterval(ZG._windIv); ZG._windIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0;
     document.getElementById('speedtemple-countdown')?.remove();
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
