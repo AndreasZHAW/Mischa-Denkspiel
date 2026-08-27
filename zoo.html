@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v545 -->
+<!-- ZOO v547 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=545"></script>
-<script src="rewardchests.js?v=545"></script>
-<script src="personality.js?v=545"></script>
+<script src="lang.js?v=547"></script>
+<script src="rewardchests.js?v=547"></script>
+<script src="personality.js?v=547"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v545','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v547','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=545"></script>
-<script src="worlds.js?v=545"></script>
+<script src="firebase-state.js?v=547"></script>
+<script src="worlds.js?v=547"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4527,12 +4527,17 @@ const ZG={
     }
     // ── SPEED-TEMPEL: der gesammelte Speed-Stat soll sich wirklich aufs
     // Lauftempo auswirken, nicht nur Räume freischalten.
-    if(this._iceRoomActive || this._windRoomActive){
-      // 🧊 Eis-Parcours & 💨 Windböen-Gang: bewusst KEINE Speed-Stat-
-      // Skalierung — man braucht den Speed-Stat nur, um den Raum
-      // freizuschalten, drinnen ist man fest so schnell wie mit roten
-      // Turnschuhen im Zoo. Reines Können statt Speed-Grinding.
+    if(this._iceRoomActive){
+      // 🧊 Eis-Parcours: bewusst KEINE Speed-Stat-Skalierung — man
+      // braucht den Speed-Stat nur, um den Raum freizuschalten, drinnen
+      // ist man fest so schnell wie mit roten Turnschuhen im Zoo.
+      // Reines Können statt Speed-Grinding.
       shoe_mod=1.5;
+    } else if(this._windRoomActive){
+      // 💨 Windböen-Gang: nutzt jetzt dieselbe Formel wie die normalen
+      // Sprung-Räume (1-8), NICHT mehr das feste rote-Schuhe-Tempo.
+      const escSpeed=this._speedTestOverride??(ZS.zoo?.escSpeed||0);
+      shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     } else if(this._mazeActive){
       // Labyrinth-Formel: bei sehr wenig Speed richtig quälend langsam
       // (Speed 10 → 100× langsamer), bei brauchbarem Speed nur noch
@@ -15612,20 +15617,6 @@ const SpeedTemple = {
       ZG._spinBar=bar;
       ZG._spinBarIv=setInterval(()=>{ if(ZG._spinBar) ZG._spinBar.rotation.y+=0.045; },16);
     }
-    if(idx===8){
-      const boss=new THREE.Mesh(new THREE.ConeGeometry(1.8,3.5,8),new THREE.MeshBasicMaterial({color:0x8B0000}));
-      boss.position.set(OX,29,OZ-819.4); sc.add(boss); ZG._jumpMeshes.push(boss);
-      ZG._bossMesh=boss; ZG._bossSpawn={x:OX,y:29,z:OZ-819.4};
-      ZG._bossIv=setInterval(()=>{
-        if(!ZG._bossMesh||!ZG._jumpActive)return;
-        const bp=ZG._bossMesh.position;
-        const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
-        const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.5*speedMult;
-        bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
-        try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
-      },16);
-    }
     if(idx===10){
       // Raum 11: noch schnellere Tsunami-Welle als Raum 5.
       const waveSpawnZ=OZ+140;
@@ -15874,14 +15865,16 @@ const SpeedTemple = {
     }
     this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
     // 💨 Windböen-Gang: in einer aktiven Böe stehen = ein Stück
-    // zurückgeschleudert werden. Reines Timing, keine Speed-Abfrage —
-    // wer im richtigen Moment durchläuft, kommt einfach durch.
+    // zurückgeschleudert werden — es sei denn, man hat mindestens 20'000
+    // Speed, dann pustet einen die Böe nicht mehr weg.
     if(ZG._windGusts){
       const invincible=Date.now()<(ZG._windInvUntil||0);
-      if(!invincible){
+      const escSpeed=this._speedTestOverride??(ZS.zoo?.escSpeed||0);
+      const immune=escSpeed>=20000;
+      if(!invincible && !immune){
         for(const g of ZG._windGusts){
           if(g.active && Math.abs(ZG.pl.z-g.z)<g.halfDepth){
-            ZP.toast('💨 Von der Windböe erwischt!',1200);
+            ZP.toast('💨 Von der Windböe erwischt! (Brauchst 20\'000 Speed, um durchzukommen)',1800);
             ZG.pl.z+=18; // zurück in Richtung Start
             ZG._windInvUntil=Date.now()+900;
             break;
