@@ -15301,7 +15301,7 @@ const SPEEDTEMPLE_ROOMS = [
   {name:'🟣 Raum 14 — Labyrinth',     reqSpeed:450000, luckMult:175},
   {name:'🟣 Raum 15 — Endlabyrinth',  reqSpeed:600000, luckMult:200},
 ];
-const SPEEDTEMPLE_BUILT = 15; // alle 15 Räume sind fertig
+const SPEEDTEMPLE_BUILT = 9; // Räume 1-9 offen, 10-15 (Labyrinthe) noch "Bald verfügbar" bis sie rund laufen
 
 const SpeedTemple = {
   isUnlocked(){
@@ -15360,22 +15360,6 @@ const SpeedTemple = {
     }).join('');
   },
   async open(){
-    // Ob der Tempel gerade auf "nur Bu:)" beschränkt ist, wird zentral in
-    // Firestore gespeichert (statt fest im Code), damit der Admin das im
-    // Panel ein-/ausschalten kann, ohne dass ich das erst wieder ändern
-    // muss. Fehlt der Eintrag, gilt Standard = eingeschränkt.
-    let restricted=true;
-    try{
-      if(typeof _db!=='undefined'&&_db){
-        const snap=await _db.collection('zoo_config').doc('speedtemple').get();
-        if(snap.exists && typeof snap.data().restricted==='boolean') restricted=snap.data().restricted;
-      }
-    }catch(e){}
-    const isAdmin=(ZS.player||'').toLowerCase()==='bu:)';
-    if(restricted && !isAdmin){
-      this._showComingSoonScreen();
-      return;
-    }
     if(!this.isUnlocked()){
       ZP.toast('⚡ Braucht 1 Rebirth, um den Speed-Tempel zu betreten!',4000);
       return;
