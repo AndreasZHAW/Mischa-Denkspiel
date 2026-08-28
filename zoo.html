@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v549 -->
+<!-- ZOO v550 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=549"></script>
-<script src="rewardchests.js?v=549"></script>
-<script src="personality.js?v=549"></script>
+<script src="lang.js?v=550"></script>
+<script src="rewardchests.js?v=550"></script>
+<script src="personality.js?v=550"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v549','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v550','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=549"></script>
-<script src="worlds.js?v=549"></script>
+<script src="firebase-state.js?v=550"></script>
+<script src="worlds.js?v=550"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3338,13 +3338,17 @@ const ZG={
         // von nichts verdeckt werden), nur der Körper darunter ist neu.
         const bodyMat=new THREE.MeshBasicMaterial({color:bodyColor});
         const body=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),bodyMat);
-        body.scale.set(1,1.25,1); body.position.y=.62; g.add(body);
+        body.scale.set(1,1.05,1); body.position.y=.58; g.add(body);
+        // Kleiner Hals, verbindet Kopf und Körper sichtbar statt einer
+        // Lücke dazwischen ("der Rumpf sieht komisch aus").
+        const neck=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),bodyMat);
+        neck.position.y=1.02; g.add(neck);
         // Kleine stummelige Arme, leicht nach aussen geneigt
         const armMat=new THREE.MeshBasicMaterial({color:bodyColor});
         [-1,1].forEach(side=>{
-          const arm=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),armMat);
+          const arm=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),armMat);
           arm.scale.set(1,1.5,1);
-          arm.position.set(side*.52,.68,0);
+          arm.position.set(side*.55,.62,0);
           arm.rotation.z=side*0.35;
           g.add(arm);
         });
@@ -3356,14 +3360,15 @@ const ZG={
           foot.position.set(side*.2,.06,.05);
           g.add(foot);
         });
-        // Kopf — das Emoji selbst, gross und klar sichtbar
+        // Kopf — das Emoji selbst, gross und klar sichtbar, jetzt näher
+        // am Körper dran statt sichtbar "schwebend" darüber.
         const headSprite=this._makeEmojiSprite(op.char||'🧭');
-        headSprite.position.set(0,1.55,0);
-        headSprite.scale.set(1.7,1.7,1);
+        headSprite.position.set(0,1.38,0);
+        headSprite.scale.set(1.55,1.55,1);
         g.add(headSprite);
         // Name label above head
         const lbl=this._txt(op.name,.5,'#FFD700');
-        lbl.position.set(0,2.55,0);lbl.scale.set(6,1.2,1);g.add(lbl);
+        lbl.position.set(0,2.25,0);lbl.scale.set(6,1.2,1);g.add(lbl);
         // Slap indicator (hidden by default)
         g.userData={slapT:0,baseY:0,bobOffset:Math.random()*10};
         this.scene.add(g);
@@ -3405,7 +3410,7 @@ const ZG={
           if(m.userData.carrySprite){ m.remove(m.userData.carrySprite); m.userData.carrySprite=null; }
           if(carryEmoji){
             const cs=this._txt(carryEmoji,1,'#fff');
-            cs.position.set(0,3.4,0); cs.scale.set(1.8,1.8,1);
+            cs.position.set(0,3.1,0); cs.scale.set(1.8,1.8,1);
             m.add(cs); m.userData.carrySprite=cs;
           }
           m.userData.carryEmoji=carryEmoji;
@@ -4285,10 +4290,18 @@ const ZG={
   _txt(text,sz,col){
     const c=document.createElement('canvas');c.width=256;c.height=64;
     const ctx=c.getContext('2d');
-    // Abgerundetes, weicheres Hintergrund-Schild statt einem scharfkantigen
-    // schwarzen Rechteck — betrifft automatisch ALLE Beschriftungen im
-    // Spiel (Namen, Maschinen-Hinweise, usw.), da sie alle über diese eine
-    // Funktion laufen.
+    // Schriftgrösse automatisch verkleinern, bis der Text ins Schild
+    // passt — vorher war sie immer fest bei 28px, egal wie lang der Text
+    // war, dadurch liefen lange Namen/Hinweise über den Rand hinaus statt
+    // sich einzupassen.
+    const padding=22, maxTextWidth=256-padding*2;
+    let fontSize=24;
+    ctx.font='bold '+fontSize+'px Arial,sans-serif';
+    while(fontSize>11 && ctx.measureText(text).width>maxTextWidth){
+      fontSize-=1;
+      ctx.font='bold '+fontSize+'px Arial,sans-serif';
+    }
+    // Abgerundetes, deutlich transparenteres Hintergrund-Schild.
     const r=14, w=256, h=60, x=0, y=2;
     ctx.beginPath();
     ctx.moveTo(x+r,y);
@@ -4301,12 +4314,15 @@ const ZG={
     ctx.lineTo(x,y+r);
     ctx.quadraticCurveTo(x,y,x+r,y);
     ctx.closePath();
-    ctx.fillStyle='rgba(24,18,38,.74)';
+    ctx.fillStyle='rgba(24,18,38,.48)';
     ctx.fill();
-    ctx.lineWidth=2;
-    ctx.strokeStyle='rgba(255,255,255,.22)';
+    ctx.lineWidth=1.5;
+    ctx.strokeStyle='rgba(255,255,255,.16)';
     ctx.stroke();
-    ctx.font='bold 28px Arial,sans-serif';ctx.fillStyle=col||'#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,32);
+    ctx.fillStyle=col||'#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+    // maxTextWidth als letzte Sicherheitsbremse: selbst bei kleinster
+    // Schrift kann der Text so NIE über das graue Schild hinausragen.
+    ctx.fillText(text,128,32,maxTextWidth);
     const t=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));sp.scale.set(4*sz,sz,1);return sp;
   },
 
