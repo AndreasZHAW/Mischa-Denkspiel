@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v548 -->
+<!-- ZOO v549 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=548"></script>
-<script src="rewardchests.js?v=548"></script>
-<script src="personality.js?v=548"></script>
+<script src="lang.js?v=549"></script>
+<script src="rewardchests.js?v=549"></script>
+<script src="personality.js?v=549"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v548','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v549','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=548"></script>
-<script src="worlds.js?v=548"></script>
+<script src="firebase-state.js?v=549"></script>
+<script src="worlds.js?v=549"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3328,16 +3328,17 @@ const ZG={
         // ── Rundliches, niedliches Figuren-Design (ersetzt den alten
         // schlichten Zylinder + schwebendes Emoji als "Kopf") — Körper aus
         // einer gestreckten Kugel (weiche Ei-Form statt harter Kanten),
-        // eigener runder Kopf, kleine stummelige Arme und Füsse. Kein
-        // CapsuleGeometry (r128 unterstützt das nicht), darum die
-        // Kapsel-Optik über eine skalierte Kugel nachgebaut.
+        // kleine stummelige Arme und Füsse. Kein CapsuleGeometry (r128
+        // unterstützt das nicht), darum die Kapsel-Optik über eine
+        // skalierte Kugel nachgebaut.
+        // BUG FIX: ein zusätzlicher fester Kopf-Kugel-Mesh hat die kleine
+        // Emoji-Gesichts-Sprite fast komplett verdeckt ("Charaktere passen
+        // nicht auf die Figuren"). Jetzt wieder wie ursprünglich: das
+        // Emoji selbst ist der Kopf (grosse, klar sichtbare Sprite, kann
+        // von nichts verdeckt werden), nur der Körper darunter ist neu.
         const bodyMat=new THREE.MeshBasicMaterial({color:bodyColor});
         const body=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),bodyMat);
         body.scale.set(1,1.25,1); body.position.y=.62; g.add(body);
-        // Kopf — eigene runde Form, nicht mehr nur das Emoji selbst
-        const headMat=new THREE.MeshBasicMaterial({color:0xFFE0BD});
-        const head=new THREE.Mesh(new THREE.SphereGeometry(.36,12,10),headMat);
-        head.position.y=1.42; g.add(head);
         // Kleine stummelige Arme, leicht nach aussen geneigt
         const armMat=new THREE.MeshBasicMaterial({color:bodyColor});
         [-1,1].forEach(side=>{
@@ -3355,14 +3356,14 @@ const ZG={
           foot.position.set(side*.2,.06,.05);
           g.add(foot);
         });
-        // Emoji jetzt als kleines Gesicht VORNE am Kopf statt der ganze Kopf
+        // Kopf — das Emoji selbst, gross und klar sichtbar
         const headSprite=this._makeEmojiSprite(op.char||'🧭');
-        headSprite.position.set(0,1.42,.32);
-        headSprite.scale.set(.75,.75,1);
+        headSprite.position.set(0,1.55,0);
+        headSprite.scale.set(1.7,1.7,1);
         g.add(headSprite);
-        // Name label above head — etwas höher wegen dem grösseren Kopf
+        // Name label above head
         const lbl=this._txt(op.name,.5,'#FFD700');
-        lbl.position.set(0,2.15,0);lbl.scale.set(6,1.2,1);g.add(lbl);
+        lbl.position.set(0,2.55,0);lbl.scale.set(6,1.2,1);g.add(lbl);
         // Slap indicator (hidden by default)
         g.userData={slapT:0,baseY:0,bobOffset:Math.random()*10};
         this.scene.add(g);
@@ -3404,7 +3405,7 @@ const ZG={
           if(m.userData.carrySprite){ m.remove(m.userData.carrySprite); m.userData.carrySprite=null; }
           if(carryEmoji){
             const cs=this._txt(carryEmoji,1,'#fff');
-            cs.position.set(0,2.9,0); cs.scale.set(1.8,1.8,1);
+            cs.position.set(0,3.4,0); cs.scale.set(1.8,1.8,1);
             m.add(cs); m.userData.carrySprite=cs;
           }
           m.userData.carryEmoji=carryEmoji;
@@ -3704,9 +3705,14 @@ const ZG={
         dot.rotation.x=-Math.PI/2; dot.position.set(Math.sin(ang)*r,.04,Math.cos(ang)*r); sc.add(dot);
       });
     });
-    // Cable tower
-    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,22,8),new THREE.MeshBasicMaterial({color:0x888}));
-    hub.position.set(0,21,0); sc.add(hub);
+    // Cable tower — jetzt mit breiterem Sockel und spitzem Dach statt
+    // einem reinen, gleichförmigen Zylinder.
+    const hubBase=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.6,3,12),new THREE.MeshBasicMaterial({color:0x6D4C41}));
+    hubBase.position.set(0,1.5,0); sc.add(hubBase);
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.7,.9,19,10),new THREE.MeshBasicMaterial({color:0x9E9E9E}));
+    hub.position.set(0,13,0); sc.add(hub);
+    const hubTop=new THREE.Mesh(new THREE.ConeGeometry(1.5,2,10),new THREE.MeshBasicMaterial({color:0xD32F2F}));
+    hubTop.position.set(0,23,0); sc.add(hubTop);
     // 3 gondola cars orbiting with animals inside
     this._carMeshes=[];
     for(let i=0;i<3;i++){
@@ -3714,6 +3720,9 @@ const ZG={
       const carAng=i/3*Math.PI*2;
       // Gondola body (dark cabin)
       const carBody=new THREE.Mesh(new THREE.BoxGeometry(2.8,2,2.4),new THREE.MeshBasicMaterial({color:0x2a2a2a}));g.add(carBody);
+      // Abgerundetes Dach statt scharfer Kante oben
+      const carRoof=new THREE.Mesh(new THREE.SphereGeometry(1.55,10,6,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:[0xcc3300,0x884400,0x553300][i]}));
+      carRoof.scale.set(1,0.4,0.86); carRoof.position.y=1.05; g.add(carRoof);
       // Windows (blue glass)
       [[-.8,0,1.22],[.8,0,1.22],[-.8,0,-1.22],[.8,0,-1.22]].forEach(([wx,wy,wz])=>{
         const win=new THREE.Mesh(new THREE.BoxGeometry(.8,.9,.08),new THREE.MeshBasicMaterial({color:0x88ccff,transparent:true,opacity:.75}));win.position.set(wx,wy,wz);g.add(win);
@@ -3807,22 +3816,37 @@ const ZG={
       const zc0=(this.ZONES && this.ZONES[0]) || {x:0,z:55};
       const cx=zc0.x+10, cz=zc0.z-5;
       const grp=new THREE.Group();
-      const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,2,4),new THREE.MeshBasicMaterial({color:0xF39C12}));
-      swBody.position.set(0,1.2,0); grp.add(swBody);
-      const swCab=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,1.8),new THREE.MeshBasicMaterial({color:0x2c3e50}));
-      swCab.position.set(0,2.6,0.6); grp.add(swCab);
+      // Freundlichere, rundere Kehrmaschine: geschwungenes Kabinendach,
+      // runde Scheinwerfer, Windschutzscheibe, dickere Räder mit
+      // Radkappen — statt der alten reinen Kasten-Form.
+      const swBody=new THREE.Mesh(new THREE.BoxGeometry(3,1.6,4),new THREE.MeshBasicMaterial({color:0xFFA726}));
+      swBody.position.set(0,1.0,0); grp.add(swBody);
+      const swCab=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.3,2),new THREE.MeshBasicMaterial({color:0x34495e}));
+      swCab.position.set(0,2.35,0.6); grp.add(swCab);
+      const swRoof=new THREE.Mesh(new THREE.SphereGeometry(1.15,12,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x34495e}));
+      swRoof.scale.set(1,0.55,0.9); swRoof.position.set(0,3.0,0.6); grp.add(swRoof);
+      const windshield=new THREE.Mesh(new THREE.BoxGeometry(1.9,1,0.1),new THREE.MeshBasicMaterial({color:0x81D4FA,transparent:true,opacity:.82}));
+      windshield.position.set(0,2.45,1.55); grp.add(windshield);
+      [[-0.9,1.05,2.0],[0.9,1.05,2.0]].forEach(([hx,hy,hz])=>{
+        const light=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),new THREE.MeshBasicMaterial({color:0xFFF9C4}));
+        light.position.set(hx,hy,hz); grp.add(light);
+      });
       // rotating brushes (front rollers)
-      const swBrush=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,2.6,12),new THREE.MeshBasicMaterial({color:0x8e44ad}));
+      const swBrush=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,2.6,12),new THREE.MeshBasicMaterial({color:0xAB47BC}));
       swBrush.rotation.z=Math.PI/2; swBrush.position.set(0,0.7,-2.2); grp.add(swBrush);
       this._sweeperBrush=swBrush;
-      // wheels
-      [[-1.2,-1.5],[1.2,-1.5],[-1.2,1.5],[1.2,1.5]].forEach(([wx,wz])=>{
-        const w=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.4,10),new THREE.MeshBasicMaterial({color:0x111111}));
-        w.rotation.z=Math.PI/2; w.position.set(wx,0.5,wz); grp.add(w);
+      // wheels — grösser und runder, mit heller Radkappe
+      [[-1.3,-1.6],[1.3,-1.6],[-1.3,1.6],[1.3,1.6]].forEach(([wx,wz])=>{
+        const w=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,0.42,14),new THREE.MeshBasicMaterial({color:0x1a1a1a}));
+        w.rotation.z=Math.PI/2; w.position.set(wx,0.55,wz); grp.add(w);
+        const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.44,10),new THREE.MeshBasicMaterial({color:0xBDBDBD}));
+        hub.rotation.z=Math.PI/2; hub.position.set(wx,0.55,wz); grp.add(hub);
       });
-      // beacon light on top
-      const beacon=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,8),new THREE.MeshBasicMaterial({color:0xff6600}));
-      beacon.position.set(0,3.6,0.6); grp.add(beacon); this._sweeperBeacon=beacon;
+      // beacon light on top, now on a small pole
+      const beaconPole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.4,6),new THREE.MeshBasicMaterial({color:0x555}));
+      beaconPole.position.set(0,3.55,0.6); grp.add(beaconPole);
+      const beacon=new THREE.Mesh(new THREE.SphereGeometry(0.32,10,8),new THREE.MeshBasicMaterial({color:0xff6600}));
+      beacon.position.set(0,3.9,0.6); grp.add(beacon); this._sweeperBeacon=beacon;
       grp.position.set(cx,0,cz);
       sc.add(grp);
       this._sweeperMesh=grp;
@@ -4260,7 +4284,28 @@ const ZG={
 
   _txt(text,sz,col){
     const c=document.createElement('canvas');c.width=256;c.height=64;
-    const ctx=c.getContext('2d');ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,256,64);
+    const ctx=c.getContext('2d');
+    // Abgerundetes, weicheres Hintergrund-Schild statt einem scharfkantigen
+    // schwarzen Rechteck — betrifft automatisch ALLE Beschriftungen im
+    // Spiel (Namen, Maschinen-Hinweise, usw.), da sie alle über diese eine
+    // Funktion laufen.
+    const r=14, w=256, h=60, x=0, y=2;
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+    ctx.fillStyle='rgba(24,18,38,.74)';
+    ctx.fill();
+    ctx.lineWidth=2;
+    ctx.strokeStyle='rgba(255,255,255,.22)';
+    ctx.stroke();
     ctx.font='bold 28px Arial,sans-serif';ctx.fillStyle=col||'#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,32);
     const t=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true}));sp.scale.set(4*sz,sz,1);return sp;
   },
