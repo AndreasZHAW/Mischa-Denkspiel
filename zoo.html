@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v547 -->
+<!-- ZOO v548 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=547"></script>
-<script src="rewardchests.js?v=547"></script>
-<script src="personality.js?v=547"></script>
+<script src="lang.js?v=548"></script>
+<script src="rewardchests.js?v=548"></script>
+<script src="personality.js?v=548"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v547','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v548','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -517,8 +517,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=547"></script>
-<script src="worlds.js?v=547"></script>
+<script src="firebase-state.js?v=548"></script>
+<script src="worlds.js?v=548"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3325,22 +3325,46 @@ const ZG={
         if(op.color && /^#?[0-9a-fA-F]{6}$/.test(op.color)){
           bodyColor=parseInt(op.color.replace('#',''),16);
         }
-        // Body - colored cylinder
-        const body=new THREE.Mesh(
-          new THREE.CylinderGeometry(.4,.4,1.4,10),
-          new THREE.MeshBasicMaterial({color:bodyColor})
-        );
-        body.position.y=.7; g.add(body);
-        // Head - emoji sprite (their chosen character)
+        // ── Rundliches, niedliches Figuren-Design (ersetzt den alten
+        // schlichten Zylinder + schwebendes Emoji als "Kopf") — Körper aus
+        // einer gestreckten Kugel (weiche Ei-Form statt harter Kanten),
+        // eigener runder Kopf, kleine stummelige Arme und Füsse. Kein
+        // CapsuleGeometry (r128 unterstützt das nicht), darum die
+        // Kapsel-Optik über eine skalierte Kugel nachgebaut.
+        const bodyMat=new THREE.MeshBasicMaterial({color:bodyColor});
+        const body=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),bodyMat);
+        body.scale.set(1,1.25,1); body.position.y=.62; g.add(body);
+        // Kopf — eigene runde Form, nicht mehr nur das Emoji selbst
+        const headMat=new THREE.MeshBasicMaterial({color:0xFFE0BD});
+        const head=new THREE.Mesh(new THREE.SphereGeometry(.36,12,10),headMat);
+        head.position.y=1.42; g.add(head);
+        // Kleine stummelige Arme, leicht nach aussen geneigt
+        const armMat=new THREE.MeshBasicMaterial({color:bodyColor});
+        [-1,1].forEach(side=>{
+          const arm=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),armMat);
+          arm.scale.set(1,1.5,1);
+          arm.position.set(side*.52,.68,0);
+          arm.rotation.z=side*0.35;
+          g.add(arm);
+        });
+        // Kleine runde Füsse
+        const feetMat=new THREE.MeshBasicMaterial({color:0x5A4A3A});
+        [-1,1].forEach(side=>{
+          const foot=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),feetMat);
+          foot.scale.set(1,.6,1.2);
+          foot.position.set(side*.2,.06,.05);
+          g.add(foot);
+        });
+        // Emoji jetzt als kleines Gesicht VORNE am Kopf statt der ganze Kopf
         const headSprite=this._makeEmojiSprite(op.char||'🧭');
-        headSprite.position.set(0,2.0,0);
-        headSprite.scale.set(2,2,1);
+        headSprite.position.set(0,1.42,.32);
+        headSprite.scale.set(.75,.75,1);
         g.add(headSprite);
-        // Name label above head
+        // Name label above head — etwas höher wegen dem grösseren Kopf
         const lbl=this._txt(op.name,.5,'#FFD700');
-        lbl.position.set(0,3.2,0);lbl.scale.set(6,1.2,1);g.add(lbl);
+        lbl.position.set(0,2.15,0);lbl.scale.set(6,1.2,1);g.add(lbl);
         // Slap indicator (hidden by default)
-        g.userData={slapT:0,baseY:0};
+        g.userData={slapT:0,baseY:0,bobOffset:Math.random()*10};
         this.scene.add(g);
         this.otherM[op.name]=g;
         ci++;
@@ -3355,7 +3379,10 @@ const ZG={
           m.position.y=Math.max(0,-4*t*(t-1))*2; // bounce arc
           m.rotation.z=Math.sin(now*0.01)*(1-t)*0.5; // wobble
         } else {
-          m.position.y=0; m.rotation.z=0;
+          // Sanftes Idle-Wippen statt starrem Stillstand — passt zum
+          // weicheren, "lebendigeren" Figuren-Stil.
+          m.position.y=Math.sin(now*0.003+(m.userData.bobOffset||0))*0.05;
+          m.rotation.z=0;
         }
         m.position.x=op.x||0;
         m.position.z=op.z||0;
@@ -3377,7 +3404,7 @@ const ZG={
           if(m.userData.carrySprite){ m.remove(m.userData.carrySprite); m.userData.carrySprite=null; }
           if(carryEmoji){
             const cs=this._txt(carryEmoji,1,'#fff');
-            cs.position.set(0,4.0,0); cs.scale.set(1.8,1.8,1);
+            cs.position.set(0,2.9,0); cs.scale.set(1.8,1.8,1);
             m.add(cs); m.userData.carrySprite=cs;
           }
           m.userData.carryEmoji=carryEmoji;
