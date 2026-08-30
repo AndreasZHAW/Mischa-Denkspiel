@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v550';
+const APP_VERSION = 'v551';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -282,6 +282,42 @@ const FontScale = {
 };
 window.FontScale = FontScale;
 
+// ── Ladebildschirm-Tipps, ähnlich wie in "Rivalen" — erscheinen einzeln,
+// komplett zufällig ausgewählt, während man durchs Universum fliegt.
+const MISCHA_TIPS = [
+  'Tipp: Füttere deine Tiere regelmässig im Fressnapf für Bonus-Verdienst!',
+  'Wusstest du? Glänzende Tiere verdienen extra viel Geld.',
+  'Im Speed-Tempel warten 15 Räume auf dich — schaffst du sie alle?',
+  'Tipp: Handel mit anderen Spielern, um an seltene Tiere zu kommen.',
+  'Wusstest du? Rebirths schalten einen dauerhaften Verdienst-Multiplikator frei.',
+  'Tipp: Das Glücksrad dreht sich für kostenlose Belohnungen — schau öfter vorbei!',
+  'Im MT-Pass warten viele Stufen mit Belohnungen auf dich.',
+  'Tipp: Die Zucht-Maschine kombiniert zwei gleiche Tiere zu einem selteneren.',
+  'Im Sammlungs-Terminal siehst du, was andere Spieler schon gesammelt haben.',
+  'Wusstest du? Manche Tiere sind unglaublich selten — hast du schon eins?',
+  'Tipp: Bei der Würfel-Maschine kannst du dein Glück verdoppeln — oder verlieren!',
+  'Im Zoo warten versteckte Gegenstände — halt die Augen offen!',
+  'Tipp: Ein Tier freilassen gibt XP für den MT-Pass.',
+  'Tipp: Pausen sind wichtig — auch beim Spielen!',
+  'Im Speed-Tempel wächst dein Tempo mit der Kraft deiner Tiere zusammen.',
+  'Tipp: Manche Events erscheinen nur kurz — sei bereit!',
+  'Tipp: Ein sauberer Zoo lockt mehr Besucher an.',
+  'Tipp: Dein Fortschritt speichert sich automatisch — einfach weiterspielen!',
+  'Wusstest du? Janosch, Mischa und Andi bauen gemeinsam am grössten Zoo der Galaxie.',
+  'Auf der Rangliste kannst du dich mit anderen vergleichen.',
+  'Links kannst du bei Sound den Ton ändern.',
+  'Im Menü gibt es Sachen, von denen nicht jeder weiss, dass es sie gibt.',
+  'Achtung! Slaps können dir bis zu 20% deines Geldes abnehmen!',
+  'Nicht nur links gibt es den Handel — auch auf dem Marktplatz kannst du vorbeischauen!',
+  'Kennst du das Spiel noch nicht so genau? Dann drück links auf Tipps!',
+  'Oben rechts zeigt dir ein Pfeil, wo der Zoo ist.',
+  'Events geben den Tieren in der Gondelstation einen Boost.',
+  'Das beste Event ist das Frankreich-Event — es gibt einen ×2-Multiplikator!',
+  'Geh in den Shop, scroll nach unten und löse den Code „luck" ein!',
+  'Geh in den Shop, scroll nach unten und löse den Code „mischajanoschandi" ein!',
+  'Hast du gute Spielideen? Sag sie uns gerne — wenn sie es ins Spiel schaffen, gibt es vielleicht eine kleine Belohnung ;)',
+];
+
 const App = {
   selectedChar: null,
   selectedColor: null,
@@ -458,7 +494,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v550 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v551 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -639,6 +675,14 @@ const App = {
     const txt = document.createElement('div');
     txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8%;pointer-events:none;z-index:2';
     ov.appendChild(txt);
+    // Zufälliger Tipp unten, ähnlich wie in "Rivalen" — jedes Mal ein
+    // anderer, komplett zufällig ausgewählt.
+    const tipEl = document.createElement('div');
+    const randomTip = MISCHA_TIPS[Math.floor(Math.random()*MISCHA_TIPS.length)];
+    tipEl.style.cssText = 'position:absolute;bottom:3%;left:0;right:0;text-align:center;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s';
+    tipEl.innerHTML = '<span style="display:inline-block;background:rgba(8,16,40,.7);border:1px solid rgba(74,240,255,.35);border-radius:12px;padding:8px 18px;color:#e8f4ff;font-size:.95rem;font-weight:600;max-width:90vw">💡 '+randomTip+'</span>';
+    ov.appendChild(tipEl);
+    setTimeout(()=>{ tipEl.style.opacity='1'; },600);
 
     // === EPIC SOUND ===
     try {

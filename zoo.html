@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v550 -->
+<!-- ZOO v551 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=550"></script>
-<script src="rewardchests.js?v=550"></script>
-<script src="personality.js?v=550"></script>
+<script src="lang.js?v=551"></script>
+<script src="rewardchests.js?v=551"></script>
+<script src="personality.js?v=551"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v550','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v551','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -483,6 +483,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   </div>
 </div>
 <div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button></div><div id="scont"></div>
+  <div style="margin-top:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px">
+    <div style="font-size:.8rem;font-weight:900;color:#FFD700;margin-bottom:6px">🎁 Code einlösen</div>
+    <div style="display:flex;gap:6px">
+      <input id="shop-code-input" type="text" placeholder="Code..." style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.82rem;box-sizing:border-box">
+      <button onclick="ZP.redeemShopCode()" style="background:#FFD700;color:#000;border:none;padding:8px 16px;border-radius:8px;font-weight:900;font-size:.8rem;cursor:pointer">Einlösen</button>
+    </div>
+  </div>
   <!-- Secret admin access field -->
   <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">
     <input id="shop-admin-pw" type="password" placeholder="🔐 Code eingeben..." maxlength="30"
@@ -517,8 +524,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=550"></script>
-<script src="worlds.js?v=550"></script>
+<script src="firebase-state.js?v=551"></script>
+<script src="worlds.js?v=551"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -9108,6 +9115,30 @@ const ZP={
 
   // SHOP
   shopTab(t){this._st=t;['z','b','s'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  redeemShopCode(){
+    const input=G('shop-code-input');
+    const code=(input?.value||'').trim().toLowerCase();
+    if(!code){ this.toast('❗ Gib erst einen Code ein!',1800); return; }
+    const z=ZS.zoo; if(!z) return;
+    if(!z.redeemedCodes) z.redeemedCodes=[];
+    const CODES={
+      'luck':      {type:'luck',    mult:15, durMin:10, label:'🍀 Glück ×15 für 10 Min!'},
+      'mischajanoschandi': {type:'visitor', mult:2,  durMin:10, label:'👥 Besucher ×2 für 10 Min!'},
+    };
+    const def=CODES[code];
+    if(!def){ this.toast('❌ Ungültiger Code.',2200); return; }
+    if(z.redeemedCodes.includes(code)){ this.toast('❗ Du hast den Code bereits eingelöst.',2500); return; }
+    if(!z.mtPassBoosts) z.mtPassBoosts={};
+    const cur=z.mtPassBoosts[def.type];
+    const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
+    z.mtPassBoosts[def.type]={mult:def.mult, until:base+def.durMin*60000};
+    z.redeemedCodes.push(code);
+    ZS.save&&ZS.save();
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    try{ SpeedTemple._updBoostBadge&&SpeedTemple._updBoostBadge(); }catch(e){}
+    this.toast('🎁 Code eingelöst! '+def.label,3500);
+    if(input) input.value='';
+  },
   _sP(el){
     const z=ZS.zoo;if(!z)return;
     const pt=z.pt||0; // Premium Taler
