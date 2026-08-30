@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v551';
+const APP_VERSION = 'v552';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -494,7 +494,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v551 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v552 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -676,11 +676,24 @@ const App = {
     txt.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8%;pointer-events:none;z-index:2';
     ov.appendChild(txt);
     // Zufälliger Tipp unten, ähnlich wie in "Rivalen" — jedes Mal ein
-    // anderer, komplett zufällig ausgewählt.
+    // anderer, komplett zufällig ausgewählt. Jetzt mit einem kleinen
+    // Charakter-Kopf und einer echten Sprechblase mit Schwänzchen, damit
+    // es aussieht, als würde die Figur den Tipp sagen.
     const tipEl = document.createElement('div');
     const randomTip = MISCHA_TIPS[Math.floor(Math.random()*MISCHA_TIPS.length)];
-    tipEl.style.cssText = 'position:absolute;bottom:3%;left:0;right:0;text-align:center;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s';
-    tipEl.innerHTML = '<span style="display:inline-block;background:rgba(8,16,40,.7);border:1px solid rgba(74,240,255,.35);border-radius:12px;padding:8px 18px;color:#e8f4ff;font-size:.95rem;font-weight:600;max-width:90vw">💡 '+randomTip+'</span>';
+    tipEl.style.cssText = 'position:absolute;bottom:4%;left:0;right:0;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s;display:flex;align-items:flex-end;justify-content:center;gap:10px;max-width:100%';
+    tipEl.innerHTML =
+      '<svg width="52" height="52" viewBox="0 0 100 100" style="flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))">'+
+        '<circle cx="50" cy="52" r="34" fill="#F6D2B0"/>'+
+        '<path d="M18 46 Q16 20 50 16 Q84 20 82 46 Q78 26 50 24 Q22 26 18 46 Z" fill="#6B4226"/>'+
+        '<circle cx="39" cy="54" r="4.2" fill="#2B1810"/><circle cx="61" cy="54" r="4.2" fill="#2B1810"/>'+
+        '<path d="M40 68 Q50 76 60 68" fill="none" stroke="#8A4B32" stroke-width="3" stroke-linecap="round"/>'+
+      '</svg>'+
+      '<span style="position:relative;display:inline-block;background:rgba(8,16,40,.72);border:1px solid rgba(74,240,255,.35);border-radius:14px;padding:9px 18px;color:#e8f4ff;font-size:.92rem;font-weight:600;max-width:75vw">'+
+        '<span style="position:absolute;left:-8px;bottom:14px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:9px solid rgba(74,240,255,.35)"></span>'+
+        '<span style="position:absolute;left:-6.5px;bottom:14px;width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-right:8px solid rgba(8,16,40,.92)"></span>'+
+        '💡 '+randomTip+
+      '</span>';
     ov.appendChild(tipEl);
     setTimeout(()=>{ tipEl.style.opacity='1'; },600);
 
@@ -779,6 +792,35 @@ const App = {
       ctx.restore();
     };
 
+    // Ein paar Rentiere, die neben dem Schiff mitfliegen — als erster
+    // Schritt Richtung Rentierschlitten, mit Geweih und roter
+    // "Rudolph"-Nase als Spass-Detail.
+    const drawReindeer = (cx, cy, scale, flip, legPhase) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale * (flip ? -1 : 1), scale);
+      ctx.fillStyle = '#8B5A2B';
+      ctx.beginPath(); ctx.ellipse(0, 0, 22, 11, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(25, -9, 10, 8, -0.3, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#5A3A1E'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(29,-16); ctx.lineTo(35,-29); ctx.lineTo(40,-25);
+      ctx.moveTo(35,-29); ctx.lineTo(33,-34);
+      ctx.moveTo(22,-15); ctx.lineTo(17,-30); ctx.lineTo(23,-28);
+      ctx.stroke();
+      const lw = Math.sin(legPhase)*5;
+      ctx.strokeStyle = '#5A3A1E'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-14,9); ctx.lineTo(-16+lw,21);
+      ctx.moveTo(-3,10); ctx.lineTo(-1-lw,23);
+      ctx.moveTo(8,10); ctx.lineTo(10+lw,22);
+      ctx.moveTo(16,8); ctx.lineTo(19-lw,20);
+      ctx.stroke();
+      ctx.fillStyle = '#FF3B30';
+      ctx.beginPath(); ctx.arc(34,-6,3.2,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    };
+
     const loop = () => {
       const t = frame / TOTAL;
       ctx.clearRect(0, 0, W, H);
@@ -829,6 +871,11 @@ const App = {
       const shipY = H/2 + Math.sin(frame*0.04)*20;
       const engineOn = frame > 20;
       if(shipScale > 0.05) drawSpaceship(W/2, shipY, shipScale, engineOn);
+      if(shipScale > 0.05){
+        const legPhase = frame*0.35;
+        drawReindeer(W/2 - 90*shipScale, shipY - 30*shipScale + Math.sin(frame*0.04+0.6)*14, shipScale*0.9, false, legPhase);
+        drawReindeer(W/2 + 95*shipScale, shipY - 22*shipScale + Math.sin(frame*0.04+1.1)*14, shipScale*0.8, true, legPhase+0.8);
+      }
 
       // Text
       const phase = frame < 50 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase1'):'🚀 Teleportation startet!', c:'#29B6F6'}
