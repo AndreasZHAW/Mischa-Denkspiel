@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v552';
+const APP_VERSION = 'v553';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -316,6 +316,13 @@ const MISCHA_TIPS = [
   'Geh in den Shop, scroll nach unten und löse den Code „luck" ein!',
   'Geh in den Shop, scroll nach unten und löse den Code „mischajanoschandi" ein!',
   'Hast du gute Spielideen? Sag sie uns gerne — wenn sie es ins Spiel schaffen, gibt es vielleicht eine kleine Belohnung ;)',
+  'Fun Fact: Das Spiel ist schon ungefähr 1 Jahr alt!',
+  'Es gibt einen Chat, der auch wirklich funktioniert — schreib doch mal während der Fahrt ;)',
+  'Jonas = OG (von Anfang an dabei) — vielen Dank Jonas in Frankreich! Maschine!!!',
+  'Danke fürs Spielen!',
+  'Hier stehen immer hilfreiche Tipps — und auch manchmal Boosts :)',
+  'Vielleicht gibt es mal ein Admin-Event — das ist immer sehr krass, guck mal nach!',
+  'Es gibt Spielzeit-Belohnungen — können schlecht sein, aber auch richtig gut...',
 ];
 
 const App = {
@@ -494,7 +501,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v552 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v553 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -681,17 +688,17 @@ const App = {
     // es aussieht, als würde die Figur den Tipp sagen.
     const tipEl = document.createElement('div');
     const randomTip = MISCHA_TIPS[Math.floor(Math.random()*MISCHA_TIPS.length)];
-    tipEl.style.cssText = 'position:absolute;bottom:4%;left:0;right:0;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s;display:flex;align-items:flex-end;justify-content:center;gap:10px;max-width:100%';
+    tipEl.style.cssText = 'position:absolute;bottom:4%;left:0;right:0;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s;display:flex;align-items:flex-end;justify-content:center;gap:13px;max-width:100%';
     tipEl.innerHTML =
-      '<svg width="52" height="52" viewBox="0 0 100 100" style="flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))">'+
+      '<svg width="68" height="68" viewBox="0 0 100 100" style="flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))">'+
         '<circle cx="50" cy="52" r="34" fill="#F6D2B0"/>'+
         '<path d="M18 46 Q16 20 50 16 Q84 20 82 46 Q78 26 50 24 Q22 26 18 46 Z" fill="#6B4226"/>'+
         '<circle cx="39" cy="54" r="4.2" fill="#2B1810"/><circle cx="61" cy="54" r="4.2" fill="#2B1810"/>'+
         '<path d="M40 68 Q50 76 60 68" fill="none" stroke="#8A4B32" stroke-width="3" stroke-linecap="round"/>'+
       '</svg>'+
-      '<span style="position:relative;display:inline-block;background:rgba(8,16,40,.72);border:1px solid rgba(74,240,255,.35);border-radius:14px;padding:9px 18px;color:#e8f4ff;font-size:.92rem;font-weight:600;max-width:75vw">'+
-        '<span style="position:absolute;left:-8px;bottom:14px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:9px solid rgba(74,240,255,.35)"></span>'+
-        '<span style="position:absolute;left:-6.5px;bottom:14px;width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-right:8px solid rgba(8,16,40,.92)"></span>'+
+      '<span style="position:relative;display:inline-block;background:rgba(8,16,40,.72);border:1px solid rgba(74,240,255,.35);border-radius:18px;padding:12px 23px;color:#e8f4ff;font-size:1.2rem;font-weight:600;max-width:75vw">'+
+        '<span style="position:absolute;left:-10px;bottom:18px;width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-right:12px solid rgba(74,240,255,.35)"></span>'+
+        '<span style="position:absolute;left:-8.5px;bottom:18px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:10px solid rgba(8,16,40,.92)"></span>'+
         '💡 '+randomTip+
       '</span>';
     ov.appendChild(tipEl);
@@ -821,6 +828,55 @@ const App = {
       ctx.restore();
     };
 
+    // Roter Weihnachtsschlitten mit eingeschnitztem Passagier — abgeleitet
+    // vom bestätigten Konzeptbild. flip=true lässt ihn nach links statt
+    // rechts gucken, passend zur Blickrichtung der Rentiere davor.
+    const drawSleigh = (cx, cy, scale, flip, charEmoji) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale * (flip ? -1 : 1), scale);
+      ctx.fillStyle = '#C0392B';
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(10,-8,60,-6);
+      ctx.quadraticCurveTo(95,-4,100,14);
+      ctx.quadraticCurveTo(100,34,70,38);
+      ctx.lineTo(-10,38);
+      ctx.quadraticCurveTo(-24,36,-22,20);
+      ctx.quadraticCurveTo(-20,4,0,0);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#7A2418'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-22,20);
+      ctx.quadraticCurveTo(-24,36,-10,38);
+      ctx.lineTo(70,38);
+      ctx.quadraticCurveTo(100,34,100,14);
+      ctx.stroke();
+      ctx.fillStyle = '#7A2418';
+      ctx.beginPath(); ctx.roundRect(-14,36,128,7,3.5); ctx.fill();
+      ctx.strokeStyle = '#7A2418'; ctx.lineWidth = 3; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(-20,43); ctx.quadraticCurveTo(-30,43,-30,50); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(104,43); ctx.quadraticCurveTo(118,43,112,55); ctx.stroke();
+      // Passagier — Gesicht bleibt beim Spiegeln aufrecht (nicht mit gedreht)
+      ctx.save();
+      ctx.scale(flip?-1:1,1); ctx.translate(flip?-80:0,0);
+      ctx.fillStyle = '#F6D2B0';
+      ctx.beginPath(); ctx.arc(40,10,14,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#6B4226';
+      ctx.beginPath();
+      ctx.moveTo(27,3); ctx.quadraticCurveTo(26,-8,40,-10); ctx.quadraticCurveTo(54,-8,53,3);
+      ctx.quadraticCurveTo(50,-4,40,-5); ctx.quadraticCurveTo(30,-4,27,3); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#2B1810';
+      ctx.beginPath(); ctx.arc(36,11,2,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(44,11,2,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#8A4B32'; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(35,16); ctx.quadraticCurveTo(40,20,45,16); ctx.stroke();
+      ctx.fillStyle = '#2E86DE';
+      ctx.fillRect(20,20,40,16);
+      ctx.restore();
+      ctx.restore();
+    };
+
     const loop = () => {
       const t = frame / TOTAL;
       ctx.clearRect(0, 0, W, H);
@@ -864,21 +920,33 @@ const App = {
         ctx.beginPath(); ctx.arc(sx,sy,s.size*0.4,0,Math.PI*2); ctx.fill();
       });
 
-      // Spaceship: starts small, flies toward viewer, then away
+      // Rentierschlitten: startet klein, fliegt auf den Betrachter zu, dann weg
       const shipScale = frame < 80
         ? 0.4 + (frame/80)*0.8          // zoom in
         : 1.2 - ((frame-80)/110)*0.9;   // zoom out into distance
       const shipY = H/2 + Math.sin(frame*0.04)*20;
-      const engineOn = frame > 20;
-      if(shipScale > 0.05) drawSpaceship(W/2, shipY, shipScale, engineOn);
       if(shipScale > 0.05){
         const legPhase = frame*0.35;
-        drawReindeer(W/2 - 90*shipScale, shipY - 30*shipScale + Math.sin(frame*0.04+0.6)*14, shipScale*0.9, false, legPhase);
-        drawReindeer(W/2 + 95*shipScale, shipY - 22*shipScale + Math.sin(frame*0.04+1.1)*14, shipScale*0.8, true, legPhase+0.8);
+        const sleighX = W/2 + 60*shipScale, sleighY = shipY;
+        const r1x = sleighX - 130*shipScale, r1y = sleighY - 20*shipScale + Math.sin(frame*0.04+0.6)*14;
+        const r2x = sleighX - 195*shipScale, r2y = sleighY - 35*shipScale + Math.sin(frame*0.04+1.0)*14;
+        const r3x = sleighX - 255*shipScale, r3y = sleighY - 48*shipScale + Math.sin(frame*0.04+1.4)*14;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(212,162,76,.8)'; ctx.lineWidth = 1.5*shipScale;
+        ctx.beginPath();
+        ctx.moveTo(sleighX-100*shipScale, sleighY+14*shipScale); ctx.lineTo(r1x, r1y-9*shipScale);
+        ctx.moveTo(sleighX-100*shipScale, sleighY+14*shipScale); ctx.lineTo(r2x, r2y-9*shipScale);
+        ctx.moveTo(sleighX-100*shipScale, sleighY+14*shipScale); ctx.lineTo(r3x, r3y-9*shipScale);
+        ctx.stroke();
+        ctx.restore();
+        drawSleigh(sleighX, sleighY, shipScale, true, charEmoji);
+        drawReindeer(r1x, r1y, shipScale*0.9, true, legPhase);
+        drawReindeer(r2x, r2y, shipScale*0.85, true, legPhase+0.6);
+        drawReindeer(r3x, r3y, shipScale*0.8, true, legPhase+1.1);
       }
 
       // Text
-      const phase = frame < 50 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase1'):'🚀 Teleportation startet!', c:'#29B6F6'}
+      const phase = frame < 50 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase1'):'🦌 Teleportation startet!', c:'#29B6F6'}
                   : frame < 100 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase2'):'⭐ Durchs Universum...', c:'#FFD700'}
                   : frame < 150 ? {t:typeof window.t!=='undefined'?window.t('teleport.phase3'):'🌌 Fast da!', c:'#E91E8C'}
                   : {t:typeof window.t!=='undefined'?window.t('teleport.phase4'):'🦁 Willkommen im Zoo!', c:'#27AE60'};
