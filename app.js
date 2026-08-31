@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v553';
+const APP_VERSION = 'v554';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -501,7 +501,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v553 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v554 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -609,8 +609,8 @@ const App = {
       '<audio id="bd-music" src="mischa_intro.mp3" preload="auto"></audio>'+
       '<div id="bd-title" style="position:absolute;top:9%;left:0;right:0;text-align:center;z-index:3;pointer-events:none;font-weight:900;letter-spacing:3px;opacity:0;transition:opacity .6s;font-family:Arial Black,Impact,sans-serif">'+
         '<span style="display:block;font-size:1.3rem;color:#ffe24a;letter-spacing:5px;text-shadow:0 0 18px rgba(255,210,74,.6);margin-bottom:4px">WELCOME TO THE</span>'+
-        '<span style="display:block;font-size:3.4rem;background:linear-gradient(90deg,#4af0ff,#9fd8ff,#4af0ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 50px rgba(74,240,255,.5)">JANOSCH-SPACE-SHIP</span></div>'+
-      '<div style="position:absolute;inset:0;z-index:3;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:7%"><div id="bd-speech" style="max-width:80%;background:linear-gradient(135deg,rgba(8,16,40,.94),rgba(2,6,20,.94));border:2px solid #4af0ff;border-radius:14px;padding:13px 22px;color:#fff;text-align:center;box-shadow:0 0 30px rgba(74,240,255,.45);opacity:0;transition:opacity .35s"><div style="font-size:.78rem;letter-spacing:2px;color:#4af0ff;font-weight:800;text-transform:uppercase;margin-bottom:3px">🚀 Janosch</div><div id="bd-msg" style="font-size:1.4rem;font-weight:700;line-height:1.3"></div></div></div>'+
+        '<span style="display:block;font-size:3.4rem;background:linear-gradient(90deg,#4af0ff,#9fd8ff,#4af0ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 50px rgba(74,240,255,.5)">JANOSCH REINDEER SLEIGH 🦌</span></div>'+
+      '<div style="position:absolute;inset:0;z-index:3;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:7%"><div id="bd-speech" style="max-width:80%;background:linear-gradient(135deg,rgba(8,16,40,.94),rgba(2,6,20,.94));border:2px solid #4af0ff;border-radius:14px;padding:13px 22px;color:#fff;text-align:center;box-shadow:0 0 30px rgba(74,240,255,.45);opacity:0;transition:opacity .35s"><div style="font-size:.78rem;letter-spacing:2px;color:#4af0ff;font-weight:800;text-transform:uppercase;margin-bottom:3px">🦌 Janosch</div><div id="bd-msg" style="font-size:1.4rem;font-weight:700;line-height:1.3"></div></div></div>'+
       '<button id="bd-skip" style="position:absolute;bottom:14px;right:14px;z-index:10;background:rgba(255,255,255,.2);color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer">'+(typeof window.t!=='undefined'?window.t('boarding.skip'):'Überspringen ⏭')+'</button>';
     document.body.appendChild(ov);
     const cv=document.getElementById('bd-cv'),ctx=cv.getContext('2d');
@@ -625,8 +625,9 @@ const App = {
     const setSpeech=(msg,show)=>{msgEl.textContent=msg;speechEl.style.opacity=show?'1':'0';};
     const finish=()=>{ if(done)return; done=true; try{music.pause();}catch(e){} try{window.removeEventListener('resize',rs);}catch(e){} if(animId)cancelAnimationFrame(animId); ov.remove(); this._showTeleportCinema(playerName,charEmoji,mtLeft); };
     document.getElementById('bd-skip').onclick=finish;
-    const drawShip=(cx,cy,s,doorOpen,glow)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);const eg=ctx.createRadialGradient(-92,0,0,-92,0,70);eg.addColorStop(0,'rgba(120,200,255,'+(0.85*glow)+')');eg.addColorStop(.5,'rgba(60,120,255,'+(0.4*glow)+')');eg.addColorStop(1,'rgba(0,0,80,0)');ctx.fillStyle=eg;ctx.beginPath();ctx.arc(-92,0,70,0,7);ctx.fill();ctx.fillStyle='#1b2230';ctx.fillRect(-95,-22,22,16);ctx.fillRect(-95,6,22,16);const hull=ctx.createLinearGradient(0,-46,0,46);hull.addColorStop(0,'#d8e2f2');hull.addColorStop(.5,'#9aa6c0');hull.addColorStop(1,'#5a647e');ctx.fillStyle=hull;ctx.beginPath();ctx.moveTo(120,0);ctx.lineTo(20,-26);ctx.lineTo(-75,-22);ctx.lineTo(-88,-10);ctx.lineTo(-88,10);ctx.lineTo(-75,22);ctx.lineTo(20,26);ctx.closePath();ctx.fill();ctx.fillStyle='#6a7596';ctx.beginPath();ctx.moveTo(-10,-24);ctx.lineTo(-30,-58);ctx.lineTo(-46,-56);ctx.lineTo(-40,-22);ctx.closePath();ctx.fill();ctx.fillStyle='#7d88a8';ctx.beginPath();ctx.moveTo(-20,-18);ctx.lineTo(-70,-62);ctx.lineTo(-58,-60);ctx.lineTo(-8,-20);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-20,18);ctx.lineTo(-70,62);ctx.lineTo(-58,60);ctx.lineTo(-8,20);ctx.closePath();ctx.fill();ctx.fillStyle='#c0392b';ctx.fillRect(-73,-64,7,5);ctx.fillRect(-73,60,7,5);const cg=ctx.createLinearGradient(40,-20,70,5);cg.addColorStop(0,'rgba(190,235,255,.95)');cg.addColorStop(.6,'rgba(70,150,255,.75)');cg.addColorStop(1,'rgba(15,45,110,.55)');ctx.fillStyle=cg;ctx.beginPath();ctx.moveTo(44,-14);ctx.lineTo(78,-6);ctx.lineTo(78,6);ctx.lineTo(44,14);ctx.closePath();ctx.fill();ctx.fillStyle='#e8533a';ctx.fillRect(-20,-4,90,4);ctx.fillStyle='#ffb24a';ctx.fillRect(-20,2,90,2);ctx.save();ctx.fillStyle='#161b28';ctx.fillRect(-46,16,34,10);if(doorOpen>0){ctx.fillStyle='rgba(255,220,140,'+(0.7*doorOpen)+')';ctx.fillRect(-44,16,30*doorOpen,9);}ctx.restore();ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(-8,-2,70,15);ctx.fillStyle='#4af0ff';ctx.font='bold 9px Arial';ctx.textAlign='center';ctx.fillText('JANOSCH-SPACE-SHIP',27,9);ctx.restore();};
-    const drawJanosch=(cx,cy,s,wave)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.fillStyle='#e8edf6';ctx.beginPath();ctx.roundRect(-20,-14,40,34,12);ctx.fill();ctx.fillStyle='#1b2230';ctx.beginPath();ctx.roundRect(-11,-6,22,14,3);ctx.fill();ctx.fillStyle='#27e070';ctx.fillRect(-8,-3,4,3);ctx.fillStyle='#4af0ff';ctx.fillRect(-8,3,16,2);const wa=Math.sin(wave*6)*0.5;ctx.strokeStyle='#e8edf6';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(16,-6);ctx.lineTo(28+wa*5,-26-wa*7);ctx.stroke();ctx.beginPath();ctx.moveTo(-16,-6);ctx.lineTo(-26,10);ctx.stroke();ctx.fillStyle='#eef2fa';ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.fill();const vg=ctx.createLinearGradient(-12,-38,12,-22);vg.addColorStop(0,'#0a2a4a');vg.addColorStop(.45,'#1d6fff');vg.addColorStop(.55,'#5fd0ff');vg.addColorStop(1,'#0a2a4a');ctx.fillStyle=vg;ctx.beginPath();ctx.ellipse(0,-30,12,11,0,0,7);ctx.fill();ctx.strokeStyle='#aab4c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.stroke();ctx.fillStyle='#4af0ff';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('🚀 JANOSCH',0,62);ctx.restore();};
+    const drawSleighGround=(cx,cy,s,flip)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s*(flip?-1:1),s);ctx.fillStyle='#C0392B';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(10,-8,60,-6);ctx.quadraticCurveTo(95,-4,100,14);ctx.quadraticCurveTo(100,34,70,38);ctx.lineTo(-10,38);ctx.quadraticCurveTo(-24,36,-22,20);ctx.quadraticCurveTo(-20,4,0,0);ctx.closePath();ctx.fill();ctx.strokeStyle='#7A2418';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,20);ctx.quadraticCurveTo(-24,36,-10,38);ctx.lineTo(70,38);ctx.quadraticCurveTo(100,34,100,14);ctx.stroke();ctx.fillStyle='#7A2418';ctx.beginPath();ctx.roundRect(-14,36,128,7,3.5);ctx.fill();ctx.strokeStyle='#7A2418';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-20,43);ctx.quadraticCurveTo(-30,43,-30,50);ctx.stroke();ctx.beginPath();ctx.moveTo(104,43);ctx.quadraticCurveTo(118,43,112,55);ctx.stroke();ctx.fillStyle='#2E86DE';ctx.fillRect(20,20,40,16);ctx.restore();};
+    const drawReindeerGround=(cx,cy,s,flip,legWobble)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s*(flip?-1:1),s);ctx.fillStyle='#8B5A2B';ctx.beginPath();ctx.ellipse(0,0,22,11,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(25,-9,10,8,-0.3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#5A3A1E';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(29,-16);ctx.lineTo(35,-29);ctx.lineTo(40,-25);ctx.moveTo(35,-29);ctx.lineTo(33,-34);ctx.moveTo(22,-15);ctx.lineTo(17,-30);ctx.lineTo(23,-28);ctx.stroke();ctx.fillStyle='#FF3B30';ctx.beginPath();ctx.arc(34,-6,3.2,0,Math.PI*2);ctx.fill();const w=Math.sin(legWobble)*1.5;ctx.strokeStyle='#5A3A1E';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(-14,9);ctx.lineTo(-15+w,26);ctx.moveTo(-3,10);ctx.lineTo(-2-w,27);ctx.moveTo(8,10);ctx.lineTo(9+w,26);ctx.moveTo(16,8);ctx.lineTo(18-w,24);ctx.stroke();ctx.restore();};
+    const drawJanosch=(cx,cy,s,wave)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.fillStyle='#e8edf6';ctx.beginPath();ctx.roundRect(-20,-14,40,34,12);ctx.fill();ctx.fillStyle='#1b2230';ctx.beginPath();ctx.roundRect(-11,-6,22,14,3);ctx.fill();ctx.fillStyle='#27e070';ctx.fillRect(-8,-3,4,3);ctx.fillStyle='#4af0ff';ctx.fillRect(-8,3,16,2);const wa=Math.sin(wave*6)*0.5;ctx.strokeStyle='#e8edf6';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(16,-6);ctx.lineTo(28+wa*5,-26-wa*7);ctx.stroke();ctx.beginPath();ctx.moveTo(-16,-6);ctx.lineTo(-26,10);ctx.stroke();ctx.fillStyle='#eef2fa';ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.fill();const vg=ctx.createLinearGradient(-12,-38,12,-22);vg.addColorStop(0,'#0a2a4a');vg.addColorStop(.45,'#1d6fff');vg.addColorStop(.55,'#5fd0ff');vg.addColorStop(1,'#0a2a4a');ctx.fillStyle=vg;ctx.beginPath();ctx.ellipse(0,-30,12,11,0,0,7);ctx.fill();ctx.strokeStyle='#aab4c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.stroke();ctx.fillStyle='#4af0ff';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('🦌 JANOSCH',0,62);ctx.restore();};
     const drawPlayer=(x,y,s,bob)=>{ctx.save();ctx.translate(x,y+Math.sin(bob)*3);ctx.scale(s,s);ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,30,20,6,0,0,7);ctx.fill();ctx.font='44px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(PLAYER_EMOJI,0,0);ctx.fillStyle='#fff';ctx.font='bold 13px Arial';ctx.fillText(PLAYER_NAME,0,34);ctx.restore();};
     const loop=()=>{
       const f=frame; ctx.clearRect(0,0,W,H);
@@ -634,26 +635,28 @@ const App = {
       stars.forEach(st=>{const a=0.4+Math.sin(f*0.05+st.tw)*0.4;ctx.globalAlpha=a;ctx.fillStyle='#cfe5ff';ctx.beginPath();ctx.arc(st.x,st.y,st.r,0,7);ctx.fill();});ctx.globalAlpha=1;
       const floorY=H*0.72;
       titleEl.style.opacity=(f>8&&f<170)?'1':'0';
-      const shipS=Math.min(W,H)/560*1.2,shipX=W*0.64,shipY=floorY-40;
+      const shipS=Math.min(W,H)/560*1.2,shipX=W*0.64,shipY=floorY-6;
       const janoschS=Math.min(W,H)/560*0.85,janoschX=W*0.64-150*shipS,janoschY=floorY-4;
-      const doorOpen=f<105?0:Math.min(1,(f-105)/25);
-      const powerGlow=f>185?Math.min(1,(f-185)/18):(f>20?0.5:0);
-      drawShip(shipX,shipY,shipS,doorOpen,powerGlow);
+      const legWobble=f*0.15;
+      // Rentiere stehen vor dem Schlitten (statt Tür/Rampe eines Raumschiffs)
+      drawReindeerGround(shipX-95*shipS, shipY-10*shipS, shipS*0.9, true, legWobble);
+      drawReindeerGround(shipX-155*shipS, shipY-16*shipS, shipS*0.85, true, legWobble+0.7);
+      drawSleighGround(shipX,shipY,shipS,true);
       if(f>10)drawJanosch(janoschX,janoschY,janoschS,f*0.04);
       const rampX=shipX-46*shipS;
       if(f<150){const t=Math.min(1,Math.max(0,(f-40)/70));const px=W*0.10+(rampX-W*0.10)*t;const walking=f>40&&f<105;drawPlayer(px,floorY-4,Math.min(W,H)/560*1.05,walking?f*0.3:0);}
       else if(f<170){const t=(f-150)/20;ctx.globalAlpha=1-t;drawPlayer(rampX,floorY-4,(Math.min(W,H)/560*1.05)*(1-t*0.6),0);ctx.globalAlpha=1;}
-      if(f>=8&&!_spoke.w){_spoke.w=1;speak('Welcome to the Janosch Space Ship');}
+      if(f>=8&&!_spoke.w){_spoke.w=1;speak('Welcome to the Janosch Reindeer Sleigh');}
       const _bt = (key, vars) => {
         let s = (typeof window.t!=='undefined') ? window.t(key) : null;
         if (!s || s===key) {
-          const fb = {'boarding.get_in':'Steig ein, {name}!','boarding.buckle':'Festschnallen — wir fliegen zum Zoo!','boarding.countdown':'Triebwerke an… 3… 2… 1…'};
+          const fb = {'boarding.get_in':'Steig ein, {name}!','boarding.buckle':'Festschnallen — wir fliegen zum Zoo!','boarding.countdown':'Rentiere bereit… 3… 2… 1…'};
           s = fb[key] || key;
         }
         if (vars) Object.keys(vars).forEach(k => { s = s.split('{'+k+'}').join(vars[k]); });
         return s;
       };
-      if(f>=14&&f<46)setSpeech('Welcome to the Janosch-Space-Ship!',true);
+      if(f>=14&&f<46)setSpeech('Welcome to the Janosch Reindeer Sleigh!',true);
       else if(f>=52&&f<102)setSpeech(_bt('boarding.get_in',{name:PLAYER_NAME}),true);
       else if(f>=108&&f<170)setSpeech(_bt('boarding.buckle'),true);
       else if(f>=170)setSpeech(_bt('boarding.countdown'),f<200);
@@ -688,17 +691,17 @@ const App = {
     // es aussieht, als würde die Figur den Tipp sagen.
     const tipEl = document.createElement('div');
     const randomTip = MISCHA_TIPS[Math.floor(Math.random()*MISCHA_TIPS.length)];
-    tipEl.style.cssText = 'position:absolute;bottom:4%;left:0;right:0;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s;display:flex;align-items:flex-end;justify-content:center;gap:13px;max-width:100%';
+    tipEl.style.cssText = 'position:absolute;bottom:4%;left:0;right:0;z-index:3;pointer-events:none;padding:0 6%;opacity:0;transition:opacity 1s;display:flex;align-items:flex-end;justify-content:center;gap:18px;max-width:100%';
     tipEl.innerHTML =
-      '<svg width="68" height="68" viewBox="0 0 100 100" style="flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))">'+
+      '<svg width="95" height="95" viewBox="0 0 100 100" style="flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))">'+
         '<circle cx="50" cy="52" r="34" fill="#F6D2B0"/>'+
         '<path d="M18 46 Q16 20 50 16 Q84 20 82 46 Q78 26 50 24 Q22 26 18 46 Z" fill="#6B4226"/>'+
         '<circle cx="39" cy="54" r="4.2" fill="#2B1810"/><circle cx="61" cy="54" r="4.2" fill="#2B1810"/>'+
         '<path d="M40 68 Q50 76 60 68" fill="none" stroke="#8A4B32" stroke-width="3" stroke-linecap="round"/>'+
       '</svg>'+
-      '<span style="position:relative;display:inline-block;background:rgba(8,16,40,.72);border:1px solid rgba(74,240,255,.35);border-radius:18px;padding:12px 23px;color:#e8f4ff;font-size:1.2rem;font-weight:600;max-width:75vw">'+
-        '<span style="position:absolute;left:-10px;bottom:18px;width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-right:12px solid rgba(74,240,255,.35)"></span>'+
-        '<span style="position:absolute;left:-8.5px;bottom:18px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:10px solid rgba(8,16,40,.92)"></span>'+
+      '<span style="position:relative;display:inline-block;background:rgba(8,16,40,.72);border:1px solid rgba(74,240,255,.35);border-radius:25px;padding:17px 32px;color:#e8f4ff;font-size:1.68rem;font-weight:600;max-width:75vw">'+
+        '<span style="position:absolute;left:-14px;bottom:25px;width:0;height:0;border-top:13px solid transparent;border-bottom:13px solid transparent;border-right:17px solid rgba(74,240,255,.35)"></span>'+
+        '<span style="position:absolute;left:-12px;bottom:25px;width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-right:14px solid rgba(8,16,40,.92)"></span>'+
         '💡 '+randomTip+
       '</span>';
     ov.appendChild(tipEl);
