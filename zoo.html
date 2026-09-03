@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v557 -->
+<!-- ZOO v558 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=557"></script>
-<script src="rewardchests.js?v=557"></script>
-<script src="personality.js?v=557"></script>
+<script src="lang.js?v=558"></script>
+<script src="rewardchests.js?v=558"></script>
+<script src="personality.js?v=558"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v557','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v558','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -524,8 +524,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=557"></script>
-<script src="worlds.js?v=557"></script>
+<script src="firebase-state.js?v=558"></script>
+<script src="worlds.js?v=558"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1211,25 +1211,53 @@ const EVENT_I18N={
 })();
 
 const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀'},{m:3,cost:80000,l:'×3 🍀🍀🍀'},{m:5,cost:250000,l:'×5 ⭐'},{m:7,cost:1000000,l:'×7 🌟'},{m:10,cost:5000000,l:'×10 👑 MAX'}];
-// ── RANG-SYSTEM: über jedem Spieler sichtbar, neben dem Namen. Rang ist
-// die höchste erreichte Stufe (keine geht je wieder verloren, auch wenn
-// die zugrundeliegende Ressource später ausgegeben wird). Wurde
-// mindestens 1× rebirtht, wird der Rang-Name golden statt in seiner
-// normalen Farbe angezeigt.
+// ── RANG-SYSTEM: man kann mehrere Ränge gleichzeitig ERREICHT haben (geht
+// nie wieder verloren), aber immer nur EINEN davon AUSRÜSTEN — das ist,
+// was andere Spieler über dem Namen sehen. Zwei Ränge sind exklusiv an
+// bestimmte Spielernamen gebunden (Admin/Tester) und können sonst von
+// niemandem erreicht werden, egal was sie tun. Der normale Admin kann
+// ausserdem JEDEM Spieler manuell einen Rang zusätzlich freischalten.
 const RANK_TIERS=[
-  {tier:1, name:'Silber',  color:'#C0C0C0', cond:z=>(z.luckLv||0)>=3},
-  {tier:2, name:'Gold',    color:'#FFD700', cond:z=>!!z.everReached500k},
-  {tier:3, name:'Diamant', color:'#B9F2FF', cond:z=>(z.luckLv||0)>=LUCK_UPS.length},
-  {tier:4, name:'Rubin',   color:'#E0115F', cond:z=>(z.luck50BuyCount||0)>=5},
-  {tier:5, name:'Speed',   color:'#00FFFF', cond:(z,escSpeed)=>(escSpeed||0)>1000},
+  {name:'Silber',  color:'#C0C0C0', req:'×3 Glück in der Gondel kaufen',            cond:z=>(z.luckLv||0)>=3},
+  {name:'Gold',    color:'#FFD700', req:'Einmal die 500\'000-MT-Marke knacken',      cond:z=>!!z.everReached500k},
+  {name:'Diamant', color:'#B9F2FF', req:'×10 👑 MAX Glück in der Gondel kaufen',      cond:z=>(z.luckLv||0)>=LUCK_UPS.length},
+  {name:'Rubin',   color:'#E0115F', req:'Den ×100-Glücks-Bonus 5× kaufen',           cond:z=>(z.luck50BuyCount||0)>=5},
+  {name:'Speed',   color:'#00FFFF', req:'Über 1\'000 Speed im Speed-Tempel haben',    cond:(z,escSpeed)=>(escSpeed||0)>1000},
 ];
-function computeRank(z, escSpeed){
-  if(!z) return {name:'Ungerankt', color:'#888888'};
-  let best={tier:0, name:'Ungerankt', color:'#888888'};
-  RANK_TIERS.forEach(rt=>{ if(rt.tier>best.tier && rt.cond(z,escSpeed)) best=rt; });
-  const rebirthed=(z.reb||0)>=1;
-  return {name:best.name, color:rebirthed&&best.tier>0?'#FFD700':best.color};
+// Reihenfolge = Standard-Priorität, wenn (noch) nichts explizit ausgerüstet wurde.
+const RANK_DEFAULT_PRIORITY=['Admin','Tester','Rubin','Speed','Diamant','Gold','Silber','Ungerankt'];
+const RANK_EXCLUSIVE_NAMES={'admin':['bu:)','bu:3','andi'], 'tester':['j.t']};
+const RANK_EXCLUSIVE_META={Admin:{color:'#FF3333'}, Tester:{color:'#3399FF'}};
+function _rankOwnerLC(playerName){ return (playerName||'').toLowerCase(); }
+function computeAchievedRanks(playerName, z, escSpeed){
+  const nameLC=_rankOwnerLC(playerName);
+  const achieved=['Ungerankt'];
+  RANK_TIERS.forEach(rt=>{ if(rt.cond(z,escSpeed)) achieved.push(rt.name); });
+  (z?.adminGrantedRanks||[]).forEach(r=>{ if(!achieved.includes(r)) achieved.push(r); });
+  if(RANK_EXCLUSIVE_NAMES.admin.includes(nameLC)) achieved.push('Admin');
+  if(RANK_EXCLUSIVE_NAMES.tester.includes(nameLC)) achieved.push('Tester');
+  return achieved;
 }
+function rankColor(name){
+  if(RANK_EXCLUSIVE_META[name]) return RANK_EXCLUSIVE_META[name].color;
+  const t=RANK_TIERS.find(r=>r.name===name);
+  return t?t.color:'#888888';
+}
+function getEquippedRank(playerName, z, escSpeed){
+  const achieved=computeAchievedRanks(playerName, z, escSpeed);
+  let equipped=z?.equippedRank;
+  if(!equipped || !achieved.includes(equipped)){
+    equipped=RANK_DEFAULT_PRIORITY.find(p=>achieved.includes(p))||'Ungerankt';
+  }
+  const rebirthed=(z?.reb||0)>=1;
+  // Admin/Tester behalten immer ihre eigene Farbe (rot/blau) — die
+  // "golden bei Rebirth"-Regel gilt nur für die normalen Stufen.
+  const isExclusive=!!RANK_EXCLUSIVE_META[equipped];
+  const color=(!isExclusive && rebirthed && equipped!=='Ungerankt') ? '#FFD700' : rankColor(equipped);
+  return {name:equipped, color};
+}
+// Rückwärtskompatibel zum alten Namen, falls noch irgendwo referenziert.
+function computeRank(z, escSpeed){ return getEquippedRank(ZS?.player, z, escSpeed); }
 
 // ── SAMMELALBUM: MT-Bonus (% vom Gesamtguthaben) fürs Vervollständigen
 // einer Seltenheitsstufe (jemals besessen, siehe z.everOwned). ──
@@ -6999,7 +7027,7 @@ const ZG={
       // COLD: bigger, rarely changes — only written when it actually
       // differs from what we last sent, so a completely static inventory
       // doesn't get re-uploaded every cycle for nothing.
-      const _myRank=computeRank(ZS.zoo, ZS.zoo?.escSpeed||0);
+      const _myRank=getEquippedRank(ZS.player, ZS.zoo, ZS.zoo?.escSpeed||0);
       const coldData={name:ZS.player,char:_myPers.char,color:_myPers.color,
         charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,
         rank:_myRank,
@@ -10416,13 +10444,45 @@ const ZP={
         </button>`).join('')+
       '</div>';
   },
+  _equipRank(name){
+    const z=ZS.zoo; if(!z) return;
+    const achieved=computeAchievedRanks(ZS.player, z, z.escSpeed||0);
+    if(!achieved.includes(name)){ this.toast('❌ Diesen Rang hast du noch nicht erreicht.'); return; }
+    z.equippedRank=name;
+    ZS.save&&ZS.save();
+    this.toast('🏅 Rang "'+name+'" ausgerüstet!',2000);
+    this._rMenu();
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+  },
   _rMenu(){
     const z=ZS.zoo;
     const soundStyle=(typeof ZSound!=='undefined'?ZSound.style:'normal')||'normal';
     let todOn=true; try{todOn=localStorage.getItem('zoo_tod')!=='0';}catch(e){}
     let evfxOn=true; try{evfxOn=localStorage.getItem('zoo_evfx')!=='0';}catch(e){}
     let weatherOn=true; try{weatherOn=localStorage.getItem('zoo_weather')!=='0';}catch(e){}
-    G('pmenu').innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left;font-size:.78rem;line-height:1.85;color:rgba(255,255,255,.6)">${ZS._personalityAvatar()} <b style="color:#fff">${ZS.player}</b><br>🌀 ${$mt(z.mt)}<br>📈 ${$mt(z.te||0)} verdient<br>🐾 ${z.enc.filter(e=>e).length}/${ZS.maxE()} Tiere<br>🔄 ${z.reb||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}</div>
+    const _myAchieved=computeAchievedRanks(ZS.player, z, z.escSpeed||0);
+    const _myEquipped=getEquippedRank(ZS.player, z, z.escSpeed||0);
+    const _rankRowsAchieved=_myAchieved.map(rn=>{
+      const col=rankColor(rn);
+      const isEquipped=rn===_myEquipped.name;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0">'
+        +'<span style="font-weight:800;color:'+col+'">● '+rn+'</span>'
+        +(isEquipped?'<span style="color:#27AE60;font-size:.72rem;font-weight:800">✓ Ausgerüstet</span>'
+          :'<button onclick="ZP._equipRank(\''+rn+'\')" style="background:rgba(255,255,255,.12);border:none;color:#fff;padding:4px 12px;border-radius:7px;font-size:.7rem;cursor:pointer;font-weight:700">Ausrüsten</button>')
+        +'</div>';
+    }).join('');
+    const _rankRowsLocked=RANK_TIERS.filter(rt=>!_myAchieved.includes(rt.name)).map(rt=>
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;opacity:.45">'
+      +'<span style="font-weight:800">🔒 '+rt.name+'</span>'
+      +'<span style="font-size:.68rem;text-align:right">'+rt.req+'</span>'
+      +'</div>'
+    ).join('');
+    const _rankSection='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(224,86,253,.3);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">'
+      +'<div style="color:#E056FD;font-weight:900;font-size:.9rem;margin-bottom:6px;text-align:center">🏅 Rang: <span style="color:'+_myEquipped.color+'">'+_myEquipped.name+'</span></div>'
+      +'<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:6px">Du kannst mehrere Ränge gleichzeitig erreicht haben — aber immer nur einer ist ausgerüstet und für andere sichtbar.</div>'
+      +_rankRowsAchieved+_rankRowsLocked
+      +'</div>';
+    G('pmenu').innerHTML=_rankSection+`<div style="background:rgba(255,255,255,.06);border-radius:11px;padding:11px;margin-bottom:10px;text-align:left;font-size:.78rem;line-height:1.85;color:rgba(255,255,255,.6)">${ZS._personalityAvatar()} <b style="color:#fff">${ZS.player}</b><br>🌀 ${$mt(z.mt)}<br>📈 ${$mt(z.te||0)} verdient<br>🐾 ${z.enc.filter(e=>e).length}/${ZS.maxE()} Tiere<br>🔄 ${z.reb||0} Rebirths · ×${(z.rebirthMult||1).toFixed(1)}</div>
       <div style="background:linear-gradient(135deg,rgba(255,107,0,.3),rgba(255,165,0,.2));border:2px solid #FFA500;border-radius:11px;padding:11px;margin-bottom:10px;text-align:left">
         <div style="color:#FFD700;font-weight:900;font-size:1rem;margin-bottom:10px;text-align:center;letter-spacing:1px">${typeof t!=='undefined'?t('menu.settings'):'⚙️ EINSTELLUNGEN ⚙️'}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px">
@@ -12399,6 +12459,24 @@ const ZAdmin = {
       const newSpeed=(z.escSpeed||0)+amount;
       await _db.collection('zoos').doc(k).set({escSpeed:newSpeed},{merge:true});
       ZP.toast('⚡ +'+amount+' Speed an "'+this.target+'" vergeben! (Neu: '+newSpeed+')',3000);
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async grantRank(){
+    if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
+    const choices=RANK_TIERS.map(r=>r.name).join(', ');
+    const rankName=prompt('Welchen Rang soll "'+this.target+'" zusätzlich bekommen?\n(Silber, Gold, Diamant, Rubin, Speed)','Rubin');
+    if(!rankName) return;
+    const clean=rankName.trim();
+    if(!RANK_TIERS.some(r=>r.name===clean)){ ZP.toast('❌ Unbekannter Rang. Möglich: '+choices); return; }
+    try{
+      const k='zoo_'+this.target.toLowerCase();
+      const doc=await _db.collection('zoos').doc(k).get({source:'server'});
+      if(!doc.exists){ ZP.toast('❌ Kein Zoo-Konto gefunden.'); return; }
+      const z=doc.data();
+      const granted=z.adminGrantedRanks||[];
+      if(!granted.includes(clean)) granted.push(clean);
+      await _db.collection('zoos').doc(k).set({adminGrantedRanks:granted},{merge:true});
+      ZP.toast('🏅 Rang "'+clean+'" an "'+this.target+'" vergeben!',3000);
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
   async _loadCalFromFirebase(){
@@ -17271,6 +17349,7 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#F39C12" onclick="ZAdmin.giveAdmin()">👑 Admin vergeben</button>
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.revokeAdmin()">🚫 Admin entziehen</button>
             <button class="padmin-btn" style="background:#E056FD" onclick="ZAdmin.grantSpeed()">⚡ Speed vergeben</button>
+            <button class="padmin-btn" style="background:#E0115F" onclick="ZAdmin.grantRank()">🏅 Rang vergeben</button>
             <button class="padmin-btn" style="background:#8E44AD" onclick="SpeedTemple.toggleRestriction()">🔒 Tempel-Zugang umschalten</button>
           </div>
           <div class="padmin-section-title" style="margin-top:10px">📢 Ankündigung</div>
