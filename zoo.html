@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v556 -->
+<!-- ZOO v557 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=556"></script>
-<script src="rewardchests.js?v=556"></script>
-<script src="personality.js?v=556"></script>
+<script src="lang.js?v=557"></script>
+<script src="rewardchests.js?v=557"></script>
+<script src="personality.js?v=557"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v556','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v557','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -524,8 +524,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=556"></script>
-<script src="worlds.js?v=556"></script>
+<script src="firebase-state.js?v=557"></script>
+<script src="worlds.js?v=557"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1211,6 +1211,25 @@ const EVENT_I18N={
 })();
 
 const LUCK_UPS=[{m:1.5,cost:5000,l:'×1.5 🍀'},{m:2,cost:15000,l:'×2 🍀🍀'},{m:3,cost:80000,l:'×3 🍀🍀🍀'},{m:5,cost:250000,l:'×5 ⭐'},{m:7,cost:1000000,l:'×7 🌟'},{m:10,cost:5000000,l:'×10 👑 MAX'}];
+// ── RANG-SYSTEM: über jedem Spieler sichtbar, neben dem Namen. Rang ist
+// die höchste erreichte Stufe (keine geht je wieder verloren, auch wenn
+// die zugrundeliegende Ressource später ausgegeben wird). Wurde
+// mindestens 1× rebirtht, wird der Rang-Name golden statt in seiner
+// normalen Farbe angezeigt.
+const RANK_TIERS=[
+  {tier:1, name:'Silber',  color:'#C0C0C0', cond:z=>(z.luckLv||0)>=3},
+  {tier:2, name:'Gold',    color:'#FFD700', cond:z=>!!z.everReached500k},
+  {tier:3, name:'Diamant', color:'#B9F2FF', cond:z=>(z.luckLv||0)>=LUCK_UPS.length},
+  {tier:4, name:'Rubin',   color:'#E0115F', cond:z=>(z.luck50BuyCount||0)>=5},
+  {tier:5, name:'Speed',   color:'#00FFFF', cond:(z,escSpeed)=>(escSpeed||0)>1000},
+];
+function computeRank(z, escSpeed){
+  if(!z) return {name:'Ungerankt', color:'#888888'};
+  let best={tier:0, name:'Ungerankt', color:'#888888'};
+  RANK_TIERS.forEach(rt=>{ if(rt.tier>best.tier && rt.cond(z,escSpeed)) best=rt; });
+  const rebirthed=(z.reb||0)>=1;
+  return {name:best.name, color:rebirthed&&best.tier>0?'#FFD700':best.color};
+}
 
 // ── SAMMELALBUM: MT-Bonus (% vom Gesamtguthaben) fürs Vervollständigen
 // einer Seltenheitsstufe (jemals besessen, siehe z.everOwned). ──
@@ -3373,6 +3392,12 @@ const ZG={
         headSprite.position.set(0,1.38,0);
         headSprite.scale.set(1.55,1.55,1);
         g.add(headSprite);
+        // Rang-Anzeige über dem Namen (Silber/Gold/Diamant/Rubin/Speed,
+        // Farbe golden statt Stufen-Farbe wenn mindestens 1× rebirtht).
+        const rankInfo=op.rank||{name:'Ungerankt',color:'#888888'};
+        const rankLbl=this._txt(rankInfo.name,.42,rankInfo.color);
+        rankLbl.position.set(0,2.62,0);rankLbl.scale.set(5,1,1);g.add(rankLbl);
+        g.userData_lastRankName=rankInfo.name; g.userData_rankSprite=rankLbl;
         // Name label above head
         const lbl=this._txt(op.name,.5,'#FFD700');
         lbl.position.set(0,2.25,0);lbl.scale.set(6,1.2,1);g.add(lbl);
@@ -3384,6 +3409,16 @@ const ZG={
       }
       const m=this.otherM[op.name];
       if(m){
+        // Rang kann sich ändern (v.a. die "Speed"-Stufe schwankt um die
+        // 1000er-Schwelle) — Sprite bei Bedarf neu zeichnen.
+        const curRank=op.rank||{name:'Ungerankt',color:'#888888'};
+        if(m.userData_lastRankName!==curRank.name){
+          m.userData_lastRankName=curRank.name;
+          if(m.userData_rankSprite){ m.remove(m.userData_rankSprite); }
+          const newRankLbl=this._txt(curRank.name,.42,curRank.color);
+          newRankLbl.position.set(0,2.62,0);newRankLbl.scale.set(5,1,1);
+          m.add(newRankLbl); m.userData_rankSprite=newRankLbl;
+        }
        try{
         // Knockback if slapped (bounce on ground)
         const now=Date.now();
@@ -5712,6 +5747,10 @@ const ZG={
     if(!z.tv&&z.tv!==0)z.tv=z.totalVisitors||0; // migrate on the fly
     if(!z.te&&z.te!==0)z.te=z.totalEarned||0;
     if(!z.enc)ZS._fix(); // ensure fixed
+    // Rang-System: "Gold"-Stufe braucht, dass man JE (auch nur einmal)
+    // die 500'000-MT-Marke geknackt hat — bleibt dauerhaft, auch wenn man
+    // das Geld später wieder ausgibt.
+    if(!z.everReached500k && (z.mt||0)>=500000){ z.everReached500k=true; ZS.save&&ZS.save(); }
     // Combined balance (Denkspiel + Zoo), per the person's request that
     // every screen show one unified total. ZS.dsMT is cached once at
     // load() time (with the same deviceId ownership check as elsewhere).
@@ -6960,8 +6999,10 @@ const ZG={
       // COLD: bigger, rarely changes — only written when it actually
       // differs from what we last sent, so a completely static inventory
       // doesn't get re-uploaded every cycle for nothing.
+      const _myRank=computeRank(ZS.zoo, ZS.zoo?.escSpeed||0);
       const coldData={name:ZS.player,char:_myPers.char,color:_myPers.color,
         charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,
+        rank:_myRank,
         enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null)};
       const coldStr=JSON.stringify(coldData);
       if(this._lastColdSent!==coldStr){
@@ -9081,6 +9122,7 @@ const ZP={
     const combined=(ZS.dsMT||0)+z.mt, cost=Math.round(combined*0.3*10)/10;
     if(combined<cost||cost<=0){ this.toast('❌ Zu wenig!'); return; }
     z.mt-=cost; z.luck50Until=Date.now()+5*60*1000;
+    z.luck50BuyCount=(z.luck50BuyCount||0)+1;
     ZS.save&&ZS.save();
     this.toast('🌟 ×100 Glücks-Bonus aktiv für 5 Min!',3500);
     this._rLuck50(); ZG._updHUD();
@@ -15491,7 +15533,9 @@ const SpeedTemple = {
       if(!this.isUnlocked()) return;
       const z=ZS.zoo; if(!z) return;
       const sum=(z.enc||[]).reduce((s,e)=>{ if(!e||!e.animal) return s; const tm=(typeof tMul==='function')?tMul(e.shiny,e.traits):1; return s+(e.animal.earn||0)*tm*(e.xm||1); },0);
-      if(sum>0){ z.escSpeed=(z.escSpeed||0)+sum; ZS.save&&ZS.save(); }
+      // 30× weniger Speed als Geld — Speed soll deutlich langsamer wachsen
+      // als das eigentliche Guthaben.
+      if(sum>0){ z.escSpeed=(z.escSpeed||0)+sum/30; ZS.save&&ZS.save(); }
     },10000);
   },
   // ── Eigene Anzeige unten rechts für aktive Boosts (Glück/Geld/Besucher
@@ -15943,6 +15987,16 @@ const SpeedTemple = {
     }
     ZG._mazeAreas=areas.map(a=>({x1:a.x1+OX,x2:a.x2+OX,z1:a.z1+OZ,z2:a.z2+OZ}));
     ZG._mazeGoal={x:path[path.length-1].x+OX,z:path[path.length-1].z+OZ};
+    // Raum 11 (idx10): zusätzliche Speed-Falle in der Mitte des Wegs —
+    // unter 15'000 Speed = man stirbt (zurück zum Start), ab 15'000 kann
+    // man einfach durchlaufen.
+    if(idx===10){
+      const mid=path[Math.floor(path.length/2)];
+      ZG._speedGate={x:mid.x+OX, z:mid.z+OZ, threshold:15000};
+      const gateMat=new THREE.MeshBasicMaterial({color:0xFF3355,transparent:true,opacity:.35});
+      const gate=new THREE.Mesh(new THREE.BoxGeometry(corridorHalf*2,wallH,1.5),gateMat);
+      gate.position.set(mid.x+OX,floorY+wallH/2,mid.z+OZ); sc.add(gate); ZG._jumpMeshes.push(gate);
+    } else { ZG._speedGate=null; }
     // Boden + Deckel, grosszügig um den Kurs herum
     const xs=path.map(p=>p.x), zs=path.map(p=>p.z);
     const minX=Math.min(...xs)-25, maxX=Math.max(...xs)+25;
@@ -16024,6 +16078,21 @@ const SpeedTemple = {
       }
     }
     this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
+    // Raum 11: Speed-Falle in der Mitte des Wegs — unter 15'000 Speed
+    // stirbt man (zurück zum Anfang), ab 15'000 läuft man einfach durch.
+    if(ZG._speedGate){
+      const gd=Math.sqrt((ZG.pl.x-ZG._speedGate.x)**2+(ZG.pl.z-ZG._speedGate.z)**2);
+      const invincible=Date.now()<(ZG._speedGateInvUntil||0);
+      if(!invincible && gd<3){
+        const escSpeed=Number(this._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
+        if(escSpeed<ZG._speedGate.threshold){
+          ZP.toast('💀 Zu wenig Speed! Brauchst mind. 15\'000 Speed.',2200);
+          const startPt=ZG._mazeAreas&&ZG._mazeAreas[0];
+          if(startPt){ ZG.pl.x=(startPt.x1+startPt.x2)/2; ZG.pl.z=(startPt.z1+startPt.z2)/2; }
+          ZG._speedGateInvUntil=Date.now()+1200;
+        }
+      }
+    }
     // 💨 Windböen-Gang: in einer aktiven Böe stehen = ein Stück
     // zurückgeschleudert werden — es sei denn, man hat mindestens 20'000
     // Speed, dann pustet einen die Böe nicht mehr weg.
@@ -16218,7 +16287,7 @@ const SpeedTemple = {
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     if(ZG._windIv){ clearInterval(ZG._windIv); ZG._windIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null; ZG._speedGate=null; ZG._speedGateInvUntil=0;
     document.getElementById('speedtemple-countdown')?.remove();
     document.getElementById('speedtemple-speed-setter')?.remove();
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
