@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v558 -->
+<!-- ZOO v559 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=558"></script>
-<script src="rewardchests.js?v=558"></script>
-<script src="personality.js?v=558"></script>
+<script src="lang.js?v=559"></script>
+<script src="rewardchests.js?v=559"></script>
+<script src="personality.js?v=559"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v558','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v559','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -524,8 +524,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=558"></script>
-<script src="worlds.js?v=558"></script>
+<script src="firebase-state.js?v=559"></script>
+<script src="worlds.js?v=559"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -15574,20 +15574,20 @@ const CollectionTerminal = {
 // ══════════════════════════════════════════════════════════════════
 const SPEEDTEMPLE_ROOMS = [
   {name:'Raum 1 — Erste Schritte',    reqSpeed:0,      luckMult:2},
-  {name:'Raum 2 — Schwankende Wege',  reqSpeed:500,    luckMult:5},
-  {name:'Raum 3 — Enge Sprünge',      reqSpeed:2000,   luckMult:10},
-  {name:'Boss — Der Wächter',         reqSpeed:5000,   luckMult:20, boss:true},
-  {name:'🌊 Raum 5 — Tsunami-Flucht', reqSpeed:10000,  luckMult:30},
-  {name:'⚡ Raum 6 — Blitz-Sprünge',  reqSpeed:18000,  luckMult:40},
-  {name:'Boss — Der Rasende',        reqSpeed:30000,  luckMult:50, boss:true},
-  {name:'🌀 Raum 8 — Wirbel-Pfad',   reqSpeed:45000,  luckMult:60},
-  {name:'🧊 Raum 9 — Eis-Parcours',  reqSpeed:65000,  luckMult:75},
-  {name:'💨 Raum 10 — Windböen-Gang',reqSpeed:75000,  luckMult:80},
-  {name:'🟣 Raum 11 — Labyrinth',     reqSpeed:150000, luckMult:110},
-  {name:'🟣 Raum 12 — Labyrinth',     reqSpeed:220000, luckMult:130},
-  {name:'🟣 Raum 13 — Labyrinth',     reqSpeed:320000, luckMult:150},
-  {name:'🟣 Raum 14 — Labyrinth',     reqSpeed:450000, luckMult:175},
-  {name:'🟣 Raum 15 — Endlabyrinth',  reqSpeed:600000, luckMult:200},
+  {name:'Raum 2 — Schwankende Wege',  reqSpeed:500,    luckMult:3},
+  {name:'Raum 3 — Enge Sprünge',      reqSpeed:2000,   luckMult:4},
+  {name:'Boss — Der Wächter',         reqSpeed:5000,   luckMult:6, boss:true},
+  {name:'🌊 Raum 5 — Tsunami-Flucht', reqSpeed:10000,  luckMult:8},
+  {name:'⚡ Raum 6 — Blitz-Sprünge',  reqSpeed:18000,  luckMult:10},
+  {name:'Boss — Der Rasende',        reqSpeed:30000,  luckMult:12, boss:true},
+  {name:'🌀 Raum 8 — Wirbel-Pfad',   reqSpeed:45000,  luckMult:14},
+  {name:'🧊 Raum 9 — Eis-Parcours',  reqSpeed:65000,  luckMult:16},
+  {name:'💨 Raum 10 — Windböen-Gang',reqSpeed:75000,  luckMult:18},
+  {name:'❤️ Raum 11 — Dauerschaden', reqSpeed:150000, luckMult:20},
+  {name:'🟣 Raum 12 — Labyrinth',     reqSpeed:220000, luckMult:22},
+  {name:'🟣 Raum 13 — Labyrinth',     reqSpeed:320000, luckMult:24},
+  {name:'🟣 Raum 14 — Labyrinth',     reqSpeed:450000, luckMult:27},
+  {name:'🟣 Raum 15 — Endlabyrinth',  reqSpeed:600000, luckMult:30},
 ];
 // Räume 9 (Eis) und 10 (Wind) sind jetzt normal verfügbar wie 1-8,
 // 11-15 (Labyrinthe) bleiben weiterhin "Bald verfügbar".
@@ -15746,11 +15746,13 @@ const SpeedTemple = {
       });
     }catch(e){}
     // Raum 9 (idx8): Eis-Parcours, feste Geschwindigkeit. Raum 10 (idx9):
-    // Windböen-Gang, ebenfalls feste Geschwindigkeit. Räume 11-15
-    // (idx10-14): Labyrinthe. Räume 1-8: normale Sprung-Engine.
+    // Windböen-Gang, ebenfalls feste Geschwindigkeit. Raum 11 (idx10):
+    // Dauerschaden-Gerade mit HP-Leiste. Räume 12-15 (idx11-14):
+    // Labyrinthe. Räume 1-8: normale Sprung-Engine.
     if(idx===8){ ZG._jumpActive=true; ZG._mazeActive=false; ZG._iceRoomActive=true; this._buildRoom(idx); }
     else if(idx===9){ ZG._jumpActive=false; ZG._mazeActive=true; ZG._windRoomActive=true; this._buildWindRoom(idx); }
-    else if(idx>=10){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
+    else if(idx===10){ ZG._jumpActive=false; ZG._mazeActive=true; ZG._damagePathActive=true; this._buildDamagePath(idx); }
+    else if(idx>=11){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
     else { ZG._jumpActive=true; ZG._mazeActive=false; this._buildRoom(idx); }
   },
   _buildRoom(idx){
@@ -16044,7 +16046,7 @@ const SpeedTemple = {
     ZG._steOldClearColor=0x87CEEB;
     try{ ZG.renderer.setClearColor(0x0d0110,1); }catch(e){}
     const floorY=25.75, corridorHalf=12, wallThick=2, wallH=10;
-    const turns=[8,10,12,14,16][idx-10];
+    const turns=[8,10,12,14][idx-11];
     const path=this._genMazePath(turns);
     // BUG FIX: die alte Wand-Berechnung erzeugte Wände UNABHÄNGIG vom
     // begehbaren Bereich — an manchen Abbiegungen (je nach Richtung)
@@ -16065,16 +16067,7 @@ const SpeedTemple = {
     }
     ZG._mazeAreas=areas.map(a=>({x1:a.x1+OX,x2:a.x2+OX,z1:a.z1+OZ,z2:a.z2+OZ}));
     ZG._mazeGoal={x:path[path.length-1].x+OX,z:path[path.length-1].z+OZ};
-    // Raum 11 (idx10): zusätzliche Speed-Falle in der Mitte des Wegs —
-    // unter 15'000 Speed = man stirbt (zurück zum Start), ab 15'000 kann
-    // man einfach durchlaufen.
-    if(idx===10){
-      const mid=path[Math.floor(path.length/2)];
-      ZG._speedGate={x:mid.x+OX, z:mid.z+OZ, threshold:15000};
-      const gateMat=new THREE.MeshBasicMaterial({color:0xFF3355,transparent:true,opacity:.35});
-      const gate=new THREE.Mesh(new THREE.BoxGeometry(corridorHalf*2,wallH,1.5),gateMat);
-      gate.position.set(mid.x+OX,floorY+wallH/2,mid.z+OZ); sc.add(gate); ZG._jumpMeshes.push(gate);
-    } else { ZG._speedGate=null; }
+    ZG._speedGate=null;
     // Boden + Deckel, grosszügig um den Kurs herum
     const xs=path.map(p=>p.x), zs=path.map(p=>p.z);
     const minX=Math.min(...xs)-25, maxX=Math.max(...xs)+25;
@@ -16156,6 +16149,21 @@ const SpeedTemple = {
       }
     }
     this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
+    // Raum 11: dauerhafter Schaden die ganze Zeit, solange man im Raum
+    // ist — HP-Leiste oben, bei 0 Herzen zurück zum Start mit vollen HP.
+    if(ZG._damagePathActive){
+      const nowHP=Date.now();
+      const dtSec=(nowHP-(this._lastHPTick||nowHP))/1000;
+      this._lastHPTick=nowHP;
+      ZG._hp=Math.max(0,(ZG._hp??ZG._hpMax)-(ZG._hpDamageRate||1)*dtSec);
+      this._updHPBar();
+      if(ZG._hp<=0){
+        ZP.toast('💀 Keine Herzen mehr! Zurück zum Start.',2000);
+        if(ZG._damageStartPos){ ZG.pl.x=ZG._damageStartPos.x; ZG.pl.z=ZG._damageStartPos.z; }
+        ZG._hp=ZG._hpMax;
+        this._updHPBar();
+      }
+    }
     // Raum 11: Speed-Falle in der Mitte des Wegs — unter 15'000 Speed
     // stirbt man (zurück zum Anfang), ab 15'000 läuft man einfach durch.
     if(ZG._speedGate){
@@ -16171,19 +16179,21 @@ const SpeedTemple = {
         }
       }
     }
-    // 💨 Windböen-Gang: in einer aktiven Böe stehen = ein Stück
-    // zurückgeschleudert werden — es sei denn, man hat mindestens 20'000
-    // Speed, dann pustet einen die Böe nicht mehr weg.
+    // 💨 Windböen-Gang: in einer aktiven Böe stehen = STERBEN (zurück zum
+    // Start) — es sei denn, man hat mindestens 200'000 Speed, dann pustet
+    // einen die Böe gar nicht mehr an.
     if(ZG._windGusts){
       const invincible=Date.now()<(ZG._windInvUntil||0);
       const escSpeed=Number(this._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
-      const immune=escSpeed>=20000;
+      const immune=escSpeed>=200000;
       if(!invincible && !immune){
         for(const g of ZG._windGusts){
           if(g.active && Math.abs(ZG.pl.z-g.z)<g.halfDepth){
-            ZP.toast('💨 Von der Windböe erwischt! (Brauchst 20\'000 Speed, um durchzukommen)',1800);
-            ZG.pl.z+=18; // zurück in Richtung Start
-            ZG._windInvUntil=Date.now()+900;
+            ZP.toast('💀 Von der Windböe erwischt! (Brauchst 200\'000 Speed, um durchzukommen)',2200);
+            const startPt=ZG._mazeAreas&&ZG._mazeAreas[0];
+            if(startPt){ ZG.pl.x=(startPt.x1+startPt.x2)/2; ZG.pl.z=(startPt.z1+startPt.z2)/2; }
+            else { ZG.pl.z=ZG._steOZ+60; ZG.pl.x=ZG._steOX; }
+            ZG._windInvUntil=Date.now()+1200;
             break;
           }
         }
@@ -16247,6 +16257,59 @@ const SpeedTemple = {
     this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z;
     this._showRoomHUD(idx);
     this._showSpeedHUD();
+  },
+  // ── Raum 11: gerade Strecke, dauerhafter Schaden die ganze Zeit,
+  // HP-Leiste oben. Weglänge (2803 Einheiten) und Schadensrate (1
+  // Herz/Sekunde bei 10 Herzen) sind so durchgerechnet, dass man mit
+  // genau 250'000 Speed gerade so ankommt, nicht mehr und nicht weniger.
+  _buildDamagePath(idx){
+    ZG._jumpMeshes=[];
+    const sc=ZG.scene;
+    const OX=8000, OZ=8000;
+    ZG._steOX=OX; ZG._steOZ=OZ;
+    ZG._steOldClearColor=0x87CEEB;
+    try{ ZG.renderer.setClearColor(0x2a0505,1); }catch(e){}
+    const floorY=25.75;
+    const startZ=60, endZ=startZ-2803, corridorHalfW=12;
+    ZG._mazeAreas=null;
+    ZG._mazeGoal={x:OX,z:OZ+endZ};
+    const roomMat=new THREE.MeshBasicMaterial({color:0x230808});
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(corridorHalfW*2+20,startZ-endZ+40),roomMat);
+    floor.rotation.x=-Math.PI/2; floor.position.set(OX,floorY,OZ+(startZ+endZ)/2); sc.add(floor); ZG._jumpMeshes.push(floor);
+    const edgeMat=new THREE.MeshBasicMaterial({color:0xFF4444,transparent:true,opacity:.5});
+    [-corridorHalfW,corridorHalfW].forEach(ex=>{
+      const edge=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.6,startZ-endZ+40),edgeMat);
+      edge.position.set(OX+ex,floorY+0.3,OZ+(startZ+endZ)/2); sc.add(edge); ZG._jumpMeshes.push(edge);
+    });
+    ZG._hpMax=10; ZG._hp=10; ZG._hpDamageRate=1; // Herzen pro Sekunde
+    this._showHPBar();
+    const startMarker=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.3,16),new THREE.MeshBasicMaterial({color:0x4ADE80}));
+    startMarker.position.set(OX,floorY,OZ+startZ); sc.add(startMarker); ZG._jumpMeshes.push(startMarker);
+    const goalMarker=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.3,16),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    goalMarker.position.set(ZG._mazeGoal.x,floorY,ZG._mazeGoal.z); sc.add(goalMarker); ZG._jumpMeshes.push(goalMarker);
+    const goalGlow=new THREE.PointLight(0xFFD700,1.5,20);
+    goalGlow.position.set(ZG._mazeGoal.x,floorY+3,ZG._mazeGoal.z); sc.add(goalGlow); ZG._jumpMeshes.push(goalGlow);
+    ZG.pl.x=OX; ZG.pl.y=floorY+1.5; ZG.pl.z=OZ+startZ; ZG.yaw=0;
+    ZG._jumpV=0; ZG._jumpOnGround=true;
+    ZG._damageStartPos={x:OX,z:OZ+startZ};
+    this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z; this._lastHPTick=Date.now();
+    this._showRoomHUD(idx);
+    this._showSpeedHUD();
+  },
+  _showHPBar(){
+    document.getElementById('speedtemple-hp-bar')?.remove();
+    const el=document.createElement('div');
+    el.id='speedtemple-hp-bar';
+    el.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,0,0,.6);border-radius:12px;padding:8px 14px;display:flex;gap:3px';
+    document.body.appendChild(el);
+    this._updHPBar();
+  },
+  _updHPBar(){
+    const el=document.getElementById('speedtemple-hp-bar'); if(!el) return;
+    const max=ZG._hpMax||10, hp=Math.max(0,ZG._hp||0);
+    let html='';
+    for(let i=0;i<max;i++){ html+='<span style="font-size:1.3rem">'+(i<Math.ceil(hp)?'❤️':'🖤')+'</span>'; }
+    el.innerHTML=html;
   },
   _updSpeedHUD(){
     const el=document.getElementById('speedtemple-speed-hud'); if(!el) return;
@@ -16359,13 +16422,14 @@ const SpeedTemple = {
     this._exitRoom();
   },
   _exitRoom(){
-    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false; ZG._iceRoomActive=false; ZG._windRoomActive=false;
+    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false; ZG._iceRoomActive=false; ZG._windRoomActive=false; ZG._damagePathActive=false;
     if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
     if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     if(ZG._windIv){ clearInterval(ZG._windIv); ZG._windIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null; ZG._speedGate=null; ZG._speedGateInvUntil=0;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null; ZG._speedGate=null; ZG._speedGateInvUntil=0; ZG._hp=null; ZG._hpMax=null; ZG._damageStartPos=null;
+    document.getElementById('speedtemple-hp-bar')?.remove();
     document.getElementById('speedtemple-countdown')?.remove();
     document.getElementById('speedtemple-speed-setter')?.remove();
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
