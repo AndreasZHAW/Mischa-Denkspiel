@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v554';
+const APP_VERSION = 'v556';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -295,7 +295,7 @@ const MISCHA_TIPS = [
   'Tipp: Die Zucht-Maschine kombiniert zwei gleiche Tiere zu einem selteneren.',
   'Im Sammlungs-Terminal siehst du, was andere Spieler schon gesammelt haben.',
   'Wusstest du? Manche Tiere sind unglaublich selten — hast du schon eins?',
-  'Tipp: Bei der Würfel-Maschine kannst du dein Glück verdoppeln — oder verlieren!',
+  'Tipp: Bei der Würfel-Maschine kannst du dein Geld verdoppeln — oder verlieren!',
   'Im Zoo warten versteckte Gegenstände — halt die Augen offen!',
   'Tipp: Ein Tier freilassen gibt XP für den MT-Pass.',
   'Tipp: Pausen sind wichtig — auch beim Spielen!',
@@ -303,7 +303,7 @@ const MISCHA_TIPS = [
   'Tipp: Manche Events erscheinen nur kurz — sei bereit!',
   'Tipp: Ein sauberer Zoo lockt mehr Besucher an.',
   'Tipp: Dein Fortschritt speichert sich automatisch — einfach weiterspielen!',
-  'Wusstest du? Janosch, Mischa und Andi bauen gemeinsam am grössten Zoo der Galaxie.',
+  'Mischa, Janosch und Andi arbeiten schon fast ein Jahr an dem Spiel.',
   'Auf der Rangliste kannst du dich mit anderen vergleichen.',
   'Links kannst du bei Sound den Ton ändern.',
   'Im Menü gibt es Sachen, von denen nicht jeder weiss, dass es sie gibt.',
@@ -318,7 +318,7 @@ const MISCHA_TIPS = [
   'Hast du gute Spielideen? Sag sie uns gerne — wenn sie es ins Spiel schaffen, gibt es vielleicht eine kleine Belohnung ;)',
   'Fun Fact: Das Spiel ist schon ungefähr 1 Jahr alt!',
   'Es gibt einen Chat, der auch wirklich funktioniert — schreib doch mal während der Fahrt ;)',
-  'Jonas = OG (von Anfang an dabei) — vielen Dank Jonas in Frankreich! Maschine!!!',
+  'Danke Jonas für den Support in Frankreich.',
   'Danke fürs Spielen!',
   'Hier stehen immer hilfreiche Tipps — und auch manchmal Boosts :)',
   'Vielleicht gibt es mal ein Admin-Event — das ist immer sehr krass, guck mal nach!',
@@ -501,7 +501,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v554 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v556 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">

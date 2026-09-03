@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v554</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v554 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v556</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v556 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -61,6 +61,7 @@ try {
   <div class="tab" onclick="switchTab('trade')">🤝 Trade-Diagnose</div>
   <div class="tab" onclick="switchTab('mp')">👥 Multiplayer-Diagnose</div>
   <div class="tab" onclick="switchTab('devicediag')">📡 Geräte-Diagnose</div>
+  <div class="tab" onclick="switchTab('traffic')">📶 Traffic-Diagnose</div>
   <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
   <div class="tab" onclick="switchTab('special')">🎁 Spezial-Gegenstände</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
@@ -219,6 +220,32 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: TRAFFIC-DIAGNOSE (Multiplayer-Sync-Last pro Instanz) ══ -->
+<div id="tab-traffic" class="tab-content">
+  <div class="box blue">
+    <h2>📶 Traffic-Diagnose — Sync-Last pro Zoo-Instanz</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">
+      Jedes Gerät schreibt alle ~5 Sekunden, während es aktiv im Zoo ist, einen Schnappschuss seiner
+      eigenen Sync-Metriken nach <code>zoo_traffic_diag</code> (überschreibt den eigenen Eintrag, wächst
+      nicht mit der Zeit). Diese Seite fasst das pro Zoo-Instanz zusammen — funktioniert sowohl live
+      während gerade mehrere Leute spielen (einfach neu laden) als auch danach, um sich anzuschauen,
+      wie die letzte Session lief.<br><br>
+      <b>Warum das wichtig ist:</b> Jedes Gerät liest bei jedem Sync-Zyklus die <u>komplette</u>
+      Positions-Liste aller Spieler in seiner Instanz (kein Live-Abo, sondern wiederholtes Abfragen).
+      Das heisst: die tatsächliche Traffic-Last wächst nicht mit der Spieleranzahl, sondern mit dem
+      <b>Quadrat</b> der Spieleranzahl (Spieler × Spieler). "Traffic-Last" unten ist genau das:
+      Spieler in der Instanz × durchschnittliche Sync-Rate × Spieler in der Instanz — je höher, desto
+      eher spürt man Verzögerung.
+    </div>
+    <div style="margin-bottom:6px">
+      <button onclick="runTrafficDiag()" class="info">🔄 Neu laden</button>
+      <button onclick="copyTrafficDiag()" class="sec">📋 Alles kopieren</button>
+    </div>
+    <div id="trafficdiag-summary" style="font-size:.8rem;margin-bottom:8px"></div>
+    <div id="trafficdiag-out"><pre>⏳</pre></div>
+  </div>
+</div>
+
 <!-- ══ TAB: ROAMING-DIAGNOSE ══ -->
 <div id="tab-roam" class="tab-content">
   <div class="box blue">
@@ -346,6 +373,7 @@ function switchTab(id){
   if(id==='trade'&&!_ran.trade){_ran.trade=true;runTrade();}
   if(id==='mp'&&!_ran.mp){_ran.mp=true;runMP();}
   if(id==='devicediag'&&!_ran.devicediag){_ran.devicediag=true;runDeviceDiag();}
+  if(id==='traffic'&&!_ran.traffic){_ran.traffic=true;runTrafficDiag();}
   if(id==='roam'&&!_ran.roam){_ran.roam=true;runRoam();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
@@ -970,7 +998,7 @@ async function runDeviceDiag(){
     rows.sort((a,b)=>a.ageMs-b.ageMs);
     summary.innerHTML=`📡 ${rows.length} Gerät${rows.length===1?'':'e'} haben je einen aktuellen Eintrag.`
       +(rows.length?` Neuester vor ${(rows[0].ageMs/1000).toFixed(0)}s (${rows[0].player||'?'}, ${rows[0].device||'?'}).`:'');
-    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v554+.</div>'; _deviceDiagText=''; return; }
+    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v556+.</div>'; _deviceDiagText=''; return; }
     let txt='';
     out.innerHTML=rows.map(r=>{
       const ageMin=(r.ageMs/60000).toFixed(1);
@@ -1001,6 +1029,103 @@ async function runDeviceDiag(){
 function copyDeviceDiag(){
   if(!_deviceDiagText){alert('Erst laden!');return;}
   navigator.clipboard.writeText(_deviceDiagText).then(()=>alert('✅ Kopiert!'));
+}
+
+// ══ TRAFFIC-DIAGNOSE (remote, via zoo_traffic_diag in RTDB) ══
+// See zoo.html's _syncMP() for what writes here: every ~5s while a device
+// is actively in the zoo, it pushes its own current sync metrics
+// (achieved read/write rate, latency, payload size, how many players it
+// saw in its last read). This page groups those per-device snapshots by
+// zoo instance and estimates the resulting aggregate read load, since
+// that's the number that actually predicts lag — not player count alone.
+let _trafficDiagText='';
+async function runTrafficDiag(){
+  L('=== Traffic-Diagnose gestartet ===');
+  const out=document.getElementById('trafficdiag-out');
+  const summary=document.getElementById('trafficdiag-summary');
+  out.innerHTML='<pre>⏳ Lade Realtime-Database-Daten...</pre>';
+  if(typeof firebase==='undefined'||!firebase.apps||!firebase.apps.length){
+    out.innerHTML='<pre class="err">❌ Firebase SDK nicht geladen.</pre>'; return;
+  }
+  if(!firebase.database){
+    out.innerHTML='<pre class="err">❌ Realtime-Database-SDK nicht geladen.</pre>'; return;
+  }
+  try{
+    const rtdb=firebase.database();
+    const snap=await rtdb.ref('zoo_traffic_diag').once('value');
+    const all=snap.val()||{};
+    const now=Date.now();
+    const rows=Object.entries(all).map(([deviceId,d])=>({deviceId, ...d, ageMs: now-(d.ts||0)}));
+    // Nur Geräte, die in den letzten 30s einen Schnappschuss geschrieben
+    // haben, gelten als "gerade aktiv" — ältere sind wahrscheinlich schon
+    // ausgeloggt und würden die Instanz-Zahlen künstlich aufblähen.
+    const fresh=rows.filter(r=>r.ageMs<30000);
+    if(!rows.length){
+      out.innerHTML='<div class="dim">Noch keine Traffic-Snapshots vorhanden — kommen erst, wenn mindestens ein Spieler mit v556+ aktiv im Zoo ist (schreibt alle ~5s).</div>';
+      summary.innerHTML=''; _trafficDiagText=''; return;
+    }
+    // Gruppieren nach Instanz
+    const byInstance={};
+    fresh.forEach(r=>{ (byInstance[r.instanceId||'?']=byInstance[r.instanceId||'?']||[]).push(r); });
+    const instanceRows=Object.entries(byInstance).map(([instanceId,members])=>{
+      const n=members.length;
+      const avgHz=members.reduce((s,m)=>s+(m.achievedHz||0),0)/(n||1);
+      const avgReadLat=members.reduce((s,m)=>s+(m.avgReadLatencyMs||0),0)/(n||1);
+      const avgWriteLat=members.reduce((s,m)=>s+(m.avgWriteLatencyMs||0),0)/(n||1);
+      const fastPathCount=members.filter(m=>m.fastPathActive).length;
+      const totalReadFails=members.reduce((s,m)=>s+(m.readFails||0),0);
+      const totalReads=members.reduce((s,m)=>s+(m.reads||0),0);
+      const failRate=totalReads>0?totalReadFails/(totalReads+totalReadFails):0;
+      // Traffic-Last-Schätzung: Spieler × Rate × Spieler (jeder liest die
+      // komplette Liste bei jedem Zyklus) — die Zahl, die das quadratische
+      // Wachstum sichtbar macht.
+      const trafficLoad=n*avgHz*n;
+      let status='🟢 OK', statusColor='#2ecc71';
+      if(n>=12 || avgReadLat>500 || failRate>0.05 || fastPathCount>=4){ status='🔴 Kritisch'; statusColor='#e74c3c'; }
+      else if(n>=7 || avgReadLat>250 || failRate>0.01 || fastPathCount>=2){ status='🟡 Achtung'; statusColor='#f39c12'; }
+      return {instanceId,n,avgHz,avgReadLat,avgWriteLat,fastPathCount,failRate,trafficLoad,status,statusColor,members};
+    }).sort((a,b)=>b.trafficLoad-a.trafficLoad);
+    summary.innerHTML=`📶 ${fresh.length} Gerät${fresh.length===1?'':'e'} gerade aktiv (letzte 30s), verteilt auf ${instanceRows.length} Instanz${instanceRows.length===1?'':'en'}.`
+      +(rows.length>fresh.length?` (${rows.length-fresh.length} weitere Einträge sind älter als 30s und wurden nicht mitgezählt.)`:'');
+    let txt='';
+    out.innerHTML=instanceRows.map(ir=>{
+      txt+=`── Instanz "${ir.instanceId}" · ${ir.n} aktive Spieler · ${ir.status} ──\n`
+        +`Ø Sync-Rate: ${ir.avgHz.toFixed(2)} Hz · Ø Lese-Latenz: ${Math.round(ir.avgReadLat)}ms · Ø Schreib-Latenz: ${Math.round(ir.avgWriteLat)}ms\n`
+        +`Fast-Path aktiv bei: ${ir.fastPathCount} Spielern · Lese-Fehlerrate: ${(ir.failRate*100).toFixed(1)}%\n`
+        +`Geschätzte Traffic-Last (Spieler×Rate×Spieler): ${ir.trafficLoad.toFixed(0)}\n\n`;
+      const memberRows=ir.members.map(m=>
+        `<tr><td>${m.player||'?'}</td><td>${m.achievedHz!=null?m.achievedHz.toFixed(2)+' Hz':'—'}</td>`
+        +`<td>${m.avgReadLatencyMs!=null?m.avgReadLatencyMs+'ms':'—'}</td>`
+        +`<td>${m.avgWriteLatencyMs!=null?m.avgWriteLatencyMs+'ms':'—'}</td>`
+        +`<td>${m.hotPayloadBytes||'—'} B</td>`
+        +`<td>${m.fastPathActive?'⚡ ja':'nein'}</td>`
+        +`<td>${m.readFails||0}/${(m.reads||0)+(m.readFails||0)}</td>`
+        +`<td>${(m.ageMs/1000).toFixed(0)}s</td></tr>`
+      ).join('');
+      return `<div class="box" style="margin-bottom:12px;border-left:4px solid ${ir.statusColor}">`
+        +`<div style="font-weight:900;color:${ir.statusColor};margin-bottom:4px">${ir.status} — Instanz "${ir.instanceId}" · ${ir.n} aktive Spieler</div>`
+        +`<div style="font-size:.78rem;color:#ccc;margin-bottom:6px">`
+        +`Ø Sync-Rate: <b>${ir.avgHz.toFixed(2)} Hz</b> · Ø Lese-Latenz: <b>${Math.round(ir.avgReadLat)}ms</b> · `
+        +`Ø Schreib-Latenz: <b>${Math.round(ir.avgWriteLat)}ms</b> · Fast-Path bei <b>${ir.fastPathCount}</b> Spielern · `
+        +`Lese-Fehlerrate: <b>${(ir.failRate*100).toFixed(1)}%</b><br>`
+        +`Geschätzte Traffic-Last: <b style="color:${ir.statusColor}">${ir.trafficLoad.toFixed(0)}</b> `
+        +`(Spieler × Rate × Spieler — wächst quadratisch, nicht linear, mit der Spieleranzahl)`
+        +`</div>`
+        +`<table style="width:100%;font-size:.72rem;border-collapse:collapse"><thead><tr style="color:#888;text-align:left">`
+        +`<th>Spieler</th><th>Rate</th><th>Lese-Lat.</th><th>Schreib-Lat.</th><th>Payload</th><th>Fast-Path</th><th>Lesefehler</th><th>Alter</th></tr></thead>`
+        +`<tbody>${memberRows}</tbody></table>`
+        +`</div>`;
+    }).join('');
+    _trafficDiagText=txt;
+    L('Traffic-Diagnose: '+fresh.length+' aktive Geräte, '+instanceRows.length+' Instanzen.');
+  }catch(e){
+    out.innerHTML='<pre class="err">❌ '+e.message+'</pre>';
+    L('❌ Traffic-Diagnose Fehler: '+e.message,'err');
+  }
+}
+function copyTrafficDiag(){
+  if(!_trafficDiagText){alert('Erst laden!');return;}
+  navigator.clipboard.writeText(_trafficDiagText).then(()=>alert('✅ Kopiert!'));
 }
 
 // ══ ROAMING-DIAGNOSE ══
@@ -1295,6 +1420,7 @@ async function runAllTabsReport(){
     ['Trade-Diagnose', async()=>{await runTrade();}],
     ['Multiplayer-Diagnose', async()=>{await runMP();}],
     ['Geräte-Diagnose', async()=>{await runDeviceDiag();}],
+    ['Traffic-Diagnose', async()=>{await runTrafficDiag();}],
     ['Roaming-Diagnose', async()=>{await runRoam();}],
     ['Spezial-Gegenstände', async()=>{await runSpecials();}],
     ['Schrift', async()=>{runFont();}],

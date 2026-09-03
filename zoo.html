@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v554 -->
+<!-- ZOO v556 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=554"></script>
-<script src="rewardchests.js?v=554"></script>
-<script src="personality.js?v=554"></script>
+<script src="lang.js?v=556"></script>
+<script src="rewardchests.js?v=556"></script>
+<script src="personality.js?v=556"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v554','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v556','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -524,8 +524,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=554"></script>
-<script src="worlds.js?v=554"></script>
+<script src="firebase-state.js?v=556"></script>
+<script src="worlds.js?v=556"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6913,8 +6913,11 @@ const ZG={
     // ── SYNC DIAGNOSTICS ──
     // window._syncDebug always holds the outcome of the most recent
     // attempt. Check it any time from the browser console with: window._syncDebug
-    if(!window._syncDebug) window._syncDebug={writes:0,writeFails:0,reads:0,readFails:0,lastWriteOK:null,lastReadOK:null,lastError:null};
+    if(!window._syncDebug) window._syncDebug={writes:0,writeFails:0,reads:0,readFails:0,lastWriteOK:null,lastReadOK:null,lastError:null,
+      cycleTimestamps:[], writeLatencies:[], readLatencies:[], lastHotPayloadBytes:0, lastPlayersSeen:0};
     const dbg=window._syncDebug;
+    dbg.cycleTimestamps.push(now);
+    if(dbg.cycleTimestamps.length>20) dbg.cycleTimestamps.shift();
     if(!ZS.isPrivate && ZS.player && typeof State!=='undefined' && !State._useCloud()){
       dbg.lastError={when:now,stage:'precheck',msg:'State._useCloud() ist false — läuft im Lokal-Modus, kein Multiplayer-Sync aktiv.'};
       this._updSyncBadge();
@@ -6941,8 +6944,12 @@ const ZG={
       const hotData={x:Math.round(this.pl.x), z:Math.round(this.pl.z), t:now,
         carrying:_carryPayload, slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0)};
       try{
+        const _wt0=performance.now();
         await _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).set(JSON.parse(JSON.stringify(hotData)));
         dbg.writes++; dbg.lastWriteOK=now;
+        dbg.writeLatencies.push(performance.now()-_wt0);
+        if(dbg.writeLatencies.length>20) dbg.writeLatencies.shift();
+        dbg.lastHotPayloadBytes=JSON.stringify(hotData).length;
       }catch(writeErr){
         dbg.writeFails++;
         dbg.lastError={when:now,stage:'write',code:writeErr.code||'?',msg:writeErr.message||String(writeErr),dataSent:hotData};
@@ -6980,11 +6987,15 @@ const ZG={
       // Read HOT for our whole instance every cycle (small payload).
       let hotSnap;
       try{
+        const _rt0=performance.now();
         hotSnap = await Promise.race([
           _rtdb.ref('zoo_hot/'+instanceId).once('value'),
           new Promise((_,r)=>setTimeout(()=>r(new Error('mp timeout')),3000))
         ]);
         dbg.reads++; dbg.lastReadOK=now;
+        dbg.readLatencies.push(performance.now()-_rt0);
+        if(dbg.readLatencies.length>20) dbg.readLatencies.shift();
+        dbg.lastPlayersSeen=Object.keys(hotSnap.val()||{}).length;
       }catch(readErr){
         dbg.readFails++;
         dbg.lastError={when:now,stage:'read',code:readErr.code||'?',msg:readErr.message||String(readErr)};
@@ -7031,6 +7042,33 @@ const ZG={
       this._updOthers(others);
       try{ this._renderOtherEnclosures(others); }catch(e){}
       this._updSyncBadge();
+      // ── TRAFFIC-DIAGNOSE: alle paar Sekunden einen Schnappschuss der
+      // eigenen Sync-Metriken nach Firebase schreiben, damit diagnose.html
+      // sowohl live (während ein paar Leute gerade testen) als auch im
+      // Nachhinein sehen kann, wie viele Spieler in welcher Instanz waren
+      // und wie das Sync-Verhalten dabei tatsächlich aussah.
+      if(!this._lastTrafficPush || (now-this._lastTrafficPush)>=5000){
+        this._lastTrafficPush=now;
+        try{
+          const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;
+          const cts=dbg.cycleTimestamps;
+          let achievedHz=null;
+          if(cts.length>=2){ const span=(cts[cts.length-1]-cts[0])/1000; achievedHz=span>0?(cts.length-1)/span:null; }
+          const trafficSnap={
+            ts:now, player:ZS.player||'?', instanceId,
+            playersInInstance:dbg.lastPlayersSeen,
+            fastPathActive,
+            achievedHz: achievedHz!==null?Math.round(achievedHz*100)/100:null,
+            avgWriteLatencyMs: avg(dbg.writeLatencies)!==null?Math.round(avg(dbg.writeLatencies)):null,
+            avgReadLatencyMs: avg(dbg.readLatencies)!==null?Math.round(avg(dbg.readLatencies)):null,
+            hotPayloadBytes: dbg.lastHotPayloadBytes,
+            writes: dbg.writes, writeFails: dbg.writeFails,
+            reads: dbg.reads, readFails: dbg.readFails,
+          };
+          const devId=(window.getDeviceId && window.getDeviceId())||myKey;
+          _rtdb.ref('zoo_traffic_diag/'+devId).set(trafficSnap).catch(()=>{});
+        }catch(e){}
+      }
     }catch(e){
       dbg.lastError={when:now,stage:'outer',code:e.code||'?',msg:e.message||String(e)};
       console.error('[SYNC-DEBUG] Unerwarteter Fehler in _syncMP:',e.code,e.message);
@@ -15477,10 +15515,11 @@ const SpeedTemple = {
     }
     this._badgeIv=setInterval(()=>this._updBoostBadge(),1000);
     this._updBoostBadge();
-    this._showSpeedSetter();
   },
   // ── Speed-Eingabe rechts: eigenen Speed-Wert manuell testen (nur bis
   // zum tatsächlich vorhandenen Wert — nichts, was man nicht hat).
+  // BUG FIX: lief bisher global mit der Boost-Anzeige mit, war also auch
+  // im normalen Zoo sichtbar — gehört aber nur in den Speed-Tempel selbst.
   _showSpeedSetter(){
     document.getElementById('speedtemple-speed-setter')?.remove();
     const el=document.createElement('div');
@@ -15544,12 +15583,13 @@ const SpeedTemple = {
   },
   _showHub(){
     document.getElementById('speedtemple-hub')?.remove();
+    this._showSpeedSetter();
     const z=ZS.zoo; if(!z) return;
     const speed=Math.round(z.escSpeed||0);
     const panel=document.createElement('div');
     panel.id='speedtemple-hub';
     panel.style.cssText='position:fixed;inset:0;background:rgba(10,0,20,.94);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
-    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    panel.addEventListener('click',(e)=>{ if(e.target===panel){ panel.remove(); document.getElementById('speedtemple-speed-setter')?.remove(); } });
     const rows=SPEEDTEMPLE_ROOMS.map((r,i)=>{
       const unlocked=speed>=r.reqSpeed;
       const built=SPEEDTEMPLE_BUILT_SET.has(i);
@@ -15561,13 +15601,14 @@ const SpeedTemple = {
         +'</div>';
     }).join('');
     panel.innerHTML='<div style="background:linear-gradient(135deg,#2a0a3a,#1a0520);border:1px solid rgba(224,86,253,.4);border-radius:16px;padding:20px;max-width:480px;width:95%;max-height:88vh;overflow-y:auto;color:#fff">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><h2 style="flex:1;color:#E056FD;font-size:1.15rem;margin:0">⚡ Speed-Tempel</h2><button onclick="document.getElementById(\'speedtemple-hub\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><h2 style="flex:1;color:#E056FD;font-size:1.15rem;margin:0">⚡ Speed-Tempel</h2><button onclick="document.getElementById(\'speedtemple-hub\').remove();document.getElementById(\'speedtemple-speed-setter\')?.remove();" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
       +'<div style="text-align:center;background:rgba(255,255,255,.05);border-radius:10px;padding:8px;margin-bottom:10px"><div style="font-size:1.2rem;font-weight:900;color:#E056FD">⚡ '+speed+' Speed</div><div style="font-size:.68rem;color:rgba(255,255,255,.5)">Wächst automatisch mit deinen Tieren zusammen</div></div>'
       +rows+'</div>';
     document.body.appendChild(panel);
   },
   _enterRoom(idx){
     document.getElementById('speedtemple-hub')?.remove();
+    this._showSpeedSetter();
     this._roomIdx=idx;
     ZG._steActive=true;
     ZG._steZooSave={x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z,yaw:ZG.yaw};
@@ -16179,6 +16220,7 @@ const SpeedTemple = {
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
     ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null;
     document.getElementById('speedtemple-countdown')?.remove();
+    document.getElementById('speedtemple-speed-setter')?.remove();
     try{ ZG.renderer.setClearColor(ZG._steOldClearColor||0x87CEEB,1); }catch(e){}
     document.getElementById('speedtemple-room-hud')?.remove();
     document.getElementById('speedtemple-speed-hud')?.remove();
