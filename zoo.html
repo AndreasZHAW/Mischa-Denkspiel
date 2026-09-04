@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v562 -->
+<!-- ZOO v563 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=562"></script>
-<script src="rewardchests.js?v=562"></script>
-<script src="personality.js?v=562"></script>
+<script src="lang.js?v=563"></script>
+<script src="rewardchests.js?v=563"></script>
+<script src="personality.js?v=563"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v562','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v563','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -525,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=562"></script>
-<script src="worlds.js?v=562"></script>
+<script src="firebase-state.js?v=563"></script>
+<script src="worlds.js?v=563"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -11968,15 +11968,28 @@ window.ZChat=ZChat;
 const TESTER_BLUE = '#3478f6';
 const TesterPanel = {
   _isTester: false,
-  async refresh(){
-    try{
-      if(typeof _db==='undefined'||!_db||!ZS.player) return;
-      const doc=await _db.collection('zoo_config').doc('testers').get();
-      const list=(doc.exists?(doc.data().list||[]):[]).map(n=>n.toLowerCase());
-      this._isTester=list.includes(ZS.player.toLowerCase());
-      const btn=document.getElementById('hb-tester-panel');
-      if(btn) btn.style.display=this._isTester?'':'none';
-    }catch(e){}
+  _unsub: null,
+  refresh(){
+    // BUG FIX: war bisher nur eine einmalige Prüfung (mit ein paar
+    // Wiederholversuchen kurz nach dem Laden) — wenn der Admin das
+    // Tester-Panel vergeben hat, WÄHREND die Person schon aktiv im Zoo
+    // war, kam die Änderung nie an, egal wie oft erneut versucht wurde.
+    // Jetzt ein echtes Live-Abo: der 🧪-Knopf erscheint sofort, sobald
+    // der Admin die Liste ändert, ganz ohne Neuladen.
+    if(this._unsub) return; // schon abonniert
+    const trySubscribe=(retriesLeft)=>{
+      if(typeof _db==='undefined'||!_db||!ZS.player){
+        if(retriesLeft>0) setTimeout(()=>trySubscribe(retriesLeft-1), 1500);
+        return;
+      }
+      this._unsub=_db.collection('zoo_config').doc('testers').onSnapshot(doc=>{
+        const list=(doc.exists?(doc.data().list||[]):[]).map(n=>n.trim().toLowerCase());
+        this._isTester=list.includes((ZS.player||'').trim().toLowerCase());
+        const btn=document.getElementById('hb-tester-panel');
+        if(btn) btn.style.display=this._isTester?'':'none';
+      }, err=>{ console.log('[TesterPanel] Live-Abo Fehler: '+err.message); });
+    };
+    trySubscribe(6);
   },
   isTester(){ return this._isTester; },
   async _log(action){
