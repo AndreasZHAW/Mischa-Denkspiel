@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v559 -->
+<!-- ZOO v560 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=559"></script>
-<script src="rewardchests.js?v=559"></script>
-<script src="personality.js?v=559"></script>
+<script src="lang.js?v=560"></script>
+<script src="rewardchests.js?v=560"></script>
+<script src="personality.js?v=560"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v559','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v560','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -293,6 +293,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="MTPass.open()"><div class="hbb" style="background:rgba(255,215,0,.85)">🎫</div><div class="hbl">MT-Pass</div></div>
 <div class="hb" id="hb-footstep-style" onclick="SpeedTemple.toggleFootstepStyle()"><div class="hbb" style="background:rgba(224,86,253,.85)">🔊</div><div class="hbl">Schritt-Ton</div></div>
+<div class="hb" id="hb-tester-panel" onclick="TesterPanel.open()" style="display:none"><div class="hbb" style="background:rgba(52,120,246,.85)">🧪</div><div class="hbl">Tester</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
@@ -524,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=559"></script>
-<script src="worlds.js?v=559"></script>
+<script src="firebase-state.js?v=560"></script>
+<script src="worlds.js?v=560"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3219,6 +3220,24 @@ const ZG={
           window._adminDiscount={pct:d.pct,until:Date.now()+(d.dur||300000)};
         }
       });
+      // Tester-Timer: Countdown-Banner oben, solange er noch läuft.
+      _db.collection('zoo_broadcast').doc('tester_timer').onSnapshot(snap=>{
+        document.getElementById('tester-timer-banner')?.remove();
+        if(!snap.exists) return;
+        const d=snap.data();
+        if(!d||!d.endsAt||d.endsAt<=Date.now()) return;
+        const el=document.createElement('div');
+        el.id='tester-timer-banner';
+        el.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:590;background:rgba(52,120,246,.85);color:#fff;padding:6px 16px;border-radius:20px;font-weight:800;font-size:.8rem';
+        document.body.appendChild(el);
+        const tick=()=>{
+          const left=d.endsAt-Date.now();
+          if(left<=0){ el.remove(); clearInterval(iv); return; }
+          const mm=Math.floor(left/60000), ss=Math.floor((left%60000)/1000);
+          el.textContent='⏱ '+(d.label||'Timer')+': '+mm+':'+String(ss).padStart(2,'0');
+        };
+        tick(); const iv=setInterval(tick,1000);
+      });
     }catch(e){}
   },
 
@@ -3737,6 +3756,7 @@ const ZG={
     try{ Weather.startCycle(); }catch(e){}
     try{ SpeedTemple.startSpeedGrowth(); }catch(e){}
     try{ SpeedTemple.startBoostBadge(); }catch(e){}
+    try{ TesterPanel.refresh(); }catch(e){}
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
@@ -11939,6 +11959,163 @@ window.ZChat=ZChat;
 // ══════════════════════════════
 // ZADMIN - Player Admin Controls (France Slap secret)
 // ══════════════════════════════
+// ══ TESTER-PANEL: ein abgespecktes Admin-Panel, das der Admin gezielt an
+// einzelne Spieler vergeben kann (siehe ZAdmin.grantTesterPanel /
+// revokeTesterPanel). Wer es hat, sieht links den 🧪-Knopf. Nachrichten
+// erscheinen für alle als "von Tester" statt vom echten Namen, immer in
+// Blau — der Admin sieht in seinem eigenen Panel jederzeit, wer gerade
+// Zugriff hat und was er zuletzt gemacht hat.
+const TESTER_BLUE = '#3478f6';
+const TesterPanel = {
+  _isTester: false,
+  async refresh(){
+    try{
+      if(typeof _db==='undefined'||!_db||!ZS.player) return;
+      const doc=await _db.collection('zoo_config').doc('testers').get();
+      const list=(doc.exists?(doc.data().list||[]):[]).map(n=>n.toLowerCase());
+      this._isTester=list.includes(ZS.player.toLowerCase());
+      const btn=document.getElementById('hb-tester-panel');
+      if(btn) btn.style.display=this._isTester?'':'none';
+    }catch(e){}
+  },
+  isTester(){ return this._isTester; },
+  async _log(action){
+    try{
+      if(typeof _db==='undefined'||!_db) return;
+      await _db.collection('zoo_config').doc('testerAuditLog').set({
+        entries: firebase.firestore.FieldValue.arrayUnion({tester:ZS.player,action,at:Date.now()})
+      },{merge:true});
+    }catch(e){}
+  },
+  open(){
+    if(!this.isTester()){ ZP.toast('❌ Kein Tester-Zugriff.'); return; }
+    document.getElementById('tester-panel')?.remove();
+    const panel=document.createElement('div');
+    panel.id='tester-panel';
+    panel.style.cssText='position:fixed;inset:0;background:rgba(5,10,25,.94);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    panel.innerHTML='<div style="background:linear-gradient(135deg,#0a1a3a,#050c20);border:1px solid rgba(52,120,246,.4);border-radius:16px;padding:20px;max-width:480px;width:95%;max-height:88vh;overflow-y:auto;color:#fff">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><h2 style="flex:1;color:'+TESTER_BLUE+';font-size:1.15rem;margin:0">🧪 Tester-Panel</h2><button onclick="document.getElementById(\'tester-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
+      // Ankündigung / öffentliche Nachricht
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">📢 Öffentliche Nachricht (erscheint als "von Tester", blau)</div>'
+      +'<textarea id="tp-msg" rows="2" placeholder="Nachricht..." style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.8rem;box-sizing:border-box;resize:vertical"></textarea>'
+      +'<button onclick="TesterPanel.sendAnnouncement()" style="margin-top:6px;background:'+TESTER_BLUE+';border:none;color:#fff;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Senden</button>'
+      +'</div>'
+      // Timer
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">⏱ Timer für alle starten</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<input id="tp-timer-min" type="number" placeholder="Minuten" min="1" max="20" style="width:80px;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">'
+      +'<input id="tp-timer-label" type="text" placeholder="Wofür? (z.B. Event)" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">'
+      +'</div>'
+      +'<button onclick="TesterPanel.startTimer()" style="margin-top:6px;background:'+TESTER_BLUE+';border:none;color:#fff;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Timer starten</button>'
+      +'</div>'
+      // Glück
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">🍀 Glück für alle (max ×10, max 20 Min)</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<input id="tp-luck-mult" type="number" placeholder="× (max 10)" min="1" max="10" style="width:90px;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">'
+      +'<input id="tp-luck-min" type="number" placeholder="Min (max 20)" min="1" max="20" style="width:100px;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">'
+      +'</div>'
+      +'<button onclick="TesterPanel.grantLuck()" style="margin-top:6px;background:'+TESTER_BLUE+';border:none;color:#fff;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Glück aktivieren</button>'
+      +'</div>'
+      // Deko-Quests / Meldungen / Statistiken Links
+      +'<div style="display:flex;gap:6px;margin-bottom:10px">'
+      +'<button onclick="TesterPanel._log(\'Deko-Quests geöffnet\');ZP.showQuests()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:#fff;padding:9px;border-radius:8px;font-weight:700;font-size:.75rem;cursor:pointer">🎯 Deko-Quests</button>'
+      +'</div>'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">📨 Meldungen von Spielern</div>'
+      +'<div id="tp-reports" style="font-size:.72rem;color:rgba(255,255,255,.6);max-height:160px;overflow-y:auto">⏳ Lädt...</div>'
+      +'</div>'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">📊 Statistiken</div>'
+      +'<div id="tp-stats" style="font-size:.75rem;color:rgba(255,255,255,.6)">⏳ Lädt...</div>'
+      +'</div>'
+      // Chat löschen
+      +'<button onclick="TesterPanel.clearChat()" style="width:100%;background:#E74C3C;border:none;color:#fff;padding:8px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer;margin-bottom:10px">🗑️ Chat-Verlauf komplett löschen</button>'
+      // Nachricht an Admin
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px">'
+      +'<div style="font-weight:800;color:#FFD700;font-size:.82rem;margin-bottom:6px">✉️ Nachricht an den Admin</div>'
+      +'<textarea id="tp-admin-msg" rows="2" placeholder="Nachricht an Bu:)..." style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.8rem;box-sizing:border-box;resize:vertical"></textarea>'
+      +'<button onclick="TesterPanel.messageAdmin()" style="margin-top:6px;background:#FFD700;border:none;color:#000;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">An Admin senden</button>'
+      +'</div>'
+      +'</div>';
+    document.body.appendChild(panel);
+    this._loadReports();
+    this._loadStats();
+  },
+  async sendAnnouncement(){
+    const msg=(document.getElementById('tp-msg')?.value||'').trim();
+    if(!msg){ ZP.toast('❗ Erst eine Nachricht eingeben!'); return; }
+    const ann=document.createElement('div');
+    ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:90vw;text-align:center;pointer-events:none';
+    ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.8)">📢</div>'
+      +'<div style="font-size:.75rem;font-weight:700;margin-bottom:8px;color:'+TESTER_BLUE+';text-shadow:0 2px 8px rgba(0,0,0,.8)">Nachricht von Tester</div>'
+      +'<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+TESTER_BLUE+';text-shadow:0 2px 8px rgba(0,0,0,.8)">'+$esc(msg)+'</div>';
+    document.body.appendChild(ann);
+    setTimeout(()=>{if(ann.parentElement)ann.remove();},10000);
+    try{ if(typeof _db!=='undefined'&&_db){ _db.collection('zoo_broadcast').doc('announcement').set({type:'announce',msg,from:'Tester',color:TESTER_BLUE,at:Date.now()}).catch(()=>{}); } }catch(e){}
+    ZP.toast('📢 Nachricht gesendet!',2000);
+    this._log('Nachricht: "'+msg+'"');
+    const el=document.getElementById('tp-msg'); if(el)el.value='';
+  },
+  async startTimer(){
+    const min=Math.min(20,Math.max(1,parseInt(document.getElementById('tp-timer-min')?.value||'0')));
+    const label=(document.getElementById('tp-timer-label')?.value||'Event').trim();
+    if(!min){ ZP.toast('❗ Minuten eingeben (1-20)!'); return; }
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        await _db.collection('zoo_broadcast').doc('tester_timer').set({label,endsAt:Date.now()+min*60000,from:'Tester',at:Date.now()});
+      }
+      ZP.toast('⏱ Timer für "'+label+'" gestartet: '+min+' Min!',2500);
+      this._log('Timer: '+min+'min für "'+label+'"');
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async grantLuck(){
+    let mult=Math.min(10,Math.max(1,parseInt(document.getElementById('tp-luck-mult')?.value||'0')));
+    let mins=Math.min(20,Math.max(1,parseInt(document.getElementById('tp-luck-min')?.value||'0')));
+    if(!mult||!mins){ ZP.toast('❗ Beide Felder ausfüllen (max ×10, max 20 Min)!'); return; }
+    await ZP._setAdminLuck(mult,mins);
+    this._log('Glück: ×'+mult+' für '+mins+' Min');
+  },
+  async clearChat(){
+    if(!(await showConfirm('⚠️ Wirklich den GESAMTEN Chat-Verlauf löschen? Kann nicht rückgängig gemacht werden.')))return;
+    await ZAdmin.clearChat();
+    this._log('Chat-Verlauf gelöscht');
+  },
+  async messageAdmin(){
+    const msg=(document.getElementById('tp-admin-msg')?.value||'').trim();
+    if(!msg){ ZP.toast('❗ Erst eine Nachricht eingeben!'); return; }
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        await _db.collection('zoo_config').doc('testerMessages').set({
+          entries: firebase.firestore.FieldValue.arrayUnion({from:ZS.player,msg,at:Date.now()})
+        },{merge:true});
+      }
+      ZP.toast('✉️ Nachricht an Admin gesendet!',2000);
+      const el=document.getElementById('tp-admin-msg'); if(el)el.value='';
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _loadReports(){
+    const el=document.getElementById('tp-reports'); if(!el)return;
+    try{
+      if(typeof _db==='undefined'||!_db){ el.innerHTML='(keine Verbindung)'; return; }
+      const snap=await _db.collection('zoo_reports').orderBy('ts','desc').limit(15).get();
+      const rows=[]; snap.forEach(d=>rows.push(d.data()));
+      el.innerHTML=rows.length?rows.map(r=>'<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)"><b>'+$esc(r.from||'?')+'</b>: '+$esc(r.msg||r.reason||'')+'</div>').join(''):'<i>Keine Meldungen.</i>';
+    }catch(e){ el.innerHTML='(Fehler beim Laden)'; }
+  },
+  async _loadStats(){
+    const el=document.getElementById('tp-stats'); if(!el)return;
+    try{
+      if(typeof _db==='undefined'||!_db){ el.innerHTML='(keine Verbindung)'; return; }
+      const snap=await _db.collection('mischa_players').get();
+      el.innerHTML='👤 '+snap.size+' registrierte Spieler insgesamt';
+    }catch(e){ el.innerHTML='(Fehler beim Laden)'; }
+  },
+};
+
 const ZAdmin = {
   target: null,
   cooldowns: {}, // action -> timestamp
@@ -11957,6 +12134,7 @@ const ZAdmin = {
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
     if(tab==='einst')this._populateEvents();
     if(tab==='cal')this._loadCalFromFirebase();
+    if(tab==='belohnungen')this._rTesterAdmin();
     if(tab==='announce')ZP._loadAnnStatus();
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
@@ -12478,6 +12656,50 @@ const ZAdmin = {
       await _db.collection('zoos').doc(k).set({adminGrantedRanks:granted},{merge:true});
       ZP.toast('🏅 Rang "'+clean+'" an "'+this.target+'" vergeben!',3000);
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async grantTesterPanel(){
+    const name=(prompt('Welchem Spieler soll das Tester-Panel gegeben werden?')||'').trim();
+    if(!name) return;
+    try{
+      const doc=await _db.collection('zoo_config').doc('testers').get();
+      const list=doc.exists?(doc.data().list||[]):[];
+      const nameLC=name.toLowerCase();
+      if(list.some(n=>n.toLowerCase()===nameLC)){ ZP.toast('❗ "'+name+'" hat das Tester-Panel schon.'); return; }
+      list.push(name);
+      await _db.collection('zoo_config').doc('testers').set({list},{merge:true});
+      ZP.toast('🧪 Tester-Panel an "'+name+'" vergeben!',3000);
+      this._rTesterAdmin();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async revokeTesterPanel(name){
+    try{
+      const doc=await _db.collection('zoo_config').doc('testers').get();
+      const list=(doc.exists?(doc.data().list||[]):[]).filter(n=>n.toLowerCase()!==name.toLowerCase());
+      await _db.collection('zoo_config').doc('testers').set({list},{merge:true});
+      ZP.toast('🗑️ Tester-Panel von "'+name+'" entfernt.',2500);
+      this._rTesterAdmin();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  // Zeigt: wer gerade Tester ist (mit "TP entfernen"), das Aktivitäts-Log
+  // (was Tester zuletzt gemacht haben) und Nachrichten von Testern an den
+  // Admin — alles an einer Stelle im Admin-Panel.
+  async _rTesterAdmin(){
+    const el=document.getElementById('padmin-tester-list'); if(!el) return;
+    try{
+      const testersDoc=await _db.collection('zoo_config').doc('testers').get();
+      const list=testersDoc.exists?(testersDoc.data().list||[]):[];
+      const logDoc=await _db.collection('zoo_config').doc('testerAuditLog').get();
+      const log=(logDoc.exists?(logDoc.data().entries||[]):[]).slice(-25).reverse();
+      const msgDoc=await _db.collection('zoo_config').doc('testerMessages').get();
+      const msgs=(msgDoc.exists?(msgDoc.data().entries||[]):[]).slice(-15).reverse();
+      el.innerHTML=
+        '<div style="font-weight:800;color:#3478f6;font-size:.8rem;margin-bottom:6px">🧪 Aktuelle Tester ('+list.length+')</div>'
+        +(list.length?list.map(n=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><span>'+$esc(n)+'</span><button onclick="ZAdmin.revokeTesterPanel(\''+$esc(n)+'\')" style="background:#E74C3C;border:none;color:#fff;padding:3px 10px;border-radius:6px;font-size:.68rem;cursor:pointer">TP entfernen</button></div>').join(''):'<i style="font-size:.72rem;color:rgba(255,255,255,.4)">Niemand hat gerade das Tester-Panel.</i>')
+        +'<div style="font-weight:800;color:#3478f6;font-size:.8rem;margin:10px 0 6px">📋 Letzte Tester-Aktionen</div>'
+        +(log.length?'<div style="max-height:140px;overflow-y:auto;font-size:.7rem;color:rgba(255,255,255,.6)">'+log.map(l=>'<div style="padding:2px 0">'+new Date(l.at).toLocaleTimeString()+' — <b>'+$esc(l.tester)+'</b>: '+$esc(l.action)+'</div>').join('')+'</div>':'<i style="font-size:.72rem;color:rgba(255,255,255,.4)">Noch keine Aktionen.</i>')
+        +'<div style="font-weight:800;color:#FFD700;font-size:.8rem;margin:10px 0 6px">✉️ Nachrichten von Testern</div>'
+        +(msgs.length?'<div style="max-height:140px;overflow-y:auto;font-size:.7rem;color:rgba(255,255,255,.6)">'+msgs.map(m=>'<div style="padding:2px 0">'+new Date(m.at).toLocaleTimeString()+' — <b>'+$esc(m.from)+'</b>: '+$esc(m.msg)+'</div>').join('')+'</div>':'<i style="font-size:.72rem;color:rgba(255,255,255,.4)">Keine Nachrichten.</i>');
+    }catch(e){ el.innerHTML='<span style="color:#E74C3C">❌ Fehler: '+e.message+'</span>'; }
   },
   async _loadCalFromFirebase(){
     const statusEl=document.getElementById('cal-status');
@@ -15591,7 +15813,7 @@ const SPEEDTEMPLE_ROOMS = [
 ];
 // Räume 9 (Eis) und 10 (Wind) sind jetzt normal verfügbar wie 1-8,
 // 11-15 (Labyrinthe) bleiben weiterhin "Bald verfügbar".
-const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9]);
+const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9,10]);
 
 
 const SpeedTemple = {
@@ -15731,6 +15953,14 @@ const SpeedTemple = {
   _enterRoom(idx){
     document.getElementById('speedtemple-hub')?.remove();
     this._showSpeedSetter();
+    // BUG FIX: der Speed-Test-Wert blieb bisher über Raumwechsel hinweg
+    // gespeichert — wer ihn einmal hoch getestet hatte, blieb dadurch bei
+    // JEDEM späteren Raum unbemerkt "immun" gegen Speed-Schwellen, egal
+    // was tatsächlich im Feld stand oder wie hoch der echte Speed-Stat
+    // war. Jetzt wird er bei jedem neuen Raum zurückgesetzt.
+    ZG._speedTestOverride=null;
+    const _inputEl=document.getElementById('speedtemple-speed-input');
+    if(_inputEl) _inputEl.value='';
     this._roomIdx=idx;
     ZG._steActive=true;
     ZG._steZooSave={x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z,yaw:ZG.yaw};
@@ -16170,7 +16400,7 @@ const SpeedTemple = {
       const gd=Math.sqrt((ZG.pl.x-ZG._speedGate.x)**2+(ZG.pl.z-ZG._speedGate.z)**2);
       const invincible=Date.now()<(ZG._speedGateInvUntil||0);
       if(!invincible && gd<3){
-        const escSpeed=Number(this._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
+        const escSpeed=Number(ZG._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
         if(escSpeed<ZG._speedGate.threshold){
           ZP.toast('💀 Zu wenig Speed! Brauchst mind. 15\'000 Speed.',2200);
           const startPt=ZG._mazeAreas&&ZG._mazeAreas[0];
@@ -16184,7 +16414,7 @@ const SpeedTemple = {
     // einen die Böe gar nicht mehr an.
     if(ZG._windGusts){
       const invincible=Date.now()<(ZG._windInvUntil||0);
-      const escSpeed=Number(this._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
+      const escSpeed=Number(ZG._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
       const immune=escSpeed>=200000;
       if(!invincible && !immune){
         for(const g of ZG._windGusts){
@@ -17414,6 +17644,8 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.revokeAdmin()">🚫 Admin entziehen</button>
             <button class="padmin-btn" style="background:#E056FD" onclick="ZAdmin.grantSpeed()">⚡ Speed vergeben</button>
             <button class="padmin-btn" style="background:#E0115F" onclick="ZAdmin.grantRank()">🏅 Rang vergeben</button>
+            <button class="padmin-btn" style="background:#3478f6" onclick="ZAdmin.grantTesterPanel()">🧪 Tester-Panel vergeben</button>
+            <div id="padmin-tester-list" style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;margin-top:6px">⏳ Lädt...</div>
             <button class="padmin-btn" style="background:#8E44AD" onclick="SpeedTemple.toggleRestriction()">🔒 Tempel-Zugang umschalten</button>
           </div>
           <div class="padmin-section-title" style="margin-top:10px">📢 Ankündigung</div>
