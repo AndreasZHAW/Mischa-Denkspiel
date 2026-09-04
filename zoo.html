@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v563 -->
+<!-- ZOO v564 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=563"></script>
-<script src="rewardchests.js?v=563"></script>
-<script src="personality.js?v=563"></script>
+<script src="lang.js?v=564"></script>
+<script src="rewardchests.js?v=564"></script>
+<script src="personality.js?v=564"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v563','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v564','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -525,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=563"></script>
-<script src="worlds.js?v=563"></script>
+<script src="firebase-state.js?v=564"></script>
+<script src="worlds.js?v=564"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1237,6 +1237,15 @@ function computeAchievedRanks(playerName, z, escSpeed){
   (z?.adminGrantedRanks||[]).forEach(r=>{ if(!achieved.includes(r)) achieved.push(r); });
   if(RANK_EXCLUSIVE_NAMES.admin.includes(nameLC)) achieved.push('Admin');
   if(RANK_EXCLUSIVE_NAMES.tester.includes(nameLC)) achieved.push('Tester');
+  // Wer das Tester-Panel hat, bekommt automatisch auch den Rang "Tester"
+  // — nicht mehr nur fest an J.t gebunden. Nur relevant, wenn hier
+  // gerade die eigene Rangliste berechnet wird (TesterPanel kennt nur
+  // den eigenen Live-Status, nicht den anderer Spieler).
+  try{
+    if(typeof TesterPanel!=='undefined' && TesterPanel.isTester() && nameLC===_rankOwnerLC(ZS?.player) && !achieved.includes('Tester')){
+      achieved.push('Tester');
+    }
+  }catch(e){}
   return achieved;
 }
 function rankColor(name){
@@ -3228,7 +3237,7 @@ const ZG={
         if(!d||!d.endsAt||d.endsAt<=Date.now()) return;
         const el=document.createElement('div');
         el.id='tester-timer-banner';
-        el.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:590;background:rgba(52,120,246,.85);color:#fff;padding:6px 16px;border-radius:20px;font-weight:800;font-size:.8rem';
+        el.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:590;background:rgba(52,120,246,.85);color:#fff;padding:6px 16px;border-radius:20px;font-weight:800;font-size:.8rem';
         document.body.appendChild(el);
         const tick=()=>{
           const left=d.endsAt-Date.now();
@@ -11987,6 +11996,7 @@ const TesterPanel = {
         this._isTester=list.includes((ZS.player||'').trim().toLowerCase());
         const btn=document.getElementById('hb-tester-panel');
         if(btn) btn.style.display=this._isTester?'':'none';
+        if(this._isTester) this.listenForAdminMessages();
       }, err=>{ console.log('[TesterPanel] Live-Abo Fehler: '+err.message); });
     };
     trySubscribe(6);
@@ -12034,8 +12044,14 @@ const TesterPanel = {
       +'<button onclick="TesterPanel.grantLuck()" style="margin-top:6px;background:'+TESTER_BLUE+';border:none;color:#fff;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Glück aktivieren</button>'
       +'</div>'
       // Deko-Quests / Meldungen / Statistiken Links
-      +'<div style="display:flex;gap:6px;margin-bottom:10px">'
-      +'<button onclick="TesterPanel._log(\'Deko-Quests geöffnet\');ZP.showQuests()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:#fff;padding:9px;border-radius:8px;font-weight:700;font-size:.75rem;cursor:pointer">🎯 Deko-Quests</button>'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">🎯 Neue Deko-Quest erstellen</div>'
+      +'<div style="font-weight:700;color:rgba(255,255,255,.6);font-size:.72rem;margin-bottom:5px">Deko-Belohnung auswählen</div>'
+      +'<div id="quest-deco-picker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:5px;max-height:120px;overflow-y:auto;margin-bottom:6px;background:rgba(255,255,255,.03);border-radius:8px;padding:6px"></div>'
+      +'<div id="quest-deco-selected" style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:8px">Keine Deko ausgewählt</div>'
+      +'<div id="quest-task-picker" style="display:flex;flex-direction:column;gap:3px;max-height:180px;overflow-y:auto;margin-bottom:8px"></div>'
+      +'<div id="quest-picker-count" style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:6px">0 Aufgaben ausgewählt (mind. 3, max. 15)</div>'
+      +'<button onclick="TesterPanel._log(\'Quest erstellt\');ZAdmin.saveQuest()" style="width:100%;background:'+TESTER_BLUE+';border:none;color:#fff;padding:8px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Quest erstellen</button>'
       +'</div>'
       +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
       +'<div style="font-weight:800;color:'+TESTER_BLUE+';font-size:.82rem;margin-bottom:6px">📨 Meldungen von Spielern</div>'
@@ -12047,6 +12063,10 @@ const TesterPanel = {
       +'</div>'
       // Chat löschen
       +'<button onclick="TesterPanel.clearChat()" style="width:100%;background:#E74C3C;border:none;color:#fff;padding:8px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer;margin-bottom:10px">🗑️ Chat-Verlauf komplett löschen</button>'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:10px">'
+      +'<div style="font-weight:800;color:#FFD700;font-size:.82rem;margin-bottom:6px">📥 Nachrichten vom Admin</div>'
+      +'<div id="tp-admin-inbox" style="font-size:.72rem;color:rgba(255,255,255,.6);max-height:120px;overflow-y:auto"><i>Noch keine Nachrichten.</i></div>'
+      +'</div>'
       // Nachricht an Admin
       +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px">'
       +'<div style="font-weight:800;color:#FFD700;font-size:.82rem;margin-bottom:6px">✉️ Nachricht an den Admin</div>'
@@ -12057,6 +12077,7 @@ const TesterPanel = {
     document.body.appendChild(panel);
     this._loadReports();
     this._loadStats();
+    try{ ZAdmin._loadQuestsTab(); }catch(e){}
   },
   async sendAnnouncement(){
     const msg=(document.getElementById('tp-msg')?.value||'').trim();
@@ -12110,13 +12131,45 @@ const TesterPanel = {
       const el=document.getElementById('tp-admin-msg'); if(el)el.value='';
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
+  // Live-Abo für Nachrichten VOM Admin AN die Tester — zeigt einen Toast
+  // sofort an, sobald eine neue reinkommt, egal ob das Panel gerade offen
+  // ist oder nicht.
+  _adminMsgUnsub: null,
+  _lastSeenAdminMsgAt: 0,
+  listenForAdminMessages(){
+    if(this._adminMsgUnsub || typeof _db==='undefined' || !_db) return;
+    this._adminMsgUnsub=_db.collection('zoo_config').doc('adminToTesterMessages').onSnapshot(doc=>{
+      if(!doc.exists) return;
+      const entries=doc.data().entries||[];
+      const newest=entries[entries.length-1];
+      if(newest && newest.at>this._lastSeenAdminMsgAt){
+        if(this._lastSeenAdminMsgAt>0) ZP.toast('👑 Nachricht vom Admin: '+newest.msg,5000);
+        this._lastSeenAdminMsgAt=newest.at;
+      }
+      const el=document.getElementById('tp-admin-inbox');
+      if(el){
+        const recent=entries.slice(-10).reverse();
+        el.innerHTML=recent.length?recent.map(m=>'<div style="padding:3px 0">'+new Date(m.at).toLocaleTimeString()+' — '+$esc(m.msg)+'</div>').join(''):'<i>Noch keine Nachrichten.</i>';
+      }
+    });
+  },
   async _loadReports(){
     const el=document.getElementById('tp-reports'); if(!el)return;
     try{
-      if(typeof _db==='undefined'||!_db){ el.innerHTML='(keine Verbindung)'; return; }
-      const snap=await _db.collection('zoo_reports').orderBy('ts','desc').limit(15).get();
-      const rows=[]; snap.forEach(d=>rows.push(d.data()));
-      el.innerHTML=rows.length?rows.map(r=>'<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)"><b>'+$esc(r.from||'?')+'</b>: '+$esc(r.msg||r.reason||'')+'</div>').join(''):'<i>Keine Meldungen.</i>';
+      let rows=[];
+      if(typeof _db!=='undefined'&&_db){
+        const snap=await _db.collection('zoo_reports').orderBy('ts','desc').limit(15).get();
+        snap.forEach(d=>rows.push(d.data()));
+      }
+      try{
+        const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
+        local.forEach(r=>{ if(!rows.find(x=>x.id===r.id)) rows.push(r); });
+      }catch(e){}
+      rows.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      el.innerHTML=rows.length?rows.map(r=>{
+        const d=new Date(r.ts).toLocaleString('de-CH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        return '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)"><b>'+$esc(r.player||'?')+'</b> <span style="opacity:.5">'+d+'</span><br>'+$esc(r.text||'')+'</div>';
+      }).join(''):'<i>Keine Meldungen.</i>';
     }catch(e){ el.innerHTML='(Fehler beim Laden)'; }
   },
   async _loadStats(){
@@ -12696,6 +12749,17 @@ const ZAdmin = {
   // Zeigt: wer gerade Tester ist (mit "TP entfernen"), das Aktivitäts-Log
   // (was Tester zuletzt gemacht haben) und Nachrichten von Testern an den
   // Admin — alles an einer Stelle im Admin-Panel.
+  async messageTesters(){
+    const msg=(document.getElementById('padmin-tester-msg')?.value||'').trim();
+    if(!msg){ ZP.toast('❗ Erst eine Nachricht eingeben!'); return; }
+    try{
+      await _db.collection('zoo_config').doc('adminToTesterMessages').set({
+        entries: firebase.firestore.FieldValue.arrayUnion({from:ZS.player,msg,at:Date.now()})
+      },{merge:true});
+      ZP.toast('✉️ Nachricht an alle Tester gesendet!',2500);
+      const el=document.getElementById('padmin-tester-msg'); if(el)el.value='';
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
   async _rTesterAdmin(){
     const el=document.getElementById('padmin-tester-list'); if(!el) return;
     try{
@@ -17731,6 +17795,11 @@ window.ZooEvents = ZooEvents;
           </div>
           <button class="padmin-btn" style="background:#3478f6;width:100%" onclick="ZAdmin.grantTesterPanel()">🧪 Tester-Panel vergeben</button>
           <div id="padmin-tester-list" style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;margin-top:10px">⏳ Lädt...</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;margin-top:10px">
+            <div style="font-weight:700;color:#FFD700;font-size:.8rem;margin-bottom:6px">✉️ Nachricht an alle Tester</div>
+            <textarea id="padmin-tester-msg" rows="2" placeholder="Nachricht..." style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.8rem;box-sizing:border-box;resize:vertical"></textarea>
+            <button onclick="ZAdmin.messageTesters()" style="margin-top:6px;background:#FFD700;border:none;color:#000;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Senden</button>
+          </div>
         </div>
         <!-- TAB: AKTIONEN (player actions) -->
         <div class="padmin-tab" id="padmin-tab-aktionen" style="display:none">
