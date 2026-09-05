@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v567 -->
+<!-- ZOO v568 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=567"></script>
-<script src="rewardchests.js?v=567"></script>
-<script src="personality.js?v=567"></script>
+<script src="lang.js?v=568"></script>
+<script src="rewardchests.js?v=568"></script>
+<script src="personality.js?v=568"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v567','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v568','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -525,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=567"></script>
-<script src="worlds.js?v=567"></script>
+<script src="firebase-state.js?v=568"></script>
+<script src="worlds.js?v=568"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -15999,6 +15999,50 @@ const SpeedTemple = {
       +'<div style="color:rgba(255,255,255,.6);font-size:1.3rem;font-weight:700;text-align:center;padding:20px">⚡ Kommt bald...</div>';
     document.body.appendChild(el);
   },
+  // ── Erholpause nach jedem geschafften Level: 5 Min bei den ersten drei
+  // Räumen, sonst 30 Min. Bu:) ist ausgenommen. Kann durch Bezahlung von
+  // 20% des aktuellen Guthabens sofort übersprungen werden.
+  _showCooldownScreen(pendingIdx){
+    document.getElementById('speedtemple-cooldown')?.remove();
+    const z=ZS.zoo; if(!z) return;
+    const el=document.createElement('div');
+    el.id='speedtemple-cooldown';
+    el.style.cssText='position:fixed;inset:0;background:rgba(10,0,20,.96);z-index:10500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center';
+    const combined=(ZS.dsMT||0)+(z.mt||0);
+    const payAmount=Math.round(combined*0.2*10)/10;
+    el.innerHTML='<button onclick="document.getElementById(\'speedtemple-cooldown\').remove()" style="position:fixed;top:14px;right:14px;background:rgba(255,255,255,.12);border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.1rem">✕</button>'
+      +'<div style="font-size:2.4rem">⏳</div>'
+      +'<div style="color:#E056FD;font-size:1.2rem;font-weight:900">Kurze Verschnaufpause!</div>'
+      +'<div id="speedtemple-cooldown-timer" style="color:#fff;font-size:1.6rem;font-weight:900">--:--</div>'
+      +'<div style="color:rgba(255,255,255,.5);font-size:.82rem;max-width:320px">Nach jedem geschafften Level muss man kurz warten, bevor man wieder rein darf.</div>'
+      +'<button onclick="SpeedTemple._payToSkipCooldown('+pendingIdx+')" style="background:linear-gradient(135deg,#FFD700,#E0A800);border:none;color:#000;padding:12px 24px;border-radius:12px;font-weight:900;cursor:pointer;font-size:.9rem">💰 20% des Guthabens zahlen ('+$mt(payAmount)+') — sofort weiterspielen</button>';
+    document.body.appendChild(el);
+    const tick=()=>{
+      const left=(z.speedTempleCooldownUntil||0)-Date.now();
+      const timerEl=document.getElementById('speedtemple-cooldown-timer');
+      if(left<=0){ el.remove(); clearInterval(iv); return; }
+      if(timerEl){ const mm=Math.floor(left/60000), ss=Math.floor((left%60000)/1000); timerEl.textContent=mm+':'+String(ss).padStart(2,'0'); }
+    };
+    tick(); const iv=setInterval(tick,1000);
+  },
+  _payToSkipCooldown(pendingIdx){
+    const z=ZS.zoo; if(!z) return;
+    const combined=(ZS.dsMT||0)+(z.mt||0);
+    const payAmount=Math.round(combined*0.2*10)/10;
+    if(payAmount<=0 || z.mt<payAmount){
+      // Falls das Denkspiel-Guthaben mitzählt, aber im Zoo selbst nicht
+      // genug MT liegt, trotzdem so fair wie möglich abziehen.
+      z.mt=Math.max(0,z.mt-payAmount);
+    } else {
+      z.mt-=payAmount;
+    }
+    z.speedTempleCooldownUntil=0;
+    ZS.save&&ZS.save();
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    document.getElementById('speedtemple-cooldown')?.remove();
+    ZP.toast('💰 '+$mt(payAmount)+' bezahlt — viel Spass!',2500);
+    this._enterRoom(pendingIdx);
+  },
   async toggleRestriction(){
     try{
       if(typeof _db==='undefined'||!_db){ ZP.toast('❌ Keine Verbindung.'); return; }
@@ -16035,6 +16079,11 @@ const SpeedTemple = {
     document.body.appendChild(panel);
   },
   _enterRoom(idx){
+    const _z=ZS.zoo;
+    if(_z && (ZS.player||'').toLowerCase()!=='bu:)' && (_z.speedTempleCooldownUntil||0)>Date.now()){
+      this._showCooldownScreen(idx);
+      return;
+    }
     document.getElementById('speedtemple-hub')?.remove();
     this._showSpeedSetter();
     // BUG FIX: der Speed-Test-Wert blieb bisher über Raumwechsel hinweg
@@ -16539,7 +16588,16 @@ const SpeedTemple = {
       }
     }
     const dx=ZG.pl.x-ZG._mazeGoal.x, dz=ZG.pl.z-ZG._mazeGoal.z;
-    if(Math.sqrt(dx*dx+dz*dz)<3){ this._winRoom(); }
+    const isStraightRoom=ZG._windRoomActive||ZG._damagePathActive||ZG._crumblingFloorActive;
+    if(isStraightRoom){
+      // Gerade Gänge: sobald man über die Ziel-Linie hinweg ist (egal ob
+      // man exakt den gelben Kreis trifft), zählt das Level als
+      // geschafft — bei hohem Tempo kann man sonst knapp drüber
+      // hinwegrutschen, ohne den kleinen Kreis exakt zu berühren.
+      if(ZG.pl.z<=ZG._mazeGoal.z+5) this._winRoom();
+    } else {
+      if(Math.sqrt(dx*dx+dz*dz)<4){ this._winRoom(); }
+    }
   },
   _buildWindRoom(idx){
     ZG._jumpMeshes=[];
@@ -16822,6 +16880,13 @@ const SpeedTemple = {
     const cur=z.mtPassBoosts.luck;
     const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
     z.mtPassBoosts.luck={mult:room.luckMult, until:base+5*60000};
+    // Nach jedem geschafften Level muss man eine Weile warten, bevor man
+    // wieder in irgendeinen Raum darf — 5 Min bei den ersten 3 Räumen,
+    // sonst 30 Min. Bu:) ist davon komplett ausgenommen.
+    if((ZS.player||'').toLowerCase()!=='bu:)'){
+      const cooldownMs=(idx<=2)?5*60000:30*60000;
+      z.speedTempleCooldownUntil=Date.now()+cooldownMs;
+    }
     ZS.save&&ZS.save();
     try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
     try{ SpeedTemple._updBoostBadge(); }catch(e){}
