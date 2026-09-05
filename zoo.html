@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v568 -->
+<!-- ZOO v570 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=568"></script>
-<script src="rewardchests.js?v=568"></script>
-<script src="personality.js?v=568"></script>
+<script src="lang.js?v=570"></script>
+<script src="rewardchests.js?v=570"></script>
+<script src="personality.js?v=570"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v568','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v570','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -525,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=568"></script>
-<script src="worlds.js?v=568"></script>
+<script src="firebase-state.js?v=570"></script>
+<script src="worlds.js?v=570"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1268,6 +1268,39 @@ function getEquippedRank(playerName, z, escSpeed){
 }
 // Rückwärtskompatibel zum alten Namen, falls noch irgendwo referenziert.
 function computeRank(z, escSpeed){ return getEquippedRank(ZS?.player, z, escSpeed); }
+
+// ── SPEED-MEILENSTEINE: einmalige Erfolge, die dauerhaft (und
+// stapelbar) den Speed-Stat multiplizieren. Wirkt sich überall im
+// Speed-Tempel aus (Freischalt-Schwellen, Lauftempo-Formeln, interne
+// Gefahren-Schwellen) — siehe getEffectiveEscSpeed().
+const SPEED_MILESTONES=[
+  {key:'msSpeed10K',  mult:50,   label:'10.000 Geld erreicht'},
+  {key:'msSpeedFed10',mult:10,   label:'10× ein Tier gefüttert'},
+  {key:'msSpeedReport',mult:50,  label:'einen Fehler gemeldet'},
+  {key:'msSpeed1_1M', mult:20,   label:'1.1 Mio Geld insgesamt verdient'},
+  {key:'msSpeed10M',  mult:1000, label:'10 Mio Geld erreicht'},
+  {key:'msSpeedAd',   mult:2,    label:'Werbung angeschaut'},
+];
+function getSpeedMilestoneMult(z){
+  if(!z) return 1;
+  let m=1;
+  SPEED_MILESTONES.forEach(ms=>{ if(z[ms.key]) m*=ms.mult; });
+  return m;
+}
+function getEffectiveEscSpeed(){
+  const z=ZS?.zoo; if(!z) return 0;
+  return (z.escSpeed||0)*getSpeedMilestoneMult(z);
+}
+// Prüft alle geld-basierten Meilensteine auf einmal — günstig genug für
+// häufige Aufrufe (z.B. bei jedem HUD-Update).
+function _checkSpeedMilestones(z){
+  if(!z) return;
+  let changed=false;
+  if(!z.msSpeed10K && (z.mt||0)>=10000){ z.msSpeed10K=true; changed=true; ZP.toast&&ZP.toast('⚡ Meilenstein! 10.000 Geld erreicht — ×50 Speed dauerhaft!',4000); }
+  if(!z.msSpeed10M && (z.mt||0)>=10000000){ z.msSpeed10M=true; changed=true; ZP.toast&&ZP.toast('⚡ Meilenstein! 10 Mio Geld erreicht — ×1000 Speed dauerhaft!',4500); }
+  if(!z.msSpeed1_1M && (z.te||0)>=1100000){ z.msSpeed1_1M=true; changed=true; ZP.toast&&ZP.toast('⚡ Meilenstein! 1.1 Mio insgesamt verdient — ×20 Speed dauerhaft!',4000); }
+  if(changed){ ZS.save&&ZS.save(); try{ ZG._updHUD&&ZG._updHUD(); }catch(e){} }
+}
 
 // ── SAMMELALBUM: MT-Bonus (% vom Gesamtguthaben) fürs Vervollständigen
 // einer Seltenheitsstufe (jemals besessen, siehe z.everOwned). ──
@@ -4723,18 +4756,18 @@ const ZG={
     } else if(this._windRoomActive){
       // 💨 Windböen-Gang: nutzt jetzt dieselbe Formel wie die normalen
       // Sprung-Räume (1-8), NICHT mehr das feste rote-Schuhe-Tempo.
-      const escSpeed=this._speedTestOverride??(ZS.zoo?.escSpeed||0);
+      const escSpeed=this._speedTestOverride??getEffectiveEscSpeed();
       shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     } else if(this._mazeActive){
       // Labyrinth-Formel: bei sehr wenig Speed richtig quälend langsam
       // (Speed 10 → 100× langsamer), bei brauchbarem Speed nur noch
       // moderat schneller (Speed 15'000 → ×2) — Potenzfunktion statt
       // linear, damit der Anfang besonders schmerzt.
-      const escSpeed=this._speedTestOverride??(ZS.zoo?.escSpeed||0);
+      const escSpeed=this._speedTestOverride??getEffectiveEscSpeed();
       shoe_mod*=0.001885*Math.pow(Math.max(escSpeed,1),0.7246);
     } else if(this._steActive){
       // Sprung-Räume: +1400% ab 60'000 Speed (also ×15 Grundtempo), Deckel bei ×50.
-      const escSpeed=this._speedTestOverride??(ZS.zoo?.escSpeed||0);
+      const escSpeed=this._speedTestOverride??getEffectiveEscSpeed();
       shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     }
     const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
@@ -5808,6 +5841,7 @@ const ZG={
     // die 500'000-MT-Marke geknackt hat — bleibt dauerhaft, auch wenn man
     // das Geld später wieder ausgibt.
     if(!z.everReached500k && (z.mt||0)>=500000){ z.everReached500k=true; ZS.save&&ZS.save(); }
+    _checkSpeedMilestones(z);
     // Combined balance (Denkspiel + Zoo), per the person's request that
     // every screen show one unified total. ZS.dsMT is cached once at
     // load() time (with the same deviceId ownership check as elsewhere).
@@ -10744,6 +10778,9 @@ const ZP={
       if(typeof _db!=='undefined'&&State._useCloud()){
         await _db.collection('zoo_reports').doc(report.id).set(report);
       }
+      // Speed-Meilenstein: einmalig fürs Melden eines Fehlers.
+      const z=ZS.zoo;
+      if(z && !z.msSpeedReport){ z.msSpeedReport=true; ZS.save&&ZS.save(); ZP.toast('⚡ Meilenstein! Fehler gemeldet — ×50 Speed dauerhaft! Danke fürs Melden!',4500); }
       // Also keep local backup
       const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
       local.unshift(report); if(local.length>50)local.pop();
@@ -13707,7 +13744,7 @@ const ZAdmin = {
             stillThere=recheck.exists;
           }
         }catch(e){ /* couldn't verify — proceed and write the fresh doc anyway */ }
-        const freshZoo={...ZS.nz(), mt:intendedZooMt};
+        const freshZoo={...ZS.nz(), mt:intendedZooMt, escSpeed:0};
         if(knownDeviceId) freshZoo.deviceId=knownDeviceId;
         await _db.collection('zoos').doc(k).set(freshZoo);
         zooOk=true;
@@ -15953,21 +15990,69 @@ const SpeedTemple = {
     const el=document.createElement('div');
     el.id='speedtemple-speed-setter';
     el.style.cssText='position:fixed;top:70px;right:12px;z-index:600;background:rgba(0,0,0,.75);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;align-items:stretch;width:150px';
+    const z=ZS.zoo;
     el.innerHTML='<div style="color:#E056FD;font-size:.68rem;font-weight:900">⚡ Speed testen</div>'
       +'<input id="speedtemple-speed-input" type="number" placeholder="Zahl..." style="width:100%;padding:5px 7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem;box-sizing:border-box">'
-      +'<button onclick="SpeedTemple._applyTestSpeed()" style="background:#E056FD;border:none;color:#fff;padding:5px;border-radius:8px;font-weight:900;font-size:.72rem;cursor:pointer">Setzen</button>';
+      +'<button onclick="SpeedTemple._applyTestSpeed()" style="background:#E056FD;border:none;color:#fff;padding:5px;border-radius:8px;font-weight:900;font-size:.72rem;cursor:pointer">Setzen</button>'
+      +(z&&!z.msSpeedAd?'<button onclick="SpeedTemple._watchAd()" style="margin-top:4px;background:linear-gradient(135deg,#FF6B00,#FFA500);border:none;color:#fff;padding:6px;border-radius:8px;font-weight:900;font-size:.7rem;cursor:pointer">📺 Werbung ansehen ×2</button>':'');
     document.body.appendChild(el);
   },
   _applyTestSpeed(){
     const input=document.getElementById('speedtemple-speed-input');
     const val=parseFloat(input?.value);
-    const real=ZS.zoo?.escSpeed||0;
+    const real=getEffectiveEscSpeed();
     if(isNaN(val) || val<0 || val>real){
       ZP.toast('❌ Ungültige Zahl! Du hast nur '+Math.round(real)+' Speed.',3000);
       return;
     }
     ZG._speedTestOverride=val;
     ZP.toast('⚡ Test-Speed auf '+Math.round(val)+' gesetzt.',2000);
+  },
+  // ── "Werbung ansehen" — 60 Sekunden, nicht überspringbar, mit ein
+  // paar albernen Zoo-Werbe-Slides. Am Ende gibt's dauerhaft ×2 Speed
+  // (einmalig, siehe SPEED_MILESTONES/msSpeedAd).
+  _AD_SLIDES:[
+    {emoji:'🐹', title:'NEU: Der Hamster-o-Mat 3000!', text:'Füttert deinen Hamster automatisch — solange er nicht wegrennt.'},
+    {emoji:'🦁', title:'Löwen-Shampoo "MähnenGlanz"™', text:'Für eine Mähne, die aussieht, als hätte sie nie einen schlechten Tag.'},
+    {emoji:'🐢', title:'Turbo-Schildkröte Deluxe', text:'Jetzt 4% schneller! (Wissenschaftlich nicht belegt.)'},
+    {emoji:'🦆', title:'Enten-Yoga-Kurs', text:'Erste Stunde gratis. Zweite Stunde: die Ente schwimmt einfach weg.'},
+    {emoji:'🐘', title:'Elefanten-Parkplatz XXL', text:'Endlich genug Platz — für den Elefanten, nicht für dein Auto.'},
+    {emoji:'🎪', title:'Danke fürs Zuschauen!', text:'Gleich gibt es deine Belohnung...'},
+  ],
+  _watchAd(){
+    const z=ZS.zoo; if(!z || z.msSpeedAd){ ZP.toast('❗ Schon freigeschaltet!'); return; }
+    document.getElementById('speedtemple-ad')?.remove();
+    const el=document.createElement('div');
+    el.id='speedtemple-ad';
+    el.style.cssText='position:fixed;inset:0;background:#0a0a1a;z-index:11000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px;text-align:center;color:#fff';
+    el.innerHTML='<div id="ad-slide-emoji" style="font-size:4.5rem">🎬</div>'
+      +'<div id="ad-slide-title" style="font-size:1.3rem;font-weight:900;color:#FFA500">MISCHA-WERBUNG™</div>'
+      +'<div id="ad-slide-text" style="font-size:.95rem;color:rgba(255,255,255,.7);max-width:340px">Gleich geht\'s los...</div>'
+      +'<div style="margin-top:10px;background:rgba(255,255,255,.1);border-radius:20px;padding:8px 18px;font-weight:900;font-size:.85rem" id="ad-countdown">⏳ 60s</div>';
+    document.body.appendChild(el);
+    const slides=this._AD_SLIDES;
+    let slideIdx=0, secondsLeft=60;
+    const showSlide=()=>{
+      const s=slides[slideIdx%slides.length];
+      const e=document.getElementById('ad-slide-emoji'), t=document.getElementById('ad-slide-title'), x=document.getElementById('ad-slide-text');
+      if(e)e.textContent=s.emoji; if(t)t.textContent=s.title; if(x)x.textContent=s.text;
+      slideIdx++;
+    };
+    showSlide();
+    const slideIv=setInterval(showSlide,10000);
+    const countdownIv=setInterval(()=>{
+      secondsLeft--;
+      const c=document.getElementById('ad-countdown');
+      if(c) c.textContent=secondsLeft>0?('⏳ '+secondsLeft+'s'):'✅ Fertig!';
+      if(secondsLeft<=0){
+        clearInterval(slideIv); clearInterval(countdownIv);
+        z.msSpeedAd=true; ZS.save&&ZS.save();
+        try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+        el.innerHTML='<div style="font-size:4.5rem">🎉</div>'
+          +'<div style="font-size:1.3rem;font-weight:900;color:#27AE60">×2 Speed dauerhaft freigeschaltet!</div>'
+          +'<button onclick="document.getElementById(\'speedtemple-ad\').remove();SpeedTemple._showSpeedSetter();" style="margin-top:10px;background:#27AE60;border:none;color:#fff;padding:10px 24px;border-radius:10px;font-weight:900;cursor:pointer">Super!</button>';
+      }
+    },1000);
   },
   _updBoostBadge(){
     const el=document.getElementById('speedtemple-boost-badge'); if(!el) return;
@@ -16057,7 +16142,7 @@ const SpeedTemple = {
     document.getElementById('speedtemple-hub')?.remove();
     this._showSpeedSetter();
     const z=ZS.zoo; if(!z) return;
-    const speed=Math.round(z.escSpeed||0);
+    const speed=Math.round(getEffectiveEscSpeed());
     const panel=document.createElement('div');
     panel.id='speedtemple-hub';
     panel.style.cssText='position:fixed;inset:0;background:rgba(10,0,20,.94);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
@@ -16207,7 +16292,7 @@ const SpeedTemple = {
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.48*speedMult; // skaliert mit dem eigenen Tempo, sonst holt er einen ab genug Speed nie wieder ein
+        const speedMult=1+Math.min(49,getEffectiveEscSpeed()/60000*14); const chaseSpeed=0.48*speedMult; // skaliert mit dem eigenen Tempo, sonst holt er einen ab genug Speed nie wieder ein
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -16250,7 +16335,7 @@ const SpeedTemple = {
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.76*speedMult;
+        const speedMult=1+Math.min(49,getEffectiveEscSpeed()/60000*14); const chaseSpeed=0.76*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -16296,7 +16381,7 @@ const SpeedTemple = {
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.65*speedMult;
+        const speedMult=1+Math.min(49,getEffectiveEscSpeed()/60000*14); const chaseSpeed=0.65*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -16318,7 +16403,7 @@ const SpeedTemple = {
         const bp=ZG._bossMesh.position;
         const dx=ZG.pl.x-bp.x, dz=ZG.pl.z-bp.z;
         const d=Math.sqrt(dx*dx+dz*dz)||1;
-        const speedMult=1+Math.min(49,(ZS.zoo?.escSpeed||0)/60000*14); const chaseSpeed=0.85*speedMult;
+        const speedMult=1+Math.min(49,getEffectiveEscSpeed()/60000*14); const chaseSpeed=0.85*speedMult;
         bp.x+=(dx/d)*chaseSpeed; bp.z+=(dz/d)*chaseSpeed;
         try{ boss.lookAt(ZG.pl.x,bp.y,ZG.pl.z); }catch(e){}
       },16);
@@ -16558,7 +16643,7 @@ const SpeedTemple = {
       const gd=Math.sqrt((ZG.pl.x-ZG._speedGate.x)**2+(ZG.pl.z-ZG._speedGate.z)**2);
       const invincible=Date.now()<(ZG._speedGateInvUntil||0);
       if(!invincible && gd<3){
-        const escSpeed=Number(ZG._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
+        const escSpeed=Number(ZG._speedTestOverride ?? getEffectiveEscSpeed());
         if(escSpeed<ZG._speedGate.threshold){
           ZP.toast('💀 Zu wenig Speed! Brauchst mind. 15\'000 Speed.',2200);
           const startPt=ZG._mazeAreas&&ZG._mazeAreas[0];
@@ -16572,7 +16657,7 @@ const SpeedTemple = {
     // einen die Böe gar nicht mehr an.
     if(ZG._windGusts){
       const invincible=Date.now()<(ZG._windInvUntil||0);
-      const escSpeed=Number(ZG._speedTestOverride ?? ZS.zoo?.escSpeed ?? 0);
+      const escSpeed=Number(ZG._speedTestOverride ?? getEffectiveEscSpeed());
       const immune=escSpeed>=200000;
       if(!invincible && !immune){
         for(const g of ZG._windGusts){
@@ -16779,7 +16864,8 @@ const SpeedTemple = {
   _updSpeedHUD(){
     const el=document.getElementById('speedtemple-speed-hud'); if(!el) return;
     const z=ZS.zoo; if(!z) return;
-    el.textContent='⚡ '+Math.round(z.escSpeed||0)+' Speed';
+    const mult=getSpeedMilestoneMult(z);
+    el.textContent='⚡ '+Math.round(getEffectiveEscSpeed())+' Speed'+(mult>1?' (×'+mult+' Bonus)':'');
   },
   _checkCollision(){
     if(!ZG._jumpPlatforms) return;
@@ -17179,6 +17265,8 @@ const Feeder = {
     const cost=this._costFor(enc.animal);
     if(((ZS.dsMT||0)+(z.mt||0))<cost){ ZP.toast('❌ Zu wenig MT!',2000); return; }
     z.mt=(z.mt||0)-cost;
+    z.feedCount=(z.feedCount||0)+1;
+    if(!z.msSpeedFed10 && z.feedCount>=10){ z.msSpeedFed10=true; ZP.toast('⚡ Meilenstein! 10× gefüttert — ×10 Speed dauerhaft!',4000); }
     const now=Date.now();
     // Extend if already active, else start fresh
     const base=(enc.treatUntil&&enc.treatUntil>now)?enc.treatUntil:now;
