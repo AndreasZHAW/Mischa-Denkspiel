@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v570 -->
+<!-- ZOO v571 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=570"></script>
-<script src="rewardchests.js?v=570"></script>
-<script src="personality.js?v=570"></script>
+<script src="lang.js?v=571"></script>
+<script src="rewardchests.js?v=571"></script>
+<script src="personality.js?v=571"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v570','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v571','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -525,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=570"></script>
-<script src="worlds.js?v=570"></script>
+<script src="firebase-state.js?v=571"></script>
+<script src="worlds.js?v=571"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1269,10 +1269,10 @@ function getEquippedRank(playerName, z, escSpeed){
 // Rückwärtskompatibel zum alten Namen, falls noch irgendwo referenziert.
 function computeRank(z, escSpeed){ return getEquippedRank(ZS?.player, z, escSpeed); }
 
-// ── SPEED-MEILENSTEINE: einmalige Erfolge, die dauerhaft (und
-// stapelbar) den Speed-Stat multiplizieren. Wirkt sich überall im
-// Speed-Tempel aus (Freischalt-Schwellen, Lauftempo-Formeln, interne
-// Gefahren-Schwellen) — siehe getEffectiveEscSpeed().
+// ── SPEED-MEILENSTEINE: Bedingung erfüllt = im Shop verfügbar, aber
+// NICHT automatisch aktiv — man muss es dort bewusst freischalten. So
+// ist immer klar nachvollziehbar, woher ein grosser Speed-Multiplikator
+// kommt, statt dass er einfach "plötzlich da ist".
 const SPEED_MILESTONES=[
   {key:'msSpeed10K',  mult:50,   label:'10.000 Geld erreicht'},
   {key:'msSpeedFed10',mult:10,   label:'10× ein Tier gefüttert'},
@@ -1291,14 +1291,26 @@ function getEffectiveEscSpeed(){
   const z=ZS?.zoo; if(!z) return 0;
   return (z.escSpeed||0)*getSpeedMilestoneMult(z);
 }
+function unlockSpeedMilestone(key){
+  const z=ZS.zoo; if(!z) return;
+  const ms=SPEED_MILESTONES.find(m=>m.key===key); if(!ms) return;
+  if(!z[key+'_eligible']){ ZP.toast('❌ Bedingung noch nicht erfüllt.'); return; }
+  if(z[key]){ ZP.toast('❗ Schon freigeschaltet.'); return; }
+  z[key]=true;
+  ZS.save&&ZS.save();
+  try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+  ZP.toast('⚡ "'+ms.label+'" freigeschaltet — ×'+ms.mult+' Speed dauerhaft!',4000);
+  try{ ZP._rShop&&ZP._rShop(); }catch(e){}
+}
 // Prüft alle geld-basierten Meilensteine auf einmal — günstig genug für
-// häufige Aufrufe (z.B. bei jedem HUD-Update).
+// häufige Aufrufe (z.B. bei jedem HUD-Update). Setzt nur "_eligible",
+// NICHT den echten Aktivierungs-Flag — das passiert erst im Shop.
 function _checkSpeedMilestones(z){
   if(!z) return;
   let changed=false;
-  if(!z.msSpeed10K && (z.mt||0)>=10000){ z.msSpeed10K=true; changed=true; ZP.toast&&ZP.toast('⚡ Meilenstein! 10.000 Geld erreicht — ×50 Speed dauerhaft!',4000); }
-  if(!z.msSpeed10M && (z.mt||0)>=10000000){ z.msSpeed10M=true; changed=true; ZP.toast&&ZP.toast('⚡ Meilenstein! 10 Mio Geld erreicht — ×1000 Speed dauerhaft!',4500); }
-  if(!z.msSpeed1_1M && (z.te||0)>=1100000){ z.msSpeed1_1M=true; changed=true; ZP.toast&&ZP.toast('⚡ Meilenstein! 1.1 Mio insgesamt verdient — ×20 Speed dauerhaft!',4000); }
+  if(!z.msSpeed10K_eligible && (z.mt||0)>=10000){ z.msSpeed10K_eligible=true; changed=true; ZP.toast&&ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
+  if(!z.msSpeed10M_eligible && (z.mt||0)>=10000000){ z.msSpeed10M_eligible=true; changed=true; ZP.toast&&ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
+  if(!z.msSpeed1_1M_eligible && (z.te||0)>=1100000){ z.msSpeed1_1M_eligible=true; changed=true; ZP.toast&&ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
   if(changed){ ZS.save&&ZS.save(); try{ ZG._updHUD&&ZG._updHUD(); }catch(e){} }
 }
 
@@ -9878,7 +9890,27 @@ const ZP={
     ZSound._sndSuperEpic&&ZSound._sndSuperEpic();
   },
 
-  _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:10205,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:17751,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:47265,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('');},
+  _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:10205,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:17751,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:47265,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('')
+    +'<div style="margin-top:14px;background:rgba(224,86,253,.08);border:1px solid rgba(224,86,253,.3);border-radius:12px;padding:10px">'
+    +'<div style="font-weight:900;color:#E056FD;font-size:.85rem;margin-bottom:4px">⚡ Speed-Meilensteine</div>'
+    +'<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:8px">Bedingung erfüllt? Dann hier bewusst freischalten — nichts aktiviert sich von allein.</div>'
+    +SPEED_MILESTONES.map(ms=>{
+      const unlocked=!!z[ms.key];
+      if(ms.key==='msSpeedAd'){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.06)">'
+          +'<div><div style="font-size:.78rem;font-weight:700">×'+ms.mult+' Speed</div><div style="font-size:.65rem;color:'+(unlocked?'#27AE60':'rgba(255,255,255,.4)')+'">'+(unlocked?'✅ Freigeschaltet':'📺 Im Speed-Tempel: Werbung ansehen')+'</div></div>'
+          +'</div>';
+      }
+      const eligible=!!z[ms.key+'_eligible'];
+      const status=unlocked?'✅ Freigeschaltet':(eligible?'🎁 Verfügbar':'🔒 '+ms.label);
+      const statusColor=unlocked?'#27AE60':(eligible?'#FFD700':'rgba(255,255,255,.4)');
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.06)">'
+        +'<div><div style="font-size:.78rem;font-weight:700">×'+ms.mult+' Speed</div><div style="font-size:.65rem;color:'+statusColor+'">'+status+'</div></div>'
+        +(unlocked?'':(eligible?'<button class="ab" onclick="unlockSpeedMilestone(\''+ms.key+'\')">Freischalten</button>':''))
+        +'</div>';
+    }).join('')
+    +'</div>';
+  },
   _bst(id,p,dur){const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();this._updShopBal();},
 
   // ── SLAP-PAKETE ── Every slap use now costs a % of total wealth (see
@@ -10780,7 +10812,7 @@ const ZP={
       }
       // Speed-Meilenstein: einmalig fürs Melden eines Fehlers.
       const z=ZS.zoo;
-      if(z && !z.msSpeedReport){ z.msSpeedReport=true; ZS.save&&ZS.save(); ZP.toast('⚡ Meilenstein! Fehler gemeldet — ×50 Speed dauerhaft! Danke fürs Melden!',4500); }
+      if(z && !z.msSpeedReport_eligible){ z.msSpeedReport_eligible=true; ZS.save&&ZS.save(); ZP.toast('🎁 Danke fürs Melden! Neuer Speed-Meilenstein im Shop verfügbar!',4000); }
       // Also keep local backup
       const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
       local.unshift(report); if(local.length>50)local.pop();
@@ -17266,7 +17298,7 @@ const Feeder = {
     if(((ZS.dsMT||0)+(z.mt||0))<cost){ ZP.toast('❌ Zu wenig MT!',2000); return; }
     z.mt=(z.mt||0)-cost;
     z.feedCount=(z.feedCount||0)+1;
-    if(!z.msSpeedFed10 && z.feedCount>=10){ z.msSpeedFed10=true; ZP.toast('⚡ Meilenstein! 10× gefüttert — ×10 Speed dauerhaft!',4000); }
+    if(!z.msSpeedFed10_eligible && z.feedCount>=10){ z.msSpeedFed10_eligible=true; ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
     const now=Date.now();
     // Extend if already active, else start fresh
     const base=(enc.treatUntil&&enc.treatUntil>now)?enc.treatUntil:now;
