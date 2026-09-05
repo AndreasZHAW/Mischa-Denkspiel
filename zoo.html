@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v564 -->
+<!-- ZOO v567 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=564"></script>
-<script src="rewardchests.js?v=564"></script>
-<script src="personality.js?v=564"></script>
+<script src="lang.js?v=567"></script>
+<script src="rewardchests.js?v=567"></script>
+<script src="personality.js?v=567"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v564','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v567','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -525,8 +525,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=564"></script>
-<script src="worlds.js?v=564"></script>
+<script src="firebase-state.js?v=567"></script>
+<script src="worlds.js?v=567"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -12136,16 +12136,23 @@ const TesterPanel = {
   // ist oder nicht.
   _adminMsgUnsub: null,
   _lastSeenAdminMsgAt: 0,
+  _adminMsgFirstLoadDone: false,
   listenForAdminMessages(){
     if(this._adminMsgUnsub || typeof _db==='undefined' || !_db) return;
     this._adminMsgUnsub=_db.collection('zoo_config').doc('adminToTesterMessages').onSnapshot(doc=>{
-      if(!doc.exists) return;
-      const entries=doc.data().entries||[];
+      const entries=doc.exists?(doc.data().entries||[]):[];
       const newest=entries[entries.length-1];
+      // BUG FIX: die alte Prüfung nahm "_lastSeenAdminMsgAt>0" als
+      // Hinweis, ob schon mal geladen wurde — aber bei der ALLERERSTEN
+      // Nachricht überhaupt existierte das Dokument beim ersten Abo noch
+      // gar nicht, also blieb der Zähler bei 0 und genau DIESE erste
+      // echte Nachricht wurde fälschlich als "schon gesehen" behandelt.
+      // Jetzt ein eigener, von den Zeitstempeln unabhängiger Merker.
       if(newest && newest.at>this._lastSeenAdminMsgAt){
-        if(this._lastSeenAdminMsgAt>0) ZP.toast('👑 Nachricht vom Admin: '+newest.msg,5000);
+        if(this._adminMsgFirstLoadDone) ZP.toast('👑 Nachricht vom Admin: '+newest.msg,5000);
         this._lastSeenAdminMsgAt=newest.at;
       }
+      this._adminMsgFirstLoadDone=true;
       const el=document.getElementById('tp-admin-inbox');
       if(el){
         const recent=entries.slice(-10).reverse();
@@ -15883,14 +15890,14 @@ const SPEEDTEMPLE_ROOMS = [
   {name:'🧊 Raum 9 — Eis-Parcours',  reqSpeed:65000,  luckMult:16},
   {name:'💨 Raum 10 — Windböen-Gang',reqSpeed:75000,  luckMult:18},
   {name:'❤️ Raum 11 — Dauerschaden', reqSpeed:150000, luckMult:20},
-  {name:'🟣 Raum 12 — Labyrinth',     reqSpeed:220000, luckMult:22},
+  {name:'💥 Raum 12 — Schwindender Boden', reqSpeed:220000, luckMult:22},
   {name:'🟣 Raum 13 — Labyrinth',     reqSpeed:320000, luckMult:24},
   {name:'🟣 Raum 14 — Labyrinth',     reqSpeed:450000, luckMult:27},
   {name:'🟣 Raum 15 — Endlabyrinth',  reqSpeed:600000, luckMult:30},
 ];
-// Räume 9 (Eis) und 10 (Wind) sind jetzt normal verfügbar wie 1-8,
-// 11-15 (Labyrinthe) bleiben weiterhin "Bald verfügbar".
-const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9,10]);
+// Räume 9 (Eis), 10 (Wind), 11 (Dauerschaden) und 12 (Schwindender Boden)
+// sind sofort verfügbar wie 1-8, 13-15 (Labyrinthe) bleiben "Bald verfügbar".
+const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
 
 
 const SpeedTemple = {
@@ -16052,14 +16059,13 @@ const SpeedTemple = {
         if(el.id!=='hb-footstep-style') el.style.display='none';
       });
     }catch(e){}
-    // Raum 9 (idx8): Eis-Parcours, feste Geschwindigkeit. Raum 10 (idx9):
-    // Windböen-Gang, ebenfalls feste Geschwindigkeit. Raum 11 (idx10):
-    // Dauerschaden-Gerade mit HP-Leiste. Räume 12-15 (idx11-14):
+    // Raum 12 (idx11): Schwindender Boden. Räume 13-15 (idx12-14):
     // Labyrinthe. Räume 1-8: normale Sprung-Engine.
     if(idx===8){ ZG._jumpActive=true; ZG._mazeActive=false; ZG._iceRoomActive=true; this._buildRoom(idx); }
     else if(idx===9){ ZG._jumpActive=false; ZG._mazeActive=true; ZG._windRoomActive=true; this._buildWindRoom(idx); }
     else if(idx===10){ ZG._jumpActive=false; ZG._mazeActive=true; ZG._damagePathActive=true; this._buildDamagePath(idx); }
-    else if(idx>=11){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
+    else if(idx===11){ ZG._jumpActive=false; ZG._mazeActive=true; ZG._crumblingFloorActive=true; this._buildCrumblingFloor(idx); }
+    else if(idx>=12 && idx<=14){ ZG._jumpActive=false; ZG._mazeActive=true; this._buildMaze(idx); }
     else { ZG._jumpActive=true; ZG._mazeActive=false; this._buildRoom(idx); }
   },
   _buildRoom(idx){
@@ -16353,7 +16359,7 @@ const SpeedTemple = {
     ZG._steOldClearColor=0x87CEEB;
     try{ ZG.renderer.setClearColor(0x0d0110,1); }catch(e){}
     const floorY=25.75, corridorHalf=12, wallThick=2, wallH=10;
-    const turns=[8,10,12,14][idx-11];
+    const turns=[10,12,14][idx-12];
     const path=this._genMazePath(turns);
     // BUG FIX: die alte Wand-Berechnung erzeugte Wände UNABHÄNGIG vom
     // begehbaren Bereich — an manchen Abbiegungen (je nach Richtung)
@@ -16469,6 +16475,32 @@ const SpeedTemple = {
         if(ZG._damageStartPos){ ZG.pl.x=ZG._damageStartPos.x; ZG.pl.z=ZG._damageStartPos.z; }
         ZG._hp=ZG._hpMax;
         this._updHPBar();
+      }
+    }
+    // Raum 12: die Zerfalls-Front rückt mit festem Tempo vor. Segmente,
+    // über die sie hinweggeht, verschwinden sichtbar. Ist der Spieler
+    // (in Raum-lokalem Z) hinter der Front (also dort, wo der Boden schon
+    // weg ist), fällt er durch — zurück zum Start.
+    if(ZG._crumblingFloorActive && ZG._crumbleSegs){
+      const nowCr=Date.now();
+      const dtCr=(nowCr-(this._lastCrumbleTick||nowCr))/1000;
+      this._lastCrumbleTick=nowCr;
+      ZG._crumbleFrontZ-=(ZG._crumbleRate||137.8)*dtCr;
+      ZG._crumbleSegs.forEach(seg=>{
+        if(!seg.gone && ZG._crumbleFrontZ<=seg.zTop){
+          seg.gone=true;
+          if(seg.mesh){ ZG.scene.remove(seg.mesh); }
+        }
+      });
+      const playerLocalZ=ZG.pl.z-ZG._crumbleOZ;
+      const standingSeg=ZG._crumbleSegs.find(s=>playerLocalZ<=s.zTop && playerLocalZ>s.zBottom);
+      if(standingSeg && standingSeg.gone){
+        ZP.toast('💥 Der Boden ist weg! Brauchst mehr als 25\'000 Speed.',2200);
+        if(ZG._crumbleStartPos){ ZG.pl.x=ZG._crumbleStartPos.x; ZG.pl.z=ZG._crumbleStartPos.z; }
+        ZG._crumbleFrontZ=60+20;
+        ZG._crumbleSegs.forEach(seg=>{
+          if(seg.gone && seg.mesh){ ZG.scene.add(seg.mesh); seg.gone=false; }
+        });
       }
     }
     // Raum 11: Speed-Falle in der Mitte des Wegs — unter 15'000 Speed
@@ -16615,6 +16647,62 @@ const SpeedTemple = {
     this._showRoomHUD(idx);
     this._showSpeedHUD();
   },
+  // ── Raum 12: Schwindender Boden — der Boden verschwindet Stück für
+  // Stück von hinten nach vorne, mit einem festen Tempo (137.8
+  // Einheiten/Sek). Nur wer mehr als 25'000 Speed hat, ist schnell genug,
+  // um dem Zerfall davonzulaufen — bei genau 25'000 oder weniger holt
+  // er einen ein und man fällt durch. Wände auf allen vier Seiten, damit
+  // man bei hohem Tempo nicht seitlich rausglitcht.
+  _buildCrumblingFloor(idx){
+    ZG._jumpMeshes=[];
+    const sc=ZG.scene;
+    const OX=8000, OZ=8000;
+    ZG._steOX=OX; ZG._steOZ=OZ;
+    ZG._steOldClearColor=0x87CEEB;
+    try{ ZG.renderer.setClearColor(0x1a0a2a,1); }catch(e){}
+    const floorY=25.75;
+    const startZ=60, segLen=20, segCount=24, endZ=startZ-segLen*segCount;
+    const corridorHalfW=12;
+    const areaZ1=OZ+endZ-5, areaZ2=OZ+startZ+5;
+    ZG._mazeAreas=[{x1:OX-corridorHalfW,x2:OX+corridorHalfW,z1:areaZ1,z2:areaZ2}];
+    ZG._mazeGoal={x:OX,z:OZ+endZ};
+    // Boden in einzelne Segmente aufgeteilt statt einer Fläche, damit sie
+    // sichtbar nacheinander verschwinden können.
+    const segMat=new THREE.MeshBasicMaterial({color:0x6B2FA0});
+    ZG._crumbleSegs=[];
+    for(let i=0;i<segCount;i++){
+      const segZ=startZ-segLen*i-segLen/2;
+      const seg=new THREE.Mesh(new THREE.PlaneGeometry(corridorHalfW*2,segLen-0.4),segMat);
+      seg.rotation.x=-Math.PI/2; seg.position.set(OX,floorY,OZ+segZ);
+      sc.add(seg); ZG._jumpMeshes.push(seg);
+      ZG._crumbleSegs.push({mesh:seg,zTop:startZ-segLen*i,zBottom:startZ-segLen*(i+1),gone:false});
+    }
+    const wallMat=new THREE.MeshBasicMaterial({color:0xB026FF,transparent:true,opacity:.5});
+    const wallH=10, wallThick=1.5;
+    [-corridorHalfW,corridorHalfW].forEach(ex=>{
+      const wall=new THREE.Mesh(new THREE.BoxGeometry(wallThick,wallH,areaZ2-areaZ1),wallMat);
+      wall.position.set(OX+ex,floorY+wallH/2,(areaZ1+areaZ2)/2); sc.add(wall); ZG._jumpMeshes.push(wall);
+    });
+    [areaZ1,areaZ2].forEach(wz=>{
+      const wall=new THREE.Mesh(new THREE.BoxGeometry(corridorHalfW*2+wallThick*2,wallH,wallThick),wallMat);
+      wall.position.set(OX,floorY+wallH/2,wz); sc.add(wall); ZG._jumpMeshes.push(wall);
+    });
+    ZG._crumbleFrontZ=startZ+segLen; // Zerfalls-Front startet einen Segment-Abstand VOR dem Spieler — kleine Schonfrist statt Sofort-Tod beim Spawn
+    ZG._crumbleRate=137.8; // Einheiten/Sek — kalibriert auf genau 25'000 Speed
+    ZG._crumbleOZ=OZ;
+    ZG._crumbleStartPos={x:OX,z:OZ+startZ};
+    const startMarker=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.3,16),new THREE.MeshBasicMaterial({color:0x4ADE80}));
+    startMarker.position.set(OX,floorY,OZ+startZ); sc.add(startMarker); ZG._jumpMeshes.push(startMarker);
+    const goalMarker=new THREE.Mesh(new THREE.CylinderGeometry(4,4,0.3,16),new THREE.MeshBasicMaterial({color:0xFFD700}));
+    goalMarker.position.set(ZG._mazeGoal.x,floorY,ZG._mazeGoal.z); sc.add(goalMarker); ZG._jumpMeshes.push(goalMarker);
+    const goalGlow=new THREE.PointLight(0xFFD700,1.5,20);
+    goalGlow.position.set(ZG._mazeGoal.x,floorY+3,ZG._mazeGoal.z); sc.add(goalGlow); ZG._jumpMeshes.push(goalGlow);
+    ZG.pl.x=OX; ZG.pl.y=floorY+1.5; ZG.pl.z=OZ+startZ; ZG.yaw=0;
+    ZG._jumpV=0; ZG._jumpOnGround=true;
+    this._lastFootstep=0; this._lastFootX=ZG.pl.x; this._lastFootZ=ZG.pl.z; this._lastCrumbleTick=Date.now();
+    this._showRoomHUD(idx);
+    this._showSpeedHUD();
+  },
   _showHPBar(){
     document.getElementById('speedtemple-hp-bar')?.remove();
     const el=document.createElement('div');
@@ -16741,13 +16829,13 @@ const SpeedTemple = {
     this._exitRoom();
   },
   _exitRoom(){
-    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false; ZG._iceRoomActive=false; ZG._windRoomActive=false; ZG._damagePathActive=false;
+    ZG._jumpActive=false; ZG._steActive=false; ZG._mazeActive=false; ZG._iceRoomActive=false; ZG._windRoomActive=false; ZG._damagePathActive=false; ZG._crumblingFloorActive=false;
     if(ZG._bossIv){ clearInterval(ZG._bossIv); ZG._bossIv=null; }
     if(ZG._tsunamiIv){ clearInterval(ZG._tsunamiIv); ZG._tsunamiIv=null; }
     if(ZG._spinBarIv){ clearInterval(ZG._spinBarIv); ZG._spinBarIv=null; }
     if(ZG._windIv){ clearInterval(ZG._windIv); ZG._windIv=null; }
     (ZG._jumpMeshes||[]).forEach(m=>{ if(m&&ZG.scene) ZG.scene.remove(m); });
-    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null; ZG._speedGate=null; ZG._speedGateInvUntil=0; ZG._hp=null; ZG._hpMax=null; ZG._damageStartPos=null;
+    ZG._jumpMeshes=[]; ZG._jumpPlatforms=null; ZG._goalStar=null; ZG._goalPos=null; ZG._bossMesh=null; ZG._checkpoints=null; ZG._tsunami=null; ZG._spinBar=null; ZG._bossSpawn=null; ZG._tsunamiSpawnZ=null; ZG._tsunamiFrozen=false; ZG._steInvUntil=0; ZG._mazeWalls=null; ZG._mazeAreas=null; ZG._mazeGoal=null; ZG._windGusts=null; ZG._windInvUntil=0; ZG._steSpawnPos=null; ZG._speedGate=null; ZG._speedGateInvUntil=0; ZG._hp=null; ZG._hpMax=null; ZG._damageStartPos=null; ZG._crumbleSegs=null; ZG._crumbleFrontZ=null; ZG._crumbleStartPos=null;
     document.getElementById('speedtemple-hp-bar')?.remove();
     document.getElementById('speedtemple-countdown')?.remove();
     document.getElementById('speedtemple-speed-setter')?.remove();
