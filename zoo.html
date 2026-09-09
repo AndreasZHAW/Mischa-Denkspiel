@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v571 -->
+<!-- ZOO v573 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=571"></script>
-<script src="rewardchests.js?v=571"></script>
-<script src="personality.js?v=571"></script>
+<script src="lang.js?v=573"></script>
+<script src="rewardchests.js?v=573"></script>
+<script src="personality.js?v=573"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v571','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v573','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -292,6 +292,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="ZP.open('report')"><div class="hbb" style="background:rgba(52,152,219,.85)">📢</div><div class="hbl" data-i18n="zoo.report">Melden</div></div>
 <div class="hb" onclick="ZP.open('trade')"><div class="hbb" style="background:rgba(243,156,18,.8)">🤝</div><div class="hbl" data-i18n="zoo.trade">Tauschen</div></div>
 <div class="hb" onclick="MTPass.open()"><div class="hbb" style="background:rgba(255,215,0,.85)">🎫</div><div class="hbl">MT-Pass</div></div>
+<div class="hb" onclick="DailyCalendar.open()"><div class="hbb" style="background:rgba(52,152,219,.85)">📅</div><div class="hbl">Kalender</div></div>
 <div class="hb" id="hb-footstep-style" onclick="SpeedTemple.toggleFootstepStyle()"><div class="hbb" style="background:rgba(224,86,253,.85)">🔊</div><div class="hbl">Schritt-Ton</div></div>
 <div class="hb" id="hb-tester-panel" onclick="TesterPanel.open()" style="display:none"><div class="hbb" style="background:rgba(52,120,246,.85)">🧪</div><div class="hbl">Tester</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
@@ -525,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=571"></script>
-<script src="worlds.js?v=571"></script>
+<script src="firebase-state.js?v=573"></script>
+<script src="worlds.js?v=573"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1230,6 +1231,45 @@ const RANK_DEFAULT_PRIORITY=['Admin','Tester','Rubin','Speed','Diamant','Gold','
 const RANK_EXCLUSIVE_NAMES={'admin':['bu:)','bu:3','andi'], 'tester':['j.t']};
 const RANK_EXCLUSIVE_META={Admin:{color:'#FF3333'}, Tester:{color:'#3399FF'}};
 function _rankOwnerLC(playerName){ return (playerName||'').toLowerCase(); }
+// ══ GLÜCK-KETTE (Gondel) ══
+// Statt eines Tieres kommt zuerst die Chance auf ein Kleeblatt — jede
+// Stufe ist NUR erreichbar, wenn die Stufe davor geklappt hat, alles bei
+// ein und demselben Gondel-Tier. Bricht die Kette irgendwo ab, bekommt
+// man das eigentlich anstehende Tier ganz normal, aber mit dem Bonus der
+// höchsten erreichten Stufe — nur für dieses eine Tier, kein Dauer-Buff.
+const LUCK_CHAIN=[
+  {name:'Grün',    color:'#4CAF50', chance:0.20,   mult:1.25},
+  {name:'Gelb',    color:'#FFEB3B', chance:0.10,   mult:1.5},
+  {name:'Orange',  color:'#FF9800', chance:0.05,   mult:2},
+  {name:'Silber',  color:'#C0C0C0', chance:0.01,   mult:2},
+  {name:'Gold',    color:'#FFD700', chance:0.001,  mult:5},
+  {name:'Diamant', color:'#B9F2FF', chance:0.0001, mult:1000},
+];
+function rollLuckChain(){
+  const z=ZS.zoo;
+  // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe.
+  if(z && z._forceLuckChainStage!==undefined && z._forceLuckChainStage!==null){
+    const idx=z._forceLuckChainStage;
+    z._forceLuckChainStage=null;
+    return idx>=0 ? LUCK_CHAIN[idx] : null;
+  }
+  let achieved=null;
+  for(const stage of LUCK_CHAIN){
+    if(Math.random()<stage.chance){ achieved=stage; } else { break; }
+  }
+  return achieved;
+}
+function _flashLuckChain(stage){
+  // TODO: sobald es die Grafik-Stufen-Einstellung gibt, hier nur bei
+  // Stufe 2/3 auslösen (aktuell gibt's die Einstellung noch nicht).
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;z-index:9600;pointer-events:none;box-shadow:inset 0 0 90px 25px '+stage.color+';opacity:0;transition:opacity .35s';
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),450); },1700);
+  try{ ZP.toast&&ZP.toast('🍀 '+stage.name+'-Glück! ×'+stage.mult+' Glück für dieses Tier!',3200); }catch(e){}
+}
+
 function computeAchievedRanks(playerName, z, escSpeed){
   const nameLC=_rankOwnerLC(playerName);
   const achieved=['Ungerankt'];
@@ -1604,6 +1644,83 @@ const MTPass = {
       +MTPASS_TIERS.map((t,i)=>tierRow(t,i,false)).join('')
       +'<div style="font-weight:900;color:#B388FF;margin:14px 0 6px;text-align:center">🌟 SUPER-PASS'+(passDone?'':' (erst normalen Pass ganz durchspielen)')+'</div>'
       +MTPASS_SUPER_TIERS.map((t,i)=>tierRow(t,i,true)).join('');
+  },
+};
+
+// ══ TÄGLICHER LOGIN-KALENDER ══
+// 7-Tage-Zyklus mit steigenden Belohnungen, wiederholt sich danach.
+// Verpasst man einen Tag, bricht die Serie ab und beginnt wieder bei Tag 1.
+const DAILY_CAL_REWARDS=[
+  {day:1, icon:'🍀', label:'Glück ×2 · 5 Min',   apply:z=>_dcBoost(z,'luck',2,5)},
+  {day:2, icon:'👥', label:'Besucher ×2 · 5 Min', apply:z=>_dcBoost(z,'visitor',2,5)},
+  {day:3, icon:'🌀', label:'+2% Geld',            apply:z=>_dcMoney(z,0.02)},
+  {day:4, icon:'🍀', label:'Glück ×3 · 10 Min',   apply:z=>_dcBoost(z,'luck',3,10)},
+  {day:5, icon:'👥', label:'Besucher ×3 · 10 Min',apply:z=>_dcBoost(z,'visitor',3,10)},
+  {day:6, icon:'🌀', label:'+5% Geld',            apply:z=>_dcMoney(z,0.05)},
+  {day:7, icon:'🎁', label:'GROSSE Belohnung: Glück ×5 & Besucher ×5 · 15 Min', apply:z=>{_dcBoost(z,'luck',5,15);_dcBoost(z,'visitor',5,15);}},
+];
+function _dcBoost(z,type,mult,mins){
+  if(!z.mtPassBoosts) z.mtPassBoosts={};
+  const cur=z.mtPassBoosts[type];
+  const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
+  z.mtPassBoosts[type]={mult, until:base+mins*60000};
+}
+function _dcMoney(z,pct){
+  const combined=(ZS.dsMT||0)+(z.mt||0);
+  z.mt=(z.mt||0)+Math.round(combined*pct*10)/10;
+}
+function _dcToday(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _dcYesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const DailyCalendar = {
+  open(){
+    const z=ZS.zoo; if(!z) return;
+    // Serie bricht ab, wenn der letzte Claim weder heute noch gestern war.
+    if(z.dailyLoginLastClaim && z.dailyLoginLastClaim!==_dcToday() && z.dailyLoginLastClaim!==_dcYesterday()){
+      z.dailyLoginStreak=0;
+    }
+    document.getElementById('daily-cal-panel')?.remove();
+    const panel=document.createElement('div');
+    panel.id='daily-cal-panel';
+    panel.style.cssText='position:fixed;inset:0;background:rgba(5,10,25,.92);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    panel.addEventListener('click',(e)=>{ if(e.target===panel) panel.remove(); });
+    const claimedToday=z.dailyLoginLastClaim===_dcToday();
+    const streak=z.dailyLoginStreak||0;
+    const cycleDay=(streak%7)+1; // welcher Tag als nächstes ansteht (1-7)
+    const dayBoxes=DAILY_CAL_REWARDS.map(r=>{
+      const isPast=r.day<cycleDay || (claimedToday&&r.day===cycleDay);
+      const isToday=r.day===cycleDay && !claimedToday;
+      const bg=isPast?'rgba(39,174,96,.15)':(isToday?'rgba(255,215,0,.15)':'rgba(255,255,255,.04)');
+      const border=isPast?'#27AE60':(isToday?'#FFD700':'rgba(255,255,255,.15)');
+      return '<div style="background:'+bg+';border:2px solid '+border+';border-radius:10px;padding:8px 5px;text-align:center;min-width:70px">'
+        +'<div style="font-size:.62rem;color:rgba(255,255,255,.5);font-weight:800;margin-bottom:3px">Tag '+r.day+'</div>'
+        +'<div style="font-size:1.5rem">'+(isPast?'✅':r.icon)+'</div>'
+        +'<div style="font-size:.58rem;color:rgba(255,255,255,.6);margin-top:3px">'+r.label+'</div>'
+        +'</div>';
+    }).join('');
+    panel.innerHTML='<div style="background:linear-gradient(135deg,#0a1a3a,#050c20);border:1px solid rgba(52,152,219,.4);border-radius:16px;padding:20px;max-width:520px;width:95%;color:#fff">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><h2 style="flex:1;color:#3498DB;font-size:1.15rem;margin:0">📅 Täglicher Kalender</h2><button onclick="document.getElementById(\'daily-cal-panel\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer">✕</button></div>'
+      +'<div style="text-align:center;color:rgba(255,255,255,.5);font-size:.78rem;margin-bottom:14px">🔥 Aktuelle Serie: '+streak+' Tag'+(streak===1?'':'e')+' — verpasst du einen Tag, geht sie wieder bei 1 los.</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:16px">'+dayBoxes+'</div>'
+      +(claimedToday
+        ? '<div style="text-align:center;color:#27AE60;font-weight:800;font-size:.85rem">✅ Heute schon abgeholt — komm morgen wieder!</div>'
+        : '<button onclick="DailyCalendar.claim()" style="width:100%;background:linear-gradient(135deg,#3498DB,#2874A6);border:none;color:#fff;padding:12px;border-radius:12px;font-weight:900;cursor:pointer;font-size:.95rem">🎁 Tag '+cycleDay+' abholen</button>')
+      +'</div>';
+    document.body.appendChild(panel);
+  },
+  claim(){
+    const z=ZS.zoo; if(!z) return;
+    if(z.dailyLoginLastClaim===_dcToday()){ ZP.toast('❗ Heute schon abgeholt!'); return; }
+    if(z.dailyLoginLastClaim && z.dailyLoginLastClaim!==_dcYesterday()){ z.dailyLoginStreak=0; }
+    z.dailyLoginStreak=(z.dailyLoginStreak||0)+1;
+    z.dailyLoginLastClaim=_dcToday();
+    const cycleDay=((z.dailyLoginStreak-1)%7)+1;
+    const reward=DAILY_CAL_REWARDS.find(r=>r.day===cycleDay);
+    if(reward) reward.apply(z);
+    ZS.save&&ZS.save();
+    try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    try{ SpeedTemple._updBoostBadge&&SpeedTemple._updBoostBadge(); }catch(e){}
+    ZP.toast('🎁 Tag '+cycleDay+' abgeholt: '+(reward?reward.label:'')+'!',3500);
+    this.open(); // refresh
   },
 };
 
@@ -6477,7 +6594,7 @@ const ZG={
   },
 
   // ═══ GONDOLA ═══
-  _mkG(){const l=ZS.lk(),evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
+  _mkG(){const chainResult=rollLuckChain();let l=ZS.lk();if(chainResult){l*=chainResult.mult;_flashLuckChain(chainResult);}const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');const a=rA(l,ni);const sh=rSh();const tr=rTr(this.ev?.id);const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;return{a,sh,tr,xm};},
   _slapLaunchSelf(dur){
     const start=Date.now(); const half=dur*.45;
     const startY=this.pl.y;
@@ -12781,6 +12898,16 @@ const ZAdmin = {
       ZP.toast('⚡ +'+amount+' Speed an "'+this.target+'" vergeben! (Neu: '+newSpeed+')',3000);
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
   },
+  async testLuckChain(){
+    const names=LUCK_CHAIN.map((s,i)=>i+': '+s.name).join('\n');
+    const choice=prompt('Welche Glück-Stufe soll beim nächsten Gondel-Tier erzwungen werden?\n'+names+'\n\n(-1 = keine, Kette normal ausrollen)','5');
+    if(choice===null) return;
+    const idx=parseInt(choice);
+    if(isNaN(idx) || idx<-1 || idx>=LUCK_CHAIN.length){ ZP.toast('❌ Ungültige Zahl.'); return; }
+    const z=ZS.zoo; if(!z){ ZP.toast('❌ Kein eigener Zoo geladen.'); return; }
+    z._forceLuckChainStage=idx;
+    ZP.toast(idx===-1?'🍀 Kette wird wieder normal ausgewürfelt.':'🍀 Nächstes Gondel-Tier erzwingt: '+LUCK_CHAIN[idx].name+'-Glück!',3000);
+  },
   async grantRank(){
     if(!this.target){ZP.toast('❗ Spieler auswählen!',1500);return;}
     const choices=RANK_TIERS.map(r=>r.name).join(', ');
@@ -18007,6 +18134,7 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.revokeAdmin()">🚫 Admin entziehen</button>
             <button class="padmin-btn" style="background:#E056FD" onclick="ZAdmin.grantSpeed()">⚡ Speed vergeben</button>
             <button class="padmin-btn" style="background:#E0115F" onclick="ZAdmin.grantRank()">🏅 Rang vergeben</button>
+            <button class="padmin-btn" style="background:#4CAF50" onclick="ZAdmin.testLuckChain()">🍀 Glück-Kette testen</button>
             <button class="padmin-btn" style="background:#8E44AD" onclick="SpeedTemple.toggleRestriction()">🔒 Tempel-Zugang umschalten</button>
           </div>
           <div class="padmin-section-title" style="margin-top:10px">📢 Ankündigung</div>
