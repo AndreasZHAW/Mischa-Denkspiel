@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v573 -->
+<!-- ZOO v574 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=573"></script>
-<script src="rewardchests.js?v=573"></script>
-<script src="personality.js?v=573"></script>
+<script src="lang.js?v=574"></script>
+<script src="rewardchests.js?v=574"></script>
+<script src="personality.js?v=574"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v573','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v574','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=573"></script>
-<script src="worlds.js?v=573"></script>
+<script src="firebase-state.js?v=574"></script>
+<script src="worlds.js?v=574"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1237,6 +1237,20 @@ function _rankOwnerLC(playerName){ return (playerName||'').toLowerCase(); }
 // ein und demselben Gondel-Tier. Bricht die Kette irgendwo ab, bekommt
 // man das eigentlich anstehende Tier ganz normal, aber mit dem Bonus der
 // höchsten erreichten Stufe — nur für dieses eine Tier, kein Dauer-Buff.
+// ══ GRAFIK-STUFE ══
+// Stufe 1 = wie bisher (Standard). Stufe 2/3 sind der Rahmen für den
+// grösseren Grafik-Ausbau (weichere Farben, echtere Gondelstation, Gras
+// usw.) — der Inhalt kommt schrittweise; die Einstellung selbst und ihre
+// Kopplung an bestehende Effekte (z.B. die Glück-Ketten-Leuchte) ist
+// aber schon aktiv.
+const GraphicsSettings = {
+  level: (()=>{ try{ return parseInt(localStorage.getItem('mischa_graphics_level'))||1; }catch(e){ return 1; } })(),
+  set(lvl){
+    this.level=lvl;
+    try{ localStorage.setItem('mischa_graphics_level',String(lvl)); }catch(e){}
+  },
+};
+
 const LUCK_CHAIN=[
   {name:'Grün',    color:'#4CAF50', chance:0.20,   mult:1.25},
   {name:'Gelb',    color:'#FFEB3B', chance:0.10,   mult:1.5},
@@ -1260,13 +1274,16 @@ function rollLuckChain(){
   return achieved;
 }
 function _flashLuckChain(stage){
-  // TODO: sobald es die Grafik-Stufen-Einstellung gibt, hier nur bei
-  // Stufe 2/3 auslösen (aktuell gibt's die Einstellung noch nicht).
-  const el=document.createElement('div');
-  el.style.cssText='position:fixed;inset:0;z-index:9600;pointer-events:none;box-shadow:inset 0 0 90px 25px '+stage.color+';opacity:0;transition:opacity .35s';
-  document.body.appendChild(el);
-  requestAnimationFrame(()=>{ el.style.opacity='1'; });
-  setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),450); },1700);
+  // Bildschirmrand-Leuchten nur ab Grafik-Stufe 2 — die Belohnung selbst
+  // (Toast-Meldung) bleibt bei jeder Stufe sichtbar, nur der optische
+  // Effekt ist an die Grafik-Stufe gekoppelt.
+  if(GraphicsSettings.level>=2){
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;inset:0;z-index:9600;pointer-events:none;box-shadow:inset 0 0 90px 25px '+stage.color+';opacity:0;transition:opacity .35s';
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>{ el.style.opacity='1'; });
+    setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),450); },1700);
+  }
   try{ ZP.toast&&ZP.toast('🍀 '+stage.name+'-Glück! ×'+stage.mult+' Glück für dieses Tier!',3200); }catch(e){}
 }
 
@@ -5428,6 +5445,11 @@ const ZG={
     this._updateTimeOfDay();
     const btn=document.getElementById('todToggleBtn');
     if(btn){ btn.style.background=enabled?'#27AE60':'#555'; btn.textContent=enabled?'✓ An':'✗ Aus'; }
+  },
+  setGraphicsLevel(lvl){
+    GraphicsSettings.set(lvl);
+    try{ ZP._rMenu&&ZP._rMenu(); }catch(e){}
+    try{ ZP.toast&&ZP.toast('🎨 Grafik-Stufe '+lvl+' ausgewählt.',2000); }catch(e){}
   },
   // Event-Effekte: the falling/rising emoji particles (fall()/rise()) that
   // _startEvFX() spawns for world events (❄️ Schneesturm, 🎉 Konzert,
@@ -10708,6 +10730,13 @@ const ZP={
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <span style="color:rgba(255,255,255,.75);font-size:.78rem">⛅ Wetter (wechselt von selbst)</span>
           <button id="weatherToggleBtn" onclick="Weather.setEnabled(!Weather.isEnabled())" style="background:${weatherOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${weatherOn?'✓ An':'✗ Aus'}</button>
+        </div>
+        <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">
+          <div style="color:rgba(255,255,255,.75);font-size:.78rem;margin-bottom:6px">🎨 Grafik-Stufe</div>
+          <div style="display:flex;gap:6px">
+            ${[1,2,3].map(lvl=>`<button onclick="ZG.setGraphicsLevel(${lvl})" style="flex:1;background:${GraphicsSettings.level===lvl?'#FFA500':'rgba(255,255,255,.1)'};color:${GraphicsSettings.level===lvl?'#000':'#fff'};border:none;padding:7px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.78rem">${lvl}</button>`).join('')}
+          </div>
+          <div style="font-size:.62rem;color:rgba(255,255,255,.4);margin-top:5px">Stufe 2/3: mehr Details (Ausbau folgt schrittweise) — z.B. leuchtet der Bildschirmrand bei Glück-Treffern nur ab Stufe 2.</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
