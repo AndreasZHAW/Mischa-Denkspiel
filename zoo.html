@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v575 -->
+<!-- ZOO v576 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=575"></script>
-<script src="rewardchests.js?v=575"></script>
-<script src="personality.js?v=575"></script>
+<script src="lang.js?v=576"></script>
+<script src="rewardchests.js?v=576"></script>
+<script src="personality.js?v=576"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v575','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v576','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=575"></script>
-<script src="worlds.js?v=575"></script>
+<script src="firebase-state.js?v=576"></script>
+<script src="worlds.js?v=576"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4798,17 +4798,32 @@ const ZG={
         const qAnimal=ZG.gQ[i];
         gondola.children.forEach(ch=>{
           if(ch.userData?.animalLabel&&qAnimal){
-            // Update the canvas texture with animal emoji
-            if(!ch._lastAnimal||ch._lastAnimal!==qAnimal.a.id){
-              ch._lastAnimal=qAnimal.a.id;
+            // BUG FIX: griff bisher ungeschützt auf qAnimal.a.id zu — bei
+            // einem reinen Kleeblatt-Eintrag (kein Tier, siehe
+            // Glück-Kette) existiert .a gar nicht, das warf hier JEDES
+            // EINZELNE BILD einen Fehler und liess die komplette
+            // Render-Schleife stehenbleiben (fühlte sich wie "Bewegung
+            // geht nicht mehr" an, war aber ein kompletter Absturz).
+            const labelKey=qAnimal.isCloverOnly?('clover_'+qAnimal.cloverStage.name):qAnimal.a.id;
+            if(!ch._lastAnimal||ch._lastAnimal!==labelKey){
+              ch._lastAnimal=labelKey;
               const cv=document.createElement('canvas');cv.width=128;cv.height=64;
               const ctx2=cv.getContext('2d');
-              ctx2.font='36px serif';ctx2.textAlign='center';ctx2.textBaseline='middle';
-              ctx2.fillText(qAnimal.a.e,40,32);
-              ctx2.font='bold 14px Arial';ctx2.fillStyle='#FFD700';
-              ctx2.fillText(qAnimal.a.n,90,22);
-              ctx2.font='12px Arial';ctx2.fillStyle='rgba(255,255,255,.7)';
-              ctx2.fillText($mt(qAnimal.a.p),90,42);
+              if(qAnimal.isCloverOnly){
+                ctx2.font='36px serif';ctx2.textAlign='center';ctx2.textBaseline='middle';
+                ctx2.fillText('🍀',40,32);
+                ctx2.font='bold 14px Arial';ctx2.fillStyle=qAnimal.cloverStage.color;
+                ctx2.fillText(qAnimal.cloverStage.name+'-Glück',90,22);
+                ctx2.font='11px Arial';ctx2.fillStyle='rgba(255,255,255,.7)';
+                ctx2.fillText('fürs nächste Tier',90,42);
+              } else {
+                ctx2.font='36px serif';ctx2.textAlign='center';ctx2.textBaseline='middle';
+                ctx2.fillText(qAnimal.a.e,40,32);
+                ctx2.font='bold 14px Arial';ctx2.fillStyle='#FFD700';
+                ctx2.fillText(qAnimal.a.n,90,22);
+                ctx2.font='12px Arial';ctx2.fillStyle='rgba(255,255,255,.7)';
+                ctx2.fillText($mt(qAnimal.a.p),90,42);
+              }
               if(ch.material&&ch.material.map){ch.material.map.dispose();}
               ch.material=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true});
               ch.scale.set(3,1.5,1);
@@ -7140,6 +7155,12 @@ const ZG={
     const el=G('gint-ganim');if(!el)return;
     // Reuse the same gondola display as the main panel
     const g=ZG.gQ[0];if(!g){el.innerHTML='<div style="color:rgba(255,255,255,.3)">Keine Gondel</div>';return;}
+    if(g.isCloverOnly){
+      const cs=g.cloverStage;
+      el.innerHTML='<div style="text-align:center"><div style="font-size:3rem;filter:drop-shadow(0 0 10px '+cs.color+')">🍀</div><div style="font-weight:900;font-size:.9rem;color:'+cs.color+'">'+cs.name+'-Glück!</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin:4px 0">Gilt fürs nächste Tier: ×'+cs.mult+'</div></div>';
+      const t3=G('gint-gtimer');const t4=G('gtimer');if(t3&&t4)t3.textContent=t4.textContent;
+      return;
+    }
     const{a,sh,tr,xm}=g;const tm=ZP._tMul?.(sh,tr)||tMul(sh,tr);const z=ZS.zoo;const can=((ZS.dsMT||0)+z.mt)>=a.p,hasSlot=z.enc.some(e=>!e);
     el.innerHTML=`<div style="text-align:center"><div style="font-size:3rem">${a.e}</div><div style="font-weight:900;font-size:.9rem;color:#fff">${a.n}</div><div style="font-size:.72rem;color:rgba(255,255,255,.5);margin:4px 0">💰 ${$mt(a.earn*xm)}/v · ${$mt(a.p)}</div><button class="ab" ${(!can||!hasSlot)?'disabled':''} style="font-size:.85rem;padding:8px 18px;margin-top:4px" onpointerdown="ZP._buyInFlight=true" onclick="ZP._buyG('${a.id}');ZP._syncGintGondola?.()">${!can?'❌ Zu wenig':!hasSlot?'❌ Voll':'🛒 Kaufen'}</button></div>`;
     // Sync timer
