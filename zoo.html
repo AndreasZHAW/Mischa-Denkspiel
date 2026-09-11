@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v576 -->
+<!-- ZOO v578 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=576"></script>
-<script src="rewardchests.js?v=576"></script>
-<script src="personality.js?v=576"></script>
+<script src="lang.js?v=578"></script>
+<script src="rewardchests.js?v=578"></script>
+<script src="personality.js?v=578"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v576','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v578','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=576"></script>
-<script src="worlds.js?v=576"></script>
+<script src="firebase-state.js?v=578"></script>
+<script src="worlds.js?v=578"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1261,17 +1261,31 @@ const LUCK_CHAIN=[
 ];
 function rollLuckChain(){
   const z=ZS.zoo;
-  // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe.
+  // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe, hält
+  // aber auch die Fortschritts-Position im Einklang damit.
   if(z && z._forceLuckChainStage!==undefined && z._forceLuckChainStage!==null){
     const idx=z._forceLuckChainStage;
     z._forceLuckChainStage=null;
-    return idx>=0 ? LUCK_CHAIN[idx] : null;
+    if(idx<0) return null;
+    z.luckChainPos=idx+1;
+    return LUCK_CHAIN[idx];
   }
-  let achieved=null;
-  for(const stage of LUCK_CHAIN){
-    if(Math.random()<stage.chance){ achieved=stage; } else { break; }
+  // BUG FIX: erst wurde bei JEDEM Gondel-Tier die komplette Kette neu
+  // gewürfelt (Grün nach Gelb kam wieder vor). Dann kam eine Version, die
+  // bei einem Fehlschlag auf Null zurückgesetzt hat — dadurch konnte
+  // nach einem Fehlschlag später wieder GRÜN kommen, obwohl vorher schon
+  // Grün erreicht war. Jetzt: die Position geht NUR noch nach oben,
+  // niemals zurück. Ein Fehlschlag bedeutet nur "diesmal nicht", nicht
+  // "zurück auf Null" — kommt nochmal ein Glück, ist es garantiert
+  // mindestens eine Stufe besser als das letzte.
+  const pos=z?.luckChainPos||0;
+  if(pos>=LUCK_CHAIN.length) return null; // Diamant schon erreicht, geht nicht höher
+  const stage=LUCK_CHAIN[pos];
+  if(Math.random()<stage.chance){
+    if(z) z.luckChainPos=pos+1;
+    return stage;
   }
-  return achieved;
+  return null;
 }
 function _flashLuckChain(stage){
   // Bildschirmrand-Leuchten nur ab Grafik-Stufe 2 — die Belohnung selbst
@@ -6633,26 +6647,38 @@ const ZG={
   // ═══ GONDOLA ═══
   _mkG(){
     const z=ZS.zoo;
-    // Wartet noch ein Glück-Bonus vom letzten Kleeblatt-Treffer? Dann
-    // gilt der jetzt für DIESES Tier — sichtbar markiert.
-    let appliedStage=null;
-    if(z && z.pendingLuckStage){ appliedStage=z.pendingLuckStage; z.pendingLuckStage=null; }
-    // Neue Kette auswürfeln: klappt sie, kommt diesmal KEIN Tier, sondern
-    // nur das Kleeblatt — der Bonus wartet dann auf's nächste Tier.
+    // BUG FIX: wartete schon ein Glück-Bonus, konnte er bisher verloren
+    // gehen, wenn GLEICHZEITIG eine neue Kette anschlug — die neue
+    // überschrieb den alten Bonus einfach, bevor der je auf ein echtes
+    // Tier angewendet wurde ("bekommt man keinen Glück-Multi"). Jetzt:
+    // wartet noch ein Bonus, wird er JETZT sofort verbraucht — keine
+    // neue Kette wird versucht, bis das erledigt ist.
+    if(z && z.pendingLuckStage){
+      const appliedStage=z.pendingLuckStage;
+      z.pendingLuckStage=null;
+      let l=ZS.lk()*appliedStage.mult;
+      const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');
+      const a=rA(l,ni);
+      const sh=rSh();
+      const tr=rTr(this.ev?.id);
+      const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;
+      return {a,sh,tr,xm,chainResult:appliedStage};
+    }
+    // Kein Bonus wartet — jetzt darf die Kette einen Schritt weiter
+    // probiert werden (fortlaufend, siehe rollLuckChain()).
     const newChain=rollLuckChain();
     if(newChain){
       if(z) z.pendingLuckStage=newChain;
       _flashLuckChain(newChain);
-      return {isCloverOnly:true, cloverStage:newChain, chainResult:appliedStage};
+      return {isCloverOnly:true, cloverStage:newChain};
     }
-    let l=ZS.lk();
-    if(appliedStage) l*=appliedStage.mult;
+    const l=ZS.lk();
     const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');
     const a=rA(l,ni);
     const sh=rSh();
     const tr=rTr(this.ev?.id);
     const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;
-    return {a,sh,tr,xm,chainResult:appliedStage};
+    return {a,sh,tr,xm,chainResult:null};
   },
   _slapLaunchSelf(dur){
     const start=Date.now(); const half=dur*.45;
