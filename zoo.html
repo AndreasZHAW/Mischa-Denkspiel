@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v581 -->
+<!-- ZOO v582 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=581"></script>
-<script src="rewardchests.js?v=581"></script>
-<script src="personality.js?v=581"></script>
+<script src="lang.js?v=582"></script>
+<script src="rewardchests.js?v=582"></script>
+<script src="personality.js?v=582"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v581','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v582','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=581"></script>
-<script src="worlds.js?v=581"></script>
+<script src="firebase-state.js?v=582"></script>
+<script src="worlds.js?v=582"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6723,6 +6723,13 @@ const ZG={
     if(z && z.pendingLuckStage){
       const appliedStage=z.pendingLuckStage;
       z.pendingLuckStage=null;
+      // WICHTIG: sobald der Bonus wirklich auf ein Tier angewendet ist,
+      // ist die "Strecke" fertig — Position zurück auf Null, damit die
+      // NÄCHSTE Strecke wieder bei Grün anfängt. Ohne das blieb die
+      // Position für immer auf der höchsten je erreichten Stufe stehen
+      // (z.B. Diamant) — und der 15-Sek-Pity-Timer hat dadurch JEDES
+      // Mal Diamant erzwungen, egal wie klein dessen echte Chance ist.
+      z.luckChainPos=0;
       let l=ZS.lk()*appliedStage.mult;
       const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');
       const a=rA(l,ni,appliedStage.minRarity);
