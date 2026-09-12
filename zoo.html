@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v578 -->
+<!-- ZOO v579 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=578"></script>
-<script src="rewardchests.js?v=578"></script>
-<script src="personality.js?v=578"></script>
+<script src="lang.js?v=579"></script>
+<script src="rewardchests.js?v=579"></script>
+<script src="personality.js?v=579"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v578','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v579','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=578"></script>
-<script src="worlds.js?v=578"></script>
+<script src="firebase-state.js?v=579"></script>
+<script src="worlds.js?v=579"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1287,18 +1287,50 @@ function rollLuckChain(){
   }
   return null;
 }
-function _flashLuckChain(stage){
-  // Bildschirmrand-Leuchten nur ab Grafik-Stufe 2 — die Belohnung selbst
-  // (Toast-Meldung) bleibt bei jeder Stufe sichtbar, nur der optische
-  // Effekt ist an die Grafik-Stufe gekoppelt.
-  if(GraphicsSettings.level>=2){
+function _flashLuckChain(stage, isRemote){
+  // Bildschirmrand-Leuchten nur ab Grafik-Stufe 2 (gilt nicht, wenn's
+  // von einer Ankündigung eines ANDEREN Spielers kommt — das soll immer
+  // sichtbar sein, damit's wirklich alle mitbekommen).
+  const bigTiers={Silber:1,Gold:2,Diamant:3};
+  const tier=bigTiers[stage.name]||0;
+  if(isRemote || GraphicsSettings.level>=2){
     const el=document.createElement('div');
-    el.style.cssText='position:fixed;inset:0;z-index:9600;pointer-events:none;box-shadow:inset 0 0 90px 25px '+stage.color+';opacity:0;transition:opacity .35s';
+    // Silber: nur der dezente Rand, wie bisher. Gold: Rand + spürbare
+    // Voll-Bild-Einfärbung. Diamant: dasselbe, aber intensiver und mit
+    // deutlich mehr Zeit.
+    const durMs=tier===3?8000:tier===2?5000:tier===1?5000:1700;
+    const fullTint=tier>=2?'background:'+stage.color+';opacity:0;transition:opacity .5s':'';
+    el.style.cssText='position:fixed;inset:0;z-index:9600;pointer-events:none;box-shadow:inset 0 0 '+(90+tier*40)+'px '+(25+tier*15)+'px '+stage.color+';opacity:0;transition:opacity .4s'+(tier>=2?';mix-blend-mode:screen':'');
     document.body.appendChild(el);
-    requestAnimationFrame(()=>{ el.style.opacity='1'; });
-    setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),450); },1700);
+    let tintEl=null;
+    if(tier>=2){
+      tintEl=document.createElement('div');
+      tintEl.style.cssText='position:fixed;inset:0;z-index:9595;pointer-events:none;background:'+stage.color+';opacity:0;transition:opacity .6s';
+      document.body.appendChild(tintEl);
+    }
+    let bannerEl=null;
+    if(tier>=2){
+      bannerEl=document.createElement('div');
+      bannerEl.style.cssText='position:fixed;top:18%;left:50%;transform:translate(-50%,-50%);z-index:9601;pointer-events:none;text-align:center;opacity:0;transition:opacity .5s';
+      bannerEl.innerHTML='<div style="font-size:'+(tier===3?'4.5rem':'3.2rem')+';filter:drop-shadow(0 0 20px '+stage.color+')">🍀</div>'
+        +'<div style="font-size:'+(tier===3?'2.2rem':'1.6rem')+';font-weight:900;color:'+stage.color+';text-shadow:0 0 20px '+stage.color+',0 2px 8px rgba(0,0,0,.8);letter-spacing:2px">'+stage.name.toUpperCase()+'-GLÜCK!</div>';
+      document.body.appendChild(bannerEl);
+    }
+    requestAnimationFrame(()=>{ el.style.opacity='1'; if(tintEl)tintEl.style.opacity=(tier===3?'.35':'.2'); if(bannerEl)bannerEl.style.opacity='1'; });
+    setTimeout(()=>{
+      el.style.opacity='0'; if(tintEl)tintEl.style.opacity='0'; if(bannerEl)bannerEl.style.opacity='0';
+      setTimeout(()=>{ el.remove(); tintEl?.remove(); bannerEl?.remove(); },650);
+    },durMs);
   }
-  try{ ZP.toast&&ZP.toast('🍀 '+stage.name+'-Glück! ×'+stage.mult+' Glück für dieses Tier!',3200); }catch(e){}
+  try{ ZP.toast&&ZP.toast((isRemote?'🍀 '+isRemote+' hat ':'🍀 Du hast ')+stage.name+'-Glück! ×'+stage.mult+' Glück'+(isRemote?'!':' für dieses Tier!'),tier>=2?4500:3200); }catch(e){}
+}
+// Silber/Gold/Diamant sind selten genug, dass ALLE im Zoo mitbekommen
+// sollen, wenn's jemandem passiert — nicht nur die eigene Anzeige.
+function _broadcastLuckChain(stage){
+  try{
+    if(typeof _db==='undefined'||!_db) return;
+    _db.collection('zoo_broadcast').doc('luckChainEvent').set({player:ZS.player,stageName:stage.name,at:Date.now()}).catch(()=>{});
+  }catch(e){}
 }
 
 function computeAchievedRanks(playerName, z, escSpeed){
@@ -3439,6 +3471,18 @@ const ZG={
           el.textContent='⏱ '+(d.label||'Timer')+': '+mm+':'+String(ss).padStart(2,'0');
         };
         tick(); const iv=setInterval(tick,1000);
+      });
+      // Silber/Gold/Diamant-Glück: alle im Zoo bekommen den passenden
+      // Effekt zu sehen, nicht nur wer's selbst hatte.
+      let _lastSeenLuckChainAt=0;
+      _db.collection('zoo_broadcast').doc('luckChainEvent').onSnapshot(snap=>{
+        if(!snap.exists) return;
+        const d=snap.data();
+        if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
+        _lastSeenLuckChainAt=d.at;
+        if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
+        const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
+        if(stage) _flashLuckChain(stage, d.player);
       });
     }catch(e){}
   },
@@ -6669,7 +6713,10 @@ const ZG={
     const newChain=rollLuckChain();
     if(newChain){
       if(z) z.pendingLuckStage=newChain;
-      _flashLuckChain(newChain);
+      // KEIN Flash hier mehr — der Eintrag ist jetzt nur in der
+      // gesperrten Vorschau (Schloss-Symbol), noch nicht aktiv. Der
+      // Effekt löst erst in _rGond() aus, wenn er wirklich vorne (kaufbar)
+      // ankommt — siehe Rückmeldung "Timing stimmt nicht überein".
       return {isCloverOnly:true, cloverStage:newChain};
     }
     const l=ZS.lk();
@@ -9367,6 +9414,11 @@ const ZP={
     if(locked){el.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:3rem">🚓🔒</div><div style="color:#E74C3C;font-weight:900;margin-top:8px">'+_gt('zoo.gondola_locked_police','🚓🔒 Gondel gesperrt!').replace('🚓🔒 ','')+'</div><div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px">'+_gt('zoo.police_raid','Polizei-Razzia · noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)})+'</div></div>';return;}
     if(g.isCloverOnly){
       const cs=g.cloverStage;
+      if(!g._flashed){
+        g._flashed=true;
+        _flashLuckChain(cs);
+        if(['Silber','Gold','Diamant'].includes(cs.name)) _broadcastLuckChain(cs);
+      }
       el.innerHTML='<div style="text-align:center;animation:pop .4s ease">'
         +'<div style="font-size:4rem;filter:drop-shadow(0 0 14px '+cs.color+')">🍀</div>'
         +'<div style="color:'+cs.color+';font-weight:900;font-size:1rem;margin-top:4px">'+cs.name+'-Glück!</div>'
