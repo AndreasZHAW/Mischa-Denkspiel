@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v582 -->
+<!-- ZOO v583 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=582"></script>
-<script src="rewardchests.js?v=582"></script>
-<script src="personality.js?v=582"></script>
+<script src="lang.js?v=583"></script>
+<script src="rewardchests.js?v=583"></script>
+<script src="personality.js?v=583"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v582','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v583','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=582"></script>
-<script src="worlds.js?v=582"></script>
+<script src="firebase-state.js?v=583"></script>
+<script src="worlds.js?v=583"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1259,6 +1259,34 @@ const LUCK_CHAIN=[
   {name:'Gold',    color:'#FFD700', chance:0.001,  mult:5,    minRarity:'ultralegendary'},
   {name:'Diamant', color:'#B9F2FF', chance:0.0001, mult:1000, minRarity:'god'},
 ];
+// Grundchance ist jetzt 4× seltener als oben angegeben — im Shop kann
+// man sich diese Häufigkeit zurückkaufen (stapelt sich beim Kauf aller
+// vier Stufen).
+const LUCK_FREQ_UPGRADES=[
+  {key:'luckFreq1', cost:1000,     label:'+0.25% häufiger', mult:1.0025},
+  {key:'luckFreq2', cost:10000,    label:'+0.5% häufiger',  mult:1.005},
+  {key:'luckFreq3', cost:1000000,  label:'×2 häufiger',     mult:2},
+  {key:'luckFreq4', cost:10000000, label:'×2 häufiger',     mult:2},
+];
+function getLuckFreqMult(z){
+  if(!z) return 1;
+  let m=1;
+  LUCK_FREQ_UPGRADES.forEach(u=>{ if(z[u.key]) m*=u.mult; });
+  return m;
+}
+function buyLuckFreqUpgrade(key){
+  const z=ZS.zoo; if(!z) return;
+  const u=LUCK_FREQ_UPGRADES.find(x=>x.key===key); if(!u) return;
+  if(z[key]){ ZP.toast('❗ Schon gekauft!'); return; }
+  const combined=(ZS.dsMT||0)+(z.mt||0);
+  if(combined<u.cost){ ZP.toast('❌ Zu wenig Geld! Brauchst '+$mt(u.cost)); return; }
+  z.mt-=u.cost;
+  z[key]=true;
+  ZS.save&&ZS.save();
+  try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+  ZP.toast('🍀 Glück-Häufigkeit gekauft: '+u.label+'!',3000);
+  try{ ZP._rShop&&ZP._rShop(); }catch(e){}
+}
 function rollLuckChain(){
   const z=ZS.zoo;
   // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe, hält
@@ -1297,8 +1325,11 @@ function rollLuckChain(){
   // mindestens eine Stufe besser als das letzte.
   const pos=Math.min(z?.luckChainPos||0, LUCK_CHAIN.length-1);
   const stage=LUCK_CHAIN[pos];
+  // Grundchance ist 4× seltener als der angezeigte Wert — im Shop
+  // kaufbare Häufigkeits-Upgrades multiplizieren das wieder hoch.
+  const effectiveChance=(stage.chance/4)*getLuckFreqMult(z);
   const forcedByPity = z && (now-(z.lastAnyLuckAt||0))>=15000;
-  if(forcedByPity || Math.random()<stage.chance){
+  if(forcedByPity || Math.random()<effectiveChance){
     // WICHTIG: bei der letzten Stufe (Diamant) bleibt die Position AUF
     // Diamant stehen, statt eins weiter zu springen — sonst würde jeder
     // zukünftige Versuch sofort "pos>=LUCK_CHAIN.length" treffen und für
@@ -1395,49 +1426,15 @@ function getEquippedRank(playerName, z, escSpeed){
 // Rückwärtskompatibel zum alten Namen, falls noch irgendwo referenziert.
 function computeRank(z, escSpeed){ return getEquippedRank(ZS?.player, z, escSpeed); }
 
-// ── SPEED-MEILENSTEINE: Bedingung erfüllt = im Shop verfügbar, aber
-// NICHT automatisch aktiv — man muss es dort bewusst freischalten. So
-// ist immer klar nachvollziehbar, woher ein grosser Speed-Multiplikator
-// kommt, statt dass er einfach "plötzlich da ist".
-const SPEED_MILESTONES=[
-  {key:'msSpeed10K',  mult:50,   label:'10.000 Geld erreicht'},
-  {key:'msSpeedFed10',mult:10,   label:'10× ein Tier gefüttert'},
-  {key:'msSpeedReport',mult:50,  label:'einen Fehler gemeldet'},
-  {key:'msSpeed1_1M', mult:20,   label:'1.1 Mio Geld insgesamt verdient'},
-  {key:'msSpeed10M',  mult:1000, label:'10 Mio Geld erreicht'},
-  {key:'msSpeedAd',   mult:2,    label:'Werbung angeschaut'},
-];
-function getSpeedMilestoneMult(z){
-  if(!z) return 1;
-  let m=1;
-  SPEED_MILESTONES.forEach(ms=>{ if(z[ms.key]) m*=ms.mult; });
-  return m;
-}
+// ── SPEED-SYSTEM (neu, einfach): Speed wächst passiv +1/Sek — kein
+// Meilenstein-System mehr. Der Admin kann jedem Spieler einen
+// zeitlich begrenzten Trainings-Speed-Boost geben (z.B. ×20 für 5
+// Min), genau wie beim Glück-Admin-Tool — kein Dauer-Multiplikator.
 function getEffectiveEscSpeed(){
   const z=ZS?.zoo; if(!z) return 0;
-  return (z.escSpeed||0)*getSpeedMilestoneMult(z);
-}
-function unlockSpeedMilestone(key){
-  const z=ZS.zoo; if(!z) return;
-  const ms=SPEED_MILESTONES.find(m=>m.key===key); if(!ms) return;
-  if(!z[key+'_eligible']){ ZP.toast('❌ Bedingung noch nicht erfüllt.'); return; }
-  if(z[key]){ ZP.toast('❗ Schon freigeschaltet.'); return; }
-  z[key]=true;
-  ZS.save&&ZS.save();
-  try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
-  ZP.toast('⚡ "'+ms.label+'" freigeschaltet — ×'+ms.mult+' Speed dauerhaft!',4000);
-  try{ ZP._rShop&&ZP._rShop(); }catch(e){}
-}
-// Prüft alle geld-basierten Meilensteine auf einmal — günstig genug für
-// häufige Aufrufe (z.B. bei jedem HUD-Update). Setzt nur "_eligible",
-// NICHT den echten Aktivierungs-Flag — das passiert erst im Shop.
-function _checkSpeedMilestones(z){
-  if(!z) return;
-  let changed=false;
-  if(!z.msSpeed10K_eligible && (z.mt||0)>=10000){ z.msSpeed10K_eligible=true; changed=true; ZP.toast&&ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
-  if(!z.msSpeed10M_eligible && (z.mt||0)>=10000000){ z.msSpeed10M_eligible=true; changed=true; ZP.toast&&ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
-  if(!z.msSpeed1_1M_eligible && (z.te||0)>=1100000){ z.msSpeed1_1M_eligible=true; changed=true; ZP.toast&&ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
-  if(changed){ ZS.save&&ZS.save(); try{ ZG._updHUD&&ZG._updHUD(); }catch(e){} }
+  let mult=1;
+  if(z.speedTrainingBoost && z.speedTrainingBoost.until>Date.now()) mult=z.speedTrainingBoost.mult;
+  return (z.escSpeed||0)*mult;
 }
 
 // ── SAMMELALBUM: MT-Bonus (% vom Gesamtguthaben) fürs Vervollständigen
@@ -6088,7 +6085,6 @@ const ZG={
     // die 500'000-MT-Marke geknackt hat — bleibt dauerhaft, auch wenn man
     // das Geld später wieder ausgibt.
     if(!z.everReached500k && (z.mt||0)>=500000){ z.everReached500k=true; ZS.save&&ZS.save(); }
-    _checkSpeedMilestones(z);
     // Combined balance (Denkspiel + Zoo), per the person's request that
     // every screen show one unified total. ZS.dsMT is cached once at
     // load() time (with the same deviceId ownership check as elsewhere).
@@ -7739,6 +7735,20 @@ const ZG={
       ann2.style.cssText='position:fixed;top:18%;left:50%;transform:translateX(-50%);z-index:9900;background:linear-gradient(135deg,#0a2a0a,#1a4a1a);border:2px solid #27AE60;border-radius:16px;padding:18px 24px;text-align:center;color:#fff;font-weight:900;box-shadow:0 0 30px rgba(39,174,96,.6)';
       ann2.innerHTML='<div style="font-size:2rem">🍀</div><div style="font-size:1.1rem">Mischa hat ×'+adminMult+' Glück<br>für '+mins+' Min aktiviert!</div>';
       document.body.appendChild(ann2); setTimeout(()=>ann2.remove(),5000);
+      this._updHUD();
+    }
+    else if(cmd.type==='admin_speed_training'){
+      // Zeitlich begrenzter Speed-Boost, komplett getrennt vom passiven
+      // +1/Sek-Wachstum — siehe getEffectiveEscSpeed().
+      const adminMult=cmd.mult||20;
+      z.speedTrainingBoost={mult:adminMult, until:cmd.startTs+(cmd.durationMs||300000)};
+      ZS.save&&ZS.save();
+      const mins=Math.round((cmd.durationMs||300000)/60000);
+      ZP.toast('⚡ Mischa hat ×'+adminMult+' Trainings-Speed angemacht für '+mins+' Min!',5000);
+      const ann3=document.createElement('div');
+      ann3.style.cssText='position:fixed;top:18%;left:50%;transform:translateX(-50%);z-index:9900;background:linear-gradient(135deg,#0a1a3a,#1a2a5a);border:2px solid #3478f6;border-radius:16px;padding:18px 24px;text-align:center;color:#fff;font-weight:900;box-shadow:0 0 30px rgba(52,120,246,.6)';
+      ann3.innerHTML='<div style="font-size:2rem">⚡</div><div style="font-size:1.1rem">Mischa hat ×'+adminMult+' Trainings-Speed<br>für '+mins+' Min aktiviert!</div>';
+      document.body.appendChild(ann3); setTimeout(()=>ann3.remove(),5000);
       this._updHUD();
     }
     this._updHUD();},
@@ -10194,22 +10204,16 @@ const ZP={
   },
 
   _sB(el){const z=ZS.zoo;const IT=[{id:'coin',n:'💰×2 MT 15Min',d:'Doppelt',p:10205,dur:15*60*1000},{id:'lucky',n:'🎰 Glück×2 10Min',d:'Doppelt Glück',p:17751,dur:10*60*1000},{id:'storm',n:'🌊 Sturm 5Min',d:'×8 Besucher!',p:47265,dur:5*60*1000}];el.innerHTML=IT.map(item=>{const a=(z.tb?.[item.id]||0)>Date.now();return`<div class="ac"><div>${item.n.split(' ')[0]}</div><div style="flex:1"><div style="font-weight:900;font-size:.84rem">${item.n}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">${item.d}</div>${a?`<div style="color:#27AE60;font-size:.67rem">✅ Aktiv</div>`:''}</div><div style="text-align:right"><div style="font-weight:900;color:#00CFFF;font-size:.76rem">${$mt(item.p)}</div><button class="ab" ${((ZS.dsMT||0)+z.mt)<item.p?'disabled':''} onclick="ZP._bst('${item.id}',${item.p},${item.dur})">${((ZS.dsMT||0)+z.mt)<item.p?'Fehlt':'Kaufen'}</button></div></div>`;}).join('')
-    +'<div style="margin-top:14px;background:rgba(224,86,253,.08);border:1px solid rgba(224,86,253,.3);border-radius:12px;padding:10px">'
-    +'<div style="font-weight:900;color:#E056FD;font-size:.85rem;margin-bottom:4px">⚡ Speed-Meilensteine</div>'
-    +'<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:8px">Bedingung erfüllt? Dann hier bewusst freischalten — nichts aktiviert sich von allein.</div>'
-    +SPEED_MILESTONES.map(ms=>{
-      const unlocked=!!z[ms.key];
-      if(ms.key==='msSpeedAd'){
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.06)">'
-          +'<div><div style="font-size:.78rem;font-weight:700">×'+ms.mult+' Speed</div><div style="font-size:.65rem;color:'+(unlocked?'#27AE60':'rgba(255,255,255,.4)')+'">'+(unlocked?'✅ Freigeschaltet':'📺 Im Speed-Tempel: Werbung ansehen')+'</div></div>'
-          +'</div>';
-      }
-      const eligible=!!z[ms.key+'_eligible'];
-      const status=unlocked?'✅ Freigeschaltet':(eligible?'🎁 Verfügbar':'🔒 '+ms.label);
-      const statusColor=unlocked?'#27AE60':(eligible?'#FFD700':'rgba(255,255,255,.4)');
+    +'<div style="margin-top:14px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:12px;padding:10px">'
+    +'<div style="font-weight:900;color:#4CAF50;font-size:.85rem;margin-bottom:4px">🍀 Glück-Häufigkeit</div>'
+    +'<div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:8px">Jede Stufe stapelt sich mit den anderen.</div>'
+    +LUCK_FREQ_UPGRADES.map(u=>{
+      const bought=!!z[u.key];
+      const combined=(ZS.dsMT||0)+(z.mt||0);
+      const can=combined>=u.cost;
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.06)">'
-        +'<div><div style="font-size:.78rem;font-weight:700">×'+ms.mult+' Speed</div><div style="font-size:.65rem;color:'+statusColor+'">'+status+'</div></div>'
-        +(unlocked?'':(eligible?'<button class="ab" onclick="unlockSpeedMilestone(\''+ms.key+'\')">Freischalten</button>':''))
+        +'<div><div style="font-size:.78rem;font-weight:700">'+u.label+'</div><div style="font-size:.65rem;color:rgba(255,255,255,.4)">'+$mt(u.cost)+'</div></div>'
+        +(bought?'<span style="color:#27AE60;font-size:.7rem;font-weight:800">✅ Gekauft</span>':'<button class="ab" '+(can?'':'disabled')+' onclick="buyLuckFreqUpgrade(\''+u.key+'\')">'+(can?'Kaufen':'Fehlt')+'</button>')
         +'</div>';
     }).join('')
     +'</div>';
@@ -11121,9 +11125,6 @@ const ZP={
       if(typeof _db!=='undefined'&&State._useCloud()){
         await _db.collection('zoo_reports').doc(report.id).set(report);
       }
-      // Speed-Meilenstein: einmalig fürs Melden eines Fehlers.
-      const z=ZS.zoo;
-      if(z && !z.msSpeedReport_eligible){ z.msSpeedReport_eligible=true; ZS.save&&ZS.save(); ZP.toast('🎁 Danke fürs Melden! Neuer Speed-Meilenstein im Shop verfügbar!',4000); }
       // Also keep local backup
       const local=JSON.parse(localStorage.getItem('zoo_reports')||'[]');
       local.unshift(report); if(local.length>50)local.pop();
@@ -11235,6 +11236,13 @@ const ZP={
     // Send to all other players via Firebase
     await this._cmd(cmd);
     ZP.toast('🍀 ×'+mult+' Glück für ALLE für '+mins+' Min aktiv!',3000);
+  },
+  async _setAdminSpeedTraining(mult, mins){
+    const cmd={id:'speedtr_'+Date.now(),type:'admin_speed_training',mult,durationMs:mins*60000,startTs:Date.now(),exp:Date.now()+mins*60000+5000,target:'_all'};
+    const z=ZS.zoo;
+    if(z){z.speedTrainingBoost={mult, until:Date.now()+mins*60000};ZS.save&&ZS.save();ZG._updHUD&&ZG._updHUD();}
+    await this._cmd(cmd);
+    ZP.toast('⚡ ×'+mult+' Trainings-Speed für ALLE für '+mins+' Min aktiv!',3000);
   },
   async _cmd(cmd){
     const _hasRtdb = typeof _rtdb!=='undefined'&&_rtdb;
@@ -16299,18 +16307,18 @@ const SpeedTemple = {
   // mit dem Gesamtverdienst der eigenen Tiere, nicht nur im Tempel selbst.
   startSpeedGrowth(){
     if(this._growthIv) clearInterval(this._growthIv);
+    // Einfaches System: Speed wächst immer, unabhängig von Tieren oder
+    // Verdienst, flach +1 pro Sekunde. Kurzzeitige Boosts gibt's nur
+    // noch vom Admin (siehe grantSpeedTraining), keine Dauer-Multis mehr.
+    // Gespeichert wird nur alle 10 Sek. (nicht jede Sekunde einzeln), um
+    // unnötig viele Firebase-Schreibzugriffe zu vermeiden.
+    let _tick=0;
     this._growthIv=setInterval(()=>{
-      // Speed wächst jetzt NUR, wenn der Tempel freigeschaltet ist UND
-      // man gerade aktiv in einem Raum spielt — nicht mehr passiv im
-      // Hintergrund überall im Zoo.
-      if(!ZG._steActive) return;
-      if(!this.isUnlocked()) return;
       const z=ZS.zoo; if(!z) return;
-      const sum=(z.enc||[]).reduce((s,e)=>{ if(!e||!e.animal) return s; const tm=(typeof tMul==='function')?tMul(e.shiny,e.traits):1; return s+(e.animal.earn||0)*tm*(e.xm||1); },0);
-      // 30× weniger Speed als Geld — Speed soll deutlich langsamer wachsen
-      // als das eigentliche Guthaben.
-      if(sum>0){ z.escSpeed=(z.escSpeed||0)+sum/30; ZS.save&&ZS.save(); }
-    },10000);
+      z.escSpeed=(z.escSpeed||0)+1;
+      _tick++;
+      if(_tick>=10){ _tick=0; ZS.save&&ZS.save(); }
+    },1000);
   },
   // ── Eigene Anzeige unten rechts für aktive Boosts (Glück/Geld/Besucher
   // aus MT-Pass- und Speed-Tempel-Belohnungen) — die bestehende #hmult
@@ -16346,8 +16354,7 @@ const SpeedTemple = {
     const z=ZS.zoo;
     el.innerHTML='<div style="color:#E056FD;font-size:.68rem;font-weight:900">⚡ Speed testen</div>'
       +'<input id="speedtemple-speed-input" type="number" placeholder="Zahl..." style="width:100%;padding:5px 7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem;box-sizing:border-box">'
-      +'<button onclick="SpeedTemple._applyTestSpeed()" style="background:#E056FD;border:none;color:#fff;padding:5px;border-radius:8px;font-weight:900;font-size:.72rem;cursor:pointer">Setzen</button>'
-      +(z&&!z.msSpeedAd?'<button onclick="SpeedTemple._watchAd()" style="margin-top:4px;background:linear-gradient(135deg,#FF6B00,#FFA500);border:none;color:#fff;padding:6px;border-radius:8px;font-weight:900;font-size:.7rem;cursor:pointer">📺 Werbung ansehen ×2</button>':'');
+      +'<button onclick="SpeedTemple._applyTestSpeed()" style="background:#E056FD;border:none;color:#fff;padding:5px;border-radius:8px;font-weight:900;font-size:.72rem;cursor:pointer">Setzen</button>';
     document.body.appendChild(el);
   },
   _applyTestSpeed(){
@@ -16360,52 +16367,6 @@ const SpeedTemple = {
     }
     ZG._speedTestOverride=val;
     ZP.toast('⚡ Test-Speed auf '+Math.round(val)+' gesetzt.',2000);
-  },
-  // ── "Werbung ansehen" — 60 Sekunden, nicht überspringbar, mit ein
-  // paar albernen Zoo-Werbe-Slides. Am Ende gibt's dauerhaft ×2 Speed
-  // (einmalig, siehe SPEED_MILESTONES/msSpeedAd).
-  _AD_SLIDES:[
-    {emoji:'🐹', title:'NEU: Der Hamster-o-Mat 3000!', text:'Füttert deinen Hamster automatisch — solange er nicht wegrennt.'},
-    {emoji:'🦁', title:'Löwen-Shampoo "MähnenGlanz"™', text:'Für eine Mähne, die aussieht, als hätte sie nie einen schlechten Tag.'},
-    {emoji:'🐢', title:'Turbo-Schildkröte Deluxe', text:'Jetzt 4% schneller! (Wissenschaftlich nicht belegt.)'},
-    {emoji:'🦆', title:'Enten-Yoga-Kurs', text:'Erste Stunde gratis. Zweite Stunde: die Ente schwimmt einfach weg.'},
-    {emoji:'🐘', title:'Elefanten-Parkplatz XXL', text:'Endlich genug Platz — für den Elefanten, nicht für dein Auto.'},
-    {emoji:'🎪', title:'Danke fürs Zuschauen!', text:'Gleich gibt es deine Belohnung...'},
-  ],
-  _watchAd(){
-    const z=ZS.zoo; if(!z || z.msSpeedAd){ ZP.toast('❗ Schon freigeschaltet!'); return; }
-    document.getElementById('speedtemple-ad')?.remove();
-    const el=document.createElement('div');
-    el.id='speedtemple-ad';
-    el.style.cssText='position:fixed;inset:0;background:#0a0a1a;z-index:11000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px;text-align:center;color:#fff';
-    el.innerHTML='<div id="ad-slide-emoji" style="font-size:4.5rem">🎬</div>'
-      +'<div id="ad-slide-title" style="font-size:1.3rem;font-weight:900;color:#FFA500">MISCHA-WERBUNG™</div>'
-      +'<div id="ad-slide-text" style="font-size:.95rem;color:rgba(255,255,255,.7);max-width:340px">Gleich geht\'s los...</div>'
-      +'<div style="margin-top:10px;background:rgba(255,255,255,.1);border-radius:20px;padding:8px 18px;font-weight:900;font-size:.85rem" id="ad-countdown">⏳ 60s</div>';
-    document.body.appendChild(el);
-    const slides=this._AD_SLIDES;
-    let slideIdx=0, secondsLeft=60;
-    const showSlide=()=>{
-      const s=slides[slideIdx%slides.length];
-      const e=document.getElementById('ad-slide-emoji'), t=document.getElementById('ad-slide-title'), x=document.getElementById('ad-slide-text');
-      if(e)e.textContent=s.emoji; if(t)t.textContent=s.title; if(x)x.textContent=s.text;
-      slideIdx++;
-    };
-    showSlide();
-    const slideIv=setInterval(showSlide,10000);
-    const countdownIv=setInterval(()=>{
-      secondsLeft--;
-      const c=document.getElementById('ad-countdown');
-      if(c) c.textContent=secondsLeft>0?('⏳ '+secondsLeft+'s'):'✅ Fertig!';
-      if(secondsLeft<=0){
-        clearInterval(slideIv); clearInterval(countdownIv);
-        z.msSpeedAd=true; ZS.save&&ZS.save();
-        try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
-        el.innerHTML='<div style="font-size:4.5rem">🎉</div>'
-          +'<div style="font-size:1.3rem;font-weight:900;color:#27AE60">×2 Speed dauerhaft freigeschaltet!</div>'
-          +'<button onclick="document.getElementById(\'speedtemple-ad\').remove();SpeedTemple._showSpeedSetter();" style="margin-top:10px;background:#27AE60;border:none;color:#fff;padding:10px 24px;border-radius:10px;font-weight:900;cursor:pointer">Super!</button>';
-      }
-    },1000);
   },
   _updBoostBadge(){
     const el=document.getElementById('speedtemple-boost-badge'); if(!el) return;
@@ -17217,8 +17178,9 @@ const SpeedTemple = {
   _updSpeedHUD(){
     const el=document.getElementById('speedtemple-speed-hud'); if(!el) return;
     const z=ZS.zoo; if(!z) return;
-    const mult=getSpeedMilestoneMult(z);
-    el.textContent='⚡ '+Math.round(getEffectiveEscSpeed())+' Speed'+(mult>1?' (×'+mult+' Bonus)':'');
+    const boostActive=z.speedTrainingBoost && z.speedTrainingBoost.until>Date.now();
+    const mult=boostActive?z.speedTrainingBoost.mult:1;
+    el.textContent='⚡ '+Math.round(getEffectiveEscSpeed())+' Speed'+(mult>1?' (×'+mult+' Trainings-Boost)':'');
   },
   _checkCollision(){
     if(!ZG._jumpPlatforms) return;
@@ -17619,7 +17581,6 @@ const Feeder = {
     if(((ZS.dsMT||0)+(z.mt||0))<cost){ ZP.toast('❌ Zu wenig MT!',2000); return; }
     z.mt=(z.mt||0)-cost;
     z.feedCount=(z.feedCount||0)+1;
-    if(!z.msSpeedFed10_eligible && z.feedCount>=10){ z.msSpeedFed10_eligible=true; ZP.toast('🎁 Neuer Speed-Meilenstein im Shop verfügbar!',3500); }
     const now=Date.now();
     // Extend if already active, else start fresh
     const base=(enc.treatUntil&&enc.treatUntil>now)?enc.treatUntil:now;
@@ -18378,6 +18339,26 @@ window.ZooEvents = ZooEvents;
           </div>
           <button class="padmin-btn" style="background:linear-gradient(135deg,#27AE60,#1E8449);width:100%" onclick="ZP._setAdminLuck(parseInt(document.getElementById('admin-luck-mult').value),parseInt(document.getElementById('admin-luck-dur').value))">🍀 Glück aktivieren</button>
         </div>
+        <div class="padmin-section-title" style="margin-top:14px">⚡ Trainings-Speed für alle</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <select id="admin-speedtr-mult" style="flex:1;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px;font-size:.82rem">
+            <option value="2">×2 Speed</option>
+            <option value="5">×5 Speed</option>
+            <option value="10">×10 Speed</option>
+            <option value="20" selected>×20 Speed</option>
+            <option value="50">×50 Speed</option>
+            <option value="100">×100 Speed</option>
+          </select>
+          <select id="admin-speedtr-dur" style="flex:1;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px;font-size:.82rem">
+            <option value="1">1 Min</option>
+            <option value="5" selected>5 Min</option>
+            <option value="10">10 Min</option>
+            <option value="15">15 Min</option>
+            <option value="30">30 Min</option>
+            <option value="60">1 Std</option>
+          </select>
+        </div>
+        <button class="padmin-btn" style="background:linear-gradient(135deg,#3478f6,#1a4fb0);width:100%" onclick="ZP._setAdminSpeedTraining(parseInt(document.getElementById('admin-speedtr-mult').value),parseInt(document.getElementById('admin-speedtr-dur').value))">⚡ Trainings-Speed aktivieren</button>
         <!-- TAB: TESTER (Tester-Panel vergeben/entziehen, Aktivität einsehen) -->
         <div class="padmin-tab" id="padmin-tab-tester" style="display:none">
           <div class="padmin-section-title">🧪 Tester-Panel verwalten</div>
