@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v580 -->
+<!-- ZOO v581 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=580"></script>
-<script src="rewardchests.js?v=580"></script>
-<script src="personality.js?v=580"></script>
+<script src="lang.js?v=581"></script>
+<script src="rewardchests.js?v=581"></script>
+<script src="personality.js?v=581"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v580','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v581','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -526,8 +526,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=580"></script>
-<script src="worlds.js?v=580"></script>
+<script src="firebase-state.js?v=581"></script>
+<script src="worlds.js?v=581"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1255,9 +1255,9 @@ const LUCK_CHAIN=[
   {name:'Grün',    color:'#4CAF50', chance:0.20,   mult:1.25},
   {name:'Gelb',    color:'#FFEB3B', chance:0.10,   mult:1.5},
   {name:'Orange',  color:'#FF9800', chance:0.05,   mult:2},
-  {name:'Silber',  color:'#C0C0C0', chance:0.01,   mult:2},
-  {name:'Gold',    color:'#FFD700', chance:0.001,  mult:5},
-  {name:'Diamant', color:'#B9F2FF', chance:0.0001, mult:1000},
+  {name:'Silber',  color:'#C0C0C0', chance:0.01,   mult:2,    minRarity:'legendary'},
+  {name:'Gold',    color:'#FFD700', chance:0.001,  mult:5,    minRarity:'ultralegendary'},
+  {name:'Diamant', color:'#B9F2FF', chance:0.0001, mult:1000, minRarity:'god'},
 ];
 function rollLuckChain(){
   const z=ZS.zoo;
@@ -1268,7 +1268,24 @@ function rollLuckChain(){
     z._forceLuckChainStage=null;
     if(idx<0) return null;
     z.luckChainPos=Math.min(idx+1, LUCK_CHAIN.length-1);
+    z.lastAnyLuckAt=Date.now();
+    if(idx>=4) z.lastGoldPityAt=Date.now();
     return LUCK_CHAIN[idx];
+  }
+  const now=Date.now();
+  // ── PITY-SYSTEM: garantiert Mindest-Häufigkeit, egal wie die
+  // Wahrscheinlichkeiten sonst stehen. Kam seit 5 Min kein Gold (oder
+  // besser) vor, wird JETZT direkt zu Gold gesprungen. Sonst: kam seit
+  // 15 Sek gar kein Glück-Ereignis vor, wird die aktuell anstehende
+  // Stufe erzwungen, statt normal zu würfeln.
+  if(z){
+    const goldIdx=LUCK_CHAIN.findIndex(s=>s.name==='Gold');
+    if((now-(z.lastGoldPityAt||0))>=5*60000){
+      z.luckChainPos=Math.max(z.luckChainPos||0, goldIdx+1);
+      z.lastGoldPityAt=now;
+      z.lastAnyLuckAt=now;
+      return LUCK_CHAIN[goldIdx];
+    }
   }
   // BUG FIX: erst wurde bei JEDEM Gondel-Tier die komplette Kette neu
   // gewürfelt (Grün nach Gelb kam wieder vor). Dann kam eine Version, die
@@ -1280,14 +1297,15 @@ function rollLuckChain(){
   // mindestens eine Stufe besser als das letzte.
   const pos=Math.min(z?.luckChainPos||0, LUCK_CHAIN.length-1);
   const stage=LUCK_CHAIN[pos];
-  if(Math.random()<stage.chance){
+  const forcedByPity = z && (now-(z.lastAnyLuckAt||0))>=15000;
+  if(forcedByPity || Math.random()<stage.chance){
     // WICHTIG: bei der letzten Stufe (Diamant) bleibt die Position AUF
     // Diamant stehen, statt eins weiter zu springen — sonst würde jeder
     // zukünftige Versuch sofort "pos>=LUCK_CHAIN.length" treffen und für
     // immer null zurückgeben, selbst wer schon Diamant hatte, hätte nie
     // wieder irgendein Glück. So darf man ab Diamant einfach immer
     // wieder für Diamant würfeln.
-    if(z) z.luckChainPos=Math.min(pos+1, LUCK_CHAIN.length-1);
+    if(z){ z.luckChainPos=Math.min(pos+1, LUCK_CHAIN.length-1); z.lastAnyLuckAt=now; if(stage.name==='Gold'||stage.name==='Diamant') z.lastGoldPityAt=now; }
     return stage;
   }
   return null;
@@ -1525,7 +1543,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-function rA(luck,night){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};const pool=ANIMALS.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(luck,.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
+function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(luck,.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
   const activeIds=(typeof ZG!=='undefined'&&ZG.evs&&ZG.evs.length)?ZG.evs.map(e=>e.id):(ev?[ev]:[]);
@@ -6707,7 +6725,7 @@ const ZG={
       z.pendingLuckStage=null;
       let l=ZS.lk()*appliedStage.mult;
       const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');
-      const a=rA(l,ni);
+      const a=rA(l,ni,appliedStage.minRarity);
       const sh=rSh();
       const tr=rTr(this.ev?.id);
       const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;
