@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v583 -->
+<!-- ZOO v584 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=583"></script>
-<script src="rewardchests.js?v=583"></script>
-<script src="personality.js?v=583"></script>
+<script src="lang.js?v=584"></script>
+<script src="rewardchests.js?v=584"></script>
+<script src="personality.js?v=584"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v583','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v584','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -295,6 +295,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" onclick="DailyCalendar.open()"><div class="hbb" style="background:rgba(52,152,219,.85)">📅</div><div class="hbl">Kalender</div></div>
 <div class="hb" id="hb-footstep-style" onclick="SpeedTemple.toggleFootstepStyle()"><div class="hbb" style="background:rgba(224,86,253,.85)">🔊</div><div class="hbl">Schritt-Ton</div></div>
 <div class="hb" id="hb-tester-panel" onclick="TesterPanel.open()" style="display:none"><div class="hbb" style="background:rgba(52,120,246,.85)">🧪</div><div class="hbl">Tester</div></div>
+<div class="hb" id="hb-group-join" onclick="GroupNotify.open()"><div class="hbb" style="background:rgba(255,111,97,.85)">👥</div><div class="hbl">Gruppe</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
 <div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
@@ -526,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=583"></script>
-<script src="worlds.js?v=583"></script>
+<script src="firebase-state.js?v=584"></script>
+<script src="worlds.js?v=584"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1289,6 +1290,13 @@ function buyLuckFreqUpgrade(key){
 }
 function rollLuckChain(){
   const z=ZS.zoo;
+  // BUG FIX: bei einem frischen Konto waren lastAnyLuckAt/lastGoldPityAt
+  // noch nie gesetzt (undefined) — das wurde als "vor Ewigkeiten" gelesen
+  // (now-0 ist riesig), wodurch BEIDE Pity-Systeme sofort beim
+  // allerersten Zugriff ausgelöst haben, statt erst nach Ablauf ihrer
+  // Wartezeit. Jetzt werden sie beim ersten Mal einfach auf "jetzt"
+  // gesetzt, ohne gleich ein Ereignis zu erzwingen.
+  if(z && z.lastAnyLuckAt===undefined){ z.lastAnyLuckAt=Date.now(); z.lastGoldPityAt=Date.now(); return null; }
   // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe, hält
   // aber auch die Fortschritts-Position im Einklang damit.
   if(z && z._forceLuckChainStage!==undefined && z._forceLuckChainStage!==null){
@@ -4023,6 +4031,13 @@ const ZG={
     try{ SpeedTemple.startSpeedGrowth(); }catch(e){}
     try{ SpeedTemple.startBoostBadge(); }catch(e){}
     try{ TesterPanel.refresh(); }catch(e){}
+    try{
+      const z=ZS.zoo;
+      if(z && z.groupMember && typeof Notification!=='undefined' && Notification.permission==='granted'){
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(reg=>{ GroupNotify._swReg=reg; }).catch(()=>{});
+        GroupNotify._startListening();
+      }
+    }catch(e){}
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
@@ -12363,6 +12378,127 @@ window.ZChat=ZChat;
 // Blau — der Admin sieht in seinem eigenen Panel jederzeit, wer gerade
 // Zugriff hat und was er zuletzt gemacht hat.
 const TESTER_BLUE = '#3478f6';
+// ══ GRUPPE / BENACHRICHTIGUNGEN ══
+// "Gruppe beitreten" fragt Erlaubnis für echte Browser-Benachrichtigungen
+// (funktionieren, solange der Browser läuft — auch im Hintergrund/
+// minimiert — aber nicht bei komplett geschlossenem Browser, dafür
+// bräuchte es einen eigenen Push-Server). Mitgliedschaft wird in
+// Firestore gespeichert, damit der Admin sehen und schreiben kann.
+const GroupNotify = {
+  _swReg: null,
+  async open(){
+    const z=ZS.zoo;
+    if(z && z.groupMember){
+      // Schon Mitglied — zeigt Status statt nochmal zu fragen.
+      const el=document.createElement('div');
+      el.id='group-status-panel';
+      el.style.cssText='position:fixed;inset:0;background:rgba(5,10,25,.92);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+      el.addEventListener('click',(e)=>{ if(e.target===el) el.remove(); });
+      el.innerHTML='<div style="background:linear-gradient(135deg,#3a0a15,#1a0508);border:1px solid rgba(255,111,97,.4);border-radius:16px;padding:24px;max-width:340px;width:95%;text-align:center;color:#fff">'
+        +'<div style="font-size:2.5rem">👥</div>'
+        +'<div style="font-weight:900;font-size:1.1rem;margin:8px 0;color:#FF6F61">Du bist in der Gruppe!</div>'
+        +'<div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:16px">Mischa Denkspiel kann dir Nachrichten schicken.</div>'
+        +'<button onclick="GroupNotify.leave()" style="background:rgba(255,255,255,.1);border:none;color:#fff;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.82rem">Gruppe verlassen</button>'
+        +'</div>';
+      document.body.appendChild(el);
+      return;
+    }
+    document.getElementById('group-ask-panel')?.remove();
+    const el=document.createElement('div');
+    el.id='group-ask-panel';
+    el.style.cssText='position:fixed;inset:0;background:rgba(5,10,25,.92);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    el.addEventListener('click',(e)=>{ if(e.target===el) el.remove(); });
+    el.innerHTML='<div style="background:linear-gradient(135deg,#3a0a15,#1a0508);border:1px solid rgba(255,111,97,.4);border-radius:16px;padding:24px;max-width:360px;width:95%;text-align:center;color:#fff">'
+      +'<div style="font-size:3rem">🔔</div>'
+      +'<div style="font-weight:900;font-size:1.15rem;margin:10px 0;color:#FF6F61">Gruppe beitreten</div>'
+      +'<div style="font-size:.85rem;color:rgba(255,255,255,.6);margin-bottom:18px">Darf Mischa Denkspiel dir ab und zu eine Nachricht schicken? (z.B. Erinnerungen oder besondere Angebote)</div>'
+      +'<button onclick="GroupNotify.join()" style="width:100%;background:linear-gradient(135deg,#FF6F61,#C0392B);border:none;color:#fff;padding:12px;border-radius:12px;font-weight:900;cursor:pointer;font-size:.9rem;margin-bottom:8px">✅ Ja, beitreten</button>'
+      +'<button onclick="document.getElementById(\'group-ask-panel\').remove()" style="width:100%;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);padding:10px;border-radius:12px;cursor:pointer;font-size:.82rem">Nicht jetzt</button>'
+      +'</div>';
+    document.body.appendChild(el);
+  },
+  async join(){
+    document.getElementById('group-ask-panel')?.remove();
+    try{
+      const perm=await Notification.requestPermission();
+      if(perm!=='granted'){
+        ZP.toast('❗ Ohne Erlaubnis kann Mischa Denkspiel dir keine Nachrichten schicken.',4000);
+        return;
+      }
+      if('serviceWorker' in navigator){
+        try{ this._swReg=await navigator.serviceWorker.register('sw.js'); }catch(e){ console.log('[Group] SW-Registrierung fehlgeschlagen: '+e.message); }
+      }
+      const z=ZS.zoo; if(z){ z.groupMember=true; ZS.save&&ZS.save(); }
+      if(typeof _db!=='undefined'&&_db){
+        await _db.collection('zoo_config').doc('groupMembers').set({
+          names: firebase.firestore.FieldValue.arrayUnion(ZS.player)
+        },{merge:true});
+      }
+      ZP.toast('👥 Willkommen in der Gruppe!',3000);
+      this._startListening();
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async leave(){
+    document.getElementById('group-status-panel')?.remove();
+    const z=ZS.zoo; if(z){ z.groupMember=false; ZS.save&&ZS.save(); }
+    try{
+      if(typeof _db!=='undefined'&&_db){
+        const doc=await _db.collection('zoo_config').doc('groupMembers').get();
+        const names=(doc.exists?(doc.data().names||[]):[]).filter(n=>n.toLowerCase()!==(ZS.player||'').toLowerCase());
+        await _db.collection('zoo_config').doc('groupMembers').set({names},{merge:true});
+      }
+    }catch(e){}
+    ZP.toast('👋 Gruppe verlassen.',2500);
+  },
+  _lastSeenGroupMsgAt: 0,
+  _lastSeenGiftAt: 0,
+  _startListening(){
+    if(this._listening || typeof _db==='undefined' || !_db) return;
+    this._listening=true;
+    _db.collection('zoo_config').doc('groupMessage').onSnapshot(snap=>{
+      if(!snap.exists) return;
+      const d=snap.data();
+      if(!d||!d.at||d.at<=this._lastSeenGroupMsgAt) return;
+      const firstLoad=this._lastSeenGroupMsgAt===0;
+      this._lastSeenGroupMsgAt=d.at;
+      if(firstLoad) return;
+      this._notify('Mischa Denkspiel', d.text);
+    });
+    // Geplantes Geschenk: Admin stellt Zeitfenster + Belohnung ein; wer
+    // rechtzeitig online ist (oder als nächstes wieder reinschaut),
+    // bekommt es einmalig gutgeschrieben.
+    _db.collection('zoo_config').doc('groupGift').onSnapshot(snap=>{
+      if(!snap.exists) return;
+      const d=snap.data();
+      if(!d||!d.at||d.at<=this._lastSeenGiftAt) return;
+      this._lastSeenGiftAt=d.at;
+      const z=ZS.zoo; if(!z) return;
+      if(z.lastClaimedGiftAt===d.at) return; // schon abgeholt
+      if(Date.now()<d.availableAt) return; // Zeitfenster noch nicht erreicht
+      z.lastClaimedGiftAt=d.at;
+      if(!z.mtPassBoosts) z.mtPassBoosts={};
+      const cur=z.mtPassBoosts.luck;
+      const base=(cur&&cur.until>Date.now())?cur.until:Date.now();
+      z.mtPassBoosts.luck={mult:d.luckMult, until:base+d.luckMins*60000};
+      ZS.save&&ZS.save();
+      try{ ZG._updHUD&&ZG._updHUD(); }catch(e){}
+      this._notify('🎁 Geschenk erhalten!', '×'+d.luckMult+' Glück für '+d.luckMins+' Min!');
+      ZP.toast('🎁 Geschenk erhalten! ×'+d.luckMult+' Glück für '+d.luckMins+' Min!',4000);
+    });
+  },
+  _notify(title, body){
+    try{
+      if(Notification.permission!=='granted') return;
+      if(this._swReg && this._swReg.showNotification){
+        this._swReg.showNotification(title, {body, icon:'🦁'});
+      } else {
+        new Notification(title, {body});
+      }
+    }catch(e){}
+    try{ ZP.toast('🔔 '+title+': '+body, 4000); }catch(e){}
+  },
+};
+
 const TesterPanel = {
   _isTester: false,
   _unsub: null,
@@ -12596,6 +12732,7 @@ const ZAdmin = {
     if(tab==='einst')this._populateEvents();
     if(tab==='cal')this._loadCalFromFirebase();
     if(tab==='tester')this._rTesterAdmin();
+    if(tab==='gruppe')this._rGroupAdmin();
     if(tab==='announce')ZP._loadAnnStatus();
     if(tab==='news')ZP._loadNewsStatus();
     if(tab==='reports')this._loadReports();
@@ -13164,6 +13301,35 @@ const ZAdmin = {
       ZP.toast('✉️ Nachricht an alle Tester gesendet!',2500);
       const el=document.getElementById('padmin-tester-msg'); if(el)el.value='';
     }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async sendGroupMessage(){
+    const text=(document.getElementById('padmin-group-msg')?.value||'').trim();
+    if(!text){ ZP.toast('❗ Erst eine Nachricht eingeben!'); return; }
+    try{
+      await _db.collection('zoo_config').doc('groupMessage').set({text, at:Date.now()});
+      ZP.toast('✉️ Nachricht an die Gruppe gesendet!',3000);
+      const el=document.getElementById('padmin-group-msg'); if(el)el.value='';
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async scheduleGroupGift(){
+    const hours=parseFloat(document.getElementById('padmin-gift-hours')?.value);
+    const luckMult=parseInt(document.getElementById('padmin-gift-luckmult')?.value);
+    const luckMins=parseInt(document.getElementById('padmin-gift-luckmins')?.value);
+    if(isNaN(hours)||hours<0||!luckMult||!luckMins){ ZP.toast('❗ Alle drei Felder ausfüllen!'); return; }
+    try{
+      const availableAt=Date.now()+hours*3600000;
+      await _db.collection('zoo_config').doc('groupGift').set({availableAt, luckMult, luckMins, at:Date.now()});
+      ZP.toast('🎁 Geschenk geplant: in '+hours+' Std. ×'+luckMult+' Glück für '+luckMins+' Min!',3500);
+    }catch(e){ ZP.toast('❌ Fehler: '+e.message); }
+  },
+  async _rGroupAdmin(){
+    const el=document.getElementById('padmin-group-list'); if(!el) return;
+    try{
+      const doc=await _db.collection('zoo_config').doc('groupMembers').get();
+      const names=doc.exists?(doc.data().names||[]):[];
+      el.innerHTML='<div style="font-weight:800;color:#FF6F61;font-size:.8rem;margin-bottom:6px">👥 Mitglieder ('+names.length+')</div>'
+        +(names.length?names.map(n=>'<div style="padding:3px 0;font-size:.75rem">'+$esc(n)+'</div>').join(''):'<i style="font-size:.72rem;color:rgba(255,255,255,.4)">Noch niemand beigetreten.</i>');
+    }catch(e){ el.innerHTML='<span style="color:#E74C3C">❌ Fehler: '+e.message+'</span>'; }
   },
   async _rTesterAdmin(){
     const el=document.getElementById('padmin-tester-list'); if(!el) return;
@@ -18162,6 +18328,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="server" onclick="ZAdmin.switchTab('server')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🌐 Server</div>
           <div class="padmin-tab-btn" data-tab="einst" onclick="ZAdmin.switchTab('einst')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚙️ Einstellungen</div>
           <div class="padmin-tab-btn" data-tab="tester" onclick="ZAdmin.switchTab('tester')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#3478f6;display:flex;align-items:center;gap:6px;background:rgba(52,120,246,.1);border:1px solid rgba(52,120,246,.3);border-radius:6px">🧪 Tester</div>
+          <div class="padmin-tab-btn" data-tab="gruppe" onclick="ZAdmin.switchTab('gruppe')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:#FF6F61;display:flex;align-items:center;gap:6px;background:rgba(255,111,97,.1);border:1px solid rgba(255,111,97,.3);border-radius:6px">👥 Gruppe</div>
           <div class="padmin-tab-btn" data-tab="cal" onclick="ZAdmin.switchTab('cal')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📊 Kalibrierung</div>
           <div class="padmin-tab-btn" data-tab="scores" onclick="ZAdmin.switchTab('scores')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏆 Scores</div>
           <div class="padmin-tab-btn" data-tab="fragen" onclick="ZAdmin.switchTab('fragen')" style="padding:8px 10px;cursor:pointer;font-size:.75rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">❓ Fragen</div>
@@ -18327,6 +18494,10 @@ window.ZooEvents = ZooEvents;
               <option value="80">×80 Glück</option>
               <option value="90">×90 Glück</option>
               <option value="100">×100 Glück</option>
+              <option value="200">×200 Glück</option>
+              <option value="300">×300 Glück</option>
+              <option value="500">×500 Glück</option>
+              <option value="1000">×1000 Glück</option>
             </select>
             <select id="admin-luck-dur" style="flex:1;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px;font-size:.82rem">
               <option value="1">1 Min</option>
@@ -18335,9 +18506,18 @@ window.ZooEvents = ZooEvents;
               <option value="15">15 Min</option>
               <option value="30">30 Min</option>
               <option value="60">1 Std</option>
+              <option value="120">2 Std</option>
+              <option value="240">4 Std</option>
+              <option value="360">6 Std</option>
+              <option value="720">12 Std</option>
+              <option value="1440">24 Std</option>
             </select>
           </div>
-          <button class="padmin-btn" style="background:linear-gradient(135deg,#27AE60,#1E8449);width:100%" onclick="ZP._setAdminLuck(parseInt(document.getElementById('admin-luck-mult').value),parseInt(document.getElementById('admin-luck-dur').value))">🍀 Glück aktivieren</button>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input id="admin-luck-mult-custom" type="number" placeholder="Eigener × Wert" min="1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+            <input id="admin-luck-dur-custom" type="number" placeholder="Eigene Min" min="1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+          </div>
+          <button class="padmin-btn" style="background:linear-gradient(135deg,#27AE60,#1E8449);width:100%" onclick="ZP._setAdminLuck(parseInt(document.getElementById('admin-luck-mult-custom').value)||parseInt(document.getElementById('admin-luck-mult').value),parseInt(document.getElementById('admin-luck-dur-custom').value)||parseInt(document.getElementById('admin-luck-dur').value))">🍀 Glück aktivieren</button>
         </div>
         <div class="padmin-section-title" style="margin-top:14px">⚡ Trainings-Speed für alle</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
@@ -18348,6 +18528,9 @@ window.ZooEvents = ZooEvents;
             <option value="20" selected>×20 Speed</option>
             <option value="50">×50 Speed</option>
             <option value="100">×100 Speed</option>
+            <option value="200">×200 Speed</option>
+            <option value="500">×500 Speed</option>
+            <option value="1000">×1000 Speed</option>
           </select>
           <select id="admin-speedtr-dur" style="flex:1;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px;font-size:.82rem">
             <option value="1">1 Min</option>
@@ -18356,9 +18539,17 @@ window.ZooEvents = ZooEvents;
             <option value="15">15 Min</option>
             <option value="30">30 Min</option>
             <option value="60">1 Std</option>
+            <option value="120">2 Std</option>
+            <option value="240">4 Std</option>
+            <option value="720">12 Std</option>
+            <option value="1440">24 Std</option>
           </select>
         </div>
-        <button class="padmin-btn" style="background:linear-gradient(135deg,#3478f6,#1a4fb0);width:100%" onclick="ZP._setAdminSpeedTraining(parseInt(document.getElementById('admin-speedtr-mult').value),parseInt(document.getElementById('admin-speedtr-dur').value))">⚡ Trainings-Speed aktivieren</button>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <input id="admin-speedtr-mult-custom" type="number" placeholder="Eigener × Wert" min="1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+          <input id="admin-speedtr-dur-custom" type="number" placeholder="Eigene Min" min="1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+        </div>
+        <button class="padmin-btn" style="background:linear-gradient(135deg,#3478f6,#1a4fb0);width:100%" onclick="ZP._setAdminSpeedTraining(parseInt(document.getElementById('admin-speedtr-mult-custom').value)||parseInt(document.getElementById('admin-speedtr-mult').value),parseInt(document.getElementById('admin-speedtr-dur-custom').value)||parseInt(document.getElementById('admin-speedtr-dur').value))">⚡ Trainings-Speed aktivieren</button>
         <!-- TAB: TESTER (Tester-Panel vergeben/entziehen, Aktivität einsehen) -->
         <div class="padmin-tab" id="padmin-tab-tester" style="display:none">
           <div class="padmin-section-title">🧪 Tester-Panel verwalten</div>
@@ -18376,6 +18567,30 @@ window.ZooEvents = ZooEvents;
             <textarea id="padmin-tester-msg" rows="2" placeholder="Nachricht..." style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.8rem;box-sizing:border-box;resize:vertical"></textarea>
             <button onclick="ZAdmin.messageTesters()" style="margin-top:6px;background:#FFD700;border:none;color:#000;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Senden</button>
           </div>
+        </div>
+        <!-- TAB: GRUPPE (Benachrichtigungen an Mitglieder) -->
+        <div class="padmin-tab" id="padmin-tab-gruppe" style="display:none">
+          <div class="padmin-section-title">👥 Gruppe verwalten</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:10px">
+            Spieler, die "Gruppe beitreten" gedrückt und Benachrichtigungen erlaubt haben.
+            Nachrichten kommen als echte Browser-Benachrichtigung an, solange deren Browser läuft.
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;margin-bottom:10px">
+            <div style="font-weight:700;color:#FF6F61;font-size:.8rem;margin-bottom:6px">✉️ Nachricht an die Gruppe</div>
+            <textarea id="padmin-group-msg" rows="2" placeholder="z.B. Mach noch eine Lektion bei Duolingo! 🦉" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.8rem;box-sizing:border-box;resize:vertical"></textarea>
+            <button onclick="ZAdmin.sendGroupMessage()" style="margin-top:6px;background:#FF6F61;border:none;color:#fff;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Senden</button>
+          </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;margin-bottom:10px">
+            <div style="font-weight:700;color:#FFD700;font-size:.8rem;margin-bottom:6px">🎁 Geschenk planen</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:8px">z.B. "Wer in 3 Std. auf den Server kommt, bekommt ×10 Glück für 10 Min" — wird automatisch gutgeschrieben, sobald das Zeitfenster erreicht ist und der Spieler online ist/reinschaut.</div>
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+              <input id="padmin-gift-hours" type="number" placeholder="In X Std." min="0" step="0.5" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+              <input id="padmin-gift-luckmult" type="number" placeholder="× Glück" min="1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+              <input id="padmin-gift-luckmins" type="number" placeholder="Min lang" min="1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:.78rem">
+            </div>
+            <button onclick="ZAdmin.scheduleGroupGift()" style="width:100%;background:#FFD700;border:none;color:#000;padding:7px 14px;border-radius:8px;font-weight:800;font-size:.78rem;cursor:pointer">Geschenk planen</button>
+          </div>
+          <div id="padmin-group-list" style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px">⏳ Lädt...</div>
         </div>
         <!-- TAB: AKTIONEN (player actions) -->
         <div class="padmin-tab" id="padmin-tab-aktionen" style="display:none">
