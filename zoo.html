@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v584 -->
+<!-- ZOO v586 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=584"></script>
-<script src="rewardchests.js?v=584"></script>
-<script src="personality.js?v=584"></script>
+<script src="lang.js?v=586"></script>
+<script src="rewardchests.js?v=586"></script>
+<script src="personality.js?v=586"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v584','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v586','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=584"></script>
-<script src="worlds.js?v=584"></script>
+<script src="firebase-state.js?v=586"></script>
+<script src="worlds.js?v=586"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1253,16 +1253,16 @@ const GraphicsSettings = {
 };
 
 const LUCK_CHAIN=[
-  {name:'Grün',    color:'#4CAF50', chance:0.20,   mult:1.25},
-  {name:'Gelb',    color:'#FFEB3B', chance:0.10,   mult:1.5},
-  {name:'Orange',  color:'#FF9800', chance:0.05,   mult:2},
-  {name:'Silber',  color:'#C0C0C0', chance:0.01,   mult:2,    minRarity:'legendary'},
-  {name:'Gold',    color:'#FFD700', chance:0.001,  mult:5,    minRarity:'ultralegendary'},
-  {name:'Diamant', color:'#B9F2FF', chance:0.0001, mult:1000, minRarity:'god'},
+  {name:'Grün',    color:'#4CAF50', chance:0.30, targetSec:30,     mult:1.25},
+  {name:'Gelb',    color:'#FFEB3B', chance:0.12, targetSec:120,    mult:1.5},
+  {name:'Lila',    color:'#9C27B0', chance:0.05, targetSec:900,    mult:2},
+  {name:'Silber',  color:'#C0C0C0', chance:0.02, targetSec:1800,   mult:2,    minRarity:'legendary'},
+  {name:'Gold',    color:'#FFD700', chance:0.003,targetSec:7200,   mult:5,    minRarity:'ultralegendary'},
+  {name:'Diamant', color:'#B9F2FF', chance:0.0003,targetSec:604800,mult:1000, minRarity:'god'},
 ];
-// Grundchance ist jetzt 4× seltener als oben angegeben — im Shop kann
-// man sich diese Häufigkeit zurückkaufen (stapelt sich beim Kauf aller
-// vier Stufen).
+// Kaufbare Häufigkeits-Upgrades im Shop — wirken zusätzlich zur
+// natürlichen Chance jeder Stufe (die Pity-Zielzeiten unten bleiben die
+// garantierte Obergrenze, unabhängig davon).
 const LUCK_FREQ_UPGRADES=[
   {key:'luckFreq1', cost:1000,     label:'+0.25% häufiger', mult:1.0025},
   {key:'luckFreq2', cost:10000,    label:'+0.5% häufiger',  mult:1.005},
@@ -1290,61 +1290,41 @@ function buyLuckFreqUpgrade(key){
 }
 function rollLuckChain(){
   const z=ZS.zoo;
-  // BUG FIX: bei einem frischen Konto waren lastAnyLuckAt/lastGoldPityAt
-  // noch nie gesetzt (undefined) — das wurde als "vor Ewigkeiten" gelesen
-  // (now-0 ist riesig), wodurch BEIDE Pity-Systeme sofort beim
-  // allerersten Zugriff ausgelöst haben, statt erst nach Ablauf ihrer
-  // Wartezeit. Jetzt werden sie beim ersten Mal einfach auf "jetzt"
-  // gesetzt, ohne gleich ein Ereignis zu erzwingen.
-  if(z && z.lastAnyLuckAt===undefined){ z.lastAnyLuckAt=Date.now(); z.lastGoldPityAt=Date.now(); return null; }
-  // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe, hält
-  // aber auch die Fortschritts-Position im Einklang damit.
+  if(z && z.lastAnyLuckAt===undefined){ z.lastAnyLuckAt=Date.now(); return null; }
+  // Admin-Testwerkzeug: erzwingt einmalig genau die gewählte Stufe.
   if(z && z._forceLuckChainStage!==undefined && z._forceLuckChainStage!==null){
     const idx=z._forceLuckChainStage;
     z._forceLuckChainStage=null;
     if(idx<0) return null;
     z.luckChainPos=Math.min(idx+1, LUCK_CHAIN.length-1);
-    z.lastAnyLuckAt=Date.now();
-    if(idx>=4) z.lastGoldPityAt=Date.now();
+    if(!z.lastTierAt) z.lastTierAt={};
+    z.lastTierAt[LUCK_CHAIN[idx].name]=Date.now();
     return LUCK_CHAIN[idx];
   }
   const now=Date.now();
-  // ── PITY-SYSTEM: garantiert Mindest-Häufigkeit, egal wie die
-  // Wahrscheinlichkeiten sonst stehen. Kam seit 5 Min kein Gold (oder
-  // besser) vor, wird JETZT direkt zu Gold gesprungen. Sonst: kam seit
-  // 15 Sek gar kein Glück-Ereignis vor, wird die aktuell anstehende
-  // Stufe erzwungen, statt normal zu würfeln.
-  if(z){
-    const goldIdx=LUCK_CHAIN.findIndex(s=>s.name==='Gold');
-    if((now-(z.lastGoldPityAt||0))>=5*60000){
-      z.luckChainPos=Math.max(z.luckChainPos||0, goldIdx+1);
-      z.lastGoldPityAt=now;
-      z.lastAnyLuckAt=now;
-      return LUCK_CHAIN[goldIdx];
-    }
-  }
-  // BUG FIX: erst wurde bei JEDEM Gondel-Tier die komplette Kette neu
-  // gewürfelt (Grün nach Gelb kam wieder vor). Dann kam eine Version, die
-  // bei einem Fehlschlag auf Null zurückgesetzt hat — dadurch konnte
-  // nach einem Fehlschlag später wieder GRÜN kommen, obwohl vorher schon
-  // Grün erreicht war. Jetzt: die Position geht NUR noch nach oben,
-  // niemals zurück. Ein Fehlschlag bedeutet nur "diesmal nicht", nicht
-  // "zurück auf Null" — kommt nochmal ein Glück, ist es garantiert
-  // mindestens eine Stufe besser als das letzte.
+  // ── PRO-STUFE-PITY: jede Stufe hat ihre EIGENE Ziel-Häufigkeit (siehe
+  // targetSec oben) — Grün ~alle 30s, Gelb ~alle 2 Min, Lila ~alle 15
+  // Min, Silber ~alle 30 Min, Gold ~alle 2 Std, Diamant ~alle 7 Tage.
+  // Ist die aktuell anstehende Stufe seit ihrer Ziel-Zeit nicht mehr
+  // vorgekommen, wird sie erzwungen — sonst zählt die normale (kleine)
+  // Zufalls-Chance. Das ist bewusst KEINE strikte Vorgabe: durch die
+  // Zufalls-Chance kann es auch mal schneller gehen, aber nie länger als
+  // die Ziel-Zeit dauern.
   const pos=Math.min(z?.luckChainPos||0, LUCK_CHAIN.length-1);
   const stage=LUCK_CHAIN[pos];
-  // Grundchance ist 4× seltener als der angezeigte Wert — im Shop
-  // kaufbare Häufigkeits-Upgrades multiplizieren das wieder hoch.
-  const effectiveChance=(stage.chance/4)*getLuckFreqMult(z);
-  const forcedByPity = z && (now-(z.lastAnyLuckAt||0))>=15000;
-  if(forcedByPity || Math.random()<effectiveChance){
+  if(!z.lastTierAt) z.lastTierAt={};
+  const overdue=(now-(z.lastTierAt[stage.name]||0))>=stage.targetSec*1000;
+  const effectiveChance=stage.chance*getLuckFreqMult(z);
+  if(overdue || Math.random()<effectiveChance){
+    z.lastTierAt[stage.name]=now;
+    z.lastAnyLuckAt=now;
     // WICHTIG: bei der letzten Stufe (Diamant) bleibt die Position AUF
     // Diamant stehen, statt eins weiter zu springen — sonst würde jeder
     // zukünftige Versuch sofort "pos>=LUCK_CHAIN.length" treffen und für
     // immer null zurückgeben, selbst wer schon Diamant hatte, hätte nie
     // wieder irgendein Glück. So darf man ab Diamant einfach immer
     // wieder für Diamant würfeln.
-    if(z){ z.luckChainPos=Math.min(pos+1, LUCK_CHAIN.length-1); z.lastAnyLuckAt=now; if(stage.name==='Gold'||stage.name==='Diamant') z.lastGoldPityAt=now; }
+    if(z){ z.luckChainPos=Math.min(pos+1, LUCK_CHAIN.length-1); }
     return stage;
   }
   return null;
@@ -6725,48 +6705,33 @@ const ZG={
   // ═══ GONDOLA ═══
   _mkG(){
     const z=ZS.zoo;
-    // BUG FIX: wartete schon ein Glück-Bonus, konnte er bisher verloren
-    // gehen, wenn GLEICHZEITIG eine neue Kette anschlug — die neue
-    // überschrieb den alten Bonus einfach, bevor der je auf ein echtes
-    // Tier angewendet wurde ("bekommt man keinen Glück-Multi"). Jetzt:
-    // wartet noch ein Bonus, wird er JETZT sofort verbraucht — keine
-    // neue Kette wird versucht, bis das erledigt ist.
-    if(z && z.pendingLuckStage){
-      const appliedStage=z.pendingLuckStage;
-      z.pendingLuckStage=null;
-      // WICHTIG: sobald der Bonus wirklich auf ein Tier angewendet ist,
-      // ist die "Strecke" fertig — Position zurück auf Null, damit die
-      // NÄCHSTE Strecke wieder bei Grün anfängt. Ohne das blieb die
-      // Position für immer auf der höchsten je erreichten Stufe stehen
-      // (z.B. Diamant) — und der 15-Sek-Pity-Timer hat dadurch JEDES
-      // Mal Diamant erzwungen, egal wie klein dessen echte Chance ist.
-      z.luckChainPos=0;
-      let l=ZS.lk()*appliedStage.mult;
-      const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');
-      const a=rA(l,ni,appliedStage.minRarity);
-      const sh=rSh();
-      const tr=rTr(this.ev?.id);
-      const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;
-      return {a,sh,tr,xm,chainResult:appliedStage};
-    }
-    // Kein Bonus wartet — jetzt darf die Kette einen Schritt weiter
-    // probiert werden (fortlaufend, siehe rollLuckChain()).
+    // KORREKTE Reihenfolge (vorheriger Fehler: es wurde IMMER sofort
+    // verbraucht, sobald ein Bonus wartete — dadurch konnte man nie über
+    // Grün hinauskommen, weil die Kette nie die Chance bekam,
+    // weiterzuklettern). Jetzt: erst wird versucht, EINEN Schritt weiter
+    // zu klettern. Klappt das, wird der Bonus aktualisiert (höher) und
+    // die Kette geht weiter. Erst wenn ein Versuch fehlschlägt, wird der
+    // zuletzt erreichte Bonus auf ein echtes Tier angewendet — die
+    // Strecke ist dann zu Ende, Position zurück auf Null.
     const newChain=rollLuckChain();
     if(newChain){
       if(z) z.pendingLuckStage=newChain;
-      // KEIN Flash hier mehr — der Eintrag ist jetzt nur in der
-      // gesperrten Vorschau (Schloss-Symbol), noch nicht aktiv. Der
-      // Effekt löst erst in _rGond() aus, wenn er wirklich vorne (kaufbar)
-      // ankommt — siehe Rückmeldung "Timing stimmt nicht überein".
       return {isCloverOnly:true, cloverStage:newChain};
     }
-    const l=ZS.lk();
+    let appliedStage=null;
+    if(z && z.pendingLuckStage){
+      appliedStage=z.pendingLuckStage;
+      z.pendingLuckStage=null;
+      z.luckChainPos=0;
+    }
+    let l=ZS.lk();
+    if(appliedStage) l*=appliedStage.mult;
     const evIds=(this.evs||[]).map(e=>e.id),ni=evIds.includes('night');
-    const a=rA(l,ni);
+    const a=rA(l,ni,appliedStage?.minRarity);
     const sh=rSh();
     const tr=rTr(this.ev?.id);
     const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;
-    return {a,sh,tr,xm,chainResult:null};
+    return {a,sh,tr,xm,chainResult:appliedStage};
   },
   _slapLaunchSelf(dur){
     const start=Date.now(); const half=dur*.45;
@@ -12417,10 +12382,34 @@ const GroupNotify = {
       +'</div>';
     document.body.appendChild(el);
   },
+  _requestNotifPermission(){
+    // Manche älteren Browser (v.a. Safari) geben bei
+    // Notification.requestPermission() KEIN Promise zurück, sondern
+    // erwarten eine Callback-Funktion als Argument — ohne diese
+    // Unterscheidung bliebe der Aufruf dort für immer hängen und die
+    // native Erlaubnis-Frage würde nie erscheinen.
+    return new Promise((resolve) => {
+      if(typeof Notification==='undefined'){ resolve('unsupported'); return; }
+      try{
+        const maybePromise=Notification.requestPermission((result)=>resolve(result));
+        if(maybePromise && typeof maybePromise.then==='function'){
+          maybePromise.then(resolve);
+        }
+      }catch(e){ resolve('unsupported'); }
+    });
+  },
   async join(){
     document.getElementById('group-ask-panel')?.remove();
     try{
-      const perm=await Notification.requestPermission();
+      if(typeof Notification==='undefined'){
+        ZP.toast('❌ Dieser Browser unterstützt keine Benachrichtigungen.',4000);
+        return;
+      }
+      // Löst die ECHTE, native Browser-Erlaubnis-Frage aus (nicht nur
+      // unsere eigene In-App-Frage davor) — das ist der Dialog, den der
+      // Browser selbst anzeigt und den man dauerhaft erlauben/ablehnen
+      // kann.
+      const perm=await this._requestNotifPermission();
       if(perm!=='granted'){
         ZP.toast('❗ Ohne Erlaubnis kann Mischa Denkspiel dir keine Nachrichten schicken.',4000);
         return;
