@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v586 -->
+<!-- ZOO v590 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=586"></script>
-<script src="rewardchests.js?v=586"></script>
-<script src="personality.js?v=586"></script>
+<script src="lang.js?v=590"></script>
+<script src="rewardchests.js?v=590"></script>
+<script src="personality.js?v=590"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v586','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v590','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -297,11 +297,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" id="hb-tester-panel" onclick="TesterPanel.open()" style="display:none"><div class="hbb" style="background:rgba(52,120,246,.85)">🧪</div><div class="hbl">Tester</div></div>
 <div class="hb" id="hb-group-join" onclick="GroupNotify.open()"><div class="hbb" style="background:rgba(255,111,97,.85)">👥</div><div class="hbl">Gruppe</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
-<div class="hb" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
+<div class="hb" id="hb-shop" onclick="ZP.open('shop')"><div class="hbb" style="background:rgba(155,89,182,.8)">🛒</div><div class="hbl" data-i18n="zoo.shop">Shop</div></div>
 <div class="hb" id="rewardHbZoo" onclick="RewardChests&&RewardChests.open()" style="display:none;position:relative"><div class="hbb" style="background:rgba(255,140,0,.85)">🎁</div><div class="hbl" data-i18n="zoo.reward">Belohnung</div><span id="reward-badge-zoo" style="display:none;position:absolute;top:-4px;right:2px;background:#E74C3C;color:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;text-align:center;font-size:.75rem;font-weight:900">!</span></div>
 <div class="hb" onclick="ZP.showZooRangliste()"><div class="hbb" style="background:rgba(255,215,0,.85)">🏆</div><div class="hbl">Rangliste</div></div>
 <div class="hb" onclick="ZP.open('sound')"><div class="hbb" style="background:rgba(30,130,180,.8)">🎵</div><div class="hbl" data-i18n="zoo.sound">Sound</div></div>
-<div class="hb" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
+<div class="hb" id="hb-menu" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
 <div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl" data-i18n="zoo.update">Update</div></div>
 </div>
 <!-- WEAPON BAR bottom center -->
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=586"></script>
-<script src="worlds.js?v=586"></script>
+<script src="firebase-state.js?v=590"></script>
+<script src="worlds.js?v=590"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6297,6 +6297,7 @@ const ZG={
     try{ MTPass.addXP(10,'Slap'); }catch(e){}
     // Find and hit whichever player is actually clicked/tapped on (within range)
     this._slapNearby(sl, clientX, clientY);
+    try{ Tutorial._onSlap(); }catch(e){}
   },
   // Auto-unequip back to "neutral" (no weapon) after 10 uses of whatever's
   // currently equipped — the person then has to deliberately pick a weapon
@@ -7733,29 +7734,178 @@ const ZG={
     }
     this._updHUD();},
 
-  // ═══ TUTORIAL ═══
-  _tut(){
-    const tut=G('tut');tut.style.display='block';
-    const steps=[
-      {t:'🦁 Willkommen!',p:'Baue deinen Zoo! Sammle Tiere und verdiene Mischataler.',pos:'top:36%;left:50%;transform:translateX(-50%)'},
-      {t:'🕹️ Joystick',p:'Links unten zum Laufen. Rechts wischen zum Umschauen.',pos:'bottom:155px;left:130px'},
-      {t:'🚡 Zur Gondel',p:'Laufe zur roten Station in der Mitte! Drücke [E].',pos:'top:38%;left:50%;transform:translateX(-50%)'},
-      {t:'🐱 Erste Katze',p:'Du startest mit 8 MT. Die Katze kostet nur 5 MT!',pos:'top:38%;left:50%;transform:translateX(-50%)'},
-      {t:'💰 Einnahmen',p:'Besucher kommen alle ~9 Sek. Jedes Tier bringt MT!',pos:'top:38%;left:50%;transform:translateX(-50%)'},
-      {t:'🏏 Slappen',p:'Tippe auf den Bildschirm (nicht Joystick/Buttons) zum Slappen!',pos:'bottom:120px;left:50%;transform:translateX(-50%)'},
-    ];
-    let cur=0;
-    const show=i=>{
-      tut.innerHTML='';
-      if(i>=steps.length){tut.style.display='none';localStorage.setItem('ztut','1');return;}
-      const s=steps[i];const box=document.createElement('div');box.className='tbox';box.style.cssText='position:absolute;'+s.pos;
-      box.innerHTML=`<div>${s.t}</div><p>${s.p}</p>`;
-      const nb=document.createElement('button');nb.textContent=i<steps.length-1?'Weiter →':'✓ Los!';nb.style.cssText='margin-top:8px;background:rgba(255,215,0,.2);border:1px solid #FFD700;color:#FFD700;font-size:.8rem;font-weight:900;padding:5px 12px;border-radius:50px;cursor:pointer';nb.onclick=()=>show(++cur);box.appendChild(nb);
-      const sk=document.createElement('button');sk.className='tskip';sk.textContent='Überspringen';sk.onclick=()=>{tut.style.display='none';localStorage.setItem('ztut','1');};
-      tut.appendChild(box);tut.appendChild(sk);
+  // ═══ TUTORIAL ═══ (siehe Tutorial-Objekt weiter unten — komplett neu
+  // gebaut: Abdunkeln + Hervorheben des Ziel-Elements, echte Aktionen
+  // statt nur "Weiter" klicken, und ein Richtungspfeil zur Gondel.
+  _tut(){ Tutorial.start(); }
+};
+
+// ══ TUTORIAL (komplett neu) ══
+// Statt einfacher Text-Kästchen: der Bildschirm wird bis auf das
+// gerade erklärte Element abgedunkelt (~70%), und man muss die
+// jeweilige Aktion WIRKLICH ausführen (kein "Weiter"-Knopf zum
+// Überspringen) — nur der allererste Willkommens-Schritt hat einen
+// echten Weiter-Knopf, weil da noch nichts zu tun ist.
+const TUTORIAL_STEPS=[
+  {id:'welcome', title:'🦁 Willkommen in deinem Zoo!', text:'Baue deinen eigenen Zoo, sammle Tiere und verdiene Mischataler. Lass uns kurz die wichtigsten Sachen zeigen.', target:null, action:'button'},
+  {id:'move', title:'🕹️ Bewegen', text:'Benutze den Joystick unten links, um loszulaufen — probier’s aus!', target:'#jzone', action:'move'},
+  {id:'gondola', title:'🚡 Zur Gondel', text:'Die Gondel ist dort, wo du Tiere bekommst. Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:{x:0,z:0}, action:'panel:gond'},
+  {id:'gluck', title:'🍀 Glück kaufen', text:'Hier in der Gondel kannst du dauerhaft Glück kaufen — mehr Glück heisst seltenere Tiere!', target:'#gluck', action:'button'},
+  {id:'buy', title:'🐱 Dein erstes Tier', text:'Du startest mit etwas Guthaben — kauf dir hier dein erstes Tier!', target:'#ganim', action:'buy'},
+  {id:'shop', title:'🛒 Der Shop', text:'Hier kannst du Boosts und Extras kaufen. Öffne ihn mal!', target:'#hb-shop', action:'panel:shop'},
+  {id:'shopcont', title:'🎁 Was gibt’s im Shop?', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um!', target:'#scont', action:'button'},
+  {id:'dice', title:'🎲 Würfel-Maschine', text:'Scroll runter zur "Würfel-Maschine Lizenz" — einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren)!', target:'#scont', action:'button'},
+  {id:'menu', title:'☰ Das Menü', text:'Hier findest du Einstellungen, deinen Rang und mehr. Öffne es mal!', target:'#hb-menu', action:'panel:menu'},
+  {id:'events', title:'🎉 Events', text:'Hier oben siehst du, wenn gerade ein zeitlich begrenztes Event läuft — die geben oft dicke Boni!', target:'#evt', action:'button'},
+  {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity'},
+  {id:'slap', title:'✋ Slappen', text:'Tipp auf den Bildschirm (nicht auf Knöpfe), um zu slappen — probier’s aus!', target:null, action:'slap'},
+];
+const Tutorial={
+  _active:false, _stepIdx:0, _startPos:null, _moveCheckIv:null, _arrowIv:null,
+  start(){
+    if(this._active) return;
+    this._active=true; this._stepIdx=0;
+    this._showStep(0);
+  },
+  _cleanupStep(){
+    if(this._moveCheckIv){ clearInterval(this._moveCheckIv); this._moveCheckIv=null; }
+    if(this._arrowIv){ clearInterval(this._arrowIv); this._arrowIv=null; }
+    document.getElementById('tut-overlay')?.remove();
+  },
+  _finish(){
+    this._active=false;
+    this._cleanupStep();
+    localStorage.setItem('ztut','1');
+  },
+  skip(){
+    if(!confirm('Tutorial wirklich überspringen?')) return;
+    this._finish();
+  },
+  advance(){
+    this._cleanupStep();
+    this._stepIdx++;
+    if(this._stepIdx>=TUTORIAL_STEPS.length){ this._finish(); return; }
+    this._showStep(this._stepIdx);
+  },
+  _showStep(i){
+    const s=TUTORIAL_STEPS[i];
+    const overlay=document.createElement('div');
+    overlay.id='tut-overlay';
+    overlay.style.cssText='position:fixed;inset:0;z-index:9700;pointer-events:none';
+    document.body.appendChild(overlay);
+
+    // Abdunkeln: ganzer Bildschirm ~70% dunkel, ausser dem Ziel-Element
+    // (falls eins angegeben ist) — das bleibt per box-shadow-Loch hell.
+    const dim=document.createElement('div');
+    dim.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);pointer-events:'+(s.action==='button'?'auto':'none');
+    if(s.target){
+      const el=document.querySelector(s.target);
+      if(el){
+        const r=el.getBoundingClientRect();
+        const pad=8;
+        dim.style.clipPath='polygon(0% 0%,0% 100%,'+(r.left-pad)+'px 100%,'+(r.left-pad)+'px '+(r.top-pad)+'px,'+(r.right+pad)+'px '+(r.top-pad)+'px,'+(r.right+pad)+'px '+(r.bottom+pad)+'px,'+(r.left-pad)+'px '+(r.bottom+pad)+'px,'+(r.left-pad)+'px 100%,100% 100%,100% 0%)';
+        const ring=document.createElement('div');
+        ring.style.cssText='position:fixed;left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;border:3px solid #FFD700;border-radius:12px;box-shadow:0 0 20px rgba(255,215,0,.7);pointer-events:none;animation:tutPulse 1.4s ease-in-out infinite';
+        overlay.appendChild(ring);
+      }
+    }
+    overlay.appendChild(dim);
+    if(!document.getElementById('tut-pulse-style')){
+      const st=document.createElement('style'); st.id='tut-pulse-style';
+      st.textContent='@keyframes tutPulse{0%,100%{box-shadow:0 0 20px rgba(255,215,0,.7)}50%{box-shadow:0 0 35px rgba(255,215,0,1)}}';
+      document.head.appendChild(st);
+    }
+
+    // Text-Kasten
+    const box=document.createElement('div');
+    box.style.cssText='position:fixed;bottom:190px;left:50%;transform:translateX(-50%);z-index:9701;pointer-events:auto;background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
+    box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">'+s.title+'</div>'
+      +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>';
+    if(s.action==='button'){
+      const btn=document.createElement('button');
+      btn.textContent='Los geht’s →';
+      btn.style.cssText='margin-top:12px;background:linear-gradient(135deg,#FFD700,#E0A800);border:none;color:#000;font-weight:900;padding:9px 22px;border-radius:50px;cursor:pointer;font-size:.85rem';
+      btn.onclick=()=>this.advance();
+      box.appendChild(btn);
+    } else {
+      const hint=document.createElement('div');
+      hint.style.cssText='margin-top:10px;font-size:.72rem;color:rgba(255,215,0,.7);font-weight:700';
+      hint.textContent='👉 Mach die Aktion, um weiterzugehen';
+      box.appendChild(hint);
+    }
+    overlay.appendChild(box);
+    if(s.action!=='button'){
+      const sk=document.createElement('button');
+      sk.textContent='Tutorial überspringen';
+      sk.style.cssText='position:fixed;top:14px;right:14px;z-index:9702;pointer-events:auto;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);padding:7px 14px;border-radius:20px;cursor:pointer;font-size:.72rem';
+      sk.onclick=()=>this.skip();
+      overlay.appendChild(sk);
+    }
+
+    // Richtungspfeil (grüner Chevron) — zeigt zur Gondel (Weltposition
+    // ~0,0), dreht sich live mit, während man sich umschaut/bewegt.
+    // Liefert die Weltposition, auf die der Pfeil gerade zeigen soll —
+    // entweder feste Koordinaten (Gondel bei 0,0) oder eine live
+    // ausgelesene Position eines anderen Weltobjekts (z.B. Gold-Maschine,
+    // deren genaue Lage je nach Zoo-Layout leicht variieren kann).
+    const _arrowTargetPos=()=>{
+      if(!s.arrowTarget) return {x:0,z:0};
+      if(typeof s.arrowTarget==='object') return s.arrowTarget;
+      if(s.arrowTarget==='gold') return (ZG._goldMachinePositions&&ZG._goldMachinePositions[0])||{x:16,z:55};
+      if(s.arrowTarget==='dice') return (ZG._dicePositions&&ZG._dicePositions[0])||{x:16,z:55};
+      return {x:0,z:0};
     };
-    show(0);
-  }
+    if(s.arrow){
+      const arrow=document.createElement('div');
+      arrow.id='tut-arrow';
+      arrow.style.cssText='position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);z-index:9701;pointer-events:none;width:70px;height:70px';
+      arrow.innerHTML='<svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 10px rgba(76,175,80,.8))"><defs><linearGradient id="tutArrowGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7CB342"/><stop offset="100%" stop-color="#AED581"/></linearGradient></defs><polygon points="20,10 65,50 20,90 35,50" fill="url(#tutArrowGrad)" stroke="#33691E" stroke-width="3" stroke-linejoin="round"/></svg>';
+      overlay.appendChild(arrow);
+      const updateArrow=()=>{
+        const tp=_arrowTargetPos();
+        const dx=tp.x-ZG.pl.x, dz=tp.z-ZG.pl.z;
+        const worldAngle=Math.atan2(-dx,-dz);
+        let rel=worldAngle-ZG.yaw;
+        rel=((rel+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;
+        arrow.style.transform='translate(-50%,-50%) rotate('+(-rel*180/Math.PI+90)+'deg)';
+      };
+      updateArrow();
+      this._arrowIv=setInterval(updateArrow,100);
+    }
+
+    // Aktions-Erkennung
+    if(s.action==='move'){
+      this._startPos={x:ZG.pl.x,z:ZG.pl.z};
+      this._moveCheckIv=setInterval(()=>{
+        const dx=ZG.pl.x-this._startPos.x, dz=ZG.pl.z-this._startPos.z;
+        if(Math.sqrt(dx*dx+dz*dz)>3) this.advance();
+      },300);
+    }
+    if(s.action==='proximity'){
+      this._moveCheckIv=setInterval(()=>{
+        const tp=_arrowTargetPos();
+        const dx=ZG.pl.x-tp.x, dz=ZG.pl.z-tp.z;
+        if(Math.sqrt(dx*dx+dz*dz)<10) this.advance();
+      },300);
+    }
+    // panel:xxx, buy, slap werden extern über _onPanelOpen/_onBuy/_onSlap
+    // ausgelöst (siehe Aufrufe in ZP.open / ZP._buyG / ZG._slapNearby).
+  },
+  _onPanelOpen(p){
+    if(!this._active) return;
+    const s=TUTORIAL_STEPS[this._stepIdx];
+    if(s && s.action==='panel:'+p) this.advance();
+  },
+  _onBuy(){
+    if(!this._active) return;
+    const s=TUTORIAL_STEPS[this._stepIdx];
+    if(s && s.action==='buy') this.advance();
+  },
+  _onSlap(){
+    if(!this._active) return;
+    const s=TUTORIAL_STEPS[this._stepIdx];
+    if(s && s.action==='slap') this.advance();
+  },
 };
 </script>
 <script>
@@ -9203,6 +9353,7 @@ const ZP={
     // Close all others first
     ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
+    try{ Tutorial._onPanelOpen(p); }catch(e){}
     if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');try{this._rLuck();}catch(e){console.log('[Luck50-debug] _rLuck() warf einen Fehler: '+e.message);}try{this._rLuck50();}catch(e){console.log('[Luck50-debug] _rLuck50() warf einen Fehler: '+e.message);}if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
     if(p==='shop'){if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();}
@@ -9463,6 +9614,7 @@ const ZP={
     if((z.gondLockUntil||0)>Date.now()){this.toast(_gt('zoo.gondola_locked_toast','🚓 Gondel gesperrt (Polizei)! Noch {n} Min',{n:Math.ceil((z.gondLockUntil-Date.now())/60000)}),3000);return;}const slot=z.enc.findIndex(e=>!e);if(slot<0&&!g.a.isEgg){this.toast(_gt('zoo.all_enc_full','❌ Alle Gehege belegt!'));return;}if(((ZS.dsMT||0)+z.mt)<g.a.p){this.toast(_gt('zoo.too_little_mt','❌ Zu wenig MT!'));return;}
     // Deduct cost + advance queue
     z.mt-=g.a.p; ZG.gQ.shift(); ZG.gQ.push(ZG._mkG()); ZG._updHUD&&ZG._updHUD(); try{ZS.save&&ZS.save();}catch(e){}
+    try{ Tutorial._onBuy(); }catch(e){}
     try{ MTPass.addXP(30,'Tier gekauft'); }catch(e){}
     try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}
     // EGG: show crack-open animation instead of carry
@@ -12382,6 +12534,56 @@ const GroupNotify = {
       +'</div>';
     document.body.appendChild(el);
   },
+  // Erkennt das tatsächliche Gerät — moderne iPads geben sich in Safari
+  // als Mac aus (seit iPadOS 13), reine UA-Text-Erkennung reicht also
+  // nicht. maxTouchPoints>1 bei einem "Macintosh"-UA verrät das iPad.
+  _detectDevice(){
+    const ua=navigator.userAgent;
+    const isIPad=/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
+    const isIPhone=/iPhone|iPod/.test(ua);
+    const isIOS=isIPad||isIPhone;
+    const isStandalone=window.navigator.standalone===true || window.matchMedia('(display-mode: standalone)').matches;
+    const isSafari=isIOS && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    const isAndroid=/Android/.test(ua);
+    const isChrome=/Chrome/.test(ua) && !/Edg|OPR/.test(ua);
+    const isFirefox=/Firefox/.test(ua);
+    return {isIPad, isIPhone, isIOS, isStandalone, isSafari, isAndroid, isChrome, isFirefox};
+  },
+  _showBlockedInstructions(){
+    document.getElementById('group-blocked-panel')?.remove();
+    const dev=this._detectDevice();
+    let steps;
+    if(dev.isIOS && dev.isSafari && !dev.isStandalone){
+      // Das eigentliche Problem auf iPhone/iPad: normale Safari-Tabs
+      // unterstützen Web-Benachrichtigungen gar nicht — das geht bei
+      // Apple nur, wenn die Seite zum Home-Bildschirm hinzugefügt
+      // wurde ("installiert" als App). Das ist unabhängig von jeder
+      // Erlaubnis-Einstellung.
+      steps='Auf '+(dev.isIPad?'dem iPad':'dem iPhone')+' funktionieren Benachrichtigungen in Safari nur, wenn die Seite zum Home-Bildschirm hinzugefügt wurde:<br><br>1. Unten (oder oben) auf das Teilen-Symbol <b>⬆️</b> tippen<br>2. "Zum Home-Bildschirm" wählen<br>3. Die App von dort (nicht mehr aus Safari) öffnen und "Gruppe beitreten" erneut versuchen.';
+    } else if(dev.isIOS && dev.isSafari && dev.isStandalone){
+      steps='Einstellungen-App → Mischa Denkspiel (unten in der Liste der installierten Apps) → Mitteilungen erlauben.';
+    } else if(dev.isChrome){
+      steps='Auf das 🔒-Symbol links neben der Adresszeile klicken → "Benachrichtigungen" → auf "Zulassen" stellen. Danach die Seite neu laden.';
+    } else if(dev.isFirefox){
+      steps='Auf das 🔒-Symbol links neben der Adresszeile klicken → Berechtigungen → Benachrichtigungen senden → Sperrung aufheben. Danach die Seite neu laden.';
+    } else if(dev.isAndroid){
+      steps='Auf die drei Punkte oben rechts im Browser tippen → Website-Einstellungen (oder Berechtigungen) → Benachrichtigungen → Erlauben. Danach die Seite neu laden.';
+    } else {
+      steps='In den Browser-Einstellungen für diese Website die Benachrichtigungs-Erlaubnis von "Blockiert" auf "Erlaubt" stellen. Danach die Seite neu laden.';
+    }
+    const el=document.createElement('div');
+    el.id='group-blocked-panel';
+    el.style.cssText='position:fixed;inset:0;background:rgba(5,10,25,.92);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    el.addEventListener('click',(e)=>{ if(e.target===el) el.remove(); });
+    el.innerHTML='<div style="background:linear-gradient(135deg,#3a0a15,#1a0508);border:1px solid rgba(255,111,97,.4);border-radius:16px;padding:24px;max-width:380px;width:95%;text-align:center;color:#fff">'
+      +'<div style="font-size:2.5rem">🔕</div>'
+      +'<div style="font-weight:900;font-size:1.1rem;margin:8px 0;color:#FF6F61">Benachrichtigungen sind blockiert</div>'
+      +'<div style="font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:14px">Du (oder jemand) hat das vorher schon einmal abgelehnt — dein Browser zeigt die Frage deshalb nicht noch einmal von selbst. Das muss manuell zurückgesetzt werden:</div>'
+      +'<div style="font-size:.78rem;color:rgba(255,255,255,.8);background:rgba(255,255,255,.06);border-radius:10px;padding:12px;text-align:left;margin-bottom:16px">'+steps+'</div>'
+      +'<button onclick="document.getElementById(\'group-blocked-panel\').remove()" style="width:100%;background:rgba(255,255,255,.1);border:none;color:#fff;padding:10px;border-radius:10px;cursor:pointer;font-size:.82rem">Verstanden</button>'
+      +'</div>';
+    document.body.appendChild(el);
+  },
   _requestNotifPermission(){
     // Manche älteren Browser (v.a. Safari) geben bei
     // Notification.requestPermission() KEIN Promise zurück, sondern
@@ -12402,7 +12604,20 @@ const GroupNotify = {
     document.getElementById('group-ask-panel')?.remove();
     try{
       if(typeof Notification==='undefined'){
-        ZP.toast('❌ Dieser Browser unterstützt keine Benachrichtigungen.',4000);
+        // Auf iPhone/iPad in einem normalen Safari-Tab gibt es die
+        // Notification-API technisch gar nicht — das ist der
+        // wahrscheinlichste Grund, nicht ein generisches "geht nicht".
+        this._showBlockedInstructions();
+        return;
+      }
+      // WICHTIG: steht die Erlaubnis schon auf "denied" (z.B. von einem
+      // früheren Test, bei dem sie abgelehnt wurde), zeigt der Browser
+      // den echten Dialog NIE WIEDER von selbst — das kann keine
+      // Website umgehen, das lässt sich nur manuell in den
+      // Browser-Einstellungen zurücksetzen. Genau DAS erklärt die
+      // gemeldete Meldung ohne sichtbaren Dialog.
+      if(Notification.permission==='denied'){
+        this._showBlockedInstructions();
         return;
       }
       // Löst die ECHTE, native Browser-Erlaubnis-Frage aus (nicht nur
@@ -12410,6 +12625,10 @@ const GroupNotify = {
       // Browser selbst anzeigt und den man dauerhaft erlauben/ablehnen
       // kann.
       const perm=await this._requestNotifPermission();
+      if(perm==='denied'){
+        this._showBlockedInstructions();
+        return;
+      }
       if(perm!=='granted'){
         ZP.toast('❗ Ohne Erlaubnis kann Mischa Denkspiel dir keine Nachrichten schicken.',4000);
         return;
