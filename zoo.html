@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v590 -->
+<!-- ZOO v591 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=590"></script>
-<script src="rewardchests.js?v=590"></script>
-<script src="personality.js?v=590"></script>
+<script src="lang.js?v=591"></script>
+<script src="rewardchests.js?v=591"></script>
+<script src="personality.js?v=591"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v590','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v591','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=590"></script>
-<script src="worlds.js?v=590"></script>
+<script src="firebase-state.js?v=591"></script>
+<script src="worlds.js?v=591"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2557,7 +2557,21 @@ const ZG={
       }, 10*60000));
     }
     setInterval(()=>{if(LuckyBlocks.blocks.length<3)LuckyBlocks.spawn();},180000);
-    if(!localStorage.getItem('ztut'))setTimeout(()=>this._tut(),1500);
+    // BUG FIX: prüfte bisher localStorage — das hängt am GERÄT/BROWSER,
+    // nicht am KONTO. Hatte irgendein Konto auf diesem Gerät das
+    // Tutorial schon mal gesehen (z.B. beim Testen), blieb es für ALLE
+    // künftigen neuen Konten auf demselben Gerät für immer verborgen.
+    // Jetzt hängt es am Zoo-Konto selbst (Firestore), wie es sein sollte.
+    if(ZS.zoo && !ZS.zoo.tutorialSeen){
+      // Einmalige Migration: BESTEHENDE Konten (die schon Fortschritt
+      // haben) sollen nicht plötzlich das Tutorial aufgedrängt bekommen
+      // — nur wirklich frische, neue Konten (ganz am Anfang, noch kein
+      // Fortschritt) sollen es tatsächlich sehen.
+      const z=ZS.zoo;
+      const looksEstablished=(z.te>0)||(z.reb>0)||(z.enc||[]).some(e=>e&&e.animal)||(z.mt||0)>8;
+      if(looksEstablished){ z.tutorialSeen=true; ZS.save&&ZS.save(); }
+      else { setTimeout(()=>this._tut(),1500); }
+    }
   },
 
   zStop: function(){
@@ -7775,7 +7789,7 @@ const Tutorial={
   _finish(){
     this._active=false;
     this._cleanupStep();
-    localStorage.setItem('ztut','1');
+    if(ZS.zoo){ ZS.zoo.tutorialSeen=true; ZS.save&&ZS.save(); }
   },
   skip(){
     if(!confirm('Tutorial wirklich überspringen?')) return;
@@ -7820,7 +7834,8 @@ const Tutorial={
     const box=document.createElement('div');
     box.style.cssText='position:fixed;bottom:190px;left:50%;transform:translateX(-50%);z-index:9701;pointer-events:auto;background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
     box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">'+s.title+'</div>'
-      +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>';
+      +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>'
+      +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);font-size:.68rem;color:rgba(255,255,255,.45)">💡 Tipp: schreib jederzeit <b style="color:#FFD700">/tipps</b> in den Chat, um dieses Tutorial nochmal zu sehen!</div>';
     if(s.action==='button'){
       const btn=document.createElement('button');
       btn.textContent='Los geht’s →';
@@ -12076,6 +12091,13 @@ const ZChat = {
     const targetSel = document.getElementById('chat-target');
     const to = targetSel ? (targetSel.value||null) : null;
     inp.value = '';
+    // /tipps: startet das Tutorial nochmal von vorne — wird auch im
+    // Tutorial selbst erwähnt, damit man's später wiederfindet.
+    if(msg.toLowerCase()==='/tipps'){
+      this._addMsg('💡','Tutorial wird gestartet...',true);
+      Tutorial.start();
+      return;
+    }
     // SECRET: type "mischadercoole" in chat
     SECRETS.checkNameSecret(msg);
     if(msg.toLowerCase()==='mischadercoole'){
