@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v591 -->
+<!-- ZOO v592 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=591"></script>
-<script src="rewardchests.js?v=591"></script>
-<script src="personality.js?v=591"></script>
+<script src="lang.js?v=592"></script>
+<script src="rewardchests.js?v=592"></script>
+<script src="personality.js?v=592"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v591','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v592','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=591"></script>
-<script src="worlds.js?v=591"></script>
+<script src="firebase-state.js?v=592"></script>
+<script src="worlds.js?v=592"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3445,7 +3445,7 @@ const ZG={
           ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:90vw;text-align:center;pointer-events:none';
           ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.8)">📢</div>'+
             '<div style="font-size:.75rem;font-weight:700;margin-bottom:8px;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8)">Ankündigung von '+$esc(d.from)+'</div>'+
-            '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8)">'+$esc(d.msg)+'</div>';
+            '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8);word-break:break-word;overflow-wrap:break-word">'+$esc(d.msg)+'</div>';
           document.body.appendChild(ann);
           setTimeout(()=>{if(ann.parentElement)ann.remove();},10000);
         }
@@ -14861,7 +14861,7 @@ const ZAdmin = {
     ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:90vw;text-align:center;pointer-events:none';
     ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.8)">📢</div>'+
       '<div style="font-size:.75rem;font-weight:700;margin-bottom:8px;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8)">Ankündigung von '+$esc(ZS.player||'Admin')+'</div>'+
-      '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8)">'+$esc(msg)+'</div>';
+      '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8);word-break:break-word;overflow-wrap:break-word">'+$esc(msg)+'</div>';
     document.body.appendChild(ann);
     setTimeout(()=>{if(ann.parentElement)ann.remove();},10000);
     try{if(typeof _db!=='undefined'&&_db){
@@ -18690,8 +18690,8 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#8E44AD" onclick="SpeedTemple.toggleRestriction()">🔒 Tempel-Zugang umschalten</button>
           </div>
           <div class="padmin-section-title" style="margin-top:10px">📢 Ankündigung</div>
-          <textarea id="padmin-msg" placeholder="Nachricht an alle Spieler..." rows="2"
-            style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;resize:none;box-sizing:border-box;margin-bottom:6px"></textarea>
+          <textarea id="padmin-msg" placeholder="Nachricht an alle Spieler..." rows="3" maxlength="300"
+            style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;resize:vertical;box-sizing:border-box;margin-bottom:6px"></textarea>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <span style="font-size:.75rem;color:rgba(255,255,255,.5)">🎨 Schriftfarbe:</span>
             <input id="padmin-msg-color" type="color" value="#FFD700" style="width:36px;height:28px;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:6px;background:transparent;cursor:pointer">
@@ -19147,7 +19147,7 @@ window.ZooEvents = ZooEvents;
               <div id="ann-preview-date" style="display:inline-block;background:#fff;color:#000;border-radius:20px;padding:5px 12px;font-size:.78rem;font-weight:700;margin-bottom:10px">Sa., Juni 27 um 20:00</div>
             </div>
             <div style="background:#000;margin:0 14px;border-radius:10px;padding:22px 16px;text-align:center">
-              <div id="ann-preview-title" style="font-size:clamp(1.4rem,6vw,2.2rem);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:2px;line-height:1.1">DEIN EVENT TITEL</div>
+              <div id="ann-preview-title" style="font-size:clamp(1.05rem,4.2vw,2.2rem);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1px;line-height:1.25;word-break:break-word;overflow-wrap:break-word;white-space:normal">DEIN EVENT TITEL</div>
             </div>
             <div style="padding:12px 16px 6px">
               <div id="ann-preview-sub" style="font-weight:700;font-size:.95rem;color:#fff;margin-bottom:12px">Dein Event Titel</div>
@@ -19160,9 +19160,9 @@ window.ZooEvents = ZooEvents;
           <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;display:grid;gap:8px">
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📝 Titel (wird gross angezeigt)</div>
-              <input id="ann-title" type="text" placeholder="z.B. 26 JUNI UPDATE" maxlength="40"
+              <textarea id="ann-title" placeholder="z.B. 26 JUNI UPDATE" maxlength="300" rows="2"
                 oninput="ZP._previewAnn()"
-                style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+                style="width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px;border-radius:8px;font-size:.95rem;box-sizing:border-box;resize:vertical"></textarea>
             </div>
             <div>
               <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:4px">📅 Datum &amp; Uhrzeit</div>
