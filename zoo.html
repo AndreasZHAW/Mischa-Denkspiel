@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v592 -->
+<!-- ZOO v594 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=592"></script>
-<script src="rewardchests.js?v=592"></script>
-<script src="personality.js?v=592"></script>
+<script src="lang.js?v=594"></script>
+<script src="rewardchests.js?v=594"></script>
+<script src="personality.js?v=594"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v592','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v594','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=592"></script>
-<script src="worlds.js?v=592"></script>
+<script src="firebase-state.js?v=594"></script>
+<script src="worlds.js?v=594"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3441,11 +3441,21 @@ const ZG={
           // Plain colored text, no background box, no OK button — just
           // fades in, sits for 10s, then removes itself automatically.
           const color=d.color||'#FFD700';
+          // DIAGNOSE-LOG: falls der Umbruch nochmal nicht greift, steht
+          // hier genau, wie lang die Nachricht war und ob sie
+          // ungewöhnlich ist (z.B. ein langes Wort ohne Leerzeichen) —
+          // landet automatisch im Diagnose-Crash-Log (window._log).
+          try{
+            const longestWord=(d.msg||'').split(/\s+/).reduce((a,w)=>w.length>a.length?w:a,'');
+            const info='[Announce-debug] Länge='+((d.msg||'').length)+' längstesWort='+longestWord.length+' Text="'+(d.msg||'').slice(0,60)+(  (d.msg||'').length>60?'…':'')+'"';
+            console.log(info);
+            if(window._log) window._log(info);
+          }catch(e){}
           const ann=document.createElement('div');
-          ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:90vw;text-align:center;pointer-events:none';
+          ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:min(90vw,480px);text-align:center;pointer-events:none;box-sizing:border-box';
           ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.8)">📢</div>'+
             '<div style="font-size:.75rem;font-weight:700;margin-bottom:8px;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8)">Ankündigung von '+$esc(d.from)+'</div>'+
-            '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8);word-break:break-word;overflow-wrap:break-word">'+$esc(d.msg)+'</div>';
+            '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8);width:100%;box-sizing:border-box;white-space:normal!important;word-break:break-word;overflow-wrap:anywhere">'+$esc(d.msg)+'</div>';
           document.body.appendChild(ann);
           setTimeout(()=>{if(ann.parentElement)ann.remove();},10000);
         }
@@ -7832,7 +7842,15 @@ const Tutorial={
 
     // Text-Kasten
     const box=document.createElement('div');
-    box.style.cssText='position:fixed;bottom:190px;left:50%;transform:translateX(-50%);z-index:9701;pointer-events:auto;background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
+    // WICHTIG: nur der Willkommens-Schritt hat einen echten Knopf im
+    // Kasten — bei allen anderen (Aktions-)Schritten blockierte der
+    // Kasten bisher Klicks/Taps, die eigentlich zum darunterliegenden
+    // Spiel durchgehen sollten (z.B. der "Kaufen"-Knopf in der Gondel,
+    // oder der Joystick beim Laufen) — dadurch kam man teils gar nicht
+    // weiter. Jetzt ist der Kasten bei Aktions-Schritten komplett
+    // klick-durchlässig; nur der Überspringen-Knopf bleibt separat
+    // klickbar (eigenes Element, siehe weiter unten).
+    box.style.cssText='position:fixed;bottom:190px;left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
     box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">'+s.title+'</div>'
       +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>'
       +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);font-size:.68rem;color:rgba(255,255,255,.45)">💡 Tipp: schreib jederzeit <b style="color:#FFD700">/tipps</b> in den Chat, um dieses Tutorial nochmal zu sehen!</div>';
@@ -12837,10 +12855,10 @@ const TesterPanel = {
     const msg=(document.getElementById('tp-msg')?.value||'').trim();
     if(!msg){ ZP.toast('❗ Erst eine Nachricht eingeben!'); return; }
     const ann=document.createElement('div');
-    ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:90vw;text-align:center;pointer-events:none';
+    ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:min(90vw,480px);text-align:center;pointer-events:none;box-sizing:border-box';
     ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.8)">📢</div>'
       +'<div style="font-size:.75rem;font-weight:700;margin-bottom:8px;color:'+TESTER_BLUE+';text-shadow:0 2px 8px rgba(0,0,0,.8)">Nachricht von Tester</div>'
-      +'<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+TESTER_BLUE+';text-shadow:0 2px 8px rgba(0,0,0,.8)">'+$esc(msg)+'</div>';
+      +'<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+TESTER_BLUE+';text-shadow:0 2px 8px rgba(0,0,0,.8);width:100%;box-sizing:border-box;white-space:normal!important;word-break:break-word;overflow-wrap:anywhere">'+$esc(msg)+'</div>';
     document.body.appendChild(ann);
     setTimeout(()=>{if(ann.parentElement)ann.remove();},10000);
     try{ if(typeof _db!=='undefined'&&_db){ _db.collection('zoo_broadcast').doc('announcement').set({type:'announce',msg,from:'Tester',color:TESTER_BLUE,at:Date.now()}).catch(()=>{}); } }catch(e){}
@@ -14858,10 +14876,10 @@ const ZAdmin = {
     // Show locally immediately — plain colored text, no background box, no
     // OK button. Auto-dismisses after exactly 10s.
     const ann=document.createElement('div');
-    ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:90vw;text-align:center;pointer-events:none';
+    ann.style.cssText='position:fixed;top:14%;left:50%;transform:translate(-50%,-50%);z-index:9800;min-width:200px;max-width:min(90vw,480px);text-align:center;pointer-events:none;box-sizing:border-box';
     ann.innerHTML='<div style="font-size:1.5rem;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.8)">📢</div>'+
       '<div style="font-size:.75rem;font-weight:700;margin-bottom:8px;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8)">Ankündigung von '+$esc(ZS.player||'Admin')+'</div>'+
-      '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8);word-break:break-word;overflow-wrap:break-word">'+$esc(msg)+'</div>';
+      '<div style="font-size:1.1rem;line-height:1.5;font-weight:700;color:'+color+';text-shadow:0 2px 8px rgba(0,0,0,.8);width:100%;box-sizing:border-box;white-space:normal!important;word-break:break-word;overflow-wrap:anywhere">'+$esc(msg)+'</div>';
     document.body.appendChild(ann);
     setTimeout(()=>{if(ann.parentElement)ann.remove();},10000);
     try{if(typeof _db!=='undefined'&&_db){
