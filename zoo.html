@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v594 -->
+<!-- ZOO v596 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=594"></script>
-<script src="rewardchests.js?v=594"></script>
-<script src="personality.js?v=594"></script>
+<script src="lang.js?v=596"></script>
+<script src="rewardchests.js?v=596"></script>
+<script src="personality.js?v=596"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v594','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v596','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=594"></script>
-<script src="worlds.js?v=594"></script>
+<script src="firebase-state.js?v=596"></script>
+<script src="worlds.js?v=596"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -627,6 +627,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 // the fact: was this a hard refresh, a plain reload, a brand-new tab, or
 // did the tab just come back into focus? All of this shows up in the
 // crash log now.
+console.log('[Init-debug] zoo.html Skript-Start erreicht (vor Session-Lebenszyklus-Block)');
 (function(){
   try{
     const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
@@ -637,7 +638,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     document.addEventListener('visibilitychange', ()=>{
       console.log('[Session-debug] Tab-Sichtbarkeit geändert: '+document.visibilityState);
     });
-  }catch(e){}
+  }catch(e){ console.log('[Init-debug] Session-Lebenszyklus-Block warf: '+e.message); }
 })();
 
 // ═══ SECURITY HELPERS ═══
@@ -1252,13 +1253,20 @@ const GraphicsSettings = {
   },
 };
 
+// targetSec = Pity-Zielzeit OHNE Shop-Häufigkeits-Upgrades (langsamster
+// Fall). Mit voll ausgebautem Shop (×4.03 insgesamt) kürzt sich das auf
+// genau die vom Spieler gewünschten Werte: Grün ~10s, Gelb ~45s,
+// Lila ~10 Min, Silber ~30 Min, Gold ~1 Std, Diamant ~2 Std. Das ist nur
+// die GARANTIERTE Obergrenze — die kleine natürliche Chance daneben
+// bleibt unverändert, dadurch kann es bei viel Glück auch schneller
+// gehen (siehe rollLuckChain).
 const LUCK_CHAIN=[
-  {name:'Grün',    color:'#4CAF50', chance:0.30, targetSec:30,     mult:1.25},
-  {name:'Gelb',    color:'#FFEB3B', chance:0.12, targetSec:120,    mult:1.5},
-  {name:'Lila',    color:'#9C27B0', chance:0.05, targetSec:900,    mult:2},
-  {name:'Silber',  color:'#C0C0C0', chance:0.02, targetSec:1800,   mult:2,    minRarity:'legendary'},
-  {name:'Gold',    color:'#FFD700', chance:0.003,targetSec:7200,   mult:5,    minRarity:'ultralegendary'},
-  {name:'Diamant', color:'#B9F2FF', chance:0.0003,targetSec:604800,mult:1000, minRarity:'god'},
+  {name:'Grün',    color:'#4CAF50', chance:0.30, targetSec:40,     mult:1.25},
+  {name:'Gelb',    color:'#FFEB3B', chance:0.12, targetSec:181,    mult:1.5},
+  {name:'Lila',    color:'#9C27B0', chance:0.05, targetSec:2418,   mult:20},
+  {name:'Silber',  color:'#C0C0C0', chance:0.02, targetSec:7254,   mult:100,  minRarity:'legendary'},
+  {name:'Gold',    color:'#FFD700', chance:0.003,targetSec:14508,  mult:5,    minRarity:'ultralegendary'},
+  {name:'Diamant', color:'#B9F2FF', chance:0.0003,targetSec:29016, mult:1000, minRarity:'god'},
 ];
 // Kaufbare Häufigkeits-Upgrades im Shop — wirken zusätzlich zur
 // natürlichen Chance jeder Stufe (die Pity-Zielzeiten unten bleiben die
@@ -1303,19 +1311,34 @@ function rollLuckChain(){
   }
   const now=Date.now();
   // ── PRO-STUFE-PITY: jede Stufe hat ihre EIGENE Ziel-Häufigkeit (siehe
-  // targetSec oben) — Grün ~alle 30s, Gelb ~alle 2 Min, Lila ~alle 15
-  // Min, Silber ~alle 30 Min, Gold ~alle 2 Std, Diamant ~alle 7 Tage.
-  // Ist die aktuell anstehende Stufe seit ihrer Ziel-Zeit nicht mehr
-  // vorgekommen, wird sie erzwungen — sonst zählt die normale (kleine)
-  // Zufalls-Chance. Das ist bewusst KEINE strikte Vorgabe: durch die
-  // Zufalls-Chance kann es auch mal schneller gehen, aber nie länger als
-  // die Ziel-Zeit dauern.
-  const pos=Math.min(z?.luckChainPos||0, LUCK_CHAIN.length-1);
+  // targetSec oben). Ist die aktuell anstehende Stufe seit ihrer
+  // Ziel-Zeit nicht mehr vorgekommen, wird sie erzwungen — sonst zählt
+  // die normale (kleine) Zufalls-Chance. Das ist bewusst KEINE strikte
+  // Vorgabe: durch die Zufalls-Chance kann es auch mal schneller gehen,
+  // aber nie länger als die Ziel-Zeit dauern.
+  //
+  // BUG FIX: Shop-Häufigkeits-Upgrades multiplizierten bisher die ROHE
+  // Zufalls-Chance hoch — bei voll ausgebautem Shop (×4.03) wurde aus
+  // Grüns 30%-Chance über 100%, also GARANTIERT jedes Mal (daher "kommt
+  // die ganze Zeit ein Kleeblatt"). Jetzt wirkt der Shop-Multi
+  // stattdessen auf die PITY-ZIELZEIT (verkürzt sie), nicht mehr auf die
+  // rohe Chance — das bleibt immer sinnvoll, egal wie hoch der Multi ist.
+  // BUG FIX: griff hier bisher ungeschützt auf z.lastTierAt zu — war z
+  // (ZS.zoo) in diesem Moment noch nicht geladen (z.B. ganz am Anfang
+  // beim Weltaufbau, bevor die Zoo-Daten fertig sind), warf das einen
+  // echten Absturz, noch bevor irgendwas geloggt werden konnte. Jetzt:
+  // ohne geladene Zoo-Daten einfach "kein Glück diesmal", kein Crash.
+  if(!z){
+    try{ const m='[LuckChain-debug] rollLuckChain() lief ohne geladene Zoo-Daten (ZS.zoo war null) — abgefangen statt abzustürzen.'; console.log(m); if(window._log) window._log(m); }catch(e){}
+    return null;
+  }
+  const pos=Math.min(z.luckChainPos||0, LUCK_CHAIN.length-1);
   const stage=LUCK_CHAIN[pos];
   if(!z.lastTierAt) z.lastTierAt={};
-  const overdue=(now-(z.lastTierAt[stage.name]||0))>=stage.targetSec*1000;
-  const effectiveChance=stage.chance*getLuckFreqMult(z);
-  if(overdue || Math.random()<effectiveChance){
+  const freqMult=getLuckFreqMult(z);
+  const effectiveTargetSec=stage.targetSec/freqMult;
+  const overdue=(now-(z.lastTierAt[stage.name]||0))>=effectiveTargetSec*1000;
+  if(overdue || Math.random()<stage.chance){
     z.lastTierAt[stage.name]=now;
     z.lastAnyLuckAt=now;
     // WICHTIG: bei der letzten Stufe (Diamant) bleibt die Position AUF
@@ -4029,19 +4052,29 @@ const ZG={
     this._clouds();
     console.log('World built. Scene objects:', this.scene.children.length);
     if(window._log) window._log('✅ Welt: '+this.scene.children.length+' Objekte');
-    try{ ScreenTime.init(); }catch(e){}
-    try{ ZP._updDecoBar(); }catch(e){}
-    try{ Weather.startCycle(); }catch(e){}
-    try{ SpeedTemple.startSpeedGrowth(); }catch(e){}
-    try{ SpeedTemple.startBoostBadge(); }catch(e){}
-    try{ TesterPanel.refresh(); }catch(e){}
+    // DIAGNOSE: ab hier mit Checkpoint-Logs + echter Fehler-Ausgabe statt
+    // stiller catch(e){} — damit ein künftiger Absturz genau zeigt, bei
+    // welchem Schritt er passiert, statt einfach lautlos zu stoppen.
+    if(window._log) window._log('[Init-debug] world-build Checkpoint A: vor ScreenTime.init()');
+    try{ ScreenTime.init(); }catch(e){ console.log('[Init-debug] ScreenTime.init() warf: '+e.message); }
+    if(window._log) window._log('[Init-debug] Checkpoint B: vor ZP._updDecoBar()');
+    try{ ZP._updDecoBar(); }catch(e){ console.log('[Init-debug] _updDecoBar() warf: '+e.message); }
+    if(window._log) window._log('[Init-debug] Checkpoint C: vor Weather.startCycle()');
+    try{ Weather.startCycle(); }catch(e){ console.log('[Init-debug] Weather.startCycle() warf: '+e.message); }
+    if(window._log) window._log('[Init-debug] Checkpoint D: vor SpeedTemple.startSpeedGrowth()');
+    try{ SpeedTemple.startSpeedGrowth(); }catch(e){ console.log('[Init-debug] startSpeedGrowth() warf: '+e.message); }
+    try{ SpeedTemple.startBoostBadge(); }catch(e){ console.log('[Init-debug] startBoostBadge() warf: '+e.message); }
+    if(window._log) window._log('[Init-debug] Checkpoint E: vor TesterPanel.refresh()');
+    try{ TesterPanel.refresh(); }catch(e){ console.log('[Init-debug] TesterPanel.refresh() warf: '+e.message); }
+    if(window._log) window._log('[Init-debug] Checkpoint F: vor GroupNotify-Check');
     try{
       const z=ZS.zoo;
       if(z && z.groupMember && typeof Notification!=='undefined' && Notification.permission==='granted'){
         if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(reg=>{ GroupNotify._swReg=reg; }).catch(()=>{});
         GroupNotify._startListening();
       }
-    }catch(e){}
+    }catch(e){ console.log('[Init-debug] GroupNotify-Check warf: '+e.message); }
+    if(window._log) window._log('[Init-debug] Checkpoint G: world-build fertig, Ladebalken wird entfernt');
     // Hide loading bar now that 3D world is ready
     setTimeout(()=>{ const d=document.getElementById('_dbg'); if(d)d.remove(); }, 500);
   },
