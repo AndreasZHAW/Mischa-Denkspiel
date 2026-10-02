@@ -91,7 +91,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v598';
+const APP_VERSION = 'v599';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -501,7 +501,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v598 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v599 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -964,7 +964,33 @@ const App = {
         </div>`;
 
       frame++;
-      if(frame >= TOTAL) { cancelAnimationFrame(animId); ov.remove(); window.location.href='zoo.html?autostart=1'; return; }
+      if(frame >= TOTAL) {
+        cancelAnimationFrame(animId);
+        console.log('[Boarding-debug] Animation fertig (frame='+frame+'/'+TOTAL+') — entferne Overlay und leite weiter zu zoo.html?autostart=1');
+        ov.remove();
+        // SICHERHEITSNETZ: die Übergangs-Animation ist nur eine
+        // Überlagerung ÜBER der schon vorhandenen Denkspiel-Seite — kein
+        // eigener Seitenwechsel. Sollte window.location.href aus
+        // irgendeinem Grund NICHT feuern (z.B. durch eine Erweiterung
+        // blockiert, oder ein stiller Fehler), bliebe sonst einfach die
+        // Denkspiel-Seite sichtbar, die die ganze Zeit darunter lag —
+        // ohne jede Erklärung. Jetzt: nach 1.5s sichtbar ein manueller
+        // Link, falls der automatische Wechsel nicht geklappt hat.
+        const fallbackTimer = setTimeout(()=>{
+          console.log('[Boarding-debug] 1.5s nach dem Overlay-Entfernen immer noch auf derselben Seite — automatischer Wechsel hat nicht funktioniert. Zeige manuellen Link.');
+          const fb=document.createElement('div');
+          fb.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999999;background:#900;color:#fff;padding:10px 20px;border-radius:10px;font-weight:700;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+          fb.innerHTML='⚠️ Automatischer Wechsel hat nicht geklappt. <a href="zoo.html?autostart=1" style="color:#FFD700;text-decoration:underline">Hier klicken, um in den Zoo zu kommen →</a>';
+          document.body.appendChild(fb);
+        }, 1500);
+        try{
+          window.location.href='zoo.html?autostart=1';
+          console.log('[Boarding-debug] window.location.href wurde gesetzt — falls diese Zeile im Log steht, aber kein Zoo-Log folgt, hat die Navigation selbst nicht funktioniert.');
+        }catch(e){
+          console.log('[Boarding-debug] ❌ window.location.href warf einen Fehler: '+e.message);
+        }
+        return;
+      }
       animId = requestAnimationFrame(loop);
     };
     loop();
