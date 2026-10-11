@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v601 -->
+<!-- ZOO v602 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=601"></script>
-<script src="rewardchests.js?v=601"></script>
-<script src="personality.js?v=601"></script>
+<script src="lang.js?v=602"></script>
+<script src="rewardchests.js?v=602"></script>
+<script src="personality.js?v=602"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v601','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v602','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=601"></script>
-<script src="worlds.js?v=601"></script>
+<script src="firebase-state.js?v=602"></script>
+<script src="worlds.js?v=602"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1516,19 +1516,24 @@ const DECORATION_POOL=[
 
 // SLAPS — unlocked by rebirth, last 2 have 5s CD, lucky has 3s CD
 const SLAPS=[
-  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:0,  range:12},
+  {id:'basic', n:'BASIC SLAP',  e:'🤚', col:'#ddd',     cd:2000, fly:false, pct:0,  range:15},
   {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:2,  range:15},
   {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:3,  range:18},
   {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:4,  range:21},
   {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:5,  range:24},
   {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:6,  range:27},
   {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:7,  range:30},
-  {id:'gun',   n:'GUN',        e:'🔫',  col:'#888',     cd:2000, fly:false,isGun:true, pct:8,  range:33},
+  {id:'gun',   n:'GESCHENKESCHLEUDER', e:'🎁',  col:'#E74C3C',     cd:2000, fly:false,isGun:true, pct:8,  range:99999},
   {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:9,  range:36},
   {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:10, range:39},
   {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:11, range:42},
   {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:12, range:45},
 ];
+
+// Schaden in Herzen pro Slap-Art (10 Herzen insgesamt). Feuer = 3 Herzen
+// verteilt auf 5 Sek. Brennen. Geschenkeschleuder: 2 normal / 4 Kopfschuss.
+const SLAP_DMG={basic:.3,ice:.5,golden:.8,shadow:1,fire:3,rainbow:1.5,void:2.5,lucky:3,christmas:3.5,weekend:4,france:5};
+const SLAP_STUN={basic:2000,ice:3000,golden:3000,shadow:3000,fire:0,rainbow:2000,void:5000,gun:3000,lucky:5000,christmas:4000,weekend:5000,france:10000};
 
 // TOOLS — unlocked via shop purchase (z.upg.<id>), not rebirth. Shown in
 // the SAME weapon bar as SLAPS (equip/unequip works identically via
@@ -2519,6 +2524,7 @@ const ZG={
     }
     setTimeout(()=>ZG._listenAnimalEvents(),3000);
     setTimeout(()=>ZG._listenSlaps(),3000);
+    try{ ZHearts.init(); }catch(e){ console.log('[Hearts-debug] init-Fehler: '+e.message); }
     // NOTE: there used to ALSO be a setInterval(_tryStartRandomEvent, 10min)
     // here — a second, entirely local random-event trigger that never
     // broadcast anything, running alongside _scheduleEvent (which does
@@ -3589,6 +3595,14 @@ const ZG={
 
     // Screen effect based on slap type
     const slapId=d.slapId||'basic';
+    // ❤️ Schaden: Herzen verlieren (Feuer = Brennen über 5 Sek.)
+    try{
+      const _dmg=(d.dmg!=null)?d.dmg:(slapId==='gun'?(d.head?4:2):(SLAP_DMG[slapId]!=null?SLAP_DMG[slapId]:.3));
+      const _sd=SLAPS.find(s=>s.id===slapId);
+      const _src={slapId,from:d.from,name:_sd?_sd.n:String(slapId).toUpperCase(),gun:slapId==='gun'};
+      if(slapId==='fire') ZHearts.burn(_dmg,d.fx||5000,_src); else ZHearts.hit(_dmg,_src);
+      if(d.head) ZG._bigText('KOPFSCHUSS','#ff1f1f',1800);
+    }catch(e){ console.log('[Hearts-debug] Schaden-Fehler: '+e.message); }
     if(slapId==='lucky'||slapId==='weekend'){
       // Launch myself into sky (visual only)
       ZG._slapLaunchSelf(slapDur);
@@ -3606,14 +3620,34 @@ const ZG={
       setTimeout(()=>{ov.remove();boom.remove();},800);
       ZP.toast(`🗼 ${d.from} hat dich mit dem FRANCE SLAP getroffen! 10s!`,4000);
     } else if(slapId==='void'){
-      // Black flash
-      const fl2=document.createElement('div');
-      fl2.style.cssText='position:fixed;inset:0;background:#000;z-index:8000;pointer-events:none;opacity:0;transition:opacity .3s';
-      document.body.appendChild(fl2);
-      setTimeout(()=>fl2.style.opacity='0.9',10);
-      setTimeout(()=>fl2.style.opacity='0',500);
-      setTimeout(()=>fl2.remove(),800);
-      ZP.toast(`🌌 ${d.from}: VOID SLAP! Du verschwindest! ${Math.round(slapDur/1000)}s`,4000);
+      // Void: 5 Sek. in einen Sternen-Raum weit weg, dann exakt zurück
+      ZG._enterSpaceRoom(slapDur||5000);
+      ZP.toast(`🌌 ${d.from}: VOID SLAP! Du wirst ${Math.round((slapDur||5000)/1000)}s ins All teleportiert!`,4000);
+    } else if(slapId==='golden'){
+      const gl=document.createElement('div');
+      gl.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(255,215,0,.25),rgba(180,120,0,.55));border:6px solid rgba(255,215,0,.8)';
+      gl.innerHTML='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;opacity:.7">🟨</div>';
+      document.body.appendChild(gl); setTimeout(()=>gl.remove(),slapDur);
+      ZP.toast(`✨ ${d.from}: GOLDEN SLAP! Du bist ein Goldbarren! ${Math.round(slapDur/1000)}s`,3000);
+      ZP._showReportBtn(d.from, 'slap');
+    } else if(slapId==='shadow'){
+      const sh=document.createElement('div');
+      sh.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(180,80,255,.2),rgba(90,20,160,.55));';
+      document.body.appendChild(sh); setTimeout(()=>sh.remove(),slapDur);
+      ZP.toast(`💜 ${d.from}: SHADOW SLAP! ${Math.round(slapDur/1000)}s`,3000);
+      ZP._showReportBtn(d.from, 'slap');
+    } else if(slapId==='fire'){
+      const fi=document.createElement('div');
+      fi.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(255,120,0,.12),rgba(200,40,0,.5));';
+      fi.innerHTML='<div style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);font-size:3rem">🔥🔥🔥</div>';
+      document.body.appendChild(fi); setTimeout(()=>fi.remove(),d.fx||5000);
+      ZP.toast(`🔥 ${d.from}: FIRE SLAP! Du brennst! ${Math.round((d.fx||5000)/1000)}s`,3000);
+      ZP._showReportBtn(d.from, 'slap');
+    } else if(slapId==='gun'){
+      const fl=G('bflash');
+      if(fl){fl.style.background='rgba(255,0,0,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
+      ZP.toast(`🎁 ${d.from} hat dich mit der GESCHENKESCHLEUDER getroffen!${d.head?' KOPFSCHUSS!':''} ${Math.round(slapDur/1000)}s`,3500);
+      ZP._showReportBtn(d.from, 'slap');
     } else if(slapId==='ice'){
       const ice=document.createElement('div');
       ice.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:7000;background:radial-gradient(circle,rgba(0,200,255,.2),rgba(0,100,200,.4));border:4px solid rgba(0,200,255,.7)';
@@ -3631,7 +3665,7 @@ const ZG={
     }
 
     // Void + France: send to own zoo after stun
-    if(slapId==='void'||slapId==='france'){
+    if(slapId==='france'){
       setTimeout(()=>{
         if(ZS.zoo){
           // Teleport to enclosure area
@@ -3673,6 +3707,7 @@ const ZG={
         return;
       }
       this._slapsListening=true;
+      try{ this._listenSlapFx(); }catch(e){}
       const myKey=$rtdbKey(ZS.player);
       const ref=_rtdb.ref('zoo_slaps/'+myKey);
       const startTime=Date.now();
@@ -3685,6 +3720,99 @@ const ZG={
         this._applyReceivedSlap(d);
       });
     }catch(e){}
+  },
+
+
+  // ── Für ALLE sichtbare Slap-Effekte (Goldbarren, lila Leuchten, Brennen, Void-Sterne) ──
+  _listenSlapFx(){
+    if(this._slapFxListening) return;
+    try{
+      if(typeof _rtdb==='undefined'||!_rtdb||!State._useCloud()) return;
+      this._slapFxListening=true;
+      const startTime=Date.now();
+      _rtdb.ref('zoo_slapfx').on('value',snap=>{
+        const d=snap.val(); if(!d||!d.at||d.at<startTime) return;
+        if(this._lastFxAt===d.at) return; this._lastFxAt=d.at;
+        try{ this._playSlapFx(d); }catch(e){ console.log('[SlapFx-debug] Fehler: '+e.message); }
+      });
+    }catch(e){}
+  },
+  _playSlapFx(d){
+    const me=(ZS.player||'').toLowerCase();
+    const isMe=(d.target||'').toLowerCase()===me;
+    const mesh=isMe?null:this.otherM[d.target];
+    const ms=d.fx||3000;
+    if(d.head && !isMe && (d.from||'').toLowerCase()!==me){ this._bigText('KOPFSCHUSS','#ff1f1f',1500); }
+    const x=isMe?this.pl.x:(mesh?mesh.position.x:(d.x||0)), zz=isMe?this.pl.z:(mesh?mesh.position.z:(d.z||0));
+    if(d.slapId==='golden' && mesh) this._fxGoldBar(mesh,ms);
+    else if(d.slapId==='shadow' && mesh) this._fxPurple(mesh,ms);
+    else if(d.slapId==='fire'){
+      let n=0; const iv=setInterval(()=>{ n++; const m2=isMe?null:this.otherM[d.target]; this._slapFire(m2,m2?m2.position.x:x,m2?m2.position.z:zz,900); if(n>=Math.floor(ms/700)) clearInterval(iv); },700);
+      this._slapFire(mesh,x,zz,900);
+    }
+    else if(d.slapId==='void'){
+      // Sterne am Ausgangsort, solange die Person weg ist
+      let n=0; const iv=setInterval(()=>{ n++; this._showStars(x,zz,0xB9F2FF,8); if(n>=Math.floor(ms/900)) clearInterval(iv); },900);
+      this._showStars(x,zz,0xB9F2FF,10);
+    }
+  },
+  _fxGoldBar(mesh,ms){
+    if(!mesh||mesh._goldBar) return;
+    const hidden=[];
+    mesh.children.forEach(c=>{ if(c.position.y<2 && c.visible!==false){ c.visible=false; hidden.push(c); } });
+    const g=new THREE.Group();
+    const bar=new THREE.Mesh(new THREE.BoxGeometry(1.8,.75,.95),new THREE.MeshBasicMaterial({color:0xFFC400}));
+    bar.position.y=.38; g.add(bar);
+    const top=new THREE.Mesh(new THREE.BoxGeometry(1.5,.18,.7),new THREE.MeshBasicMaterial({color:0xFFE97A}));
+    top.position.y=.8; g.add(top);
+    const line=new THREE.Mesh(new THREE.BoxGeometry(1.82,.06,.97),new THREE.MeshBasicMaterial({color:0xB8860B}));
+    line.position.y=.12; g.add(line);
+    mesh.add(g); mesh._goldBar=g;
+    const t0=Date.now();
+    const spin=()=>{ if(!mesh._goldBar) return; g.rotation.y=Math.sin((Date.now()-t0)/250)*.25; requestAnimationFrame(spin); };
+    requestAnimationFrame(spin);
+    this._showStars(mesh.position.x,mesh.position.z,0xFFD700,8);
+    setTimeout(()=>{ try{ mesh.remove(g); }catch(e){} mesh._goldBar=null; hidden.forEach(c=>{c.visible=true;}); },ms);
+  },
+  _fxPurple(mesh,ms){
+    if(!mesh) return;
+    const s=new THREE.Mesh(new THREE.SphereGeometry(1.5,16,12),new THREE.MeshBasicMaterial({color:0xB44CFF,transparent:true,opacity:.5,depthWrite:false}));
+    s.position.y=1.0; mesh.add(s);
+    const t0=Date.now();
+    const pulse=()=>{ const t=Date.now()-t0; if(t>=ms||!s.parent){ try{mesh.remove(s);}catch(e){} return; } const k=.5+.5*Math.sin(t/110); s.material.opacity=.3+.35*k; s.scale.setScalar(1+.12*k); requestAnimationFrame(pulse); };
+    requestAnimationFrame(pulse);
+  },
+  // Void: ms lang in einen Sternen-Raum weit weg, dann an exakt dieselbe Stelle zurück
+  _enterSpaceRoom(ms){
+    if(this._inSpace) return;
+    this._inSpace=true;
+    const saved={x:this.pl.x,y:this.pl.y,z:this.pl.z,yaw:this.yaw,pitch:this.pitch};
+    const SX=6000,SZ=6000,SY=this.pl.y||1.7;
+    const room=new THREE.Group();
+    const box=new THREE.Mesh(new THREE.BoxGeometry(160,160,160),new THREE.MeshBasicMaterial({color:0x02030c,side:THREE.BackSide}));
+    box.position.set(SX,SY,SZ); room.add(box);
+    const N=700, pos=new Float32Array(N*3);
+    for(let i=0;i<N;i++){ pos[i*3]=SX+(Math.random()-.5)*150; pos[i*3+1]=SY+(Math.random()-.5)*150; pos[i*3+2]=SZ+(Math.random()-.5)*150; }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    const stars=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:true}));
+    room.add(stars);
+    [[0xB9F2FF,14,-30,6,-50],[0xE056FD,9,35,-12,-40],[0xFFD700,6,-15,-20,40]].forEach(p=>{
+      const pl=new THREE.Mesh(new THREE.SphereGeometry(p[1],16,12),new THREE.MeshBasicMaterial({color:p[0]}));
+      pl.position.set(SX+p[2],SY+p[3],SZ+p[4]); room.add(pl);
+    });
+    this.scene.add(room);
+    this.pl.x=SX; this.pl.z=SZ; this.yaw=0; this.pitch=0;
+    this._slapStunEnd=Math.max(this._slapStunEnd||0,Date.now()+ms); this._stunType='slap';
+    const t0=Date.now();
+    const spin=()=>{ if(!this._inSpace) return; stars.rotation.y=(Date.now()-t0)/9000; requestAnimationFrame(spin); };
+    requestAnimationFrame(spin);
+    this._spaceBack=()=>{
+      if(!this._inSpace) return;
+      this._inSpace=false; this._spaceBack=null;
+      try{ this.scene.remove(room); }catch(e){}
+      this.pl.x=saved.x; this.pl.y=saved.y; this.pl.z=saved.z; this.yaw=saved.yaw; this.pitch=saved.pitch;
+    };
+    setTimeout(()=>{ if(this._spaceBack) this._spaceBack(); },ms);
   },
 
   // ── MULTIPLAYER: show other players as emoji avatars ──
@@ -6400,7 +6528,7 @@ const ZG={
     this._updWBar(); ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
     try{ MTPass.addXP(10,'Slap'); }catch(e){}
     // Find and hit whichever player is actually clicked/tapped on (within range)
-    this._slapNearby(sl, clientX, clientY);
+    this._slapNearby(sl, sl.isGun?window.innerWidth/2:clientX, sl.isGun?window.innerHeight/2:clientY);
     try{ Tutorial._onSlap(); }catch(e){}
   },
   // Auto-unequip back to "neutral" (no weapon) after 10 uses of whatever's
@@ -6443,33 +6571,68 @@ const ZG={
     while(obj && !meshes.includes(obj)) obj = obj.parent;
     const targetName = names[meshes.indexOf(obj)];
     if(!targetName){ ZP.toast('❗ Daneben!',1200); return; }
-    if(hits[0].distance>range){ ZP.toast('❗ Zu weit weg (max. '+range+'m für diesen Slap)!',1400); return; }
+    if(!sl.isGun && hits[0].distance>range){ ZP.toast('❗ Zu weit weg (max. '+range+'m für diesen Slap)!',1400); return; }
     const op = this.otherPl[targetName];
-    // Duration by slap rarity
-    const durMap={basic:2000,ice:3000,golden:2500,shadow:4000,fire:3000,
-      rainbow:2000,void:8000,gun:3000,lucky:5000,christmas:4000,weekend:5000,france:10000};
-    const dur=durMap[sl.id]||2000;
     const mesh=this.otherM[targetName];
-    if(mesh){
+    // Kopfschuss (nur Geschenkeschleuder): Treffer im oberen Teil der Figur
+    const head = !!(sl.isGun && mesh && (hits[0].point.y - mesh.position.y) > 1.05);
+    let dur = SLAP_STUN[sl.id]!=null ? SLAP_STUN[sl.id] : 2000;
+    if(sl.isGun) dur = head ? 6000 : 3000;
+    const fx = sl.id==='fire' ? 5000 : (sl.id==='void' ? 5000 : (sl.id==='golden'||sl.id==='shadow' ? 3000 : dur));
+    const dmg = sl.isGun ? (head?4:2) : (SLAP_DMG[sl.id]!=null?SLAP_DMG[sl.id]:.3);
+    if(mesh && dur>0){
       mesh.userData.slapT=Date.now();
       mesh.userData.slapDur=dur;
       mesh.userData.slapType=sl.id;
       mesh.userData.slapCount=(mesh.userData.slapCount||0)+1;
     }
-    // Broadcast via Realtime Database — NOT Firestore. Firestore's daily
-    // write quota can (and did) block this entirely, silently leaving the
-    // target un-notified: they'd never receive the slap, so a carried
-    // animal just stayed with them forever and nothing else about the
-    // slap (freeze, stun) ever applied. RTDB is a separate quota/product,
-    // so this keeps working even when Firestore is exhausted.
+    // Broadcast via Realtime Database — NOT Firestore (siehe frühere Kommentare: Firestore-Quota).
+    let _sent=false;
     try{if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+      const at=Date.now();
       _rtdb.ref('zoo_slaps/'+$rtdbKey(targetName)).set({type:'slap',from:ZS.player,target:targetName,
-        slapId:sl.id,slapEmoji:sl.e,dur,at:Date.now()}).catch(()=>{});
+        slapId:sl.id,slapEmoji:sl.e,dur,fx,dmg,head,at}).catch(()=>{});
+      // Für ALLE sichtbarer Effekt (Goldbarren, lila Leuchten, Feuer, Void-Sterne, Kopfschuss)
+      _rtdb.ref('zoo_slapfx').set({from:ZS.player,target:targetName,slapId:sl.id,fx,head,
+        x:mesh?mesh.position.x:0,z:mesh?mesh.position.z:0,at}).catch(()=>{});
+      _sent=true;
     }}catch(e){}
-    // Local effects
-    this._slapEffect(sl, targetName, dur, mesh);
-    ZP.toast(sl.e+' '+targetName+' getroffen! ('+Math.round(dur/1000)+'s)',2000);
+    // Lokale Effekte: die neuen Effekte laufen über den Broadcast-Listener (auch beim Slapper selbst)
+    if(!_sent || !['golden','shadow','fire','void','gun'].includes(sl.id)) this._slapEffect(sl, targetName, dur, mesh);
+    if(head){ this._bigText('KOPFSCHUSS','#ff1f1f',1800); }
+    ZP.toast(sl.e+' '+targetName+' getroffen!'+(head?' KOPFSCHUSS!':'')+(dur>0?' ('+Math.round(dur/1000)+'s)':' (brennt!)'),2000);
     ZSound.slap();
+  },
+
+
+  // 🎁 Geschenkeschleuder: Zielfernrohr-Ansicht, Zoom, Schuss immer in die Bildmitte
+  _updScope(){
+    const z=ZS.zoo; const on=!!(z&&z.eq==='gun');
+    let el=document.getElementById('zscope');
+    if(on){
+      if(!el){
+        el=document.createElement('div'); el.id='zscope';
+        el.style.cssText='position:fixed;inset:0;z-index:380;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 0,rgba(0,0,0,0) 31vmin,rgba(0,0,0,.55) 35vmin,rgba(0,0,0,.97) 40vmin)';
+        el.innerHTML='<div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.85)"></div><div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.85)"></div><div style="position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;border:1px solid rgba(255,40,40,.9)"></div>';
+        document.body.appendChild(el);
+      }
+      if(this.cam && !this._scopeOn){ this._fovBeforeScope=this.cam.fov; this.cam.fov=28; this.cam.updateProjectionMatrix(); }
+      this._scopeOn=true;
+    } else {
+      if(el) el.remove();
+      if(this._scopeOn && this.cam){ this.cam.fov=this._fovBeforeScope||75; this.cam.updateProjectionMatrix(); }
+      this._scopeOn=false;
+    }
+  },
+
+  // Grosser Text mitten auf dem Bildschirm (z.B. KOPFSCHUSS)
+  _bigText(txt,col,ms){
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;top:32%;left:50%;transform:translate(-50%,-50%);z-index:9700;pointer-events:none;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:clamp(2.6rem,11vw,6.5rem);letter-spacing:4px;color:'+(col||'#ff1f1f')+';text-shadow:0 0 18px rgba(0,0,0,.9),0 4px 0 #400,0 0 40px '+(col||'#ff1f1f')+';animation:pop .25s ease;white-space:nowrap';
+    el.textContent=txt;
+    document.body.appendChild(el);
+    setTimeout(()=>{ el.style.transition='opacity .4s'; el.style.opacity='0'; },Math.max(300,(ms||1500)-400));
+    setTimeout(()=>el.remove(),ms||1500);
   },
 
   _slapEffect(sl, targetName, dur, mesh){
@@ -6720,6 +6883,7 @@ const ZG={
 
   _updWBar(){
     const z=ZS.zoo;if(!z)return;
+    try{ this._updScope(); }catch(e){}
     const el=G('wbrow');if(!el)return;
     const rb=z.reb||0;
     // Auto-unlock slaps up to rebirth level (capped at 4 total — see _grantSlap)
@@ -16801,6 +16965,118 @@ const SPEEDTEMPLE_ROOMS = [
 const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
 
 
+// ═══ ❤️ HERZEN: 10 Herzen, Slaps machen Schaden, alle 15 Sek. +1 Herz ═══
+const ZHearts={
+  max:10, hp:10, dead:false, _nextRegen:0, _burn:null, _iv:null, _el:null,
+  // Pixel-Herz (9x8): K=Rand, R=Füllung, W=Glanz
+  _MAP:['.KKK.KKK.','KWRRKRRRK','KWRRRRRRK','KRRRRRRRK','.KRRRRRK.','..KRRRK..','...KRK...','....K....'],
+  _svg(state){ // 'full' | 'half' | 'empty'
+    let r='';
+    this._MAP.forEach((row,y)=>{ for(let x=0;x<9;x++){
+      const c=row[x]; if(c==='.') continue;
+      let col;
+      if(c==='K') col='#1a1a1a';
+      else if(c==='W') col=(state==='empty'||(state==='half'&&x>4))?'#f2f2f2':'#ffffff';
+      else { // R
+        if(state==='full') col='#e01b24';
+        else if(state==='half') col=x<=4?'#e01b24':'#f2f2f2';
+        else col='#f2f2f2';
+      }
+      if(c==='W'&&state!=='empty'&&!(state==='half'&&x>4)) col='#ff9aa0';
+      r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+col+'"/>';
+    }});
+    return '<svg width="24" height="22" viewBox="0 0 9 8" shape-rendering="crispEdges" style="margin:0 1px">'+r+'</svg>';
+  },
+  init(){
+    if(this._iv) return;
+    this.hp=this.max; this.dead=false; this._burn=null; this._nextRegen=Date.now()+15000;
+    const el=document.createElement('div');
+    el.id='zhearts';
+    el.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:560;pointer-events:none;display:flex;align-items:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))';
+    document.body.appendChild(el); this._el=el;
+    this._render();
+    this._iv=setInterval(()=>this._tick(),250);
+    console.log('[Hearts-debug] Herz-System gestartet ('+this.max+' Herzen)');
+  },
+  _render(){
+    if(!this._el) return;
+    const hudOff=document.getElementById('hud')?.classList.contains('off');
+    this._el.style.display=hudOff?'none':'flex';
+    let h='';
+    for(let i=0;i<this.max;i++){
+      const f=Math.max(0,Math.min(1,this.hp-i));
+      h+=this._svg(f>=0.75?'full':(f>=0.25?'half':'empty'));
+    }
+    if(h!==this._lastHtml){ this._el.innerHTML=h; this._lastHtml=h; }
+  },
+  _tick(){
+    const now=Date.now();
+    if(this.dead){ this._render(); return; }
+    if(this._burn){
+      if(now>=this._burn.until || !this._burn){ this._burn=null; }
+      else if(now>=this._burn.next){
+        this._burn.next+=1000;
+        this._damage(this._burn.perTick,this._burn.src);
+      }
+    }
+    if(this.hp>=this.max){ this._nextRegen=now+15000; }
+    else if(now>=this._nextRegen){ this.hp=Math.min(this.max,this.hp+1); this._nextRegen=now+15000; }
+    this._render();
+  },
+  hit(dmg,src){ if(this.dead) return; this._damage(dmg,src); },
+  burn(total,ms,src){
+    if(this.dead) return;
+    const n=Math.max(1,Math.round(ms/1000));
+    this._burn={perTick:total/n,until:Date.now()+ms+50,next:Date.now()+1000,src};
+    this._damage(total/n,src); // erster Tick sofort
+  },
+  _damage(dmg,src){
+    if(this.dead||!(dmg>0)) return;
+    this.hp=Math.max(0,Math.round((this.hp-dmg)*100)/100);
+    this._nextRegen=Date.now()+15000;
+    this._render();
+    if(this.hp<=0) this.die(src);
+  },
+  die(src){
+    if(this.dead) return;
+    this.dead=true; this._burn=null;
+    ZG._slapStunEnd=Date.now()+3600000; ZG._stunType='slap';
+    if(ZG._spaceBack) ZG._spaceBack();
+    try{ if(ZG.carrying) ZG._dropCarried((src&&src.from)||'?'); }catch(e){}
+    const name=ZS.player||'Du';
+    const txt=(src&&src.gun)
+      ? name+' wurde von Geschenkeschleuder getroffen'
+      : name+' wurde von '+((src&&src.name)||'einem Slap')+' getötet';
+    document.getElementById('zdeath')?.remove();
+    const ov=document.createElement('div'); ov.id='zdeath';
+    ov.style.cssText='position:fixed;inset:0;z-index:99000;background:rgba(110,10,10,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:16px;box-sizing:border-box';
+    const btn='width:min(340px,80vw);padding:12px 10px;background:#7a7a7a;border:2px solid #1a1a1a;border-bottom-color:#3a3a3a;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35);text-shadow:1px 1px 0 #333';
+    ov.innerHTML='<div style="font-size:clamp(2.2rem,8vw,3.6rem);font-weight:900;text-shadow:3px 3px 0 #333">Game over!</div>'
+      +'<div style="font-size:1.05rem;text-shadow:1px 1px 0 #333;max-width:90vw;word-break:break-word">'+$esc(txt)+'</div>'
+      +'<button id="zd-respawn" style="'+btn+'">Respawn</button>'
+      +'<button id="zd-menu" style="'+btn+'">Hauptmenü</button>';
+    document.body.appendChild(ov);
+    ov.querySelector('#zd-respawn').onclick=()=>this.respawn();
+    ov.querySelector('#zd-menu').onclick=()=>this.mainMenu();
+    console.log('[Hearts-debug] gestorben: '+txt);
+  },
+  respawn(){
+    document.getElementById('zdeath')?.remove();
+    this.hp=this.max; this.dead=false; this._burn=null; this._nextRegen=Date.now()+15000;
+    ZG._slapStunEnd=0; ZG._stunType=null;
+    try{ const _z=ZG.ZONES[ZG._myZone()]||ZG.ZONES[0]; ZG.pl.x=_z.x; ZG.pl.z=_z.z+14; }catch(e){}
+    this._render();
+    try{ ZP.toast('❤️ Respawn — wieder 10 Herzen!',2500); }catch(e){}
+  },
+  mainMenu(){
+    document.getElementById('zdeath')?.remove();
+    this.dead=false;
+    try{ ZA.logout(); }catch(e){}
+    window.location.href='index.html';
+  }
+};
+window.ZHearts=ZHearts;
+
 const World1 = {
   _ov:null,
   // Glück pro Spiel: max = Multiplikator bei Höchstleistung, min = Minuten, solo = nicht stapelbar
@@ -16838,6 +17114,7 @@ const World1 = {
       msg='🍀 ×'+z.gameLuck.mult+' Glück · noch '+total+' Min';
     }
     ZS.save&&ZS.save();
+    try{ SpeedTemple._updBoostBadge(); }catch(e){}
     ZP.toast(msg,5000);
     console.log('[World1-debug] Glück: '+d.taskId+' mt='+d.mt+' q='+q.toFixed(2)+' → ×'+mult);
   },
@@ -16957,6 +17234,8 @@ const SpeedTemple = {
     if(b.money&&b.money.until>now) rows.push({e:'💰',mult:b.money.mult,left:b.money.until-now,col:'#FFD700'});
     if(b.visitor&&b.visitor.until>now) rows.push({e:'👥',mult:b.visitor.mult,left:b.visitor.until-now,col:'#3498DB'});
     if(b.luck&&b.luck.until>now) rows.push({e:'🍀',mult:b.luck.mult,left:b.luck.until-now,col:'#2ECC71'});
+    if(z.gameLuck&&z.gameLuck.until>now) rows.push({e:'🌳🍀',mult:z.gameLuck.mult,left:z.gameLuck.until-now,col:'#7CFC8A'});
+    if(z.gameLuckSolo&&z.gameLuckSolo.until>now) rows.push({e:'🌳🍀',mult:z.gameLuckSolo.mult,left:z.gameLuckSolo.until-now,col:'#7CFC8A'});
     el.innerHTML=rows.map(r=>{
       const mins=Math.floor(r.left/60000), secs=Math.floor((r.left%60000)/1000);
       return '<div style="background:rgba(0,0,0,.75);color:'+r.col+';font-weight:900;padding:4px 10px;border-radius:14px;font-size:.78rem">'+r.e+' ×'+r.mult+' · '+mins+':'+String(secs).padStart(2,'0')+'</div>';
