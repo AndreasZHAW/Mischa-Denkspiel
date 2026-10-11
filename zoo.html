@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v599 -->
+<!-- ZOO v600 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=599"></script>
-<script src="rewardchests.js?v=599"></script>
-<script src="personality.js?v=599"></script>
+<script src="lang.js?v=600"></script>
+<script src="rewardchests.js?v=600"></script>
+<script src="personality.js?v=600"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v599','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v600','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -504,7 +504,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="zp off" id="p-trade"><div class="zpi"><button class="pcls" onclick="ZP.close('trade')">✕</button><div class="pt">🤝 Trading</div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="tt-m" class="tab ta" onclick="ZP.tradeTab('m')">📋 Meine Angebote</button><button id="tt-a" class="tab ti" onclick="ZP.tradeTab('a')">🛒 Kaufen</button><button id="tt-n" class="tab ti" onclick="ZP.tradeTab('n')">➕ Anbieten</button></div><div id="ptrade"></div></div></div>
 <div class="zp off" id="p-reb"><div class="zpi"><button class="pcls" onclick="ZP.close('reb')">✕</button><div class="pt">🔄 Wiedergeburt</div><div id="prc"></div></div></div>
 <div class="zp off" id="p-enc"><div class="zpi"><button class="pcls" onclick="ZP.close('enc')">✕</button><div class="pt" id="pent">Gehege</div><div id="pencm"></div></div></div>
-<div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="location.href='index.html?fromZoo=1'">← Zurück zu Welt 1</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
+<div class="zp off" id="p-menu"><div class="zpi" style="text-align:center"><button class="pcls" onclick="ZP.close('menu')">✕</button><div class="pt">☰ Menü</div><div id="pmenu"></div><button class="btn btnd" style="max-width:250px;margin-bottom:7px" onclick="ZP.close('menu');World1.open()">🌳 Welt 1 (Denkspiele)</button><button class="btn" style="max-width:250px;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.3);color:#ff6b6b;margin-top:5px" onclick="ZA.logout()">Abmelden</button></div></div>
 <div class="zp off" id="p-adm"><div class="zpi"><button class="pcls" onclick="ZP.close('adm')">✕</button><div class="pt">👑 Admin</div><div id="padm"></div></div></div>
 
 <script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=599"></script>
-<script src="worlds.js?v=599"></script>
+<script src="firebase-state.js?v=600"></script>
+<script src="worlds.js?v=600"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4386,6 +4386,33 @@ const ZG={
         this._speedTemplePositions.push({x:px,z:pz,ring1,ring2});
       });
     }
+
+    // ═══ WELT-1-BAUM (dicker Baum mit Eingang → öffnet die Denkspiel-Welt 1) ═══
+    this._worldTreePositions = [];
+    {
+      this.ZONES.forEach((zone)=>{
+        const wx=zone.x-34, wz=zone.z;
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(4.2,5.2,13,16),new THREE.MeshBasicMaterial({color:0x6B4423}));
+        trunk.position.set(wx,6.5,wz); sc.add(trunk);
+        // Rindenringe
+        [3,6,9,11.5].forEach(h=>{const r=new THREE.Mesh(new THREE.TorusGeometry(4.2+(13-h)*0.07,0.18,6,24),new THREE.MeshBasicMaterial({color:0x4E3219}));r.rotation.x=Math.PI/2;r.position.set(wx,h,wz);sc.add(r);});
+        // Krone aus mehreren Kugeln
+        [[0,15,0,7.5,0x2E8B3A],[-5,13.5,2,5.5,0x3AA34A],[5,13.8,-2,5.8,0x278033],[1,19,1,5.5,0x49B85A],[-3,17,-4,4.5,0x2E8B3A],[4,17,4,4.5,0x3AA34A]].forEach(c=>{
+          const m=new THREE.Mesh(new THREE.SphereGeometry(c[3],12,10),new THREE.MeshBasicMaterial({color:c[4]}));
+          m.position.set(wx+c[0],c[1],wz+c[2]); sc.add(m);
+        });
+        // Eingang: dunkle Tür-Öffnung (zeigt zur Mitte des Zoos, +x)
+        const doorFrame=new THREE.Mesh(new THREE.BoxGeometry(0.6,6.4,3.6),new THREE.MeshBasicMaterial({color:0x3A2412}));
+        doorFrame.position.set(wx+4.3,3.2,wz); sc.add(doorFrame);
+        const door=new THREE.Mesh(new THREE.PlaneGeometry(2.8,5.6),new THREE.MeshBasicMaterial({color:0xFFD27A,side:THREE.DoubleSide}));
+        door.rotation.y=Math.PI/2; door.position.set(wx+4.65,2.9,wz); sc.add(door);
+        const arch=new THREE.Mesh(new THREE.CircleGeometry(1.4,16,0,Math.PI),new THREE.MeshBasicMaterial({color:0xFFD27A,side:THREE.DoubleSide}));
+        arch.rotation.y=Math.PI/2; arch.position.set(wx+4.65,5.7,wz); sc.add(arch);
+        const wLbl=this._txt('🌳 WELT 1',0.7,'#7CFC8A'); wLbl.position.set(wx,24.5,wz); wLbl.scale.set(8,2,1); sc.add(wLbl);
+        const wLbl2=this._txt('Denkspiele · Glück gewinnen 🍀',0.5,'#fff'); wLbl2.position.set(wx,22.3,wz); wLbl2.scale.set(9.5,1.4,1); sc.add(wLbl2);
+        this._worldTreePositions.push({x:wx+4.6,z:wz});
+      });
+    }
   },
 
   // A small plaza between the gondola station (z=0) and the enclosure ring
@@ -4751,7 +4778,7 @@ const ZG={
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
-      if(this._nearSpeedTemple){SpeedTemple.open();return;}
+      if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0)this._interact();
@@ -4796,14 +4823,14 @@ const ZG={
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
-      if(this._nearSpeedTemple){SpeedTemple.open();return;}
+      if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
         this.slap(t.clientX, t.clientY);
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -4850,7 +4877,7 @@ const ZG={
         const speed = 6;
         const nx = m.position.x + Math.sin(this._sweeperHeading)*speed*dt;
         const nz = m.position.z + Math.cos(this._sweeperHeading)*speed*dt;
-        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[]), ...(this._dicePositions||[]), ...(this._terminalPositions||[]), ...(this._speedTemplePositions||[])];
+        const obstacles = [this.STA, ...(this._feederPositions||[]), ...(this._goldMachinePositions||[]), ...(this._breedPositions||[]), ...(this._dicePositions||[]), ...(this._terminalPositions||[]), ...(this._speedTemplePositions||[]), ...(this._worldTreePositions||[])];
         const PLAZA_R = 26; // stays well clear of the 45-radius enclosure ring
         const zc = (this.ZONES && this.ZONES[0]) || {x:0,z:55};
         let blocked = Math.hypot(nx-zc.x, nz-zc.z) > PLAZA_R;
@@ -5518,6 +5545,12 @@ const ZG={
       if(p.ring1){p.ring1.rotation.z+=0.01;p.ring2.rotation.z-=0.015;}
     });
     this._nearSpeedTemple = _stDist < 6;
+    // Welt-1-Baum: Eingang
+    let _wtDist=999;
+    (this._worldTreePositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_wtDist)_wtDist=d;});
+    this._nearWorldTree = _wtDist < 5;
+    if(this._nearWorldTree && !this._wtHinted){ this._wtHinted=true; ZP.toast('🌳 Tippe den Baum an (oder [E]) — Welt 1 betreten!',2800); }
+    else if(!this._nearWorldTree){ this._wtHinted=false; }
     if(this._nearSpeedTemple && !this._stHinted){ this._stHinted=true; ZP.toast('⚡ Tippe das Speed-Tempel-Portal an!',2500); }
     else if(!this._nearSpeedTemple){ this._stHinted=false; }
     // 💰 Geldsack-Regen: bags are collected just by walking into them —
@@ -6261,7 +6294,7 @@ const ZG={
     if(this._nearBreedMachine){BreedMachine.open();return;}
     if(this._nearDiceMachine){DiceMachine.open();return;}
     if(this._nearTerminal){CollectionTerminal.open();return;}
-    if(this._nearSpeedTemple){SpeedTemple.open();return;}
+    if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}
   },
 
   _useTool(sl, clientX, clientY){
@@ -16753,6 +16786,39 @@ const SPEEDTEMPLE_ROOMS = [
 // sind sofort verfügbar wie 1-8, 13-15 (Labyrinthe) bleiben "Bald verfügbar".
 const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
 
+
+const World1 = {
+  _ov:null,
+  open(){
+    if(this._ov) return;
+    const me=ZS.player||sessionStorage.getItem('mischa_current')||'';
+    if(!me){ try{ZP.toast('Bitte zuerst anmelden.',2000);}catch(e){} return; }
+    try{ sessionStorage.setItem('mischa_current',me); }catch(e){}
+    const ov=document.createElement('div');
+    ov.id='world1-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:99990;background:#0b1f12;display:flex;flex-direction:column';
+    ov.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(124,252,138,.35)">'
+      +'<button id="w1-back" style="background:#27AE60;color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:900;cursor:pointer">🌳 Zurück in den Zoo</button>'
+      +'<div style="color:#7CFC8A;font-weight:900">Welt 1 · Denkspiele</div></div>'
+      +'<div id="w1-load" style="position:absolute;top:60px;left:0;right:0;text-align:center;color:#fff;opacity:.7;pointer-events:none">Lade Welt 1…</div>'
+      +'<iframe id="w1-frame" style="flex:1;border:0;width:100%;background:#0b1f12" allow="autoplay"></iframe>';
+    document.body.appendChild(ov);
+    this._ov=ov;
+    const fr=ov.querySelector('#w1-frame');
+    fr.addEventListener('load',()=>{ const l=ov.querySelector('#w1-load'); if(l) l.remove(); });
+    fr.src='index.html?fromZoo=1&embed=1&me='+encodeURIComponent(me)+'&t='+Date.now();
+    ov.querySelector('#w1-back').onclick=()=>this.close();
+    try{ if(typeof ZG!=='undefined' && document.pointerLockElement) document.exitPointerLock(); }catch(e){}
+    console.log('[World1-debug] geöffnet für '+me);
+  },
+  close(){
+    if(!this._ov) return;
+    try{ const fr=this._ov.querySelector('#w1-frame'); if(fr) fr.src='about:blank'; }catch(e){}
+    this._ov.remove(); this._ov=null;
+    console.log('[World1-debug] geschlossen');
+  }
+};
+window.addEventListener('message',e=>{ if(e.origin===location.origin && e.data && e.data.type==='mischa-world1-close') World1.close(); });
 
 const SpeedTemple = {
   isUnlocked(){

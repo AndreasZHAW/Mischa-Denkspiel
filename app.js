@@ -1,3 +1,4 @@
+window.MISCHA_EMBED = (function(){try{return new URLSearchParams(location.search).get('embed')==='1';}catch(e){return false;}})();
 // ═══ DIAGNOSE-SEITE BRIDGE ═══
 // The diagnose tool's crash-log only ever read from zoo.html's console
 // hook — anything logged here on the Denkspiel side (including GameLog
@@ -91,7 +92,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v599';
+const APP_VERSION = 'v600';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -501,7 +502,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v599 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v600 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1696,14 +1697,14 @@ const App = {
             <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
               <button onclick="App.showGlobalLeaderboard()" style="background:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,.6);color:white;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">🌍 Rangliste</button>
               ${_isAdmin ? `<button onclick="App.showAdminReports()" style="background:rgba(231,76,60,0.3);border:1.5px solid #E74C3C;color:#E74C3C;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2">⚑ Meldungen</button>` : ''}
-              ${['mischa','admin'].includes(player.name.toLowerCase()) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
+              ${(!window.MISCHA_EMBED && ['mischa','admin'].includes(player.name.toLowerCase())) ? `<button onclick="window.location.href='zoo.html?autostart=1&openadmin=1'" style="background:rgba(255,215,0,0.25);border:1.5px solid #FFD700;color:#FFD700;padding:7px 13px;border-radius:50px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;line-height:1.2" title="Springt direkt ins Zoo-Adminpanel">🔧 Zoo-Admin</button>` : ''}
             </div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:100%">
               <button onclick="App.showLanguagePicker()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Sprache wählen">${typeof LANG!=='undefined'?LANG.flag():'🇩🇪'} <span style="font-size:.85em">▾</span></button>
               <button onclick="App.showEyeTest()" style="background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,.45);color:rgba(180,240,255,1);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Schriftgrösse anpassen">${typeof t!=='undefined'?t('worldmap.font'):'🔤 Schrift'}</button>
               <button onclick="location.reload()" style="background:rgba(52,200,120,0.15);border:1px solid rgba(52,200,120,.45);color:rgba(100,255,180,1);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Seite neu laden">${typeof t!=='undefined'?t('worldmap.update'):'🔄 Update'}</button>
               <button onclick="App.showAbout()" style="background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,.4);color:#FFD700;padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2" title="Über dieses Spiel">${typeof t!=='undefined'?t('wm.about'):'ℹ️ Über'}</button>
-              <button onclick="App._logout()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
+              <button onclick="App._logout()" style="${window.MISCHA_EMBED?'display:none;':''}background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);padding:5px 11px;border-radius:50px;font-weight:600;cursor:pointer;font-size:.74rem;white-space:nowrap;line-height:1.2">${typeof t!=='undefined'?t('worldmap.logout'):'Abmelden'}</button>
             </div>
           </div>
         </div>
@@ -1724,7 +1725,7 @@ const App = {
         </div>
 
         <!-- Teleport Button -->
-        ${mt>=15 ? `
+        ${window.MISCHA_EMBED ? '' : mt>=15 ? `
         <div style="margin-bottom:12px">
           <button onclick="App.teleportToZoo()" style="width:100%;max-width:100%;background:linear-gradient(135deg,#27AE60,#1E8449);color:white;border:none;padding:14px 20px;border-radius:16px;font-family:Arial,sans-serif;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,.4);animation:bounce 1s infinite">
             ${typeof t!=='undefined'?t('wm.teleport_btn'):'🚀 In den Zoo teleportieren! (15 🌀 MT)'}
