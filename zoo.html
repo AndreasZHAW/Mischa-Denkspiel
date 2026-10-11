@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v600 -->
+<!-- ZOO v601 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=600"></script>
-<script src="rewardchests.js?v=600"></script>
-<script src="personality.js?v=600"></script>
+<script src="lang.js?v=601"></script>
+<script src="rewardchests.js?v=601"></script>
+<script src="personality.js?v=601"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v600','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v601','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=600"></script>
-<script src="worlds.js?v=600"></script>
+<script src="firebase-state.js?v=601"></script>
+<script src="worlds.js?v=601"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1855,6 +1855,11 @@ const ZS={
     // gondola-only special case — ZS.lk() is, in practice, only ever
     // consumed by the gondola's animal draw (_mkG), so this already
     // scopes the effect to exactly "in der Gondel" without extra plumbing.
+    // 🌳 Welt-1-Spielglück: höchster aktiver Multiplikator (stapelbarer Topf oder Solo-Boost)
+    { const _n=Date.now(); let _gm=1;
+      if(z.gameLuck && z.gameLuck.until>_n) _gm=Math.max(_gm,z.gameLuck.mult||1);
+      if(z.gameLuckSolo && z.gameLuckSolo.until>_n) _gm=Math.max(_gm,z.gameLuckSolo.mult||1);
+      l*=_gm; }
     if(z.luck50Until && z.luck50Until>Date.now()) l*=100; // war x50, laut Rückmeldung zu schwach
     return l;
   },
@@ -4401,16 +4406,25 @@ const ZG={
           const m=new THREE.Mesh(new THREE.SphereGeometry(c[3],12,10),new THREE.MeshBasicMaterial({color:c[4]}));
           m.position.set(wx+c[0],c[1],wz+c[2]); sc.add(m);
         });
-        // Eingang: dunkle Tür-Öffnung (zeigt zur Mitte des Zoos, +x)
-        const doorFrame=new THREE.Mesh(new THREE.BoxGeometry(0.6,6.4,3.6),new THREE.MeshBasicMaterial({color:0x3A2412}));
-        doorFrame.position.set(wx+4.3,3.2,wz); sc.add(doorFrame);
-        const door=new THREE.Mesh(new THREE.PlaneGeometry(2.8,5.6),new THREE.MeshBasicMaterial({color:0xFFD27A,side:THREE.DoubleSide}));
-        door.rotation.y=Math.PI/2; door.position.set(wx+4.65,2.9,wz); sc.add(door);
-        const arch=new THREE.Mesh(new THREE.CircleGeometry(1.4,16,0,Math.PI),new THREE.MeshBasicMaterial({color:0xFFD27A,side:THREE.DoubleSide}));
-        arch.rotation.y=Math.PI/2; arch.position.set(wx+4.65,5.7,wz); sc.add(arch);
+        // Eingang: Tür sitzt VOR der Rinde (Stamm-Radius ~5), damit sie komplett sichtbar ist
+        const dx0=wx+6.2;
+        const frame=new THREE.Mesh(new THREE.BoxGeometry(2.4,8.2,5.4),new THREE.MeshBasicMaterial({color:0x3A2412}));
+        frame.position.set(dx0-0.6,4.1,wz); sc.add(frame);
+        const frameTop=new THREE.Mesh(new THREE.CircleGeometry(2.4,20,0,Math.PI),new THREE.MeshBasicMaterial({color:0x3A2412,side:THREE.DoubleSide}));
+        frameTop.rotation.y=Math.PI/2; frameTop.position.set(dx0+0.62,7.1,wz); sc.add(frameTop);
+        const doorMat=new THREE.MeshBasicMaterial({color:0xFFD27A,side:THREE.DoubleSide});
+        const door=new THREE.Mesh(new THREE.PlaneGeometry(4,7),doorMat);
+        door.rotation.y=Math.PI/2; door.position.set(dx0+0.65,3.6,wz); sc.add(door);
+        const arch=new THREE.Mesh(new THREE.CircleGeometry(2,20,0,Math.PI),doorMat);
+        arch.rotation.y=Math.PI/2; arch.position.set(dx0+0.66,7.1,wz); sc.add(arch);
+        // Türgriff + Stufen
+        const knob=new THREE.Mesh(new THREE.SphereGeometry(0.28,10,8),new THREE.MeshBasicMaterial({color:0x8B5A2B}));
+        knob.position.set(dx0+0.85,3.4,wz+1.3); sc.add(knob);
+        const step=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.35,6),new THREE.MeshBasicMaterial({color:0x8A8A8A}));
+        step.position.set(dx0+1.2,0.18,wz); sc.add(step);
         const wLbl=this._txt('🌳 WELT 1',0.7,'#7CFC8A'); wLbl.position.set(wx,24.5,wz); wLbl.scale.set(8,2,1); sc.add(wLbl);
         const wLbl2=this._txt('Denkspiele · Glück gewinnen 🍀',0.5,'#fff'); wLbl2.position.set(wx,22.3,wz); wLbl2.scale.set(9.5,1.4,1); sc.add(wLbl2);
-        this._worldTreePositions.push({x:wx+4.6,z:wz});
+        this._worldTreePositions.push({x:wx+8,z:wz});
       });
     }
   },
@@ -5548,7 +5562,7 @@ const ZG={
     // Welt-1-Baum: Eingang
     let _wtDist=999;
     (this._worldTreePositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_wtDist)_wtDist=d;});
-    this._nearWorldTree = _wtDist < 5;
+    this._nearWorldTree = _wtDist < 7;
     if(this._nearWorldTree && !this._wtHinted){ this._wtHinted=true; ZP.toast('🌳 Tippe den Baum an (oder [E]) — Welt 1 betreten!',2800); }
     else if(!this._nearWorldTree){ this._wtHinted=false; }
     if(this._nearSpeedTemple && !this._stHinted){ this._stHinted=true; ZP.toast('⚡ Tippe das Speed-Tempel-Portal an!',2500); }
@@ -16789,6 +16803,44 @@ const SPEEDTEMPLE_BUILT_SET = new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
 
 const World1 = {
   _ov:null,
+  // Glück pro Spiel: max = Multiplikator bei Höchstleistung, min = Minuten, solo = nicht stapelbar
+  LUCK:{
+    dart:{max:2,min:5}, french:{max:3,min:5}, math:{max:3,min:5},
+    sokoban:{max:30,min:6.7,solo:true}, shutthebox:{max:2,min:3},
+    memory:{max:3,min:5}, anagram:{max:25,min:6.7,solo:true}, simon:{max:3,min:5},
+    wordsearch:{max:3,min:5}, reaction:{max:2,min:3}, colormix:{max:2,min:5},
+    slider:{max:4,min:5}, typing:{max:5,min:5}, balloon:{max:4,min:5},
+    jenga:{max:6,min:5}, simon2:{max:8,min:5}, math2:{max:6,min:5},
+    memory2:{max:8,min:5}, truefalse:{max:2,min:3}, dart2:{max:6,min:5}
+  },
+  grantLuck(d){
+    const z=ZS.zoo; if(!z) return;
+    const cfg=this.LUCK[d.taskId];
+    if(!cfg||d.joker){ ZP.toast('🌳 Zurück im Zoo!',2000); return; }
+    // Qualität 0..1 aus den MT des Spiels (0 = schlecht, 1 MT = Durchschnitt, 2 MT = Bestleistung)
+    const q=Math.max(0,Math.min(1,(Number(d.mt)||0)/2));
+    let mult=1+(cfg.max-1)*q;
+    mult=Math.round(mult*10)/10;
+    const now=Date.now(), ms=Math.round(cfg.min*60000);
+    if(mult<1.2){ ZP.toast('🌳 Zurück im Zoo — dieses Mal zu wenig Punkte für Glück.',3500); return; }
+    let msg;
+    if(cfg.solo){
+      if(z.gameLuckSolo && z.gameLuckSolo.until>now){
+        ZP.toast('🍀 '+cfg.max+'×-Glück läuft schon — nicht stapelbar!',3500); return;
+      }
+      z.gameLuckSolo={mult,until:now+ms,game:d.taskId};
+      msg='🍀 ×'+mult+' Glück für '+cfg.min+' Min! (nicht stapelbar)';
+    } else {
+      const cur=(z.gameLuck&&z.gameLuck.until>now)?z.gameLuck:null;
+      const base=cur?cur.until:now;
+      z.gameLuck={mult:cur?Math.max(cur.mult,mult):mult, until:base+ms};
+      const total=Math.round((z.gameLuck.until-now)/6000)/10;
+      msg='🍀 ×'+z.gameLuck.mult+' Glück · noch '+total+' Min';
+    }
+    ZS.save&&ZS.save();
+    ZP.toast(msg,5000);
+    console.log('[World1-debug] Glück: '+d.taskId+' mt='+d.mt+' q='+q.toFixed(2)+' → ×'+mult);
+  },
   open(){
     if(this._ov) return;
     const me=ZS.player||sessionStorage.getItem('mischa_current')||'';
@@ -16818,7 +16870,13 @@ const World1 = {
     console.log('[World1-debug] geschlossen');
   }
 };
-window.addEventListener('message',e=>{ if(e.origin===location.origin && e.data && e.data.type==='mischa-world1-close') World1.close(); });
+window.addEventListener('message',e=>{
+  if(e.origin!==location.origin || !e.data) return;
+  const fr=World1._ov && World1._ov.querySelector('#w1-frame');
+  if(!fr || e.source!==fr.contentWindow) return;
+  if(e.data.type==='mischa-world1-close') World1.close();
+  else if(e.data.type==='mischa-world1-result'){ World1.close(); try{ World1.grantLuck(e.data); }catch(err){ console.log('[World1-debug] grantLuck-Fehler: '+err.message); } }
+});
 
 const SpeedTemple = {
   isUnlocked(){

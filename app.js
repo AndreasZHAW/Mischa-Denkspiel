@@ -92,7 +92,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v600';
+const APP_VERSION = 'v601';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -502,7 +502,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v600 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v601 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -599,6 +599,32 @@ const App = {
     sessionStorage.setItem('mischa_birthyear', p.birthYear||2000);
     // ── BOARDING SCENE → then cinematic teleport ──
     this._showBoardingScene(p.name, charData?.emoji||'🧭', mt);
+  },
+
+  // Nach dem Login: direkt Übergangs-Animation (mit Überspringen) und dann in den Zoo.
+  // Kein Freischalt-Check, keine Kosten, keine Weltkarte mehr.
+  _goToZooAnimated() {
+    const p = State.currentPlayer;
+    if (!p || !p.name) { this.showWorldMap(); return; }
+    try {
+      sessionStorage.setItem('mischa_current', p.name.toLowerCase());
+      if(window.MISCHA_TESTMODE){try{sessionStorage.setItem('mischa_testmode','1');}catch(e){}}
+      const charData = (window.CHARACTERS||CHARACTERS||[]).find(c=>c.id===p.character);
+      const zooUsers = JSON.parse(localStorage.getItem('zoo_users')||'{}');
+      const zKey = p.name.toLowerCase();
+      const _charEmoji = charData?.emoji || (p.characterColor ? '🎮' : '🐾');
+      const _charId = p.character || 'runner';
+      if(!zooUsers[zKey]) zooUsers[zKey] = {n:p.name, pw:'auto', ch:{e:_charEmoji, id:_charId}};
+      else zooUsers[zKey].ch = {e:_charEmoji, id:_charId};
+      localStorage.setItem('zoo_users', JSON.stringify(zooUsers));
+      sessionStorage.setItem('mischa_birthyear', p.birthYear||2000);
+      localStorage.setItem('zoo_unlocked_' + zKey, '1');
+      console.log('[Boarding-debug] Login → starte Übergangs-Animation für '+p.name);
+      this._showBoardingScene(p.name, charData?.emoji||'🧭', 0);
+    } catch(e) {
+      console.log('[Boarding-debug] _goToZooAnimated Fehler: '+(e&&e.message)+' → Fallback direkt in den Zoo');
+      window.location.href = 'zoo.html?autostart=1';
+    }
   },
 
   _showBoardingScene(playerName, charEmoji, mtLeft) {
@@ -1172,7 +1198,7 @@ const App = {
     FontScale.applyForPlayer(player?.name||'');
     try{ if(typeof PlayTime!=='undefined'&&player?.name){ PlayTime.recordLogin('ds',player.name); PlayTime.startTracking('ds',player.name); } }catch(e){}
     try{ if(typeof State!=='undefined'&&State._startPendingSaveFlusher) State._startPendingSaveFlusher(); }catch(e){}
-    this.showWorldMap();
+    this._goToZooAnimated();
     // One-time language bonus popup (only right after registration)
     if (player.langBonusGranted) {
       const langKey = player.langBonusGranted; // 'en' or 'fr'
@@ -1376,7 +1402,7 @@ const App = {
         try{ if(State.currentPlayer?.name && typeof RankNotify!=='undefined') RankNotify.check(State.currentPlayer.name); }catch(e){}
       }, 8*60000);
     }
-    this.showWorldMap();
+    this._goToZooAnimated();
   },
 
   // ---- WORLD MAP ----
@@ -1487,6 +1513,11 @@ const App = {
   },
 
   async showWorldMap() {
+    // Einbett-Modus (Baum im Zoo): keine Weltkarte, immer direkt die 20 Spiele.
+    if(window.MISCHA_EMBED){
+      const _n=Date.now();
+      if(!this._lastEmbedRedirect || _n-this._lastEmbedRedirect>3000){ this._lastEmbedRedirect=_n; return this.showWorld(1); }
+    }
     document.getElementById('tetris-fixed-controls')?.remove(); // see launchGame for why this matters
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
@@ -2431,7 +2462,7 @@ const App = {
 
         <div class="card" style="max-width:100%;padding:1.000rem;box-sizing:border-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <button onclick="App.showWorldMap()" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">${typeof t!=='undefined'?t('gamelist.back'):'◀ Welten'}</button>
+            <button onclick="${window.MISCHA_EMBED?'App._embedClose()':'App.showWorldMap()'}" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-mid)">${window.MISCHA_EMBED?'🌳 Zurück in den Zoo':(typeof t!=='undefined'?t('gamelist.back'):'◀ Welten')}</button>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <button onclick="App.showGlobalLeaderboard()" style="background:rgba(74,144,217,0.1);border:2px solid var(--sky-deep);color:var(--sky-deep);padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:0.95rem">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
               <button onclick="App.showKontoauszug()" style="background:rgba(41,182,246,0.1);border:2px solid #29B6F6;color:#29B6F6;padding:5px 10px;border-radius:50px;font-weight:700;cursor:pointer;font-size:1rem">${typeof t!=='undefined'?t('btn.account_short'):'📊 Konto'}</button>
@@ -3399,6 +3430,8 @@ Grund: ${reason}`))) return;
     }
   },
 
+  _embedClose(){ try{ parent.postMessage({type:'mischa-world1-close'},location.origin); }catch(e){} },
+
   async _showTaskComplete(worldId, taskIndex, result, wasJoker=false) {
     document.getElementById('tetris-fixed-controls')?.remove(); // see launchGame for why this matters
     let player;
@@ -3418,6 +3451,15 @@ Grund: ${reason}`))) return;
     const _wid = String(worldId);
     const _savedTask = player?.worlds?.[_wid]?.tasks?.[taskIndex] || player?.worlds?.[worldId]?.tasks?.[taskIndex];
     const mtEarned = wasJoker ? 0 : (_savedTask?.mt ?? (result.passed !== false ? 1.0 : 0.2));
+    // Einbett-Modus: sofort zurück in den Zoo, dort gibt's das Glück.
+    if(window.MISCHA_EMBED){
+      try{
+        const _tid=(WORLDS[0]&&WORLDS[0].tasks&&WORLDS[0].tasks[taskIndex])?WORLDS[0].tasks[taskIndex].id:null;
+        console.log('[World1-debug] Aufgabe fertig: '+_tid+' mt='+mtEarned+' → melde an Zoo');
+        parent.postMessage({type:'mischa-world1-result',taskId:_tid,taskIndex:taskIndex,mt:Number(mtEarned)||0,passed:!wasJoker&&result.passed!==false,joker:!!wasJoker},location.origin);
+      }catch(e){ console.log('[World1-debug] postMessage-Fehler: '+(e&&e.message)); }
+      return;
+    }
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
