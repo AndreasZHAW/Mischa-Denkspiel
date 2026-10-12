@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v606 -->
+<!-- ZOO v608 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=606"></script>
-<script src="rewardchests.js?v=606"></script>
-<script src="personality.js?v=606"></script>
+<script src="lang.js?v=608"></script>
+<script src="rewardchests.js?v=608"></script>
+<script src="personality.js?v=608"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v606','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v608','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=606"></script>
-<script src="worlds.js?v=606"></script>
+<script src="firebase-state.js?v=608"></script>
+<script src="worlds.js?v=608"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -5231,6 +5231,7 @@ const ZG={
       const escSpeed=this._speedTestOverride??getEffectiveEscSpeed();
       shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     }
+    if(this._arcadeActive) shoe_mod=1; // im Automaten-Raum normales Tempo, keine Schuh-Boosts
     const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
@@ -17054,14 +17055,14 @@ const ZHearts={
       if(c==='W'&&state!=='empty'&&!(state==='half'&&x>4)) col='#ff9aa0';
       r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+col+'"/>';
     }});
-    return '<svg width="32" height="29" viewBox="0 0 9 8" shape-rendering="crispEdges" style="margin:0 1px">'+r+'</svg>';
+    return '<svg width="30" height="27" viewBox="0 0 9 8" shape-rendering="crispEdges" style="margin:0 1px">'+r+'</svg>';
   },
   init(){
     if(this._iv) return;
     this.hp=this.max; this.dead=false; this._burn=null; this._nextRegen=Date.now()+15000;
     const el=document.createElement('div');
     el.id='zhearts';
-    el.style.cssText='position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:560;pointer-events:none;display:flex;align-items:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))';
+    el.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:560;pointer-events:none;display:flex;flex-wrap:wrap;justify-content:center;width:min(170px,calc(100vw - 190px));align-items:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))';
     document.body.appendChild(el); this._el=el;
     this._render();
     this._iv=setInterval(()=>this._tick(),250);
@@ -17155,7 +17156,7 @@ const ARCADE_GAMES=[
   {id:'math2',n:'Schleuder',e:'🥐'},{id:'memory2',n:'Star Wars',e:'🚀'},{id:'truefalse',n:'Wahr/Falsch',e:'✅'},{id:'dart2',n:'Pong',e:'🏓'}
 ];
 const Arcade={
-  CX:8000, CZ:-8000, R:20, WALL:33,
+  CX:8000, CZ:-8000, R:32, WALL:50,
   _room:null, _machines:[], _active:false, _saved:null, _exit:null, _hinted:-2,
   _screenTex(g,i){
     const cv=document.createElement('canvas'); cv.width=256; cv.height=256;
@@ -17186,6 +17187,7 @@ const Arcade={
     [[-.42,.6],[.42,-.6]].forEach(p=>{ const f=B(.7,.08,.16,p[0]<0?0xdd2222:0xeeeeee); f.position.set(p[0],1.72,1.45); f.rotation.y=p[1]*0.6; grp.add(f); });
     const ball=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),new THREE.MeshBasicMaterial({color:0xdddddd})); ball.position.set(0,1.75,.9); grp.add(ball);
     const glow=new THREE.Mesh(new THREE.RingGeometry(1.9,2.4,24),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.35,side:THREE.DoubleSide})); glow.rotation.x=-Math.PI/2; glow.position.set(0,.03,.2); grp.add(glow);
+    grp.userData.glow=glow;
     return grp;
   },
   _build(){
@@ -17193,23 +17195,23 @@ const Arcade={
     const sc=ZG.scene, CX=this.CX, CZ=this.CZ;
     const room=new THREE.Group();
     const floor=new THREE.Mesh(new THREE.CircleGeometry(this.WALL+1,48),new THREE.MeshBasicMaterial({color:0x0b0b14})); floor.rotation.x=-Math.PI/2; floor.position.set(CX,0,CZ); room.add(floor);
-    [8,14,20,26].forEach((r,k)=>{ const ring=new THREE.Mesh(new THREE.RingGeometry(r,r+.12,64),new THREE.MeshBasicMaterial({color:[0x2a1060,0x103a60,0x601040,0x106040][k],side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.set(CX,.02,CZ); room.add(ring); });
-    const wall=new THREE.Mesh(new THREE.CylinderGeometry(this.WALL+1,this.WALL+1,18,48,1,true),new THREE.MeshBasicMaterial({color:0x07070e,side:THREE.BackSide})); wall.position.set(CX,9,CZ); room.add(wall);
-    const ceil=new THREE.Mesh(new THREE.CircleGeometry(this.WALL+1,48),new THREE.MeshBasicMaterial({color:0x040408,side:THREE.DoubleSide})); ceil.rotation.x=Math.PI/2; ceil.position.set(CX,18,CZ); room.add(ceil);
+    [12,21,30,40].forEach((r,k)=>{ const ring=new THREE.Mesh(new THREE.RingGeometry(r,r+.12,64),new THREE.MeshBasicMaterial({color:[0x2a1060,0x103a60,0x601040,0x106040][k],side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.set(CX,.02,CZ); room.add(ring); });
+    const wall=new THREE.Mesh(new THREE.CylinderGeometry(this.WALL+1,this.WALL+1,24,48,1,true),new THREE.MeshBasicMaterial({color:0x07070e,side:THREE.BackSide})); wall.position.set(CX,12,CZ); room.add(wall);
+    const ceil=new THREE.Mesh(new THREE.CircleGeometry(this.WALL+1,48),new THREE.MeshBasicMaterial({color:0x040408,side:THREE.DoubleSide})); ceil.rotation.x=Math.PI/2; ceil.position.set(CX,24,CZ); room.add(ceil);
     // kleine "Sterne"/Lämpchen an der Decke
     const N=140,pos=new Float32Array(N*3);
-    for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*this.WALL; pos[i*3]=CX+Math.cos(a)*r; pos[i*3+1]=17.5; pos[i*3+2]=CZ+Math.sin(a)*r; }
+    for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*this.WALL; pos[i*3]=CX+Math.cos(a)*r; pos[i*3+1]=23.5; pos[i*3+2]=CZ+Math.sin(a)*r; }
     const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
     room.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffe9a8,size:.5})));
     // Automaten im Kreis, Bildschirm zur Mitte
     this._machines=[];
     ARCADE_GAMES.forEach((g,i)=>{
       const a=i/ARCADE_GAMES.length*Math.PI*2, x=CX+Math.cos(a)*this.R, zz=CZ+Math.sin(a)*this.R;
-      const m=this._mkMachine(g,i); m.position.set(x,0,zz);
+      const m=this._mkMachine(g,i); m.position.set(x,0,zz); m.scale.set(1.3,1.3,1.3);
       m.rotation.y=Math.atan2(-Math.cos(a),-Math.sin(a));
       room.add(m);
       // Standplatz vor dem Automaten (Richtung Mitte)
-      this._machines.push({i,g,x,z:zz,sx:CX+Math.cos(a)*(this.R-2.4),sz:CZ+Math.sin(a)*(this.R-2.4)});
+      this._machines.push({i,g,x,z:zz,sx:CX+Math.cos(a)*(this.R-3.2),sz:CZ+Math.sin(a)*(this.R-3.2),glow:m.userData.glow});
     });
     // Ausgang: leuchtende Tür in der Wand (hinten, +z)
     const ex=CX, ez=CZ+this.WALL-1.2;
@@ -17217,7 +17219,7 @@ const Arcade={
     const door=new THREE.Mesh(new THREE.PlaneGeometry(4.2,7.6),new THREE.MeshBasicMaterial({color:0x66ff99,side:THREE.DoubleSide})); door.position.set(ex,3.9,ez-.15); room.add(door);
     const lbl=ZG._txt('🚪 AUSGANG',.7,'#66ff99'); lbl.position.set(ex,10,ez-.4); lbl.scale.set(8,2,1); room.add(lbl);
     this._exit={x:ex,z:ez-2.2};
-    const title=ZG._txt('🕹️ WELT 1 · DENKSPIEL-AUTOMATEN',.6,'#FFD700'); title.position.set(CX,12,CZ); title.scale.set(14,2.4,1); room.add(title);
+    const title=ZG._txt('🕹️ WELT 1 · DENKSPIEL-AUTOMATEN',.6,'#FFD700'); title.position.set(CX,14,CZ); title.scale.set(18,3,1); room.add(title);
     room.visible=false; sc.add(room); this._room=room;
     const p=document.createElement('div'); p.id='arc-prompt';
     p.style.cssText='position:fixed;left:50%;bottom:215px;transform:translateX(-50%);z-index:600;background:rgba(10,10,25,.88);border:2px solid #FFD700;color:#fff;font-weight:900;font-size:.9rem;padding:9px 18px;border-radius:14px;text-align:center;display:none;pointer-events:auto;cursor:pointer;max-width:90vw';
@@ -17260,10 +17262,18 @@ const Arcade={
   _tick(){
     if(!this._active) return;
     const px=ZG.pl.x, pz=ZG.pl.z;
-    let best=-1,bd=4.2;
-    this._machines.forEach(m=>{ const d=Math.hypot(px-m.sx,pz-m.sz); if(d<bd){bd=d;best=m.i;} });
+    // Auswahl nach BLICKRICHTUNG: der Automat, auf den du schaust (und der nah genug ist), wird gewählt
+    const fx=-Math.sin(ZG.yaw), fz=-Math.cos(ZG.yaw);
+    let best=-1,bAng=9;
+    this._machines.forEach(m=>{
+      const dx=m.x-px, dz=m.z-pz, d=Math.hypot(dx,dz);
+      if(d<1||d>17) return;
+      const ang=Math.acos(Math.max(-1,Math.min(1,(dx*fx+dz*fz)/d)));
+      if(ang<Math.atan2(2.6,d) && ang<bAng){ bAng=ang; best=m.i; }
+    });
     this._nearIdx=best;
-    this._nearExit=this._exit && Math.hypot(px-this._exit.x,pz-this._exit.z)<4.5;
+    this._machines.forEach(m=>{ if(m.glow) m.glow.material.opacity=(m.i===best)?.95:.35; });
+    this._nearExit=best<0 && this._exit && Math.hypot(px-this._exit.x,pz-this._exit.z)<6;
     const p=document.getElementById('arc-prompt'); if(!p) return;
     if(best>=0){
       const g=ARCADE_GAMES[best], L=World1.LUCK[g.id];
@@ -17286,7 +17296,7 @@ const Arcade={
     if(d>maxR&&d>0){ ZG.pl.x=CX+dx/d*maxR; ZG.pl.z=CZ+dz/d*maxR; }
     this._machines.forEach(m=>{
       const ax=ZG.pl.x-m.x, az=ZG.pl.z-m.z, ad=Math.hypot(ax,az);
-      if(ad<1.9&&ad>0){ ZG.pl.x=m.x+ax/ad*1.9; ZG.pl.z=m.z+az/ad*1.9; }
+      if(ad<2.6&&ad>0){ ZG.pl.x=m.x+ax/ad*2.6; ZG.pl.z=m.z+az/ad*2.6; }
     });
   }
 };

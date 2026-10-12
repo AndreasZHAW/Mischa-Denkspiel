@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v606</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v606 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v608</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v608 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -65,6 +65,7 @@ try {
   <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
   <div class="tab" onclick="switchTab('special')">🎁 Spezial-Gegenstände</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
+  <div class="tab" onclick="switchTab('layout')">📐 Layout</div>
   <div class="tab" onclick="switchTab('net')">🌐 Netzwerk</div>
   <div class="tab" onclick="switchTab('all')" style="background:#F39C12;color:#000;font-weight:900">📋 Alles zusammen</div>
 </div>
@@ -327,6 +328,18 @@ try {
 </div>
 
 <!-- ══ TAB: NETZWERK ══ -->
+<!-- ══ TAB: LAYOUT ══ -->
+<div id="tab-layout" class="tab-content">
+  <div class="box blue">
+    <h2>📐 Layout-Diagnose (alle Spiele)</h2>
+    <div style="font-size:.78rem;color:#aaa;margin-bottom:8px">Spiel auf dem Handy öffnen, jedes Spiel kurz starten (wird nach 2 s und 8 s vermessen). Danach hier „Kopieren“ und im Chat einfügen.</div>
+    <button onclick="runLayout()" class="info">🔄 Neu laden</button>
+    <button onclick="copyLayout()" class="sec">📋 Bericht kopieren</button>
+    <button onclick="clearLayout()" class="danger">🗑 Leeren</button>
+    <pre id="layout-out" style="white-space:pre-wrap;font-size:.72rem;margin-top:8px"></pre>
+  </div>
+</div>
+
 <div id="tab-net" class="tab-content">
   <div class="box">
     <h2>🌐 Latenzen</h2>
@@ -363,6 +376,26 @@ try {
 </div>
 
 <script>
+
+function _layoutText(){
+  let all={};try{all=JSON.parse(localStorage.getItem('mischa_layout_diag')||'{}');}catch(e){}
+  const keys=Object.keys(all);
+  if(!keys.length)return 'Noch keine Daten. Spiele zuerst ein paar Spiele.';
+  let o='=== MISCHA LAYOUT-DIAGNOSE ('+keys.length+' Spiele) ===\n';
+  keys.forEach(k=>{const r=all[k][all[k].length-1];const e=r.env,b=r.btns;
+    o+='\n## '+k+' ['+r.tag+'] '+r.t.slice(11,19)+'\n'
+     +' Gerät: '+e.device+' | inner '+e.innerW+'x'+e.innerH+' | screen '+e.screenW+'x'+e.screenH+' | effW '+e.effW+' | dpr '+e.dpr+' | vvScale '+e.vvScale+' | textScale '+e.textScale+' | '+e.orient+'\n'
+     +' Spielbereich: '+r.gameArea.w+'x'+r.gameArea.h+' @y'+r.gameArea.y+' | Seite '+r.pageH+'px hoch\n'
+     +' Buttons: n='+b.n+' Höhe min/med/max '+b.hMin+'/'+b.hMed+'/'+b.hMax+' | Breite med/max '+b.wMed+'/'+b.wMax+' | <32px: '+b.kleiner32+' | zu hoch: '+b.hoeher12pct+' | Fläche '+b.flaechePct+'% | oberster Button y='+b.obersterY+'\n'
+     +' Canvas: '+(r.canvas.map(c=>c.w+'x'+c.h+'@y'+c.top).join(', ')||'keins')+' ('+r.canvasPct+'% der Fläche)\n'
+     +' Schrift min '+r.fontMin+'px | '+JSON.stringify(r.fonts)+'\n'
+     +(r.ausserhalbN?' Ausserhalb: '+r.ausserhalb.join('; ')+'\n':'')
+     +' ⚑ '+(r.flags.join(', ')||'ok')+'\n';});
+  return o;
+}
+function runLayout(){document.getElementById('layout-out').textContent=_layoutText();}
+function copyLayout(){navigator.clipboard.writeText(_layoutText()).then(()=>alert('✅ Layout-Bericht kopiert!'));}
+function clearLayout(){localStorage.removeItem('mischa_layout_diag');runLayout();}
 function switchTab(id){
   document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',t.onclick.toString().includes("'"+id+"'"));});
   document.querySelectorAll('.tab-content').forEach(c=>{c.classList.remove('active');});
@@ -376,6 +409,7 @@ function switchTab(id){
   if(id==='traffic'&&!_ran.traffic){_ran.traffic=true;runTrafficDiag();}
   if(id==='roam'&&!_ran.roam){_ran.roam=true;runRoam();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
+  if(id==='layout'){runLayout();}
   if(id==='net'&&!_ran.net){_ran.net=true;runNet();}
 }
 const _ran={};
@@ -998,7 +1032,7 @@ async function runDeviceDiag(){
     rows.sort((a,b)=>a.ageMs-b.ageMs);
     summary.innerHTML=`📡 ${rows.length} Gerät${rows.length===1?'':'e'} haben je einen aktuellen Eintrag.`
       +(rows.length?` Neuester vor ${(rows[0].ageMs/1000).toFixed(0)}s (${rows[0].player||'?'}, ${rows[0].device||'?'}).`:'');
-    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v606+.</div>'; _deviceDiagText=''; return; }
+    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v608+.</div>'; _deviceDiagText=''; return; }
     let txt='';
     out.innerHTML=rows.map(r=>{
       const ageMin=(r.ageMs/60000).toFixed(1);
@@ -1061,7 +1095,7 @@ async function runTrafficDiag(){
     // ausgeloggt und würden die Instanz-Zahlen künstlich aufblähen.
     const fresh=rows.filter(r=>r.ageMs<30000);
     if(!rows.length){
-      out.innerHTML='<div class="dim">Noch keine Traffic-Snapshots vorhanden — kommen erst, wenn mindestens ein Spieler mit v606+ aktiv im Zoo ist (schreibt alle ~5s).</div>';
+      out.innerHTML='<div class="dim">Noch keine Traffic-Snapshots vorhanden — kommen erst, wenn mindestens ein Spieler mit v608+ aktiv im Zoo ist (schreibt alle ~5s).</div>';
       summary.innerHTML=''; _trafficDiagText=''; return;
     }
     // Gruppieren nach Instanz

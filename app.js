@@ -39,6 +39,106 @@ window.MISCHA_EMBED = (function(){try{return new URLSearchParams(location.search
   window.addEventListener('unhandledrejection',function(e){_push('E','PROMISE: '+(e.reason?.message||String(e.reason||'')));});
 })();
 
+// Layout-Diagnose (nur messen, nichts ändern). Konzept wie ChaosKalender: effectiveWidth = min(innerWidth, screen.width)
+const LayoutDiag = {
+  KEY: 'mischa_layout_diag',
+  _env() {
+    const vv = window.visualViewport;
+    const ua = navigator.userAgent || '';
+    const iPadMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;font-size:16px;font-family:sans-serif;white-space:nowrap';
+    probe.textContent = 'mmmmmmmmmm';
+    document.body.appendChild(probe);
+    const pw = probe.getBoundingClientRect().width; probe.remove();
+    return {
+      innerW: window.innerWidth, innerH: window.innerHeight,
+      screenW: screen.width, screenH: screen.height,
+      effW: Math.min(window.innerWidth, screen.width || window.innerWidth),
+      dpr: window.devicePixelRatio, vvScale: vv ? +vv.scale.toFixed(2) : null,
+      vvW: vv ? Math.round(vv.width) : null, vvH: vv ? Math.round(vv.height) : null,
+      orient: window.innerWidth > window.innerHeight ? 'quer' : 'hoch',
+      textScale: +(pw / 160).toFixed(2), // 1 = normal, >1 = Android-Schriftvergrösserung
+      userFontScale: window._userFontScale || null,
+      zoom: this_zoom(),
+      device: iPadMac ? 'iPad(Mac-UA)' : (/iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? (/Mobile/.test(ua) ? 'Android-Handy' : 'Android-Tablet') : 'Desktop'),
+      ua: ua.slice(0, 90)
+    };
+    function this_zoom() { try { return App._zoomLevel || 1; } catch (e) { return 1; } }
+  },
+  capture(game, idx, tag) {
+    try {
+      const root = document.getElementById('game-area') || document.getElementById('app') || document.body;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const vis = el => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && cs.opacity !== '0'; };
+      const rr = r => ({ x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) });
+      const gr = root.getBoundingClientRect();
+      // Buttons
+      const btns = [...document.querySelectorAll('button, .btn, [role=button]')].filter(vis);
+      const bh = btns.map(b => b.getBoundingClientRect().height).sort((a, b) => a - b);
+      const bw = btns.map(b => b.getBoundingClientRect().width).sort((a, b) => a - b);
+      const med = a => a.length ? Math.round(a[Math.floor(a.length / 2)]) : 0;
+      const btnArea = btns.reduce((s, b) => { const r = b.getBoundingClientRect(); return s + r.width * r.height; }, 0);
+      const small = btns.filter(b => { const r = b.getBoundingClientRect(); return Math.min(r.width, r.height) < 32; }).length;
+      const huge = btns.filter(b => b.getBoundingClientRect().height > vh * 0.12).length;
+      // Canvas / Spielfeld
+      const cvs = [...document.querySelectorAll('canvas')].filter(vis).map(c => { const r = c.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), bottom: Math.round(r.bottom) }; });
+      // Überstände
+      const outside = [];
+      root.querySelectorAll('*').forEach(el => {
+        if (!vis(el) || el.closest('svg')) return;
+        const r = el.getBoundingClientRect();
+        if (r.right > vw + 2 || r.left < -2) outside.push((el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ')[0] : '')) + '@' + Math.round(r.left) + '..' + Math.round(r.right));
+      });
+      // Schriftgrössen
+      const fs = {}; let minFs = 99;
+      root.querySelectorAll('button,span,div,p,td,label,h1,h2,h3').forEach(el => {
+        if (!el.childNodes.length || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return;
+        if (!vis(el)) return;
+        const f = Math.round(parseFloat(getComputedStyle(el).fontSize)); fs[f] = (fs[f] || 0) + 1; if (f < minFs) minFs = f;
+      });
+      // Aufteilung vertikal: Kopf / Spielfeld / Bedienung
+      const ys = btns.map(b => b.getBoundingClientRect()).filter(r => r.top > 0);
+      const topBtnY = ys.length ? Math.round(Math.min(...ys.map(r => r.top))) : null;
+      const doc = document.documentElement;
+      const rec = {
+        t: new Date().toISOString(), game, idx, tag,
+        env: this._env(),
+        gameArea: rr(gr), scrollW: root.scrollWidth, scrollH: root.scrollHeight,
+        pageScrollX: doc.scrollWidth > vw + 1, pageScrollY: Math.max(doc.scrollHeight, document.body.scrollHeight) > vh + 1,
+        pageH: Math.max(doc.scrollHeight, document.body.scrollHeight),
+        btns: { n: btns.length, hMin: Math.round(bh[0] || 0), hMed: med(bh), hMax: Math.round(bh[bh.length - 1] || 0), wMed: med(bw), wMax: Math.round(bw[bw.length - 1] || 0), kleiner32: small, hoeher12pct: huge, flaechePct: +(btnArea / (vw * vh) * 100).toFixed(1), obersterY: topBtnY },
+        canvas: cvs,
+        canvasPct: cvs.length ? +(cvs.reduce((s, c) => s + c.w * c.h, 0) / (vw * vh) * 100).toFixed(1) : 0,
+        ausserhalb: outside.slice(0, 8), ausserhalbN: outside.length,
+        fontMin: minFs === 99 ? null : minFs, fonts: fs
+      };
+      // Bewertung (nur Hinweise)
+      const flags = [];
+      if (rec.pageScrollX) flags.push('HORIZONTAL-SCROLL');
+      if (rec.pageScrollY) flags.push('SEITE-SCROLLT-VERTIKAL(' + rec.pageH + 'px/' + vh + 'px)');
+      if (outside.length) flags.push('ELEMENTE-AUSSERHALB(' + outside.length + ')');
+      if (small) flags.push('BUTTONS<32px(' + small + ')');
+      if (huge) flags.push('BUTTONS-ZU-HOCH(' + huge + ')');
+      if (rec.btns.flaechePct > 25) flags.push('BUTTONS-NEHMEN-' + rec.btns.flaechePct + '%-DER-FLAECHE');
+      if (cvs.length && rec.canvasPct < 25) flags.push('SPIELFELD-KLEIN(' + rec.canvasPct + '%)');
+      if (rec.fontMin && rec.fontMin < 11) flags.push('SCHRIFT<11px(' + rec.fontMin + ')');
+      if (rec.env.textScale > 1.15) flags.push('TEXTSKALIERUNG-' + rec.env.textScale);
+      if (rec.env.vvScale && rec.env.vvScale !== 1) flags.push('PINCH-ZOOM-' + rec.env.vvScale);
+      rec.flags = flags;
+      const all = JSON.parse(localStorage.getItem(this.KEY) || '{}');
+      all[game] = all[game] || [];
+      all[game].push(rec); all[game] = all[game].slice(-4);
+      localStorage.setItem(this.KEY, JSON.stringify(all));
+      console.log('[Layout-diag] ' + game + ' ' + tag + ' eff=' + rec.env.effW + 'x' + rec.env.innerH + ' btnMed=' + rec.btns.hMed + ' canvas%=' + rec.canvasPct + ' flags=' + (flags.join(',') || 'ok'));
+    } catch (e) { console.warn('[Layout-diag] Fehler: ' + e.message); }
+  },
+  schedule(game, idx) {
+    setTimeout(() => this.capture(game, idx, 'nach 2s'), 2000);
+    setTimeout(() => this.capture(game, idx, 'nach 8s'), 8000);
+  }
+};
+
 // Game event logger
 const GameLog = {
   _log: [],
@@ -92,7 +192,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v606';
+const APP_VERSION = 'v608';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -502,7 +602,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v606 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v608 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2549,6 +2649,7 @@ const App = {
     this._zoomLevel = 1;
     const _taskInfo = WORLDS[0]?.tasks?.[taskIndex];
     GameLog.log(_taskInfo?.type||'unknown', 'launchGame started: world='+worldId+' idx='+taskIndex);
+    try{ LayoutDiag.schedule((_taskInfo?.type||'unknown')+'#'+taskIndex, taskIndex); }catch(e){}
     // PHASE 1: Re-apply font scale (Android resets it on view changes)
     try { if(typeof FontScale!=='undefined' && window._userFontScale) FontScale.apply(window._userFontScale); } catch(e){}
     const player = await State.refreshCurrentPlayer();
