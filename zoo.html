@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v605 -->
+<!-- ZOO v606 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=605"></script>
-<script src="rewardchests.js?v=605"></script>
-<script src="personality.js?v=605"></script>
+<script src="lang.js?v=606"></script>
+<script src="rewardchests.js?v=606"></script>
+<script src="personality.js?v=606"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v605','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v606','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=605"></script>
-<script src="worlds.js?v=605"></script>
+<script src="firebase-state.js?v=606"></script>
+<script src="worlds.js?v=606"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4921,7 +4921,7 @@ const ZG={
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
-      if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}
+      if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}
       // Lucky Wheel: open on tap/click when near
       if(this._nearWheel){LW.open();return;}
       if(this.nearSt||this.nearEnc>=0)this._interact();
@@ -4966,14 +4966,14 @@ const ZG={
       if(this._nearBreedMachine){BreedMachine.open();return;}
       if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
-      if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}
+      if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}
         // Lucky Wheel: tap to open when near
         if(this._nearWheel){LW.open();return;}
         this.slap(t.clientX, t.clientY);
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -5331,7 +5331,8 @@ const ZG={
       if(gmd<2.6 && gmd>0){this.pl.x=p.x+gmdx/gmd*2.6;this.pl.z=p.z+gmdz/gmd*2.6;}
     });
     // Circular boundary (skip during jump level or maze — both live outside zoo)
-    if(!this._jumpActive && !this._mazeActive){
+    if(this._arcadeActive){ try{ Arcade.constrain(); }catch(e){} }
+    if(!this._jumpActive && !this._mazeActive && !this._arcadeActive){
       const d=Math.sqrt(this.pl.x*this.pl.x+this.pl.z*this.pl.z);
       if(d>this.WR-3){const a=Math.atan2(this.pl.x,this.pl.z);this.pl.x=Math.sin(a)*(this.WR-3);this.pl.z=Math.cos(a)*(this.WR-3);}
     }
@@ -5688,6 +5689,7 @@ const ZG={
       if(p.ring1){p.ring1.rotation.z+=0.01;p.ring2.rotation.z-=0.015;}
     });
     this._nearSpeedTemple = _stDist < 6;
+    if(this._arcadeActive){ try{ Arcade._tick(); }catch(e){} }
     // Welt-1-Baum: Eingang
     let _wtDist=999;
     (this._worldTreePositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_wtDist)_wtDist=d;});
@@ -6437,7 +6439,7 @@ const ZG={
     if(this._nearBreedMachine){BreedMachine.open();return;}
     if(this._nearDiceMachine){DiceMachine.open();return;}
     if(this._nearTerminal){CollectionTerminal.open();return;}
-    if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}
+    if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}
   },
 
   _useTool(sl, clientX, clientY){
@@ -17144,6 +17146,152 @@ const ZHearts={
 };
 window.ZHearts=ZHearts;
 
+// ═══ 🕹️ AUTOMATEN-RAUM (Eingang im Welt-1-Baum): 20 Flipperautomaten im Kreis, je ein Spiel ═══
+const ARCADE_GAMES=[
+  {id:'dart',n:'Dart',e:'🎯'},{id:'french',n:'Französisch',e:'🇫🇷'},{id:'math',n:'Rechnen',e:'🔢'},{id:'sokoban',n:'Sokoban',e:'📦'},
+  {id:'shutthebox',n:'Shut the Box',e:'🎲'},{id:'memory',n:'Memory',e:'🧠'},{id:'anagram',n:'Anagramm',e:'🔤'},{id:'simon',n:'Simon',e:'🟢'},
+  {id:'wordsearch',n:'Wortsuche',e:'🔍'},{id:'reaction',n:'Reaktion',e:'⚡'},{id:'colormix',n:'Farben',e:'🎨'},{id:'slider',n:'Schiebepuzzle',e:'🧩'},
+  {id:'typing',n:'Tetris',e:'🟩'},{id:'balloon',n:'Snake',e:'🐍'},{id:'jenga',n:'Race',e:'🏎️'},{id:'simon2',n:'Bomber',e:'💣'},
+  {id:'math2',n:'Schleuder',e:'🥐'},{id:'memory2',n:'Star Wars',e:'🚀'},{id:'truefalse',n:'Wahr/Falsch',e:'✅'},{id:'dart2',n:'Pong',e:'🏓'}
+];
+const Arcade={
+  CX:8000, CZ:-8000, R:20, WALL:33,
+  _room:null, _machines:[], _active:false, _saved:null, _exit:null, _hinted:-2,
+  _screenTex(g,i){
+    const cv=document.createElement('canvas'); cv.width=256; cv.height=256;
+    const c=cv.getContext('2d');
+    const hue=Math.round(i/ARCADE_GAMES.length*360);
+    const bg=c.createLinearGradient(0,0,0,256); bg.addColorStop(0,'hsl('+hue+',70%,22%)'); bg.addColorStop(1,'#05050c');
+    c.fillStyle=bg; c.fillRect(0,0,256,256);
+    c.strokeStyle='hsl('+hue+',100%,60%)'; c.lineWidth=6; c.strokeRect(5,5,246,246);
+    c.textAlign='center'; c.textBaseline='middle';
+    c.font='104px serif'; c.fillStyle='#fff'; c.fillText(g.e,128,95);
+    c.font='bold 27px Arial'; c.fillStyle='#fff'; c.fillText(g.n,128,168);
+    const L=(typeof World1!=='undefined'&&World1.LUCK)?World1.LUCK[g.id]:null;
+    if(L){ c.font='bold 17px Arial'; c.fillStyle='#7CFC8A'; c.fillText('🍀 bis ×'+L.max+' · '+String(L.min).replace('.',',')+' Min'+(L.solo?' · solo':''),128,200); }
+    c.font='bold 15px Arial'; c.fillStyle='#FFD700'; c.fillText('▶ ANTIPPEN ZUM SPIELEN',128,232);
+    const t=new THREE.CanvasTexture(cv); return t;
+  },
+  _mkMachine(g,i){
+    const hue=i/ARCADE_GAMES.length, col=new THREE.Color().setHSL(hue,.85,.55);
+    const grp=new THREE.Group(); const B=(w,h,d,c)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshBasicMaterial({color:c}));
+    [[-1,-1.2],[1,-1.2],[-1,1.5],[1,1.5]].forEach(p=>{ const l=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.45,6),new THREE.MeshBasicMaterial({color:0x888899})); l.position.set(p[0]*1.0,.22,p[1]+.4); grp.add(l); });
+    const cab=B(2.3,1.2,3.0,0x2a1a3a); cab.position.set(0,1.0,.4); grp.add(cab);
+    const bb=B(2.4,2.6,.6,0x1a1a2a); bb.position.set(0,2.6,-1.25); grp.add(bb);
+    const frame=new THREE.Mesh(new THREE.PlaneGeometry(2.25,2.25),new THREE.MeshBasicMaterial({color:col})); frame.position.set(0,2.65,-0.94); grp.add(frame);
+    const screen=new THREE.Mesh(new THREE.PlaneGeometry(2.05,2.05),new THREE.MeshBasicMaterial({map:this._screenTex(g,i)})); screen.position.set(0,2.65,-0.93); grp.add(screen);
+    const pf=new THREE.Mesh(new THREE.PlaneGeometry(2.0,2.7),new THREE.MeshBasicMaterial({color:0x0f2a44,side:THREE.DoubleSide})); pf.rotation.x=-Math.PI/2+0.2; pf.position.set(0,1.63,.4); grp.add(pf);
+    [[-.55,.3],[.55,.2],[0,-.5]].forEach(p=>{ const b=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.12,10),new THREE.MeshBasicMaterial({color:col})); b.position.set(p[0],1.72,p[1]); grp.add(b); });
+    [-1.08,1.08].forEach(x=>{ const r=B(.08,.14,3.0,col.getHex()); r.position.set(x,1.68,.4); grp.add(r); });
+    [[-.42,.6],[.42,-.6]].forEach(p=>{ const f=B(.7,.08,.16,p[0]<0?0xdd2222:0xeeeeee); f.position.set(p[0],1.72,1.45); f.rotation.y=p[1]*0.6; grp.add(f); });
+    const ball=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),new THREE.MeshBasicMaterial({color:0xdddddd})); ball.position.set(0,1.75,.9); grp.add(ball);
+    const glow=new THREE.Mesh(new THREE.RingGeometry(1.9,2.4,24),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.35,side:THREE.DoubleSide})); glow.rotation.x=-Math.PI/2; glow.position.set(0,.03,.2); grp.add(glow);
+    return grp;
+  },
+  _build(){
+    if(this._room) return;
+    const sc=ZG.scene, CX=this.CX, CZ=this.CZ;
+    const room=new THREE.Group();
+    const floor=new THREE.Mesh(new THREE.CircleGeometry(this.WALL+1,48),new THREE.MeshBasicMaterial({color:0x0b0b14})); floor.rotation.x=-Math.PI/2; floor.position.set(CX,0,CZ); room.add(floor);
+    [8,14,20,26].forEach((r,k)=>{ const ring=new THREE.Mesh(new THREE.RingGeometry(r,r+.12,64),new THREE.MeshBasicMaterial({color:[0x2a1060,0x103a60,0x601040,0x106040][k],side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.set(CX,.02,CZ); room.add(ring); });
+    const wall=new THREE.Mesh(new THREE.CylinderGeometry(this.WALL+1,this.WALL+1,18,48,1,true),new THREE.MeshBasicMaterial({color:0x07070e,side:THREE.BackSide})); wall.position.set(CX,9,CZ); room.add(wall);
+    const ceil=new THREE.Mesh(new THREE.CircleGeometry(this.WALL+1,48),new THREE.MeshBasicMaterial({color:0x040408,side:THREE.DoubleSide})); ceil.rotation.x=Math.PI/2; ceil.position.set(CX,18,CZ); room.add(ceil);
+    // kleine "Sterne"/Lämpchen an der Decke
+    const N=140,pos=new Float32Array(N*3);
+    for(let i=0;i<N;i++){ const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random())*this.WALL; pos[i*3]=CX+Math.cos(a)*r; pos[i*3+1]=17.5; pos[i*3+2]=CZ+Math.sin(a)*r; }
+    const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    room.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffe9a8,size:.5})));
+    // Automaten im Kreis, Bildschirm zur Mitte
+    this._machines=[];
+    ARCADE_GAMES.forEach((g,i)=>{
+      const a=i/ARCADE_GAMES.length*Math.PI*2, x=CX+Math.cos(a)*this.R, zz=CZ+Math.sin(a)*this.R;
+      const m=this._mkMachine(g,i); m.position.set(x,0,zz);
+      m.rotation.y=Math.atan2(-Math.cos(a),-Math.sin(a));
+      room.add(m);
+      // Standplatz vor dem Automaten (Richtung Mitte)
+      this._machines.push({i,g,x,z:zz,sx:CX+Math.cos(a)*(this.R-2.4),sz:CZ+Math.sin(a)*(this.R-2.4)});
+    });
+    // Ausgang: leuchtende Tür in der Wand (hinten, +z)
+    const ex=CX, ez=CZ+this.WALL-1.2;
+    const frm=new THREE.Mesh(new THREE.BoxGeometry(5.4,8.6,.8),new THREE.MeshBasicMaterial({color:0x1d2b1d})); frm.position.set(ex,4.3,ez+.3); room.add(frm);
+    const door=new THREE.Mesh(new THREE.PlaneGeometry(4.2,7.6),new THREE.MeshBasicMaterial({color:0x66ff99,side:THREE.DoubleSide})); door.position.set(ex,3.9,ez-.15); room.add(door);
+    const lbl=ZG._txt('🚪 AUSGANG',.7,'#66ff99'); lbl.position.set(ex,10,ez-.4); lbl.scale.set(8,2,1); room.add(lbl);
+    this._exit={x:ex,z:ez-2.2};
+    const title=ZG._txt('🕹️ WELT 1 · DENKSPIEL-AUTOMATEN',.6,'#FFD700'); title.position.set(CX,12,CZ); title.scale.set(14,2.4,1); room.add(title);
+    room.visible=false; sc.add(room); this._room=room;
+    const p=document.createElement('div'); p.id='arc-prompt';
+    p.style.cssText='position:fixed;left:50%;bottom:215px;transform:translateX(-50%);z-index:600;background:rgba(10,10,25,.88);border:2px solid #FFD700;color:#fff;font-weight:900;font-size:.9rem;padding:9px 18px;border-radius:14px;text-align:center;display:none;pointer-events:auto;cursor:pointer;max-width:90vw';
+    p.onclick=()=>this.interact();
+    document.body.appendChild(p);
+  },
+  enter(){
+    if(this._active) return;
+    if(ZG.carrying){ ZP.toast('🐾 Setz zuerst dein Tier im Gehege ab!',2500); return; }
+    if(!ZG.scene||typeof THREE==='undefined') return;
+    const go=()=>{
+      this._build();
+      this._saved={x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z,yaw:ZG.yaw,pitch:ZG.pitch};
+      this._room.visible=true; this._active=true; ZG._arcadeActive=true;
+      ZG.pl.x=this.CX; ZG.pl.z=this.CZ+1; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0;
+      console.log('[Arcade-debug] betreten');
+      ZP.toast('🕹️ Willkommen! Geh zu einem Automaten und tippe ihn an.',3500);
+    };
+    this._fade(go);
+  },
+  leave(){
+    if(!this._active) return;
+    const go=()=>{
+      const s=this._saved||{x:0,y:1.7,z:60,yaw:0,pitch:0};
+      this._active=false; ZG._arcadeActive=false; this._room.visible=false;
+      ZG.pl.x=s.x; ZG.pl.y=s.y; ZG.pl.z=s.z; ZG.yaw=s.yaw; ZG.pitch=s.pitch;
+      const p=document.getElementById('arc-prompt'); if(p) p.style.display='none';
+      console.log('[Arcade-debug] verlassen');
+    };
+    this._fade(go);
+  },
+  _fade(cb){
+    const f=document.createElement('div');
+    f.style.cssText='position:fixed;inset:0;background:#000;z-index:9600;opacity:0;transition:opacity .35s;pointer-events:none';
+    document.body.appendChild(f);
+    requestAnimationFrame(()=>{ f.style.opacity='1'; });
+    setTimeout(()=>{ try{cb();}catch(e){ console.log('[Arcade-debug] Fehler: '+e.message); } f.style.opacity='0'; setTimeout(()=>f.remove(),400); },380);
+  },
+  _nearIdx:-1, _nearExit:false,
+  _tick(){
+    if(!this._active) return;
+    const px=ZG.pl.x, pz=ZG.pl.z;
+    let best=-1,bd=4.2;
+    this._machines.forEach(m=>{ const d=Math.hypot(px-m.sx,pz-m.sz); if(d<bd){bd=d;best=m.i;} });
+    this._nearIdx=best;
+    this._nearExit=this._exit && Math.hypot(px-this._exit.x,pz-this._exit.z)<4.5;
+    const p=document.getElementById('arc-prompt'); if(!p) return;
+    if(best>=0){
+      const g=ARCADE_GAMES[best], L=World1.LUCK[g.id];
+      p.style.display='block';
+      p.innerHTML=g.e+' <b>'+g.n+'</b>'+(L?' · 🍀 bis ×'+L.max+' für '+String(L.min).replace('.',',')+' Min':'')+'<br><span style="color:#FFD700;font-size:.78rem">👆 Tippen oder [E] zum Spielen</span>';
+    } else if(this._nearExit){
+      p.style.display='block'; p.innerHTML='🚪 <b>Ausgang</b><br><span style="color:#66ff99;font-size:.78rem">👆 Tippen oder [E] — zurück in den Zoo</span>';
+    } else p.style.display='none';
+  },
+  interact(){
+    if(!this._active) return false;
+    if(this._nearIdx>=0){ World1.openGame(this._nearIdx); return true; }
+    if(this._nearExit){ this.leave(); return true; }
+    return false;
+  },
+  // Begrenzung + Kollision mit den Automaten (wird von ZG._move aufgerufen)
+  constrain(){
+    const CX=this.CX,CZ=this.CZ;
+    let dx=ZG.pl.x-CX, dz=ZG.pl.z-CZ, d=Math.hypot(dx,dz), maxR=this.WALL-2.2;
+    if(d>maxR&&d>0){ ZG.pl.x=CX+dx/d*maxR; ZG.pl.z=CZ+dz/d*maxR; }
+    this._machines.forEach(m=>{
+      const ax=ZG.pl.x-m.x, az=ZG.pl.z-m.z, ad=Math.hypot(ax,az);
+      if(ad<1.9&&ad>0){ ZG.pl.x=m.x+ax/ad*1.9; ZG.pl.z=m.z+az/ad*1.9; }
+    });
+  }
+};
+window.Arcade=Arcade;
+
 const World1 = {
   _ov:null,
   // Glück pro Spiel: max = Multiplikator bei Höchstleistung, min = Minuten, solo = nicht stapelbar
@@ -17185,7 +17333,8 @@ const World1 = {
     ZP.toast(msg,5000);
     console.log('[World1-debug] Glück: '+d.taskId+' mt='+d.mt+' q='+q.toFixed(2)+' → ×'+mult);
   },
-  open(){
+  open(){ try{ Arcade.enter(); }catch(e){ console.log('[Arcade-debug] enter-Fehler: '+e.message); } },
+  openGame(idx){
     if(this._ov) return;
     const me=ZS.player||sessionStorage.getItem('mischa_current')||'';
     if(!me){ try{ZP.toast('Bitte zuerst anmelden.',2000);}catch(e){} return; }
@@ -17194,15 +17343,15 @@ const World1 = {
     ov.id='world1-ov';
     ov.style.cssText='position:fixed;inset:0;z-index:99990;background:#0b1f12;display:flex;flex-direction:column';
     ov.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(124,252,138,.35)">'
-      +'<button id="w1-back" style="background:#27AE60;color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:900;cursor:pointer">🌳 Zurück in den Zoo</button>'
-      +'<div style="color:#7CFC8A;font-weight:900">Welt 1 · Denkspiele</div></div>'
+      +'<button id="w1-back" style="background:#27AE60;color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:900;cursor:pointer">🕹️ Zurück zum Automaten</button>'
+      +'<div style="color:#7CFC8A;font-weight:900">'+((ARCADE_GAMES[idx]||{}).e||'')+' '+((ARCADE_GAMES[idx]||{}).n||'Welt 1')+'</div></div>'
       +'<div id="w1-load" style="position:absolute;top:60px;left:0;right:0;text-align:center;color:#fff;opacity:.7;pointer-events:none">Lade Welt 1…</div>'
       +'<iframe id="w1-frame" style="flex:1;border:0;width:100%;background:#0b1f12" allow="autoplay"></iframe>';
     document.body.appendChild(ov);
     this._ov=ov;
     const fr=ov.querySelector('#w1-frame');
     fr.addEventListener('load',()=>{ const l=ov.querySelector('#w1-load'); if(l) l.remove(); });
-    fr.src='index.html?fromZoo=1&embed=1&me='+encodeURIComponent(me)+'&t='+Date.now();
+    fr.src='index.html?fromZoo=1&embed=1&game='+idx+'&me='+encodeURIComponent(me)+'&t='+Date.now();
     ov.querySelector('#w1-back').onclick=()=>this.close();
     try{ if(typeof ZG!=='undefined' && document.pointerLockElement) document.exitPointerLock(); }catch(e){}
     console.log('[World1-debug] geöffnet für '+me);

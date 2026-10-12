@@ -92,7 +92,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v605';
+const APP_VERSION = 'v606';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -502,7 +502,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v605 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v606 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1513,11 +1513,8 @@ const App = {
   },
 
   async showWorldMap() {
-    // Einbett-Modus (Baum im Zoo): keine Weltkarte, immer direkt die 20 Spiele.
-    if(window.MISCHA_EMBED){
-      const _n=Date.now();
-      if(!this._lastEmbedRedirect || _n-this._lastEmbedRedirect>3000){ this._lastEmbedRedirect=_n; return this.showWorld(1); }
-    }
+    // Einbett-Modus (Automaten-Raum im Zoo): keine Weltkarte — zurück = Fenster schliessen
+    if(window.MISCHA_EMBED){ return this._embedClose(); }
     document.getElementById('tetris-fixed-controls')?.remove(); // see launchGame for why this matters
     this._loading('Laden...');
     const player = await State.refreshCurrentPlayer();
@@ -2373,6 +2370,7 @@ const App = {
 
   // ---- WORLD VIEW ----
   async showWorld(worldId) {
+    if(window.MISCHA_EMBED){ return this._embedClose(); }
     this._loading('Welt laden...');
     console.log('[showWorld] start, worldId=', worldId);
     // Safety net: if this whole method hangs for any reason, kick user back
