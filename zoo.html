@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v604 -->
+<!-- ZOO v605 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=604"></script>
-<script src="rewardchests.js?v=604"></script>
-<script src="personality.js?v=604"></script>
+<script src="lang.js?v=605"></script>
+<script src="rewardchests.js?v=605"></script>
+<script src="personality.js?v=605"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v604','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v605','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=604"></script>
-<script src="worlds.js?v=604"></script>
+<script src="firebase-state.js?v=605"></script>
+<script src="worlds.js?v=605"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8036,6 +8036,8 @@ const TUTORIAL_STEPS=[
   {id:'menuinfo', title:'⚙️ Einstellungen & Rang', text:'Hier findest du Einstellungen, deinen Rang und mehr — schau dich in Ruhe um! Schliess das Menü, wenn du fertig bist.', target:'#p-menu .zpi', action:'close:menu'},
   {id:'events', title:'🎉 Events', text:'Hier unten rechts siehst du, wenn gerade ein zeitlich begrenztes Event läuft — die geben oft dicke Boni!', target:'#evt', action:'button', boxTop:true},
   {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity'},
+  {id:'goldopen', title:'⚗️ Gold-Maschine öffnen', text:'Tippe jetzt die Maschine an (oder drück [E]), um sie zu öffnen!', target:null, action:'open:gm-panel'},
+  {id:'goldinfo', title:'⚗️ So funktioniert die Gold-Maschine', text:'Hier wählst du eines deiner Tiere aus und wertest es gegen MT zu einem <b>vergoldeten Tier</b> auf — das verdient mehr Geld. Schau dich in Ruhe um. Schliess die Maschine mit dem ✕, dann geht’s weiter.', target:null, action:'closeel:gm-panel'},
   {id:'slap', title:'✋ Slappen — deine Waffen', text:'Unten siehst du deine <b>Waffen-Leiste</b>. Jeder Slap kann andere Spieler treffen, sie lassen dabei ein getragenes Tier fallen und verlieren Herzen:<br>'
     +'🤚 <b>Basic</b> – 2 Sek. ausser Gefecht, 15 m Reichweite<br>'
     +'❄️ <b>Ice</b> – friert 3 Sek. ein · ✨ <b>Golden</b> – 3 Sek. Goldbarren<br>'
@@ -8043,7 +8045,9 @@ const TUTORIAL_STEPS=[
     +'🌈 <b>Rainbow</b> – 2 Sek. · 🌌 <b>Void</b> – 5 Sek. ins All<br>'
     +'🎁 <b>Geschenkeschleuder</b> – Zielfernrohr, trifft von überall, Kopfschuss = 6 Sek.<br>'
     +'Je stärker der Slap, desto mehr Herzen Schaden — aber er kostet dich auch mehr. Du startest mit Basic (ist schon ausgerüstet), die anderen schaltest du mit Rebirths frei.<br><b>Tipp jetzt einmal auf den Bildschirm, um zu slappen!</b>', target:'#wbar', action:'slap', blackout:true, boxTop:true},
-  {id:'feeder', title:'🍬 Leckerli-Automat', text:'Ein Leckerli macht ein Tier 5 Min lang <b>2× so schnell Geld</b> — kostet nur 5% des Tierpreises. Folge dem Pfeil und lauf zum Automaten!', target:null, arrow:true, arrowTarget:'feeder', action:'proximity'},
+  {id:'feeder', title:'🍬 Leckerli-Automat', text:'Der Leckerli-Automat macht deine Tiere schneller. Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'feeder', action:'proximity'},
+  {id:'feederopen', title:'🍬 Leckerli-Automat öffnen', text:'Tippe jetzt den Automaten an (oder drück [E]), um ihn zu öffnen!', target:null, action:'open:feeder-panel'},
+  {id:'feederinfo', title:'🍬 So funktioniert der Leckerli-Automat', text:'Wähle ein Tier in deinen Gehegen und gib ihm ein Leckerli: Es verdient <b>5 Min lang 2× so schnell Geld</b> und kostet nur 5% des Tierpreises. Schau dich in Ruhe um. Schliess den Automaten mit dem ✕, dann geht’s weiter.', target:null, action:'closeel:feeder-panel'},
   {id:'hearts', title:'❤️ Deine Herzen', text:'Oben siehst du deine <b>10 Herzen</b>. Jeder Slap, der dich trifft, kostet Herzen (Basic 0,3 · Ice 0,5 · … · France 5). Alle <b>15 Sek.</b> kommt ein Herz zurück. Bei 0 bist du besiegt — dann wählst du <b>Respawn</b> oder <b>Hauptmenü</b>.', target:'#zhearts', action:'button'},
 ];
 const Tutorial={
@@ -8128,7 +8132,7 @@ const Tutorial={
     // weiter. Jetzt ist der Kasten bei Aktions-Schritten komplett
     // klick-durchlässig; nur der Überspringen-Knopf bleibt separat
     // klickbar (eigenes Element, siehe weiter unten).
-    box.style.cssText='position:fixed;'+(s.boxTop?'top:5%':'bottom:'+((s.action||'').startsWith('close:')?'14px':'190px'))+';left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
+    box.style.cssText='position:fixed;'+(s.boxTop?'top:5%':'bottom:'+(/^close(el)?:/.test(s.action||'')?'14px':'190px'))+';left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
     box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">'+s.title+'</div>'
       +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>'
       +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);font-size:.68rem;color:rgba(255,255,255,.45)">💡 Tipp: schreib jederzeit <b style="color:#FFD700">/tipps</b> in den Chat, um dieses Tutorial nochmal zu sehen!</div>';
@@ -8141,7 +8145,7 @@ const Tutorial={
     } else {
       const hint=document.createElement('div');
       hint.style.cssText='margin-top:10px;font-size:.72rem;color:rgba(255,215,0,.7);font-weight:700';
-      hint.textContent=(s.action||'').startsWith('close:')?'👉 Klick irgendwo hin, dann verschwindet dieser Hinweis. Schliess danach das Fenster (✕), dann geht’s weiter':'👉 Mach die Aktion, um weiterzugehen';
+      hint.textContent=(s.action||'').startsWith('open:')?'👉 Tippe die Maschine an, um weiterzugehen':/^close(el)?:/.test(s.action||'')?'👉 Klick irgendwo hin, dann verschwindet dieser Hinweis. Schliess danach das Fenster (✕), dann geht’s weiter':'👉 Mach die Aktion, um weiterzugehen';
       box.appendChild(hint);
     }
     if(s.boxTop){ box.style.maxHeight='78vh'; box.style.overflowY='auto'; }
@@ -8181,7 +8185,7 @@ const Tutorial={
         const worldAngle=Math.atan2(-dx,-dz);
         let rel=worldAngle-ZG.yaw;
         rel=((rel+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;
-        arrow.style.transform='translate(-50%,-50%) rotate('+(-rel*180/Math.PI+90)+'deg)';
+        arrow.style.transform='translate(-50%,-50%) rotate('+(-rel*180/Math.PI-90)+'deg)';
       };
       updateArrow();
       this._arrowIv=setInterval(updateArrow,100);
@@ -8195,19 +8199,23 @@ const Tutorial={
         if(Math.sqrt(dx*dx+dz*dz)>3) this.advance();
       },300);
     }
-    if((s.action||'').startsWith('close:')){
+    if(/^close(el)?:/.test(s.action||'')){
       // Ein Klick irgendwo auf den Bildschirm blendet Hinweis + Abdunkelung aus — dann sieht man alles
       this._clickAwayFn=()=>{
         document.removeEventListener('pointerdown',this._clickAwayFn,true); this._clickAwayFn=null;
         const o=document.getElementById('tut-overlay'); if(o) o.style.display='none';
       };
       setTimeout(()=>{ if(this._clickAwayFn) document.addEventListener('pointerdown',this._clickAwayFn,true); },400);
-      const pid='p-'+s.action.slice(6); const t0=Date.now();
+      const pid=s.action.startsWith('closeel:')?s.action.slice(8):'p-'+s.action.slice(6); const t0=Date.now();
       this._moveCheckIv=setInterval(()=>{
         if(Date.now()-t0<800) return;
         const el=document.getElementById(pid);
         if(!el||el.classList.contains('off')) this.advance();
       },300);
+    }
+    if((s.action||'').startsWith('open:')){
+      const oid=s.action.slice(5);
+      this._moveCheckIv=setInterval(()=>{ if(document.getElementById(oid)) this.advance(); },300);
     }
     if(s.action==='proximity'){
       this._moveCheckIv=setInterval(()=>{
@@ -17044,14 +17052,14 @@ const ZHearts={
       if(c==='W'&&state!=='empty'&&!(state==='half'&&x>4)) col='#ff9aa0';
       r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+col+'"/>';
     }});
-    return '<svg width="24" height="22" viewBox="0 0 9 8" shape-rendering="crispEdges" style="margin:0 1px">'+r+'</svg>';
+    return '<svg width="32" height="29" viewBox="0 0 9 8" shape-rendering="crispEdges" style="margin:0 1px">'+r+'</svg>';
   },
   init(){
     if(this._iv) return;
     this.hp=this.max; this.dead=false; this._burn=null; this._nextRegen=Date.now()+15000;
     const el=document.createElement('div');
     el.id='zhearts';
-    el.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:560;pointer-events:none;display:flex;align-items:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))';
+    el.style.cssText='position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:560;pointer-events:none;display:flex;align-items:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))';
     document.body.appendChild(el); this._el=el;
     this._render();
     this._iv=setInterval(()=>this._tick(),250);
