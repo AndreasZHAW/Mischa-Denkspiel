@@ -214,7 +214,7 @@ function adjustIntroFont(dir){
 <div id="intro-test-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:4px">🧪 TEST-UMGEBUNG</div>
 <script>if(window.MISCHA_TESTMODE){var b=document.getElementById('intro-test-banner');if(b)b.style.display='block';}</script>
 <button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
-<script src="lang.js?v=610"></script>
+<script src="lang.js?v=611"></script>
 <!-- Firebase (needed for Contest.loadConfig() — the deadline shown at the
      end of the story is pulled live from here, see updateIntroDeadline()
      below, instead of being a hardcoded date that goes stale). Loads async,
@@ -236,7 +236,7 @@ function adjustIntroFont(dir){
     setTimeout(() => resolve(false), 3000);
   });
 </script>
-<script src="firebase-state.js?v=610"></script>
+<script src="firebase-state.js?v=611"></script>
 <script>
 function introLangPicker(){
   if(document.getElementById('intro-lang-overlay'))return;
@@ -720,6 +720,49 @@ document.addEventListener('touchend',startMusicOnce,{once:true});
 
 // Set deploy version
 document.getElementById('ver-badge').textContent='v2026.05.05-1140';
+
+// ── Layout-/Schrift-Diagnose für das Intro (nur messen, nichts verändern) ──
+(function(){
+  var KEY='mischa_layout_diag', seen={};
+  function fs(el){ return el?Math.round(parseFloat(getComputedStyle(el).fontSize)*10)/10:null; }
+  function measure(){
+    try{
+      var act=document.querySelector('.chapter.active'); if(!act) return;
+      var id=act.id; if(seen[id]) return; seen[id]=1;
+      setTimeout(function(){
+        try{
+          var vw=innerWidth, vh=innerHeight, vv=window.visualViewport;
+          var probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;font-size:16px;font-family:sans-serif;white-space:nowrap'; probe.textContent='mmmmmmmmmm'; document.body.appendChild(probe);
+          var ts=+(probe.getBoundingClientRect().width/160).toFixed(2); probe.remove();
+          var btn=act.querySelector('#next-btn'), br=btn?btn.getBoundingClientRect():null;
+          var ar=act.getBoundingClientRect();
+          var rec={t:new Date().toISOString(),game:'intro#'+id,tag:'intro',
+            env:{innerW:vw,innerH:vh,screenW:screen.width,screenH:screen.height,effW:Math.min(vw,screen.width||vw),dpr:devicePixelRatio,vvScale:vv?+vv.scale.toFixed(2):null,orient:vw>vh?'quer':'hoch',textScale:ts,device:/Android/.test(navigator.userAgent)?'Android':/iPhone|iPad/.test(navigator.userAgent)?'iOS':'Desktop'},
+            gameArea:{x:Math.round(ar.left),y:Math.round(ar.top),w:Math.round(ar.width),h:Math.round(ar.height)},
+            pageH:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),
+            btns:{n:act.querySelectorAll('button').length,hMin:br?Math.round(br.height):0,hMed:br?Math.round(br.height):0,hMax:br?Math.round(br.height):0,wMed:br?Math.round(br.width):0,wMax:br?Math.round(br.width):0,kleiner32:0,hoeher12pct:0,flaechePct:0,obersterY:br?Math.round(br.top):null},
+            canvas:[],canvasPct:0,ausserhalb:[],ausserhalbN:0,
+            fontMin:null,fonts:{
+              label:fs(act.querySelector('.chapter-label')),title:fs(act.querySelector('.chapter-title')),
+              text:fs(act.querySelector('.chapter-text')),charDesc:fs(act.querySelector('.char-desc')),
+              charName:fs(act.querySelector('.char-name')),button:fs(btn)},
+            flags:[]};
+          var vals=Object.keys(rec.fonts).map(function(k){return rec.fonts[k];}).filter(function(x){return x;});
+          rec.fontMin=vals.length?Math.min.apply(null,vals):null;
+          if(br && br.bottom>vh) rec.flags.push('WEITER-BUTTON-UNTEN-ABGESCHNITTEN(bottom='+Math.round(br.bottom)+'/'+vh+')');
+          if(rec.pageH>vh+1) rec.flags.push('SEITE-SCROLLT-VERTIKAL('+rec.pageH+'px/'+vh+'px)');
+          if(rec.fontMin && rec.fontMin<14) rec.flags.push('SCHRIFT<14px('+rec.fontMin+')');
+          if(ts>1.15) rec.flags.push('TEXTSKALIERUNG-'+ts);
+          var all={}; try{all=JSON.parse(localStorage.getItem(KEY)||'{}');}catch(e){}
+          all[rec.game]=(all[rec.game]||[]).concat([rec]).slice(-4);
+          localStorage.setItem(KEY,JSON.stringify(all));
+          console.log('[Layout-diag] '+rec.game+' eff='+rec.env.effW+'x'+vh+' text='+rec.fonts.text+'px title='+rec.fonts.title+'px btn='+rec.fonts.button+'px flags='+(rec.flags.join(',')||'ok'));
+        }catch(e){}
+      },700);
+    }catch(e){}
+  }
+  setInterval(measure,500);
+})();
 </script>
 </body>
 </html>

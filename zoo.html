@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v610 -->
+<!-- ZOO v611 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=610"></script>
-<script src="rewardchests.js?v=610"></script>
-<script src="personality.js?v=610"></script>
+<script src="lang.js?v=611"></script>
+<script src="rewardchests.js?v=611"></script>
+<script src="personality.js?v=611"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v610','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v611','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=610"></script>
-<script src="worlds.js?v=610"></script>
+<script src="firebase-state.js?v=611"></script>
+<script src="worlds.js?v=611"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4508,7 +4508,7 @@ const ZG={
     this._speedTemplePositions = [];
     {
       this.ZONES.forEach((zone)=>{
-        const px=zone.x, pz=zone.z-34; // opposite side from the terminal
+        const px=zone.x-64, pz=zone.z+15; // hinter dem Weihnachtsbaum (war: am Marktplatz → zu gedrängt, Portal war nicht antippbar)
         const ring1=new THREE.Mesh(new THREE.TorusGeometry(3.2,0.35,10,24),new THREE.MeshBasicMaterial({color:0x9B59B6}));
         ring1.position.set(px,3.2,pz); sc.add(ring1);
         const ring2=new THREE.Mesh(new THREE.TorusGeometry(2.6,0.22,10,24),new THREE.MeshBasicMaterial({color:0xE056FD}));
@@ -5710,7 +5710,7 @@ const ZG={
       const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_stDist)_stDist=d;
       if(p.ring1){p.ring1.rotation.z+=0.01;p.ring2.rotation.z-=0.015;}
     });
-    this._nearSpeedTemple = _stDist < 6;
+    this._nearSpeedTemple = _stDist < 7;
     if(this._arcadeActive){ try{ Arcade._tick(); }catch(e){} }
     // Welt-1-Baum: Eingang
     let _wtDist=999;
@@ -5718,7 +5718,7 @@ const ZG={
     this._nearWorldTree = _wtDist < 4.2;
     if(this._nearWorldTree && !this._wtHinted){ this._wtHinted=true; ZP.toast('🚪 Eine versteckte kleine Tür! Antippen (oder [E])',2800); }
     else if(!this._nearWorldTree){ this._wtHinted=false; }
-    if(this._nearSpeedTemple && !this._stHinted){ this._stHinted=true; ZP.toast('⚡ Tippe das Speed-Tempel-Portal an!',2500); }
+    if(this._nearSpeedTemple && !this._stHinted){ this._stHinted=true; ZP.toast((SpeedTemple.isUnlocked()?'⚡ Tippe das Speed-Tempel-Portal an (oder [E])!':'⚡ Speed-Tempel: braucht 1 Rebirth'),3000); }
     else if(!this._nearSpeedTemple){ this._stHinted=false; }
     // 💰 Geldsack-Regen: bags are collected just by walking into them —
     // no button/tap needed, matches "berühren" from the request.
