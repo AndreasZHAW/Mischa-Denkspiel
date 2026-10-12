@@ -78,6 +78,22 @@ const PacmanGame = {
       </div>`;
 
     const cv = document.getElementById('pccv');
+    // Falls die Steuerknöpfe unten aus dem Bildschirm ragen: Spielfeld verkleinern (nur Darstellung)
+    const _fitBtns=()=>{
+      try{
+        const bt=document.getElementById('pc-btns'); if(!bt) return;
+        const over=bt.getBoundingClientRect().bottom-(window.innerHeight-10);
+        if(over>0){
+          const cr=cv.getBoundingClientRect();
+          const f=Math.max(0.5,(cr.height-over)/cr.height);
+          cv.style.maxWidth='none';
+          cv.style.width=Math.floor(cr.width*f)+'px';
+          cv.style.height=Math.floor(cr.height*f)+'px';
+          console.log('[Bomber-debug] Spielfeld um '+Math.round((1-f)*100)+'% verkleinert, damit Steuerknöpfe sichtbar sind');
+        }
+      }catch(e){}
+    };
+    requestAnimationFrame(_fitBtns); setTimeout(_fitBtns,400);
     requestAnimationFrame(()=>{
       try{
         const btns=document.getElementById('pc-btns');

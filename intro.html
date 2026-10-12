@@ -214,7 +214,7 @@ function adjustIntroFont(dir){
 <div id="intro-test-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:repeating-linear-gradient(45deg,#1a1a1a,#1a1a1a 12px,#ff6b00 12px,#ff6b00 24px);color:#fff;font-size:.7rem;font-weight:900;text-align:center;padding:4px">🧪 TEST-UMGEBUNG</div>
 <script>if(window.MISCHA_TESTMODE){var b=document.getElementById('intro-test-banner');if(b)b.style.display='block';}</script>
 <button id="skip-btn" onclick="skipIntro()">⏭ Skip Intro</button>
-<script src="lang.js?v=608"></script>
+<script src="lang.js?v=610"></script>
 <!-- Firebase (needed for Contest.loadConfig() — the deadline shown at the
      end of the story is pulled live from here, see updateIntroDeadline()
      below, instead of being a hardcoded date that goes stale). Loads async,
@@ -236,7 +236,7 @@ function adjustIntroFont(dir){
     setTimeout(() => resolve(false), 3000);
   });
 </script>
-<script src="firebase-state.js?v=608"></script>
+<script src="firebase-state.js?v=610"></script>
 <script>
 function introLangPicker(){
   if(document.getElementById('intro-lang-overlay'))return;
@@ -276,9 +276,9 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
   <!-- CHAPTER 0: Darkness -->
   <div class="chapter active" id="ch0">
     <div class="chapter-label" data-i18n="intro.ch0.label">Prolog</div>
-    <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.6">🌌</div>
-    <div class="chapter-title" data-i18n="intro.ch0.title">Irgendwo in der Welt...</div>
-    <div class="chapter-text" data-i18n-html="intro.ch0.text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten intergalaktischen Zoo zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
+    <div class="chapter-icon" style="font-size:4rem;animation:none;opacity:.8">🎄</div>
+    <div class="chapter-title" data-i18n="intro.ch0.title">Irgendwo im verschneiten Land...</div>
+    <div class="chapter-text" data-i18n-html="intro.ch0.text">Die Brüder <b>Mischa</b> und <b>Janosch</b><br>hatten schon immer einen grossen Traum...<br><br><b>Ihr Traum: den grössten Weihnachts-Zoo der Welt zu bauen...</b><br><br>Dazu brauchen sie <b>Deine Hilfe!</b></div>
     <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
   </div>
 
@@ -297,7 +297,7 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
         <div class="char-desc" data-i18n="intro.ch1.janosch_desc">Der Starke. Schnell, ehrgeizig, mit Herz.</div>
       </div>
     </div>
-    <div class="chapter-text" data-i18n-html="intro.ch1.text">Los geht es auf unserer Erde!<br>Genauer gesagt geht es zuerst auf eine Reise nach <b>Frankreich</b> —<br>in ein wunderschönes Schloss.<br><br>Dort gilt es <b>Startkapital zu erkämpfen</b>,<br>denn ohne Startkapital kein Zoo.</div>
+    <div class="chapter-text" data-i18n-html="intro.ch1.text">Mitten im Zoo steht ein riesiger, funkelnder <b>Weihnachtsbaum</b> 🎄<br>Man erzählt sich, dass im Stamm eine <b>geheime Tür</b> versteckt ist —<br>dahinter warten Rätsel, die dir <b>Glück</b> bringen.<br><br>Und wer Glück hat, bekommt die besten Tiere.</div>
     <div style="display:flex;gap:10px;align-items:center">
       <button onclick="prevChapter()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:12px 20px;border-radius:50px;font-size:.85rem;cursor:pointer;letter-spacing:1px">‹ Zurück</button>
       <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
@@ -308,8 +308,8 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
   <div class="chapter" id="ch2">
     <div class="chapter-label" data-i18n="intro.ch2.label">Die Herausforderung</div>
     <div class="chapter-icon">⚔️</div>
-    <div class="chapter-title" data-i18n="intro.ch2.title">Erkämpfe dein Startkapital</div>
-    <div class="chapter-text" data-i18n-html="intro.ch2.text">Es braucht <b>Köpfchen und Ausdauer</b>.<br><br>Aber zusammen ist alles möglich!</div>
+    <div class="chapter-title" data-i18n="intro.ch2.title">Sammle dein Glück</div>
+    <div class="chapter-text" data-i18n-html="intro.ch2.text">Löse die Rätsel hinter der geheimen Tür.<br>Es braucht <b>Köpfchen und Ausdauer</b> — dafür bekommst du <b>Glück</b>, das dir im Zoo hilft.<br><br>Aber zusammen ist alles möglich!</div>
     <div style="display:flex;gap:10px;align-items:center">
       <button onclick="prevChapter()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:12px 20px;border-radius:50px;font-size:.85rem;cursor:pointer;letter-spacing:1px">‹ Zurück</button>
       <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
@@ -320,8 +320,8 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
   <div class="chapter" id="ch3">
     <div class="chapter-label" data-i18n="intro.ch3.label">Der Traum</div>
     <div class="chapter-icon">🦁</div>
-    <div class="chapter-title" data-i18n="intro.ch3.title">Baue deinen eigenen Zoo</div>
-    <div class="chapter-text" data-i18n-html="intro.ch3.text">Mit deinem Startkapital kannst du dich in die <b>nächste Welt teleportieren</b><br>und dort helfen, den <b>intergalaktischen Mega-Zoo</b> zu erschaffen —<br>mit bekannten Tieren aus unserer Welt<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...</div>
+    <div class="chapter-title" data-i18n="intro.ch3.title">Baue deinen Weihnachts-Zoo</div>
+    <div class="chapter-text" data-i18n-html="intro.ch3.text">Mit Glück, Geschick und Mut baust du deinen eigenen <b>Zoo</b> —<br>mit bekannten Tieren<br>und mit Kreaturen, die du <b>noch nie gesehen hast</b>...<br>Vielleicht bringt dir das Christkind sogar ein ganz besonderes Tier. 🎁</div>
     <div style="display:flex;gap:10px;align-items:center">
       <button onclick="prevChapter()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:12px 20px;border-radius:50px;font-size:.85rem;cursor:pointer;letter-spacing:1px">‹ Zurück</button>
       <button id="next-btn" onclick="nextChapter()"><span data-i18n="intro.next">Weiter ›</span></button>
@@ -331,7 +331,7 @@ try{ if(typeof LANG!=='undefined'){ const b=document.getElementById('lang-btn');
   <!-- CHAPTER 4: Multiplayer -->
   <div class="chapter" id="ch4">
     <div class="chapter-label" data-i18n="intro.ch4.label">Zusammen stärker</div>
-    <div class="chapter-icon">🌍</div>
+    <div class="chapter-icon">❄️</div>
     <div class="chapter-title" data-i18n="intro.ch4.title">Du bist nicht allein</div>
     <div class="chapter-text" data-i18n-html="intro.ch4.text">Mischa und Janosch zählen auf dich.<br><br><b>Machst du mit?</b><br>Mach den ersten Schritt. <b>Jetzt!</b></div>
     <div style="display:flex;gap:10px;align-items:center">

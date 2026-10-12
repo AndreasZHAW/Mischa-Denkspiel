@@ -88,7 +88,7 @@ const LayoutDiag = {
       root.querySelectorAll('*').forEach(el => {
         if (!vis(el) || el.closest('svg')) return;
         const r = el.getBoundingClientRect();
-        if (r.right > vw + 2 || r.left < -2) outside.push((el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ')[0] : '')) + '@' + Math.round(r.left) + '..' + Math.round(r.right));
+        if (r.right > vw + 2 || r.left < -2 || (r.bottom > vh + 2 && el.matches && el.matches('button,canvas,.btn'))) outside.push((el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ')[0] : '')) + '@x' + Math.round(r.left) + '..' + Math.round(r.right) + ',y..' + Math.round(r.bottom));
       });
       // Schriftgrössen
       const fs = {}; let minFs = 99;
@@ -192,7 +192,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v608';
+const APP_VERSION = 'v610';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -413,13 +413,13 @@ const MISCHA_TIPS = [
   'Kennst du das Spiel noch nicht so genau? Dann drück links auf Tipps!',
   'Oben rechts zeigt dir ein Pfeil, wo der Zoo ist.',
   'Events geben den Tieren in der Gondelstation einen Boost.',
-  'Das beste Event ist das Frankreich-Event — es gibt einen ×2-Multiplikator!',
+  'Das beste Event ist das Familien-Hütten-Event — jedes 10. Tier zählt ×5!',
   'Geh in den Shop, scroll nach unten und löse den Code „luck" ein!',
   'Geh in den Shop, scroll nach unten und löse den Code „mischajanoschandi" ein!',
   'Hast du gute Spielideen? Sag sie uns gerne — wenn sie es ins Spiel schaffen, gibt es vielleicht eine kleine Belohnung ;)',
   'Fun Fact: Das Spiel ist schon ungefähr 1 Jahr alt!',
   'Es gibt einen Chat, der auch wirklich funktioniert — schreib doch mal während der Fahrt ;)',
-  'Danke Jonas für den Support in Frankreich.',
+  'Danke Jonas für den Support!',
   'Danke fürs Spielen!',
   'Hier stehen immer hilfreiche Tipps — und auch manchmal Boosts :)',
   'Vielleicht gibt es mal ein Admin-Event — das ist immer sehr krass, guck mal nach!',
@@ -601,24 +601,17 @@ const App = {
         <div class="game-logo">
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
-          <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'2 Welten · Verdiene 🌀 MT · Baue deinen Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v608 · 2026-08-04</p>
+          <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v610 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
           <div class="card-title" style="background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">⚔️ ${typeof t!=='undefined'?t('welcome.title'):'Willkommen, Abenteurer'}</div>
 
-          <!-- Welt 1 — informational label, not a button (no thick border/pill
-               shape that invites clicking; a left accent bar reads as a
-               section header instead) -->
-          <div style="background:rgba(41,128,185,.1);border-left:4px solid #2980B9;border-radius:4px;padding:8px 12px;margin-bottom:8px;text-align:left">
-            <div style="font-weight:700;color:#5DADE2;font-size:.92rem">${typeof t!=='undefined'?t('welcome.world1.short'):'🇫🇷 Welt 1: Frankreich'}</div>
-          </div>
-
-          <!-- Welt 2 - same treatment -->
+          <!-- Zoo — informational label -->
           <div style="background:rgba(39,174,96,.1);border-left:4px solid #27AE60;border-radius:4px;padding:8px 12px;margin-bottom:14px;text-align:left">
-            <div style="font-weight:700;color:#58D68D;font-size:.92rem">${typeof t!=='undefined'?t('welcome.world2.short'):'🦁 Welt 2: Zoo Empire'}</div>
+            <div style="font-weight:700;color:#58D68D;font-size:.92rem">${typeof t!=='undefined'?t('welcome.zoo.short'):'🎄 Weihnachts-Zoo: Glück sammeln · Tiere sammeln'}</div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v608 -->
+<!-- ZOO v610 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=608"></script>
-<script src="rewardchests.js?v=608"></script>
-<script src="personality.js?v=608"></script>
+<script src="lang.js?v=610"></script>
+<script src="rewardchests.js?v=610"></script>
+<script src="personality.js?v=610"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v608','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v610','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -254,7 +254,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <input class="inp" id="zpw" type="password" placeholder="Passwort" maxlength="24" onkeydown="if(event.key==='Enter')ZA.login()"/>
 <div class="err" id="zerr"></div>
 <button class="btn btng" onclick="ZA.login()">Anmelden / Registrieren ➜</button>
-<button class="btn btnd" onclick="location.href='index.html?fromZoo=1'">← Zurück zu Welt 1</button>
+<button class="btn btnd" onclick="location.href='index.html?fromZoo=1'">← Zurück zu den Denkspielen</button>
 </div></div>
 
 <!-- CHAR -->
@@ -269,7 +269,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="mhi" style="font-size:1.35rem;font-weight:900;color:#FFD700;margin-bottom:14px;text-align:center"></div>
 <div class="mc" onclick="ZA.startZoo('public')"><span style="font-size:2.8rem;display:block;margin-bottom:6px">🦁</span><div style="font-size:1.2rem;font-weight:900;color:#FFD700">Öffentlicher Server</div><div style="font-size:.76rem;color:rgba(255,255,255,.4);margin-top:2px">3 Spieler · Trading · Tiere stehlen!</div></div>
 
-<div class="mc" onclick="location.href='index.html?fromZoo=1'" style="max-width:180px;padding:10px"><div style="font-weight:900;color:rgba(255,255,255,.4)">← Zurück zu Welt 1</div></div>
+<div class="mc" onclick="location.href='index.html?fromZoo=1'" style="max-width:180px;padding:10px"><div style="font-weight:900;color:rgba(255,255,255,.4)">← Zurück zu den Denkspielen</div></div>
 </div>
 
 <!-- ZOO -->
@@ -386,7 +386,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <!-- PANELS -->
 <div class="zp off" id="p-rank"><div class="zpi">
   <button class="pcls" onclick="ZP.close('rank')">✕</button>
-  <div class="pmenu-title">🏆 Rangliste (Welt 1 + Zoo)</div>
+  <div class="pmenu-title">🏆 Rangliste (Denkspiele + Zoo)</div>
   <div style="text-align:center;margin-bottom:6px">
     <span id="cl-rank-link" onclick="ZP.showChampionsLeagueRangliste()" style="cursor:pointer;font-size:.7rem;color:rgba(255,215,0,.7);border:1px solid rgba(255,215,0,.3);padding:3px 10px;border-radius:20px;display:inline-block">🏆 Champions League Rangliste →</span>
   </div>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=608"></script>
-<script src="worlds.js?v=608"></script>
+<script src="firebase-state.js?v=610"></script>
+<script src="worlds.js?v=610"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -832,7 +832,7 @@ const ScreenTime = {
     document.body.appendChild(el);
     document.getElementById('st-stop').onclick=()=>{ console.log('[ScreenTime-debug] "Aufhören" geklickt.'); this._stopNow(); };
     document.getElementById('st-5min').onclick=()=>{
-      console.log('[ScreenTime-debug] "Noch 5 Min" geklickt — genau 5 weitere Minuten, danach zwingend Teleport zu Welt 1 (bis Mitternacht).');
+      console.log('[ScreenTime-debug] "Noch 5 Min" geklickt — genau 5 weitere Minuten, danach zwingend Teleport zur Spielhölle (bis Mitternacht).');
       el.remove();
       this.sessionEnd=Date.now()+5*60000;
       const z=ZS.zoo;
@@ -1162,7 +1162,7 @@ const EVENTS=[
   {id:'mushroom',  n:'🍄 Pilz-Welt',     col:'#aa44cc', d:'Psychedelic! ×2 alles!',             dur:300000, trait:{id:'magic',n:'MAGIC',c:'tmg',m:1.9,p:4}},
   {id:'thunder2',  n:'⚡ Gewitter',       col:'#333300', d:'Blitz! ELECTRIC ×2 + Rush!',         dur:300000, trait:{id:'bolt',n:'BOLT',c:'tbt',m:1.8,p:4}},
   {id:'dragon',    n:'🐉 Drachen',        col:'#880000', d:'Drachen-Invasion! FIRE ×3!',         dur:300000, trait:{id:'draconic',n:'DRACONIC',c:'tdr',m:2.0,p:3}},
-  {id:'france',    n:'🇫🇷 Frankreich',   col:'#0055a4', d:'Liberté! Jedes 10. Tier ×5!',        dur:600000, adminOnly:true, trait:{id:'baguette',n:'BAGUETTE',c:'tbg',m:2.0,p:3}},
+  {id:'france',    n:'🛖 Familien-Hütte',   col:'#8B4513', d:'Hüttenzauber! Jedes 10. Tier ×5!',        dur:600000, adminOnly:true, trait:{id:'baguette',n:'HÜTTE',c:'tbg',m:2.0,p:3}},
   {id:'jump',      n:'🏃 Jump-Event',    col:'#27ae60', d:'Meistere den Jump-Run → Riesige MT!',  dur:900000, adminOnly:false, trait:{id:'acrobat',n:'ACROBAT',c:'tac',m:1.8,p:4}},
 ];
 window.EVENTS = EVENTS;
@@ -1200,7 +1200,7 @@ const EVENT_I18N={
   mushroom:{en:{n:'🍄 Mushroom World',d:'Psychedelic! ×2 everything!'},fr:{n:'🍄 Monde des champignons',d:'Psychédélique ! ×2 tout !'}},
   thunder2:{en:{n:'⚡ Thunderstorm',d:'Lightning! ELECTRIC ×2 + Rush!'},fr:{n:'⚡ Orage',d:'Éclair ! ÉLECTRIQUE ×2 + Rush !'}},
   dragon:{en:{n:'🐉 Dragons',d:'Dragon invasion! FIRE ×3!'},fr:{n:'🐉 Dragons',d:'Invasion de dragons ! FEU ×3 !'}},
-  france:{en:{n:'🇫🇷 France',d:'Liberté! Every 10th animal ×5!'},fr:{n:'🇫🇷 France',d:'Liberté ! Chaque 10e animal ×5 !'}},
+  france:{en:{n:'🛖 Family Cabin',d:'Cabin magic! Every 10th animal ×5!'},fr:{n:'🛖 Chalet familial',d:'Magie du chalet ! Chaque 10e animal ×5 !'}},
   jump:{en:{n:'🏃 Jump Event',d:'Master the Jump-Run → huge MT!'},fr:{n:'🏃 Jeu de Saut',d:'Maîtrise le parcours → MT énormes !'}},
 };
 // Translate event names/descriptions in-place (same pattern as ANIMAL_I18N) —
@@ -1527,7 +1527,7 @@ const SLAPS=[
   {id:'lucky',     n:'LUCKY SLAP',     e:'🍀', col:'#27AE60', cd:2000, fly:true,  special:true, pct:9,  range:36},
   {id:'christmas', n:'WEIHNACHTS-SLAP',e:'🎄', col:'#C0392B', cd:2000, fly:false, special:true, pct:10, range:39},
   {id:'weekend',   n:'WOCHENEND-SLAP', e:'🎉', col:'#cc00ff', cd:2000, fly:true,  special:true, pct:11, range:42},
-  {id:'france',    n:'FRANCE SLAP',    e:'🗼', col:'#ED2939', cd:2000, fly:true,  special:true, pct:12, range:45},
+  {id:'france',    n:'HÜTTEN SLAP',    e:'🛖', col:'#8B4513', cd:2000, fly:true,  special:true, pct:12, range:45},
 ];
 
 // Schaden in Herzen pro Slap-Art (10 Herzen insgesamt). Feuer = 3 Herzen
@@ -3450,7 +3450,7 @@ const ZG={
             if(Date.now()-d.at>10000)return; // ignore old
             if(LW.activeType!==d.type && LW.WHEELS[d.type]){
               LW.setType(d.type,0);
-              const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Admin-Glücksrad 🔥'};
+              const names={normal:'Glücksrad',france:'Hütten-Glücksrad 🛖',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Admin-Glücksrad 🔥'};
               // Admin announcement banner
               const a1=document.createElement('div');
               a1.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px;text-align:center;font-weight:900;font-size:1rem;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000';
@@ -3610,16 +3610,16 @@ const ZG={
       ZP.toast(`🍀 ${d.from} hat dich in den Himmel geschleudert! ${Math.round(slapDur/1000)}s`,3000);
       ZP._showReportBtn(d.from, 'slap');
     } else if(slapId==='france'){
-      // French flag flash + BOOM
+      // Hütten-Flash (Holz/Rot/Schnee) + BOOM
       const ov=document.createElement('div');
       ov.style.cssText='position:fixed;inset:0;z-index:8500;pointer-events:none;display:flex;animation:none';
-      ov.innerHTML='<div style="flex:1;background:#002395;opacity:.8"></div><div style="flex:1;background:#fff;opacity:.8"></div><div style="flex:1;background:#ED2939;opacity:.8"></div>';
+      ov.innerHTML='<div style="flex:1;background:#8B4513;opacity:.8"></div><div style="flex:1;background:#fff;opacity:.8"></div><div style="flex:1;background:#B03A2E;opacity:.8"></div>';
       const boom=document.createElement('div');
       boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8501;font-size:4rem;font-weight:900;color:#FFD700;pointer-events:none';
       boom.textContent='💥 BOOM!';
       document.body.appendChild(ov);document.body.appendChild(boom);
       setTimeout(()=>{ov.remove();boom.remove();},800);
-      ZP.toast(`🗼 ${d.from} hat dich mit dem FRANCE SLAP getroffen! 10s!`,4000);
+      ZP.toast(`🛖 ${d.from} hat dich mit dem HÜTTEN SLAP getroffen! 10s!`,4000);
     } else if(slapId==='void'){
       // Void: 5 Sek. in einen Sternen-Raum weit weg, dann exakt zurück
       ZG._enterSpaceRoom(slapDur||5000);
@@ -4521,39 +4521,57 @@ const ZG={
       });
     }
 
-    // ═══ WELT-1-BAUM (dicker Baum mit Eingang → öffnet die Denkspiel-Welt 1) ═══
+    // ═══ WEIHNACHTSBAUM (geschmückt) — kleine, versteckte Tür auf der Rückseite → Spielhölle (Automaten-Raum) ═══
     this._worldTreePositions = [];
     {
       this.ZONES.forEach((zone)=>{
         const wx=zone.x-34, wz=zone.z;
-        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(4.2,5.2,13,16),new THREE.MeshBasicMaterial({color:0x6B4423}));
-        trunk.position.set(wx,6.5,wz); sc.add(trunk);
-        // Rindenringe
-        [3,6,9,11.5].forEach(h=>{const r=new THREE.Mesh(new THREE.TorusGeometry(4.2+(13-h)*0.07,0.18,6,24),new THREE.MeshBasicMaterial({color:0x4E3219}));r.rotation.x=Math.PI/2;r.position.set(wx,h,wz);sc.add(r);});
-        // Krone aus mehreren Kugeln
-        [[0,15,0,7.5,0x2E8B3A],[-5,13.5,2,5.5,0x3AA34A],[5,13.8,-2,5.8,0x278033],[1,19,1,5.5,0x49B85A],[-3,17,-4,4.5,0x2E8B3A],[4,17,4,4.5,0x3AA34A]].forEach(c=>{
-          const m=new THREE.Mesh(new THREE.SphereGeometry(c[3],12,10),new THREE.MeshBasicMaterial({color:c[4]}));
-          m.position.set(wx+c[0],c[1],wz+c[2]); sc.add(m);
+        const MB=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
+        // Stamm (kurz, verschwindet unter dem untersten Ast)
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.7,5,14),MB(0x6B4423));
+        trunk.position.set(wx,2.5,wz); sc.add(trunk);
+        // Tannen-Stockwerke (Kegel)
+        const tiers=[[10.5,8,3.4,0x1F7A33],[8.4,7.5,8.6,0x238A3A],[6.4,7,13.6,0x2A9A42],[4.4,6,18.6,0x32AA4A]];
+        tiers.forEach(t=>{
+          const cone=new THREE.Mesh(new THREE.ConeGeometry(t[0],t[1],18),MB(t[3]));
+          cone.position.set(wx,t[2]+t[1]/2,wz); sc.add(cone);
         });
-        // Eingang: Tür sitzt VOR der Rinde (Stamm-Radius ~5), damit sie komplett sichtbar ist
-        const dx0=wx+6.2;
-        const frame=new THREE.Mesh(new THREE.BoxGeometry(2.4,8.2,5.4),new THREE.MeshBasicMaterial({color:0x3A2412}));
-        frame.position.set(dx0-0.6,4.1,wz); sc.add(frame);
-        const frameTop=new THREE.Mesh(new THREE.CircleGeometry(2.4,20,0,Math.PI),new THREE.MeshBasicMaterial({color:0x3A2412,side:THREE.DoubleSide}));
-        frameTop.rotation.y=Math.PI/2; frameTop.position.set(dx0+0.62,7.1,wz); sc.add(frameTop);
-        const doorMat=new THREE.MeshBasicMaterial({color:0xFFD27A,side:THREE.DoubleSide});
-        const door=new THREE.Mesh(new THREE.PlaneGeometry(4,7),doorMat);
-        door.rotation.y=Math.PI/2; door.position.set(dx0+0.65,3.6,wz); sc.add(door);
-        const arch=new THREE.Mesh(new THREE.CircleGeometry(2,20,0,Math.PI),doorMat);
-        arch.rotation.y=Math.PI/2; arch.position.set(dx0+0.66,7.1,wz); sc.add(arch);
-        // Türgriff + Stufen
-        const knob=new THREE.Mesh(new THREE.SphereGeometry(0.28,10,8),new THREE.MeshBasicMaterial({color:0x8B5A2B}));
-        knob.position.set(dx0+0.85,3.4,wz+1.3); sc.add(knob);
-        const step=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.35,6),new THREE.MeshBasicMaterial({color:0x8A8A8A}));
-        step.position.set(dx0+1.2,0.18,wz); sc.add(step);
-        const wLbl=this._txt('🌳 WELT 1',0.7,'#7CFC8A'); wLbl.position.set(wx,24.5,wz); wLbl.scale.set(8,2,1); sc.add(wLbl);
-        const wLbl2=this._txt('Denkspiele · Glück gewinnen 🍀',0.5,'#fff'); wLbl2.position.set(wx,22.3,wz); wLbl2.scale.set(9.5,1.4,1); sc.add(wLbl2);
-        this._worldTreePositions.push({x:wx+8,z:wz});
+        // Stern
+        const star=new THREE.Mesh(new THREE.OctahedronGeometry(1.5,0),MB(0xFFD23A));
+        star.position.set(wx,25.6,wz); star.scale.set(1,1.3,1); sc.add(star);
+        const glow=new THREE.Mesh(new THREE.SphereGeometry(2.3,10,8),MB(0xFFE680,{transparent:true,opacity:.28}));
+        glow.position.set(wx,25.6,wz); sc.add(glow);
+        // Christbaumkugeln + Lichter, spiralförmig auf den Stockwerken
+        const bcols=[0xE74C3C,0x3498DB,0xF1C40F,0xFFFFFF,0xE91E63,0x9B59B6];
+        let k=0;
+        tiers.forEach((t,ti)=>{
+          const n=8+ti*0+ (3-ti)*2;
+          for(let a=0;a<n;a++){
+            const ang=a/n*Math.PI*2+ti*0.7, fr=0.35+((a*37)%10)/10*0.55; // Höhe am Kegel
+            const rr=t[0]*(1-fr)*0.98, yy=t[2]+t[1]*fr;
+            const ball=new THREE.Mesh(new THREE.SphereGeometry(0.55,8,6),MB(bcols[k++%bcols.length]));
+            ball.position.set(wx+Math.cos(ang)*rr,yy,wz+Math.sin(ang)*rr); sc.add(ball);
+            const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.28,6,5),MB((a%2)?0xFFF3A0:0xFF8A65));
+            lamp.position.set(wx+Math.cos(ang+0.35)*rr*0.97,yy+0.9,wz+Math.sin(ang+0.35)*rr*0.97); sc.add(lamp);
+          }
+        });
+        // Geschenke am Fuss des Baums (vorne/seitlich — nicht an der Tür)
+        [[7,0.8,5,1.6,0xE74C3C],[9,0.6,-3,1.3,0x3498DB],[5.5,0.7,-6,1.5,0xF1C40F],[8.4,0.5,1,1.1,0x2ECC71]].forEach(g=>{
+          const box=new THREE.Mesh(new THREE.BoxGeometry(g[3],g[3],g[3]),MB(g[4]));
+          box.position.set(wx+g[0],g[1],wz+g[2]); sc.add(box);
+          const rib=new THREE.Mesh(new THREE.BoxGeometry(g[3]+0.06,g[3]+0.06,0.22),MB(0xFFFFFF));
+          rib.position.set(wx+g[0],g[1],wz+g[2]); sc.add(rib);
+        });
+        // Versteckte kleine Tür auf der RÜCKSEITE (−x), unter dem untersten Ast, holzfarben getarnt
+        const dx0=wx-2.75;
+        const frame=new THREE.Mesh(new THREE.BoxGeometry(0.5,3.4,2.2),MB(0x4E3219));
+        frame.position.set(dx0,1.7,wz); sc.add(frame);
+        const door=new THREE.Mesh(new THREE.PlaneGeometry(1.7,3),MB(0x7A5530,{side:THREE.DoubleSide}));
+        door.rotation.y=-Math.PI/2; door.position.set(dx0-0.27,1.6,wz); sc.add(door);
+        const knob=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),MB(0xC9A24A));
+        knob.position.set(dx0-0.34,1.5,wz+0.5); sc.add(knob);
+        const wLbl=this._txt('🎄 WEIHNACHTSBAUM',0.7,'#FFD700'); wLbl.position.set(wx,29,wz); wLbl.scale.set(11,2,1); sc.add(wLbl);
+        this._worldTreePositions.push({x:wx-5.2,z:wz});
       });
     }
   },
@@ -5081,7 +5099,10 @@ const ZG={
           // Sweeper insurance (one-time 50 MT shop purchase) means you
           // simply never trigger this accident roll again — no more
           // ambulance calls, no more trash-room minigame, period.
-          if(!ZS.zoo?.upg?.sweepIns && Math.random()<0.20){ Sweeper._accident(); }
+          const _catP=(ANIMALS.find(x=>x.id==='cat')||{p:8}).p;
+          const _poor=(ZS.zoo?.mt||0)<_catP+2; // zu wenig Geld für eine Katze (+2 MT) → nie einsaugen
+          const _tut=(typeof Tutorial!=='undefined'&&Tutorial._active);
+          if(!ZS.zoo?.upg?.sweepIns && !_poor && !_tut && Math.random()<0.20){ Sweeper._accident(); }
         } else if(!touching){
           this._sweeperTouching=false;
         }
@@ -5694,8 +5715,8 @@ const ZG={
     // Welt-1-Baum: Eingang
     let _wtDist=999;
     (this._worldTreePositions||[]).forEach(p=>{const d=Math.sqrt((this.pl.x-p.x)**2+(this.pl.z-p.z)**2);if(d<_wtDist)_wtDist=d;});
-    this._nearWorldTree = _wtDist < 7;
-    if(this._nearWorldTree && !this._wtHinted){ this._wtHinted=true; ZP.toast('🌳 Tippe den Baum an (oder [E]) — Welt 1 betreten!',2800); }
+    this._nearWorldTree = _wtDist < 4.2;
+    if(this._nearWorldTree && !this._wtHinted){ this._wtHinted=true; ZP.toast('🚪 Eine versteckte kleine Tür! Antippen (oder [E])',2800); }
     else if(!this._nearWorldTree){ this._wtHinted=false; }
     if(this._nearSpeedTemple && !this._stHinted){ this._stHinted=true; ZP.toast('⚡ Tippe das Speed-Tempel-Portal an!',2500); }
     else if(!this._nearSpeedTemple){ this._stHinted=false; }
@@ -6180,7 +6201,7 @@ const ZG={
     // Give ×5 multiplier to every 10th animal (slot index 9, 19, 29...)
     const z=ZS.zoo; if(!z||!z.enc) return;
     let count=0;
-    z.enc.forEach((slot,i)=>{ if(slot&&slot.animal){ count++; if(count%10===0){ slot.xm=(slot.xm||1)*5; ZP.toast('🇫🇷 Tier #'+count+' bekommt ×5 Multiplier! '+slot.animal.e,3500); } } });
+    z.enc.forEach((slot,i)=>{ if(slot&&slot.animal){ count++; if(count%10===0){ slot.xm=(slot.xm||1)*5; ZP.toast('🛖 Tier #'+count+' bekommt ×5 Multiplier! '+slot.animal.e,3500); } } });
     ZS.save&&ZS.save(); ZG._encs&&ZG._encs(); ZG._updHUD&&ZG._updHUD();
   },
 
@@ -6733,17 +6754,17 @@ const ZG={
     // Overlay: French flag flash
     const ov=document.createElement('div');
     ov.style.cssText='position:fixed;inset:0;z-index:8000;pointer-events:none;display:flex;animation:none';
-    ov.innerHTML='<div style="flex:1;background:#002395;opacity:.7"></div><div style="flex:1;background:#fff;opacity:.7"></div><div style="flex:1;background:#ED2939;opacity:.7"></div>';
+    ov.innerHTML='<div style="flex:1;background:#8B4513;opacity:.7"></div><div style="flex:1;background:#fff;opacity:.7"></div><div style="flex:1;background:#B03A2E;opacity:.7"></div>';
     document.body.appendChild(ov);
     // BOOM text
     const boom=document.createElement('div');
-    boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8001;font-size:5rem;font-weight:900;color:#FFD700;text-shadow:0 0 20px #ED2939;pointer-events:none;animation:pop .3s ease';
+    boom.style.cssText='position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);z-index:8001;font-size:5rem;font-weight:900;color:#FFD700;text-shadow:0 0 20px #B03A2E;pointer-events:none;animation:pop .3s ease';
     boom.textContent='💥 BOOM!';
     document.body.appendChild(boom);
     setTimeout(()=>{ov.remove();boom.remove();},600);
     // Hard slam
     if(mesh){mesh.rotation.z=Math.PI/2;mesh.position.y=-0.5;}
-    this._showStars(x,z,0xED2939,10);
+    this._showStars(x,z,0xB03A2E,10);
     setTimeout(()=>{if(mesh){mesh.rotation.z=0;mesh.position.y=0;}},dur);
   },
 
@@ -7208,10 +7229,10 @@ const ZG={
     if(id==='thunder2'){fall('⚡',12);fall('🌩️',6);overlay('rgba(0,0,0,.5)');topBar('#333300');}
     if(id==='dragon'){fall('🐉',8);rise('🔥',10);overlay('rgba(80,0,0,.3)');topBar('#880000');}
     if(id==='france'){
-      fall('🥖',6);fall('⚜️',4);fall('🇫🇷',4);
-      topBar('linear-gradient(90deg,#0055a4 33%,#fff 33%,#fff 66%,#ef4135 66%)');
-      overlay('rgba(0,40,120,.08)');
-      // Build real 3D Eiffel Tower in Three.js scene
+      fall('🛖',5);fall('❄️',8);fall('🎄',4);
+      topBar('linear-gradient(90deg,#8B4513 33%,#fff 33%,#fff 66%,#B03A2E 66%)');
+      overlay('rgba(120,60,20,.08)');
+      // Familien-Hütte in die 3D-Szene bauen
       this._buildEiffelTower();
     }
     if(id==='jump'){
@@ -7225,125 +7246,31 @@ const ZG={
     if(ev3d.includes(id)) this._build3DEventObj(id);
     this._evFXEls[id]=els;
   },
-  _buildEiffelTower(){
+  _buildEiffelTower(){ // = Familien-Hütte (Name aus Kompatibilität beibehalten)
     if(!this.scene||typeof THREE==='undefined') return;
     if(this._eiffelGroup) this._removeEiffelTower();
     const g=new THREE.Group();
-    const iron=new THREE.MeshPhongMaterial({color:0x8B7355,emissive:0x2a1a00,shininess:40});
-    const ironDark=new THREE.MeshPhongMaterial({color:0x5a4a2a,emissive:0x1a0d00,shininess:20});
-
-    // ── FOUNDATION PILLARS (4 legs spread out at base) ──
-    const legPositions=[[-3.5,0,-3.5],[3.5,0,-3.5],[-3.5,0,3.5],[3.5,0,3.5]];
-    legPositions.forEach(([x,,z])=>{
-      // Curved leg (approximated with angled cylinders)
-      for(let seg=0;seg<4;seg++){
-        const t=seg/4;
-        const bot_x=x*(1-t*0.75), bot_z=z*(1-t*0.75);
-        const top_x=x*(1-(t+0.25)*0.75), top_z=z*(1-(t+0.25)*0.75);
-        const cy=new THREE.CylinderGeometry(0.18,0.22,3.2,5);
-        const mesh=new THREE.Mesh(cy,iron);
-        mesh.position.set((bot_x+top_x)/2,t*12+1.6,(bot_z+top_z)/2);
-        mesh.lookAt(new THREE.Vector3(0,12,0)); // angle toward center top
-        g.add(mesh);
-      }
-    });
-
-    // ── FIRST FLOOR PLATFORM (y≈11) ──
-    const f1=new THREE.Mesh(new THREE.BoxGeometry(7,0.6,7),iron);
-    f1.position.y=11; g.add(f1);
-    // cross-braces on first floor
-    [-2.5,2.5].forEach(x=>{
-      const b=new THREE.Mesh(new THREE.BoxGeometry(6,0.15,0.25),ironDark);
-      b.position.set(0,11.4,x); g.add(b);
-    });
-    [-2.5,2.5].forEach(z=>{
-      const b=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.15,6),ironDark);
-      b.position.set(z,11.4,0); g.add(b);
-    });
-
-    // ── FIRST TO SECOND FLOOR (tapered tower body) ──
-    for(let seg=0;seg<6;seg++){
-      const t=seg/6;
-      const r_bot=2.8*(1-t*0.6), r_top=2.8*(1-(t+1/6)*0.6);
-      const cy=new THREE.CylinderGeometry(r_top,r_bot,3.5,4);
-      const mesh=new THREE.Mesh(cy,iron);
-      mesh.position.y=11+seg*3.5+1.75;
-      mesh.rotation.y=Math.PI/4; // orient square cross-section
-      g.add(mesh);
-    }
-
-    // ── SECOND FLOOR PLATFORM (y≈32) ──
-    const f2=new THREE.Mesh(new THREE.BoxGeometry(4.5,0.5,4.5),iron);
-    f2.position.y=32; g.add(f2);
-
-    // ── UPPER TOWER (slender section) ──
-    for(let seg=0;seg<8;seg++){
-      const t=seg/8;
-      const r=1.2*(1-t*0.75);
-      const cy=new THREE.CylinderGeometry(r*(1-1/8*0.75),r,4,8);
-      const mesh=new THREE.Mesh(cy,iron);
-      mesh.position.y=32+seg*4+2;
-      g.add(mesh);
-    }
-
-    // ── ANTENNA / SPIRE ──
-    const spire=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.25,12,6),iron);
-    spire.position.y=32+32+5+6; g.add(spire);
-    // Antenna tip light (golden ball)
-    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8),new THREE.MeshPhongMaterial({color:0xFFD700,emissive:0xFFAA00,emissiveIntensity:1}));
-    tip.position.y=32+32+5+12.5; g.add(tip);
-
-    // ── BASE PLATFORM (ground level, below legs) ──
-    const baseMat=new THREE.MeshPhongMaterial({color:0x5a4a2a});
-    const base=new THREE.Mesh(new THREE.BoxGeometry(9,0.8,9),baseMat);
-    base.position.y=0.4; g.add(base);
-    // Corner footings
-    [[4,4],[-4,4],[4,-4],[-4,-4]].forEach(([x,z])=>{
-      const foot=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.2,1.4),baseMat);
-      foot.position.set(x,0.6,z); g.add(foot);
-    });
-    // ── DECORATIVE ARCHES at base (Eiffel Tower signature arches) ──
-    const archMat=new THREE.MeshPhongMaterial({color:0x7a6a4a});
-    // 4 arches between the legs (one on each side)
-    [[0,0],[Math.PI/2,0],[Math.PI,0],[Math.PI*1.5,0]].forEach(([angle])=>{
-      const arch=new THREE.Mesh(new THREE.TorusGeometry(3,0.22,8,16,Math.PI),archMat);
-      arch.position.set(Math.sin(angle)*0.5,4.5,Math.cos(angle)*0.5);
-      arch.rotation.y=angle+Math.PI/4;
-      arch.rotation.x=Math.PI/2;
-      g.add(arch);
-    });
-    // ── HORIZONTAL CROSS-BRACES connecting legs ──
-    const braceMat=new THREE.MeshPhongMaterial({color:0x7a6a4a});
-    [[3.5,4,0],[-3.5,4,0],[0,4,3.5],[0,4,-3.5]].forEach(([x,y,z])=>{
-      if(isNaN(x))return;
-      const b=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,7,5),braceMat);
-      b.position.set(0,y,0);
-      b.rotation.z=x!==0?Math.PI/2:0;
-      b.rotation.x=z!==0?Math.PI/2:0;
-      g.add(b);
-    });
-
-    // ── LIGHT BEAMS (rotating spotlights at night) ──
-    const beam1=new THREE.SpotLight(0xffd700,3,80,0.15);
-    beam1.position.set(0,32+32+5,0); beam1.target.position.set(20,0,0);
-    g.add(beam1); g.add(beam1.target);
-    this._eiffelBeam=beam1;
-
-    // Position: behind gondola station, slightly to the side
+    const MB=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
+    // Wände (Holz)
+    const walls=new THREE.Mesh(new THREE.BoxGeometry(12,6,9),MB(0x8B5A2B)); walls.position.y=3; g.add(walls);
+    for(let k=0;k<5;k++){ const lg=new THREE.Mesh(new THREE.BoxGeometry(12.3,0.25,9.3),MB(0x5E3A18)); lg.position.y=0.9+k*1.2; g.add(lg); }
+    // Dach: rot, mit Schnee
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(9.6,5,4),MB(0xB03A2E)); roof.position.y=8.5; roof.rotation.y=Math.PI/4; g.add(roof);
+    const snow=new THREE.Mesh(new THREE.ConeGeometry(9.7,1.7,4),MB(0xFFFFFF)); snow.position.y=10.4; snow.rotation.y=Math.PI/4; g.add(snow);
+    // Kamin
+    const ch=new THREE.Mesh(new THREE.BoxGeometry(1.6,4,1.6),MB(0x7A7A7A)); ch.position.set(3.5,9.5,-1.5); g.add(ch);
+    // Tür + Fenster (leuchtend)
+    const door=new THREE.Mesh(new THREE.BoxGeometry(2.2,3.8,0.3),MB(0x4E3219)); door.position.set(0,1.9,4.6); g.add(door);
+    [[-3.8,3.6],[3.8,3.6]].forEach(w=>{ const win=new THREE.Mesh(new THREE.BoxGeometry(2,2,0.3),MB(0xFFE08A)); win.position.set(w[0],w[1],4.6); g.add(win); });
+    // Lichterkette am Dachrand
+    for(let k=0;k<14;k++){ const l=new THREE.Mesh(new THREE.SphereGeometry(0.28,6,5),MB([0xFF5252,0xFFEB3B,0x4CAF50,0x40C4FF][k%4])); l.position.set(-6+k*(12/13),6.2,4.7); g.add(l); }
+    // Tannenbäumchen daneben
+    [[-8.5,3],[8.5,2]].forEach(p=>{ const t=new THREE.Mesh(new THREE.ConeGeometry(2,5,8),MB(0x1F7A33)); t.position.set(p[0],2.5,p[1]); g.add(t); });
+    const lbl=this._txt('🛖 FAMILIEN-HÜTTE',0.7,'#FFD700'); lbl.position.set(0,15,0); lbl.scale.set(11,2,1); g.add(lbl);
     g.position.set(-8,0,-20);
-    g.scale.set(0.7,0.7,0.7); // scale to fit world
     this.scene.add(g);
     this._eiffelGroup=g;
-
-    // Animate: gentle rotation of light beam
-    this._eiffelAnimIv=setInterval(()=>{
-      if(!this._eiffelBeam||!this._eiffelGroup)return;
-      const t=Date.now()/1000;
-      this._eiffelBeam.target.position.set(20*Math.sin(t*0.5),0,20*Math.cos(t*0.5));
-      this._eiffelBeam.target.updateMatrixWorld();
-    },50);
-
-    ZP.toast('🗼 Der Eiffelturm erscheint im Zoo!',4000);
+    ZP.toast('🛖 Die Familien-Hütte erscheint im Zoo!',4000);
   },
   _removeEiffelTower(){
     if(this._eiffelGroup){ this.scene.remove(this._eiffelGroup); this._eiffelGroup=null; }
@@ -8027,17 +7954,17 @@ const ZG={
 // Überspringen) — nur der allererste Willkommens-Schritt hat einen
 // echten Weiter-Knopf, weil da noch nichts zu tun ist.
 const TUTORIAL_STEPS=[
-  {id:'welcome', title:'🦁 Willkommen in deinem Zoo!', text:'Baue deinen eigenen Zoo, sammle Tiere und verdiene Mischataler. Lass uns kurz die wichtigsten Sachen zeigen.', target:null, action:'button'},
+  {id:'welcome', title:'🎄 Willkommen in deinem Weihnachts-Zoo!', text:'Baue deinen eigenen Zoo, sammle Tiere und verdiene Mischataler — und mit ein bisschen Glück bringt dir das Christkind die besten Tiere. Lass uns kurz die wichtigsten Sachen zeigen.', target:null, action:'button'},
   {id:'move', title:'🕹️ Bewegen', text:'Benutze den Joystick unten links, um loszulaufen — probier’s aus!', target:'#jzone', action:'move'},
   {id:'gondola', title:'🚡 Zur Gondel', text:'Die Gondel ist dort, wo du Tiere bekommst. Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:{x:0,z:0}, action:'panel:gond'},
-  {id:'gluck', title:'🍀 Glück kaufen', text:'Hier in der Gondel kannst du dauerhaft Glück kaufen — mehr Glück heisst seltenere Tiere!', target:'#gluck', action:'button'},
-  {id:'buy', title:'🐱 Dein erstes Tier', text:'Du startest mit etwas Guthaben — kauf dir hier dein erstes Tier!', target:'#ganim', action:'buy'},
+  {id:'gluck', title:'🍀 Glück kaufen', text:'Hier in der Gondel kannst du dauerhaft Glück kaufen — mehr Glück heisst seltenere Tiere, fast wie ein besonders schönes Weihnachtsgeschenk!', target:'#gluck', action:'button'},
+  {id:'buy', title:'🐱 Dein erstes Tier', text:'Du startest mit etwas Guthaben — kauf dir hier dein erstes Tier, dein erstes Weihnachtsgeschenk an den Zoo!', target:'#ganim', action:'buy'},
   {id:'carry', title:'🏠 Ins Gehege tragen', text:'Das Tier kommt nicht von allein — du trägst es! Lauf mit dem Pfeil zu deinem Gehege und tippe dort auf „ablegen“ (oder drück [E]).', target:null, arrow:true, arrowTarget:'enc', action:'placed'},
   {id:'shop', title:'🛒 Der Shop', text:'Hier kannst du Boosts und Extras kaufen. Öffne ihn mal!', target:'#hb-shop', action:'panel:shop'},
-  {id:'shopcont', title:'🎁 Was gibt’s im Shop?', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um! Ganz unten findest du die „Würfel-Maschine Lizenz“: einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren). Schliess den Shop, wenn du fertig bist.', target:'#scont', action:'close:shop'},
+  {id:'shopcont', title:'🎁 Was gibt’s im Shop? (Wunschzettel)', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um! Ganz unten findest du die „Würfel-Maschine Lizenz“: einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren). Schliess den Shop, wenn du fertig bist.', target:'#scont', action:'close:shop'},
   {id:'menu', title:'☰ Das Menü', text:'Hier findest du Einstellungen, deinen Rang und mehr. Öffne es mal!', target:'#hb-menu', action:'panel:menu'},
   {id:'menuinfo', title:'⚙️ Einstellungen & Rang', text:'Hier findest du Einstellungen, deinen Rang und mehr — schau dich in Ruhe um! Schliess das Menü, wenn du fertig bist.', target:'#p-menu .zpi', action:'close:menu'},
-  {id:'events', title:'🎉 Events', text:'Hier unten rechts siehst du, wenn gerade ein zeitlich begrenztes Event läuft — die geben oft dicke Boni!', target:'#evt', action:'button', boxTop:true},
+  {id:'events', title:'🎉 Events', text:'Hier unten rechts siehst du, wenn gerade ein zeitlich begrenztes Event läuft (z.B. Familien-Hütte oder Weihnachtszauber) — die geben oft dicke Boni!', target:'#evt', action:'button', boxTop:true},
   {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity'},
   {id:'goldopen', title:'⚗️ Gold-Maschine öffnen', text:'Tippe jetzt die Maschine an (oder drück [E]), um sie zu öffnen!', target:null, action:'open:gm-panel'},
   {id:'goldinfo', title:'⚗️ So funktioniert die Gold-Maschine', text:'Hier wählst du eines deiner Tiere aus und wertest es gegen MT zu einem <b>vergoldeten Tier</b> auf — das verdient mehr Geld. Schau dich in Ruhe um. Schliess die Maschine mit dem ✕, dann geht’s weiter.', target:null, action:'closeel:gm-panel'},
@@ -8051,13 +7978,14 @@ const TUTORIAL_STEPS=[
   {id:'feeder', title:'🍬 Leckerli-Automat', text:'Der Leckerli-Automat macht deine Tiere schneller. Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'feeder', action:'proximity'},
   {id:'feederopen', title:'🍬 Leckerli-Automat öffnen', text:'Tippe jetzt den Automaten an (oder drück [E]), um ihn zu öffnen!', target:null, action:'open:feeder-panel'},
   {id:'feederinfo', title:'🍬 So funktioniert der Leckerli-Automat', text:'Wähle ein Tier in deinen Gehegen und gib ihm ein Leckerli: Es verdient <b>5 Min lang 2× so schnell Geld</b> und kostet nur 5% des Tierpreises. Schau dich in Ruhe um. Schliess den Automaten mit dem ✕, dann geht’s weiter.', target:null, action:'closeel:feeder-panel'},
-  {id:'hearts', title:'❤️ Deine Herzen', text:'Oben siehst du deine <b>10 Herzen</b>. Jeder Slap, der dich trifft, kostet Herzen (Basic 0,3 · Ice 0,5 · … · France 5). Alle <b>15 Sek.</b> kommt ein Herz zurück. Bei 0 bist du besiegt — dann wählst du <b>Respawn</b> oder <b>Hauptmenü</b>.', target:'#zhearts', action:'button'},
+  {id:'hearts', title:'❤️ Deine Herzen', text:'Oben siehst du deine <b>10 Herzen</b>. Jeder Slap, der dich trifft, kostet Herzen (Basic 0,3 · Ice 0,5 · … · Hütten-Slap 5). Alle <b>15 Sek.</b> kommt ein Herz zurück. Bei 0 bist du besiegt — dann wählst du <b>Respawn</b> oder <b>Hauptmenü</b>.', target:'#zhearts', action:'button'},
 ];
 const Tutorial={
   _active:false, _stepIdx:0, _startPos:null, _moveCheckIv:null, _arrowIv:null,
   start(){
     if(this._active) return;
     this._active=true; this._stepIdx=0;
+    try{ if(typeof ZChat!=='undefined' && ZChat.open) ZChat.close(); }catch(e){}
     this._showStep(0);
   },
   _cleanupStep(){
@@ -8363,15 +8291,15 @@ const LW={
       {l:'🦁 Löwe!',mt:0,c:2.5,col:'#E67E22',animal:{id:'lion',n:'Löwe',e:'🦁',r:'legendary',p:2000,earn:180}},
       {l:'🐉 Drache!',mt:0,c:.5,col:'#8B0000',animal:{id:'dragon',n:'Drache',e:'🐉',r:'ultralegendary',p:5000,earn:500}},
     ]},
-    france:{name:'Frankreich-Rad',emoji:'🗼',glowCol:'#ED2939',prizes:[
+    france:{name:'Hütten-Rad',emoji:'🛖',glowCol:'#B03A2E',prizes:[
       {l:'5.000 MT',mt:5000,c:27,col:'#002395'},{l:'15.000 MT',mt:15000,c:18,col:'#ED2939'},
       {l:'30.000 MT',mt:30000,c:14,col:'#002395'},{l:'80.000 MT',mt:80000,c:11,col:'#ED2939'},
-      {l:'🥖 Baguette-Hund!',mt:0,c:3,col:'#002395',animal:{id:'frenchdog',n:'Baguette-Hund',e:'🐩',r:'rare',p:0,earn:50},exclusive:true},
+      {l:'🛖 Hütten-Hund!',mt:0,c:3,col:'#8B4513',animal:{id:'frenchdog',n:'Hütten-Hund',e:'🐕',r:'rare',p:0,earn:50},exclusive:true},
       {l:'🐓 Gallischer Hahn!',mt:0,c:1.2,col:'#ED2939',animal:{id:'gallicrooster',n:'Gallischer Hahn',e:'🐓',r:'legendary',p:0,earn:350},exclusive:true},
-      {l:'🗼 Eiffelturm-Katze!',mt:0,c:.3,col:'#ED2939',animal:{id:'frenchcat',n:'Eiffelturm-Katze',e:'🐱',r:'god',p:0,earn:700},exclusive:true},
+      {l:'🎄 Hütten-Katze!',mt:0,c:.3,col:'#B03A2E',animal:{id:'frenchcat',n:'Hütten-Katze',e:'🐱',r:'god',p:0,earn:700},exclusive:true},
       {l:'🦢 Königsschwan!',mt:0,c:.5,col:'#FFD700',animal:{id:'royalswan',n:'Königsschwan',e:'🦢',r:'ultralegendary',p:0,earn:2500},exclusive:true},
       {l:'200.000 MT',mt:200000,c:8,col:'#27AE60'},{l:'500.000 MT',mt:500000,c:5,col:'#FFD700'},
-      {l:'1.000.000 MT',mt:1000000,c:3,col:'#fff'},{l:'🗼 France Slap!',mt:0,c:.5,col:'#ED2939',slap:'france'},
+      {l:'1.000.000 MT',mt:1000000,c:3,col:'#fff'},{l:'🛖 Hütten Slap!',mt:0,c:.5,col:'#B03A2E',slap:'france'},
       {l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
     ]},
     weekend:{name:'Wochenend-Rad',emoji:'🎉',glowCol:'#cc00ff',prizes:[
@@ -8423,7 +8351,7 @@ const LW={
       {l:'⚡ 3 Zufalls-Events!',mt:0,c:3,col:'#8B0000',randomEvents:3},
       {l:'👥 2x Besucher 5 Min!',mt:0,c:5,col:'#000',boost:'vis2x',boostDur:300000},
       {l:'💰 2x Geld 5 Min!',mt:0,c:5,col:'#8B0000',boost:'coin',boostDur:300000},
-      {l:'🗼 10× France Slap!',mt:0,c:2,col:'#ED2939',slapPack:{id:'france',n:10}},
+      {l:'🛖 10× Hütten Slap!',mt:0,c:2,col:'#B03A2E',slapPack:{id:'france',n:10}},
       {l:'🍀 Lucky Slap!',mt:0,c:.5,col:'#FFD700',slap:'lucky'},
     ]},
   },
@@ -8526,7 +8454,7 @@ const LW={
     // Theme background
     const themes={
       normal:'rgba(10,10,20,.95)',
-      france:'rgba(0,35,149,.92)',
+      france:'rgba(110,55,20,.92)',
       weekend:'rgba(50,0,80,.95)',
       christmas:'rgba(0,40,0,.95)',
       chaos:'rgba(20,0,0,.96)'
@@ -10724,7 +10652,7 @@ const ZP={
       lucky:'Schleudert das Ziel hoch in den Himmel — Salto inklusive.',
       christmas:'Weihnachtlicher Klaps mit Sternchen-Effekt.',
       weekend:'Party-Launch in die Luft mit Konfetti-Regen.',
-      france:'Blau-Weiss-Rotes Blitzlicht, dann ein Volltreffer.',
+      france:'Braun-Weiss-Rotes Blitzlicht, dann ein Volltreffer.',
     };
     el.innerHTML = '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.4">'
       +'🥊 Jeder Slap kostet beim Benutzen einen Prozentsatz deines Vermögens — <b>stärkere Slaps kosten mehr</b> (Basic 1%, jede Stufe +1%), halten Spieler aber auch länger ausser Gefecht. Permanent (unbegrenzt nutzbar) bekommst du Slaps weiterhin über Rebirth. Hier kannst du stattdessen ein <b>10er-Paket</b> für einen bestimmten Slap kaufen — 10 Nutzungen, unabhängig von der Stufe, immer 2\'124 MT. <b>Tippe eine Zeile an für Details.</b></div>'
@@ -11426,7 +11354,7 @@ const ZP={
       '<div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.74rem;margin-bottom:5px">🎡 Glücksrad wechseln:</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px">'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="normal" style="font-size:.76rem;padding:8px">🍀 Normal</button>'+
-        '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="france" style="font-size:.76rem;padding:8px;background:rgba(0,35,149,.3)">🗼 Frankreich</button></div>'+
+        '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="france" style="font-size:.76rem;padding:8px;background:rgba(139,69,19,.35)">🛖 Hütte</button></div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px">'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="weekend" style="font-size:.76rem;padding:8px;background:rgba(204,0,255,.18)">🎉 Wochenende</button>'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="christmas" style="font-size:.76rem;padding:8px;background:rgba(192,57,43,.18)">🎄 Weihnachten</button></div>'+
@@ -11496,7 +11424,7 @@ const ZP={
     const w=btn.dataset.w;
     LW.setType(w,0);
     // Show admin broadcast announcement
-    const names={normal:'Glücksrad',france:'Frankreich-Glücksrad 🗼',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Admin-Glücksrad 🔥'};
+    const names={normal:'Glücksrad',france:'Hütten-Glücksrad 🛖',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Admin-Glücksrad 🔥'};
     const ann=document.createElement('div');
     ann.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:14px;text-align:center;font-weight:900;font-size:1.05rem;animation:pop .4s ease';
     ann.style.background='linear-gradient(135deg,#FFD700,#FFA500)';
@@ -12383,6 +12311,7 @@ const ZChat = {
   // impossible to miss a message without the panel taking over the
   // whole screen for people who didn't ask to chat right now.
   _autoOpen(){
+    if(typeof Tutorial!=='undefined' && Tutorial._active) return; // Tutorial: Chat darf Joystick nicht verdecken
     if(this.open) return; // already open — leave whatever size it's at alone
     this.open = true;
     const p = document.getElementById('chat-panel');
@@ -14741,7 +14670,7 @@ const ZAdmin = {
 
   async resetScore(name){
     console.log('[CL-debug] resetScore("'+name+'") aufgerufen von Admin "'+(ZS.player||'?')+'" — zeige Zahlen-Prompt...');
-    const targetVal = await showNumberPrompt('🔄 Punktestand setzen für «'+name+'»', 'Neuer GESAMT-Punktestand (Welt 1 + Zoo zusammen). Normalerweise 0 — kann aber z.B. auch 10 sein.\nAchtung: Alle Zoo-Tiere werden dabei ebenfalls entfernt!', 0);
+    const targetVal = await showNumberPrompt('🔄 Punktestand setzen für «'+name+'»', 'Neuer GESAMT-Punktestand (Denkspiele + Zoo zusammen). Normalerweise 0 — kann aber z.B. auch 10 sein.\nAchtung: Alle Zoo-Tiere werden dabei ebenfalls entfernt!', 0);
     console.log('[CL-debug] resetScore("'+name+'"): Prompt-Ergebnis='+targetVal+' (null=abgebrochen)');
     if(targetVal===null || isNaN(targetVal)) return;
     const notes = [];
@@ -14769,7 +14698,7 @@ const ZAdmin = {
     try{
       if(typeof State!=='undefined' && State.getPlayer){
         const p = await State.getPlayer(name);
-        if(!p){ notes.push('⚠️ Kein Welt-1-Account für «'+name+'» gefunden.'); }
+        if(!p){ notes.push('⚠️ Kein Denkspiel-Account für «'+name+'» gefunden.'); }
         else {
           if(!knownDeviceId && p.deviceId) knownDeviceId = p.deviceId; // Welt-1 side is the more authoritative source
           p.currentWorld = 1;
@@ -14855,7 +14784,7 @@ const ZAdmin = {
           try{localStorage.setItem('zoo_admin_cmd',JSON.stringify(cmd));}catch(e){}
           await _rtdb.ref('zoo_admin_cmd').set(cmd).catch(()=>{});
         }catch(e){}
-        if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber frisch angelegt (0 MT, keine Tiere). Zielwert wurde in Welt 1 gesetzt.');
+        if(!hasZooAccount) notes.push('ℹ️ Kein bestehendes Zoo-Konto gefunden — trotzdem sicherheitshalber frisch angelegt (0 MT, keine Tiere). Zielwert wurde im Denkspiel-Konto gesetzt.');
       }
     }catch(e){ notes.push('❌ Zoo-Reset fehlgeschlagen: '+e.message); }
     // Safety net: re-check several times over a longer window, not just
@@ -15417,7 +15346,7 @@ const ZAdmin = {
   showSecrets(){
     const ALL_SECRETS = [
       {id:'konami',      emoji:'🎮', name:'Konami-Code',        how:'↑↑↓↓←→←→BA im Zoo eingeben',                reward:'+50 MT'},
-      {id:'admin',       emoji:'🗼', name:'France Slap Admin',  how:'France Slap beim Frankreich-Rad gewinnen (0.1%)', reward:'Admin-Panel'},
+      {id:'admin',       emoji:'🛖', name:'Hütten Slap Admin',  how:'Hütten Slap beim Hütten-Rad gewinnen (0.1%)', reward:'Admin-Panel'},
       {id:'trapdoor',    emoji:'🐉', name:'Geheimtür',          how:'Position (22, -18) finden und [E] drücken',      reward:'Drachen-Ei (Secret Rainbow ×3)'},
       {id:'ghost',       emoji:'👻', name:'Geisterstunde',       how:'60 Sekunden komplett stillstehen',               reward:'Geister-Enthüllung'},
       {id:'speedbuy',    emoji:'⚡', name:'Speed Buyer',         how:'5 Tiere in unter 5 Minuten kaufen',              reward:'×3 Einnahmen für 10 Min'},
@@ -15528,7 +15457,7 @@ const ZAdmin = {
   setWheel(type){
     if(typeof LW==='undefined'||!LW.WHEELS?.[type]){ZP.toast('❌ Unbekannter Rad-Typ: '+type,2500);return;}
     LW.setType(type,0);
-    const names={normal:'Glücksrad',halloween:'Halloween-Rad',winter:'Winter-Rad',spring:'Frühlings-Rad',france:'Frankreich-Rad',weekend:'Wochenend-Rad',christmas:'Weihnachts-Rad',chaos:'Admin-Rad 🔥'};
+    const names={normal:'Glücksrad',halloween:'Halloween-Rad',winter:'Winter-Rad',spring:'Frühlings-Rad',france:'Hütten-Rad',weekend:'Wochenend-Rad',christmas:'Weihnachts-Rad',chaos:'Admin-Rad 🔥'};
     const label=names[type]||LW.W?.name||type;
     try{
       if(typeof _rtdb!=='undefined'&&_rtdb){
@@ -15900,11 +15829,11 @@ const SECRETS = {
       if(Math.random()<0.001){
         this.unlocked['admin']=true; this._saveUnlocked();
         localStorage.setItem('zoo_secret_admin',ZS.player);
-        this._reveal('🗼 SECRET ENTDECKT!',
+        this._reveal('🛖 SECRET ENTDECKT!',
           'Du hast Admin-Befehle freigeschaltet! Öffne das Admin-Panel mit [A] oder im Menü.',
           '#ED2939');
         ZAdmin._hasAccess=true;
-        ZP.toast('🗼 SECRET! Admin-Panel via [A] Taste!',5000);
+        ZP.toast('🛖 SECRET! Admin-Panel via [A] Taste!',5000);
       }
     }
     
@@ -17219,7 +17148,7 @@ const Arcade={
     const door=new THREE.Mesh(new THREE.PlaneGeometry(4.2,7.6),new THREE.MeshBasicMaterial({color:0x66ff99,side:THREE.DoubleSide})); door.position.set(ex,3.9,ez-.15); room.add(door);
     const lbl=ZG._txt('🚪 AUSGANG',.7,'#66ff99'); lbl.position.set(ex,10,ez-.4); lbl.scale.set(8,2,1); room.add(lbl);
     this._exit={x:ex,z:ez-2.2};
-    const title=ZG._txt('🕹️ WELT 1 · DENKSPIEL-AUTOMATEN',.6,'#FFD700'); title.position.set(CX,14,CZ); title.scale.set(18,3,1); room.add(title);
+    const title=ZG._txt('🕹️ SPIELHÖLLE · DENKSPIEL-AUTOMATEN',.6,'#FFD700'); title.position.set(CX,14,CZ); title.scale.set(18,3,1); room.add(title);
     room.visible=false; sc.add(room); this._room=room;
     const p=document.createElement('div'); p.id='arc-prompt';
     p.style.cssText='position:fixed;left:50%;bottom:215px;transform:translateX(-50%);z-index:600;background:rgba(10,10,25,.88);border:2px solid #FFD700;color:#fff;font-weight:900;font-size:.9rem;padding:9px 18px;border-radius:14px;text-align:center;display:none;pointer-events:auto;cursor:pointer;max-width:90vw';
@@ -17236,7 +17165,7 @@ const Arcade={
       this._room.visible=true; this._active=true; ZG._arcadeActive=true;
       ZG.pl.x=this.CX; ZG.pl.z=this.CZ+1; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0;
       console.log('[Arcade-debug] betreten');
-      ZP.toast('🕹️ Willkommen! Geh zu einem Automaten und tippe ihn an.',3500);
+      ZP.toast('🕹️ Willkommen in der Spielhölle! Geh zu einem Automaten und tippe ihn an.',3500);
     };
     this._fade(go);
   },
@@ -17354,8 +17283,8 @@ const World1 = {
     ov.style.cssText='position:fixed;inset:0;z-index:99990;background:#0b1f12;display:flex;flex-direction:column';
     ov.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,.55);border-bottom:1px solid rgba(124,252,138,.35)">'
       +'<button id="w1-back" style="background:#27AE60;color:#fff;border:none;padding:8px 16px;border-radius:10px;font-weight:900;cursor:pointer">🕹️ Zurück zum Automaten</button>'
-      +'<div style="color:#7CFC8A;font-weight:900">'+((ARCADE_GAMES[idx]||{}).e||'')+' '+((ARCADE_GAMES[idx]||{}).n||'Welt 1')+'</div></div>'
-      +'<div id="w1-load" style="position:absolute;top:60px;left:0;right:0;text-align:center;color:#fff;opacity:.7;pointer-events:none">Lade Welt 1…</div>'
+      +'<div style="color:#7CFC8A;font-weight:900">'+((ARCADE_GAMES[idx]||{}).e||'')+' '+((ARCADE_GAMES[idx]||{}).n||'Denkspiel')+'</div></div>'
+      +'<div id="w1-load" style="position:absolute;top:60px;left:0;right:0;text-align:center;color:#fff;opacity:.7;pointer-events:none">Lade Spiel…</div>'
       +'<iframe id="w1-frame" style="flex:1;border:0;width:100%;background:#0b1f12" allow="autoplay"></iframe>';
     document.body.appendChild(ov);
     this._ov=ov;
@@ -19362,7 +19291,7 @@ window.ZooEvents = ZooEvents;
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.setWheel('halloween')">🎃 Halloween</button>
             <button class="padmin-btn" style="background:#2980B9" onclick="ZAdmin.setWheel('winter')">❄️ Winter</button>
             <button class="padmin-btn" style="background:#27AE60" onclick="ZAdmin.setWheel('spring')">🌸 Frühling</button>
-            <button class="padmin-btn" style="background:#3498DB" onclick="ZAdmin.setWheel('france')">🇫🇷 Frankreich</button>
+            <button class="padmin-btn" style="background:#3498DB" onclick="ZAdmin.setWheel('france')">🛖 Hütte</button>
             <button class="padmin-btn" style="background:linear-gradient(135deg,#000,#8B0000);color:#E74C3C;border:1px solid #E74C3C" onclick="ZAdmin.setWheel('chaos')">🔥 Admin-Rad</button>
             <button class="padmin-btn" style="background:#8E44AD" onclick="ZAdmin.guaranteeSpin()">⭐ Garantiert nächster</button>
           </div>
@@ -19620,7 +19549,7 @@ window.ZooEvents = ZooEvents;
         <!-- ══ SCORES TAB ══ -->
         <div class="padmin-tab" id="padmin-tab-scores" style="display:none">
           <div class="padmin-section-title" style="display:flex;align-items:center;justify-content:space-between">
-            <span>🏆 Spiele-Statistiken Welt 1</span>
+            <span>🏆 Spiele-Statistiken Denkspiele</span>
             <button class="padmin-btn" style="background:#3498DB;font-size:.72rem;padding:5px 10px" onclick="ZAdmin._loadScores()">🔄 Laden</button>
           </div>
           <div id="padmin-scores-table" style="font-size:.78rem;overflow-x:auto">
@@ -19710,7 +19639,7 @@ window.ZooEvents = ZooEvents;
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="padmin-section-title" style="margin-bottom:0">👥 Spieler-Verwaltung</div>
             <div style="display:flex;gap:6px">
-              <button onclick="ZAdmin.syncAllDeviceIds()" title="Gleicht bei jedem Spieler die Geräte-ID von Welt 1 und Zoo ab, falls sie auseinandergelaufen sind (z.B. nach Browserdaten löschen) — sonst fehlt die Zoo-MT-Summe auf der Rangliste für andere." style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.3);color:#9b59b6;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔧 Geräte-IDs syncen</button>
+              <button onclick="ZAdmin.syncAllDeviceIds()" title="Gleicht bei jedem Spieler die Geräte-ID von Denkspiel und Zoo ab, falls sie auseinandergelaufen sind (z.B. nach Browserdaten löschen) — sonst fehlt die Zoo-MT-Summe auf der Rangliste für andere." style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.3);color:#9b59b6;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔧 Geräte-IDs syncen</button>
               <button onclick="ZAdmin._loadPlayersTab()" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:#3498db;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem">🔄 Aktualisieren</button>
             </div>
           </div>

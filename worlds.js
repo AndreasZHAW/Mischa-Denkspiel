@@ -1,7 +1,7 @@
 /**
  * worlds.js v7 — 2-Welten-System
- * Welt 1: Denkspiel (20 Spiele, MT verdienen)
- * Welt 2: Zoo (Teleport für 10 MT)
+ * Spielhölle: Denkspiel (20 Spiele, MT verdienen)
+ * Zoo (Weihnachts-Zoo)
  */
 
 // ══════════════════════════════════════════
@@ -100,7 +100,7 @@ const ZOO_FIRST_ANIMAL_COST = 5; // Min MT needed for cheapest animal (Katze)
 // WORLDS (legacy — kept for compatibility)
 // ══════════════════════════════════════════
 const WORLD_DEFS = [
-  {id:1, name:'Welt 1', get subtitle(){ return (typeof t!=='undefined'?t('world1.subtitle'):'Reise nach Frankreich'); }, icon:'🇫🇷', color:'#2980B9',
+  {id:1, name:'Spielhölle', get subtitle(){ return (typeof t!=='undefined'?t('world1.subtitle'):'Die geheime Spielhölle'); }, icon:'🎄', color:'#2980B9',
    get description(){ return (typeof t!=='undefined'?t('world1.description'):'Verdiene Mischa Taler — baue dein Zoo-Empire!'); },
    get difficulty(){ return (typeof t!=='undefined'?t('wm.games_count').replace('{n}','20').replace('{m}','2'):'20 Spiele · bis 2 🌀 MT pro Spiel'); },
    memoryEmojis:['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🦒','🐘','🦓'],
