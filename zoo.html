@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v602 -->
+<!-- ZOO v603 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=602"></script>
-<script src="rewardchests.js?v=602"></script>
-<script src="personality.js?v=602"></script>
+<script src="lang.js?v=603"></script>
+<script src="rewardchests.js?v=603"></script>
+<script src="personality.js?v=603"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v602','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v603','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=602"></script>
-<script src="worlds.js?v=602"></script>
+<script src="firebase-state.js?v=603"></script>
+<script src="worlds.js?v=603"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2673,6 +2673,7 @@ const ZG={
       ZP.toast('🏠 '+c.animal.e+' '+c.animal.n+' hat Gehege '+(c.slot+1)+' erreicht!',2500);
       try{ ZNews.push('animal_arrived', {animal:c.animal.n, emoji:c.animal.e}); }catch(e){}
       try{ ZTips.notify('place'); }catch(e){}
+      try{ Tutorial._onPlaced(); }catch(e){}
     }
     this._updCarryHUD();
   },
@@ -7035,6 +7036,14 @@ const ZG={
     requestAnimationFrame(anim);
   },
 
+  _tutorialCat(){
+    const cat=ANIMALS.find(a=>a.id==='cat'); if(!cat) return;
+    this.gQ[0]={a:{...cat},sh:null,tr:[],xm:1,chainResult:null};
+    this.gCD=2500;
+    if(typeof Tutorial!=='undefined') Tutorial._holdCat=true;
+    try{ if(!G('p-gond').classList.contains('off')){ ZP._rGond(); ZP._rGCars(); } }catch(e){}
+    console.log('[Tutorial-debug] Katze sofort bereitgelegt');
+  },
   _gondTick(){const iv=setInterval(()=>{this.gCD-=100;if(G('gtimer'))G('gtimer').textContent=(Math.max(0,this.gCD)/1000).toFixed(1)+'s';if(G('gint-gtimer'))G('gint-gtimer').textContent=G('gtimer').textContent;
     // 10-sec warning: when gCD hits ~2500ms, the slot 4 positions ahead (≈10s) comes into view
     if(this.gCD<=2600&&this.gCD>2400){
@@ -7060,7 +7069,7 @@ const ZG={
       // animal (sometimes an ultra-rare!) was gone before they could
       // actually buy it. Skip the swap entirely while a buy click on
       // THIS exact car is still being processed (see _buyG's guard).
-      if(!ZP._buyInFlight){
+      if(!ZP._buyInFlight && !(typeof Tutorial!=='undefined'&&Tutorial._holdCat)){
         this.gQ.shift();this.gQ.push(this._mkG());if(ZSound.style!=='important')ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}
       }
     }
@@ -8020,10 +8029,11 @@ const TUTORIAL_STEPS=[
   {id:'gondola', title:'🚡 Zur Gondel', text:'Die Gondel ist dort, wo du Tiere bekommst. Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:{x:0,z:0}, action:'panel:gond'},
   {id:'gluck', title:'🍀 Glück kaufen', text:'Hier in der Gondel kannst du dauerhaft Glück kaufen — mehr Glück heisst seltenere Tiere!', target:'#gluck', action:'button'},
   {id:'buy', title:'🐱 Dein erstes Tier', text:'Du startest mit etwas Guthaben — kauf dir hier dein erstes Tier!', target:'#ganim', action:'buy'},
+  {id:'carry', title:'🏠 Ins Gehege tragen', text:'Das Tier kommt nicht von allein — du trägst es! Lauf mit dem Pfeil zu deinem Gehege und tippe dort auf „ablegen“ (oder drück [E]).', target:null, arrow:true, arrowTarget:'enc', action:'placed'},
   {id:'shop', title:'🛒 Der Shop', text:'Hier kannst du Boosts und Extras kaufen. Öffne ihn mal!', target:'#hb-shop', action:'panel:shop'},
-  {id:'shopcont', title:'🎁 Was gibt’s im Shop?', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um!', target:'#scont', action:'button'},
-  {id:'dice', title:'🎲 Würfel-Maschine', text:'Scroll runter zur "Würfel-Maschine Lizenz" — einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren)!', target:'#scont', action:'button'},
+  {id:'shopcont', title:'🎁 Was gibt’s im Shop?', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um! Ganz unten findest du die „Würfel-Maschine Lizenz“: einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren). Schliess den Shop, wenn du fertig bist.', target:null, action:'close:shop'},
   {id:'menu', title:'☰ Das Menü', text:'Hier findest du Einstellungen, deinen Rang und mehr. Öffne es mal!', target:'#hb-menu', action:'panel:menu'},
+  {id:'menuinfo', title:'⚙️ Einstellungen & Rang', text:'Hier findest du Einstellungen, deinen Rang und mehr — schau dich in Ruhe um! Schliess das Menü, wenn du fertig bist.', target:null, action:'close:menu'},
   {id:'events', title:'🎉 Events', text:'Hier oben siehst du, wenn gerade ein zeitlich begrenztes Event läuft — die geben oft dicke Boni!', target:'#evt', action:'button'},
   {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity'},
   {id:'slap', title:'✋ Slappen', text:'Tipp auf den Bildschirm (nicht auf Knöpfe), um zu slappen — probier’s aus!', target:null, action:'slap'},
@@ -8041,7 +8051,7 @@ const Tutorial={
     document.getElementById('tut-overlay')?.remove();
   },
   _finish(){
-    this._active=false;
+    this._active=false; this._holdCat=false;
     this._cleanupStep();
     if(ZS.zoo){ ZS.zoo.tutorialSeen=true; ZS.save&&ZS.save(); }
   },
@@ -8094,7 +8104,7 @@ const Tutorial={
     // weiter. Jetzt ist der Kasten bei Aktions-Schritten komplett
     // klick-durchlässig; nur der Überspringen-Knopf bleibt separat
     // klickbar (eigenes Element, siehe weiter unten).
-    box.style.cssText='position:fixed;bottom:190px;left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
+    box.style.cssText='position:fixed;bottom:'+((s.action||'').startsWith('close:')?'14px':'190px')+';left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
     box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">'+s.title+'</div>'
       +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>'
       +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);font-size:.68rem;color:rgba(255,255,255,.45)">💡 Tipp: schreib jederzeit <b style="color:#FFD700">/tipps</b> in den Chat, um dieses Tutorial nochmal zu sehen!</div>';
@@ -8107,7 +8117,7 @@ const Tutorial={
     } else {
       const hint=document.createElement('div');
       hint.style.cssText='margin-top:10px;font-size:.72rem;color:rgba(255,215,0,.7);font-weight:700';
-      hint.textContent='👉 Mach die Aktion, um weiterzugehen';
+      hint.textContent=(s.action||'').startsWith('close:')?'👉 Schliess das Fenster (✕), dann geht’s weiter':'👉 Mach die Aktion, um weiterzugehen';
       box.appendChild(hint);
     }
     overlay.appendChild(box);
@@ -8129,6 +8139,7 @@ const Tutorial={
       if(!s.arrowTarget) return {x:0,z:0};
       if(typeof s.arrowTarget==='object') return s.arrowTarget;
       if(s.arrowTarget==='gold') return (ZG._goldMachinePositions&&ZG._goldMachinePositions[0])||{x:16,z:55};
+      if(s.arrowTarget==='enc'){ try{ const ps=ZG.ENCPOS(); const sl=ZG.carrying?ZG.carrying.slot:0; return ps[sl]||ps[0]||{x:0,z:55}; }catch(e){ return {x:0,z:55}; } }
       if(s.arrowTarget==='dice') return (ZG._dicePositions&&ZG._dicePositions[0])||{x:16,z:55};
       return {x:0,z:0};
     };
@@ -8158,6 +8169,14 @@ const Tutorial={
         if(Math.sqrt(dx*dx+dz*dz)>3) this.advance();
       },300);
     }
+    if((s.action||'').startsWith('close:')){
+      const pid='p-'+s.action.slice(6); const t0=Date.now();
+      this._moveCheckIv=setInterval(()=>{
+        if(Date.now()-t0<800) return;
+        const el=document.getElementById(pid);
+        if(!el||el.classList.contains('off')) this.advance();
+      },300);
+    }
     if(s.action==='proximity'){
       this._moveCheckIv=setInterval(()=>{
         const tp=_arrowTargetPos();
@@ -8171,9 +8190,17 @@ const Tutorial={
   _onPanelOpen(p){
     if(!this._active) return;
     const s=TUTORIAL_STEPS[this._stepIdx];
+    // Schnell eine Katze: während Gondel-/Glück-/Kauf-Schritt liegt sofort eine Katze bereit
+    if(p==='gond' && s && ['gondola','gluck','buy'].includes(s.id)){ try{ ZG._tutorialCat(); }catch(e){} }
     if(s && s.action==='panel:'+p) this.advance();
   },
+  _onPlaced(){
+    if(!this._active) return;
+    const s=TUTORIAL_STEPS[this._stepIdx];
+    if(s && s.action==='placed') this.advance();
+  },
   _onBuy(){
+    this._holdCat=false;
     if(!this._active) return;
     const s=TUTORIAL_STEPS[this._stepIdx];
     if(s && s.action==='buy') this.advance();
