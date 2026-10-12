@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v603 -->
+<!-- ZOO v604 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=603"></script>
-<script src="rewardchests.js?v=603"></script>
-<script src="personality.js?v=603"></script>
+<script src="lang.js?v=604"></script>
+<script src="rewardchests.js?v=604"></script>
+<script src="personality.js?v=604"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v603','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v604','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=603"></script>
-<script src="worlds.js?v=603"></script>
+<script src="firebase-state.js?v=604"></script>
+<script src="worlds.js?v=604"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8031,12 +8031,20 @@ const TUTORIAL_STEPS=[
   {id:'buy', title:'🐱 Dein erstes Tier', text:'Du startest mit etwas Guthaben — kauf dir hier dein erstes Tier!', target:'#ganim', action:'buy'},
   {id:'carry', title:'🏠 Ins Gehege tragen', text:'Das Tier kommt nicht von allein — du trägst es! Lauf mit dem Pfeil zu deinem Gehege und tippe dort auf „ablegen“ (oder drück [E]).', target:null, arrow:true, arrowTarget:'enc', action:'placed'},
   {id:'shop', title:'🛒 Der Shop', text:'Hier kannst du Boosts und Extras kaufen. Öffne ihn mal!', target:'#hb-shop', action:'panel:shop'},
-  {id:'shopcont', title:'🎁 Was gibt’s im Shop?', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um! Ganz unten findest du die „Würfel-Maschine Lizenz“: einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren). Schliess den Shop, wenn du fertig bist.', target:null, action:'close:shop'},
+  {id:'shopcont', title:'🎁 Was gibt’s im Shop?', text:'Schuhe für mehr Tempo, mehr Besucher, mehr Einnahmen und vieles mehr — schau dich in Ruhe um! Ganz unten findest du die „Würfel-Maschine Lizenz“: einmal gekauft, kannst du im Zoo Geld setzen und auf 50/50 verdoppeln (oder verlieren). Schliess den Shop, wenn du fertig bist.', target:'#scont', action:'close:shop'},
   {id:'menu', title:'☰ Das Menü', text:'Hier findest du Einstellungen, deinen Rang und mehr. Öffne es mal!', target:'#hb-menu', action:'panel:menu'},
-  {id:'menuinfo', title:'⚙️ Einstellungen & Rang', text:'Hier findest du Einstellungen, deinen Rang und mehr — schau dich in Ruhe um! Schliess das Menü, wenn du fertig bist.', target:null, action:'close:menu'},
-  {id:'events', title:'🎉 Events', text:'Hier oben siehst du, wenn gerade ein zeitlich begrenztes Event läuft — die geben oft dicke Boni!', target:'#evt', action:'button'},
+  {id:'menuinfo', title:'⚙️ Einstellungen & Rang', text:'Hier findest du Einstellungen, deinen Rang und mehr — schau dich in Ruhe um! Schliess das Menü, wenn du fertig bist.', target:'#p-menu .zpi', action:'close:menu'},
+  {id:'events', title:'🎉 Events', text:'Hier unten rechts siehst du, wenn gerade ein zeitlich begrenztes Event läuft — die geben oft dicke Boni!', target:'#evt', action:'button', boxTop:true},
   {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity'},
-  {id:'slap', title:'✋ Slappen', text:'Tipp auf den Bildschirm (nicht auf Knöpfe), um zu slappen — probier’s aus!', target:null, action:'slap'},
+  {id:'slap', title:'✋ Slappen — deine Waffen', text:'Unten siehst du deine <b>Waffen-Leiste</b>. Jeder Slap kann andere Spieler treffen, sie lassen dabei ein getragenes Tier fallen und verlieren Herzen:<br>'
+    +'🤚 <b>Basic</b> – 2 Sek. ausser Gefecht, 15 m Reichweite<br>'
+    +'❄️ <b>Ice</b> – friert 3 Sek. ein · ✨ <b>Golden</b> – 3 Sek. Goldbarren<br>'
+    +'💜 <b>Shadow</b> – leuchtet 3 Sek. lila · 🔥 <b>Fire</b> – brennt 5 Sek. (3 Herzen)<br>'
+    +'🌈 <b>Rainbow</b> – 2 Sek. · 🌌 <b>Void</b> – 5 Sek. ins All<br>'
+    +'🎁 <b>Geschenkeschleuder</b> – Zielfernrohr, trifft von überall, Kopfschuss = 6 Sek.<br>'
+    +'Je stärker der Slap, desto mehr Herzen Schaden — aber er kostet dich auch mehr. Du startest mit Basic (ist schon ausgerüstet), die anderen schaltest du mit Rebirths frei.<br><b>Tipp jetzt einmal auf den Bildschirm, um zu slappen!</b>', target:'#wbar', action:'slap', blackout:true, boxTop:true},
+  {id:'feeder', title:'🍬 Leckerli-Automat', text:'Ein Leckerli macht ein Tier 5 Min lang <b>2× so schnell Geld</b> — kostet nur 5% des Tierpreises. Folge dem Pfeil und lauf zum Automaten!', target:null, arrow:true, arrowTarget:'feeder', action:'proximity'},
+  {id:'hearts', title:'❤️ Deine Herzen', text:'Oben siehst du deine <b>10 Herzen</b>. Jeder Slap, der dich trifft, kostet Herzen (Basic 0,3 · Ice 0,5 · … · France 5). Alle <b>15 Sek.</b> kommt ein Herz zurück. Bei 0 bist du besiegt — dann wählst du <b>Respawn</b> oder <b>Hauptmenü</b>.', target:'#zhearts', action:'button'},
 ];
 const Tutorial={
   _active:false, _stepIdx:0, _startPos:null, _moveCheckIv:null, _arrowIv:null,
@@ -8049,6 +8057,12 @@ const Tutorial={
     if(this._moveCheckIv){ clearInterval(this._moveCheckIv); this._moveCheckIv=null; }
     if(this._arrowIv){ clearInterval(this._arrowIv); this._arrowIv=null; }
     document.getElementById('tut-overlay')?.remove();
+    if(this._clickAwayFn){ document.removeEventListener('pointerdown',this._clickAwayFn,true); this._clickAwayFn=null; }
+    if(this._evtForced){
+      const ev=document.getElementById('evt');
+      if(ev && ev.dataset.tut==='1'){ ev.style.display='none'; ev.innerHTML=this._evtForced.html; delete ev.dataset.tut; }
+      this._evtForced=null;
+    }
   },
   _finish(){
     this._active=false; this._holdCat=false;
@@ -8067,6 +8081,16 @@ const Tutorial={
   },
   _showStep(i){
     const s=TUTORIAL_STEPS[i];
+    // Events-Schritt: ist gerade kein Event aktiv, ist #evt unsichtbar — dann kurz ein Beispiel zeigen
+    if(s.id==='events'){
+      const ev=document.getElementById('evt');
+      if(ev && getComputedStyle(ev).display==='none'){
+        this._evtForced={html:ev.innerHTML}; ev.dataset.tut='1'; ev.style.display='block';
+        ev.innerHTML='<div style="color:#FFD700">🎉 Beispiel-Event</div><div style="opacity:.8;font-weight:700">noch 4:59</div>';
+      }
+    }
+    // Slap-Schritt: Basic automatisch ausrüsten, sonst passiert beim Tippen nichts
+    if(s.id==='slap'){ try{ const zz=ZS.zoo; if(zz && (!zz.eq||zz.eq==='none')){ zz.eq='basic'; ZG._updWBar(); } }catch(e){} }
     const overlay=document.createElement('div');
     overlay.id='tut-overlay';
     overlay.style.cssText='position:fixed;inset:0;z-index:9700;pointer-events:none';
@@ -8075,7 +8099,7 @@ const Tutorial={
     // Abdunkeln: ganzer Bildschirm ~70% dunkel, ausser dem Ziel-Element
     // (falls eins angegeben ist) — das bleibt per box-shadow-Loch hell.
     const dim=document.createElement('div');
-    dim.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);pointer-events:'+(s.action==='button'?'auto':'none');
+    dim.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,'+(s.blackout?1:.7)+');pointer-events:'+(s.action==='button'?'auto':'none');
     if(s.target){
       const el=document.querySelector(s.target);
       if(el){
@@ -8104,7 +8128,7 @@ const Tutorial={
     // weiter. Jetzt ist der Kasten bei Aktions-Schritten komplett
     // klick-durchlässig; nur der Überspringen-Knopf bleibt separat
     // klickbar (eigenes Element, siehe weiter unten).
-    box.style.cssText='position:fixed;bottom:'+((s.action||'').startsWith('close:')?'14px':'190px')+';left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
+    box.style.cssText='position:fixed;'+(s.boxTop?'top:5%':'bottom:'+((s.action||'').startsWith('close:')?'14px':'190px'))+';left:50%;transform:translateX(-50%);z-index:9701;pointer-events:'+(s.action==='button'?'auto':'none')+';background:rgba(10,10,20,.95);border:2px solid #FFD700;border-radius:16px;padding:16px 20px;max-width:88vw;width:360px;text-align:center;color:#fff';
     box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">'+s.title+'</div>'
       +'<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.4">'+s.text+'</div>'
       +'<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);font-size:.68rem;color:rgba(255,255,255,.45)">💡 Tipp: schreib jederzeit <b style="color:#FFD700">/tipps</b> in den Chat, um dieses Tutorial nochmal zu sehen!</div>';
@@ -8117,9 +8141,10 @@ const Tutorial={
     } else {
       const hint=document.createElement('div');
       hint.style.cssText='margin-top:10px;font-size:.72rem;color:rgba(255,215,0,.7);font-weight:700';
-      hint.textContent=(s.action||'').startsWith('close:')?'👉 Schliess das Fenster (✕), dann geht’s weiter':'👉 Mach die Aktion, um weiterzugehen';
+      hint.textContent=(s.action||'').startsWith('close:')?'👉 Klick irgendwo hin, dann verschwindet dieser Hinweis. Schliess danach das Fenster (✕), dann geht’s weiter':'👉 Mach die Aktion, um weiterzugehen';
       box.appendChild(hint);
     }
+    if(s.boxTop){ box.style.maxHeight='78vh'; box.style.overflowY='auto'; }
     overlay.appendChild(box);
     if(s.action!=='button'){
       const sk=document.createElement('button');
@@ -8140,14 +8165,15 @@ const Tutorial={
       if(typeof s.arrowTarget==='object') return s.arrowTarget;
       if(s.arrowTarget==='gold') return (ZG._goldMachinePositions&&ZG._goldMachinePositions[0])||{x:16,z:55};
       if(s.arrowTarget==='enc'){ try{ const ps=ZG.ENCPOS(); const sl=ZG.carrying?ZG.carrying.slot:0; return ps[sl]||ps[0]||{x:0,z:55}; }catch(e){ return {x:0,z:55}; } }
+      if(s.arrowTarget==='feeder') return (ZG._feederPositions&&ZG._feederPositions[0])||{x:-24,z:63};
       if(s.arrowTarget==='dice') return (ZG._dicePositions&&ZG._dicePositions[0])||{x:16,z:55};
       return {x:0,z:0};
     };
     if(s.arrow){
       const arrow=document.createElement('div');
       arrow.id='tut-arrow';
-      arrow.style.cssText='position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);z-index:9701;pointer-events:none;width:70px;height:70px';
-      arrow.innerHTML='<svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 0 10px rgba(76,175,80,.8))"><defs><linearGradient id="tutArrowGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7CB342"/><stop offset="100%" stop-color="#AED581"/></linearGradient></defs><polygon points="20,10 65,50 20,90 35,50" fill="url(#tutArrowGrad)" stroke="#33691E" stroke-width="3" stroke-linejoin="round"/></svg>';
+      arrow.style.cssText='position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);z-index:9701;pointer-events:none;width:92px;height:92px';
+      arrow.innerHTML='<svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))"><polygon points="6,36 56,36 56,12 96,50 56,88 56,64 6,64" fill="#6E9BD1" stroke="#1b2030" stroke-width="5" stroke-linejoin="round"/><path d="M14 45 H50 M14 55 H44" stroke="#1b2030" stroke-width="2.4" stroke-dasharray="7 5" stroke-linecap="round" fill="none"/></svg>';
       overlay.appendChild(arrow);
       const updateArrow=()=>{
         const tp=_arrowTargetPos();
@@ -8170,6 +8196,12 @@ const Tutorial={
       },300);
     }
     if((s.action||'').startsWith('close:')){
+      // Ein Klick irgendwo auf den Bildschirm blendet Hinweis + Abdunkelung aus — dann sieht man alles
+      this._clickAwayFn=()=>{
+        document.removeEventListener('pointerdown',this._clickAwayFn,true); this._clickAwayFn=null;
+        const o=document.getElementById('tut-overlay'); if(o) o.style.display='none';
+      };
+      setTimeout(()=>{ if(this._clickAwayFn) document.addEventListener('pointerdown',this._clickAwayFn,true); },400);
       const pid='p-'+s.action.slice(6); const t0=Date.now();
       this._moveCheckIv=setInterval(()=>{
         if(Date.now()-t0<800) return;
