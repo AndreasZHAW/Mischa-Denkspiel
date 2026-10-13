@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v611 -->
+<!-- ZOO v612 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=611"></script>
-<script src="rewardchests.js?v=611"></script>
-<script src="personality.js?v=611"></script>
+<script src="lang.js?v=612"></script>
+<script src="rewardchests.js?v=612"></script>
+<script src="personality.js?v=612"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v611','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v612','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=611"></script>
-<script src="worlds.js?v=611"></script>
+<script src="firebase-state.js?v=612"></script>
+<script src="worlds.js?v=612"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1520,6 +1520,7 @@ const SLAPS=[
   {id:'ice',   n:'ICE SLAP',   e:'❄️',  col:'#00CFFF',  cd:2000, fly:false, pct:2,  range:15},
   {id:'golden',n:'GOLDEN SLAP',e:'✨',  col:'#FFD700',  cd:2000, fly:false, pct:3,  range:18},
   {id:'shadow',n:'SHADOW SLAP',e:'💜',  col:'#9B59B6',  cd:2000, fly:false, pct:4,  range:21},
+  {id:'mirror',n:'SPIEGEL',    e:'🪞',  col:'#BFE9FF',  cd:3500, fly:false, isMirror:true, pct:5,  range:0},
   {id:'fire',  n:'FIRE SLAP',  e:'🔥',  col:'#ff4500',  cd:2000, fly:false, pct:5,  range:24},
   {id:'rainbow',n:'RAINBOW SLAP',e:'🌈',col:null,       cd:2000, fly:false, pct:6,  range:27},
   {id:'void',  n:'VOID SLAP',  e:'🌌',  col:'#7d3cff',  cd:2000, fly:false, pct:7,  range:30},
@@ -3586,6 +3587,34 @@ const ZG={
   // target — extracted out so both the (legacy) listener shape and the
   // new RTDB-based one can call the exact same logic.
   _applyReceivedSlap(d){
+    // 🪞 Hinweis an den Angreifer: Spiegel hat abgewehrt
+    if(d.slapId==='mirror_block'){
+      ZG._bigText('ABGEWEHRT','#9fe6ff',1600);
+      ZG._mirrorFlash();
+      ZP.toast('🪞 '+d.from+' hat deinen Slap mit dem Spiegel abgewehrt!',3000);
+      return;
+    }
+    // 🪞 Ich habe gerade den Spiegel an → alles wird abgewehrt, Schleuder-Schüsse gehen doppelt zurück
+    if(ZG._mirrorUntil>Date.now() && !d.reflected){
+      ZG._bigText('ABGEWEHRT','#9fe6ff',1600);
+      ZG._mirrorFlash();
+      ZSound.slap&&ZSound.slap();
+      try{
+        if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&d.from){
+          const at=Date.now();
+          if(d.slapId==='gun'){
+            const base=(d.dmg!=null)?d.dmg:(d.head?4:2);
+            _rtdb.ref('zoo_slaps/'+$rtdbKey(d.from)).set({type:'slap',from:ZS.player,target:d.from,slapId:'gun',slapEmoji:'🎁',
+              dur:d.dur||3000,fx:d.dur||3000,dmg:base*2,head:!!d.head,reflected:true,at}).catch(()=>{});
+            ZP.toast('🪞 Abgewehrt! Dein Spiegel wirft den Schuss von '+d.from+' doppelt zurück!',3500);
+          } else {
+            _rtdb.ref('zoo_slaps/'+$rtdbKey(d.from)).set({type:'slap',from:ZS.player,target:d.from,slapId:'mirror_block',dur:0,dmg:0,at}).catch(()=>{});
+            ZP.toast('🪞 Abgewehrt! '+d.from+'s Slap prallt am Spiegel ab.',3000);
+          }
+        }
+      }catch(e){}
+      return;
+    }
     const slapDur=d.dur||2000;
     ZG._slapStunEnd=Date.now()+slapDur; if(window.ZSteal)ZSteal.loseOnSlap(); SECRETS.trackSlap&&SECRETS.trackSlap(); ZSteal.loseOnSlap&&ZSteal.loseOnSlap();
     try{ if(ZS.zoo){ ZS.zoo.timesSlappedTotal=(ZS.zoo.timesSlappedTotal||0)+1; } }catch(e){}
@@ -3600,9 +3629,9 @@ const ZG={
     try{
       const _dmg=(d.dmg!=null)?d.dmg:(slapId==='gun'?(d.head?4:2):(SLAP_DMG[slapId]!=null?SLAP_DMG[slapId]:.3));
       const _sd=SLAPS.find(s=>s.id===slapId);
-      const _src={slapId,from:d.from,name:_sd?_sd.n:String(slapId).toUpperCase(),gun:slapId==='gun'};
+      const _src={slapId,from:d.from,name:_sd?_sd.n:String(slapId).toUpperCase(),gun:slapId==='gun',reflected:!!d.reflected};
       if(slapId==='fire') ZHearts.burn(_dmg,d.fx||5000,_src); else ZHearts.hit(_dmg,_src);
-      if(d.head) ZG._bigText('KOPFSCHUSS','#ff1f1f',1800);
+      if(d.head && !d.reflected) ZG._bigText('KOPFSCHUSS','#ff1f1f',1800);
     }catch(e){ console.log('[Hearts-debug] Schaden-Fehler: '+e.message); }
     if(slapId==='lucky'||slapId==='weekend'){
       // Launch myself into sky (visual only)
@@ -3647,7 +3676,8 @@ const ZG={
     } else if(slapId==='gun'){
       const fl=G('bflash');
       if(fl){fl.style.background='rgba(255,0,0,.6)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',500);}
-      ZP.toast(`🎁 ${d.from} hat dich mit der GESCHENKESCHLEUDER getroffen!${d.head?' KOPFSCHUSS!':''} ${Math.round(slapDur/1000)}s`,3500);
+      if(d.reflected){ ZG._bigText('ZURÜCKGEWORFEN ×2','#9fe6ff',1900); ZG._mirrorFlash(); ZP.toast(`🪞 ${d.from}s Spiegel hat deinen Schuss doppelt zurückgeworfen!`,3500); }
+      else ZP.toast(`🎁 ${d.from} hat dich mit der GESCHENKESCHLEUDER getroffen!${d.head?' KOPFSCHUSS!':''} ${Math.round(slapDur/1000)}s`,3500);
       ZP._showReportBtn(d.from, 'slap');
     } else if(slapId==='ice'){
       const ice=document.createElement('div');
@@ -3745,7 +3775,8 @@ const ZG={
     const ms=d.fx||3000;
     if(d.head && !isMe && (d.from||'').toLowerCase()!==me){ this._bigText('KOPFSCHUSS','#ff1f1f',1500); }
     const x=isMe?this.pl.x:(mesh?mesh.position.x:(d.x||0)), zz=isMe?this.pl.z:(mesh?mesh.position.z:(d.z||0));
-    if(d.slapId==='golden' && mesh) this._fxGoldBar(mesh,ms);
+    if(d.slapId==='mirror' && !isMe && mesh) this._fxMirror3D(mesh,ms);
+    else if(d.slapId==='golden' && mesh) this._fxGoldBar(mesh,ms);
     else if(d.slapId==='shadow' && mesh) this._fxPurple(mesh,ms);
     else if(d.slapId==='fire'){
       let n=0; const iv=setInterval(()=>{ n++; const m2=isMe?null:this.otherM[d.target]; this._slapFire(m2,m2?m2.position.x:x,m2?m2.position.z:zz,900); if(n>=Math.floor(ms/700)) clearInterval(iv); },700);
@@ -3904,7 +3935,14 @@ const ZG={
        try{
         // Knockback if slapped (bounce on ground)
         const now=Date.now();
-        if(m.userData.slapT&&now-m.userData.slapT<2000){
+        if(m._launching){
+          // Flug läuft (siehe _slapLaunch) — Höhe/Drehung nicht überschreiben
+        } else if(op.dead){
+          // 💀 Keine Herzen mehr: sanft umfallen und liegen bleiben (nicht brutal)
+          m.userData.fallT=m.userData.fallT||now;
+          const p=Math.min(1,(now-m.userData.fallT)/1300), e=p*p*(3-2*p);
+          m.rotation.z=e*1.5; m.position.y=-0.15*e;
+        } else if(m.userData.slapT&&now-m.userData.slapT<2000){
           const t=(now-m.userData.slapT)/2000;
           m.position.y=Math.max(0,-4*t*(t-1))*2; // bounce arc
           m.rotation.z=Math.sin(now*0.01)*(1-t)*0.5; // wobble
@@ -3914,6 +3952,7 @@ const ZG={
           m.position.y=Math.sin(now*0.003+(m.userData.bobOffset||0))*0.05;
           m.rotation.z=0;
         }
+        if(!op.dead) m.userData.fallT=null;
         m.position.x=op.x||0;
         m.position.z=op.z||0;
         // Safety net: a player's avatar should never stay permanently
@@ -3929,6 +3968,13 @@ const ZG={
         // name — so other players can actually see there's something
         // worth slapping loose, instead of it being invisible until you
         // already knock it free.
+        // ⚠️ Warndreieck: dieser Spieler hat die Geschenkeschleuder ausgerüstet und zielt
+        if(op.aim && !m.userData.warnSprite){
+          const w=this._txt('⚠️',1,'#FFD700'); w.position.set(0,4.4,0); w.scale.set(2.2,2.2,1);
+          m.add(w); m.userData.warnSprite=w;
+        } else if(!op.aim && m.userData.warnSprite){
+          m.remove(m.userData.warnSprite); m.userData.warnSprite=null;
+        }
         const carryEmoji=op.carrying?op.carrying.e:null;
         if(m.userData.carryEmoji!==carryEmoji){
           if(m.userData.carrySprite){ m.remove(m.userData.carrySprite); m.userData.carrySprite=null; }
@@ -5526,6 +5572,11 @@ const ZG={
     const qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),this.yaw);
     const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),this.pitch);
     this.cam.quaternion.copy(qY).multiply(qX);
+    if(this._deathAt){
+      const p=Math.min(1,(Date.now()-this._deathAt)/1500), e=p*p*(3-2*p);
+      this.cam.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),e*1.4));
+      this.cam.position.y=Math.max(0.5,this.pl.y-e*1.1);
+    }
     if(this._jumpActive) this._checkJumpCollision();
     if(this._mazeActive){ try{ SpeedTemple._checkMazeCollision(); }catch(e){} }
   },
@@ -6534,6 +6585,7 @@ const ZG={
       z.eq='none'; this._updWBar();
       return;
     }
+    if(sl.isMirror && Date.now()<(this._mirrorUntil||0)){ ZP.toast('🪞 Der Spiegel schützt dich noch '+Math.ceil((this._mirrorUntil-Date.now())/1000)+'s',900); return; }
     // Cost: every slap costs a % of total wealth, scaling with the slap's
     // strength (basic=2%, next tier=4%, ... see SLAPS[].pct) — the
     // tradeoff being: stronger slaps stun longer, giving more time to
@@ -6552,6 +6604,7 @@ const ZG={
     this._trackWeaponUse();
     this._updWBar(); ZS.save&&ZS.save(); this._updHUD&&this._updHUD();
     try{ MTPass.addXP(10,'Slap'); }catch(e){}
+    if(sl.isMirror){ this._mirrorActivate(); try{ Tutorial._onSlap(); }catch(e){} return; }
     // Find and hit whichever player is actually clicked/tapped on (within range)
     this._slapNearby(sl, sl.isGun?window.innerWidth/2:clientX, sl.isGun?window.innerHeight/2:clientY);
     try{ Tutorial._onSlap(); }catch(e){}
@@ -6571,6 +6624,78 @@ const ZG={
       this._updWBar();
       ZP.toast('✋ Waffe automatisch abgelegt nach 10×. Bitte erneut auswählen!',3000);
     }
+  },
+
+
+  // ═══ 🪞 SPIEGEL ═══
+  _mirrorUntil:0,
+  _mirrorActivate(){
+    const ms=3000; this._mirrorUntil=Date.now()+ms;
+    this._mirrorFxShow(ms);
+    try{
+      if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+        _rtdb.ref('zoo_slapfx').set({from:ZS.player,target:ZS.player,slapId:'mirror',fx:ms,at:Date.now()}).catch(()=>{});
+      }
+    }catch(e){}
+    ZP.toast('🪞 Spiegel aktiv — 3 Sek. geschützt!',1500);
+  },
+  _mirrorCss(){
+    if(document.getElementById('zmirror-css')) return;
+    const s=document.createElement('style'); s.id='zmirror-css';
+    s.textContent='@keyframes zmUp{0%{transform:translate(-50%,40%) scale(.55);opacity:0}18%{transform:translate(-50%,0) scale(1);opacity:1}88%{opacity:1}100%{transform:translate(-50%,-6%) scale(1.05);opacity:0}}'
+      +'@keyframes zmSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}'
+      +'@keyframes zmShine{0%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(260%) skewX(-18deg)}}'
+      +'@keyframes zmFlash{0%{opacity:.85}100%{opacity:0}}';
+    document.head.appendChild(s);
+  },
+  // Spiegel hochhalten: weisser Lichtkreis, drehende Strahlen, glänzende Spiegelfläche
+  _mirrorFxShow(ms){
+    this._mirrorCss();
+    document.getElementById('zmirror-fx')?.remove();
+    const el=document.createElement('div'); el.id='zmirror-fx';
+    el.style.cssText='position:fixed;inset:0;z-index:8200;pointer-events:none;overflow:hidden';
+    el.innerHTML=
+      '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(210,240,255,.35),rgba(120,190,255,.10) 55%,rgba(0,0,0,0) 75%);animation:zmFlash '+ms+'ms ease-out forwards"></div>'
+      +'<div style="position:absolute;left:50%;top:50%;width:min(95vw,95vh);height:min(95vw,95vh);border-radius:50%;'
+        +'background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.55) 0 4deg,rgba(255,255,255,0) 4deg 18deg);'
+        +'-webkit-mask:radial-gradient(circle,transparent 28%,#000 30%,#000 62%,transparent 70%);mask:radial-gradient(circle,transparent 28%,#000 30%,#000 62%,transparent 70%);'
+        +'transform:translate(-50%,-50%);animation:zmSpin 2.4s linear infinite;opacity:.9"></div>'
+      +'<div style="position:absolute;left:50%;top:50%;width:min(80vw,80vh);height:min(80vw,80vh);border-radius:50%;border:4px solid rgba(255,255,255,.95);box-shadow:0 0 40px 10px rgba(255,255,255,.75),inset 0 0 40px rgba(255,255,255,.6);transform:translate(-50%,-50%)"></div>'
+      +'<div style="position:absolute;left:50%;bottom:6%;width:min(44vw,38vh);height:min(66vw,56vh);transform-origin:50% 100%;animation:zmUp '+ms+'ms ease-out forwards">'
+        +'<div style="position:absolute;inset:0;border-radius:50% / 40%;background:linear-gradient(135deg,#f4fbff 0%,#9fd3f0 38%,#e8f6ff 52%,#7fb6d8 100%);border:6px solid #d9b45a;box-shadow:0 0 30px rgba(255,255,255,.9),inset 0 0 28px rgba(255,255,255,.8);overflow:hidden">'
+          +'<div style="position:absolute;top:0;bottom:0;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:zmShine 1.1s ease-in-out 3"></div>'
+        +'</div>'
+        +'<div style="position:absolute;left:50%;top:-7%;transform:translateX(-50%);font-size:2rem">🪞</div>'
+      +'</div>';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),ms+80);
+  },
+  // Treffer am Spiegel: weisser Lichtblitz
+  _mirrorFlash(){
+    this._mirrorCss();
+    const f=document.createElement('div');
+    f.style.cssText='position:fixed;inset:0;z-index:8300;pointer-events:none;background:radial-gradient(circle,#fff,rgba(190,235,255,.5) 55%,rgba(255,255,255,0) 80%);animation:zmFlash .7s ease-out forwards';
+    document.body.appendChild(f); setTimeout(()=>f.remove(),760);
+  },
+  // Für alle sichtbar: silberne Spiegel-Blase um die Figur
+  _fxMirror3D(mesh,ms){
+    if(!mesh||mesh._mirrorFx) return;
+    const s=new THREE.Mesh(new THREE.SphereGeometry(1.7,18,14),new THREE.MeshBasicMaterial({color:0xCFEFFF,transparent:true,opacity:.4,depthWrite:false}));
+    s.position.y=1.0; mesh.add(s);
+    const spr=this._txt('🪞',1,'#fff'); spr.position.set(0,3.4,0); spr.scale.set(1.8,1.8,1); mesh.add(spr);
+    mesh._mirrorFx=s; const t0=Date.now();
+    const pulse=()=>{ const t=Date.now()-t0; if(t>=ms||!s.parent){ try{mesh.remove(s);mesh.remove(spr);}catch(e){} mesh._mirrorFx=null; return; } const k=.5+.5*Math.sin(t/90); s.material.opacity=.28+.3*k; s.scale.setScalar(1+.06*k); requestAnimationFrame(pulse); };
+    requestAnimationFrame(pulse);
+    this._showStars(mesh.position.x,mesh.position.z,0xCFEFFF,6);
+  },
+  // Schadenszahl über dem Fadenkreuz / der Klickstelle (Schaden, den DU verursacht hast)
+  _dmgPopup(txt,x,y,col){
+    this._mirrorCss();
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;left:'+x+'px;top:'+y+'px;transform:translate(-50%,-50%);z-index:9600;pointer-events:none;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:1.6rem;color:'+(col||'#ff3b3b')+';text-shadow:0 2px 0 #000,0 0 8px rgba(0,0,0,.8);transition:transform 1s ease-out,opacity 1s ease-in';
+    el.textContent=txt; document.body.appendChild(el);
+    requestAnimationFrame(()=>{ el.style.transform='translate(-50%,-190%) scale(1.15)'; el.style.opacity='0'; });
+    setTimeout(()=>el.remove(),1050);
   },
 
   _slapNearby(sl, clientX, clientY){
@@ -6625,6 +6750,7 @@ const ZG={
     // Lokale Effekte: die neuen Effekte laufen über den Broadcast-Listener (auch beim Slapper selbst)
     if(!_sent || !['golden','shadow','fire','void','gun'].includes(sl.id)) this._slapEffect(sl, targetName, dur, mesh);
     if(head){ this._bigText('KOPFSCHUSS','#ff1f1f',1800); }
+    try{ this._dmgPopup('−'+(Math.round(dmg*10)/10).toString().replace('.',',')+' ❤', cx, cy-30); }catch(e){}
     ZP.toast(sl.e+' '+targetName+' getroffen!'+(head?' KOPFSCHUSS!':'')+(dur>0?' ('+Math.round(dur/1000)+'s)':' (brennt!)'),2000);
     ZSound.slap();
   },
@@ -6713,35 +6839,28 @@ const ZG={
 
   // LUCKY SLAP: Launch high into sky, fall back
   _slapLaunch(mesh, dur){
-    if(!mesh) return;
-    const startY=mesh.position.y;
-    const startZ=mesh.rotation.z;
-    const peakY=35;
-    const start=Date.now();
-    const half=dur*0.45;
+    if(!mesh || mesh._launching) return;
+    mesh._launching=true;
+    const peakY=30, start=Date.now(), half=dur*0.45;
+    const done=()=>{
+      mesh._launching=false;
+      mesh.position.y=0; mesh.rotation.x=0; mesh.rotation.z=0; mesh.rotation.y=mesh.rotation.y%(Math.PI*2);
+    };
     const anim=()=>{
-      if(!mesh.parent){return;}
+      if(!mesh.parent){ mesh._launching=false; return; }
       const t=Date.now()-start;
       if(t<half){
-        // Rise phase
-        const p=t/half;
-        const ease=1-Math.pow(1-p,3);
-        mesh.position.y=startY+ease*peakY;
-        mesh.rotation.z=p*Math.PI*3; // spin
-        mesh.rotation.x=p*Math.PI;
+        const p=t/half, ease=1-Math.pow(1-p,3);
+        mesh.position.y=ease*peakY;
+        mesh.rotation.z=p*Math.PI*2;               // Salto (volle Umdrehungen → endet aufrecht)
       } else if(t<dur){
-        // Fall phase
         const p=(t-half)/(dur-half);
-        const ease=p*p*p;
-        mesh.position.y=(startY+peakY)-(ease*peakY);
-        mesh.rotation.z=startZ+p*Math.PI*4;
+        mesh.position.y=Math.max(0,peakY-(p*p*p)*peakY);
+        mesh.rotation.z=Math.PI*2+p*Math.PI*2;     // weitere Umdrehung, endet wieder bei 0 (mod 2π)
       } else {
-        // Impact
-        mesh.position.y=startY;
-        mesh.rotation.z=Math.PI/2; // knocked down
+        done();
         this._showStars(mesh.position.x,mesh.position.z,0xFFD700,8);
-        ZSound.slap();
-        setTimeout(()=>{if(mesh&&mesh.rotation){mesh.rotation.z=0;mesh.position.y=startY;}},2000);
+        try{ ZSound.slap(); }catch(e){}
         return;
       }
       requestAnimationFrame(anim);
@@ -7553,7 +7672,8 @@ const ZG={
       // HOT: tiny, changes every cycle — this is the one written/read at
       // the throttled rate above.
       const hotData={x:Math.round(this.pl.x), z:Math.round(this.pl.z), t:now,
-        carrying:_carryPayload, slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0)};
+        carrying:_carryPayload, slotIdx:(typeof ZS.mySlot==='number'?ZS.mySlot:0),
+        aim:(ZS.zoo&&ZS.zoo.eq==='gun')?1:0, dead:(typeof ZHearts!=='undefined'&&ZHearts.dead)?1:0};
       try{
         const _wt0=performance.now();
         await _rtdb.ref('zoo_hot/'+instanceId+'/'+myKey).set(JSON.parse(JSON.stringify(hotData)));
@@ -7972,6 +8092,7 @@ const TUTORIAL_STEPS=[
     +'🤚 <b>Basic</b> – 2 Sek. ausser Gefecht, 15 m Reichweite<br>'
     +'❄️ <b>Ice</b> – friert 3 Sek. ein · ✨ <b>Golden</b> – 3 Sek. Goldbarren<br>'
     +'💜 <b>Shadow</b> – leuchtet 3 Sek. lila · 🔥 <b>Fire</b> – brennt 5 Sek. (3 Herzen)<br>'
+    +'🪞 <b>Spiegel</b> – erst antippen, dann 3 Sek. geschützt: wehrt Slaps ab und wirft Schleuder-Schüsse doppelt zurück<br>'
     +'🌈 <b>Rainbow</b> – 2 Sek. · 🌌 <b>Void</b> – 5 Sek. ins All<br>'
     +'🎁 <b>Geschenkeschleuder</b> – Zielfernrohr, trifft von überall, Kopfschuss = 6 Sek.<br>'
     +'Je stärker der Slap, desto mehr Herzen Schaden — aber er kostet dich auch mehr. Du startest mit Basic (ist schon ausgerüstet), die anderen schaltest du mit Rebirths frei.<br><b>Tipp jetzt einmal auf den Bildschirm, um zu slappen!</b>', target:'#wbar', action:'slap', blackout:true, boxTop:true},
@@ -10648,6 +10769,7 @@ const ZP={
       fire:'Feurige Partikel regnen auf das Ziel herab.',
       rainbow:'Das Ziel schillert kurz in allen Regenbogenfarben.',
       void:'Das Ziel versinkt langsam im Boden und taucht danach wieder auf.',
+      mirror:'Ausrüsten schützt noch nicht — tippe auf den Bildschirm: dann bist du 3 Sek. geschützt. Wehrt alle Slaps ab („ABGEWEHRT“) und wirft Schüsse der Geschenkeschleuder doppelt zum Schützen zurück. Danach musst du erneut tippen. Jeder Einsatz kostet 5% deines Vermögens.',
       gun:'Klassischer Klaps mit Sternchen-Effekt.',
       lucky:'Schleudert das Ziel hoch in den Himmel — Salto inklusive.',
       christmas:'Weihnachtlicher Klaps mit Sternchen-Effekt.',
@@ -10660,7 +10782,7 @@ const ZP={
         const isOwned=owned.includes(sl.id);
         const packs=(z.slapPacks||{})[sl.id]||0;
         const dur=(durMap[sl.id]||2000)/1000;
-        const infoLine=`${sl.pct}% vom Vermögen · Reichweite ${sl.range||8}m · ${dur}s ausser Gefecht`;
+        const infoLine=sl.isMirror?`${sl.pct}% vom Vermögen pro Einsatz · 3s Schutz · wirft Schleuder-Schüsse ×2 zurück`:`${sl.pct}% vom Vermögen · Reichweite ${sl.range||8}m · ${dur}s ausser Gefecht`;
         if(isOwned){
           return `<div class="ac" style="opacity:.75;cursor:pointer" onclick="ZP._showSlapInfo('${sl.id}')"><div style="font-size:1.5rem">${sl.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${sl.n}</div><div style="font-size:.66rem;color:#27AE60">✅ Permanent freigeschaltet (Rebirth) — ${infoLine}</div></div></div>`;
         }
@@ -10735,9 +10857,9 @@ const ZP={
       <div style="font-weight:900;font-size:1.1rem;color:${sl.col||'#FFD700'};margin:6px 0">${sl.n}</div>
       <div style="font-size:.85rem;color:rgba(255,255,255,.8);margin-bottom:12px;line-height:1.5">${desc}</div>
       <div style="display:flex;justify-content:space-around;font-size:.75rem;color:rgba(255,255,255,.6);margin-bottom:14px">
-        <div>💰 <b style="color:#fff">${sl.pct}%</b><br>vom Vermögen</div>
-        <div>🎯 <b style="color:#fff">${sl.range||8}m</b><br>Reichweite</div>
-        <div>⏱️ <b style="color:#fff">${dur}s</b><br>ausser Gefecht</div>
+        <div>💰 <b style="color:#fff">${sl.pct}%</b><br>${sl.isMirror?'pro Einsatz':'vom Vermögen'}</div>
+        ${sl.isMirror?'<div>🛡️ <b style="color:#fff">3s</b><br>Schutz</div><div>↩️ <b style="color:#fff">×2</b><br>Schleuder zurück</div>':`<div>🎯 <b style="color:#fff">${sl.range||8}m</b><br>Reichweite</div>
+        <div>⏱️ <b style="color:#fff">${dur}s</b><br>ausser Gefecht</div>`}
       </div>
       <button onclick="this.closest('div[style*=fixed]').remove()" style="background:${sl.col||'#FFD700'};color:#1a1a2e;border:none;padding:9px 24px;border-radius:10px;font-weight:900;cursor:pointer">✓ OK</button>
     </div>`;
@@ -17029,8 +17151,16 @@ const ZHearts={
     this._burn={perTick:total/n,until:Date.now()+ms+50,next:Date.now()+1000,src};
     this._damage(total/n,src); // erster Tick sofort
   },
+  _pop(dmg){
+    try{
+      const box=this._el; if(!box) return;
+      const r=box.getBoundingClientRect();
+      ZG._dmgPopup('−'+(Math.round(dmg*10)/10).toString().replace('.',',')+' ❤', r.left+r.width/2, r.bottom+14, '#ff4d4d');
+    }catch(e){}
+  },
   _damage(dmg,src){
     if(this.dead||!(dmg>0)) return;
+    this._pop(dmg);
     this.hp=Math.max(0,Math.round((this.hp-dmg)*100)/100);
     this._nextRegen=Date.now()+15000;
     this._render();
@@ -17040,13 +17170,15 @@ const ZHearts={
     if(this.dead) return;
     this.dead=true; this._burn=null;
     ZG._slapStunEnd=Date.now()+3600000; ZG._stunType='slap';
+    ZG._deathAt=Date.now(); // Kamera kippt sanft zur Seite (siehe _camUpdate)
     if(ZG._spaceBack) ZG._spaceBack();
     try{ if(ZG.carrying) ZG._dropCarried((src&&src.from)||'?'); }catch(e){}
     const name=ZS.player||'Du';
     const txt=(src&&src.gun)
-      ? name+' wurde von Geschenkeschleuder getroffen'
+      ? (src.reflected ? name+' wurde von seinem eigenen Schuss getroffen' : name+' wurde von Geschenkeschleuder getroffen')
       : name+' wurde von '+((src&&src.name)||'einem Slap')+' getötet';
     document.getElementById('zdeath')?.remove();
+    setTimeout(()=>{ if(!this.dead) return; document.getElementById('zdeath')?.remove();
     const ov=document.createElement('div'); ov.id='zdeath';
     ov.style.cssText='position:fixed;inset:0;z-index:99000;background:rgba(110,10,10,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:Arial,sans-serif;color:#fff;text-align:center;padding:16px;box-sizing:border-box';
     const btn='width:min(340px,80vw);padding:12px 10px;background:#7a7a7a;border:2px solid #1a1a1a;border-bottom-color:#3a3a3a;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35);text-shadow:1px 1px 0 #333';
@@ -17057,13 +17189,19 @@ const ZHearts={
     document.body.appendChild(ov);
     ov.querySelector('#zd-respawn').onclick=()=>this.respawn();
     ov.querySelector('#zd-menu').onclick=()=>this.mainMenu();
+    },1700); // Overlay erst nach dem Umfallen
     console.log('[Hearts-debug] gestorben: '+txt);
   },
   respawn(){
     document.getElementById('zdeath')?.remove();
     this.hp=this.max; this.dead=false; this._burn=null; this._nextRegen=Date.now()+15000;
-    ZG._slapStunEnd=0; ZG._stunType=null;
-    try{ const _z=ZG.ZONES[ZG._myZone()]||ZG.ZONES[0]; ZG.pl.x=_z.x; ZG.pl.z=_z.z+14; }catch(e){}
+    ZG._slapStunEnd=0; ZG._stunType=null; ZG._deathAt=0; ZG._mirrorUntil=0;
+    // Immer zurück in den Zoo — auch wenn man in der Spielhölle, im All oder im Speed-Tempel war
+    try{ document.getElementById('w1-overlay')?.remove(); if(typeof World1!=='undefined'&&World1.close) World1.close(); }catch(e){}
+    try{ if(Arcade._active){ Arcade._active=false; ZG._arcadeActive=false; if(Arcade._room) Arcade._room.visible=false; const p=document.getElementById('arc-prompt'); if(p) p.style.display='none'; } }catch(e){}
+    try{ if(ZG._spaceBack) ZG._spaceBack(); }catch(e){}
+    try{ if(ZG._steActive||ZG._mazeActive||ZG._jumpActive) SpeedTemple._exitRoom(); }catch(e){}
+    try{ const _z=ZG.ZONES[ZG._myZone()]||ZG.ZONES[0]; ZG.pl.x=_z.x; ZG.pl.z=_z.z+14; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0; }catch(e){}
     this._render();
     try{ ZP.toast('❤️ Respawn — wieder 10 Herzen!',2500); }catch(e){}
   },
