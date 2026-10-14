@@ -2161,7 +2161,9 @@ window.PlayTime = PlayTime;
 // corrupted value just displays as "very large" instead of silently
 // vanishing.
 // ============================================================
-window.MT_SANITY_CAP = 1000000000000; // 1 trillion
+// v616: Deckel von 1e12 auf 1e150 angehoben — wer mehr als 1 Billion MT hat, wurde in der Rangliste
+// fälschlich bei 1×10¹² abgeschnitten (Spieler hatte schon 10¹³). 1e150 schützt weiter vor kaputten Werten (Infinity/NaN → 0).
+window.MT_SANITY_CAP = 1e150;
 window.sanitizeMT = function(v) {
   if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
   return v > window.MT_SANITY_CAP ? window.MT_SANITY_CAP : v;
