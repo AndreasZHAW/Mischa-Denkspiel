@@ -68,11 +68,11 @@ const PacmanGame = {
         <canvas id="pccv" width="${W}" height="${H}" style="background:#000;border-radius:6px;max-width:min(${W}px,92vw)"></canvas>
         <div id="pc-btns" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:180px">
           <div></div>
-          <button class="pc-btn" data-d="up" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▲</button>
-          <button id="pc-bomb" style="background:#c0392b;color:#fff;border:1px solid #e74c3c;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">💣</button>
-          <button class="pc-btn" data-d="left" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">◀</button>
-          <button class="pc-btn" data-d="down" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▼</button>
-          <button class="pc-btn" data-d="right" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:12px;border-radius:8px;font-size:1.2rem;cursor:pointer;touch-action:none">▶</button>
+          <button class="pc-btn" data-d="up" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:8px;border-radius:8px;font-size:1.1rem;cursor:pointer;touch-action:none">▲</button>
+          <button id="pc-bomb" style="background:#c0392b;color:#fff;border:1px solid #e74c3c;padding:8px;border-radius:8px;font-size:1.1rem;cursor:pointer;touch-action:none">💣</button>
+          <button class="pc-btn" data-d="left" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:8px;border-radius:8px;font-size:1.1rem;cursor:pointer;touch-action:none">◀</button>
+          <button class="pc-btn" data-d="down" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:8px;border-radius:8px;font-size:1.1rem;cursor:pointer;touch-action:none">▼</button>
+          <button class="pc-btn" data-d="right" style="background:#2c3e50;color:#fff;border:1px solid #555;padding:8px;border-radius:8px;font-size:1.1rem;cursor:pointer;touch-action:none">▶</button>
         </div>
         ${isTouch ? `<div id="pc-tilt-hint" style="display:none;font-size:clamp(0.82rem,3.5vw,0.92rem);color:rgba(255,255,255,.4);text-align:center">${typeof t!=='undefined'?t('snake.tilt_hint'):'📱 Gerät neigen zum Steuern · 💣 legt Bombe'}</div>` : ''}
       </div>`;
@@ -82,18 +82,19 @@ const PacmanGame = {
     const _fitBtns=()=>{
       try{
         const bt=document.getElementById('pc-btns'); if(!bt) return;
-        const over=bt.getBoundingClientRect().bottom-(window.innerHeight-10);
+        const over=bt.getBoundingClientRect().bottom-(window.innerHeight-8);
         if(over>0){
           const cr=cv.getBoundingClientRect();
-          const f=Math.max(0.5,(cr.height-over)/cr.height);
-          cv.style.maxWidth='none';
-          cv.style.width=Math.floor(cr.width*f)+'px';
-          cv.style.height=Math.floor(cr.height*f)+'px';
+          const f=Math.max(0.4,(cr.height-over)/cr.height);
+          const S=(k,v)=>cv.style.setProperty(k,v,'important');
+          S('max-width','none'); S('max-height','none');
+          S('width',Math.floor(cr.width*f)+'px');
+          S('height',Math.floor(cr.height*f)+'px');
           console.log('[Bomber-debug] Spielfeld um '+Math.round((1-f)*100)+'% verkleinert, damit Steuerknöpfe sichtbar sind');
         }
       }catch(e){}
     };
-    requestAnimationFrame(_fitBtns); setTimeout(_fitBtns,400);
+    requestAnimationFrame(_fitBtns); [200,600,1200,2500].forEach(ms=>setTimeout(_fitBtns,ms));
     requestAnimationFrame(()=>{
       try{
         const btns=document.getElementById('pc-btns');

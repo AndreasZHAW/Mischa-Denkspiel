@@ -40,6 +40,21 @@ window.MISCHA_EMBED = (function(){try{return new URLSearchParams(location.search
 })();
 
 // Layout-Diagnose (nur messen, nichts ändern). Konzept wie ChaosKalender: effectiveWidth = min(innerWidth, screen.width)
+// Sensor-Weiterleitung vom Zoo (nur im Embed): echte Events haben Vorrang
+if(window.MISCHA_EMBED){
+  (function(){
+    let nO=0,nM=0;
+    window.addEventListener('deviceorientation',e=>{ if(!e._fwd && e.gamma!=null) nO=Date.now(); },true);
+    window.addEventListener('devicemotion',e=>{ if(!e._fwd && e.accelerationIncludingGravity && e.accelerationIncludingGravity.x!=null) nM=Date.now(); },true);
+    window.addEventListener('message',e=>{
+      const d=e.data; if(e.origin!==location.origin||!d||d.type!=='mischa-sensor') return;
+      try{
+        if(d.k==='o'){ if(Date.now()-nO<500) return; const ev=new Event('deviceorientation'); ev._fwd=1; ev.alpha=d.a; ev.beta=d.b; ev.gamma=d.g; window.dispatchEvent(ev); }
+        else { if(Date.now()-nM<500) return; const ev=new Event('devicemotion'); ev._fwd=1; ev.accelerationIncludingGravity={x:d.x,y:d.y,z:d.z}; ev.acceleration=null; ev.rotationRate=null; ev.interval=16; window.dispatchEvent(ev); }
+      }catch(err){}
+    });
+  })();
+}
 const LayoutDiag = {
   KEY: 'mischa_layout_diag',
   _env() {
@@ -192,7 +207,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v613';
+const APP_VERSION = 'v614';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -602,7 +617,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v613 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v614 · 2026-08-04</p>
           <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2658,9 +2673,9 @@ const App = {
           <div class="game-header">
             <div class="game-title">${task.icon} ${task.title}</div>
             <!-- Portrait rotate hint (mobile only) -->
-            <div class="rotate-hint" style="display:none;background:rgba(255,165,0,.9);color:#000;padding:3px 8px;border-radius:6px;font-size:.72rem;font-weight:700;align-items:center;gap:4px">
+            ${window.MISCHA_EMBED?'':`<div class="rotate-hint" style="display:none;background:rgba(255,165,0,.9);color:#000;padding:3px 8px;border-radius:6px;font-size:.72rem;font-weight:700;align-items:center;gap:4px">
               📱↻ Querformat
-            </div>
+            </div>`}
             <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
               <button onclick="App._toggleZoom()" id="zoom-btn"
                 style="background:rgba(41,182,246,.12);border:2px solid rgba(41,182,246,.35);color:#29B6F6;padding:5px 9px;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;touch-action:manipulation" title="Zoom">
@@ -2701,6 +2716,7 @@ const App = {
       // available alongside a mouse.
       const _isTouchDevice = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
       if (!ga || (window.innerWidth >= 700 && !_isTouchDevice)) return; // desktop: no auto-zoom
+      if (_taskType === 'pacman') return; // Bomber passt sich selbst an die Höhe an (Auto-Zoom schob die Knöpfe raus)
       const setZoom = (z) => {
         this._zoomLevel = z;
         ga.style.transform = `scale(${z})`;
