@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v617 -->
+<!-- ZOO v618 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=617"></script>
-<script src="rewardchests.js?v=617"></script>
-<script src="personality.js?v=617"></script>
+<script src="lang.js?v=618"></script>
+<script src="rewardchests.js?v=618"></script>
+<script src="personality.js?v=618"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v617','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v618','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,9 +527,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=617"></script>
-<script src="sanction.js?v=617"></script>
-<script src="worlds.js?v=617"></script>
+<script src="firebase-state.js?v=618"></script>
+<script src="sanction.js?v=618"></script>
+<script src="worlds.js?v=618"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -13452,6 +13452,24 @@ const ZAdmin = {
     }).join('');
     box.innerHTML=rows||'<div style="color:rgba(255,255,255,.4);font-size:.8rem">Keine Spieler.</div>';
   },
+  // Lange Texte: Vorschau (~50 Zeichen) — Klick öffnet alles, scrollbar
+  _gkPrev(title,text){
+    this._gkTexts=this._gkTexts||[]; const i=this._gkTexts.push({title,text:String(text||'')})-1;
+    const t=String(text||''); const short=t.length>50?t.slice(0,50).replace(/\s+$/,'')+'… ':'';
+    return {i,html:'<span onclick="ZAdmin._gkFull('+i+')" style="cursor:pointer">'+$esc(short||t)+(short?'<span style="color:#5dade2;text-decoration:underline">mehr anzeigen</span>':'')+'</span>'};
+  },
+  _gkFull(i){
+    const it=(this._gkTexts||[])[i]; if(!it) return;
+    document.getElementById('gk-full')?.remove();
+    const ov=document.createElement('div'); ov.id='gk-full';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML='<div style="background:#1a1a2e;border:1px solid rgba(255,255,255,.25);border-radius:14px;max-width:520px;width:100%;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">'
+      +'<div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.15);font-weight:800;color:#ffd700;font-size:.85rem">'+$esc(it.title)+'</div>'
+      +'<div style="padding:14px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;color:#fff;font-size:.9rem;line-height:1.5;-webkit-overflow-scrolling:touch">'+$esc(it.text)+'</div>'
+      +'<button style="margin:10px;padding:10px;border:none;border-radius:10px;background:#555;color:#fff;font-weight:700;cursor:pointer" onclick="document.getElementById(\'gk-full\').remove()">Schliessen</button></div>';
+    ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+  },
   async _guckerAppeals(){
     const el=document.getElementById('padmin-gk-appeals'); if(!el) return;
     try{
@@ -13462,7 +13480,7 @@ const ZAdmin = {
         '<div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.35);border-radius:10px;padding:10px;margin-bottom:6px">'
         +'<div style="font-weight:800;color:#ffd700;font-size:.82rem">'+$esc(v.player||k)+' · '+(v.permanent?'gebannt':'Auszeit')+'</div>'
         +'<div style="font-size:.72rem;color:rgba(255,255,255,.6);margin:3px 0">Grund: '+$esc(v.reason||'–')+'</div>'
-        +'<div style="font-size:.8rem;color:#fff;background:rgba(0,0,0,.3);padding:6px 8px;border-radius:6px;margin-bottom:6px;white-space:pre-line">'+$esc(v.appeal.text)+'</div>'
+        +'<div style="font-size:.8rem;color:#fff;background:rgba(0,0,0,.3);padding:6px 8px;border-radius:6px;margin-bottom:6px;word-break:break-word">'+this._gkPrev('📨 Antrag von '+(v.player||k),v.appeal.text).html+'</div>'
         +'<div style="display:flex;gap:6px"><button class="padmin-btn" style="flex:1;background:#27AE60;padding:7px" onclick="ZAdmin._appealDecide(\''+$esc(k)+'\',true)">✅ Annehmen (entbannen)</button>'
         +'<button class="padmin-btn" style="flex:1;background:#C0392B;padding:7px" onclick="ZAdmin._appealDecide(\''+$esc(k)+'\',false)">❌ Ablehnen</button></div></div>').join('')):'';
     }catch(e){ el.innerHTML=''; }
@@ -13515,7 +13533,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v617 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v618 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -13546,7 +13564,7 @@ const ZAdmin = {
     try{
       const v=(await _rtdb.ref('zoo_amsg_reply/'+this._rk(nameLc)).once('value')).val()||{};
       const rows=Object.values(v).sort((a,b)=>b.at-a.at).slice(0,5);
-      el.innerHTML=rows.length?('<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:3px">💬 Antworten von '+$esc(nameLc)+':</div>'+rows.map(r=>'<div style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:8px;padding:6px 8px;margin-bottom:4px;font-size:.78rem;color:#fff"><div style="color:rgba(255,255,255,.45);font-size:.66rem">'+new Date(r.at).toLocaleString('de-CH',{timeZone:'Europe/Zurich'})+(r.orig?' · auf: «'+$esc(r.orig)+'»':'')+'</div>'+$esc(r.text)+'</div>').join('')):'';
+      el.innerHTML=rows.length?('<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:3px">💬 Antworten von '+$esc(nameLc)+':</div>'+rows.map(r=>'<div style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:8px;padding:6px 8px;margin-bottom:4px;font-size:.78rem;color:#fff"><div style="color:rgba(255,255,255,.45);font-size:.66rem">'+new Date(r.at).toLocaleString('de-CH',{timeZone:'Europe/Zurich'})+(r.orig?' · auf: «'+$esc(r.orig)+'»':'')+'</div>'+this._gkPrev('💬 Antwort von '+nameLc,r.text).html+'</div>').join('')):'';
     }catch(e){}
   },
   async _guckerSendMsg(){

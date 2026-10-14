@@ -53,16 +53,33 @@
         if(d && this._active(d)) this.showLock(d);
         else if(this.locked) this._unlocked(d);
       });
-      // 3) Live: Nachricht vom Admin
+      // 3) Live: Nachricht vom Admin — wird gemerkt und erst gezeigt, wenn man im Zoo ist
       this._r2=_rtdb.ref('zoo_amsg/'+k);
       this._r2.on('value',snap=>{
         const d=snap.val(); if(!d||!d.id) return;
-        if(d.at && d.at<t0-60000) return; // alte Nachrichten nicht erneut zeigen
-        if(this._lastMsgId===d.id) return;
-        try{ if(localStorage.getItem('zoo_amsg_seen')===d.id) return; localStorage.setItem('zoo_amsg_seen',d.id); }catch(e){}
+        if(d.at && d.at<Date.now()-7*86400000) return; // älter als 7 Tage: ignorieren
+        try{ if(localStorage.getItem('zoo_amsg_seen')===d.id) return; }catch(e){}
+        this._pending=d;
+      });
+      clearInterval(this._pIv);
+      this._pIv=setInterval(()=>{
+        const d=this._pending; if(!d || this.locked) return;
+        if(!this._inZoo()) return;
+        this._pending=null;
+        try{ localStorage.setItem('zoo_amsg_seen',d.id); }catch(e){}
         this._lastMsgId=d.id;
         this.showAdminMsg(d);
-      });
+      },1500);
+    },
+    // Nur auf der Zoo-Seite, wenn die Spielwelt wirklich läuft (nicht auf Login, Intro oder in Denkspielen)
+    _inZoo(){
+      try{
+        if(!/zoo\.html/i.test(location.pathname)) return false;
+        if(typeof ZG==='undefined'||!ZG||!ZG.cam) return false;
+        if(typeof ZS==='undefined'||!ZS||!ZS.zoo) return false;
+        if(document.getElementById('w1-ov')||document.getElementById('world1-ov')) return false;
+        return true;
+      }catch(e){ return false; }
     },
     // ── Sperrbildschirm ──
     _stopGame(){
