@@ -18,6 +18,7 @@
     _active(d){
       if(!d) return false;
       if(d.permanent) return true;
+      if(d.durationMs && !d.started) return true; // Auszeit, deren Timer noch nicht läuft
       return !!(d.expiresAt && d.expiresAt>Date.now());
     },
     // ── Start: wartet, bis Name + Datenbank da sind ──
@@ -48,8 +49,17 @@
       }catch(e){}
       // 2) Live: Sperre/Auszeit
       this._r1=_rtdb.ref('zoo_sanction/'+k);
+      let first=true;
       this._r1.on('value',snap=>{
-        const d=snap.val();
+        let d=snap.val();
+        const initial=first; first=false;
+        // Auszeit-Timer startet erst beim (nächsten) Login = erste Auslesung nach dem Seitenstart
+        if(d && d.durationMs && !d.started && initial){
+          const now=Date.now();
+          d=Object.assign({},d,{started:true,startedAt:now,expiresAt:now+d.durationMs});
+          try{ this._r1.update({started:true,startedAt:d.startedAt,expiresAt:d.expiresAt}); }catch(e){}
+          try{ if(typeof _db!=='undefined'&&_db) _db.collection('banned_players').doc(n.toLowerCase()).set({started:true,startedAt:d.startedAt,expiresAt:d.expiresAt},{merge:true}); }catch(e){}
+        }
         if(d && this._active(d)) this.showLock(d);
         else if(this.locked) this._unlocked(d);
       });
@@ -111,7 +121,7 @@
       ov.innerHTML='<div style="max-width:440px;width:100%;text-align:center">'
         +'<div style="font-size:2rem;font-weight:900;margin-bottom:10px">'+title+'</div>'
         +(d.reason?'<div style="font-size:1.05rem;margin-bottom:8px"><b>Grund:</b> '+esc(d.reason)+'</div>':'')
-        +'<div style="font-size:.95rem;color:#bbb">'+(perm?'Dauer: dauerhaft':'Noch <b id="sanction-left" style="color:#fff"></b>')+'</div>'
+        +'<div style="font-size:.95rem;color:#bbb">'+(perm?'Dauer: dauerhaft':((d.durationMs&&!d.started)?'Auszeit: <b style="color:#fff">'+Math.round(d.durationMs/60000)+' Min.</b><br>Der Timer startet, sobald du dich das nächste Mal anmeldest.':'Noch <b id="sanction-left" style="color:#fff"></b>'))+'</div>'
         +apHtml+'</div>';
       const b=ov.querySelector('#sanction-send');
       if(b) b.onclick=()=>this._sendAppeal();

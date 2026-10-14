@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v618 -->
+<!-- ZOO v620 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=618"></script>
-<script src="rewardchests.js?v=618"></script>
-<script src="personality.js?v=618"></script>
+<script src="lang.js?v=620"></script>
+<script src="rewardchests.js?v=620"></script>
+<script src="personality.js?v=620"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v618','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v620','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,9 +527,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=618"></script>
-<script src="sanction.js?v=618"></script>
-<script src="worlds.js?v=618"></script>
+<script src="firebase-state.js?v=620"></script>
+<script src="sanction.js?v=620"></script>
+<script src="zevents.js?v=620"></script>
+<script src="worlds.js?v=620"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3592,7 +3593,7 @@ const ZG={
   // new RTDB-based one can call the exact same logic.
   _applyReceivedSlap(d){
     if(d.slapId!=='mirror_block' && window.ZBattle && ZBattle.fighting() && !ZBattle.isFighter(d.from)) return; // Ausgeschiedene können Kämpfer nicht treffen
-    if(d.slapId!=='mirror_block'){ try{ ZHearts.setCombat(); }catch(e){} }
+    if(d.slapId!=='mirror_block'){ try{ ZHearts.setCombat(); if(window.ZEvt) ZEvt.stat('slapsGot'); }catch(e){} }
     // 🪞 Hinweis an den Angreifer: Spiegel hat abgewehrt
     if(d.slapId==='mirror_block'){
       ZG._bigText('ABGEWEHRT','#9fe6ff',1600);
@@ -5471,7 +5472,7 @@ const ZG={
       // ── NORMAL ZOO MODE ──
       if(!this._jumping&&(this.keys['Space']||this.keys['KeyJ'])){this._jumping=true;this._jumpV=5.2;}
       if(this._jumping){
-        this.pl.y+=this._jumpV*dt; this._jumpV-=11*dt;
+        this.pl.y+=this._jumpV*dt; this._jumpV-=11*(this._gravMul||1)*dt;
         if(this.pl.y<=1.7){this.pl.y=1.7;this._jumping=false;this._jumpV=0;}
       } else { this.pl.y=1.7; }
     }
@@ -6744,7 +6745,7 @@ const ZG={
     if(!targetName){ ZP.toast('❗ Daneben!',1200); return; }
     if(!sl.isGun && hits[0].distance>range){ ZP.toast('❗ Zu weit weg (max. '+range+'m für diesen Slap)!',1400); return; }
     if(window.ZBattle){ const _bm=ZBattle.slapAllowed(targetName); if(_bm!==true){ ZP.toast(_bm,2500); return; } }
-    try{ ZHearts.setCombat(); }catch(e){}
+    try{ ZHearts.setCombat(); if(window.ZEvt) ZEvt.stat('slapsGiven'); }catch(e){}
     const op = this.otherPl[targetName];
     const mesh=this.otherM[targetName];
     // Kopfschuss (nur Geschenkeschleuder): Treffer im oberen Teil der Figur
@@ -13384,6 +13385,7 @@ const ZAdmin = {
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
     if(tab==='einst')this._populateEvents();
     if(tab==='battle')this._battleStatus();
+    if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); }
     if(tab==='gucker')this._guckerList(false);
     if(tab==='ministat')this._miniStat();
     if(tab==='cal')this._loadCalFromFirebase();
@@ -13533,7 +13535,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v618 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v620 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -13552,8 +13554,8 @@ const ZAdmin = {
     const el=document.getElementById('padmin-gk-state'); if(!el) return;
     try{
       const v=(await _rtdb.ref('zoo_sanction/'+this._rk(nameLc)).once('value')).val();
-      if(v && (v.permanent || (v.expiresAt&&v.expiresAt>Date.now()))){
-        el.innerHTML='<div style="padding:8px;border-radius:8px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.5)">'+(v.permanent?'🚫 <b>Gebannt</b>':'⏳ <b>Auszeit</b> bis '+new Date(v.expiresAt).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}))
+      if(v && (v.permanent || (v.durationMs&&!v.started) || (v.expiresAt&&v.expiresAt>Date.now()))){
+        el.innerHTML='<div style="padding:8px;border-radius:8px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.5)">'+(v.permanent?'🚫 <b>Gebannt</b>':((v.durationMs&&!v.started)?('⏳ <b>Auszeit '+Math.round(v.durationMs/60000)+' Min.</b> — Timer startet beim nächsten Login'):('⏳ <b>Auszeit</b> bis '+new Date(v.expiresAt).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}))))
           +'<br>Grund: '+$esc(v.reason||'–')+(v.appeal?'<br>📨 Antrag ('+v.appeal.status+'): '+$esc(v.appeal.text):'')
           +'<br><button class="padmin-btn" style="background:#27AE60;margin-top:6px;padding:6px 12px" onclick="ZAdmin._guckerUnban()">✅ Sperre aufheben</button></div>';
       } else el.innerHTML='<span style="color:rgba(255,255,255,.5)">Keine Sperre aktiv.</span>';
@@ -13581,7 +13583,7 @@ const ZAdmin = {
     if(kind==='timeout' && !(mins>0)){ ZP.toast('❗ Bitte die Minuten eingeben!',3000); return; }
     const ok=await showConfirm(kind==='ban'?('🚫 '+n+' wirklich BANNEN?\nGrund: '+reason):('⏳ '+n+' für '+mins+' Min. sperren?\nGrund: '+reason));
     if(!ok) return;
-    const data={player:n,kind,reason,bannedAt:Date.now(),by:ZS.player||'admin',permanent:kind==='ban',expiresAt:kind==='ban'?null:Date.now()+mins*60000,duration:kind==='ban'?'perm':(mins+'min')};
+    const data={player:n,kind,reason,bannedAt:Date.now(),by:ZS.player||'admin',permanent:kind==='ban',expiresAt:null,durationMs:kind==='ban'?null:mins*60000,started:kind==='ban',duration:kind==='ban'?'perm':(mins+'min')};
     try{
       await _db.collection('banned_players').doc(n).set(data);
       await _rtdb.ref('zoo_sanction/'+this._rk(n)).set(data);
@@ -17495,6 +17497,7 @@ const ZHearts={
     if(this.dead) return;
     this.dead=true; this._burn=null; this._combatUntil=0; this._combatRender();
     try{ if(window.ZBattle) ZBattle.onDeath(src); }catch(e){}
+    try{ if(window.ZEvt) ZEvt.stat('deaths'); }catch(e){}
     ZG._slapStunEnd=Date.now()+3600000; ZG._stunType='slap';
     ZG._deathAt=Date.now(); // Kamera kippt sanft zur Seite (siehe _camUpdate)
     if(ZG._spaceBack) ZG._spaceBack();
@@ -20020,18 +20023,19 @@ window.ZooEvents = ZooEvents;
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">🍀 Glück &amp; Boosts</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
           <div class="padmin-tab-btn" data-tab="belohnungen" onclick="ZAdmin.switchTab('belohnungen')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏅 Rang / Glück / Speed</div>
-          <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">🎉 Events</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">💀 Admin Abuse</div>
+          <div class="padmin-tab-btn" data-tab="evcenter" onclick="ZAdmin.switchTab('evcenter')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎪 Event-Zentrale</div>
           <div class="padmin-tab-btn" data-tab="battle" onclick="ZAdmin.switchTab('battle')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚔️ Kampf-Event</div>
           <div class="padmin-tab-btn" data-tab="einst" onclick="ZAdmin.switchTab('einst')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎪 Events &amp; Sondereinsatz</div>
-          <div class="padmin-tab-btn" data-tab="deadline" onclick="ZAdmin.switchTab('deadline')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📅 Rangliste-Stichtag</div>
+          <div class="padmin-tab-btn" data-tab="msg" onclick="ZAdmin.switchTab('msg')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔔 Benachrichtigung / Umfrage</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">📣 Mitteilungen</div>
           <div class="padmin-tab-btn" data-tab="announce" onclick="ZAdmin.switchTab('announce')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📢 Event-Ankündigung</div>
           <div class="padmin-tab-btn" data-tab="news" onclick="ZAdmin.switchTab('news')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📰 Update-News</div>
-          <div class="padmin-tab-btn" data-tab="msg" onclick="ZAdmin.switchTab('msg')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">💬 Kurznachricht / Umfrage</div>
           <div class="padmin-tab-btn" data-tab="gruppe" onclick="ZAdmin.switchTab('gruppe')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">👥 Gruppe &amp; Geschenke</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">⚙️ System</div>
           <div class="padmin-tab-btn" data-tab="safety" onclick="ZAdmin.switchTab('safety')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🛟 Sicherheit</div>
           <div class="padmin-tab-btn" data-tab="server" onclick="ZAdmin.switchTab('server')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🌐 Server &amp; Chat</div>
+          <div class="padmin-tab-btn" data-tab="deadline" onclick="ZAdmin.switchTab('deadline')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📅 Rangliste-Stichtag</div>
           <div class="padmin-tab-btn" data-tab="timer" onclick="ZAdmin.switchTab('timer')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⏱️ Timer für alle</div>
           <div class="padmin-tab-btn" data-tab="screentime" onclick="ZAdmin.switchTab('screentime')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⏳ Bildschirmzeit</div>
           <div class="padmin-tab-btn" data-tab="tester" onclick="ZAdmin.switchTab('tester')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🧪 Tester-Panel</div>
@@ -20452,6 +20456,56 @@ window.ZooEvents = ZooEvents;
         <button class="padmin-btn" style="background:linear-gradient(135deg,#3478f6,#1a4fb0);width:100%" onclick="ZP._setAdminSpeedTraining(parseInt(document.getElementById('admin-speedtr-mult-custom').value)||parseInt(document.getElementById('admin-speedtr-mult').value),parseInt(document.getElementById('admin-speedtr-dur-custom').value)||parseInt(document.getElementById('admin-speedtr-dur').value))">⚡ Trainings-Speed aktivieren</button>
         </div>
 
+        <!-- TAB: EVCENTER -->
+        <div class="padmin-tab" id="padmin-tab-evcenter" style="display:none">
+          <div class="padmin-section-title">🎪 Event-Zentrale</div>
+          <div id="zev-status" style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;font-size:.78rem;color:rgba(255,255,255,.75);margin-bottom:6px">Lade …</div>
+          <button class="padmin-btn" style="background:#3498DB;font-size:.72rem;padding:5px 10px" onclick="ZEvt.adminStatus()">🔄 Status aktualisieren</button>
+
+          <div class="padmin-section-title" style="margin-top:14px">🔴🔵 Team-Event (Rot gegen Blau)</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:6px;line-height:1.5">Alle online sichtbaren Spieler werden zufällig gelost. 5 Min: wer mehr MT verdient (nur Zuwachs, Ausgaben zählen nicht), das Gewinner-Team bekommt sein selbst Verdientes ×5. Mit eigenem Song.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center">
+            <select id="zev-t-secs" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="10">Countdown 10s</option><option value="20" selected>Countdown 20s</option><option value="30">Countdown 30s</option></select>
+            <select id="zev-t-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="1">1 Min</option><option value="3">3 Min</option><option value="5" selected>5 Min</option><option value="10">10 Min</option></select>
+            <label style="font-size:.76rem;color:rgba(255,255,255,.7)"><input type="checkbox" id="zev-t-self" checked style="vertical-align:middle"> ich spiele mit</label>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#C0392B" onclick="ZEvt.adminTeamStart(parseInt(document.getElementById('zev-t-secs').value),document.getElementById('zev-t-self').checked,parseInt(document.getElementById('zev-t-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt.adminTeamStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">💰 Schatzsuche</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <input id="zev-s-n" type="number" min="1" max="40" value="10" placeholder="Anzahl" style="width:90px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem">
+            <input id="zev-s-prize" type="number" min="0" value="200" placeholder="Preis (MT)" style="width:120px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#B8860B" onclick="ZEvt.adminTreasureStart(parseInt(document.getElementById('zev-s-n').value)||10,parseFloat(document.getElementById('zev-s-prize').value)||0);setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt.adminTreasureStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">🌙 Mond-Schwerkraft (Chaos)</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <select id="zev-g-mult" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="2">2× weniger</option><option value="5" selected>5× weniger</option><option value="10">10× weniger</option></select>
+            <select id="zev-g-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="1">1 Min</option><option value="3" selected>3 Min</option><option value="5">5 Min</option><option value="10">10 Min</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#2980B9" onclick="ZEvt.adminChaosStart(parseFloat(document.getElementById('zev-g-mult').value),parseFloat(document.getElementById('zev-g-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt.adminChaosStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">🔦 Spotlight</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <select id="zev-spot-name" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"></select>
+            <input id="zev-spot-text" maxlength="60" placeholder="Text (z.B. Sieger!)" style="flex:1;min-width:120px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem">
+            <select id="zev-spot-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="1">1 Min</option><option value="2" selected>2 Min</option><option value="5">5 Min</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#D4AC0D;color:#000" onclick="ZEvt.adminSpot(document.getElementById('zev-spot-name').value,document.getElementById('zev-spot-text').value,parseInt(document.getElementById('zev-spot-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">🔦 Anstrahlen</button><button class="padmin-btn" style="background:#555" onclick="ZEvt.adminSpotStop()">⏹️ Aus</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">🎬 Event-Rückblick</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:6px;line-height:1.5">„Event beginnt" startet die Aufnahme (MT, Slaps, Tode, Schätze, Event-Siege). „Event vorbei" wertet aus und zeigt allen eine Zusammenfassung.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#27AE60" onclick="ZEvt.adminRecStart();setTimeout(()=>ZEvt.adminStatus(),900)">⏺️ Event beginnt</button><button class="padmin-btn" style="background:#8E44AD" onclick="ZEvt.adminRecStop();setTimeout(()=>ZEvt.adminStatus(),1500)">⏹️ Event vorbei</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">📅 Fahrplan</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:6px;line-height:1.5">Läuft nur, solange dein Admin-Fenster offen bleibt (kein Server). Ich spiele dann automatisch mit.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <input id="zev-sc-at" type="datetime-local" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem">
+            <select id="zev-sc-type" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="recstart">⏺️ Rückblick START</option><option value="team">🔴🔵 Team-Event</option><option value="battle">⚔️ Kampf-Event</option><option value="treasure">💰 Schatzsuche</option><option value="lowgrav">🌙 Mond-Schwerkraft</option><option value="recstop">⏹️ Rückblick STOP</option></select>
+            <button class="padmin-btn" style="background:#2C3E50;padding:6px 12px" onclick="(function(){const v=document.getElementById('zev-sc-at').value; if(!v){ZP.toast('❗ Zeit wählen');return;} ZEvt.adminSchedOn(); ZEvt.adminSchedAdd(new Date(v).getTime(),document.getElementById('zev-sc-type').value);})()">➕ Einplanen</button>
+          </div>
+          <div id="zev-sched-list" style="background:rgba(255,255,255,.04);border-radius:10px;padding:8px 10px"></div>
+        </div>
         <!-- TAB: BATTLE -->
         <div class="padmin-tab" id="padmin-tab-battle" style="display:none">
           <div class="padmin-section-title">⚔️ Kampf-Event: Last Man Standing</div>
