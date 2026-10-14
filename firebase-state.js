@@ -75,12 +75,14 @@ const State = {
     },
     get(name) { if(!name)return null; const lc=name.toLowerCase(); const all=this.getAll(); return all[lc]||all[name]||null; },
     set(name, player) {
+      if (player && player._embedGuest) return; // Gast-Spielstand nie lokal speichern
       const all = this.getAll();
       player.updatedAt = Date.now(); // Always stamp with current time
       all[name.toLowerCase()] = player;
       localStorage.setItem('mischa_players', JSON.stringify(all));
     },
     save(player) {
+      if (player && player._embedGuest) return; // Gast-Spielstand nie lokal speichern
       const all = this.getAll();
       all[player.name.toLowerCase()] = { ...player, updatedAt: Date.now() };
       localStorage.setItem('mischa_players', JSON.stringify(all));
@@ -271,6 +273,7 @@ const State = {
   },
 
   async savePlayer(player) {
+    if (player && player._embedGuest) { console.log('[Embed-debug] Gast-Spielstand — Speichern übersprungen'); return; }
     const key = player.name.toLowerCase();
     // PROGRESS-LOSS WATCHDOG: every single save (task completion, admin
     // action, reset, whatever) goes through this one function, so it's the

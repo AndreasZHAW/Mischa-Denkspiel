@@ -21,7 +21,7 @@
     }catch(e){}
   })();
   </script>
-  <link rel="stylesheet" href="main.css?v=612">
+  <link rel="stylesheet" href="main.css?v=613">
   <link rel="stylesheet" href="game.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
   <style>
@@ -173,6 +173,9 @@
     window.history.replaceState({}, '', 'index.html');
     return;
   }
+  // Aus dem Zoo / der Spielhölle (iframe) NIE das Intro dazwischenschieben — das war der Grund für
+  // „man muss sich anmelden“: nach >10 Min wurde das Spiel-Fenster zum Intro umgeleitet.
+  { const _q=new URLSearchParams(window.location.search); if(_q.get('fromZoo')==='1' || _q.get('embed')==='1') return; }
   const tsL = parseInt(localStorage.getItem(key) || '0');
   const tsS = parseInt(sessionStorage.getItem(key) || '0');
   const ts = Math.max(tsL, tsS);
@@ -222,38 +225,38 @@
     });
   </script>
   <!-- Core -->
-  <script src="worlds.js?v=612"></script>
-  <script src="firebase-state.js?v=612"></script>
+  <script src="worlds.js?v=613"></script>
+  <script src="firebase-state.js?v=613"></script>
   <!-- Games -->
-  <script src="math.js?v=612"></script>
-  <script src="reaction.js?v=612"></script>
-  <script src="memory.js?v=612"></script>
-  <script src="sokoban.js?v=612"></script>
-  <script src="shutthebox.js?v=612"></script>
-  <script src="jenga.js?v=612"></script>
-  <script src="slider.js?v=612"></script>
-  <script src="wordsearch.js?v=612"></script>
-  <script src="typing.js?v=612"></script>
-  <script src="balloon.js?v=612"></script>
-  <script src="simon.js?v=612"></script>
-  <script src="truefalse.js?v=612"></script>
-  <script src="dart.js?v=612"></script>
-  <script src="pacman.js?v=612"></script>
-  <script src="catapult.js?v=612"></script>
-  <script src="starwars.js?v=612"></script>
-  <script src="pong2.js?v=612"></script>
-  <script src="tetris.js?v=612"></script>
-  <script src="stunt.js?v=612"></script>
-  <script src="anagram.js?v=612"></script>
-  <script src="colormix.js?v=612"></script>
-  <script src="minigames.js?v=612"></script>
-  <script src="shop.js?v=612"></script>
+  <script src="math.js?v=613"></script>
+  <script src="reaction.js?v=613"></script>
+  <script src="memory.js?v=613"></script>
+  <script src="sokoban.js?v=613"></script>
+  <script src="shutthebox.js?v=613"></script>
+  <script src="jenga.js?v=613"></script>
+  <script src="slider.js?v=613"></script>
+  <script src="wordsearch.js?v=613"></script>
+  <script src="typing.js?v=613"></script>
+  <script src="balloon.js?v=613"></script>
+  <script src="simon.js?v=613"></script>
+  <script src="truefalse.js?v=613"></script>
+  <script src="dart.js?v=613"></script>
+  <script src="pacman.js?v=613"></script>
+  <script src="catapult.js?v=613"></script>
+  <script src="starwars.js?v=613"></script>
+  <script src="pong2.js?v=613"></script>
+  <script src="tetris.js?v=613"></script>
+  <script src="stunt.js?v=613"></script>
+  <script src="anagram.js?v=613"></script>
+  <script src="colormix.js?v=613"></script>
+  <script src="minigames.js?v=613"></script>
+  <script src="shop.js?v=613"></script>
   <!-- App -->
-  <script src="french.js?v=612"></script>
-<script src="lang.js?v=612"></script>
-  <script src="rewardchests.js?v=612"></script>
-  <script src="personality.js?v=612"></script>
-  <script src="app.js?v=612"></script>
+  <script src="french.js?v=613"></script>
+<script src="lang.js?v=613"></script>
+  <script src="rewardchests.js?v=613"></script>
+  <script src="personality.js?v=613"></script>
+  <script src="app.js?v=613"></script>
   <script>
     // Prevent double-tap zoom on touch devices
     let _lastTouch = 0;
@@ -356,7 +359,7 @@
     async function boot() {
       // Show version for debugging
       const vEl = document.getElementById('load-status');
-      if(vEl) vEl.textContent = 'v612 wird geladen...';
+      if(vEl) vEl.textContent = 'v613 wird geladen...';
       // STEP 0: Check maintenance mode FIRST
       if(await checkMaintenance()) return; // game locked, stop here
 
@@ -382,16 +385,31 @@
       const fromZoo = new URLSearchParams(location.search).get('fromZoo')==='1';
       const reportPlayerName = new URLSearchParams(location.search).get('reportPlayer');
       const meParam = new URLSearchParams(location.search).get('me');
-      const savedName = fromZoo ? (sessionStorage.getItem('mischa_current') || meParam) : null;
+      const _isEmbed = !!window.MISCHA_EMBED;
+      // Im Spiel-Fenster (Spielhölle) zählt der Name aus der URL, nicht ein evtl. veralteter sessionStorage-Eintrag
+      const savedName = fromZoo ? (_isEmbed ? (meParam || sessionStorage.getItem('mischa_current')) : (sessionStorage.getItem('mischa_current') || meParam)) : null;
       console.log('[Session-debug] boot(): fromZoo='+fromZoo+' reportPlayer='+reportPlayerName+' sessionStorage.mischa_current='+sessionStorage.getItem('mischa_current')+' meParam='+meParam+' → savedName='+savedName);
       if (fromZoo && savedName) {
         if(vEl) vEl.textContent = 'Sitzung wird geprüft...';
         try {
           await window._firebaseLoadPromise;
           try { initFirebase(); } catch(e) {}
-          const p = await Promise.race([State.getPlayer(savedName), new Promise(r=>setTimeout(()=>r(null),4000))]);
+          let p = await Promise.race([State.getPlayer(savedName), new Promise(r=>setTimeout(()=>r(null),_isEmbed?6000:4000))]);
+          // Spielhölle: bei Timeout bis zu 2× nochmal versuchen, statt auf der Login-Seite zu landen
+          for (let _try=1; !p && _isEmbed && _try<=2; _try++) {
+            console.log('[Embed-debug] Spielstand nicht geladen — Versuch '+(_try+1)+'/3');
+            if(vEl) vEl.textContent = 'Spielstand wird geladen... ('+(_try+1)+'/3)';
+            p = await Promise.race([State.getPlayer(savedName), new Promise(r=>setTimeout(()=>r(null),4000))]);
+          }
+          // Notfall-Modus (nur in der Spielhölle): Gast-Spielstand, der NIE gespeichert wird —
+          // so kann man trotzdem spielen, und der Zoo bekommt das Ergebnis per Nachricht.
+          if (!p && _isEmbed && !isNaN(parseInt(new URLSearchParams(location.search).get('game')))) {
+            console.log('[Embed-debug] Notfall-Modus: Gast-Spielstand für '+savedName+' (wird nicht gespeichert)');
+            p = { name: savedName, password: null, birthYear: null, ageRange: null, character: null, characterColor: null,
+                  currentWorld: 1, worlds: State._emptyWorlds(), totalScore: 0, createdAt: Date.now(), _embedGuest: true };
+          }
           if (p) {
-            State.setCurrentPlayer(p);
+            if (p._embedGuest) { State.currentPlayer = p; } else State.setCurrentPlayer(p);
             // Came from the Zoo's "Spieler melden" flow — go straight to
             // the player-report page instead of the World Map, so the
             // person doesn't have to navigate there themselves.

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v612 -->
+<!-- ZOO v613 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=612"></script>
-<script src="rewardchests.js?v=612"></script>
-<script src="personality.js?v=612"></script>
+<script src="lang.js?v=613"></script>
+<script src="rewardchests.js?v=613"></script>
+<script src="personality.js?v=613"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v612','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v613','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,8 +527,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=612"></script>
-<script src="worlds.js?v=612"></script>
+<script src="firebase-state.js?v=613"></script>
+<script src="worlds.js?v=613"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -17303,10 +17303,131 @@ const Arcade={
       this._room.visible=true; this._active=true; ZG._arcadeActive=true;
       ZG.pl.x=this.CX; ZG.pl.z=this.CZ+1; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0;
       console.log('[Arcade-debug] betreten');
-      ZP.toast('🕹️ Willkommen in der Spielhölle! Geh zu einem Automaten und tippe ihn an.',3500);
+      ZP.toast('🕹️ Geh zu einem Automaten — das Spiel startet automatisch!',3500);
     };
-    this._fade(go);
+    if(this._entering) return; this._entering=true;
+    setTimeout(()=>{ this._entering=false; },5600);
+    try{ this._coaster(go); }catch(e){ console.log('[Arcade-debug] Coaster-Fehler: '+e.message); this._fade(go); }
   },
+  // ═══ 🎢 Achterbahn-/Rutschen-Intro (≈4,5 s) beim Betreten der Spielhölle ═══
+  _coaster(onMid){
+    const T=4600, MID=3500;
+    const ov=document.createElement('div');
+    ov.id='arc-coaster';
+    ov.style.cssText='position:fixed;inset:0;z-index:99995;background:#05030c;opacity:0;transition:opacity .35s;overflow:hidden;touch-action:none';
+    const cv=document.createElement('canvas');
+    cv.style.cssText='position:absolute;inset:0;width:100%;height:100%';
+    ov.appendChild(cv);
+    const txt=document.createElement('div');
+    txt.style.cssText='position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) scale(.85);text-align:center;color:#fff;font-family:Arial Black,Arial,sans-serif;font-weight:900;padding:0 6vw;opacity:0;transition:opacity .6s,transform .6s;text-shadow:0 0 18px #ff8a00,0 0 40px #c0392b,0 3px 0 #000;pointer-events:none';
+    txt.innerHTML='<div style="font-size:clamp(1rem,4vw,1.5rem);letter-spacing:.2em;color:#FFD700">WELCOME TO</div>'
+      +'<div style="font-size:clamp(1.7rem,7.5vw,3.6rem);line-height:1.1;margin-top:6px">JANOSCH’S<br>UNDERGROUND<br>GAME WORLD</div>'
+      +'<div style="font-size:1.6rem;margin-top:10px">🎄🕹️🎢</div>';
+    ov.appendChild(txt);
+    const skip=document.createElement('div');
+    skip.textContent='Tippen zum Überspringen';
+    skip.style.cssText='position:absolute;bottom:14px;left:0;right:0;text-align:center;color:rgba(255,255,255,.45);font:600 .75rem Arial';
+    ov.appendChild(skip);
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>{ ov.style.opacity='1'; });
+    // ── Musik: unsere Pentatonik-Melodie, schneller + steigend, dazu Fahrtwind ──
+    try{
+      if(ZSound.style!=='off'){
+        const notes=[523,659,784,659,523,392,440,523,659,784,1047,784];
+        notes.forEach((f,i)=>{ ZSound._tone(f,0.3,'sine',0.13,i*0.34); ZSound._tone(f/2,0.3,'triangle',0.07,i*0.34); });
+        [784,988,1175,1568].forEach((f,i)=>ZSound._tone(f,0.5,'sine',0.12,3.5+i*0.12));
+        const c=ZSound.ctx; if(c){
+          const len=c.sampleRate*3.6, buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+          for(let i=0;i<len;i++) d[i]=(Math.random()*2-1);
+          const src=c.createBufferSource(); src.buffer=buf;
+          const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=.8; bp.frequency.setValueAtTime(300,c.currentTime); bp.frequency.exponentialRampToValueAtTime(2400,c.currentTime+3.4);
+          const g=c.createGain(); g.gain.setValueAtTime(.0001,c.currentTime); g.gain.linearRampToValueAtTime(.16,c.currentTime+2.2); g.gain.linearRampToValueAtTime(.0001,c.currentTime+3.6);
+          src.connect(bp); bp.connect(g); g.connect(c.destination); src.start();
+        }
+      }
+    }catch(e){}
+    const ctx=cv.getContext('2d');
+    const dpr=Math.min(window.devicePixelRatio||1,1.5);
+    const W=cv.width=Math.round(window.innerWidth*dpr), H=cv.height=Math.round(window.innerHeight*dpr);
+    const t0=performance.now(); let midDone=false, finished=false, raf=0;
+    const stars=[]; for(let i=0;i<70;i++) stars.push({a:Math.random()*Math.PI*2,r:Math.random(),s:.4+Math.random()});
+    const finish=()=>{
+      if(finished) return; finished=true; cancelAnimationFrame(raf);
+      if(!midDone){ midDone=true; try{ onMid&&onMid(); }catch(e){ console.log('[Arcade-debug] Intro-Fehler: '+e.message); } }
+      ov.style.opacity='0'; setTimeout(()=>ov.remove(),450);
+    };
+    ov.addEventListener('pointerdown',()=>{ if(performance.now()-t0>900) finish(); });
+    const frame=(now)=>{
+      if(finished) return;
+      const t=now-t0, s=t/1000;
+      if(!midDone && t>=MID){ midDone=true; try{ onMid&&onMid(); }catch(e){ console.log('[Arcade-debug] Intro-Fehler: '+e.message); } }
+      if(t>=T){ finish(); return; }
+      // Geschwindigkeit & Neigung: erst Anstieg (langsam, Blick nach oben), dann Abfahrt
+      const climb=Math.min(1,s/1.0), drop=Math.max(0,Math.min(1,(s-1.0)/0.5));
+      const speed=(s<1?2.2:2.2+Math.min(14,(s-1)*9));
+      const pitch=(s<1?-.16*climb:(-.16+drop*.52))*Math.min(1,Math.max(0,1-(s-3.2)*.6))+(s>1.5?Math.sin(s*1.6)*.07:0);
+      dist=(typeof dist==='number'?dist:0)+speed*0.016;
+      const roll=Math.sin(s*2.1)*.20+(s>1.2?Math.sin(s*3.7)*.06:0);
+      ctx.setTransform(1,0,0,1,0,0);
+      const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#0b0620'); bg.addColorStop(1,'#1d0b2e');
+      ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+      ctx.translate(W/2,H/2); ctx.rotate(roll); ctx.translate(-W/2,-H/2);
+      const hy=H*(.5+pitch), f=H*.62;
+      // Sterne/Funken, die nach aussen sausen (Geschwindigkeitsgefühl)
+      ctx.lineCap='round';
+      stars.forEach(st=>{
+        st.r+=st.s*0.012*(speed/6)+0.002; if(st.r>1.1){ st.r=.05+Math.random()*.1; st.a=Math.random()*Math.PI*2; }
+        const r0=st.r*Math.max(W,H)*.65, r1=r0+speed*3*st.r;
+        ctx.strokeStyle='rgba(255,'+Math.round(200+55*st.s%55)+',160,'+Math.min(.85,st.r*.9)+')'; ctx.lineWidth=1+st.r*2*dpr;
+        ctx.beginPath(); ctx.moveTo(W/2+Math.cos(st.a)*r0,hy+Math.sin(st.a)*r0*.8); ctx.lineTo(W/2+Math.cos(st.a)*r1,hy+Math.sin(st.a)*r1*.8); ctx.stroke();
+      });
+      // Tunnel-Ringe + Schienen: von hinten nach vorn
+      const N=34, step=.9, base=dist%step;
+      const path=(z)=>({ x:Math.sin((dist+z)*.22)*1.9*(s>1?1:.2)*Math.min(1,z/6), y:Math.sin((dist+z)*.17)*.8*(s>1?1:0) });
+      let prev=null;
+      for(let k=N;k>=1;k--){
+        const z=k*step-base; if(z<.35) continue;
+        const p=path(z), sc=f/z;
+        const cx=W/2+(p.x-path(.5).x*0)*sc*0.55, cy=hy+p.y*sc*0.5, R=2.3*sc;
+        const hue=(k*14+s*120)%360;
+        const a=Math.max(.04,Math.min(1,1.25-z/N/step));
+        ctx.strokeStyle='hsla('+hue+',95%,62%,'+a+')'; ctx.lineWidth=Math.max(1,2.4*sc*.12)*dpr;
+        ctx.beginPath(); ctx.ellipse(cx,cy,R,R*.92,0,0,Math.PI*2); ctx.stroke();
+        // Schienen (zwei Linien unten) + Schwelle
+        const rx=R*.34, ry=cy+R*.62;
+        if(prev){
+          ctx.strokeStyle='rgba(235,235,255,'+a+')'; ctx.lineWidth=Math.max(1,.07*sc)*dpr;
+          ctx.beginPath(); ctx.moveTo(prev.cx-prev.rx,prev.ry); ctx.lineTo(cx-rx,ry); ctx.moveTo(prev.cx+prev.rx,prev.ry); ctx.lineTo(cx+rx,ry); ctx.stroke();
+        }
+        ctx.strokeStyle='rgba(160,110,60,'+a+')'; ctx.lineWidth=Math.max(1,.06*sc)*dpr;
+        ctx.beginPath(); ctx.moveTo(cx-rx*1.25,ry); ctx.lineTo(cx+rx*1.25,ry); ctx.stroke();
+        // Lichterkette an der Wand (weihnachtlich)
+        if(k%2===0){
+          const ang=(k*1.7)%(Math.PI*2);
+          ctx.fillStyle='hsla('+((k*47)%360)+',100%,70%,'+a+')';
+          ctx.beginPath(); ctx.arc(cx+Math.cos(ang)*R,cy+Math.sin(ang)*R*.92,Math.max(1.5,.11*sc*.5)*dpr,0,Math.PI*2); ctx.fill();
+        }
+        prev={cx,ry,rx};
+      }
+      // Tunnelende: heller werdender Lichtfleck
+      const glow=ctx.createRadialGradient(W/2,hy,0,W/2,hy,H*.35);
+      glow.addColorStop(0,'rgba(255,240,200,'+(.25+Math.min(.65,Math.max(0,(s-2.6)*.7)))+')'); glow.addColorStop(1,'rgba(255,160,80,0)');
+      ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
+      // Vorne am Wagen: Haltebügel
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.fillStyle='rgba(20,14,30,.95)'; ctx.fillRect(0,H*.93,W,H*.07);
+      ctx.strokeStyle='#c0392b'; ctx.lineWidth=H*.025; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(W*.12,H); ctx.quadraticCurveTo(W*.12,H*.80,W*.34,H*.80); ctx.lineTo(W*.66,H*.80); ctx.quadraticCurveTo(W*.88,H*.80,W*.88,H); ctx.stroke();
+      // Titel
+      if(s>2.4 && txt.style.opacity!=='1'){ txt.style.opacity='1'; txt.style.transform='translateY(-50%) scale(1)'; }
+      if(s>3.5){ const w=Math.min(1,(s-3.5)/.5); ctx.fillStyle='rgba(255,255,255,'+(.55*(1-Math.abs(w-.5)*2)+.05)+')'; ctx.fillRect(0,0,W,H); }
+      raf=requestAnimationFrame(frame);
+    };
+    var dist=0;
+    raf=requestAnimationFrame(frame);
+    setTimeout(finish,T+800);
+  },
+
   leave(){
     if(!this._active) return;
     const go=()=>{
@@ -17341,11 +17462,20 @@ const Arcade={
     this._nearIdx=best;
     this._machines.forEach(m=>{ if(m.glow) m.glow.material.opacity=(m.i===best)?.95:.35; });
     this._nearExit=best<0 && this._exit && Math.hypot(px-this._exit.x,pz-this._exit.z)<6;
+    // ▶ Automatisch starten: kurz vor dem Automaten stehen → erst Beschreibung, dann Spiel
+    if(best>=0){
+      const bm=this._machines.find(m=>m.i===best); const bd=bm?Math.hypot(bm.x-px,bm.z-pz):99;
+      if(bd<=5.2 && !World1._ov && this._blockIdx!==best){
+        if(this._dwellIdx!==best){ this._dwellIdx=best; this._dwellT=Date.now(); }
+        else if(Date.now()-this._dwellT>=650){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
+      } else if(bd>5.2){ this._dwellIdx=-1; }
+      if(this._blockIdx===best && bd>9) this._blockIdx=-1;
+    } else { this._dwellIdx=-1; if(this._blockIdx!==-1 && this._blockIdx!==undefined){ /* bleibt gesperrt bis weg vom Automaten */ const bm2=this._machines.find(m=>m.i===this._blockIdx); if(!bm2||Math.hypot(bm2.x-px,bm2.z-pz)>9) this._blockIdx=-1; } }
     const p=document.getElementById('arc-prompt'); if(!p) return;
     if(best>=0){
       const g=ARCADE_GAMES[best], L=World1.LUCK[g.id];
       p.style.display='block';
-      p.innerHTML=g.e+' <b>'+g.n+'</b>'+(L?' · 🍀 bis ×'+L.max+' für '+String(L.min).replace('.',',')+' Min':'')+'<br><span style="color:#FFD700;font-size:.78rem">👆 Tippen oder [E] zum Spielen</span>';
+      p.innerHTML=g.e+' <b>'+g.n+'</b>'+(L?' · 🍀 bis ×'+L.max+' für '+String(L.min).replace('.',',')+' Min':'')+'<br><span style="color:#FFD700;font-size:.78rem">▶ Gleich geht\'s los — oder tippen / [E]</span>';
     } else if(this._nearExit){
       p.style.display='block'; p.innerHTML='🚪 <b>Ausgang</b><br><span style="color:#66ff99;font-size:.78rem">👆 Tippen oder [E] — zurück in den Zoo</span>';
     } else p.style.display='none';
