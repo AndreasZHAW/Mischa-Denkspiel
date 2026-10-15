@@ -449,6 +449,7 @@
       if(c&&c.until>Date.now()) parts.push('🌙 Mond-Schwerkraft läuft noch '+mmss(c.until-Date.now()));
       if(sp&&sp.until>Date.now()) parts.push('🔦 Spotlight auf '+esc(sp.name));
       if(rc) parts.push('🎬 Rückblick: '+({rec:'⏺️ nimmt auf',stopping:'⏳ wertet aus',done:'✅ fertig'}[rc.state]||rc.state));
+      try{ if(window.ZEvt2) parts.push(...ZEvt2.statusParts()); }catch(x){}
       el.innerHTML=parts.join('<br>')||'Nichts aktiv.';
       const sel=document.getElementById('zev-spot-name');
       if(sel){ const names=Object.keys(ZG.otherPl||{}); const cur=sel.value; sel.innerHTML=names.map(n=>'<option>'+esc(n)+'</option>').join('')+'<option>'+esc(me())+'</option>'; if(cur) sel.value=cur; }
@@ -476,9 +477,9 @@
   ];
   const ZMusic=window.ZMusic={
     on:false, ctx:null, bpm:126, _timer:null, _next:0, _step:0, _stopAt:0, _master:null, _lyr:null,
-    play(durMs,mode){
+    play(durMs,mode,cfg){
       if(this.on) return;
-      this.mode=mode||'team'; this.bpm=this.mode==='lullaby'?54:126;
+      this.mode=mode||'team'; this.cfg=cfg||null; this.bpm=this.mode==='lullaby'?54:(this.mode==='boss'&&cfg?cfg.bpm:126);
       try{
         const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
         this.ctx=this.ctx||new AC(); if(this.ctx.state==='suspended') this.ctx.resume();
@@ -488,7 +489,7 @@
         const len=this.ctx.sampleRate; const b=this.ctx.createBuffer(1,len,this.ctx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1; this._noise=b;
         this.on=true; this._step=0; this._next=this.ctx.currentTime+0.15; this._stopAt=Date.now()+(durMs||300000); this._t0=Date.now();
         this._timer=setInterval(()=>this._sched(),80);
-        if(this.mode!=='lullaby') this._lyrUI();
+        if(this.mode==='team') this._lyrUI();
         if(this.mode==='lullaby') this._lullSetup();
       }catch(e){ console.log('[Music-debug] '+e.message); }
     },
@@ -516,6 +517,7 @@
         return;
       }
       const s16=spb/4;
+      if(this.mode==='boss'){ while(this._next<c.currentTime+0.35){ this._playBoss(this._step,this._next,spb); this._next+=s16; this._step++; } return; }
       while(this._next<c.currentTime+0.35){ this._play16(this._step,this._next,spb); this._next+=s16; this._step++; }
       // Songtext nach Takt (2 Takte pro Zeile)
       if(this._lyr){ const bar=Math.floor(this._step/16); const li=Math.floor(bar/2)%LYRICS.length; const txt='🎵 '+LYRICS[li]; if(this._lyr.textContent!==txt) this._lyr.textContent=txt; }
@@ -555,6 +557,22 @@
       // verträumte hohe Funken (Sterne)
       if(s===5 && Math.random()<.45){ const P=[84,86,88,91,93]; this._bell(t+Math.random()*.2,P[Math.floor(Math.random()*P.length)],spb*2.2,.07); }
     },
+    // ── Boss-Musik (5 Themen über cfg): Bass, Riff, Drums, Boss-Puls ──
+    _playBoss(step,t,spb){
+      const C=this.cfg||{}, s=step%16, bar=Math.floor(step/16);
+      const sc=C.scale||[0,2,3,5,7,8,10];
+      const deg=d=>{ const o=Math.floor(d/sc.length); return C.root+sc[((d%sc.length)+sc.length)%sc.length]+12*o; };
+      if(C.kick&&C.kick[s]==='x') this._kick(t);
+      if(C.snare&&C.snare[s]==='x') this._snare(t);
+      if(C.hat&&C.hat[s]==='x') this._hat(t,s===14);
+      const rf=C.riff[s]; const shift=[0,0,3,2][bar%4];
+      if(rf>=0){
+        this._bossNote(t,deg(rf+shift)+12,spb/4*1.6,C.wave||'sawtooth',.10);
+        if(s%4===0) this._bass(t,deg(rf+shift)-12,spb/2*.9);
+      }
+      if(s===0) this._pad(t,[deg(shift),deg(shift+2),deg(shift+4)].map(m=>m+12),spb*4);
+    },
+    _bossNote(t,m,len,wave,vol){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(); o.type=wave; o.frequency.value=this._note(m); f.type='lowpass'; f.frequency.value=2400; this._env(g,t,.008,len,vol); o.connect(f); f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
     // Dunkles A-Moll: Am – F – C – G (je 1 Takt), 126 BPM
     _play16(step,t,spb){
       const s=step%16, bar=Math.floor(step/16), ci=bar%4;
