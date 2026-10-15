@@ -85,7 +85,7 @@
     },
     _potChanged(){
       const p=this.st.potato;
-      if(!p){ hudOff('zpotato'); this._potClear(); return; }
+      if(!p){ hudOff('zpotato'); this._potClear(); this._potOverAt=0; return; }
       if(p.state==='over' && !seen('potwin',p.id)){
         mark('potwin',p.id);
         if(p.winner){
@@ -96,7 +96,8 @@
     },
     _potLoop(){
       const p=this.st.potato;
-      if(!p||p.state!=='run'){ if(p&&p.state==='over') hud('zpotato','🏆 Kartoffel-Event vorbei'+(p.winner?' · Sieger: '+esc(p.winner):''),'top:96px;background:rgba(0,0,0,.6);padding:6px 14px;border-radius:12px'); else hudOff('zpotato'); this._potMarks(null); return; }
+      if(!p||p.state!=='run'){ if(p&&p.state==='over'&&(this._potOverAt=this._potOverAt||Date.now())&&Date.now()-this._potOverAt<5000) hud('zpotato','🏆 Kartoffel-Event vorbei'+(p.winner?' · Sieger: '+esc(p.winner):''),'top:160px;background:rgba(0,0,0,.6);padding:6px 14px;border-radius:12px'); else hudOff('zpotato'); this._potMarks(null); return; }
+      this._potOverAt=0;
       const left=Math.max(0,Math.ceil((p.roundEnd-Date.now())/1000));
       const n=Object.keys(p.alive||{}).length;
       const mine=!!(p.alive&&p.alive[K(me())]);
@@ -104,7 +105,7 @@
       if(!mine) t='👀 Du bist raus · '+n+' übrig · 💣 bei <b>'+esc(p.holder)+'</b> ('+left+'s)';
       else if(p.holder===me()) t='<span style="color:#ff6b6b">💣 DU HAST DIE KARTOFFEL! Slappe jemanden! '+left+'s</span>';
       else t='💣 '+esc(p.holder)+' hat die Kartoffel ('+left+'s) · '+n+' übrig — lauf weg!';
-      hud('zpotato',t,'top:96px;background:rgba(0,0,0,.65);padding:6px 14px;border-radius:12px;border:2px solid '+(p.holder===me()?'#ff3b3b':'rgba(255,255,255,.25)'));
+      hud('zpotato',t,'top:160px;background:rgba(0,0,0,.65);padding:6px 14px;border-radius:12px;border:2px solid '+(p.holder===me()?'#ff3b3b':'rgba(255,255,255,.25)'));
       this._potMarks(p.holder);
       // Admin steuert die Runden
       if(ZS.isAdmin && Date.now()>p.roundEnd+300 && !this._potBusy){
@@ -138,8 +139,11 @@
     },
     _potClear(){ this._potMarks(null); },
     _emoSprite(emo,sz){
-      const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); x.font='96px serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(emo,64,70);
-      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false})); s.scale.set(sz,sz,1); return s;
+      // Textur pro Emoji nur einmal erzeugen (spart Speicher bei vielen Meteoren/Markierungen)
+      const cache=(window.__zevtTex=window.__zevtTex||{});
+      let t=cache[emo];
+      if(!t){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); x.font='96px serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(emo,64,70); t=cache[emo]=new THREE.CanvasTexture(c); }
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false})); s.scale.set(sz,sz,1); return s;
     },
 
     /* ═══════════ 🦣🐜 RIESEN- & ZWERGEN-TAG ═══════════ */
@@ -156,7 +160,7 @@
         const mul=this.sizeOf(me());
         if(ZG._sizeMul!==mul){ ZG._sizeMul=mul; ZG._sizeSpd=mul>1?0.85:1.35; ZG._sizeJump=mul>1?1.7:0.8;
           big(mul>1?'🦣 Du bist ein RIESE!':'🐜 Du bist ein ZWERG!',mul>1?'#ff9f43':'#7bed9f',2800); }
-        hud('zsize','Riesen- & Zwergen-Tag · noch '+Math.ceil((s.until-Date.now())/60000)+' Min · du: '+(mul>1?'🦣 Riese (hohe Sprünge)':'🐜 Zwerg (schnell)'),'top:96px;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:12px;font-size:.78rem');
+        hud('zsize','Riesen- & Zwergen-Tag · noch '+Math.ceil((s.until-Date.now())/60000)+' Min · du: '+(mul>1?'🦣 Riese (hohe Sprünge)':'🐜 Zwerg (schnell)'),'top:160px;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:12px;font-size:.78rem');
       } else {
         if(ZG._sizeMul){ ZG._sizeMul=0; ZG._sizeSpd=0; ZG._sizeJump=0; hudOff('zsize'); toast('Alle sind wieder normal gross.',2500); }
       }
@@ -258,7 +262,7 @@
       // HP-Leiste
       const pct=Math.max(0,b.hp/b.maxHp*100);
       hud('zbosshud','<div style="font-size:.8rem">'+B.e+' '+esc(B.n)+' · '+Math.ceil(Math.max(0,b.hp))+' / '+b.maxHp+' HP · ⏱ '+Math.max(0,Math.ceil((b.endAt-Date.now())/1000))+'s</div>'
-        +'<div style="width:min(80vw,340px);height:14px;background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:8px;overflow:hidden;margin:3px auto"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+B.col+',#fff3)"></div></div>','top:56px');
+        +'<div style="width:min(80vw,340px);height:14px;background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:8px;overflow:hidden;margin:3px auto"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+B.col+',#fff3)"></div></div>','top:160px');
       // Angriffe (deterministisch aus Seed)
       const now=Date.now();
       const first=b.startAt+2500;

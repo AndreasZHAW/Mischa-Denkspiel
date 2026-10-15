@@ -25,6 +25,12 @@
   const MUSIC={
     // Hardstyle/Rawstyle-Gefühl: 150 BPM, Kick auf jedem Schlag, Offbeat-Bass, kreischender Lead, dunkles Fis-Moll
     zombie:{bpm:150,root:42,scale:[0,2,3,5,7,8,10],wave:'sawtooth',drive:true,bassEvery:2,riff:[0,-1,0,-1,3,-1,2,-1,0,-1,0,-1,5,-1,4,3],kick:'x...x...x...x...',snare:'....x.......x...',hat:'..x...x...x...x.'},
+    // 5 Admin-Lieder (eigene Synth-Kompositionen, ohne Gesang)
+    party:{n:'Party-Alarm',e:'🎉',bpm:128,root:48,scale:[0,2,4,5,7,9,11],wave:'square',bassEvery:2,riff:[0,-1,2,4,-1,4,2,0,5,-1,4,2,-1,0,2,4],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.'},
+    mystery:{n:'Geheimnis',e:'🕵️',bpm:84,root:45,scale:[0,2,3,5,7,8,11],wave:'triangle',riff:[0,-1,-1,3,-1,-1,5,-1,4,-1,-1,2,-1,-1,0,-1],kick:'x.......x.......',snare:'................',hat:'....x.......x...'},
+    hero:{n:'Helden-Fanfare',e:'🏆',bpm:108,root:48,scale:[0,2,4,5,7,9,11],wave:'sawtooth',riff:[0,-1,0,2,4,-1,4,-1,2,4,5,-1,7,-1,4,2],kick:'x...x...x...x...',snare:'....x.......x..x',hat:'..x...x...x...x.'},
+    chase:{n:'Verfolgungsjagd',e:'🏃',bpm:172,root:40,scale:[0,2,3,5,7,8,10],wave:'sawtooth',drive:true,bassEvery:2,riff:[0,0,3,0,5,0,3,0,0,0,6,0,5,3,2,0],kick:'x.x.x.x.x.x.x.x.',snare:'....x.......x...',hat:'xxxxxxxxxxxxxxxx'},
+    disco:{n:'Disco-Fieber',e:'🪩',bpm:116,root:43,scale:[0,2,4,5,7,9,11],wave:'triangle',bassEvery:2,riff:[0,-1,4,-1,5,4,-1,2,0,-1,4,-1,7,5,4,-1],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.xx'},
     // Treibender Synth-Pop mit Moll-Arpeggio und Klatschen, 122 BPM
     sus:{bpm:122,root:45,scale:[0,2,3,5,7,8,10],wave:'square',bassEvery:2,riff:[0,2,4,2,0,2,4,7,0,2,4,2,5,4,2,0],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.'}
   };
@@ -44,13 +50,17 @@
       r.ref('zoo_traitor').on('value',s=>{ this.st.t=s.val(); this._tChanged(); });
       r.ref('zoo_traitor_roles/'+K(me())).on('value',s=>{ this.role=s.val(); this._tChanged(); });
       r.ref('zoo_zombie').on('value',s=>{ this.st.z=s.val(); this._zChanged(); });
+      r.ref('zoo_music').on('value',s=>{ this.st.m=s.val(); this._musChanged(); });
     },
-    _loop(){ try{ this._tLoop(); this._zLoop(); this._enforceEq(); }catch(e){ console.log('[ZEvt3-debug] '+e.message); } },
+    _loop(){ try{ this._tLoop(); this._zLoop(); this._enforceEq(); this._musLoop(); }catch(e){ console.log('[ZEvt3-debug] '+e.message); } },
 
     /* ─── gemeinsame Hilfen ─── */
     _emo(emo,sz){
-      const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); x.font='96px serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(emo,64,70);
-      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false})); s.scale.set(sz,sz,1); return s;
+      // Textur pro Emoji nur einmal erzeugen (spart Speicher bei vielen Meteoren/Markierungen)
+      const cache=(window.__zevtTex=window.__zevtTex||{});
+      let t=cache[emo];
+      if(!t){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); x.font='96px serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(emo,64,70); t=cache[emo]=new THREE.CanvasTexture(c); }
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false})); s.scale.set(sz,sz,1); return s;
     },
     _online(name){ return name===me()||!!(ZG.otherPl&&ZG.otherPl[name]); },
     _music(on,key,mins){ try{ if(on){ if(!ZMusic.on) ZMusic.play((mins||10)*60000,'boss',MUSIC[key]); } else if(ZMusic.mode==='boss'&&ZMusic.on) ZMusic.stop(); }catch(e){} },
@@ -147,8 +157,10 @@
     _tChanged(){
       const t=this.st.t;
       if(!t){ this._tClear(); return; }
-      if(t.id!==this._tId){ this._tId=t.id; this._tClear(true); }
-      if(this.role&&this.role.id===t.id&&!seen('trole',t.id)){ mark('trole',t.id); this._reveal(t); this._music(true,'sus',(t.endAt-Date.now())/60000+25); }
+      if(t.id!==this._tId){ this._tId=t.id; this._tOverAt=0; this._tClear(true); }
+      if(this.role&&this.role.id===t.id&&!seen('trole',t.id)){ mark('trole',t.id); this._reveal(t); this._music(true,'sus',(t.endAt-Date.now())/60000+25);
+        const isT=this.role.r==='T'; big(isT?'🕵️ DU BIST DER VERRÄTER':'🧑‍🚀 DU BIST BESATZUNG',isT?'#ff5a4a':'#7ff0ff',3500);
+        toast(isT?'🕵️ Du bist der VERRÄTER — schalte die Besatzung unauffällig aus!':'🧑‍🚀 Du bist BESATZUNG — finde den Verräter unter uns!',7000); }
       if(this.role&&this.role.id===t.id){
         const k=K(me()), was=this._wasAlive; const now=!!(t.alive&&t.alive[k]);
         if(was===true&&!now&&t.state!=='over') this._becomeGhost();
@@ -207,7 +219,7 @@
       const t=this.st.t; if(!t) return;
       this._tAdminCheck(t);
       if(!this.role||this.role.id!==t.id){
-        if(ZS.isAdmin){ const d=Object.keys(t.dead||{}).length; hud('zthud','👁️ Admin-Ansicht · 🕵️ Verräter: '+({run:'läuft',meeting:'🚨 Besprechung',over:'vorbei'}[t.state]||t.state)+' · '+Object.keys(t.alive||{}).length+'/'+(t.total||0)+' am Leben · '+d+' Leichen'+(t.state!=='over'?' · ⏱ '+mmss(t.endAt-Date.now()):''),'top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px'); }
+        if(ZS.isAdmin){ const d=Object.keys(t.dead||{}).length; hud('zthud','👁️ Admin-Ansicht · 🕵️ Verräter: '+({run:'läuft',meeting:'🚨 Besprechung',over:'vorbei'}[t.state]||t.state)+' · '+Object.keys(t.alive||{}).length+'/'+(t.total||0)+' am Leben · '+d+' Leichen'+(t.state!=='over'?' · ⏱ '+mmss(t.endAt-Date.now()):''),'top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px'); }
         return;
       }
       const k=K(me()); const alive=!!(t.alive&&t.alive[k]);
@@ -220,9 +232,11 @@
       const left=t.state==='over'?'':('⏱ '+mmss(t.endAt-Date.now()));
       const role=this.role.r==='T'?'🕵️ Verräter':'🧑‍🚀 Besatzung';
       const n=Object.keys(t.alive||{}).length;
-      if(t.state==='over') hud('zthud','🏁 Spiel vorbei','top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
-      else if(Date.now()<t.startAt) hud('zthud','Gleich geht\'s los … '+Math.ceil((t.startAt-Date.now())/1000)+'s','top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
-      else hud('zthud',(alive?role:'👻 Geist')+' · '+n+' am Leben · '+left+(alive&&this.role.r!=='T'?'<br><span style="font-weight:600;font-size:.72rem">Tippe eine Leiche 💀 an, um sie zu melden</span>':''),'top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px;border:2px solid '+(this.role.r==='T'?'#ff3b3b':'#7ff0ff'));
+      if(t.state==='over'){ if(!this._tOverAt) this._tOverAt=Date.now(); }
+      if(t.state==='over'&&Date.now()-this._tOverAt>5000) hudOff('zthud');
+      else if(t.state==='over') hud('zthud','🏁 Spiel vorbei','top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
+      else if(Date.now()<t.startAt) hud('zthud','Gleich geht\'s los … '+Math.ceil((t.startAt-Date.now())/1000)+'s','top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
+      else hud('zthud',(alive?role:'👻 Geist')+' · '+n+' am Leben · '+left+(alive&&this.role.r!=='T'?'<br><span style="font-weight:600;font-size:.72rem">Tippe eine Leiche 💀 an, um sie zu melden</span>':''),'top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px;border:2px solid '+(this.role.r==='T'?'#ff3b3b':'#7ff0ff'));
     },
     _tAdminCheck(t){
       if(ZS.isAdmin&&!this._tBusy){
@@ -302,6 +316,22 @@
       this._mtId=null; const el=document.getElementById('ztmeet'); if(el) el.remove(); this._mtEl=null;
     },
 
+    /* ═══════════ 🎵 ADMIN-MUSIK ═══════════ */
+    adminMusicPlay(key,mins){
+      const r=RT(); if(!r){ note('❌ Keine Verbindung'); return; } if(!MUSIC[key]||!MUSIC[key].n){ note('❌ Lied unbekannt'); return; }
+      r.ref('zoo_music').set({id:String(Date.now()),song:key,until:Date.now()+Math.max(1,mins||5)*60000}).then(()=>note('🎵 '+MUSIC[key].e+' '+MUSIC[key].n+' läuft bei allen im Zoo ('+(mins||5)+' Min)')).catch(e=>note('❌ '+((e&&e.message)||e)));
+    },
+    adminMusicStop(){ const r=RT(); if(r) r.ref('zoo_music').set(null); note('⏹️ Admin-Musik gestoppt'); },
+    songs(){ return Object.keys(MUSIC).filter(k=>MUSIC[k].n).map(k=>({key:k,n:MUSIC[k].n,e:MUSIC[k].e})); },
+    _musChanged(){
+      const m=this.st.m;
+      if(!m||m.until<=Date.now()){ if(this._admMus){ this._admMus=null; try{ if(ZMusic.mode==='boss') ZMusic.stop(); }catch(e){} } return; }
+      if(this._admMus===m.id||!MUSIC[m.song]) return;
+      try{ if(ZMusic.on) ZMusic.stop(); }catch(e){}
+      setTimeout(()=>{ try{ this._admMus=m.id; ZMusic.on=false; ZMusic.play(Math.max(1000,m.until-Date.now()),'boss',MUSIC[m.song]); toast('🎵 '+MUSIC[m.song].e+' '+MUSIC[m.song].n,3000); }catch(e){} },300);
+    },
+    _musLoop(){ const m=this.st.m; if(this._admMus&&(!m||m.until<=Date.now())){ this._admMus=null; try{ if(ZMusic.mode==='boss') ZMusic.stop(); }catch(e){} } },
+
     /* ═══════════ 🧟 ZOMBIE-AUSBRUCH ═══════════ */
     adminZombieStart(includeSelf,mins,prize){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
@@ -325,7 +355,7 @@
     _zChanged(){
       const c=this.st.z;
       if(!c){ this._zClear(); return; }
-      if(c.id!==this._zId){ this._zId=c.id; this._zClear(true); }
+      if(c.id!==this._zId){ this._zId=c.id; this._zOverAt=0; this._zClear(true); }
       const k=K(me()); const inEv=!!((c.alive&&c.alive[k])||(c.zombies&&c.zombies[k]));
       if(inEv&&!seen('zstart',c.id)){ mark('zstart',c.id); this._music(true,'zombie',(c.endAt-Date.now())/60000+1);
         const zom=!!(c.zombies&&c.zombies[k]);
@@ -348,9 +378,10 @@
       this._zAdminCheck(c);
       if(!zom&&!hum){ hudOff('zzhud'); return; }
       const nz=Object.keys(c.zombies||{}).length, nh=Object.keys(c.alive||{}).length;
-      if(c.state==='over') hud('zzhud','🏁 Zombie-Event vorbei · '+(c.winner==='zombies'?'🧟 Zombies gewinnen':'🧍 '+nh+' Menschen überlebt'),'top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
-      else if(Date.now()<c.startAt) hud('zzhud','Gleich geht\'s los … '+Math.ceil((c.startAt-Date.now())/1000)+'s','top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
-      else hud('zzhud',(zom?'🧟 Du bist Zombie':'🧍 Du bist Mensch')+' · 🧟 '+nz+' · 🧍 '+nh+' · ⏱ '+mmss(c.endAt-Date.now()),'top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px;border:2px solid '+(zom?'#7bed4f':'#ffd166'));
+      if(c.state==='over'){ if(!this._zOverAt) this._zOverAt=Date.now(); if(Date.now()-this._zOverAt>5000){ hudOff('zzhud'); this._tint(false,'zzfx'); return; } }
+      if(c.state==='over') hud('zzhud','🏁 Zombie-Event vorbei · '+(c.winner==='zombies'?'🧟 Zombies gewinnen':'🧍 '+nh+' Menschen überlebt'),'top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
+      else if(Date.now()<c.startAt) hud('zzhud','Gleich geht\'s los … '+Math.ceil((c.startAt-Date.now())/1000)+'s','top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px');
+      else hud('zzhud',(zom?'🧟 Du bist Zombie':'🧍 Du bist Mensch')+' · 🧟 '+nz+' · 🧍 '+nh+' · ⏱ '+mmss(c.endAt-Date.now()),'top:160px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px;border:2px solid '+(zom?'#7bed4f':'#ffd166'));
       this._tint(zom&&c.state==='run','zzfx','radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(60,160,30,.35) 100%)');
       if(zom){ if(!ZG._sizeMul) ZG._sizeSpd=1.1; } else if(!ZG._sizeMul&&ZG._sizeSpd===1.1) ZG._sizeSpd=0;
       // Zombie-Markierung über den Köpfen
@@ -379,6 +410,7 @@
       const out=[]; const t=this.st.t, z=this.st.z;
       if(t){ out.push('🕵️ Verräter: '+({run:'läuft',meeting:'🚨 Besprechung',over:'vorbei ('+(t.winner==='crew'?'Besatzung':'Verräter')+' gewinnt)'}[t.state]||t.state)+' · '+Object.keys(t.alive||{}).length+'/'+(t.total||0)+' am Leben'+(t.state!=='over'?' · '+mmss(t.endAt-Date.now()):'')); }
       if(z){ out.push('🧟 Zombie: '+(z.state==='run'?'läuft':'vorbei')+' · 🧟 '+Object.keys(z.zombies||{}).length+' · 🧍 '+Object.keys(z.alive||{}).length+(z.state==='run'?' · '+mmss(z.endAt-Date.now()):'')); }
+      if(this.st.m&&this.st.m.until>Date.now()&&MUSIC[this.st.m.song]) out.push('🎵 Admin-Musik: '+MUSIC[this.st.m.song].e+' '+MUSIC[this.st.m.song].n+' · noch '+mmss(this.st.m.until-Date.now()));
       return out;
     }
   };
