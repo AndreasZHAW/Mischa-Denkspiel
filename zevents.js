@@ -103,7 +103,7 @@
     _myTeam(){ const t=this.st.team; const p=t&&t.players&&t.players[K(me())]; return p?p.t:null; },
     _teamChanged(){
       const t=this.st.team;
-      if(!t){ this._hudRemove('zteam'); ZMusic.stop(); return; }
+      if(!t){ this._hudRemove('zteam'); if(ZMusic.mode==='team') ZMusic.stop(); return; }
       if(Date.now()>t.endAt+30000){ return; }
       const mine=this._myTeam();
       if(mine && !seen('teamjoin',t.id) && Date.now()<t.endAt){
@@ -129,7 +129,7 @@
         return;
       }
       // beendet
-      this._hudRemove('zteam'); ZMusic.stop(); this._clearMarkers();
+      this._hudRemove('zteam'); if(ZMusic.mode==='team') ZMusic.stop(); this._clearMarkers();
       if(seen('teamdone',t.id)) return;
       if(!this._tFinal){
         this._tFinal=true;
@@ -494,7 +494,7 @@
         this.on=true; this._step=0; this._next=this.ctx.currentTime+0.15; this._stopAt=Date.now()+(durMs||300000); this._t0=Date.now();
         this._timer=setInterval(()=>this._sched(),80);
         if(this.mode==='team') this._lyrUI();
-        if(this.mode==='lullaby') this._lullSetup();
+        if(this.mode==='lullaby'||(cfg&&cfg.echo)) this._lullSetup();
       }catch(e){ console.log('[Music-debug] '+e.message); }
     },
     stop(){
@@ -521,7 +521,7 @@
         return;
       }
       const s16=spb/4;
-      if(this.mode==='boss'){ while(this._next<c.currentTime+0.35){ this._playBoss(this._step,this._next,spb); this._next+=s16; this._step++; } return; }
+      if(this.mode==='boss'){ const fn=(this.cfg&&this.cfg.style)?'_playSong':'_playBoss'; while(this._next<c.currentTime+0.35){ this[fn](this._step,this._next,spb); this._next+=s16; this._step++; } return; }
       while(this._next<c.currentTime+0.35){ this._play16(this._step,this._next,spb); this._next+=s16; this._step++; }
       // Songtext nach Takt (2 Takte pro Zeile)
       if(this._lyr){ const bar=Math.floor(this._step/16); const li=Math.floor(bar/2)%LYRICS.length; const txt='🎵 '+LYRICS[li]; if(this._lyr.textContent!==txt) this._lyr.textContent=txt; }
@@ -577,7 +577,74 @@
       if(C.bassEvery && s%C.bassEvery===0) this._bass(t,deg(shift)-12+(s%4===2?0:0),spb/4*C.bassEvery*.9);
       if(s===0) this._pad(t,[deg(shift),deg(shift+2),deg(shift+4)].map(m=>m+12),spb*4);
     },
-    _bossNote(t,m,len,wave,vol,drive){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(); o.type=wave; o.frequency.value=this._note(m); f.type='lowpass'; f.frequency.value=drive?4200:2400; this._env(g,t,.008,len,vol); o.connect(f); if(drive){ const w=c.createWaveShaper(); const cv=new Float32Array(256); for(let i=0;i<256;i++){ const x=i/128-1; cv[i]=Math.tanh(x*5); } w.curve=cv; f.connect(w); w.connect(g); } else f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
+    _bossNote(t,m,len,wave,vol,drive){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(); o.type=wave; o.frequency.value=this._note(m); f.type='lowpass'; f.frequency.value=drive?4200:2400; this._env(g,t,.008,len,vol); o.connect(f); if(drive){ const w=c.createWaveShaper(); const cv=new Float32Array(257); for(let i=0;i<257;i++){ const x=i/128-1; cv[i]=Math.tanh(x*5); } w.curve=cv; f.connect(w); w.connect(g); } else f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
+
+    /* ═══ 5 Admin-Lieder — jedes mit eigenem Klang, Takt, Akkorden und Schlagzeug ═══ */
+    _clap(t){ const c=this.ctx,s=c.createBufferSource(); s.buffer=this._noise; const f=c.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1250; f.Q.value=.8; const g=c.createGain(); this._env(g,t,.002,.13,.8); s.connect(f); f.connect(g); g.connect(this._master); s.start(t); s.stop(t+.3); },
+    _tom(t,fr){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.setValueAtTime(fr,t); o.frequency.exponentialRampToValueAtTime(fr/2.2,t+.22); this._env(g,t,.004,.3,.9); o.connect(g); g.connect(this._master); o.start(t); o.stop(t+.4); },
+    _stab(t,ms,len,wave,vol,drive){ ms.forEach(m=>this._bossNote(t,m,len,wave,vol,drive)); },
+    _playSong(step,t,spb){
+      const st=this.cfg.style, s=step%16, bar=Math.floor(step/16), b4=bar%4, b8=bar%8;
+      const rest=-1;
+      if(st==='party'){
+        // C-Dur Party: I–V–vi–IV, Four-on-the-floor, Offbeat-Hi-Hat, Klatschen, hüpfender Bass, Synth-Hook
+        const ROOT=[48,43,45,41][b4], TRI=[[60,64,67],[59,62,67],[60,64,69],[60,65,69]][b4];
+        const HOOK=[[76,rest,79,rest,84,rest,79,rest,76,rest,74,rest,72,rest,rest,rest],[74,rest,79,rest,83,rest,79,rest,74,rest,71,rest,67,rest,rest,rest],[72,rest,76,rest,81,rest,76,rest,72,rest,69,rest,72,rest,76,rest],[77,rest,81,rest,84,rest,81,rest,77,rest,76,rest,74,rest,72,rest]][b4];
+        if(s%4===0) this._kick(t);
+        if(s===4||s===12) this._clap(t);
+        if(s%4===2) this._hat(t,true); else if(s%2===0) this._hat(t,false);
+        if(s%2===0) this._bass(t,ROOT+(s%4===2?12:0),spb/2*.8);
+        if(s%4===2) this._stab(t,TRI.map(m=>m+12),spb*.22,'sawtooth',.045);
+        if(HOOK[s]>0) this._bossNote(t,HOOK[s],spb/4*1.7,'square',.075);
+        return;
+      }
+      if(st==='mystery'){
+        // A-harmonisch-Moll, kein Beat: Herzschlag, Spieluhr-Glocken, tiefer Drone, Echo
+        const CH=[[45,52,57],[41,48,57],[40,47,56],[45,52,57]][b4];
+        const MEL=[{0:76,6:72,10:74},{0:77,6:72,10:69},{0:76,8:80,12:76},{0:72,8:69}][b4];
+        if(s===0){ this._warm(t,CH,spb*4); const o=this.ctx.createOscillator(),g=this.ctx.createGain(); o.type='sine'; o.frequency.value=this._note(CH[0]-12); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(.16,t+spb); g.gain.linearRampToValueAtTime(0.0001,t+spb*4); o.connect(g); g.connect(this._master); o.start(t); o.stop(t+spb*4+.1); }
+        if(s===0||s===3) this._tom(t,s===0?70:60);
+        if(MEL[s]) this._bell(t,MEL[s],spb*2.2,.2);
+        if(s===13&&Math.random()<.5) this._bell(t+Math.random()*.15,[88,91,93][Math.floor(Math.random()*3)],spb*2,.06);
+        if(s===8&&b4%2===1) this._hat(t,true);
+        return;
+      }
+      if(st==='hero'){
+        // C-Dur Fanfare: Pauken, Marsch-Snare, strahlende Blechbläser in Terzen, grosse Flächen
+        const ROOT=[48,53,55,48][b4], TRI=[[60,64,67],[60,65,69],[59,62,67],[60,64,67]][b4];
+        const M=[[[0,72,2],[2,72,1],[3,72,1],[4,76,4],[8,79,6]],[[0,77,2],[2,77,1],[3,77,1],[4,81,4],[8,84,6]],[[0,79,2],[2,79,1],[3,79,1],[4,83,4],[8,86,6]],[[0,84,8],[8,79,4],[12,72,4]]][b4];
+        if(s%4===0) this._tom(t,85);
+        if(s===4||s===12||(b4===3&&s>=12)) this._snare(t);
+        if(s===0) { this._hat(t,true); this._pad(t,TRI,spb*4); }
+        if(s%8===0) this._bass(t,ROOT-12,spb*1.8);
+        M.forEach(([ns,n,l])=>{ if(ns===s){ this._bossNote(t,n,spb/4*l*.95,'sawtooth',.075); this._bossNote(t,n-5,spb/4*l*.95,'sawtooth',.05); this._bossNote(t,n-12,spb/4*l*.95,'square',.03); } });
+        return;
+      }
+      if(st==='chase'){
+        // D-Moll Verfolgungsjagd: 172 BPM, Sechzehntel-Bass, verzerrtes Chromatik-Riff, Snare-Wirbel, Sirene
+        const OFF=[0,rest,0,1,0,rest,rest,3,0,rest,0,1,0,rest,5,3][s], SH=[0,0,-2,-5][b4];
+        if(s%4===0||s===10) this._kick(t);
+        if(s===4||s===12||(b4===3&&s>=8)) this._snare(t);
+        this._hat(t,s%4===2);
+        this._bass(t,38+SH+(s%8>=6?12:0),spb/4*.85);
+        if(OFF>=0) this._bossNote(t,62+SH+OFF,spb/4*1.1,'sawtooth',.06,true);
+        if(s%8===0) this._bossNote(t,(b4%2?84:81)+SH,spb*1.9,'sine',.05);
+        return;
+      }
+      if(st==='disco'){
+        // Disco-Fieber: Oktav-Bass, Hi-Hat-"Chicka", E-Piano-Akkorde auf Offbeats, Streicher, Klatschen
+        const ROOT=[38,43,36,41][b4], CH=[[62,65,69,72],[59,62,65,67],[60,64,67,71],[60,65,69,72]][b4];
+        const LEAD=[{0:74,6:72,10:69},{0:71,6:74,10:79},{0:76,6:72,10:71},{0:77,6:76,10:72}][b4];
+        if(s%4===0) this._kick(t);
+        if(s===4||s===12) this._clap(t);
+        this._hat(t,s%4===2);
+        if(s%2===0) this._bass(t,ROOT+(s%4===2?12:0),spb/2*.7);
+        if(s===3||s===6||s===11||s===14) this._stab(t,CH,spb*.2,'triangle',.05);
+        if(s===0) this._pad(t,CH.slice(0,3).map(m=>m+12),spb*4);
+        if(LEAD[s]) this._bossNote(t,LEAD[s],spb*.9,'triangle',.09);
+        return;
+      }
+    },
     // Dunkles A-Moll: Am – F – C – G (je 1 Takt), 126 BPM
     _play16(step,t,spb){
       const s=step%16, bar=Math.floor(step/16), ci=bar%4;

@@ -25,12 +25,12 @@
   const MUSIC={
     // Hardstyle/Rawstyle-Gefühl: 150 BPM, Kick auf jedem Schlag, Offbeat-Bass, kreischender Lead, dunkles Fis-Moll
     zombie:{bpm:150,root:42,scale:[0,2,3,5,7,8,10],wave:'sawtooth',drive:true,bassEvery:2,riff:[0,-1,0,-1,3,-1,2,-1,0,-1,0,-1,5,-1,4,3],kick:'x...x...x...x...',snare:'....x.......x...',hat:'..x...x...x...x.'},
-    // 5 Admin-Lieder (eigene Synth-Kompositionen, ohne Gesang)
-    party:{n:'Party-Alarm',e:'🎉',bpm:128,root:48,scale:[0,2,4,5,7,9,11],wave:'square',bassEvery:2,riff:[0,-1,2,4,-1,4,2,0,5,-1,4,2,-1,0,2,4],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.'},
-    mystery:{n:'Geheimnis',e:'🕵️',bpm:84,root:45,scale:[0,2,3,5,7,8,11],wave:'triangle',riff:[0,-1,-1,3,-1,-1,5,-1,4,-1,-1,2,-1,-1,0,-1],kick:'x.......x.......',snare:'................',hat:'....x.......x...'},
-    hero:{n:'Helden-Fanfare',e:'🏆',bpm:108,root:48,scale:[0,2,4,5,7,9,11],wave:'sawtooth',riff:[0,-1,0,2,4,-1,4,-1,2,4,5,-1,7,-1,4,2],kick:'x...x...x...x...',snare:'....x.......x..x',hat:'..x...x...x...x.'},
-    chase:{n:'Verfolgungsjagd',e:'🏃',bpm:172,root:40,scale:[0,2,3,5,7,8,10],wave:'sawtooth',drive:true,bassEvery:2,riff:[0,0,3,0,5,0,3,0,0,0,6,0,5,3,2,0],kick:'x.x.x.x.x.x.x.x.',snare:'....x.......x...',hat:'xxxxxxxxxxxxxxxx'},
-    disco:{n:'Disco-Fieber',e:'🪩',bpm:116,root:43,scale:[0,2,4,5,7,9,11],wave:'triangle',bassEvery:2,riff:[0,-1,4,-1,5,4,-1,2,0,-1,4,-1,7,5,4,-1],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.xx'},
+    // 5 Admin-Lieder (eigene Synth-Kompositionen, ohne Gesang) — Klang/Takt/Akkorde stehen in ZMusic._playSong
+    party:{n:'Party-Alarm',e:'🎉',style:'party',bpm:128},
+    mystery:{n:'Geheimnis',e:'🕵️',style:'mystery',bpm:84,echo:true},
+    hero:{n:'Helden-Fanfare',e:'🏆',style:'hero',bpm:108},
+    chase:{n:'Verfolgungsjagd',e:'🏃',style:'chase',bpm:172},
+    disco:{n:'Disco-Fieber',e:'🪩',style:'disco',bpm:116},
     // Treibender Synth-Pop mit Moll-Arpeggio und Klatschen, 122 BPM
     sus:{bpm:122,root:45,scale:[0,2,3,5,7,8,10],wave:'square',bassEvery:2,riff:[0,2,4,2,0,2,4,7,0,2,4,2,5,4,2,0],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.'}
   };

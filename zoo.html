@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v638 -->
+<!-- ZOO v640 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=638"></script>
-<script src="rewardchests.js?v=638"></script>
-<script src="personality.js?v=638"></script>
+<script src="lang.js?v=640"></script>
+<script src="rewardchests.js?v=640"></script>
+<script src="personality.js?v=640"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v638','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v640','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -348,6 +348,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="lwrap" ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()" style="position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;transition:background .5s;background:rgba(0,0,0,.92)">
   <!-- Title bar: GLÜCKSRAD + X -->
   <div style="position:relative;margin-bottom:14px">
+    <div id="lwtimer" style="display:none;text-align:center;color:#FFD700;font:800 .78rem Arial,sans-serif;margin:-8px 0 8px;text-shadow:0 1px 3px #000"></div>
     <div id="lwtit" style="background:#111;color:#fff;font-family:Arial,sans-serif;font-size:1.6rem;font-weight:900;padding:10px 28px;border-radius:12px;letter-spacing:2px;border:3px solid #444;box-shadow:0 4px 12px rgba(0,0,0,.5)">🎡 GLÜCKSRAD</div>
     <button onclick="document.getElementById('lwrap').style.display='none'" style="position:absolute;right:-14px;top:-10px;background:#E74C3C;color:white;border:none;border-radius:8px;width:32px;height:32px;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4)">✕</button>
   </div>
@@ -527,12 +528,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=638"></script>
-<script src="sanction.js?v=638"></script>
-<script src="zevents.js?v=638"></script>
-<script src="zevents2.js?v=638"></script>
-<script src="zevents3.js?v=638"></script>
-<script src="worlds.js?v=638"></script>
+<script src="firebase-state.js?v=640"></script>
+<script src="sanction.js?v=640"></script>
+<script src="zevents.js?v=640"></script>
+<script src="zevents2.js?v=640"></script>
+<script src="zevents3.js?v=640"></script>
+<script src="worlds.js?v=640"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3444,6 +3445,8 @@ const ZG={
               ZP.toast('🌍 '+ev.n+' (von '+d.from+')',3000);
             }
           });
+          // Dauerhaft aktives Admin-Rad (mit Ablaufzeit) — auch für später Einsteigende
+          try{ _rtdb.ref('zoo_wheel_active').on('value',s=>{ try{ LW.applyRemote(s.val()); }catch(e){} }); }catch(e){}
           // Admin-triggered wheel-type switches (incl. Admin-Rad) — moved
           // here from a plain Firestore onSnapshot listener that had NO
           // retry: if _db wasn't ready at the exact moment this function
@@ -3457,7 +3460,7 @@ const ZG={
             if(!d)return;
             if(Date.now()-d.at>10000)return; // ignore old
             if(LW.activeType!==d.type && LW.WHEELS[d.type]){
-              LW.setType(d.type,0);
+              LW.setType(d.type,0,d.until||0,true);
               const names={normal:'Glücksrad',france:'Hütten-Glücksrad 🛖',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Admin-Glücksrad 🔥'};
               // Admin announcement banner
               const a1=document.createElement('div');
@@ -8446,7 +8449,7 @@ const Tax={
 
 const LW={
   spinning:false,angle:0,spins:0,_st:0,_iv:null,
-  activeType:'normal',
+  activeType:'normal', until:0, _manual:false,
 
   WHEELS:{
     normal:{name:'Glücksrad',emoji:'🍀',prizes:[
@@ -8528,6 +8531,7 @@ const LW={
 
   init(){
     this._st=Date.now();
+    this._tk=setInterval(()=>{ try{ this._tick(); }catch(e){} },1000);
     // Restore saved spins from zoo state (so spins persist across sessions)
     if(ZS.zoo && typeof ZS.zoo.spins==='number'){ this.spins=ZS.zoo.spins; }
     // Auto-activate weekend wheel on Saturday/Sunday
@@ -8561,12 +8565,62 @@ const LW={
   },
 
   _saveSpins(){ if(ZS.zoo){ ZS.zoo.spins=this.spins; ZS.save&&ZS.save(); } },
-  setType(t,spinsToAdd){
+  // until = Zeitpunkt (ms), wann das Rad wieder zum Standard zurückwechselt (0 = unbegrenzt/Standard)
+  setType(t,spinsToAdd,until,manual,silent){
     if(!this.WHEELS[t])return;
     this.activeType=t;this.angle=0;
+    this.until=until||0; this._manual=!!manual;
     if(spinsToAdd){this.spins=Math.max(this.spins,spinsToAdd);}
     const ti=G('lwtit');if(ti)ti.textContent=this.W.emoji+' '+this.W.name;
-    ZP.toast(this.W.emoji+' '+this.W.name+' ist jetzt aktiv!'+(spinsToAdd?' +'+spinsToAdd+' Spin(s)!':''),3000);
+    this._updTimer();
+    if(!silent) ZP.toast(this.W.emoji+' '+this.W.name+' ist jetzt aktiv!'+(this.until>Date.now()?' (noch '+this._fmtLeft(this.until-Date.now())+')':'')+(spinsToAdd?' +'+spinsToAdd+' Spin(s)!':''),3000);
+  },
+  // Standard-Rad: am Wochenende das Wochenend-Rad, sonst das normale
+  _isWeekend(){ const d=new Date().getDay(); return d===0||d===6; },
+  defaultType(){ return this._isWeekend()?'weekend':'normal'; },
+  _weekendEnd(){ const d=new Date(); const add=d.getDay()===6?1:0; const e=new Date(d.getFullYear(),d.getMonth(),d.getDate()+add,23,59,59,999); return e.getTime(); },
+  _fmtLeft(ms){ ms=Math.max(0,ms); const s=Math.ceil(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60; return h>0?(h+' Std '+String(m).padStart(2,'0')+' Min'):(m+':'+String(ss).padStart(2,'0')+' Min'); },
+  _timerText(){
+    const now=Date.now();
+    if(this.until>now) return '⏳ Dieses Rad ist noch '+this._fmtLeft(this.until-now)+' da';
+    if(this.activeType==='weekend'&&this._isWeekend()) return '🎉 Wochenend-Rad — noch '+this._fmtLeft(this._weekendEnd()-now)+' (bis Sonntag 24:00)';
+    return '';
+  },
+  _updTimer(){
+    const el=G('lwtimer'); if(!el) return; const t=this._timerText();
+    el.textContent=t; el.style.display=t?'block':'none';
+  },
+  _tick(){
+    const now=Date.now();
+    if(this.until && now>=this.until){
+      const old=this.W.name; this.until=0; this._manual=false;
+      this.setType(this.defaultType(),0,0,false,true);
+      ZP.toast('⏰ '+old+' ist vorbei — jetzt: '+this.W.emoji+' '+this.W.name,4000);
+    } else if(!this.until && !this._manual){
+      // Wochenende beginnt/endet von selbst
+      if(this._isWeekend() && this.activeType==='normal') this.setType('weekend',0,0,false,true);
+      else if(!this._isWeekend() && this.activeType==='weekend') this.setType('normal',0,0,false,true);
+    }
+    this._updTimer();
+  },
+  // Admin: Rad für alle wechseln, mit Dauer (ms, 0 = unbegrenzt). Speichert dauerhaft, damit auch später Einsteigende es bekommen.
+  durFromUI(){
+    const el=document.getElementById('padmin-wheel-dur')||document.getElementById('aw-dur');
+    return el?parseInt(el.value)||0:0;
+  },
+  _persist(type,untilMs){
+    try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()){
+      if(type==='normal'&&!untilMs) _rtdb.ref('zoo_wheel_active').set(null);
+      else _rtdb.ref('zoo_wheel_active').set({type,until:untilMs||0,at:Date.now()});
+    } }catch(e){}
+  },
+  applyRemote(v){
+    const now=Date.now();
+    if(v && v.type && this.WHEELS[v.type] && (!v.until || v.until>now)){
+      if(this.activeType!==v.type || this.until!==(v.until||0)){ const changed=this.activeType!==v.type; this.setType(v.type,0,v.until||0,true,!changed); }
+    } else if(this._manual || (this.until && this.until<=now)){
+      this.until=0; this._manual=false; this.setType(this.defaultType(),0,0,false,true);
+    }
   },
 
   open(){
@@ -8615,6 +8669,7 @@ const LW={
     try{ if(typeof ZTips!=='undefined') ZTips.notify('wheel'); }catch(e){}
     // Update title
     const ti=G('lwtit');if(ti)ti.textContent='🎡 '+this.W.name.toUpperCase();
+    this._updTimer();
     // Update spin count display
     const sc=G('lwspins');if(sc)sc.textContent=this.spins;
     const info=G('lw-spininfo');
@@ -8718,13 +8773,32 @@ const LW={
     const cost=100000;
     const affordable=Math.floor((z.mt||0)/cost);
     if(affordable<=0){ ZP.toast('❌ Zu wenig MT für einen Spin (100K)!',2500); return; }
-    z.mt -= cost*affordable;
-    this.spins += affordable;
-    this._saveSpins();
-    ZS.save && ZS.save();
-    ZG._updHUD && ZG._updHUD();
-    this.open();
-    ZP.toast('🎡 +'+affordable+' Spins gekauft! Du hast jetzt '+this.spins,2500);
+    this._confirmMax(affordable,cost,()=>{
+      const z2=ZS.zoo; const n=Math.floor((z2.mt||0)/cost);
+      if(n<=0){ ZP.toast('❌ Zu wenig MT für einen Spin (100K)!',2500); return; }
+      z2.mt -= cost*n;
+      this.spins += n;
+      this._saveSpins();
+      ZS.save && ZS.save();
+      ZG._updHUD && ZG._updHUD();
+      this.open();
+      ZP.toast('🎡 +'+n+' Spins gekauft! Du hast jetzt '+this.spins,2500);
+    });
+  },
+  // Sicherheitsfrage vor "MAX Spins"
+  _confirmMax(n,cost,yes){
+    document.getElementById('lwmaxconf')?.remove();
+    const mt=(typeof $mt==='function')?$mt(n*cost):(n*cost).toLocaleString('de-CH');
+    const ov=document.createElement('div'); ov.id='lwmaxconf';
+    ov.style.cssText='position:fixed;inset:0;z-index:99600;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,sans-serif';
+    ov.innerHTML='<div style="background:#16162a;border:2px solid #FFD700;border-radius:16px;padding:18px 16px;max-width:340px;width:100%;text-align:center;color:#fff">'
+      +'<div style="font-size:2rem">🎡</div>'
+      +'<div style="font-size:1.1rem;font-weight:900;margin:4px 0 8px">Wirklich alles in Spins ausgeben?</div>'
+      +'<div style="font-size:.86rem;line-height:1.45;opacity:.9">Du gibst <b style="color:#FFD700">'+mt+' MT</b> aus und bekommst <b style="color:#FFD700">'+n+' Spin'+(n>1?'s':'')+'</b>.<br>Das lässt sich nicht rückgängig machen.</div>'
+      +'<div style="display:flex;gap:8px;margin-top:14px"><button id="lwmc-no" style="flex:1;padding:11px;border:0;border-radius:10px;background:#444;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer">Abbrechen</button><button id="lwmc-yes" style="flex:1;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-weight:900;font-size:.95rem;cursor:pointer">Ja, alles</button></div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#lwmc-no').onclick=()=>ov.remove();
+    ov.querySelector('#lwmc-yes').onclick=()=>{ ov.remove(); yes(); };
   },
   spin(){
     if(this.spinning||this.spins<=0)return;
@@ -11531,7 +11605,8 @@ const ZP={
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px">'+
         '<button class="btn btnd" onclick="ZP._adSl()" style="font-size:.82rem;padding:10px">🥊 Slap</button>'+
         '<button class="btn btnd" onclick="ZP._adMT()" style="font-size:.82rem;padding:10px">🌀 +50K MT</button></div>'+
-      '<div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.74rem;margin-bottom:5px">🎡 Glücksrad wechseln:</div>'+
+      '<div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.74rem;margin-bottom:5px">🎡 Glücksrad wechseln (Dauer, danach wieder normal / Wochenende):</div>'+
+      '<select id="aw-dur" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem;width:100%;margin-bottom:6px"><option value="0">Unbegrenzt</option><option value="600000">10 Min</option><option value="1800000" selected>30 Min</option><option value="3600000">1 Std</option><option value="10800000">3 Std</option><option value="43200000">12 Std</option><option value="86400000">24 Std</option></select>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px">'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="normal" style="font-size:.76rem;padding:8px">🍀 Normal</button>'+
         '<button class="btn btnd" onclick="ZP._setWheel(this)" data-w="france" style="font-size:.76rem;padding:8px;background:rgba(139,69,19,.35)">🛖 Hütte</button></div>'+
@@ -11602,7 +11677,8 @@ const ZP={
   async _adSl(){const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase(),sid=G('asl')?.value||'lucky';const cmd={type:'give_slap',target:tgt,slapId:sid,id:Date.now().toString(),exp:Date.now()+30000};await this._cmd(cmd);if(tgt===ZS.player?.toLowerCase()||tgt==='_all'){const z=ZS.zoo;ZG._grantSlap(z,sid);if(sid==='lucky')z.lslaps=(z.lslaps||0)+1;ZG._updWBar();}this.toast(`✅ ${SLAPS.find(s=>s.id===sid)?.e} Slap!`);this.close('adm');},
   _setWheel(btn){
     const w=btn.dataset.w;
-    LW.setType(w,0);
+    const _dur=LW.durFromUI(), _until=_dur?Date.now()+_dur:0;
+    LW.setType(w,0,_until,true); LW._persist(w,_until);
     // Show admin broadcast announcement
     const names={normal:'Glücksrad',france:'Hütten-Glücksrad 🛖',weekend:'Wochenend-Glücksrad 🎉',christmas:'Weihnachts-Glücksrad 🎄',chaos:'Admin-Glücksrad 🔥'};
     const ann=document.createElement('div');
@@ -11620,7 +11696,7 @@ const ZP={
     // listener as admin events, so every client actually picks it up
     // (the old Firestore-only doc had no retry if a client's _db wasn't
     // ready yet, so only the admin who clicked ever really saw it).
-    try{if(typeof _rtdb!=='undefined'&&_rtdb){_rtdb.ref('zoo_broadcast/wheel').set({type:w,at:Date.now(),name:names[w]});}}catch(e){}
+    try{if(typeof _rtdb!=='undefined'&&_rtdb){_rtdb.ref('zoo_broadcast/wheel').set({type:w,at:Date.now(),name:names[w],until:_until});}}catch(e){}
     ZP.toast(LW.W.emoji+' '+LW.W.name+' für alle aktiviert!',2000);
   },
   async _adSpins(){
@@ -13552,7 +13628,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v638 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v640 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -15887,12 +15963,13 @@ const ZAdmin = {
   // correctly), since ZAdmin.setWheel() didn't exist at all before this.
   setWheel(type){
     if(typeof LW==='undefined'||!LW.WHEELS?.[type]){ZP.toast('❌ Unbekannter Rad-Typ: '+type,2500);return;}
-    LW.setType(type,0);
+    const _dur=LW.durFromUI(), _until=_dur?Date.now()+_dur:0;
+    LW.setType(type,0,_until,true); LW._persist(type,_until);
     const names={normal:'Glücksrad',halloween:'Halloween-Rad',winter:'Winter-Rad',spring:'Frühlings-Rad',france:'Hütten-Rad',weekend:'Wochenend-Rad',christmas:'Weihnachts-Rad',chaos:'Admin-Rad 🔥'};
     const label=names[type]||LW.W?.name||type;
     try{
       if(typeof _rtdb!=='undefined'&&_rtdb){
-        _rtdb.ref('zoo_broadcast/wheel').set({type,at:Date.now(),name:label});
+        _rtdb.ref('zoo_broadcast/wheel').set({type,at:Date.now(),name:label,until:_until});
       }
     }catch(e){}
     ZP.toast((LW.W?.emoji||'🎡')+' '+label+' für alle aktiviert!',2500);
@@ -15935,12 +16012,13 @@ const ZAdmin = {
   },
   setGlobalWheel(){
     const wType=document.getElementById('padmin-wheel-type')?.value||'normal';
-    LW.setType(wType,0);
+    const _dur=LW.durFromUI(), _until=_dur?Date.now()+_dur:0;
+    LW.setType(wType,0,_until,true); LW._persist(wType,_until);
     // Broadcast to all — same RTDB channel as setWheel()/events (see
     // _listenWheelBroadcast), not the old Firestore doc nobody listens
     // to anymore.
     try{if(typeof _rtdb!=='undefined'&&_rtdb){
-      _rtdb.ref('zoo_broadcast/wheel').set({type:wType,at:Date.now(),from:ZS.player});
+      _rtdb.ref('zoo_broadcast/wheel').set({type:wType,at:Date.now(),from:ZS.player,until:_until});
     }}catch(e){}
     ZP.toast('🎠 Glücksrad für alle auf: '+wType+'!',2500);
   },
@@ -20373,6 +20451,8 @@ window.ZooEvents = ZooEvents;
           </div>
           <!-- Wheel type -->
           <div class="padmin-section-title" style="margin-top:12px">🎡 Glücksrad Typ</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:4px">Dauer: danach kommt wieder das normale Rad (am Wochenende das Wochenend-Rad).</div>
+          <select id="padmin-wheel-dur" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem;width:100%;margin-bottom:6px"><option value="0">Unbegrenzt</option><option value="600000">10 Min</option><option value="1800000" selected>30 Min</option><option value="3600000">1 Std</option><option value="10800000">3 Std</option><option value="43200000">12 Std</option><option value="86400000">24 Std</option></select>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
             <button class="padmin-btn" style="background:#F39C12" onclick="ZAdmin.setWheel('normal')">🎡 Normal</button>
             <button class="padmin-btn" style="background:#E74C3C" onclick="ZAdmin.setWheel('halloween')">🎃 Halloween</button>
