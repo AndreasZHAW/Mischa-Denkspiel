@@ -15,8 +15,8 @@
   const mmss=ms=>{ ms=Math.max(0,ms); const s=Math.ceil(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
   const total=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const addMT=v=>{ try{ ZS.zoo.mt=(ZS.zoo.mt||0)+v; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} };
-  const seen=(k,id)=>{ try{ return localStorage.getItem('zevt_'+k)===id; }catch(e){ return false; } };
-  const mark=(k,id)=>{ try{ localStorage.setItem('zevt_'+k,id); }catch(e){} };
+  const seen=(k,id)=>{ try{ return localStorage.getItem('zevt_'+K(me())+'_'+k)===id; }catch(e){ return false; } };
+  const mark=(k,id)=>{ try{ localStorage.setItem('zevt_'+K(me())+'_'+k,id); }catch(e){} };
 
   const E=window.ZEvt={
     st:{}, _started:false,

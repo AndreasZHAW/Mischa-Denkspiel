@@ -11,8 +11,8 @@
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c,ms||2500); }catch(e){} };
   const addMT=v=>{ try{ ZS.zoo.mt=(ZS.zoo.mt||0)+v; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} };
-  const seen=(k,id)=>{ try{ return localStorage.getItem('zevt3_'+k)===String(id); }catch(e){ return false; } };
-  const mark=(k,id)=>{ try{ localStorage.setItem('zevt3_'+k,String(id)); }catch(e){} };
+  const seen=(k,id)=>{ try{ return localStorage.getItem('zevt3_'+K(me())+'_'+k)===String(id); }catch(e){ return false; } };
+  const mark=(k,id)=>{ try{ localStorage.setItem('zevt3_'+K(me())+'_'+k,String(id)); }catch(e){} };
   const hash=s=>{ let h=2166136261; s=String(s); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
   const hud=(id,html,css)=>{ let e=document.getElementById(id); if(!e){ e=document.createElement('div'); e.id=id; e.style.cssText='position:fixed;left:50%;transform:translateX(-50%);z-index:560;pointer-events:none;text-align:center;font:800 .82rem Arial,sans-serif;color:#fff;text-shadow:0 1px 3px #000;'+(css||''); document.body.appendChild(e); } if(e.innerHTML!==html) e.innerHTML=html; return e; };
   const hudOff=id=>{ const e=document.getElementById(id); if(e) e.remove(); };
@@ -110,7 +110,7 @@
     adminTraitorStart(includeSelf,mins){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
       const names=[...new Set([...Object.keys(ZG.otherPl||{}),...(includeSelf?[me()]:[])].filter(Boolean))];
-      if(names.length<4){ note('❗ Verräter braucht mindestens 4 Spieler — gefunden: '+names.length+(names.length?' ('+names.join(', ')+')':'')+(includeSelf?'':' · Tipp: „ich spiele mit“ anhaken, wenn du selbst mitspielst')+'. Es zählen nur Spieler im selben Zoo, die in den letzten 10 s aktiv waren.'); return; }
+      if(names.length<3){ note('❗ Verräter braucht mindestens 3 Spieler — gefunden: '+names.length+(names.length?' ('+names.join(', ')+')':'')+(includeSelf?'':' · Tipp: „ich spiele mit“ anhaken, wenn du selbst mitspielst')+'. Es zählen nur Spieler im selben Zoo, die in den letzten 10 s aktiv waren.'); return; }
       const id=String(Date.now()); const tn=names[Math.floor(Math.random()*names.length)];
       const alive={}; names.forEach(n=>alive[K(n)]=n);
       const roles={}; names.forEach(n=>roles[K(n)]={id,r:n===tn?'T':'C'});
@@ -129,7 +129,7 @@
       r.ref('zoo_traitor').transaction(c=>{
         if(!c||c.state!=='run'||!c.alive||!c.alive[tk]) return;
         const nm=c.alive[tk]; delete c.alive[tk]; c.dead=c.dead||{}; c.dead[tk]={n:nm,x,z,rep:0};
-        if(Object.keys(c.alive).length<=2){ c.state='over'; c.winner='traitor'; c.why='Es sind nicht mehr genug Besatzungsmitglieder übrig'; }
+        if(Object.keys(c.alive).length<=((c.total||0)<=3?1:2)){ c.state='over'; c.winner='traitor'; c.why='Es sind nicht mehr genug Besatzungsmitglieder übrig'; }
         return c;
       });
       big('🔪','#ff3b3b',900); toast('🤫 '+target+' ausgeschaltet — verschwinde unauffällig!',2500);
