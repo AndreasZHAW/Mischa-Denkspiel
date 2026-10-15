@@ -28,8 +28,8 @@
     {n:'Laser-Roboter',e:'🤖',col:'#3fa9ff',gap:2000,atk:['beam','cross','beam','meteor'],
       tip:'Der Roboter schiesst rote Laserstreifen quer über die Arena.',
       music:{bpm:128,root:36,scale:[0,2,3,5,7,8,10],wave:'square',riff:[0,2,4,2,0,2,4,6,0,2,4,2,7,6,4,2],kick:'x...x...x...x...',snare:'....x.......x...',hat:'..x...x...x...x.'}},
-    {n:'Geister-König',e:'👻',col:'#b78cff',gap:2600,atk:['ring','dark','ring','meteor'],
-      tip:'Der Geist schickt Schockwellen-Ringe und löscht das Licht – nur ein kleiner Kreis ist sicher.',
+    {n:'Geister-König',e:'👻',col:'#b78cff',gap:2600,superEvery:5,superR:32,superName:'👻 GEISTER-SCHREI!',atk:['ring','dark','ring','meteor'],
+      tip:'Der Geist schickt Schockwellen-Ringe, löscht das Licht – und alle paar Sekunden kommt der Geister-Schrei: ein riesiger Kreis, nur AUSSEN ist frei, plus ein Ziel, das er verfolgt.',
       music:{bpm:92,root:45,scale:[0,2,3,6,7,8,11],wave:'sine',riff:[0,-1,-1,-1,3,-1,-1,-1,6,-1,-1,-1,4,-1,2,-1],kick:'x.......x.......',snare:'................',hat:'................'}},
     {n:'Riesen-Krake',e:'🐙',col:'#e84393',gap:2200,atk:['stomp','ring','meteor','beam'],
       tip:'Die Krake haut mit Tentakeln zu: Stampf-Kreise, Ringe und Meteore.',
@@ -39,7 +39,7 @@
       music:{bpm:160,root:42,scale:[0,1,3,6,7,8,11],wave:'sawtooth',riff:[0,0,3,0,6,0,3,0,0,0,4,0,6,5,3,1],kick:'x.x.x.x.x.x.x.xx',snare:'....x.......x...',hat:'xxxxxxxxxxxxxxxx'}}
   ];
   const DIFF={leicht:400,normal:1000,schwer:2500,extrem:6000};
-  const TELE=3000, IMPACT_FLASH=700, MULT=10, SUPER_R=26, LOCK_AT=1500, LOCK_R=5;
+  const TELE=3000, IMPACT_FLASH=700, MULT=10, GUN_BOSS_DMG=10, SUPER_R=26, LOCK_AT=1500, LOCK_R=5;
 
   const E=window.ZEvt2={
     st:{}, _started:false, BOSSES, ARENA,
@@ -176,14 +176,15 @@
     _bossChanged(){
       const b=this.st.boss;
       if(!b){ this._bossClear(); return; }
-      if(b.id!==this._bossId){ this._bossId=b.id; this._bossClear(true); this._kDone=-1; this._act=[]; this._tele=false; }
+      if(b.id!==this._bossId){ this._winAt=0; this._boom=0; this._bossId=b.id; this._bossClear(true); this._kDone=-1; this._act=[]; this._tele=false; }
+      if(b.state==='won' && !this._winAt){ this._winAt=Date.now(); (this._act||[]).forEach(a=>{ (a.meshes||[]).forEach(m=>{ try{ ZG.scene.remove(m); }catch(e){} }); }); this._act=[]; hudOff('zbosshud'); }
       if(b.state==='won' && !seen('bosswin',b.id)){
         mark('bosswin',b.id);
         big('🏆 BOSS BESIEGT!','#FFD700',4500);
         const d=b.dmg||{}; const my=d[K(me())]||0;
         const top=Object.keys(d).sort((a,c)=>d[c]-d[a])[0];
         if(my>0 && b.prize>0){ let pr=b.prize; if(top===K(me())) pr*=3; addMT(pr); toast('🏆 Boss besiegt! +'+pr+' MT'+(top===K(me())?' (Top-Schaden ×3!)':''),6000); }
-        else if(my>0) toast('🏆 Boss besiegt!',4000);
+        else toast('🏆 '+BOSSES[b.boss].n+' wurde besiegt! Top-Schaden: '+(top?esc(top):'–'),5000);
         this._stopMusic();
       }
       if(b.state==='lost' && !seen('bosslost',b.id)){ mark('bosslost',b.id); big('⏰ Zeit um — der Boss hat gewonnen','#ff6b6b',4000); this._stopMusic(); }
@@ -205,6 +206,7 @@
     },
     _bossSlow(){
       const b=this.st.boss; if(!b) return;
+      if(b.state==='on' && b.hp<=0){ const r0=RT(); if(r0) r0.ref('zoo_boss/state').transaction(x=>x==='on'?'won':undefined); }
       const ph=this._phase();
       if(ph==='timeup'){ // irgendein Client beendet
         const r=RT(); if(r) r.ref('zoo_boss/state').transaction(s=>s==='on'?'lost':undefined);
@@ -230,7 +232,16 @@
     },
     briefOk(){ const b=this.st.boss; if(b) mark('bossbrief',b.id); hudOff('zbossbrief'); },
     _bossFast(){
-      const b=this.st.boss; if(!b||b.state!=='on'){ if(b&&b.state!=='on') hudOff('zbosshud'); return; }
+      const b=this.st.boss;
+      if(b&&b.state==='won'&&this._spr){ // Boss-Todesanimation: wackeln, aufblähen, verpuffen
+        const t=Date.now()-(this._winAt||Date.now());
+        if(t>3200){ try{ ZG.scene.remove(this._spr); }catch(e){} this._spr=null; return; }
+        const k=t<1800?1+Math.sin(t/40)*.08:Math.max(0.01,1.15*(1-(t-1800)/1400));
+        this._spr.scale.set(22*k,22*k,1); this._spr.position.y=13+Math.sin(t/60)*.6; if(this._spr.material) this._spr.material.opacity=t<1800?1:Math.max(0,1-(t-1800)/1400);
+        if(t>1750&&!this._boom){ this._boom=1; try{ const e=this._emoSprite('💥',30); e.position.set(ARENA.x,13,ARENA.z); ZG.scene.add(e); setTimeout(()=>{ try{ZG.scene.remove(e);}catch(x){} },1200); }catch(x){} }
+        return;
+      }
+      if(!b||b.state!=='on'){ if(b&&b.state!=='on') hudOff('zbosshud'); return; }
       if(!inZoo()||busy()) return;
       const ph=this._phase(); const B=BOSSES[b.boss];
       if(ph==='none') return;
@@ -271,7 +282,7 @@
       else if(type==='cross'){ const p=rp(); const a=R()*Math.PI; out.push({t:'s',x:p[0],z:p[1],a,w:6},{t:'s',x:p[0],z:p[1],a:a+Math.PI/2,w:6}); }
       else if(type==='ring'){ const r1=10+R()*14; out.push({t:'r',x:ARENA.x,z:ARENA.z,r1,r2:r1+9}); }
       else if(type==='dark'){ const p=rp(); out.push({t:'i',x:p[0],z:p[1],r:9}); }
-      else if(type==='super'){ out.push({t:'c',x:ARENA.x,z:ARENA.z,r:SUPER_R,sup:1}); }
+      else if(type==='super'){ out.push({t:'c',x:ARENA.x,z:ARENA.z,r:B.superR||SUPER_R,sup:1}); }
       return {type,shapes:out};
     },
     _spawnAttack(b,B,k,ts){
@@ -287,13 +298,14 @@
         if(s.m){ const mt=this._emoSprite('☄️',7); mt.position.set(s.x,60,s.z); ZG.scene.add(mt); meshes.push(mt); s._met=mt; }
       });
       const act={k,ts,type,shapes,meshes,hit:false,sup:type==='super',seed:b.seed};
-      if(act.sup){ meshes.forEach(m=>{ if(m.material) m.material.color.set(0xaa0000); }); big('🌋 SUPER-ANGRIFF!','#ff2d2d',2200); toast('🌋 Der große Kreis tötet jeden darin — und außerhalb wählt der Vulkan-Gott ein Opfer! Renne nach AUSSEN und weiche dem Ziel-Kreis aus!',5000); }
+      if(act.sup){ meshes.forEach(m=>{ if(m.material) m.material.color.set(0xaa0000); }); big(BOSSES[b.boss].superName||'🌋 SUPER-ANGRIFF!','#ff2d2d',2200); toast('Der große Kreis tötet jeden darin — und außerhalb wählt der Vulkan-Gott ein Opfer! Renne nach AUSSEN und weiche dem Ziel-Kreis aus!',5000); }
       this._act.push(act);
     },
     inShape(s,x,z){
       const dx=x-s.x, dz=z-s.z;
       if(s.t==='c') return Math.hypot(dx,dz)<s.r+0.4;
-      if(s.t==='s'){ const perp=Math.abs(-dx*Math.sin(s.a)+dz*Math.cos(s.a)); return perp<s.w/2+0.4; }
+      if(s.t==='s'){ // Streifen-Richtung wie im Mesh (rotation.x=-90°, rotation.z=a): (cos a, -sin a)
+        const perp=Math.abs(dx*Math.sin(s.a)+dz*Math.cos(s.a)), along=dx*Math.cos(s.a)-dz*Math.sin(s.a); return perp<s.w/2+0.4 && Math.abs(along)<ARENA.R*1.5; }
       if(s.t==='r'){ const d=Math.hypot(dx,dz); return d>s.r1-0.4 && d<s.r2+0.4; }
       if(s.t==='i') return Math.hypot(dx,dz)>s.r-0.2;
       return false;
@@ -326,8 +338,8 @@
     },
     // Super-Angriff: außerhalb des großen Kreises wird 1 Spieler ausgewählt (Ziel-Kreis, 1,5 s Vorwarnung, danach fest)
     _lockTarget(a){
-      const cx=ARENA.x, cz=ARENA.z, list=[];
-      const add=(n,x,z)=>{ const d=Math.hypot(x-cx,z-cz); if(d>SUPER_R+1&&d<ARENA.R+30) list.push({n,x,z,h:hash(n+a.seed+a.k)}); };
+      const cx=ARENA.x, cz=ARENA.z, list=[]; const SR=a.shapes[0].r;
+      const add=(n,x,z)=>{ const d=Math.hypot(x-cx,z-cz); if(d>SR+1&&d<ARENA.R+30) list.push({n,x,z,h:hash(n+a.seed+a.k)}); };
       if(!(window.ZHearts&&ZHearts.dead)) add(me(),ZG.pl.x,ZG.pl.z);
       Object.keys(ZG.otherPl||{}).forEach(n=>{ const o=ZG.otherPl[n]; if(o&&typeof o.x==='number') add(n,o.x,o.z); });
       a.tName=list.length?list.sort((p,q)=>p.h-q.h)[0].n:'-'; if(a.tName==='-') return;
@@ -348,8 +360,8 @@
         if(!hit.length) return false;
         const range=(sl.range||8)+10;
         if(!sl.isGun && hit[0].distance>range){ toast('❗ Zu weit weg vom Boss (max. '+range+' m)!',1400); return true; }
-        const base=sl.isGun?2:((typeof SLAP_DMG!=='undefined'&&SLAP_DMG[sl.id]!=null)?SLAP_DMG[sl.id]:.3);
-        const dmg=Math.round(base*MULT*10)/10;
+        const base=(typeof SLAP_DMG!=='undefined'&&SLAP_DMG[sl.id]!=null)?SLAP_DMG[sl.id]:.3;
+        const dmg=sl.isGun?GUN_BOSS_DMG:Math.round(base*MULT*10)/10; // Geschenkeschleuder: immer genau 10 Schaden am Boss
         const r=RT(); if(!r) return true;
         r.ref('zoo_boss/hp').transaction(h=>{ if(h==null) return h; return Math.max(0,Math.round((h-dmg)*10)/10); }).then(res=>{
           if(res&&res.snapshot&&res.snapshot.val()<=0) r.ref('zoo_boss/state').transaction(s=>s==='on'?'won':undefined);
