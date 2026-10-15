@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v625 -->
+<!-- ZOO v626 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=625"></script>
-<script src="rewardchests.js?v=625"></script>
-<script src="personality.js?v=625"></script>
+<script src="lang.js?v=626"></script>
+<script src="rewardchests.js?v=626"></script>
+<script src="personality.js?v=626"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v625','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v626','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,11 +527,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=625"></script>
-<script src="sanction.js?v=625"></script>
-<script src="zevents.js?v=625"></script>
-<script src="zevents2.js?v=625"></script>
-<script src="worlds.js?v=625"></script>
+<script src="firebase-state.js?v=626"></script>
+<script src="sanction.js?v=626"></script>
+<script src="zevents.js?v=626"></script>
+<script src="zevents2.js?v=626"></script>
+<script src="zevents3.js?v=626"></script>
+<script src="worlds.js?v=626"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6590,6 +6591,7 @@ const ZG={
   slap(clientX, clientY){
     const z=ZS.zoo;if(!z)return;
     if(window.ZBattle && ZBattle.fighting()){ if(z.eq!=='basic'){ z.eq='basic'; try{this._updWBar();}catch(e){} } }
+    if(window.ZEvt3){ if(ZEvt3.tapHook(clientX,clientY)) return; ZEvt3._enforceEq(); }
     if(!z.eq || z.eq==='none'){ return; } // neutral — no weapon equipped, clicking around does nothing
     if(this.slapCD>0){ZP.toast('⏳ '+(Math.ceil(this.slapCD/100)/10)+'s',600);return;}
     const sl=SLAPS.find(s=>s.id===z.eq)||TOOLS.find(s=>s.id===z.eq);
@@ -6734,7 +6736,7 @@ const ZG={
     const cx = clientX!=null ? clientX : window.innerWidth/2;
     const cy = clientY!=null ? clientY : window.innerHeight/2;
     const ndc = { x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1 };
-    const names = Object.keys(this.otherM);
+    const names = Object.keys(this.otherM).filter(n=>this.otherM[n]&&this.otherM[n].visible!==false);
     const meshes = names.map(n=>this.otherM[n]).filter(Boolean);
     if(window.ZEvt2 && ZEvt2.tryHit(sl,cx,cy)) return;
     if(!meshes.length){ ZP.toast('🥊 Niemand in der Nähe!',1200); return; }
@@ -6748,6 +6750,7 @@ const ZG={
     if(!targetName){ ZP.toast('❗ Daneben!',1200); return; }
     if(!sl.isGun && hits[0].distance>range){ ZP.toast('❗ Zu weit weg (max. '+range+'m für diesen Slap)!',1400); return; }
     if(window.ZEvt2 && ZEvt2.potatoSlap(targetName)) return;
+    if(window.ZEvt3 && ZEvt3.slapTarget(targetName,sl,hits[0].distance)) return;
     if(window.ZBattle){ const _bm=ZBattle.slapAllowed(targetName); if(_bm!==true){ ZP.toast(_bm,2500); return; } }
     try{ ZHearts.setCombat(); if(window.ZEvt) ZEvt.stat('slapsGiven'); }catch(e){}
     const op = this.otherPl[targetName];
@@ -13548,7 +13551,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v625 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v626 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -20526,6 +20529,23 @@ window.ZooEvents = ZooEvents;
           <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:6px">Jeder wird zufällig Riese (hohe Sprünge, langsamer) oder Zwerg (winzig, schnell).</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><select id="zev-z-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="3">3 Min</option><option value="5" selected>5 Min</option><option value="10">10 Min</option><option value="30">30 Min</option></select></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#16A085" onclick="ZEvt2.adminSizeStart(parseInt(document.getElementById('zev-z-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt2.adminSizeStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">🕵️ Verräter im Zoo</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:6px">Geheime Rollen (1 Verräter). Nur der Verräter hat die Basic-Slap; wer getroffen wird, wird zum unsichtbaren Geist, die Leiche bleibt liegen. Fund = Besprechung mit Chat &amp; Abstimmung. Richtig → Besatzung ×20 Glück 20 Min, sonst Verräter ×50 Glück 10 Min (stapelbar). Mind. 4 Spieler, Admin-Fenster offen lassen.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+            <select id="zev-v-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="3">3 Min</option><option value="5" selected>5 Min</option><option value="8">8 Min</option></select>
+            <label style="font-size:.76rem;color:rgba(255,255,255,.7)"><input type="checkbox" id="zev-v-self" style="vertical-align:middle"> ich spiele mit</label>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#7D1128" onclick="ZEvt3.adminTraitorStart(document.getElementById('zev-v-self').checked,parseInt(document.getElementById('zev-v-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt3.adminTraitorStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">🧟 Zombie-Ausbruch</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:6px">Ein Zombie infiziert per Slap (aus der Nähe), Menschen können nicht slappen. Wer die Zeit überlebt, teilt sich den Preis. Mind. 3 Spieler, Admin-Fenster offen lassen.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+            <select id="zev-zb-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="3">3 Min</option><option value="5" selected>5 Min</option><option value="8">8 Min</option></select>
+            <input id="zev-zb-prize" type="number" min="0" value="600" placeholder="Preis-Topf (MT)" style="width:110px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem">
+            <label style="font-size:.76rem;color:rgba(255,255,255,.7)"><input type="checkbox" id="zev-zb-self" style="vertical-align:middle"> ich spiele mit</label>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#2E7D32" onclick="ZEvt3.adminZombieStart(document.getElementById('zev-zb-self').checked,parseInt(document.getElementById('zev-zb-mins').value),parseFloat(document.getElementById('zev-zb-prize').value)||0);setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt3.adminZombieStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
 
           <div class="padmin-section-title" style="margin-top:14px">🌙 Mond-Schwerkraft (Chaos)</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">

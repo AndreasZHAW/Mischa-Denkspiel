@@ -449,7 +449,7 @@
       if(c&&c.until>Date.now()) parts.push('🌙 Mond-Schwerkraft läuft noch '+mmss(c.until-Date.now()));
       if(sp&&sp.until>Date.now()) parts.push('🔦 Spotlight auf '+esc(sp.name));
       if(rc) parts.push('🎬 Rückblick: '+({rec:'⏺️ nimmt auf',stopping:'⏳ wertet aus',done:'✅ fertig'}[rc.state]||rc.state));
-      try{ if(window.ZEvt2) parts.push(...ZEvt2.statusParts()); }catch(x){}
+      try{ if(window.ZEvt2) parts.push(...ZEvt2.statusParts()); if(window.ZEvt3) parts.push(...ZEvt3.statusParts()); }catch(x){}
       el.innerHTML=parts.join('<br>')||'Nichts aktiv.';
       const sel=document.getElementById('zev-spot-name');
       if(sel){ const names=Object.keys(ZG.otherPl||{}); const cur=sel.value; sel.innerHTML=names.map(n=>'<option>'+esc(n)+'</option>').join('')+'<option>'+esc(me())+'</option>'; if(cur) sel.value=cur; }
@@ -567,12 +567,13 @@
       if(C.hat&&C.hat[s]==='x') this._hat(t,s===14);
       const rf=C.riff[s]; const shift=[0,0,3,2][bar%4];
       if(rf>=0){
-        this._bossNote(t,deg(rf+shift)+12,spb/4*1.6,C.wave||'sawtooth',.10);
-        if(s%4===0) this._bass(t,deg(rf+shift)-12,spb/2*.9);
+        this._bossNote(t,deg(rf+shift)+12,spb/4*1.6,C.wave||'sawtooth',C.drive?.13:.10,C.drive);
+        if(!C.bassEvery && s%4===0) this._bass(t,deg(rf+shift)-12,spb/2*.9);
       }
+      if(C.bassEvery && s%C.bassEvery===0) this._bass(t,deg(shift)-12+(s%4===2?0:0),spb/4*C.bassEvery*.9);
       if(s===0) this._pad(t,[deg(shift),deg(shift+2),deg(shift+4)].map(m=>m+12),spb*4);
     },
-    _bossNote(t,m,len,wave,vol){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(); o.type=wave; o.frequency.value=this._note(m); f.type='lowpass'; f.frequency.value=2400; this._env(g,t,.008,len,vol); o.connect(f); f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
+    _bossNote(t,m,len,wave,vol,drive){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(); o.type=wave; o.frequency.value=this._note(m); f.type='lowpass'; f.frequency.value=drive?4200:2400; this._env(g,t,.008,len,vol); o.connect(f); if(drive){ const w=c.createWaveShaper(); const cv=new Float32Array(256); for(let i=0;i<256;i++){ const x=i/128-1; cv[i]=Math.tanh(x*5); } w.curve=cv; f.connect(w); w.connect(g); } else f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
     // Dunkles A-Moll: Am – F – C – G (je 1 Takt), 126 BPM
     _play16(step,t,spb){
       const s=step%16, bar=Math.floor(step/16), ci=bar%4;
