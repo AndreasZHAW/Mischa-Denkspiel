@@ -8,7 +8,7 @@
     fr:{n:0,sum:0,max:0,long:0,vlong:0,last:0,win:[]},
     vis:{live:0,stale:0,total:0,minLive:99,maxLive:0}, lastLog:0
   };
-  function top(path){ try{ var p=String(path||'').replace(/^\/+/,'').split('/'); return p[0]||'?'; }catch(e){return '?';} }
+  function top(path){ try{ var p=String(path||'').replace(/^https?:\/\/[^\/]+/,'').replace(/^\/+/,'').split('/'); return p[0]||'?'; }catch(e){return '?';} }
   function size(v){ try{ return v==null?0:JSON.stringify(v).length; }catch(e){ return 0; } }
   function add(m,k,n){ m[k]=(m[k]||0)+n; }
   Z.w=function(path,val){ var k=top(path); add(Z.out,k,size(val)+40); add(Z.cnt.w,k,1); };
@@ -20,23 +20,23 @@
       var P=firebase.database.Reference.prototype;
       ['set','update','push'].forEach(function(m){
         var o=P[m]; if(!o) return;
-        P[m]=function(v){ try{ Z.w(this.path&&this.path.toString?this.path.toString():this.key,v); }catch(e){} return o.apply(this,arguments); };
+        P[m]=function(v){ try{ Z.w(this.toString(),v); }catch(e){} return o.apply(this,arguments); };
       });
       var oT=P.transaction;
-      if(oT) P.transaction=function(){ try{ Z.w(this.path.toString(),{t:1}); }catch(e){} return oT.apply(this,arguments); };
-      var oR=P.remove; if(oR) P.remove=function(){ try{ Z.w(this.path.toString(),null); }catch(e){} return oR.apply(this,arguments); };
+      if(oT) P.transaction=function(){ try{ Z.w(this.toString(),{t:1}); }catch(e){} return oT.apply(this,arguments); };
+      var oR=P.remove; if(oR) P.remove=function(){ try{ Z.w(this.toString(),null); }catch(e){} return oR.apply(this,arguments); };
       var oOn=P.on;
       if(oOn) P.on=function(ev,cb){
         var self=this, args=Array.prototype.slice.call(arguments);
         if(typeof cb==='function'){
-          args[1]=function(snap){ try{ Z.r(self.path.toString(), snap&&snap.val?snap.val():null); }catch(e){} return cb.apply(this,arguments); };
+          args[1]=function(snap){ try{ Z.r(self.toString(), snap&&snap.val?snap.val():null); }catch(e){} return cb.apply(this,arguments); };
         }
         return oOn.apply(this,args);
       };
       var oOnce=P.once;
       if(oOnce) P.once=function(){
         var self=this, p=oOnce.apply(this,arguments);
-        try{ if(p&&p.then) p.then(function(s){ try{ Z.r(self.path.toString(), s&&s.val?s.val():null); }catch(e){} }).catch(function(){}); }catch(e){}
+        try{ if(p&&p.then) p.then(function(s){ try{ Z.r(self.toString(), s&&s.val?s.val():null); }catch(e){} }).catch(function(){}); }catch(e){}
         return p;
       };
       Z._patched=true; return true;
@@ -55,7 +55,7 @@
   try{ requestAnimationFrame(frame); }catch(e){}
   document.addEventListener('visibilitychange',function(){ Z.fr.last=0; });
   // ── Sichtbarkeit anderer Spieler (von _syncMP aufgerufen) ──
-  Z.seen=function(hotAll,myKey,now){
+  Z.seen=function(hotAll,myKey,now,mySlot){
     try{
       var live=0,stale=0,names=[];
       Object.keys(hotAll||{}).forEach(function(k){
@@ -63,6 +63,13 @@
         var h=hotAll[k]; if(!h) return;
         if(now-(h.t||0)<10000){ live++; names.push(k); } else stale++;
       });
+      var slots={},warn=[];
+      Object.keys(hotAll||{}).forEach(function(k){ var h=hotAll[k]; if(!h||now-(h.t||0)>=10000) return;
+        if(typeof h.slotIdx==='number'){ (slots[h.slotIdx]=slots[h.slotIdx]||[]).push(k); }
+        if(Math.abs(h.x)>400||Math.abs(h.z)>400||h.x!==h.x) warn.push('Position-Ausreisser '+k+' ('+h.x+','+h.z+')'); });
+      if(typeof mySlot==='number'){ (slots[mySlot]=slots[mySlot]||[]).push(myKey); }
+      Object.keys(slots).forEach(function(s){ if(slots[s].length>1) warn.push('Slot '+s+' doppelt belegt: '+slots[s].join(', ')); });
+      var sig=warn.join('|'); if(sig&&sig!==Z._lastWarn){ console.warn('[Net-debug] '+sig); Z.event(sig); } Z._lastWarn=sig;
       var v=Z.vis; v.live=live; v.stale=stale; v.total=live+stale; v.names=names;
       if(live<v.minLive)v.minLive=live; if(live>v.maxLive)v.maxLive=live;
     }catch(e){}
