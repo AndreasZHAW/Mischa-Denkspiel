@@ -372,7 +372,9 @@
         this._recSend(true); this.rec.on=false;
       } else if(c.state==='done'){
         this.rec.on=false;
-        if(c.summary && !seen('recap',c.id)){ mark('recap',c.id); this._recapShow(c.summary); }
+        // Nach 1 Stunde nicht mehr anzeigen (auch nicht für Spieler, die sich erst später anmelden)
+        const age=Date.now()-(c.endedAt||c.startAt||0);
+        if(c.summary && !seen('recap',c.id)){ mark('recap',c.id); if(age<3600000) this._recapShow(c.summary); }
       }
     },
     _recLog(t){ const r=RT(); const c=this.st.recap; if(!r||!c||c.state!=='rec') return; if(this._lastLogKey===t) return; this._lastLogKey=t; r.ref('zoo_recap/log/'+c.id).push({t,at:Date.now()}).catch(()=>{}); },

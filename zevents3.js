@@ -110,7 +110,7 @@
     adminTraitorStart(includeSelf,mins){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
       const names=[...new Set([...Object.keys(ZG.otherPl||{}),...(includeSelf?[me()]:[])].filter(Boolean))];
-      if(names.length<3){ note('❗ Verräter braucht mindestens 3 Spieler — gefunden: '+names.length+(names.length?' ('+names.join(', ')+')':'')+(includeSelf?'':' · Tipp: „ich spiele mit“ anhaken, wenn du selbst mitspielst')+'. Es zählen nur Spieler im selben Zoo, die in den letzten 10 s aktiv waren.'); return; }
+      if(names.length<1){ note('❗ Keine Spieler gefunden — hake „ich spiele mit“ an oder warte, bis andere im Zoo aktiv sind (nur Spieler im selben Zoo, die in den letzten 10 s aktiv waren, werden erkannt).'); return; }
       const id=String(Date.now()); const tn=names[Math.floor(Math.random()*names.length)];
       const alive={}; names.forEach(n=>alive[K(n)]=n);
       const roles={}; names.forEach(n=>roles[K(n)]={id,r:n===tn?'T':'C'});
@@ -306,7 +306,7 @@
     adminZombieStart(includeSelf,mins,prize){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
       const names=[...new Set([...Object.keys(ZG.otherPl||{}),...(includeSelf?[me()]:[])].filter(Boolean))];
-      if(names.length<3){ note('❗ Zombie-Ausbruch braucht mindestens 3 Spieler — gefunden: '+names.length+(names.length?' ('+names.join(', ')+')':'')+(includeSelf?'':' · Tipp: „ich spiele mit“ anhaken')); return; }
+      if(names.length<1){ note('❗ Keine Spieler gefunden — hake „ich spiele mit“ an.'); return; }
       const z0=names[Math.floor(Math.random()*names.length)]; const alive={}, zombies={}; names.forEach(n=>{ if(n===z0) zombies[K(n)]=n; else alive[K(n)]=n; });
       r.ref('zoo_zombie').set({id:String(Date.now()),state:'run',startAt:Date.now()+15000,endAt:Date.now()+15000+Math.max(1,mins||5)*60000,alive,zombies,total:names.length,prize:Math.max(0,prize||0)});
       note('🧟 Zombie-Ausbruch gestartet mit '+names.length+' Spielern: '+names.join(', '));
