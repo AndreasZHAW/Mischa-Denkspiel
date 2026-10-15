@@ -6,6 +6,7 @@
   var Z=window.ZNet={
     t0:Date.now(), out:{}, inn:{}, cnt:{w:{},r:{}}, evt:[],
     fr:{n:0,sum:0,max:0,long:0,vlong:0,last:0,win:[]},
+    marks:[], spikes:{},
     vis:{live:0,stale:0,total:0,minLive:99,maxLive:0}, lastLog:0
   };
   function top(path){ try{ var p=String(path||'').replace(/^https?:\/\/[^\/]+/,'').replace(/^\/+/,'').split('/'); return p[0]||'?'; }catch(e){return '?';} }
@@ -48,12 +49,12 @@
     var f=Z.fr;
     if(f.last){
       var d=ts-f.last;
-      if(d>0&&d<5000){ f.n++; f.sum+=d; if(d>f.max)f.max=d; if(d>100)f.long++; if(d>250)f.vlong++; f.win.push(d); }
+      if(d>0&&d<5000){ f.n++; f.sum+=d; if(d>f.max)f.max=d; if(d>100){ f.long++; Z.spike(d,ts); } if(d>250)f.vlong++; f.win.push(d); }
     }
     f.last=ts; requestAnimationFrame(frame);
   }
   try{ requestAnimationFrame(frame); }catch(e){}
-  document.addEventListener('visibilitychange',function(){ Z.fr.last=0; });
+  document.addEventListener('visibilitychange',function(){ Z.fr.last=0; if(!document.hidden) Z.mark('tab-resume',2500); });
   // ── Sichtbarkeit anderer Spieler (von _syncMP aufgerufen) ──
   Z.seen=function(hotAll,myKey,now,mySlot){
     try{
@@ -74,6 +75,12 @@
       if(live<v.minLive)v.minLive=live; if(live>v.maxLive)v.maxLive=live;
     }catch(e){}
   };
+  // Ursachen-Zuordnung: Z.mark('label',ms) = „in den nächsten ms könnten Ruckler von label kommen"
+  Z.mark=function(label,ms){ try{ Z.marks.push({l:label,until:performance.now()+(ms||3000)}); if(Z.marks.length>40)Z.marks.shift(); }catch(e){} };
+  Z.spike=function(d,ts){
+    try{ var now=performance.now(), ls=[]; Z.marks.forEach(function(m){ if(m.until>now&&ls.indexOf(m.l)<0) ls.push(m.l); });
+      var k=ls.length?ls.join('+'):'ohne-Event'; var e=Z.spikes[k]||(Z.spikes[k]={n:0,max:0,sum:0}); e.n++; e.sum+=d; if(d>e.max)e.max=d; }catch(e){}
+  };
   Z.event=function(s){ try{ Z.evt.push(new Date().toLocaleTimeString('de-CH')+' '+s); if(Z.evt.length>30)Z.evt.shift(); }catch(e){} };
   function kb(n){ return (n/1024).toFixed(1); }
   function topN(m,n){ return Object.keys(m).sort(function(a,b){return m[b]-m[a];}).slice(0,n).map(function(k){return k+'='+kb(m[k])+'k';}).join(' '); }
@@ -85,6 +92,7 @@
     return {secs:Math.round(secs), fps:f.n?Math.round(1000/(f.sum/f.n)):0, frameMax:Math.round(f.max), frameP95:Math.round(p95),
       long:f.long, vlong:f.vlong, inKB:+kb(inT), outKB:+kb(outT), inKBmin:+(inT/1024/(secs/60)).toFixed(1), outKBmin:+(outT/1024/(secs/60)).toFixed(1),
       topIn:topN(Z.inn,4), topOut:topN(Z.out,4), live:Z.vis.live, stale:Z.vis.stale, minLive:Z.vis.minLive===99?0:Z.vis.minLive, maxLive:Z.vis.maxLive,
+      spk:Object.keys(Z.spikes).map(function(k){var e=Z.spikes[k];return k+' '+e.n+'× (max '+Math.round(e.max)+'ms)';}).join(', '),
       mem:(performance&&performance.memory)?Math.round(performance.memory.usedJSHeapSize/1048576):null};
   };
   Z.tick=function(){
@@ -92,7 +100,7 @@
       var s=Z.snapshot();
       var line='[Net-debug] '+s.secs+'s · FPS Ø'+s.fps+' (p95-Frame '+s.frameP95+'ms, max '+s.frameMax+'ms, >100ms: '+s.long+'×, >250ms: '+s.vlong+'×) · '
         +'↓'+s.inKB+'KB ('+s.inKBmin+'/min) ↑'+s.outKB+'KB ('+s.outKBmin+'/min) · Top↓ '+s.topIn+' · Top↑ '+s.topOut
-        +' · Spieler live '+s.live+' (min '+s.minLive+'/max '+s.maxLive+') stale '+s.stale+(s.mem!=null?' · Heap '+s.mem+'MB':'');
+        +' · Spieler live '+s.live+' (min '+s.minLive+'/max '+s.maxLive+') stale '+s.stale+(s.mem!=null?' · Heap '+s.mem+'MB':'')+' · Ruckler-Ursachen: '+(s.spk||'–');
       if(s.long>0||s.vlong>0||s.inKBmin>400) console.warn(line); else console.log(line);
       if(typeof _rtdb!=='undefined'&&_rtdb&&typeof State!=='undefined'&&State._useCloud&&State._useCloud()){
         var id=(window.getDeviceId&&window.getDeviceId())||'dev';
