@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v620 -->
+<!-- ZOO v623 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=620"></script>
-<script src="rewardchests.js?v=620"></script>
-<script src="personality.js?v=620"></script>
+<script src="lang.js?v=623"></script>
+<script src="rewardchests.js?v=623"></script>
+<script src="personality.js?v=623"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v620','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v623','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,10 +527,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=620"></script>
-<script src="sanction.js?v=620"></script>
-<script src="zevents.js?v=620"></script>
-<script src="worlds.js?v=620"></script>
+<script src="firebase-state.js?v=623"></script>
+<script src="sanction.js?v=623"></script>
+<script src="zevents.js?v=623"></script>
+<script src="worlds.js?v=623"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -3592,7 +3592,7 @@ const ZG={
   // target — extracted out so both the (legacy) listener shape and the
   // new RTDB-based one can call the exact same logic.
   _applyReceivedSlap(d){
-    if(d.slapId!=='mirror_block' && window.ZBattle && ZBattle.fighting() && !ZBattle.isFighter(d.from)) return; // Ausgeschiedene können Kämpfer nicht treffen
+    if(d.slapId!=='mirror_block' && window.ZBattle && ZBattle.fighting() && (!ZBattle.isFighter(d.from) || (d.slapId!=='basic' && !d.reflected))) return; // Im Kampf: nur Basic-Slaps von Kämpfern zählen // Ausgeschiedene können Kämpfer nicht treffen
     if(d.slapId!=='mirror_block'){ try{ ZHearts.setCombat(); if(window.ZEvt) ZEvt.stat('slapsGot'); }catch(e){} }
     // 🪞 Hinweis an den Angreifer: Spiegel hat abgewehrt
     if(d.slapId==='mirror_block'){
@@ -5890,7 +5890,7 @@ const ZG={
     }
   },
   _updateTimeOfDay(){
-    if(!this._skyMat)return;
+    if(!this._skyMat||this._moonMode)return;
     let enabled=true; try{enabled=localStorage.getItem('zoo_tod')!=='0';}catch(e){}
     if(!enabled){
       // Default bright daytime
@@ -7064,18 +7064,20 @@ const ZG={
     // left even if not permanently unlocked, plus any purchased tools (net)
     const packedIds=Object.entries(z.slapPacks||{}).filter(([,n])=>n>0).map(([id])=>id);
     const visibleTools = TOOLS.filter(tl => z.upg?.[tl.id]);
-    const visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id)||packedIds.includes(sl.id)).concat(visibleTools);
+    let visibleSlaps = SLAPS.filter(sl => owned.includes(sl.id)||packedIds.includes(sl.id)).concat(visibleTools);
+    const _battleOnly = !!(window.ZBattle && ZBattle.fighting());
+    if(_battleOnly) visibleSlaps = SLAPS.filter(sl=>sl.id==='basic'); // Kampf-Event: nur Basic-Slap
     // Neutral/"nothing equipped" — always shown first. Clicking around the
     // world while this is active does nothing (see slap()'s early-out),
     // so accidentally tapping to turn the camera can't fire a weapon.
     const neutralEq = eq==='none';
-    el.innerHTML = `<div class="ss" onclick="ZG.equipSlap('none')" title="Nichts ausgerüstet — Tippen im Zoo löst nichts aus">
+    el.innerHTML = (_battleOnly?'':`<div class="ss" onclick="ZG.equipSlap('none')" title="Nichts ausgerüstet — Tippen im Zoo löst nichts aus">
         <div class="si ${neutralEq?'eq':''}" style="background:#1a1a1a;border:2px solid ${neutralEq?'#aaa':'transparent'};position:relative">
           <span style="font-size:1.65rem">✋</span>
           ${neutralEq ? '<div style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#27AE60;border-radius:50%"></div>' : ''}
         </div>
         <div class="sn" style="color:#aaa;font-size:.58rem">Neutral</div>
-      </div>` + visibleSlaps.map(sl => {
+      </div>`) + visibleSlaps.map(sl => {
       const isEq = sl.id === eq;
       const onCD = isEq && this.slapCD > 0;
       const cdS = Math.ceil(this.slapCD/1000);
@@ -7132,6 +7134,7 @@ const ZG={
 
   equipSlap(id){
     const z=ZS.zoo;if(!z)return;
+    if(window.ZBattle && ZBattle.fighting()){ z.eq='basic'; this._updWBar(); if(id!=='basic') ZP.toast('⚔️ Im Kampf gibt es nur den Basic-Slap!',1800); return; }
     if(id==='none'){ z.eq='none'; z.eqUses=0; this._updWBar(); ZP.toast('✋ Neutral — keine Waffe ausgerüstet',1000); return; }
     // Toggle: click same = unequip, different = equip
     if(z.eq===id){z.eq='none';this._updWBar();ZP.toast('Keine Waffe ausgerüstet',1000);return;}
@@ -13385,7 +13388,7 @@ const ZAdmin = {
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
     if(tab==='einst')this._populateEvents();
     if(tab==='battle')this._battleStatus();
-    if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); }
+    if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); ZEvt.adminTeamLoad(); }
     if(tab==='gucker')this._guckerList(false);
     if(tab==='ministat')this._miniStat();
     if(tab==='cal')this._loadCalFromFirebase();
@@ -13535,7 +13538,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v620 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v623 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -20463,12 +20466,23 @@ window.ZooEvents = ZooEvents;
           <button class="padmin-btn" style="background:#3498DB;font-size:.72rem;padding:5px 10px" onclick="ZEvt.adminStatus()">🔄 Status aktualisieren</button>
 
           <div class="padmin-section-title" style="margin-top:14px">🔴🔵 Team-Event (Rot gegen Blau)</div>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:6px;line-height:1.5">Alle online sichtbaren Spieler werden zufällig gelost. 5 Min: wer mehr MT verdient (nur Zuwachs, Ausgaben zählen nicht), das Gewinner-Team bekommt sein selbst Verdientes ×5. Mit eigenem Song.</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:6px;line-height:1.5">Du teilst die Teams selbst ein, würfelst sie zufällig aus oder startest direkt zufällig. 5 Min: wer mehr MT verdient (nur Zuwachs, Ausgaben zählen nicht), das Gewinner-Team bekommt sein selbst Verdientes ×5. Mit eigenem Song.</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center">
             <select id="zev-t-secs" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="10">Countdown 10s</option><option value="20" selected>Countdown 20s</option><option value="30">Countdown 30s</option></select>
             <select id="zev-t-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="1">1 Min</option><option value="3">3 Min</option><option value="5" selected>5 Min</option><option value="10">10 Min</option></select>
             <label style="font-size:.76rem;color:rgba(255,255,255,.7)"><input type="checkbox" id="zev-t-self" checked style="vertical-align:middle"> ich spiele mit</label>
           </div>
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:8px 10px;margin-bottom:8px">
+            <div style="font-weight:800;font-size:.8rem;margin-bottom:6px">👥 Teams selbst einteilen</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+              <button class="padmin-btn" style="background:#3498DB;padding:5px 10px;font-size:.72rem" onclick="ZEvt.adminTeamLoad()">🔄 Spieler laden</button>
+              <button class="padmin-btn" style="background:#8E44AD;padding:5px 10px;font-size:.72rem" onclick="ZEvt.adminTeamRandom()">🎲 Zufällig verteilen</button>
+              <button class="padmin-btn" style="background:#555;padding:5px 10px;font-size:.72rem" onclick="ZEvt.adminTeamClear()">✕ Leeren</button>
+            </div>
+            <div id="zev-t-plan"></div>
+            <button class="padmin-btn" style="background:#27AE60;width:100%;margin-top:8px" onclick="ZEvt.adminTeamStartPlanned(parseInt(document.getElementById('zev-t-secs').value),parseInt(document.getElementById('zev-t-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Mit diesen Teams starten</button>
+          </div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:4px">Oder alles automatisch (zufällig 50/50):</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#C0392B" onclick="ZEvt.adminTeamStart(parseInt(document.getElementById('zev-t-secs').value),document.getElementById('zev-t-self').checked,parseInt(document.getElementById('zev-t-mins').value));setTimeout(()=>ZEvt.adminStatus(),900)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt.adminTeamStop();setTimeout(()=>ZEvt.adminStatus(),900)">⏹️ Ende</button></div>
 
           <div class="padmin-section-title" style="margin-top:14px">💰 Schatzsuche</div>

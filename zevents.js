@@ -65,6 +65,37 @@
         toast('🔴🔵 Team-Event gestartet mit '+uniq.length+' Spielern',4000);
       });
     },
+    // ── Team-Planer (Admin): zufällig oder von Hand einteilen ──
+    _tList:[],
+    adminTeamLoad(){
+      const names=[...new Set([...Object.keys(ZG.otherPl||{}),me()].filter(Boolean))];
+      const old={}; this._tList.forEach(x=>{ old[x.n]=x.t; });
+      this._tList=names.map(n=>({n,t:old[n]||''}));
+      this.adminTeamRender();
+    },
+    adminTeamRandom(){
+      if(!this._tList.length) this.adminTeamLoad();
+      const a=this._tList.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+      a.forEach((x,i)=>{ x.t=i%2===0?'r':'b'; }); this.adminTeamRender();
+    },
+    adminTeamSet(i,t){ if(this._tList[i]){ this._tList[i].t=t; this.adminTeamRender(); } },
+    adminTeamClear(){ this._tList.forEach(x=>{ x.t=''; }); this.adminTeamRender(); },
+    adminTeamRender(){
+      const el=document.getElementById('zev-t-plan'); if(!el) return;
+      const r=this._tList.filter(x=>x.t==='r').length, b=this._tList.filter(x=>x.t==='b').length;
+      const btn=(i,t,lab,on,col)=>'<button onclick="ZEvt.adminTeamSet('+i+',\''+t+'\')" style="border:1px solid '+col+';background:'+(on?col:'transparent')+';color:#fff;border-radius:8px;padding:3px 9px;font-size:.74rem;font-weight:800;cursor:pointer">'+lab+'</button>';
+      el.innerHTML='<div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:5px">🔴 Rot: <b>'+r+'</b> · 🔵 Blau: <b>'+b+'</b> · ohne Team: '+(this._tList.length-r-b)+'</div>'
+        +this._tList.map((x,i)=>'<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.07)"><div style="flex:1;font-size:.8rem">'+esc(x.n)+'</div>'+btn(i,'r','🔴',x.t==='r','#c0392b')+btn(i,'b','🔵',x.t==='b','#2980b9')+btn(i,'','–',x.t==='','#666')+'</div>').join('')
+        ||'<span style="color:rgba(255,255,255,.4)">Keine Spieler gefunden — „Spieler laden" drücken.</span>';
+    },
+    adminTeamStartPlanned(secs,mins){
+      const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
+      const sel=this._tList.filter(x=>x.t);
+      if(sel.filter(x=>x.t==='r').length<1||sel.filter(x=>x.t==='b').length<1){ toast('❗ Jedes Team braucht mindestens 1 Spieler',3500); return; }
+      const players={}; sel.forEach(x=>{ players[K(x.n)]={n:x.n,t:x.t}; });
+      const startAt=Date.now()+(secs||10)*1000, endAt=startAt+(mins||5)*60000;
+      return r.ref('zoo_team').set({id:'t'+Date.now(),startAt,endAt,players,created:Date.now()}).then(()=>toast('🔴🔵 Team-Event gestartet ('+sel.length+' Spieler, eigene Teams)',4000));
+    },
     adminTeamStop(){
       const r=RT(); if(!r||!this.st.team) return;
       return r.ref('zoo_team/endAt').set(Date.now()).then(()=>toast('⏹️ Team-Event beendet',2500));
@@ -80,7 +111,8 @@
         try{ ZHearts._toZoo&&ZHearts._toZoo(); }catch(e){}
         this.earn.total=0; this.earn._last=total();
         big(mine==='r'?'🔴 TEAM ROT':'🔵 TEAM BLAU',mine==='r'?'#ff5a5a':'#5aa8ff',3000);
-        toast('Verdiene in 5 Min mehr als das andere Team! Das Gewinner-Team bekommt das Verdiente ×5!',6000);
+        const mates=Object.values(t.players||{}).filter(p=>p.t===mine&&p.n.toLowerCase()!==me().toLowerCase()).map(p=>p.n);
+        toast((mine==='r'?'🔴':'🔵')+' Dein Team: '+(mates.length?mates.join(', '):'du kämpfst allein')+'\nVerdiene in der Zeit mehr als das andere Team! Das Gewinner-Team bekommt das Verdiente ×5!',10000);
         ZMusic.play(Math.max(0,t.endAt-Date.now()));
       } else if(mine && Date.now()<t.endAt && !ZMusic.on){ ZMusic.play(Math.max(0,t.endAt-Date.now())); }
     },
@@ -130,7 +162,9 @@
       const h=document.getElementById('zhearts'); const hb=h?h.getBoundingClientRect().bottom:60;
       const c=document.getElementById('zcombat'); const cb=c&&c.style.display!=='none'?c.getBoundingClientRect().bottom:hb;
       el.style.top=(Math.max(hb,cb)+6)+'px';
-      el.innerHTML='<div style="display:inline-block;background:rgba(0,0,0,.6);border-radius:12px;padding:3px 10px"><span style="color:#ff7a7a">🔴 '+fmt(rt)+'</span> &nbsp;·&nbsp; <span style="color:#7ab8ff">🔵 '+fmt(bt)+'</span> &nbsp;·&nbsp; ⏱ '+right+' <span style="opacity:.7">· Du: '+(mine==='r'?'🔴':'🔵')+'</span></div>';
+      el.innerHTML='<div style="display:inline-block;background:rgba(0,0,0,.6);border-radius:12px;padding:3px 10px"><span style="color:#ff7a7a">🔴 '+fmt(rt)+'</span> &nbsp;·&nbsp; <span style="color:#7ab8ff">🔵 '+fmt(bt)+'</span> &nbsp;·&nbsp; ⏱ '+right+' <span style="opacity:.7">· Du: '+(mine==='r'?'🔴':'🔵')+'</span>'
+        +(function(){ const m=Object.values(t.players||{}).filter(p=>p.t===mine&&p.n.toLowerCase()!==me().toLowerCase()).map(p=>p.n); const shown=m.slice(0,5).join(', ')+(m.length>5?' +'+(m.length-5):''); return '<div style="font-size:.66rem;opacity:.85;font-weight:700;margin-top:1px">'+(mine==='r'?'🔴':'🔵')+' Team: '+esc(shown||'nur du')+'</div>'; })()
+        +'</div>';
     },
     _teamMarkers(t){
       try{
@@ -230,13 +264,45 @@
     adminChaosStop(){ const r=RT(); if(!r) return; return r.ref('zoo_chaos').remove().then(()=>toast('🌙 Schwerkraft wieder normal',2500)); },
     _chaosChanged(){
       const c=this.st.chaos;
-      if(c&&c.until>Date.now()){ ZG._gravMul=1/(c.mult||5); if(!seen('chaos',c.id)){ mark('chaos',c.id); big('🌙 MOND-SCHWERKRAFT','#9fd8ff',3000); toast('Du kannst jetzt '+(c.mult||5)+'× höher und länger springen! (Leertaste / Springen)',6000); } }
-      else { ZG._gravMul=1; this._hudRemove('zchaos'); }
+      if(c&&c.until>Date.now()){ ZG._gravMul=1/(c.mult||5); if(!seen('chaos',c.id)){ mark('chaos',c.id); big('🌙 MOND-NACHT','#c9b6ff',3500); toast('Du kannst jetzt '+(c.mult||5)+'× höher und länger springen! (Leertaste / Springen)',6000); } }
+      else { ZG._gravMul=1; this._hudRemove('zchaos'); this._moonOff(); }
+    },
+    // 🌙 Nacht in Lila: Himmel, Mond, Sterne, lila Farbschleier, Wiegenlied
+    _moonOn(c){
+      try{
+        if(!ZG._moonMode){
+          ZG._moonMode=true;
+          if(ZG._sunMesh){ this._sunOld={s:ZG._sunMesh.scale.x,c:ZG._sunMesh.material.color.getHex(),p:ZG._sunMesh.position.clone()}; }
+        }
+        if(ZG._skyMat) ZG._skyMat.color.setHex(0x1b0f45);
+        if(ZG._sunMesh){ ZG._sunMesh.visible=true; ZG._sunMesh.material.color.setHex(0xf3eeff); ZG._sunMesh.scale.setScalar(2.6); ZG._sunMesh.position.set(-70,85,-110); }
+        if(ZG._starsGroup) ZG._starsGroup.visible=true;
+        let o=document.getElementById('zmoon-tint');
+        if(!o){ o=document.createElement('div'); o.id='zmoon-tint';
+          o.style.cssText='position:fixed;inset:0;z-index:40;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(120,90,200,.55),rgba(50,20,110,.78));mix-blend-mode:multiply;transition:opacity 2s;opacity:0';
+          document.body.appendChild(o); requestAnimationFrame(()=>{ o.style.opacity='1'; });
+          const g=document.createElement('div'); g.id='zmoon-glow';
+          g.style.cssText='position:fixed;inset:0;z-index:41;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,rgba(190,160,255,.16),rgba(0,0,0,0) 65%);';
+          document.body.appendChild(g);
+        }
+        if(!ZMusic.on) ZMusic.play(Math.max(0,c.until-Date.now()),'lullaby');
+      }catch(e){}
+    },
+    _moonOff(){
+      try{
+        if(!ZG._moonMode) return;
+        ZG._moonMode=false;
+        if(ZG._sunMesh&&this._sunOld){ ZG._sunMesh.scale.setScalar(this._sunOld.s||1); ZG._sunMesh.material.color.setHex(this._sunOld.c); ZG._sunMesh.position.copy(this._sunOld.p); }
+        try{ ZG._updateTimeOfDay(); }catch(e){}
+        ['zmoon-tint','zmoon-glow'].forEach(id=>{ const o=document.getElementById(id); if(o) o.remove(); });
+        if(ZMusic.mode==='lullaby') ZMusic.stop();
+      }catch(e){}
     },
     _chaosLoop(){
       const c=this.st.chaos; const on=c&&c.until>Date.now();
-      if(!on){ if(ZG._gravMul!==1) ZG._gravMul=1; this._hudRemove('zchaos'); return; }
+      if(!on){ if(ZG._gravMul!==1) ZG._gravMul=1; this._hudRemove('zchaos'); this._moonOff(); return; }
       ZG._gravMul=1/(c.mult||5);
+      this._moonOn(c);
       let el=document.getElementById('zchaos');
       if(!el){ el=document.createElement('div'); el.id='zchaos';
         el.style.cssText='position:fixed;right:10px;top:110px;z-index:562;pointer-events:none;font:800 .72rem Arial,sans-serif;color:#9fd8ff;background:rgba(0,0,0,.55);border-radius:10px;padding:3px 9px;text-shadow:0 1px 2px #000';
@@ -410,18 +476,20 @@
   ];
   const ZMusic=window.ZMusic={
     on:false, ctx:null, bpm:126, _timer:null, _next:0, _step:0, _stopAt:0, _master:null, _lyr:null,
-    play(durMs){
+    play(durMs,mode){
       if(this.on) return;
+      this.mode=mode||'team'; this.bpm=this.mode==='lullaby'?54:126;
       try{
         const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
         this.ctx=this.ctx||new AC(); if(this.ctx.state==='suspended') this.ctx.resume();
         this._master=this.ctx.createGain(); this._master.gain.value=0.0; this._master.connect(this.ctx.destination);
-        this._master.gain.linearRampToValueAtTime(0.32,this.ctx.currentTime+2);
+        this._master.gain.linearRampToValueAtTime(this.mode==='lullaby'?0.30:0.32,this.ctx.currentTime+(this.mode==='lullaby'?4:2));
         // Rauschen-Buffer für Snare/Hats
         const len=this.ctx.sampleRate; const b=this.ctx.createBuffer(1,len,this.ctx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1; this._noise=b;
         this.on=true; this._step=0; this._next=this.ctx.currentTime+0.15; this._stopAt=Date.now()+(durMs||300000); this._t0=Date.now();
         this._timer=setInterval(()=>this._sched(),80);
-        this._lyrUI();
+        if(this.mode!=='lullaby') this._lyrUI();
+        if(this.mode==='lullaby') this._lullSetup();
       }catch(e){ console.log('[Music-debug] '+e.message); }
     },
     stop(){
@@ -429,6 +497,7 @@
       clearInterval(this._timer);
       try{ this._master.gain.cancelScheduledValues(this.ctx.currentTime); this._master.gain.setTargetAtTime(0,this.ctx.currentTime,0.5); const m=this._master; setTimeout(()=>{ try{m.disconnect();}catch(e){} },2500); }catch(e){}
       if(this._lyr){ this._lyr.remove(); this._lyr=null; }
+      try{ if(this._echo){ const e=this._echo; setTimeout(()=>{ try{e.disconnect();}catch(x){} },3000); this._echo=null; } }catch(x){}
     },
     _lyrUI(){
       if(this._lyr) this._lyr.remove();
@@ -440,7 +509,13 @@
     _sched(){
       if(!this.on) return;
       if(Date.now()>this._stopAt+1500){ this.stop(); return; }
-      const c=this.ctx, spb=60/this.bpm, s16=spb/4;
+      const c=this.ctx, spb=60/this.bpm;
+      if(this.mode==='lullaby'){
+        const s8=spb/2;
+        while(this._next<c.currentTime+0.5){ this._playLull(this._step,this._next,spb); this._next+=s8; this._step++; }
+        return;
+      }
+      const s16=spb/4;
       while(this._next<c.currentTime+0.35){ this._play16(this._step,this._next,spb); this._next+=s16; this._step++; }
       // Songtext nach Takt (2 Takte pro Zeile)
       if(this._lyr){ const bar=Math.floor(this._step/16); const li=Math.floor(bar/2)%LYRICS.length; const txt='🎵 '+LYRICS[li]; if(this._lyr.textContent!==txt) this._lyr.textContent=txt; }
@@ -453,6 +528,33 @@
     _bass(t,m,len){ const c=this.ctx,o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain(); o.type='sawtooth'; o.frequency.value=this._note(m); f.type='lowpass'; f.frequency.setValueAtTime(900,t); f.frequency.exponentialRampToValueAtTime(220,t+len); this._env(g,t,.01,len,.5); o.connect(f); f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
     _pad(t,ms,len){ const c=this.ctx; ms.forEach(m=>{ [-7,7].forEach(det=>{ const o=c.createOscillator(),f=c.createBiquadFilter(),g=c.createGain(); o.type='sawtooth'; o.frequency.value=this._note(m); o.detune.value=det; f.type='lowpass'; f.frequency.value=1100; g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.055,t+len*.3); g.gain.linearRampToValueAtTime(0.0001,t+len); o.connect(f); f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); }); }); },
     _lead(t,m,len,vol){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(); o.type='square'; o.frequency.value=this._note(m); const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2600; this._env(g,t,.005,len,vol||.11); o.connect(f); f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.05); },
+    // ── Wiegenlied „Mondlicht" (ohne Gesang): Spieluhr, warme Flächen, sanfter Bass, Echo ──
+    _lullSetup(){
+      const c=this.ctx; const d=c.createDelay(1.5); d.delayTime.value=0.52; const fb=c.createGain(); fb.gain.value=0.42; const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2200;
+      d.connect(lp); lp.connect(fb); fb.connect(d); this._echo=d; const send=c.createGain(); send.gain.value=0.5; this._echoIn=send; send.connect(d); lp.connect(this._master);
+    },
+    _bell(t,m,len,vol){
+      const c=this.ctx; const f=this._note(m);
+      [[1,1],[2,.28],[3,.08]].forEach(([mul,a])=>{
+        const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f*mul;
+        g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((vol||.2)*a,t+.012); g.gain.exponentialRampToValueAtTime(0.0001,t+len*(mul===1?1:.55));
+        o.connect(g); g.connect(this._master); g.connect(this._echoIn); o.start(t); o.stop(t+len+.1);
+      });
+    },
+    _warm(t,ms,len){
+      const c=this.ctx; ms.forEach(m=>{ [-5,5].forEach(det=>{ const o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter(); o.type='triangle'; o.frequency.value=this._note(m); o.detune.value=det; f.type='lowpass'; f.frequency.value=900;
+        g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.05,t+len*.45); g.gain.linearRampToValueAtTime(0.0001,t+len);
+        o.connect(f); f.connect(g); g.connect(this._master); o.start(t); o.stop(t+len+.1); }); });
+    },
+    _playLull(step,t,spb){
+      const s=step%8, bar=Math.floor(step/8)%8;
+      const MEL=[[76,0,79,0,81,0,79,0],[76,0,74,0,72,0,0,0],[74,0,76,0,79,0,76,0],[74,0,0,0,72,0,0,0],[67,0,72,0,76,0,74,0],[72,0,0,0,69,0,0,0],[74,0,76,0,74,0,72,0],[72,0,0,0,0,0,0,0]];
+      const CH=[[48,55,64],[48,55,64],[45,52,60],[45,52,60],[41,48,57],[41,48,57],[43,50,59],[48,55,64]];
+      const m=MEL[bar][s]; if(m) this._bell(t,m,spb*1.9,.2);
+      if(s===0){ this._warm(t,CH[bar],spb*4); const o=this.ctx.createOscillator(),g=this.ctx.createGain(); o.type='sine'; o.frequency.value=this._note(CH[bar][0]-12); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.16,t+.4); g.gain.linearRampToValueAtTime(0.0001,t+spb*4); o.connect(g); g.connect(this._master); o.start(t); o.stop(t+spb*4+.1); }
+      // verträumte hohe Funken (Sterne)
+      if(s===5 && Math.random()<.45){ const P=[84,86,88,91,93]; this._bell(t+Math.random()*.2,P[Math.floor(Math.random()*P.length)],spb*2.2,.07); }
+    },
     // Dunkles A-Moll: Am – F – C – G (je 1 Takt), 126 BPM
     _play16(step,t,spb){
       const s=step%16, bar=Math.floor(step/16), ci=bar%4;
