@@ -438,6 +438,7 @@
     },
 
     /* ═══════════ Admin-Status ═══════════ */
+    note(t){ this._note={t,until:Date.now()+12000}; toast(t,5000); try{ this.adminStatus(); }catch(x){} },
     async adminStatus(){
       const el=document.getElementById('zev-status'); if(!el) return;
       const t=this.st.team, tr=this.st.tr, c=this.st.chaos, rc=this.st.recap, sp=this.st.spot;
@@ -449,6 +450,7 @@
       if(c&&c.until>Date.now()) parts.push('🌙 Mond-Schwerkraft läuft noch '+mmss(c.until-Date.now()));
       if(sp&&sp.until>Date.now()) parts.push('🔦 Spotlight auf '+esc(sp.name));
       if(rc) parts.push('🎬 Rückblick: '+({rec:'⏺️ nimmt auf',stopping:'⏳ wertet aus',done:'✅ fertig'}[rc.state]||rc.state));
+      try{ if(this._note&&Date.now()<this._note.until) parts.unshift('<b style="color:#ffd166">'+esc(this._note.t)+'</b>'); }catch(x){}
       try{ if(window.ZEvt2) parts.push(...ZEvt2.statusParts()); if(window.ZEvt3) parts.push(...ZEvt3.statusParts()); }catch(x){}
       el.innerHTML=parts.join('<br>')||'Nichts aktiv.';
       const sel=document.getElementById('zev-spot-name');

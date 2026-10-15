@@ -18,6 +18,7 @@
   const hudOff=id=>{ const e=document.getElementById(id); if(e) e.remove(); };
   const mmss=ms=>{ ms=Math.max(0,ms); const s=Math.ceil(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
   // Glück stapelbar: Dauer wird an die Restzeit angehängt, Faktor = höchster
+  const note=t=>{ try{ if(window.ZEvt&&ZEvt.note) ZEvt.note(t); else toast(t,5000); }catch(e){ toast(t,5000); } };
   const stackLuck=(mult,mins)=>{ try{ const z=ZS.zoo, now=Date.now(); const act=z.adminLuckExp>now; const base=act?z.adminLuckExp:now;
     z.adminLuckMult=Math.max(act?(z.adminLuckMult||0):0,mult); z.adminLuckExp=base+mins*60000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} };
 
@@ -109,15 +110,18 @@
     adminTraitorStart(includeSelf,mins){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
       const names=[...new Set([...Object.keys(ZG.otherPl||{}),...(includeSelf?[me()]:[])].filter(Boolean))];
-      if(names.length<4){ toast('❗ Mindestens 4 Spieler nötig (gefunden: '+names.length+')',3500); return; }
+      if(names.length<4){ note('❗ Verräter braucht mindestens 4 Spieler — gefunden: '+names.length+(names.length?' ('+names.join(', ')+')':'')+(includeSelf?'':' · Tipp: „ich spiele mit“ anhaken, wenn du selbst mitspielst')+'. Es zählen nur Spieler im selben Zoo, die in den letzten 10 s aktiv waren.'); return; }
       const id=String(Date.now()); const tn=names[Math.floor(Math.random()*names.length)];
       const alive={}; names.forEach(n=>alive[K(n)]=n);
       const roles={}; names.forEach(n=>roles[K(n)]={id,r:n===tn?'T':'C'});
-      r.ref('zoo_traitor_secret').set({id,key:K(tn)});
-      r.ref('zoo_traitor_chat').set(null);
-      r.ref('zoo_traitor_roles').set(roles);
-      r.ref('zoo_traitor').set({id,state:'run',startAt:Date.now()+16000,endAt:Date.now()+16000+Math.max(1,mins||5)*60000,alive,dead:{},total:names.length,names:alive});
-      toast('🕵️ Verräter-Spiel gestartet ('+names.length+' Spieler)');
+      const fail=e=>note('❌ Verräter-Start fehlgeschlagen: '+((e&&e.message)||e));
+      Promise.all([
+        r.ref('zoo_traitor_secret').set({id,key:K(tn)}),
+        r.ref('zoo_traitor_chat').set(null),
+        r.ref('zoo_traitor_roles').set(roles)
+      ]).then(()=>r.ref('zoo_traitor').set({id,state:'run',startAt:Date.now()+16000,endAt:Date.now()+16000+Math.max(1,mins||5)*60000,alive,dead:{},total:names.length,names:alive}))
+        .then(()=>note('🕵️ Verräter-Spiel gestartet mit '+names.length+' Spielern: '+names.join(', ')+(includeSelf?'':' (du schaust als Admin zu)')+'. Die Rollen erscheinen jetzt bei allen.'))
+        .catch(fail);
     },
     adminTraitorStop(){ const r=RT(); if(r){ r.ref('zoo_traitor').set(null); r.ref('zoo_traitor_roles').set(null); r.ref('zoo_traitor_secret').set(null); r.ref('zoo_traitor_chat').set(null); } toast('⏹️ Verräter-Spiel beendet'); },
     _kill(target,tk){
@@ -202,7 +206,10 @@
     _tLoop(){
       const t=this.st.t; if(!t) return;
       this._tAdminCheck(t);
-      if(!this.role||this.role.id!==t.id){ return; }
+      if(!this.role||this.role.id!==t.id){
+        if(ZS.isAdmin){ const d=Object.keys(t.dead||{}).length; hud('zthud','👁️ Admin-Ansicht · 🕵️ Verräter: '+({run:'läuft',meeting:'🚨 Besprechung',over:'vorbei'}[t.state]||t.state)+' · '+Object.keys(t.alive||{}).length+'/'+(t.total||0)+' am Leben · '+d+' Leichen'+(t.state!=='over'?' · ⏱ '+mmss(t.endAt-Date.now()):''),'top:96px;background:rgba(0,0,0,.6);padding:5px 12px;border-radius:12px'); }
+        return;
+      }
       const k=K(me()); const alive=!!(t.alive&&t.alive[k]);
       // Geister für alle anderen unsichtbar machen
       const dead=t.dead||{}; const deadNames=new Set(Object.values(dead).map(d=>d.n));
@@ -299,10 +306,10 @@
     adminZombieStart(includeSelf,mins,prize){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; }
       const names=[...new Set([...Object.keys(ZG.otherPl||{}),...(includeSelf?[me()]:[])].filter(Boolean))];
-      if(names.length<3){ toast('❗ Mindestens 3 Spieler nötig (gefunden: '+names.length+')',3500); return; }
+      if(names.length<3){ note('❗ Zombie-Ausbruch braucht mindestens 3 Spieler — gefunden: '+names.length+(names.length?' ('+names.join(', ')+')':'')+(includeSelf?'':' · Tipp: „ich spiele mit“ anhaken')); return; }
       const z0=names[Math.floor(Math.random()*names.length)]; const alive={}, zombies={}; names.forEach(n=>{ if(n===z0) zombies[K(n)]=n; else alive[K(n)]=n; });
       r.ref('zoo_zombie').set({id:String(Date.now()),state:'run',startAt:Date.now()+15000,endAt:Date.now()+15000+Math.max(1,mins||5)*60000,alive,zombies,total:names.length,prize:Math.max(0,prize||0)});
-      toast('🧟 Zombie-Ausbruch gestartet ('+names.length+' Spieler)');
+      note('🧟 Zombie-Ausbruch gestartet mit '+names.length+' Spielern: '+names.join(', '));
     },
     adminZombieStop(){ const r=RT(); if(r) r.ref('zoo_zombie').set(null); toast('⏹️ Zombie-Event beendet'); },
     _infect(target,tk){
