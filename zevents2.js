@@ -34,12 +34,12 @@
     {n:'Riesen-Krake',e:'🐙',col:'#e84393',gap:2200,atk:['stomp','ring','meteor','beam'],
       tip:'Die Krake haut mit Tentakeln zu: Stampf-Kreise, Ringe und Meteore.',
       music:{bpm:110,root:38,scale:[0,2,3,5,7,9,10],wave:'triangle',riff:[0,-1,2,-1,0,-1,4,-1,0,-1,2,-1,5,-1,3,-1],kick:'x..x..x...x..x..',snare:'......x.......x.',hat:'x.x.x.x.x.x.x.x.'}},
-    {n:'Vulkan-Gott',e:'🌋',col:'#ff2d2d',gap:1700,atk:['meteor','beam','dark','cross','meteor','stomp'],
+    {n:'Vulkan-Gott',e:'🌋',col:'#ff2d2d',gap:1700,superEvery:6,atk:['meteor','beam','dark','cross','meteor','stomp'],
       tip:'Der Endboss: alles auf einmal, sehr schnell. Bleib in Bewegung!',
       music:{bpm:160,root:42,scale:[0,1,3,6,7,8,11],wave:'sawtooth',riff:[0,0,3,0,6,0,3,0,0,0,4,0,6,5,3,1],kick:'x.x.x.x.x.x.x.xx',snare:'....x.......x...',hat:'xxxxxxxxxxxxxxxx'}}
   ];
   const DIFF={leicht:400,normal:1000,schwer:2500,extrem:6000};
-  const TELE=3000, IMPACT_FLASH=700, MULT=10;
+  const TELE=3000, IMPACT_FLASH=700, MULT=10, SUPER_R=26, LOCK_AT=1500, LOCK_R=5;
 
   const E=window.ZEvt2={
     st:{}, _started:false, BOSSES, ARENA,
@@ -263,13 +263,15 @@
     },
     _shapes(b,B,k){
       const R=rng(b.seed*131+k*7919), pick=a=>a[Math.floor(R()*a.length)];
-      const type=pick(B.atk); const out=[]; const rp=()=>{ const a=R()*Math.PI*2, d=Math.sqrt(R())*(ARENA.R-4); return [ARENA.x+Math.cos(a)*d,ARENA.z+Math.sin(a)*d]; };
+      let type=pick(B.atk); const out=[];
+      if(B.superEvery && k%B.superEvery===B.superEvery-1) type='super'; const rp=()=>{ const a=R()*Math.PI*2, d=Math.sqrt(R())*(ARENA.R-4); return [ARENA.x+Math.cos(a)*d,ARENA.z+Math.sin(a)*d]; };
       if(type==='meteor'){ const n=3+Math.floor(R()*3); for(let i=0;i<n;i++){ const p=rp(); out.push({t:'c',x:p[0],z:p[1],r:5.5,m:1}); } }
       else if(type==='stomp'){ out.push({t:'c',x:ARENA.x,z:ARENA.z,r:15}); }
       else if(type==='beam'){ const n=1+Math.floor(R()*2); for(let i=0;i<n;i++){ const p=rp(); out.push({t:'s',x:p[0],z:p[1],a:R()*Math.PI,w:6}); } }
       else if(type==='cross'){ const p=rp(); const a=R()*Math.PI; out.push({t:'s',x:p[0],z:p[1],a,w:6},{t:'s',x:p[0],z:p[1],a:a+Math.PI/2,w:6}); }
       else if(type==='ring'){ const r1=10+R()*14; out.push({t:'r',x:ARENA.x,z:ARENA.z,r1,r2:r1+9}); }
       else if(type==='dark'){ const p=rp(); out.push({t:'i',x:p[0],z:p[1],r:9}); }
+      else if(type==='super'){ out.push({t:'c',x:ARENA.x,z:ARENA.z,r:SUPER_R,sup:1}); }
       return {type,shapes:out};
     },
     _spawnAttack(b,B,k,ts){
@@ -284,7 +286,9 @@
         ZG.scene.add(m); meshes.push(m);
         if(s.m){ const mt=this._emoSprite('☄️',7); mt.position.set(s.x,60,s.z); ZG.scene.add(mt); meshes.push(mt); s._met=mt; }
       });
-      this._act.push({k,ts,type,shapes,meshes,hit:false});
+      const act={k,ts,type,shapes,meshes,hit:false,sup:type==='super',seed:b.seed};
+      if(act.sup){ meshes.forEach(m=>{ if(m.material) m.material.color.set(0xaa0000); }); big('🌋 SUPER-ANGRIFF!','#ff2d2d',2200); toast('🌋 Der große Kreis tötet jeden darin — und außerhalb wählt der Vulkan-Gott ein Opfer! Renne nach AUSSEN und weiche dem Ziel-Kreis aus!',5000); }
+      this._act.push(act);
     },
     inShape(s,x,z){
       const dx=x-s.x, dz=z-s.z;
@@ -297,6 +301,8 @@
     _tickAttacks(now){
       this._act=this._act.filter(a=>{
         const imp=a.ts+TELE, p=(now-a.ts)/TELE;
+        if(a.sup && !a.tName && now>=a.ts+LOCK_AT && now<imp) this._lockTarget(a);
+        if(a.tMesh && now<imp){ a.tMesh.material.opacity=.45+.35*Math.abs(Math.sin(now/90)); }
         if(now<imp){
           const pulse=0.28+0.22*Math.abs(Math.sin(now/130*(1+p*2)));
           a.meshes.forEach(m=>{ if(m.material&&m.material.opacity!==undefined&&!m.isSprite) m.material.opacity=pulse+p*.2; });
@@ -304,6 +310,9 @@
         } else if(!a.hit){
           a.hit=true;
           a.meshes.forEach(m=>{ if(m.isSprite){ try{ZG.scene.remove(m);}catch(e){} } else if(m.material){ m.material.color.set(0xffaa00); m.material.opacity=.8; } });
+          if(a.tName===me() && !(window.ZHearts&&ZHearts.dead) && !busy()){
+            if(Math.hypot(ZG.pl.x-a.tx,ZG.pl.z-a.tz)<LOCK_R+0.4 && ZG.pl.y<5){ try{ ZHearts.die({boss:true,name:BOSSES[(this.st.boss||{}).boss||0].n}); }catch(e){} }
+          }
           if(!(window.ZHearts&&ZHearts.dead) && !busy()){
             const x=ZG.pl.x, z=ZG.pl.z;
             if(a.shapes.some(s=>this.inShape(s,x,z)) && ZG.pl.y<5){
@@ -314,6 +323,19 @@
         if(now>imp+IMPACT_FLASH){ a.meshes.forEach(m=>{ try{ ZG.scene.remove(m); }catch(e){} }); return false; }
         return true;
       });
+    },
+    // Super-Angriff: außerhalb des großen Kreises wird 1 Spieler ausgewählt (Ziel-Kreis, 1,5 s Vorwarnung, danach fest)
+    _lockTarget(a){
+      const cx=ARENA.x, cz=ARENA.z, list=[];
+      const add=(n,x,z)=>{ const d=Math.hypot(x-cx,z-cz); if(d>SUPER_R+1&&d<ARENA.R+30) list.push({n,x,z,h:hash(n+a.seed+a.k)}); };
+      if(!(window.ZHearts&&ZHearts.dead)) add(me(),ZG.pl.x,ZG.pl.z);
+      Object.keys(ZG.otherPl||{}).forEach(n=>{ const o=ZG.otherPl[n]; if(o&&typeof o.x==='number') add(n,o.x,o.z); });
+      a.tName=list.length?list.sort((p,q)=>p.h-q.h)[0].n:'-'; if(a.tName==='-') return;
+      const t=list.find(p=>p.n===a.tName); a.tx=t.x; a.tz=t.z;
+      const m=new THREE.Mesh(new THREE.CircleGeometry(LOCK_R,32),new THREE.MeshBasicMaterial({color:0xff0000,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));
+      m.rotation.x=-Math.PI/2; m.position.set(a.tx,0.25,a.tz); ZG.scene.add(m); a.tMesh=m; a.meshes.push(m);
+      const sk=this._emoSprite('☠️',3); sk.position.set(a.tx,4.5,a.tz); ZG.scene.add(sk); a.meshes.push(sk);
+      if(a.tName===me()) big('☠️ DU BIST DAS ZIEL! LAUF WEG!','#ff2d2d',1500); else toast('☠️ '+a.tName+' ist das Ziel!',1500);
     },
     /* Slap auf den Boss (aus ZG._slapNearby) — true = Boss getroffen/behandelt */
     tryHit(sl,cx,cy){
@@ -340,6 +362,8 @@
         return true;
       }catch(e){ return false; }
     },
+    // Während Boss-Kampf (und Briefing) kosten Slaps kein Geld
+    freeSlap(){ const ph=this._phase(); return ph==='brief'||ph==='fight'; },
     statusParts(){
       const out=[]; const b=this.st.boss, p=this.st.potato, s=this.st.size;
       if(b){ const B=BOSSES[b.boss]; const ph=this._phase(); const d=b.dmg||{}; const top=Object.keys(d).sort((a,c)=>d[c]-d[a]).slice(0,3).map(k=>esc(k)+' '+Math.round(d[k])).join(', ');

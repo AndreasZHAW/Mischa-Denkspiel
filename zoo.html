@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v628 -->
+<!-- ZOO v630 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=628"></script>
-<script src="rewardchests.js?v=628"></script>
-<script src="personality.js?v=628"></script>
+<script src="lang.js?v=630"></script>
+<script src="rewardchests.js?v=630"></script>
+<script src="personality.js?v=630"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v628','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v630','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -527,12 +527,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=628"></script>
-<script src="sanction.js?v=628"></script>
-<script src="zevents.js?v=628"></script>
-<script src="zevents2.js?v=628"></script>
-<script src="zevents3.js?v=628"></script>
-<script src="worlds.js?v=628"></script>
+<script src="firebase-state.js?v=630"></script>
+<script src="sanction.js?v=630"></script>
+<script src="zevents.js?v=630"></script>
+<script src="zevents2.js?v=630"></script>
+<script src="zevents3.js?v=630"></script>
+<script src="worlds.js?v=630"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -6616,9 +6616,10 @@ const ZG={
     // tradeoff being: stronger slaps stun longer, giving more time to
     // snatch a carried animal, but bite into your balance more to use.
     const total=(ZS.dsMT||0)+z.mt;
-    const cost=_bf?0:Math.round(total*(sl.pct??2)/100*10)/10;
+    const _free=_bf||!!(window.ZEvt2&&ZEvt2.freeSlap&&ZEvt2.freeSlap())||!!(window.ZEvt3&&ZEvt3.freeSlap&&ZEvt3.freeSlap());
+    const cost=_free?0:Math.round(total*(sl.pct??2)/100*10)/10;
     z.mt-=cost;
-    if(!owned){ z.slapPacks=z.slapPacks||{}; z.slapPacks[sl.id]=Math.max(0,packLeft-1); }
+    if(!owned && !_free){ z.slapPacks=z.slapPacks||{}; z.slapPacks[sl.id]=Math.max(0,packLeft-1); }
     this.slapCD=sl.cd;
     ZSound.slap();const fl=G('bflash');fl.style.background=sl.col?sl.col+'33':'rgba(255,220,0,.22)';fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',110);
     if(!z.slapUsage) z.slapUsage={};
@@ -13551,7 +13552,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v628 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v630 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'

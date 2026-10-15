@@ -369,6 +369,12 @@
       if(!ZG._sizeMul&&ZG._sizeSpd===1.1) ZG._sizeSpd=0;
       if(!keep){ this._zId=null; this._music(false); }
     },
+    freeSlap(){
+      const a=this.st.t, z=this.st.z, k=K(me());
+      if(a&&a.state!=='over'&&this.role&&this.role.id===a.id) return true;
+      if(z&&z.state==='run'&&((z.alive&&z.alive[k])||(z.zombies&&z.zombies[k]))) return true;
+      return false;
+    },
     statusParts(){
       const out=[]; const t=this.st.t, z=this.st.z;
       if(t){ out.push('🕵️ Verräter: '+({run:'läuft',meeting:'🚨 Besprechung',over:'vorbei ('+(t.winner==='crew'?'Besatzung':'Verräter')+' gewinnt)'}[t.state]||t.state)+' · '+Object.keys(t.alive||{}).length+'/'+(t.total||0)+' am Leben'+(t.state!=='over'?' · '+mmss(t.endAt-Date.now()):'')); }
