@@ -9,18 +9,18 @@
   const CAT=[
     {g:'🌳 Bäume',items:[
       {t:'pine',n:'Tanne',ic:'🌲',k:'p'},{t:'oak',n:'Eiche',ic:'🌳',k:'p'},{t:'palm',n:'Palme',ic:'🌴',k:'p'},{t:'cherry',n:'Kirschbaum',ic:'🌸',k:'p'},
-      {t:'autumn',n:'Herbstbaum',ic:'🍂',k:'p'},{t:'bush',n:'Busch',ic:'🌿',k:'p'},{t:'xmas',n:'Weihnachtsbaum',ic:'🎄',k:'e'},{t:'cactus',n:'Kaktus',ic:'🌵',k:'e'}]},
+      {t:'autumn',n:'Herbstbaum',ic:'🍂',k:'p'},{t:'bush',n:'Busch',ic:'🌿',k:'p'},{t:'xmas',n:'Weihnachtsbaum',ic:'🎄',k:'e'},{t:'cactus',n:'Kaktus',ic:'🌵',k:'e'},{t:'birch',n:'Birke',ic:'🌱',k:'p'},{t:'bamboo',n:'Bambus',ic:'🎍',k:'p'},{t:'snowpine',n:'Schnee-Tanne',ic:'❄️',k:'p'}]},
     {g:'🌷 Natur',items:[
       {t:'flowerbed',n:'Blumenbeet',ic:'💐',k:'p'},{t:'tulip',n:'Tulpe',ic:'🌷',k:'e'},{t:'sunflower',n:'Sonnenblume',ic:'🌻',k:'e'},{t:'hibiscus',n:'Blüte',ic:'🌺',k:'e'},
-      {t:'mushroom',n:'Pilz',ic:'🍄',k:'e'},{t:'rock',n:'Fels',ic:'🪨',k:'p'},{t:'pond',n:'Teich',ic:'💧',k:'p'},{t:'grass',n:'Rasen',ic:'🟩',k:'p'},{t:'rainbow',n:'Regenbogen',ic:'🌈',k:'e'},{t:'snowman',n:'Schneemann',ic:'⛄',k:'e'}]},
+      {t:'mushroom',n:'Pilz',ic:'🍄',k:'e'},{t:'rock',n:'Fels',ic:'🪨',k:'p'},{t:'pond',n:'Teich',ic:'💧',k:'p'},{t:'grass',n:'Rasen',ic:'🟩',k:'p'},{t:'rainbow',n:'Regenbogen',ic:'🌈',k:'e'},{t:'snowman',n:'Schneemann',ic:'⛄',k:'e'},{t:'lava',n:'Lava-See',ic:'🟧',k:'p'},{t:'icepond',n:'Eis-See',ic:'🧊',k:'p'},{t:'haybale',n:'Heuballen',ic:'🌾',k:'p'},{t:'mountain',n:'Berg',ic:'🏔️',k:'e'},{t:'volcano',n:'Vulkan',ic:'🌋',k:'e'},{t:'island',n:'Insel',ic:'🏝️',k:'e'}]},
     {g:'🏠 Bauen',items:[
       {t:'sign',n:'Schild „Base gehört …"',ic:'🪧',k:'s'},{t:'fence',n:'Zaun',ic:'🚧',k:'p'},{t:'path',n:'Weg',ic:'🟫',k:'p'},{t:'lamp',n:'Laterne',ic:'💡',k:'p'},
       {t:'bench',n:'Bank',ic:'🪑',k:'p'},{t:'tent',n:'Zelt',ic:'⛺',k:'p'},{t:'hut',n:'Hütte',ic:'🛖',k:'e'},{t:'house',n:'Haus',ic:'🏠',k:'e'},
-      {t:'castle',n:'Schloss',ic:'🏰',k:'e'},{t:'torii',n:'Tor',ic:'⛩️',k:'e'},{t:'tower',n:'Turm',ic:'🗼',k:'e'},{t:'bridge',n:'Brücke',ic:'🌉',k:'e'}]},
+      {t:'castle',n:'Schloss',ic:'🏰',k:'e'},{t:'torii',n:'Tor',ic:'⛩️',k:'e'},{t:'tower',n:'Turm',ic:'🗼',k:'e'},{t:'bridge',n:'Brücke',ic:'🌉',k:'e'},{t:'windmill',n:'Windmühle',ic:'🌀',k:'p'},{t:'well',n:'Brunnen (Wasser holen)',ic:'🪣',k:'p'},{t:'arch',n:'Stein-Bogen',ic:'🏛️',k:'p'}]},
     {g:'✨ Deko',items:[
       {t:'fountain',n:'Brunnen',ic:'⛲',k:'p'},{t:'campfire',n:'Lagerfeuer',ic:'🔥',k:'p'},{t:'lantern',n:'Laterne rot',ic:'🏮',k:'e'},{t:'statue',n:'Statue',ic:'🗿',k:'e'},
       {t:'crystal',n:'Kristall',ic:'💎',k:'e'},{t:'star',n:'Stern',ic:'⭐',k:'e'},{t:'flag',n:'Flagge',ic:'🚩',k:'e'},{t:'carousel',n:'Karussell',ic:'🎠',k:'e'},
-      {t:'ferris',n:'Riesenrad',ic:'🎡',k:'e'},{t:'circus',n:'Zirkus',ic:'🎪',k:'e'},{t:'balloon',n:'Ballon',ic:'🎈',k:'e'},{t:'vase',n:'Vase',ic:'🏺',k:'e'}]}
+      {t:'ferris',n:'Riesenrad',ic:'🎡',k:'e'},{t:'circus',n:'Zirkus',ic:'🎪',k:'e'},{t:'balloon',n:'Ballon',ic:'🎈',k:'e'},{t:'vase',n:'Vase',ic:'🏺',k:'e'},{t:'coaster',n:'Achterbahn',ic:'🎢',k:'e'},{t:'slide',n:'Rutsche',ic:'🛝',k:'e'},{t:'rocket',n:'Rakete',ic:'🚀',k:'e'},{t:'ufo',n:'Ufo',ic:'🛸',k:'e'},{t:'dragon',n:'Drache',ic:'🐉',k:'e'},{t:'unicorn',n:'Einhorn',ic:'🦄',k:'e'},{t:'teddy',n:'Teddy',ic:'🧸',k:'e'},{t:'gift',n:'Geschenk',ic:'🎁',k:'e'}]}
   ];
   const ALL={}; CAT.forEach(c=>c.items.forEach(i=>{ ALL[i.t]=i; }));
   const MAXOBJ=45;
@@ -49,7 +49,7 @@
       let m=B._tex[emoji];
       if(!m){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); x.font='96px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(emoji,64,70);
         const t=new THREE.CanvasTexture(c); m=B._tex[emoji]=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}); }
-      const sp=new THREE.Sprite(m); sp.scale.set(3.4*s,3.4*s,1); sp.position.y=1.7*s; return sp;
+      const sp=new THREE.Sprite(m); sp.scale.set(5*s,5*s,1); sp.position.y=2.5*s; return sp;
     },
     mesh(gk,mk,col){ return new THREE.Mesh(B.geo(gk,mk),B.mat(col)); },
     build3D(t,s){
@@ -73,9 +73,18 @@
         case 'tent': { const m=M('tent',()=>new THREE.ConeGeometry(2,2.6,4),0xe74c3c); m.position.y=1.3; m.rotation.y=Math.PI/4; g.add(m); } break;
         case 'fountain': { const b=M('fo1',()=>new THREE.CylinderGeometry(2,2.2,.7,14),0x9aa5ab); b.position.y=.35; g.add(b); const w=M('fo2',()=>new THREE.CylinderGeometry(1.7,1.7,.1,14),0x3aa0ff); w.position.y=.72; g.add(w); const c=M('fo3',()=>new THREE.CylinderGeometry(.25,.35,1.6,8),0xb9c3c8); c.position.y=1.5; g.add(c); const t=M('fo4',()=>new THREE.SphereGeometry(.45,8,6),0x7cc8ff); t.position.y=2.4; g.add(t); } break;
         case 'campfire': { for(let i=0;i<4;i++){ const l=M('lg',()=>new THREE.CylinderGeometry(.12,.12,1.2,5),0x6b4a2a); const a=i/4*Math.PI*2; l.position.set(Math.cos(a)*.35,.2,Math.sin(a)*.35); l.rotation.z=Math.PI/2; l.rotation.y=a; g.add(l); } const f=M('fire',()=>new THREE.ConeGeometry(.5,1.4,6),0xff7a1a); f.position.y=.9; g.add(f); const f2=M('fire2',()=>new THREE.ConeGeometry(.28,.9,6),0xffd23b); f2.position.y=.8; g.add(f2); } break;
+        case 'birch': trunk(2.4,0xe8e8e0); { const m=M('bi',()=>new THREE.SphereGeometry(1.7,8,6),0x9bd66a); m.position.y=3.7; m.scale.set(1,1.25,1); g.add(m); } break;
+        case 'bamboo': for(let i=0;i<5;i++){ const b=M('bam',()=>new THREE.CylinderGeometry(.12,.14,4.4,6),0x7cc24a); b.position.set((i-2)*.35,2.2+(i%2)*.4,(i%3-1)*.3); g.add(b); } break;
+        case 'snowpine': trunk(1.6); [[2.6,2.2,1.6],[2.0,1.8,3.3],[1.3,1.4,4.7]].forEach(([r,h,y])=>{ const m=M('spc'+r,()=>new THREE.ConeGeometry(r,h,8),0x2d6a4f); m.position.y=y; g.add(m); const c=M('spw'+r,()=>new THREE.ConeGeometry(r*.72,h*.5,8),0xffffff); c.position.y=y+h*.28; g.add(c); }); break;
+        case 'lava': { const m=M('lava',()=>new THREE.CylinderGeometry(3,3,.12,16),0xff5a1f); m.position.y=.08; g.add(m); const r=M('lavaR',()=>new THREE.TorusGeometry(3,.25,6,18),0x3b2a24); r.rotation.x=Math.PI/2; r.position.y=.12; g.add(r); const b=M('lavaB',()=>new THREE.SphereGeometry(.4,6,5),0xffd23b); b.position.set(.8,.3,.4); g.add(b); } break;
+        case 'icepond': { const m=M('ice',()=>new THREE.CylinderGeometry(3,3,.12,16),0xbfeaff); m.position.y=.08; g.add(m); const r=M('iceR',()=>new THREE.TorusGeometry(3,.2,6,18),0xffffff); r.rotation.x=Math.PI/2; r.position.y=.12; g.add(r); } break;
+        case 'haybale': { const m=M('hay',()=>new THREE.CylinderGeometry(.9,.9,1.4,12),0xd9b44a); m.rotation.z=Math.PI/2; m.position.y=.9; g.add(m); } break;
+        case 'windmill': { const t=M('wmT',()=>new THREE.CylinderGeometry(.9,1.5,5,8),0xe8dcc8); t.position.y=2.5; g.add(t); const c=M('wmC',()=>new THREE.ConeGeometry(1.4,1.4,8),0xb5532f); c.position.y=5.7; g.add(c); for(let i=0;i<4;i++){ const b=M('wmB',()=>new THREE.BoxGeometry(.3,3.4,.08),0xf5f0e6); const a=i*Math.PI/2; b.position.set(0,4.6,1.1); b.geometry.translate(0,1.4,0); b.rotation.z=a; g.add(b); } } break;
+        case 'well': { const m=M('wl',()=>new THREE.CylinderGeometry(1,1.1,1.1,12),0x9aa0a6); m.position.y=.55; g.add(m); const w=M('wlW',()=>new THREE.CylinderGeometry(.8,.8,.05,12),0x3aa0ff); w.position.y=1.1; g.add(w); [-.9,.9].forEach(x=>{ const p=M('wlP',()=>new THREE.BoxGeometry(.12,1.8,.12),0x7a5230); p.position.set(x,1.9,0); g.add(p); }); const r=M('wlR',()=>new THREE.ConeGeometry(1.4,.8,4),0xb5532f); r.position.y=3; r.rotation.y=Math.PI/4; g.add(r); } break;
+        case 'arch': { [-1.5,1.5].forEach(x=>{ const p=M('arP',()=>new THREE.BoxGeometry(.8,3.6,.8),0xb9b4a8); p.position.set(x,1.8,0); g.add(p); }); const t=M('arT',()=>new THREE.BoxGeometry(3.8,.8,.9),0xcfcabd); t.position.y=3.9; g.add(t); } break;
         default: break;
       }
-      g.scale.setScalar(s); return g;
+      g.scale.setScalar(s*1.35); return g;
     },
     // Welt-Objekt aus Vorlage
     buildObj(o,owner,likes){
@@ -123,17 +132,17 @@
       // andere Spieler (nur die, die gerade da sind)
       const others=ZG.otherPl||{}; const seen={me:1};
       Object.keys(others).forEach(n=>{ const op=others[n]; const k='o_'+n; seen[k]=1;
-        const b=op&&op.baseEq?B.list[op.baseEq]:null; B._ensure(k,b,typeof op.slotIdx==='number'?op.slotIdx:0,n); });
+        const bid=op&&(op.be||op.baseEq); const b=bid?B.list[bid]:null; B._ensure(k,b,typeof op.slotIdx==='number'?op.slotIdx:0,n); });
       Object.keys(B.groups).forEach(k=>{ if(!seen[k]) B._drop(k); });
       // Entfernung: weit weg ausblenden (Leistung)
       const px=ZG.pl.x, pz=ZG.pl.z;
-      Object.keys(B.groups).forEach(k=>{ const e=B.groups[k], c=e.grp.userData.center; e.grp.visible=Math.hypot(c.x-px,c.z-pz)<95; });
+      Object.keys(B.groups).forEach(k=>{ const e=B.groups[k], c=e.grp.userData.center; e.grp.visible=Math.hypot(c.x-px,c.z-pz)<230; });
       B._likeBtn(others);
     },
     // ── Likes (Zoo-Führung) ──
     _likeBtn(others){
       let best=null,bd=26;
-      Object.keys(others).forEach(n=>{ const op=others[n]; if(!op||!op.baseEq||!B.list[op.baseEq]) return; const lay=ZG._slotEncPos(typeof op.slotIdx==='number'?op.slotIdx:0);
+      Object.keys(others).forEach(n=>{ const op=others[n]; if(!op||!(op.be||op.baseEq)||!B.list[op.be||op.baseEq]) return; const lay=ZG._slotEncPos(typeof op.slotIdx==='number'?op.slotIdx:0);
         const d=Math.hypot(lay.center.x-ZG.pl.x,lay.center.z-ZG.pl.z); if(d<bd){ bd=d; best=n; } });
       let btn=document.getElementById('base-like-btn');
       if(!best){ if(btn) btn.style.display='none'; return; }
@@ -219,8 +228,11 @@
       const draw=()=>B.drawTo(cv,e,true,e.sel);
       const sync=()=>{ e.name=$('#zb-name').value; e.price=+$('#zb-price').value||0; e.mult=+$('#zb-mult').value||1; e.rarity=$('#zb-rar').value; };
       const fill=()=>{ $('#zb-name').value=e.name; $('#zb-price').value=e.price; $('#zb-mult').value=e.mult; $('#zb-rar').value=e.rarity; };
-      const list=()=>{ const l=$('#zb-list'); l.innerHTML=B.sorted().map(b=>'<button class="zb-i'+(e.id===b.id?' on':'')+'" data-id="'+b.id+'" style="flex:none;border-color:'+rarOf(b.rarity).c+'">'+esc(b.name)+'</button>').join('')||'<span style="font-size:.7rem;color:#889">Noch keine Basen gespeichert.</span>';
-        l.querySelectorAll('button').forEach(b=>b.onclick=()=>{ const t=B.list[b.dataset.id]; if(!t) return; Object.assign(e,{id:t.id,name:t.name,price:t.price,mult:t.mult,rarity:t.rarity,objs:JSON.parse(JSON.stringify(t.objs||[])),sel:-1}); fill(); draw(); list(); selUI(); msg('„'+t.name+'" geladen.'); }); };
+      const list=()=>{ const l=$('#zb-list'); l.innerHTML=B.sorted().map(b=>'<span style="flex:none;display:flex;align-items:center"><button class="zb-i'+(e.id===b.id?' on':'')+'" data-id="'+b.id+'" style="border-color:'+rarOf(b.rarity).c+'">'+esc(b.name)+'</button><button class="zb-i" data-del="'+b.id+'" title="Löschen" style="background:#6b1f1f;padding:5px 8px">🗑</button></span>').join('')||'<span style="font-size:.7rem;color:#889">Noch keine Basen gespeichert.</span>';
+        l.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>delBase(b.dataset.del));
+        l.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ const t=B.list[b.dataset.id]; if(!t) return; Object.assign(e,{id:t.id,name:t.name,price:t.price,mult:t.mult,rarity:t.rarity,objs:JSON.parse(JSON.stringify(t.objs||[])),sel:-1}); fill(); draw(); list(); selUI(); msg('„'+t.name+'" geladen.'); }); };
+      const delBase=async id=>{ const t=B.list[id]; if(!t) return; let ok=true; try{ ok=await (typeof showConfirm==='function'?showConfirm('Base „'+t.name+'" wirklich für ALLE löschen?'):Promise.resolve(confirm('Base „'+t.name+'" wirklich löschen?'))); }catch(x){} if(!ok) return;
+        const r=R(); try{ await r.ref('zoo_bases/'+id).remove(); delete B.list[id]; if(e.id===id) Object.assign(e,{id:null,objs:[],sel:-1}); list(); draw(); selUI(); msg('🗑 „'+t.name+'" gelöscht.'); }catch(err){ msg('❌ '+err.message); } };
       const pal=()=>{ $('#zb-pal').innerHTML='<div style="margin-bottom:4px"><button class="zb-i'+(e.pick?'':' on')+'" data-t="">✋ Auswählen / Verschieben</button></div>'+CAT.map(c=>'<div style="font-size:.66rem;color:#99a;margin:6px 0 2px">'+c.g+'</div>'+c.items.map(i=>'<button class="zb-i'+(e.pick===i.t?' on':'')+'" data-t="'+i.t+'">'+i.ic+' '+i.n+'</button>').join('')).join('');
         $('#zb-pal').querySelectorAll('button').forEach(b=>b.onclick=()=>{ e.pick=b.dataset.t||null; pal(); }); };
       const selUI=()=>{ const s=$('#zb-sel'), o=e.objs[e.sel]; if(!o){ s.innerHTML='<span style="font-size:.7rem;color:#889">'+e.objs.length+'/'+MAXOBJ+' Objekte · Tippe aufs Feld zum Platzieren, tippe ein Objekt zum Auswählen</span>'; return; }
@@ -243,7 +255,7 @@
       $('#zb-save').onclick=async()=>{ sync(); const r=R(); if(!r){ msg('❌ Keine Cloud-Verbindung.'); return; } if(!e.name.trim()){ msg('❌ Bitte einen Namen eingeben.'); return; }
         const id=e.id||('b'+Date.now().toString(36)); const rec={id,name:e.name.trim().slice(0,30),price:Math.max(0,e.price),mult:Math.max(1,e.mult),rarity:e.rarity,objs:e.objs.slice(0,MAXOBJ),by:ZS.player,at:Date.now()};
         try{ await r.ref('zoo_bases/'+id).set(JSON.parse(JSON.stringify(rec))); e.id=id; B.list[id]=rec; list(); msg('✅ „'+rec.name+'" gespeichert — ist jetzt im Shop.'); }catch(err){ msg('❌ Speichern fehlgeschlagen: '+err.message); } };
-      $('#zb-del').onclick=async()=>{ if(!e.id){ msg('Diese Base ist noch nicht gespeichert.'); return; } if(!confirm('Base „'+e.name+'" wirklich löschen?')) return; const r=R(); try{ await r.ref('zoo_bases/'+e.id).remove(); delete B.list[e.id]; Object.assign(e,{id:null,objs:[],sel:-1}); list(); draw(); selUI(); msg('Gelöscht.'); }catch(err){ msg('❌ '+err.message); } };
+      $('#zb-del').onclick=()=>{ if(!e.id){ msg('Diese Base ist noch nicht gespeichert.'); return; } delBase(e.id); };
       ['#zb-name','#zb-price','#zb-mult','#zb-rar'].forEach(s=>$(s).addEventListener('input',sync));
       fill(); list(); pal(); draw(); selUI();
     }
