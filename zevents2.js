@@ -42,6 +42,7 @@
   const TELE=3000, IMPACT_FLASH=700, MULT=10, GUN_BOSS_DMG=10, SUPER_R=26, LOCK_AT=1500, LOCK_R=5;
 
   const E=window.ZEvt2={
+    _winShown:{},
     st:{}, _started:false, BOSSES, ARENA,
     init(){
       if(this._iv) return;
@@ -182,16 +183,19 @@
       if(!b){ this._bossClear(); return; }
       if(b.id!==this._bossId){ this._winAt=0; this._boom=0; this._bossId=b.id; this._bossClear(true); this._kDone=-1; this._act=[]; this._tele=false; }
       if(b.state==='won' && !this._winAt){ this._winAt=Date.now(); (this._act||[]).forEach(a=>{ (a.meshes||[]).forEach(m=>{ try{ ZG.scene.remove(m); }catch(e){} }); }); this._act=[]; hudOff('zbosshud'); }
-      if(b.state==='won' && !seen('bosswin',b.id)){
-        mark('bosswin',b.id);
-        big('🏆 BOSS BESIEGT!','#FFD700',4500);
+      if(b.state==='on') this._sawOn=b.id;
+      if(b.state==='won' && !seen('bosswin',b.id) && !this._winShown[b.id]){
+        this._winShown[b.id]=1; mark('bosswin',b.id);
         const d=b.dmg||{}; const my=d[K(me())]||0;
+        if(this._sawOn!==b.id && !(my>0)){ /* Spätankömmling / anderes Gerät: Kampf nicht miterlebt → keine Meldung */ } else {
+        big('🏆 BOSS BESIEGT!','#FFD700',4500);
         const top=Object.keys(d).sort((a,c)=>d[c]-d[a])[0];
         if(my>0 && b.prize>0){ let pr=b.prize; if(top===K(me())) pr*=3; addMT(pr); toast('🏆 Boss besiegt! +'+pr+' MT'+(top===K(me())?' (Top-Schaden ×3!)':''),6000); }
         else toast('🏆 '+BOSSES[b.boss].n+' wurde besiegt! Top-Schaden: '+(top?esc(top):'–'),5000);
+        }
         this._stopMusic();
       }
-      if(b.state==='lost' && !seen('bosslost',b.id)){ mark('bosslost',b.id); big('⏰ Zeit um — der Boss hat gewonnen','#ff6b6b',4000); this._stopMusic(); }
+      if(b.state==='lost' && !seen('bosslost',b.id) && this._sawOn===b.id){ mark('bosslost',b.id); big('⏰ Zeit um — der Boss hat gewonnen','#ff6b6b',4000); this._stopMusic(); }
     },
     _stopMusic(){ try{ if(ZMusic.mode==='boss') ZMusic.stop(); }catch(e){} },
     _bossClear(keepId){

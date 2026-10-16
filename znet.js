@@ -81,6 +81,7 @@
     try{ var now=performance.now(), ls=[]; Z.marks.forEach(function(m){ if(m.until>now&&ls.indexOf(m.l)<0) ls.push(m.l); });
       var k=ls.length?ls.join('+'):'ohne-Event'; var e=Z.spikes[k]||(Z.spikes[k]={n:0,max:0,sum:0}); e.n++; e.sum+=d; if(d>e.max)e.max=d; }catch(e){}
   };
+  Z.fsW=0; Z.fs=function(){ Z.fsW++; };
   Z.event=function(s){ try{ Z.evt.push(new Date().toLocaleTimeString('de-CH')+' '+s); if(Z.evt.length>30)Z.evt.shift(); }catch(e){} };
   function kb(n){ return (n/1024).toFixed(1); }
   function topN(m,n){ return Object.keys(m).sort(function(a,b){return m[b]-m[a];}).slice(0,n).map(function(k){return k+'='+kb(m[k])+'k';}).join(' '); }
@@ -100,7 +101,7 @@
       var s=Z.snapshot();
       var line='[Net-debug] '+s.secs+'s · FPS Ø'+s.fps+' (p95-Frame '+s.frameP95+'ms, max '+s.frameMax+'ms, >100ms: '+s.long+'×, >250ms: '+s.vlong+'×) · '
         +'↓'+s.inKB+'KB ('+s.inKBmin+'/min) ↑'+s.outKB+'KB ('+s.outKBmin+'/min) · Top↓ '+s.topIn+' · Top↑ '+s.topOut
-        +' · Spieler live '+s.live+' (min '+s.minLive+'/max '+s.maxLive+') stale '+s.stale+(s.mem!=null?' · Heap '+s.mem+'MB':'')+' · Ruckler-Ursachen: '+(s.spk||'–');
+        +' · Spieler live '+s.live+' (min '+s.minLive+'/max '+s.maxLive+') stale '+s.stale+(s.mem!=null?' · Heap '+s.mem+'MB':'')+' · Firestore-Writes: '+Z.fsW+' · Ruckler-Ursachen: '+(s.spk||'–');
       if(s.long>0||s.vlong>0||s.inKBmin>400) console.warn(line); else console.log(line);
       if(typeof _rtdb!=='undefined'&&_rtdb&&typeof State!=='undefined'&&State._useCloud&&State._useCloud()){
         var id=(window.getDeviceId&&window.getDeviceId())||'dev';
