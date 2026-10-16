@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v646 -->
+<!-- ZOO v648 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=646"></script>
-<script src="rewardchests.js?v=646"></script>
-<script src="personality.js?v=646"></script>
+<script src="lang.js?v=648"></script>
+<script src="rewardchests.js?v=648"></script>
+<script src="personality.js?v=648"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v646','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v648','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -294,6 +294,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div class="hb" id="hb-mtpass" onclick="MTPass.open()"><div class="hbb" style="background:rgba(255,215,0,.85)">🎫</div><div class="hbl">MT-Pass</div></div>
 <div class="hb" onclick="DailyCalendar.open()"><div class="hbb" style="background:rgba(52,152,219,.85)">📅</div><div class="hbl">Kalender</div></div>
 <div class="hb" id="hb-footstep-style" onclick="SpeedTemple.toggleFootstepStyle()"><div class="hbb" style="background:rgba(224,86,253,.85)">🔊</div><div class="hbl">Schritt-Ton</div></div>
+<div class="hb" id="hb-base-editor" onclick="ZBases.openEditor()" style="display:none"><div class="hbb" style="background:rgba(46,204,113,.85)">🏗️</div><div class="hbl">Base-Editor</div></div>
 <div class="hb" id="hb-tester-panel" onclick="TesterPanel.open()" style="display:none"><div class="hbb" style="background:rgba(52,120,246,.85)">🧪</div><div class="hbl">Tester</div></div>
 <div class="hb" id="hb-group-join" onclick="GroupNotify.open()"><div class="hbb" style="background:rgba(255,111,97,.85)">👥</div><div class="hbl">Gruppe</div></div>
 <div class="hb" onclick="ZG.goToMarket()"><div class="hbb" style="background:rgba(46,204,113,.8)">🏪</div><div class="hbl">Marktplatz</div></div>
@@ -528,13 +529,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=646"></script>
-<script src="sanction.js?v=646"></script>
-<script src="zevents.js?v=646"></script>
-<script src="zevents2.js?v=646"></script>
-<script src="zevents3.js?v=646"></script>
-<script src="znet.js?v=646"></script>
-<script src="worlds.js?v=646"></script>
+<script src="firebase-state.js?v=648"></script>
+<script src="sanction.js?v=648"></script>
+<script src="zevents.js?v=648"></script>
+<script src="zevents2.js?v=648"></script>
+<script src="zevents3.js?v=648"></script>
+<script src="znet.js?v=648"></script>
+<script src="zbases.js?v=648"></script>
+<script src="worlds.js?v=648"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -925,7 +927,7 @@ const ANIMALS=[
   // Preise (p) neu kalibriert für ~5-Minuten-Kaufkadenz und Millionär nach 5 Std.
   // Einnahmen (earn) unverändert. Reihenfolge/Emoji/Gewichte (w) unverändert.
   // ── NORMAL ──
-  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:40,p:8,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:30,earn:.7},
+  {id:'cat',n:'Katze',e:'🐱',r:'normal',w:80,p:8,earn:.5},{id:'dog',n:'Hund',e:'🐶',r:'normal',w:30,p:30,earn:.7},
   {id:'mouse',n:'Maus',e:'🐁',r:'normal',w:12,p:70,earn:.75},{id:'chick',n:'Küken',e:'🐤',r:'normal',w:10,p:114,earn:.8},
   {id:'rabbit',n:'Hase',e:'🐰',r:'normal',w:12,p:159,earn:.85},{id:'hamster',n:'Hamster',e:'🐹',r:'normal',w:15,p:207,earn:.9},
   {id:'sheep',n:'Schaf',e:'🐑',r:'normal',w:9,p:227,earn:.95},{id:'duck',n:'Ente',e:'🦆',r:'normal',w:10,p:239,earn:1},
@@ -1552,7 +1554,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v646) ──
+// ── REBIRTH-SYSTEM (v648) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1570,7 +1572,7 @@ const REB_FEAT_TXT={
   4:['🌈 Rainbow Slap dauerhaft','💰 Einkommen ×10','🏅 Ränge (Rang ausrüsten)'],
   5:['🌌 Void Slap dauerhaft','💰 Einkommen ×50','🎬 Du hast alles geschafft — der Abspann beginnt']
 };
-function rebHas(f){ try{ const z=ZS.zoo; if(ZS.isAdmin||(window.ZAdmin&&ZAdmin._hasAccess)) return true; return ((z&&z.reb)||0)>=(REB_NEED[f]||0); }catch(e){ return false; } }
+function rebHas(f){ try{ const z=ZS.zoo; if(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)) return true; return ((z&&z.reb)||0)>=(REB_NEED[f]||0); }catch(e){ return false; } }
 // Realtime Database forbids ".", "#", "$", "[", "]" in path keys — but
 // player names (e.g. "j.t.") can contain exactly those characters. Every
 // place that turns a player name into an RTDB path segment MUST go
@@ -1849,7 +1851,7 @@ const DailyCalendar = {
   },
 };
 
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*(typeof ZBases!=='undefined'?ZBases.multOf(z):1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;
   // EARLY GAME PACING: with just the first animal and no rebirth yet, income
   // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
   // that to roughly 7 minutes so the very beginning isn't instantly rushed —
@@ -1895,7 +1897,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v646: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v648: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -7853,7 +7855,7 @@ const ZG={
       const _myRank=getEquippedRank(ZS.player, ZS.zoo, ZS.zoo?.escSpeed||0);
       const coldData={name:ZS.player,char:_myPers.char,color:_myPers.color,
         charId:ZS.char?.id||'explorer',locked:ZooLock.locked,lockedUntil:ZooLock.lockedUntil,
-        rank:_myRank,
+        rank:_myRank, baseEq:(ZS.zoo&&ZS.zoo.baseEq)||null,
         enc:(ZS.zoo?.enc||[]).map(e=>e?{animal:e.animal}:null)};
       const coldStr=JSON.stringify(coldData);
       if(this._lastColdSent!==coldStr){
@@ -10988,7 +10990,8 @@ const ZP={
         +(bought?'<span style="color:#27AE60;font-size:.7rem;font-weight:800">✅ Gekauft</span>':'<button class="ab" '+(can?'':'disabled')+' onclick="buyLuckFreqUpgrade(\''+u.key+'\')">'+(can?'Kaufen':'Fehlt')+'</button>')
         +'</div>';
     }).join('')
-    +(rebHas('luckhz')?'</div>':'');
+    +(rebHas('luckhz')?'</div>':'')+(window.ZBases?ZBases.shopHTML():'');
+    try{ setTimeout(()=>{ window.ZBases&&ZBases.thumbs(el); },0); }catch(e){}
   },
   _bst(id,p,dur){const z=ZS.zoo;if(((ZS.dsMT||0)+z.mt)<p)return;z.mt-=p;if(!z.tb)z.tb={};z.tb[id]=Date.now()+dur;this.toast('✅ Boost aktiv!');this._sB(G('scont'));ZG._updHUD();this._updShopBal();},
 
@@ -13732,7 +13735,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v646 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v648 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
