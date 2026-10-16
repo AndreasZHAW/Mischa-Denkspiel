@@ -28,7 +28,8 @@
       {t:'crater',n:'Mond-Krater',ic:'⚫',k:'p'},{t:'moonrock',n:'Mond-Fels',ic:'🌑',k:'p'},{t:'spacecrystal',n:'Raum-Kristall',ic:'🔮',k:'p'},{t:'radar',n:'Radar-Schüssel',ic:'📡',k:'p'},{t:'dome',n:'Glas-Kuppel',ic:'🔵',k:'p'}]}
   ];
   const ALL={}; CAT.forEach(c=>c.items.forEach(i=>{ ALL[i.t]=i; }));
-  const MAXOBJ=45;
+  const MAXOBJ=45, MAXENC=8, MINENC=5;
+  const defEncs=()=>[0,1,2,3,4].map(i=>[(i-2)*8,0,1,null]);
   const SW=['#8b5a2b','#c8a165','#f2e3c6','#ffffff','#2b2b2b','#c0392b','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#ff7eb6'];
   const U_MAX=22, V_MIN=-14, V_MAX=18; // Editor-Fläche (u = entlang der Reihe, v = nach vorne zum Ring-Zentrum)
   const isEd=()=>{ try{ const k=String((ZS.player||'')).trim().toLowerCase(); return k==='bu:)'||k==='bu:3'||!!ZS.isAdmin||!!(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess); }catch(e){ return false; } };
@@ -39,6 +40,9 @@
 
   const B=window.ZBases={
     list:{}, groups:{}, likes:{}, _inited:false, preview:null, RAR, CAT,
+    slotEncs:{}, defEncs,
+    // Zusatz-Gehege der angelegten Base (zählt zu ZS.maxE)
+    extraEnc(z){ try{ const b=B.preview||((z&&z.baseEq&&z.bases&&z.bases[z.baseEq])?B.list[z.baseEq]:null); return (b&&b.encs&&b.encs.length>MINENC)?Math.min(MAXENC,b.encs.length)-MINENC:0; }catch(e){ return 0; } },
     multOf(z){ try{ const b=B.list[(z&&z.baseEq)||'']; return (b&&z.bases&&z.bases[b.id])?(+b.mult||1):1; }catch(e){ return 1; } },
     // ── Daten ──
     init(){
@@ -129,7 +133,7 @@
     _drop(key){ const e=B.groups[key]; if(e){ try{ ZG.scene.remove(e.grp); }catch(x){} delete B.groups[key]; } },
     _ensure(key,base,slot,owner){
       if(!base){ B._drop(key); return; }
-      const likes=B.likes[keyOf(owner)]||0, sig=[base.id,base.at||0,likes,owner,slot].join('|');
+      const likes=B.likes[keyOf(owner)]||0, sig=[base.id,base.at||0,likes,owner,slot,JSON.stringify(base.encs||0)].join('|');
       const e=B.groups[key]; if(e&&e.sig===sig) return;
       B._drop(key);
       try{ const grp=B.buildBase(base,slot,owner,likes); ZG.scene.add(grp); B.groups[key]={grp,sig,slot}; }catch(err){ console.log('[Bases] Aufbau-Fehler: '+err.message); }
@@ -141,6 +145,13 @@
       const eb=document.getElementById('hb-base-editor'); if(eb) eb.style.display=isEd()?'':'none';
       const z=ZS.zoo, slot=(typeof ZS.mySlot==='number')?ZS.mySlot:0;
       let mine=B.preview||((z.baseEq&&z.bases&&z.bases[z.baseEq])?B.list[z.baseEq]:null);
+      // v652: eigene Gehege-Anordnung der Bases
+      const _old=JSON.stringify(B.slotEncs); const _se={};
+      const _reg=(sl,b)=>{ if(b&&b.encs&&b.encs.length) _se[sl]=b.encs.slice(0,MAXENC).map(a=>({u:+a[0]||0,v:+a[1]||0,s:+a[2]||1,col:a[3]?parseInt(String(a[3]).replace('#',''),16):null})); };
+      _reg(slot,mine);
+      Object.keys(ZG.otherPl||{}).forEach(n=>{ const op=ZG.otherPl[n]; const bid=op&&(op.be||op.baseEq); if(bid&&B.list[bid]) _reg(typeof op.slotIdx==='number'?op.slotIdx:0,B.list[bid]); });
+      B.slotEncs=_se;
+      if(JSON.stringify(_se)!==_old||B._ex!==B.extraEnc(z)){ B._ex=B.extraEnc(z); try{ if(ZS._fix) ZS._fix(); ZG._encs&&ZG._encs(); }catch(e){} }
       B._ensure('me',mine,slot,ZS.player);
       // andere Spieler (nur die, die gerade da sind)
       const others=ZG.otherPl||{}; const seen={me:1};
@@ -206,8 +217,11 @@
       x.fillStyle='#3f8f45'; x.fillRect(0,0,W,H);
       if(grid){ x.strokeStyle='rgba(255,255,255,.13)'; x.lineWidth=1; for(let u=-U_MAX;u<=U_MAX;u+=4){ x.beginPath(); x.moveTo(px(u),0); x.lineTo(px(u),H); x.stroke(); } for(let v=V_MIN;v<=V_MAX;v+=4){ x.beginPath(); x.moveTo(0,py(v)); x.lineTo(W,py(v)); x.stroke(); } }
       // Gehege-Reihe (5 Stück)
-      x.fillStyle='rgba(120,80,40,.8)'; for(let i=0;i<5;i++){ const u=(i-2)*8; x.fillRect(px(u-3.5),py(-3.5),7*sx-1,7*sy); }
-      if(grid){ x.fillStyle='rgba(255,255,255,.7)'; x.font=Math.max(9,sy*1.6)+'px sans-serif'; x.textAlign='center'; x.fillText('Gehege',px(0),py(0)+3); x.fillText('▼ Vorne (Besucher)',px(0),H-4); }
+      (base.encs||defEncs()).forEach((q,i)=>{ const sc=q[2]||1; x.fillStyle=q[3]?q[3]:'rgba(120,80,40,.8)'; x.globalAlpha=q[3]?.85:1; x.fillRect(px(q[0]-3.5*sc),py(q[1]-3.5*sc),7*sc*sx-1,7*sc*sy); x.globalAlpha=1;
+        x.strokeStyle='rgba(60,35,10,.9)'; x.lineWidth=1; x.strokeRect(px(q[0]-3.5*sc),py(q[1]-3.5*sc),7*sc*sx-1,7*sc*sy);
+        if(grid){ x.fillStyle='#fff'; x.font='bold '+Math.max(9,sy*1.7)+'px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('#'+(i+1),px(q[0]),py(q[1])); }
+        if(grid&&base.selE===i){ x.strokeStyle='#FFD700'; x.lineWidth=3; x.strokeRect(px(q[0]-3.5*sc)-2,py(q[1]-3.5*sc)-2,7*sc*sx+3,7*sc*sy+3); } });
+      if(grid){ x.fillStyle='rgba(255,255,255,.7)'; x.font=Math.max(9,sy*1.6)+'px sans-serif'; x.textAlign='center'; x.textBaseline='alphabetic'; x.fillText('▼ Vorne (Besucher)',px(0),H-4); }
       (base.objs||[]).forEach((o,i)=>{ const d=ALL[o[0]]; if(!d) return; const s=(o[4]||1);
         x.font=Math.round((grid?3.2:2.6)*sy*Math.min(1.8,.7+s*.5))+'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; x.textAlign='center'; x.textBaseline='middle';
         if(o[5]){ x.fillStyle=o[5]; x.globalAlpha=.55; x.beginPath(); x.arc(px(o[1]),py(o[2]),Math.max(8,sy*2.2),0,7); x.fill(); x.globalAlpha=1; }
@@ -219,7 +233,7 @@
     openEditor(){
       if(!isEd()){ ZP.toast('🔒 Nur für Bu:)'); return; }
       B.init(); if(document.getElementById('zb-editor')) return;
-      B.ed={id:null,name:'',price:100000,mult:1.5,rarity:'normal',objs:[],pick:null,sel:-1};
+      B.ed={id:null,name:'',price:100000,mult:1.5,rarity:'normal',objs:[],encs:defEncs(),selE:-1,pick:null,sel:-1};
       const ov=document.createElement('div'); ov.id='zb-editor';
       ov.style.cssText='position:fixed;inset:0;z-index:99990;background:rgba(10,14,24,.98);color:#fff;font-family:Arial,sans-serif;overflow-y:auto;-webkit-overflow-scrolling:touch';
       ov.innerHTML='<div style="max-width:440px;margin:0 auto;padding:10px 12px 40px">'
@@ -246,12 +260,24 @@
       const fill=()=>{ $('#zb-name').value=e.name; $('#zb-price').value=e.price; $('#zb-mult').value=e.mult; $('#zb-rar').value=e.rarity; };
       const list=()=>{ const l=$('#zb-list'); l.innerHTML=B.sorted().map(b=>'<span style="flex:none;display:flex;align-items:center"><button class="zb-i'+(e.id===b.id?' on':'')+'" data-id="'+b.id+'" style="border-color:'+rarOf(b.rarity).c+'">'+esc(b.name)+'</button><button class="zb-i" data-del="'+b.id+'" title="Löschen" style="background:#6b1f1f;padding:5px 8px">🗑</button></span>').join('')||'<span style="font-size:.7rem;color:#889">Noch keine Basen gespeichert.</span>';
         l.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>delBase(b.dataset.del));
-        l.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ const t=B.list[b.dataset.id]; if(!t) return; Object.assign(e,{id:t.id,name:t.name,price:t.price,mult:t.mult,rarity:t.rarity,objs:JSON.parse(JSON.stringify(t.objs||[])),sel:-1}); fill(); draw(); list(); selUI(); msg('„'+t.name+'" geladen.'); }); };
+        l.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ const t=B.list[b.dataset.id]; if(!t) return; Object.assign(e,{id:t.id,name:t.name,price:t.price,mult:t.mult,rarity:t.rarity,objs:JSON.parse(JSON.stringify(t.objs||[])),encs:JSON.parse(JSON.stringify(t.encs&&t.encs.length?t.encs:defEncs())),selE:-1,sel:-1}); fill(); draw(); list(); selUI(); msg('„'+t.name+'" geladen.'); }); };
       const delBase=async id=>{ const t=B.list[id]; if(!t) return; let ok=true; try{ ok=await (typeof showConfirm==='function'?showConfirm('Base „'+t.name+'" wirklich für ALLE löschen?'):Promise.resolve(confirm('Base „'+t.name+'" wirklich löschen?'))); }catch(x){} if(!ok) return;
-        const r=R(); try{ await r.ref('zoo_bases/'+id).remove(); delete B.list[id]; if(e.id===id) Object.assign(e,{id:null,objs:[],sel:-1}); list(); draw(); selUI(); msg('🗑 „'+t.name+'" gelöscht.'); }catch(err){ msg('❌ '+err.message); } };
+        const r=R(); try{ await r.ref('zoo_bases/'+id).remove(); delete B.list[id]; if(e.id===id) Object.assign(e,{id:null,objs:[],encs:defEncs(),selE:-1,sel:-1}); list(); draw(); selUI(); msg('🗑 „'+t.name+'" gelöscht.'); }catch(err){ msg('❌ '+err.message); } };
       const pal=()=>{ $('#zb-pal').innerHTML='<div style="margin-bottom:4px"><button class="zb-i'+(e.pick?'':' on')+'" data-t="">✋ Auswählen / Verschieben</button></div>'+CAT.map(c=>'<div style="font-size:.66rem;color:#99a;margin:6px 0 2px">'+c.g+'</div>'+c.items.map(i=>'<button class="zb-i'+(e.pick===i.t?' on':'')+'" data-t="'+i.t+'">'+i.ic+' '+i.n+'</button>').join('')).join('');
         $('#zb-pal').querySelectorAll('button').forEach(b=>b.onclick=()=>{ e.pick=b.dataset.t||null; pal(); }); };
-      const selUI=()=>{ const s=$('#zb-sel'), o=e.objs[e.sel]; if(!o){ s.innerHTML='<span style="font-size:.7rem;color:#889">'+e.objs.length+'/'+MAXOBJ+' Objekte · Tippe aufs Feld zum Platzieren, tippe ein Objekt zum Auswählen</span>'; return; }
+      const addEnc=()=>{ if(e.encs.length>=MAXENC){ msg('Maximal '+MAXENC+' Gehege.'); return; } let u=0,v=-9; for(let k=0;k<20;k++){ const cu=((k%5)-2)*8, cv2=(k<5?-9:(k<10?9:13)); if(!e.encs.some(z=>Math.hypot(z[0]-cu,z[1]-cv2)<6)){ u=cu; v=cv2; break; } } e.encs.push([u,v,1,null]); e.selE=e.encs.length-1; e.sel=-1; draw(); selUI(); msg('Gehege hinzugefügt – verschiebe es mit dem Finger.'); };
+      const selUI=()=>{ const s=$('#zb-sel'), q=e.encs[e.selE], o=e.objs[e.sel];
+        if(q&&!o){ s.innerHTML='<b style="font-size:.75rem;align-self:center">🟫 Gehege #'+(e.selE+1)+'</b><button class="zb-i" data-q="big">＋ Grösser</button><button class="zb-i" data-q="small">－ Kleiner</button><button class="zb-i" data-q="del">🗑 Löschen</button><button class="zb-i" id="zb-addenc">➕ Gehege</button>'
+          +'<div style="flex-basis:100%;display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap"><span style="font-size:.68rem;color:#aab">🎨 Holz-Farbe:</span>'
+          +SW.map(c=>'<button class="zb-i" data-qc="'+c+'" style="width:26px;height:26px;padding:0;border-radius:50%;background:'+c+';border:2px solid '+(q[3]===c?'#fff':'#0008')+'"></button>').join('')
+          +'<input type="color" id="zb-qcol" value="'+(q[3]||'#8b4513')+'" style="width:34px;height:28px;border:none;background:none;padding:0"><button class="zb-i" data-qc="">↺ Original</button></div>'
+          +'<div style="flex-basis:100%;font-size:.66rem;color:#889;text-align:center">'+e.encs.length+'/'+MAXENC+' Gehege (mind. '+MINENC+' zum Speichern) · Tiere kommen der Reihe nach in #1, #2, …</div>';
+          { const ab2=s.querySelector('#zb-addenc'); if(ab2) ab2.onclick=addEnc; }
+          s.querySelectorAll('button[data-qc]').forEach(b=>b.onclick=()=>{ q[3]=b.dataset.qc||null; draw(); selUI(); });
+          const qi=s.querySelector('#zb-qcol'); if(qi) qi.oninput=()=>{ q[3]=qi.value; draw(); };
+          s.querySelectorAll('button[data-q]').forEach(b=>b.onclick=()=>{ const a=b.dataset.q; if(a==='big') q[2]=Math.min(2,Math.round(((q[2]||1)+.25)*100)/100); else if(a==='small') q[2]=Math.max(.5,Math.round(((q[2]||1)-.25)*100)/100); else if(a==='del'){ e.encs.splice(e.selE,1); e.selE=-1; } draw(); selUI(); });
+          return; }
+        if(!o){ s.innerHTML='<span style="font-size:.7rem;color:#889">'+e.objs.length+'/'+MAXOBJ+' Objekte · '+e.encs.length+'/'+MAXENC+' Gehege · Tippe aufs Feld zum Platzieren, tippe ein Objekt oder Gehege zum Auswählen</span><button class="zb-i" id="zb-addenc">➕ Gehege hinzufügen</button>'; const ab=s.querySelector('#zb-addenc'); if(ab) ab.onclick=addEnc; return; }
         s.innerHTML='<b style="font-size:.75rem;align-self:center">'+ALL[o[0]].ic+' '+ALL[o[0]].n+'</b><button class="zb-i" data-a="rot">↻ Drehen</button><button class="zb-i" data-a="big">＋ Grösser</button><button class="zb-i" data-a="small">－ Kleiner</button><button class="zb-i" data-a="copy">⧉ Kopie</button><button class="zb-i" data-a="del">🗑 Löschen</button>'
           +'<div style="flex-basis:100%;display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap"><span style="font-size:.68rem;color:#aab">🎨 Farbe (Holz):</span>'
           +SW.map(c=>'<button class="zb-i" data-c="'+c+'" style="width:26px;height:26px;padding:0;border-radius:50%;background:'+c+';border:2px solid '+(o[5]===c?'#fff':'#0008')+'"></button>').join('')
@@ -261,20 +287,22 @@
         s.querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>{ const a=b.dataset.a; if(a==='rot') o[3]=((o[3]||0)+45)%360; else if(a==='big') o[4]=Math.min(2.5,Math.round(((o[4]||1)+.25)*100)/100); else if(a==='small') o[4]=Math.max(.5,Math.round(((o[4]||1)-.25)*100)/100);
           else if(a==='copy'){ if(e.objs.length<MAXOBJ){ e.objs.push([o[0],Math.min(U_MAX,o[1]+2),o[2],o[3],o[4],o[5]||null]); e.sel=e.objs.length-1; } } else if(a==='del'){ e.objs.splice(e.sel,1); e.sel=-1; } draw(); selUI(); }); };
       const pos=ev=>{ const r=cv.getBoundingClientRect(); const px=(ev.clientX-r.left)/r.width*cv.width, py=(ev.clientY-r.top)/r.height*cv.height; return {u:Math.round(((px/cv.width)*2*U_MAX-U_MAX)*2)/2, v:Math.round(((py/cv.height)*(V_MAX-V_MIN)+V_MIN)*2)/2}; };
-      let drag=false;
+      let drag=false, dragE=false;
       cv.onpointerdown=ev=>{ ev.preventDefault(); try{ cv.setPointerCapture(ev.pointerId); }catch(x){} const p=pos(ev);
         let hit=-1,bd=2.6; e.objs.forEach((o,i)=>{ const d=Math.hypot(o[1]-p.u,o[2]-p.v); if(d<bd){ bd=d; hit=i; } });
-        if(hit>=0){ e.sel=hit; drag=true; }
+        let hq=-1; if(hit<0){ e.encs.forEach((q,i)=>{ const h=3.5*(q[2]||1); if(Math.abs(q[0]-p.u)<=h&&Math.abs(q[1]-p.v)<=h) hq=i; }); }
+        if(hit<0&&hq>=0){ e.selE=hq; e.sel=-1; dragE=true; }
+        else if(hit>=0){ e.sel=hit; e.selE=-1; drag=true; }
         else if(e.pick){ if(e.objs.length>=MAXOBJ){ msg('Maximal '+MAXOBJ+' Objekte.'); } else { if(e.pick==='sign'&&e.objs.some(o=>o[0]==='sign')){ msg('Es gibt schon ein Schild.'); } else { e.objs.push([e.pick,p.u,p.v,0,1]); e.sel=e.objs.length-1; } } }
-        else e.sel=-1;
+        else { e.sel=-1; e.selE=-1; }
         draw(); selUI(); };
-      cv.onpointermove=ev=>{ if(!drag||e.sel<0) return; const p=pos(ev), o=e.objs[e.sel]; o[1]=Math.max(-U_MAX,Math.min(U_MAX,p.u)); o[2]=Math.max(V_MIN,Math.min(V_MAX,p.v)); draw(); };
-      cv.onpointerup=cv.onpointercancel=()=>{ drag=false; };
+      cv.onpointermove=ev=>{ if(dragE&&e.selE>=0){ const p=pos(ev), q=e.encs[e.selE]; if(q){ q[0]=Math.max(-U_MAX+3,Math.min(U_MAX-3,p.u)); q[1]=Math.max(V_MIN+3,Math.min(V_MAX-3,p.v)); draw(); } return; } if(!drag||e.sel<0) return; const p=pos(ev), o=e.objs[e.sel]; o[1]=Math.max(-U_MAX,Math.min(U_MAX,p.u)); o[2]=Math.max(V_MIN,Math.min(V_MAX,p.v)); draw(); };
+      cv.onpointerup=cv.onpointercancel=()=>{ drag=false; dragE=false; };
       $('#zb-x').onclick=()=>{ B.preview=null; ov.remove(); B.tick(); };
-      $('#zb-new').onclick=()=>{ Object.assign(e,{id:null,name:'',price:100000,mult:1.5,rarity:'normal',objs:[],sel:-1}); fill(); draw(); list(); selUI(); msg('Neue Base.'); };
-      $('#zb-prev').onclick=()=>{ sync(); if(B.preview){ B.preview=null; msg('Vorschau aus.'); } else { B.preview={id:'__prev',at:Date.now(),objs:JSON.parse(JSON.stringify(e.objs))}; msg('Vorschau läuft — schliesse den Editor (✕) und schau im Zoo auf deinen Platz. Zum Beenden hier nochmal drücken.'); } B.tick(); };
-      $('#zb-save').onclick=async()=>{ sync(); const r=R(); if(!r){ msg('❌ Keine Cloud-Verbindung.'); return; } if(!e.name.trim()){ msg('❌ Bitte einen Namen eingeben.'); return; }
-        const id=e.id||('b'+Date.now().toString(36)); const rec={id,name:e.name.trim().slice(0,30),price:Math.max(0,e.price),mult:Math.max(1,e.mult),rarity:e.rarity,objs:e.objs.slice(0,MAXOBJ),by:ZS.player,at:Date.now()};
+      $('#zb-new').onclick=()=>{ Object.assign(e,{id:null,name:'',price:100000,mult:1.5,rarity:'normal',objs:[],encs:defEncs(),selE:-1,sel:-1}); fill(); draw(); list(); selUI(); msg('Neue Base.'); };
+      $('#zb-prev').onclick=()=>{ sync(); if(B.preview){ B.preview=null; msg('Vorschau aus.'); } else { B.preview={id:'__prev',at:Date.now(),objs:JSON.parse(JSON.stringify(e.objs)),encs:JSON.parse(JSON.stringify(e.encs))}; msg('Vorschau läuft — schliesse den Editor (✕) und schau im Zoo auf deinen Platz. Zum Beenden hier nochmal drücken.'); } B.tick(); };
+      $('#zb-save').onclick=async()=>{ sync(); const r=R(); if(!r){ msg('❌ Keine Cloud-Verbindung.'); return; } if(!e.name.trim()){ msg('❌ Bitte einen Namen eingeben.'); return; } if(e.encs.length<MINENC){ msg('❌ Mindestens '+MINENC+' Gehege nötig (aktuell '+e.encs.length+').'); return; }
+        const id=e.id||('b'+Date.now().toString(36)); const rec={id,name:e.name.trim().slice(0,30),price:Math.max(0,e.price),mult:Math.max(1,e.mult),rarity:e.rarity,objs:e.objs.slice(0,MAXOBJ),encs:e.encs.slice(0,MAXENC).map(q=>[Math.round(q[0]*2)/2,Math.round(q[1]*2)/2,q[2]||1,q[3]||null]),by:ZS.player,at:Date.now()};
         try{ await r.ref('zoo_bases/'+id).set(JSON.parse(JSON.stringify(rec))); e.id=id; B.list[id]=rec; list(); msg('✅ „'+rec.name+'" gespeichert — ist jetzt im Shop.'); }catch(err){ msg('❌ Speichern fehlgeschlagen: '+err.message); } };
       $('#zb-del').onclick=()=>{ if(!e.id){ msg('Diese Base ist noch nicht gespeichert.'); return; } delBase(e.id); };
       ['#zb-name','#zb-price','#zb-mult','#zb-rar'].forEach(s=>$(s).addEventListener('input',sync));
