@@ -1493,6 +1493,7 @@
 /* ZEvt4 — Admin-Events (v660): ⛈️ Sturm, 🚨 Zoo-Räumung, 🪤 Fallen-Fest. Admin startet, alle im Zoo bekommen Ansage + Effekte (RTDB zoo_aevent). */
 (function(){
   'use strict';
+  let _off=0; const tn=()=>Date.now()+_off; /* Serverzeit, damit abweichende Geräte-Uhren Events nicht verpassen */
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
@@ -1510,12 +1511,12 @@
   const addMT=n=>{ try{ ZS.zoo.mt=(ZS.zoo.mt||0)+n; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} };
   const E=window.ZEvt4={
     cur:null, _started:false, _id:null, _traps:[], _tg:null, _hitCd:{},
-    init(){ if(E._iv) return; E._iv=setInterval(()=>{ if(E._started){ E._loop(); return; } const r=RT(); if(!r||!inZoo()) return; E._started=true; try{ r.ref('zoo_aevent').on('value',s=>{ E.cur=s.val()||null; E._changed(); }); }catch(e){} },1000); },
-    active(){ const c=E.cur; return (c&&c.until>Date.now()&&INFO[c.type])?c:null; },
+    init(){ if(E._iv) return; E._iv=setInterval(()=>{ if(E._started){ E._loop(); return; } const r=RT(); if(!r||!inZoo()) return; E._started=true; try{ r.ref('.info/serverTimeOffset').on('value',o=>{ _off=+o.val()||0; try{ E._changed(); }catch(_){} }); }catch(e){} try{ r.ref('zoo_aevent').on('value',s=>{ E.cur=s.val()||null; E._changed(); }); }catch(e){} },1000); },
+    active(){ const c=E.cur; return (c&&c.until>tn()&&INFO[c.type])?c:null; },
     // ── Admin ──
     adminStart(type,mins,o){
       const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } if(!INFO[type]) return; mins=Math.max(1,mins||5); o=o||{};
-      const id=String(Date.now()), until=Date.now()+mins*60000, ev={id,type,until,by:me()};
+      const id=String(tn()), until=tn()+mins*60000, ev={id,type,until,by:me()};
       if(type==='magnet'||type==='mystery') ev.prize=Math.max(0,Math.round(+o.prize||0));
       if(type==='poll'){ const opts=String(o.opts||'').split(',').map(x=>x.trim()).filter(Boolean).slice(0,4); if(!o.q||opts.length<2){ toast('❗ Frage und mindestens 2 Optionen (mit Komma getrennt) eingeben'); return; } ev.q=String(o.q).slice(0,80); ev.opts=opts.map(x=>x.slice(0,30)); r.ref('zoo_aevent_votes/'+id).remove(); }
       r.ref('zoo_aevent').set(ev);
@@ -1530,7 +1531,7 @@
     // ── Clients ──
     _changed(){
       const c=E.active();
-      if(!c){ if(E._id&&!(E.cur&&E.cur.type==='poll'&&E.cur.id===E._id&&E.cur.until<=Date.now()&&E._pollEl)){ E._clear(); } return; }
+      if(!c){ if(E._id&&!(E.cur&&E.cur.type==='poll'&&E.cur.id===E._id&&E.cur.until<=tn()&&E._pollEl)){ E._clear(); } return; }
       if(c.id===E._id) return; E._clear(); E._id=c.id; const I=INFO[c.type];
       big(I.e+' '+I.n+'!',I.c,3500); toast(I.e+' '+I.t,6000);
       try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
@@ -1563,8 +1564,8 @@
     _openBox(c){
       E._boxOff(); const r=Math.random(), base=Math.max(100,c.prize||500);
       if(r<.55){ const amt=Math.round(base*(.5+Math.random()*2.5)); addMT(amt); big('📦 +'+amt+' MT!','#ffd54f',2500); toast('📦 Mystery-Box: '+amt+' MT gefunden!',4000); }
-      else if(r<.8){ try{ const z=ZS.zoo, now=Date.now(); const act=z.adminLuckExp>now; z.adminLuckMult=Math.max(act?(z.adminLuckMult||0):0,3); z.adminLuckExp=(act?z.adminLuckExp:now)+3*60000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} big('🍀 ×3 GLÜCK!','#7dffb0',2500); toast('📦 Mystery-Box: ×3 Glück für 3 Minuten!',4500); }
-      else { ZG._minusUntil=Date.now()+6000; ZG._minusF=.35; big('🐔 STREICH!','#ff8a65',2500); toast('📦 Mystery-Box: Streich! 6 Sekunden Schneckentempo 🐌',4500); }
+      else if(r<.8){ try{ const z=ZS.zoo, now=tn(); const act=z.adminLuckExp>now; z.adminLuckMult=Math.max(act?(z.adminLuckMult||0):0,3); z.adminLuckExp=(act?z.adminLuckExp:now)+3*60000; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} big('🍀 ×3 GLÜCK!','#7dffb0',2500); toast('📦 Mystery-Box: ×3 Glück für 3 Minuten!',4500); }
+      else { ZG._minusUntil=tn()+6000; ZG._minusF=.35; big('🐔 STREICH!','#ff8a65',2500); toast('📦 Mystery-Box: Streich! 6 Sekunden Schneckentempo 🐌',4500); }
     },
     // ── 🧲 Magnet-Admin ──
     _magnet(c,dt){
@@ -1575,7 +1576,7 @@
     },
     _magReach(c){
       const r=RT(); if(!r){ return; }
-      r.ref('zoo_aevent/win').transaction(v=>v?undefined:{n:me(),at:Date.now()},(err,ok)=>{
+      r.ref('zoo_aevent/win').transaction(v=>v?undefined:{n:me(),at:tn()},(err,ok)=>{
         if(ok){ if(c.prize>0) addMT(c.prize); big('🧲 DU BIST ERSTER!','#ff6bd6',3000); toast('🧲 Du hast den Admin zuerst berührt!'+(c.prize>0?' +'+c.prize+' MT':''),5000); }
         else toast('🧲 Admin berührt — du bist frei!',2500); });
     },
@@ -1589,12 +1590,12 @@
     },
     _pollTally(c){ const t=(c.opts||[]).map(()=>0); Object.keys(E._votes||{}).forEach(k=>{ const v=E._votes[k]; if(t[v]!=null) t[v]++; }); return t; },
     _pollDraw(){
-      const c=E.cur, el=E._pollEl; if(!c||!el||c.type!=='poll') return; const t=E._pollTally(c), tot=t.reduce((a,b)=>a+b,0), left=Math.max(0,Math.ceil((c.until-Date.now())/1000)), over=left<=0;
+      const c=E.cur, el=E._pollEl; if(!c||!el||c.type!=='poll') return; const t=E._pollTally(c), tot=t.reduce((a,b)=>a+b,0), left=Math.max(0,Math.ceil((c.until-tn())/1000)), over=left<=0;
       const mx=Math.max.apply(null,t);
       el.innerHTML='<div style="font-weight:900;color:#ffd54f;font-size:.95rem">🏆 '+(over?'ERGEBNIS':'MINI-WAHL')+' · '+(over?'beendet':left+' s')+'</div><div style="font-weight:800;margin:6px 0 8px;font-size:1rem">'+c.q.replace(/</g,'&lt;')+'</div>'
         +(c.opts||[]).map((o,i)=>{ const pct=tot?Math.round(t[i]/tot*100):0, win=over&&tot&&t[i]===mx; return '<button data-i="'+i+'" '+(over?'disabled':'')+' style="display:block;width:100%;margin:5px 0;padding:9px 10px;border-radius:10px;border:2px solid '+(E._myVote===i?'#7dffb0':win?'#ffd54f':'rgba(255,255,255,.25)')+';background:linear-gradient(90deg,rgba(255,213,79,.35) '+pct+'%,rgba(255,255,255,.07) '+pct+'%);color:#fff;font-weight:800;font-size:.9rem;text-align:left;cursor:pointer">'+(win?'👑 ':'')+o.replace(/</g,'&lt;')+' <span style="float:right">'+t[i]+' ('+pct+'%)</span></button>'; }).join('')
         +'<div style="font-size:.7rem;color:rgba(255,255,255,.55)">'+tot+' Stimme'+(tot===1?'':'n')+(E._myVote!=null?' · du hast abgestimmt (änderbar)':'')+'</div>';
-      el.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i, r=RT(); if(!r||c.until<Date.now()) return; E._myVote=i; r.ref('zoo_aevent_votes/'+c.id+'/'+K(me())).set(i); E._votes[K(me())]=i; E._pollDraw(); });
+      el.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.i, r=RT(); if(!r||c.until<tn()) return; E._myVote=i; r.ref('zoo_aevent_votes/'+c.id+'/'+K(me())).set(i); E._votes[K(me())]=i; E._pollDraw(); });
     },
     _pollClose(){ try{ if(E._pollRef&&E._pollCb) E._pollRef.off('value',E._pollCb); }catch(e){} E._pollRef=null; E._pollCb=null; if(E._pollEl){ E._pollEl.remove(); E._pollEl=null; } },
     // ── 🌈 Farb-Chaos ──
@@ -1612,10 +1613,10 @@
     },
     _loop(){
       try{
-        const raw=E.cur; if(raw&&raw.type==='poll'&&raw.id===E._id&&raw.until<=Date.now()&&E._pollEl){ E._pollDraw(); if(!E._pollEndAt) E._pollEndAt=Date.now(); if(Date.now()-E._pollEndAt>9000){ E._pollEndAt=0; E._clear(); } return; }
+        const raw=E.cur; if(raw&&raw.type==='poll'&&raw.id===E._id&&raw.until<=tn()&&E._pollEl){ E._pollDraw(); if(!E._pollEndAt) E._pollEndAt=tn(); if(tn()-E._pollEndAt>9000){ E._pollEndAt=0; E._clear(); } return; }
         const c=E.active(); if(!c){ if(E._id) E._clear(); return; }
         if(c.id!==E._id) return;
-        const now=Date.now();
+        const now=tn();
         if(c.type==='evac'&&now-(E._ev||0)>900){ E._ev=now; E._evacTick(); }
         if(c.type==='poll'&&now-(E._pd||0)>1000){ E._pd=now; E._pollDraw(); }
         if(c.type==='mystery'&&E._box&&Math.hypot(ZG.pl.x-E._box.x,ZG.pl.z-E._box.z)<2.2) E._openBox(c);
@@ -1633,14 +1634,14 @@
     near(){ const o=ZG.otherPl||{}; let best=null, bd=8; Object.keys(o).forEach(n=>{ if(K(n)===K(me())||!o[n]) return; const d=Math.hypot(o[n].x-ZG.pl.x,o[n].z-ZG.pl.z); if(d<bd){ bd=d; best=n; } }); return best; },
     heal(){ try{ if(typeof ZHearts!=='undefined'&&!ZHearts.dead){ ZHearts.hp=Math.min(ZHearts.max,(ZHearts.hp||0)+1); ZHearts._render(); } }catch(e){} },
     sprite(name){ try{ const op=(name===me())?ZG.pl:(ZG.otherPl||{})[name]; if(!op) return; const cache=(window.__zevtTex=window.__zevtTex||{}); let t=cache['👋']; if(!t){ const cv=document.createElement('canvas'); cv.width=cv.height=128; const cx=cv.getContext('2d'); cx.font='96px serif'; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText('👋',64,70); t=cache['👋']=new THREE.CanvasTexture(cv); }
-      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false})); s.scale.set(2.2,2.2,1); ZG.scene.add(s); const t0=Date.now(); const iv=setInterval(()=>{ const o2=(name===me())?ZG.pl:(ZG.otherPl||{})[name]; const age=Date.now()-t0; if(!o2||age>2600){ clearInterval(iv); ZG.scene.remove(s); return; } s.position.set(o2.x,3.6+Math.sin(age/120)*.25,o2.z); },40); }catch(e){} },
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false})); s.scale.set(2.2,2.2,1); ZG.scene.add(s); const t0=tn(); const iv=setInterval(()=>{ const o2=(name===me())?ZG.pl:(ZG.otherPl||{})[name]; const age=tn()-t0; if(!o2||age>2600){ clearInterval(iv); ZG.scene.remove(s); return; } s.position.set(o2.x,3.6+Math.sin(age/120)*.25,o2.z); },40); }catch(e){} },
     wave(name){
-      const r=RT(); if(!r||!name) return; const now=Date.now(); if(now-(Wv.last[K(name)]||0)<300000){ toast('👋 Du hast '+name+' gerade erst gewunken (alle 5 Min.)',2500); return; }
+      const r=RT(); if(!r||!name) return; const now=tn(); if(now-(Wv.last[K(name)]||0)<300000){ toast('👋 Du hast '+name+' gerade erst gewunken (alle 5 Min.)',2500); return; }
       Wv.last[K(name)]=now; r.ref('zoo_wave/'+K(name)+'/'+K(me())).set({by:me(),t:now}); Wv.heal(); Wv.sprite(name); toast('👋 Du winkst '+name+'! +1 ❤',2500); Wv._btn();
     },
-    _listen(){ if(Wv._l) return; const r=RT(); if(!r||!me()) return; Wv._l=true; const f=s=>{ const v=s.val(); if(!v||!v.t||Date.now()-v.t>15000||v.t<=Wv.seen) return; Wv.seen=v.t; Wv.heal(); Wv.sprite(v.by); toast('👋 '+v.by+' winkt dir zu! +1 ❤',3500); }; const q=r.ref('zoo_wave/'+K(me())); q.on('child_added',f); q.on('child_changed',f); },
+    _listen(){ if(Wv._l) return; const r=RT(); if(!r||!me()) return; Wv._l=true; const f=s=>{ const v=s.val(); if(!v||!v.t||tn()-v.t>15000||v.t<=Wv.seen) return; Wv.seen=v.t; Wv.heal(); Wv.sprite(v.by); toast('👋 '+v.by+' winkt dir zu! +1 ❤',3500); }; const q=r.ref('zoo_wave/'+K(me())); q.on('child_added',f); q.on('child_changed',f); },
     _btn(){
-      let b=document.getElementById('zwave-btn'); const n=(inZoo()&&(typeof rebHas!=='function'||rebHas('weather'))&&!(typeof ZHearts!=='undefined'&&ZHearts.dead)&&!(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._spaceActive))?Wv.near():null; const ok=n&&(Date.now()-(Wv.last[K(n)]||0)>=300000);
+      let b=document.getElementById('zwave-btn'); const n=(inZoo()&&(typeof rebHas!=='function'||rebHas('weather'))&&!(typeof ZHearts!=='undefined'&&ZHearts.dead)&&!(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._spaceActive))?Wv.near():null; const ok=n&&(tn()-(Wv.last[K(n)]||0)>=300000);
       if(!ok){ if(b) b.style.display='none'; return; }
       if(!b){ b=document.createElement('button'); b.id='zwave-btn'; b.style.cssText='position:fixed;right:12px;bottom:170px;z-index:575;background:linear-gradient(135deg,#ffd54f,#ff9800);border:none;color:#1a1a2e;font:900 .85rem Arial;padding:10px 14px;border-radius:22px;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer'; document.body.appendChild(b); ['pointerup','click'].forEach(ev=>b.addEventListener(ev,e=>{ try{ e.preventDefault(); }catch(x){} if(b._n) Wv.wave(b._n); },{passive:false})); }
       b._n=n; b.style.display=''; b.textContent='👋 Winken: '+n;

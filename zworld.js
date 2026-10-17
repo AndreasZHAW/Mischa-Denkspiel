@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v671)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v673)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,11 +230,11 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v671): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v673): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
-  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
   const norm=c=>String(c||'').trim().toLowerCase();
@@ -282,8 +282,8 @@
     },
     // ── Einlösen (Spieler) → true, wenn der Code in der Cloud existiert (egal ob erfolgreich) ──
     async redeem(raw){
-      const code=norm(raw); if(!okCode(code)) return false; const r=RT(); if(!r||!ZS.zoo) return false;
-      let c=null; try{ c=(await r.ref('zoo_codes/'+code).once('value')).val(); }catch(e){ toast('❌ Keine Verbindung',2500); return true; }
+      const code=norm(raw); if(!okCode(code)) return false; const r=RT(); if(!r||!ZS.zoo){ toast('❌ Keine Verbindung zur Datenbank – Code kann nicht geprüft werden.',3500); return true; }
+      let c=null; try{ c=(await r.ref('zoo_codes/'+code).once('value')).val(); }catch(e){ toast('❌ Datenbank-Fehler: '+(e&&e.message||e),4500); try{console.warn('ZCodes',e);}catch(_){} return true; }
       if(!c) return false; const now=Date.now(), z=ZS.zoo, me=K(ZS.player);
       if(c.exp&&c.exp<now){ toast('⌛ Dieser Code ist abgelaufen.',3000); return true; }
       let ok=false;
