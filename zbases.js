@@ -21,6 +21,10 @@
       {t:'fountain',n:'Brunnen',ic:'⛲',k:'p'},{t:'campfire',n:'Lagerfeuer',ic:'🔥',k:'p'},{t:'lantern',n:'Laterne rot',ic:'🏮',k:'e'},{t:'statue',n:'Statue',ic:'🗿',k:'e'},
       {t:'crystal',n:'Kristall',ic:'💎',k:'e'},{t:'star',n:'Stern',ic:'⭐',k:'e'},{t:'flag',n:'Flagge',ic:'🚩',k:'e'},{t:'carousel',n:'Karussell',ic:'🎠',k:'e'},
       {t:'ferris',n:'Riesenrad',ic:'🎡',k:'e'},{t:'circus',n:'Zirkus',ic:'🎪',k:'e'},{t:'balloon',n:'Ballon',ic:'🎈',k:'e'},{t:'vase',n:'Vase',ic:'🏺',k:'e'},{t:'coaster',n:'Achterbahn',ic:'🎢',k:'e'},{t:'slide',n:'Rutsche',ic:'🛝',k:'e'},{t:'rocket',n:'Rakete',ic:'🚀',k:'e'},{t:'ufo',n:'Ufo',ic:'🛸',k:'e'},{t:'dragon',n:'Drache',ic:'🐉',k:'e'},{t:'unicorn',n:'Einhorn',ic:'🦄',k:'e'},{t:'teddy',n:'Teddy',ic:'🧸',k:'e'},{t:'gift',n:'Geschenk',ic:'🎁',k:'e'}]}
+    ,{g:'🛡️ Sicherheit',adm:1,items:[
+      {t:'ronaldo',n:'Ronaldo (Wächter, schiesst)',ic:'🏃',k:'g'},{t:'messi',n:'Messi (Wächter, schiesst)',ic:'🧍',k:'g'},{t:'wall',n:'Mauer (niemand kommt durch)',ic:'🧱',k:'p'},{t:'laser',n:'Laser-Tür (10 s zu / 10 s offen)',ic:'🔴',k:'p'},
+      {t:'dog',n:'Wachhund (beisst im Nahbereich)',ic:'🐕',k:'g'},{t:'efence',n:'Elektrozaun (blockt + Schock)',ic:'⚡',k:'p'},{t:'shield',n:'Kraftfeld (Kuppel, nur Besitzer rein)',ic:'🫧',k:'p'},
+      {t:'trap',n:'Stachel-Falle (−1 ❤)',ic:'🪤',k:'p'},{t:'frost',n:'Frost-Falle (bremst stark)',ic:'🥶',k:'p'},{t:'kick',n:'Rauswerfer-Falle (teleportiert weg)',ic:'🕳️',k:'p'},{t:'siren',n:'Alarm-Sirene (meldet Eindringlinge)',ic:'🚨',k:'p'}]}
     ,{g:'🪐 Weltraum',items:[
       {t:'planet',n:'Planet',ic:'🪐',k:'e'},{t:'moon',n:'Mond',ic:'🌙',k:'e'},{t:'earth',n:'Erde',ic:'🌍',k:'e'},{t:'sun',n:'Sonne',ic:'☀️',k:'e'},
       {t:'comet',n:'Komet',ic:'☄️',k:'e'},{t:'satellite',n:'Satellit',ic:'🛰️',k:'e'},{t:'alien',n:'Alien',ic:'👽',k:'e'},{t:'astronaut',n:'Astronaut',ic:'🧑‍🚀',k:'e'},
@@ -28,10 +32,43 @@
       {t:'crater',n:'Mond-Krater',ic:'⚫',k:'p'},{t:'moonrock',n:'Mond-Fels',ic:'🌑',k:'p'},{t:'spacecrystal',n:'Raum-Kristall',ic:'🔮',k:'p'},{t:'radar',n:'Radar-Schüssel',ic:'📡',k:'p'},{t:'dome',n:'Glas-Kuppel',ic:'🔵',k:'p'}]}
   ];
   const ALL={}; CAT.forEach(c=>c.items.forEach(i=>{ ALL[i.t]=i; }));
-  const MAXOBJ=45, MAXENC=8, MINENC=5, PL_OBJ=15, PL_ENC=6;
+  const MAXOBJ=45, MAXENC=8, MINENC=5, PL_OBJ=15, PL_ENC=5, ADM_T=['ronaldo','messi','wall','laser','dog','efence','shield','trap','frost','kick','siren'];
   const defEncs=()=>[0,1,2,3,4].map(i=>[(i-2)*8,0,1,null]);
   const SW=['#8b5a2b','#c8a165','#f2e3c6','#ffffff','#2b2b2b','#c0392b','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#ff7eb6'];
-  const U_MAX=22, V_MIN=-14, V_MAX=18; // Editor-Fläche (u = entlang der Reihe, v = nach vorne zum Ring-Zentrum)
+  // Editor-Fläche (u = entlang der Reihe, v = nach vorne zum Ring-Zentrum). Admin: grössere Fläche.
+  const EXT_S={u:22,vn:-14,vx:18}, EXT_B={u:30,vn:-24,vx:26};
+  const extOf=b=>(b&&b.big)?EXT_B:EXT_S;
+  // 5 fertige Basen (immer im Shop): 1× Selten, 4× Wow
+  const row=(t,us,v,sc,col)=>us.map(u=>[t,u,v,0,sc||1,col||null]);
+  const ring6=(col)=>[[-16,0,1,col],[-8,0,1,col],[0,0,1,col],[8,0,1,col],[16,0,1,col]];
+  const BUILTIN=(()=>{ const L={};
+    const add=(id,name,rarity,price,mult,big,objs,encs)=>{ L[id]={id,name,rarity,price,mult,big,objs,encs,by:'Mischa',at:1,bi:1}; };
+    add('x_wald','Waldlichtung','selten',2000000,1.5,false,[
+      ['sign',-14,9,0,1],
+      ...row('pine',[-20,-17,17,20],-9,1),...row('pine',[-21,21],8,1),...row('oak',[-12,12],12,1),...row('bush',[-6,0,6],12.5,1),
+      ...row('fence',[-15,-9,-3,3,9,15],-6.5,1),['bench',-4,9,0,1],['bench',4,9,0,1],['campfire',0,10,0,1],['pond',-17,12,0,1],['tent',18,12,0,1],
+      ['mushroom',-9,14,0,1],['mushroom',9,14,0,1],['sunflower',-13,15,0,1],['sunflower',13,15,0,1],['lamp',-20,3,0,1],['lamp',20,3,0,1],['flowerbed',-2.5,15,0,1]],null);
+    add('x_mond','Mond-Basis','wow',15000000,2,true,[
+      ['sign',-14,10,0,1],['planet',-12,-19,0,2.2],['earth',10,-19,0,1.8],['comet',0,-22,0,1.4],['galaxy',-26,-20,0,1.8],['shooting',24,-14,0,1.2],
+      ['crater',-22,10,0,1],['crater',22,9,0,1],['moonrock',-12,14,0,1],['moonrock',12,14,0,1],['spacecrystal',0,13,0,1],['spacecrystal',-27,-4,0,1],['spacecrystal',27,-4,0,1],
+      ['radar',-26,-12,0,1],['dome',26,-12,0,1],['alien',-6,12,0,1],['astronaut',6,12,0,1],['telescope',-17,13,0,1],['rocket',27,13,0,1.3],['ufo',-27,13,0,1.2],['satellite',18,-20,0,1.2],['star',-5,-14,0,1],['star',5,-15,0,1],['lamp',-9,8,0,1,'#9be7ff'],['lamp',9,8,0,1,'#9be7ff']],
+      ring6('#aab4c8').concat([[0,-9,1,'#aab4c8']]));
+    add('x_eis','Eis-Festung','wow',25000000,2.5,true,[
+      ['sign',-14,10,0,1],...row('snowpine',[-27,-22,22,27],-8,1),...row('snowpine',[-26,26],6,1),...row('icepond',[-18,18],11,1),
+      ['snowman',-8,12,0,1.2],['snowman',8,12,0,1.2],['arch',0,14,0,1.2,'#dff4ff'],...row('lamp',[-12,12],8,1,'#bfe9ff'),...row('fence',[-15,-9,-3,3,9,15],-6.5,1,'#ffffff'),
+      ['tent',-24,12,0,1.1,'#ffffff'],['tent',24,12,0,1.1,'#ffffff'],['crystal',-4,-12,0,1.5],['crystal',4,-12,0,1.5],['mountain',-20,-18,0,2],['mountain',20,-18,0,2],['star',0,-18,0,1.4]],
+      ring6('#eaf6ff'));
+    add('x_vulkan','Vulkan-Insel','wow',40000000,3,true,[
+      ['sign',-14,10,0,1],...row('lava',[-18,18],11,1),['lava',0,-15,0,1.3],...row('palm',[-27,27],8,1),...row('palm',[-12,12],15,1),
+      ['campfire',0,12,0,1.2],['torii',0,17,0,1.3],['statue',-7,13,0,1],['statue',7,13,0,1],['mountain',-23,-16,0,2.4],['mountain',23,-16,0,2.4],['dragon',0,-19,0,2.2],
+      ...row('rock',[-26,-22,22,26],-6,1.2),['lantern',-10,8,0,1],['lantern',10,8,0,1],['hibiscus',-14,15,0,1],['hibiscus',14,15,0,1]],
+      ring6('#7a2e1a'));
+    add('x_maerchen','Märchen-Schloss','wow',70000000,3.5,true,[
+      ['sign',-14,11,0,1],['castle',0,-19,0,2.6],['rainbow',0,-24,0,2.4],...row('cherry',[-27,-22,22,27],-6,1),...row('cherry',[-27,27],7,1),
+      ['fountain',0,13,0,1.1],['path',0,9,0,1],['arch',0,18,0,1.2,'#ffd1e6'],...row('flowerbed',[-20,-12,12,20],12,1),['unicorn',-15,15,0,1.3],['carousel',23,14,0,1.3],['ferris',-24,15,0,1.4],
+      ['balloon',-9,16,0,1],['balloon',9,16,0,1],...row('lamp',[-6,6],8,1,'#ffd1e6'),['star',-12,-17,0,1.2],['star',12,-17,0,1.2],['teddy',17,10,0,1]],
+      ring6('#ff9ec7').concat([[0,-9,1,'#ff9ec7']]));
+    return L; })();
   const isEd=()=>{ try{ const k=String((ZS.player||'')).trim().toLowerCase(); return k==='bu:)'||k==='bu:3'||!!ZS.isAdmin||!!(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess); }catch(e){ return false; } };
   const R=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
   const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -44,14 +81,23 @@
   const badText=t=>{ const a=norm(t), b=a.replace(/[^a-z.]/g,''); return BAD.some(w=>a.indexOf(w)>=0||b.indexOf(w.replace(/[^a-z.]/g,''))>=0); };
   const monthKey=(d)=>{ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); };
   const prevMonthKey=()=>{ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return monthKey(d); };
+  // Grosse Meldung mit Ja/Nein (iOS-sicher)
+  const bigConfirm=(icon,title,html,okTxt,noTxt)=>new Promise(res=>{
+    const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:18px;font-family:Arial,sans-serif';
+    ov.innerHTML='<div style="max-width:380px;width:100%;background:linear-gradient(160deg,#2a1a3e,#14102a);border:3px solid #FFD700;border-radius:20px;padding:24px 20px;text-align:center;color:#fff;box-shadow:0 0 40px rgba(255,215,0,.35)"><div style="font-size:3.6rem">'+icon+'</div><div style="font-size:1.35rem;font-weight:900;color:#FFD700;margin:8px 0">'+title+'</div><div style="font-size:1rem;line-height:1.5;color:rgba(255,255,255,.9)">'+html+'</div><div style="display:flex;gap:10px;margin-top:20px"><button data-r="0" style="flex:1;padding:13px;border-radius:12px;border:none;background:rgba(255,255,255,.15);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer">'+(noTxt||'Abbrechen')+'</button><button data-r="1" style="flex:1.3;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;font-weight:900;font-size:.95rem;cursor:pointer">'+(okTxt||'Ja')+'</button></div></div>';
+    document.body.appendChild(ov); let done=false;
+    ov.querySelectorAll('button').forEach(b=>['pointerup','touchend','click'].forEach(n=>b.addEventListener(n,ev=>{ try{ev.preventDefault();}catch(x){} if(done) return; done=true; ov.remove(); res(b.dataset.r==='1'); },{passive:false})));
+  });
+  const fmt=n=>{ n=Math.max(0,Math.round(+n||0)); return n>=1e9?(n/1e9).toFixed(2)+' Mrd':n>=1e6?(n/1e6).toFixed(2)+' Mio':n>=1e3?(n/1e3).toFixed(1)+'k':String(n); };
+  const combinedMT=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const B=window.ZBases={
-    list:{}, adminList:{}, pb:{}, lm:{}, winner:null, groups:{}, likes:{}, _inited:false, preview:null, RAR, CAT, badText,
+    list:Object.assign({},BUILTIN), adminList:{}, pb:{}, BUILTIN, lm:{}, winner:null, groups:{}, likes:{}, _inited:false, preview:null, RAR, CAT, badText,
     slotEncs:{}, defEncs,
     // Zusatz-Gehege der angelegten Base (zählt zu ZS.maxE)
     extraEnc(z){ try{ const b=B.preview||((z&&z.baseEq&&z.bases&&z.bases[z.baseEq])?B.list[z.baseEq]:null); return (b&&b.encs&&b.encs.length>MINENC)?Math.min(MAXENC,b.encs.length)-MINENC:0; }catch(e){ return 0; } },
     multOf(z){ try{ const b=B.list[(z&&z.baseEq)||'']; let m=(b&&z.bases&&z.bases[b.id])?(+b.mult||1):1; if(m>1&&B.winner&&z===ZS.zoo&&keyOf(ZS.player)===B.winner) m*=1.1; return m; }catch(e){ return 1; } },
     // ── Listen zusammenführen (Admin-Basen + sichtbare Spieler-Basen) ──
-    _merge(){ const l=Object.assign({},B.adminList), me=keyOf(ZS.player||''), ed=isEd();
+    _merge(){ const l=Object.assign({},BUILTIN,B.adminList), me=keyOf(ZS.player||''), ed=isEd();
       Object.keys(B.pb||{}).forEach(k=>{ const r=B.pb[k]; if(!r||!r.id) return; if(r.status==='ok'||k===me) l[r.id]=Object.assign({pl:1},r); });
       B.list=l; },
     _calcWinner(){ try{ const m=B.lm&&B.lm[prevMonthKey()]; let best=null,bn=2; Object.keys(m||{}).forEach(k=>{ if((+m[k]||0)>bn){ bn=+m[k]; best=k; } }); B.winner=best; }catch(e){ B.winner=null; } },
@@ -60,11 +106,13 @@
       if(B._inited) return; const r=R(); if(!r) return; B._inited=true;
       try{ r.ref('zoo_bases').on('value',s=>{ B.adminList=s.val()||{}; B._merge(); B._shopRefresh(); }); }catch(e){}
       try{ r.ref('zoo_pbases').on('value',s=>{ B.pb=s.val()||{}; B._merge(); B._shopRefresh(); }); }catch(e){}
+      try{ const k=keyOf(ZS.player); const t0=Date.now(); if(k) r.ref('zoo_alarm/'+k).on('value',s=>{ const v=s.val(); if(v&&v.at>t0&&v.at>(B._alSeen||0)){ B._alSeen=v.at; ZP.toast('🚨 ALARM in deiner Base! '+(v.by||'Jemand')+' ist eingedrungen.',6000); } }); }catch(e){}
+      try{ r.ref('zoo_cfg/noTpRadius').on('value',s=>{ B.cfg.noTp=+s.val()||0; }); }catch(e){}
       try{ r.ref('zoo_likes_m').on('value',s=>{ B.lm=s.val()||{}; B._calcWinner(); }); }catch(e){}
       try{ const k=keyOf(ZS.player); if(k) r.ref('zoo_restore/'+k).on('value',s=>{ B._restoreReq=s.val()||null; }); }catch(e){}
       try{ r.ref('zoo_likes_n').on('value',s=>{ B.likes=s.val()||{}; }); }catch(e){}
     },
-    sorted(){ return Object.values(B.adminList||{}).filter(b=>b&&b.id).sort((a,b)=>(+a.price||0)-(+b.price||0)); },
+    sorted(){ const ri=id=>Math.max(0,RAR.findIndex(r=>r.id===id)); return Object.values(Object.assign({},BUILTIN,B.adminList||{})).filter(b=>b&&b.id).sort((a,b)=>(ri(a.rarity)-ri(b.rarity))||((+a.price||0)-(+b.price||0))); },
     // ── 3D ──
     _mats:{}, _geos:{}, _tex:{},
     mat(c){ return B._mats[c]||(B._mats[c]=new THREE.MeshBasicMaterial({color:c})); },
@@ -112,6 +160,15 @@
         case 'moonrock': { const m=M('mr',()=>new THREE.DodecahedronGeometry(1.3),0xb7bcc4); m.position.y=.8; m.scale.set(1.1,.9,1); g.add(m); const m2=M('mr2',()=>new THREE.DodecahedronGeometry(.6),0x9aa0a8); m2.position.set(1.4,.35,.5); g.add(m2); } break;
         case 'spacecrystal': [[0,2.6,0],[.9,1.8,.3],[-.8,1.5,-.2],[.2,1.2,-.9]].forEach(([x,h,z],i)=>{ const c=M('sc'+i,()=>new THREE.ConeGeometry(.45,h,5),[0xb26bff,0x6bd0ff,0xff6bd6,0x7dffb0][i]); c.position.set(x,h/2,z); g.add(c); }); break;
         case 'radar': { const b=M('rdB',()=>new THREE.CylinderGeometry(.5,.8,1.4,8),0x8a929a); b.position.y=.7; g.add(b); const d=M('rdD',()=>new THREE.SphereGeometry(1.7,12,6,0,Math.PI*2,0,Math.PI/2.4),0xdfe6ee); d.position.y=2; d.rotation.x=Math.PI/3; g.add(d); const f=M('rdF',()=>new THREE.CylinderGeometry(.06,.06,1.6,5),0xff4d4d); f.position.set(0,2.6,.9); f.rotation.x=Math.PI/3; g.add(f); } break;
+        case 'wall': { const m=M('wallB',()=>new THREE.BoxGeometry(8,3.2,1),0x9a8f86); m.userData.w=1; m.position.y=1.6; g.add(m); const c=M('wallC',()=>new THREE.BoxGeometry(8.3,.35,1.3),0x6e655e); c.position.y=3.35; g.add(c); [-2.7,0,2.7].forEach((x,i)=>{ const l=M('wallL',()=>new THREE.BoxGeometry(2.4,.12,1.04),0x7d746c); l.position.set(x,1.1+i*.0,0); g.add(l); }); } break;
+        case 'laser': { [-3,3].forEach(x=>{ const p=M('lsP',()=>new THREE.BoxGeometry(.5,3.4,.5),0x2c3e50); p.position.set(x,1.7,0); g.add(p); const t=new THREE.Mesh(B.geo('lsT',()=>new THREE.SphereGeometry(.28,8,6)),new THREE.MeshBasicMaterial({color:0xff2222})); t.position.set(x,3.5,0); t.userData.tip=1; g.add(t); });
+          [.5,1.2,1.9,2.6].forEach(y=>{ const b=new THREE.Mesh(B.geo('lsB',()=>new THREE.BoxGeometry(6,.09,.09)),new THREE.MeshBasicMaterial({color:0xff2a2a})); b.position.set(0,y,0); b.userData.beam=1; g.add(b); }); } break;
+        case 'efence': { [-3.6,-1.2,1.2,3.6].forEach(x=>{ const p=M('efP',()=>new THREE.BoxGeometry(.3,2.6,.3),0xf1c40f); p.position.set(x,1.3,0); g.add(p); const t=new THREE.Mesh(B.geo('efT',()=>new THREE.SphereGeometry(.22,8,6)),new THREE.MeshBasicMaterial({color:0x4aa8ff})); t.position.set(x,2.7,0); g.add(t); }); [.8,1.7].forEach(y=>{ const r=M('efR',()=>new THREE.BoxGeometry(8,.08,.08),0xffe34d); r.position.set(0,y,0); g.add(r); }); } break;
+        case 'shield': { const m=new THREE.Mesh(B.geo('shS',()=>new THREE.SphereGeometry(4.5,16,10)),new THREE.MeshBasicMaterial({color:0x4ad8ff,transparent:true,opacity:.22,side:THREE.DoubleSide,depthWrite:false})); m.position.y=0; g.add(m); const b=M('shB',()=>new THREE.CylinderGeometry(.5,.8,.5,8),0x34495e); b.position.y=.25; g.add(b); } break;
+        case 'trap': { const d=M('trD',()=>new THREE.CylinderGeometry(1.7,1.7,.1,14),0x3b2f2f); d.position.y=.06; g.add(d); for(let i=0;i<7;i++){ const c=M('trC',()=>new THREE.ConeGeometry(.2,.7,5),0xc7ccd1); const a=i/7*Math.PI*2; c.position.set(Math.cos(a)*.9,.4,Math.sin(a)*.9); g.add(c); } const c0=M('trC',()=>new THREE.ConeGeometry(.2,.7,5),0xc7ccd1); c0.position.y=.4; g.add(c0); } break;
+        case 'frost': { const d=M('frD',()=>new THREE.CylinderGeometry(1.9,1.9,.1,14),0xaee6ff); d.position.y=.06; g.add(d); const r=M('frR',()=>new THREE.TorusGeometry(1.9,.12,6,18),0xffffff); r.rotation.x=Math.PI/2; r.position.y=.12; g.add(r); } break;
+        case 'kick': { const d=M('kkD',()=>new THREE.CylinderGeometry(1.8,1.8,.1,14),0x6c2bd9); d.position.y=.06; g.add(d); const r=M('kkR',()=>new THREE.TorusGeometry(1.1,.14,6,18),0xe2b6ff); r.rotation.x=Math.PI/2; r.position.y=.14; g.add(r); } break;
+        case 'siren': { const p=M('siP',()=>new THREE.CylinderGeometry(.12,.16,2.6,6),0x555d66); p.position.y=1.3; g.add(p); const l=new THREE.Mesh(B.geo('siL',()=>new THREE.SphereGeometry(.45,8,6)),new THREE.MeshBasicMaterial({color:0xff2a2a})); l.position.y=2.9; l.userData.sir=1; g.add(l); } break;
         case 'dome': { const b=M('dmB',()=>new THREE.CylinderGeometry(2.6,2.8,.5,16),0x8a929a); b.position.y=.25; g.add(b); const d=M('dmD',()=>new THREE.SphereGeometry(2.5,16,10,0,Math.PI*2,0,Math.PI/2),0x7ad0ff); d.material=d.material; d.position.y=.5; g.add(d); } break;
         default: break;
       }
@@ -126,7 +183,15 @@
         node=new THREE.Group(); const post=new THREE.Mesh(B.geo('sp',()=>new THREE.CylinderGeometry(.12,.15,2.2,6)),B.mat(0x7a5230)); post.position.y=1.1; node.add(post);
         const lbl=ZG._txt('Base gehört '+owner+(likes?'  ❤️'+likes:''),.5,'#FFD700'); lbl.position.set(0,3,0); lbl.scale.set(9,2.2,1); node.add(lbl); node.userData.isSign=true;
         if(B.winner&&keyOf(owner)===B.winner){ const cr=ZG._txt('👑 Base des Monats',.5,'#FFE066'); cr.position.set(0,5.2,0); cr.scale.set(9,2.2,1); node.add(cr); }
+      } else if(d.k==='g'){
+        node=new THREE.Group(); node.add(B.sprite(d.ic,(s||1)*1.1,col)); if(t!=='dog'){ const bl=B.sprite('⚽',.35); bl.position.set(1.1,.7,0); node.add(bl); }
+        const lb=ZG._txt(t==='messi'?'Messi':(t==='dog'?'Wachhund':'Ronaldo'),.5,'#ffffff'); lb.position.set(0,6.3*(s||1),0); lb.scale.set(5,1.4,1); node.add(lb); node.userData.guard={name:t==='messi'?'Messi':(t==='dog'?'Wachhund':'Ronaldo'),melee:t==='dog'};
       } else { node=new THREE.Group(); node.add(B.sprite(d.ic,s||1,col)); }
+      if(d.k==='p'&&(t==='wall'||t==='laser')) node.userData.solid={kind:t,hx:(t==='wall'?4.15:3.35)*1.35*(s||1),hz:(t==='wall'?.65:.4)*1.35*(s||1)};
+      if(t==='efence') node.userData.solid={kind:'efence',hx:4.15*1.35*(s||1),hz:.45*1.35*(s||1)};
+      if(t==='shield') node.userData.solid={kind:'shield',circ:1,r:4.5*1.35*(s||1)};
+      if(t==='trap'||t==='frost'||t==='kick') node.userData.zone={kind:t,r:1.9*1.35*(s||1)};
+      if(t==='siren') node.userData.siren=1;
       node.userData.local={u,v,rot:rot||0}; return node;
     },
     // Gruppe an Slot-Position bauen
@@ -135,11 +200,15 @@
       const tx=-Math.sin(a), tz=Math.cos(a), rx=Math.cos(a), rz=Math.sin(a);
       const yaw=Math.atan2(-Math.cos(a),-Math.sin(a));
       const grp=new THREE.Group(); grp.userData.center=c;
-      let hasSign=false;
+      let hasSign=false; grp.userData.solids=[]; grp.userData.guards=[]; grp.userData.lasers=[]; grp.userData.zones=[]; grp.userData.sirens=[]; grp.userData.owner=owner;
       (base.objs||[]).slice(0,MAXOBJ).forEach(o=>{
         const n=B.buildObj(o,owner,likes); if(!n) return; if(n.userData.isSign) hasSign=true;
         n.position.x=c.x+tx*o[1]-rx*o[2]; n.position.z=c.z+tz*o[1]-rz*o[2];
-        if(ALL[o[0]]&&ALL[o[0]].k!=='e') n.rotation.y=yaw+(o[3]||0)*Math.PI/180;
+        if(ALL[o[0]]&&ALL[o[0]].k!=='e'&&ALL[o[0]].k!=='g') n.rotation.y=yaw+(o[3]||0)*Math.PI/180;
+        if(n.userData.zone){ grp.userData.zones.push({kind:n.userData.zone.kind,r:n.userData.zone.r,x:n.position.x,z:n.position.z,owner,key:owner+'|'+o[0]+'|'+o[1]+'|'+o[2]}); }
+        if(n.userData.siren){ const lg=[]; n.traverse(m=>{ if(m.userData.sir) lg.push(m); }); grp.userData.sirens.push({x:n.position.x,z:n.position.z,owner,lg,key:owner+'|s|'+o[1]+'|'+o[2]}); }
+        if(n.userData.solid){ const sd=n.userData.solid; const so={kind:sd.kind,hx:sd.hx,hz:sd.hz,r:sd.r,circ:sd.circ,x:n.position.x,z:n.position.z,th:n.rotation.y,owner,cx:c.x,cz:c.z}; grp.userData.solids.push(so); if(sd.kind==='laser'){ const bm=[],tp=[]; n.traverse(m=>{ if(m.userData.beam) bm.push(m); if(m.userData.tip) tp.push(m); }); grp.userData.lasers.push({so,bm,tp}); } }
+        if(n.userData.guard) grp.userData.guards.push({x:n.position.x,z:n.position.z,name:n.userData.guard.name,melee:n.userData.guard.melee,owner,key:owner+'|'+o[0]+'|'+o[1]+'|'+o[2]});
         grp.add(n);
       });
       if(!hasSign){ const n=B.buildObj(['sign',0,6,0,1],owner,likes); n.position.x=c.x-rx*6; n.position.z=c.z-rz*6; grp.add(n); }
@@ -178,6 +247,59 @@
       Object.keys(B.groups).forEach(k=>{ const e=B.groups[k], c=e.grp.userData.center; e.grp.visible=Math.hypot(c.x-px,c.z-pz)<230; });
       B._likeBtn(others);
     },
+    // ═══ Sicherheit: Mauer, Laser-Tür, Wächter (Ronaldo/Messi), Teleport-Schutz ═══
+    cfg:{noTp:0}, _balls:[], _gcd:{}, _last:null, _hitCd:0,
+    _ownerPos(owner){ try{ if(keyOf(owner)===keyOf(ZS.player)) return {x:ZG.pl.x,z:ZG.pl.z}; const op=(ZG.otherPl||{})[owner]; return op?{x:op.x,z:op.z}:null; }catch(e){ return null; } },
+    // Laser ist zu: alle 10 s Wechsel (zu/offen, für alle gleich per Uhr) — oder immer zu, solange der Besitzer in seiner Base ist
+    laserClosed(so){ const ph=(Math.floor(Date.now()/10000)%2===0); if(ph) return true; const op=B._ownerPos(so.owner); return !!(op&&Math.hypot(op.x-so.cx,op.z-so.cz)<28); },
+    collide(pl){
+      let sol=[]; const me=keyOf(ZS.player||'');
+      Object.keys(B.groups).forEach(k=>{ const g=B.groups[k].grp; if(!g.visible||!g.userData.solids) return; g.userData.solids.forEach(so=>{ if(so.kind==='laser'){ if(keyOf(so.owner)===me||!B.laserClosed(so)) return; } if(so.kind==='shield'&&keyOf(so.owner)===me) return; sol.push(so); }); });
+      const L=B._last; B._last={x:pl.x,z:pl.z}; if(!sol.length||!L) return;
+      const dx=pl.x-L.x, dz=pl.z-L.z; const dist=Math.hypot(dx,dz); let x=pl.x, z=pl.z;
+      const N=(dist>20)?1:Math.max(1,Math.ceil(dist/0.8)); if(N>1){ x=L.x; z=L.z; }
+      for(let i=1;i<=N;i++){
+        if(N>1){ x+=dx/N; z+=dz/N; }
+        for(const so of sol){ if(so.circ){ const dx2=x-so.x, dz2=z-so.z, d2=Math.hypot(dx2,dz2), R2=so.r+.7; if(d2<R2){ const k=d2>0.001?R2/d2:0; x=d2>0.001?so.x+dx2*k:so.x+R2; z=d2>0.001?so.z+dz2*k:so.z; } continue; } const c=Math.cos(so.th), sn=Math.sin(so.th), wx=x-so.x, wz=z-so.z, lx=wx*c-wz*sn, lz=wx*sn+wz*c, R=.7;
+          if(Math.abs(lx)<so.hx+R&&Math.abs(lz)<so.hz+R){ const px=so.hx+R-Math.abs(lx), pz=so.hz+R-Math.abs(lz); let nx=lx, nz=lz; if(pz<=px) nz=(lz>=0?1:-1)*(so.hz+R); else nx=(lx>=0?1:-1)*(so.hx+R); x=so.x+nx*c+nz*sn; z=so.z-nx*sn+nz*c; if(so.kind==='efence'&&keyOf(so.owner)!==me) B._zap(); } } }
+      pl.x=x; pl.z=z; B._last={x,z};
+    },
+    // Zu diesem Spieler darf man sich nicht teleportieren, solange er im Admin-Schutzradius seiner Base ist
+    noTpFor(name){ try{ const R=+B.cfg.noTp||0; if(R<=0) return false; const op=(ZG.otherPl||{})[name]; if(!op) return false; const lay=ZG._slotEncPos(typeof op.slotIdx==='number'?op.slotIdx:0); return Math.hypot(op.x-lay.center.x,op.z-lay.center.z)<=R; }catch(e){ return false; } },
+    _flash(){ try{ const d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99000;pointer-events:none;background:radial-gradient(circle,rgba(150,0,200,.05),rgba(120,0,170,.55));display:flex;align-items:center;justify-content:center;color:#e9b6ff;font:900 2.2rem Arial;text-shadow:0 0 18px #a0f;transition:opacity .9s'; d.textContent='🟣 MINUSAURA'; document.body.appendChild(d); setTimeout(()=>{ d.style.opacity='0'; },300); setTimeout(()=>d.remove(),1300); }catch(e){} },
+    _fx(){
+      if(typeof ZG==='undefined'||!ZG.scene||!ZG.pl) return; const now=Date.now(), me=keyOf(ZS.player||'');
+      // Laser-Optik (alle 250 ms)
+      if(now-(B._lv||0)>240){ B._lv=now; Object.keys(B.groups).forEach(k=>{ const g=B.groups[k].grp; if(!g.visible||!g.userData.lasers) return; g.userData.lasers.forEach(L=>{ const cl=B.laserClosed(L.so); L.bm.forEach(m=>{ m.visible=cl; }); L.tp.forEach(m=>{ m.material.color.setHex(cl?0xff2222:0x22ff66); }); }); }); }
+      const dead=(typeof ZHearts!=='undefined'&&ZHearts.dead);
+      // Wächter schiessen auf Eindringlinge (30 m), alle 4 s
+      Object.keys(B.groups).forEach(k=>{ const g=B.groups[k].grp; if(!g.visible||!g.userData.guards) return;
+        g.userData.guards.forEach(gd=>{ if(keyOf(gd.owner)===me||dead) return; const d=Math.hypot(ZG.pl.x-gd.x,ZG.pl.z-gd.z);
+          if(gd.melee){ if(d<7){ const nx0=B._gcd[gd.key]||0; if(now>=nx0){ B._gcd[gd.key]=now+3000; B._hurt(.5,'🐕 Wachhund hat dich gebissen! −0,5 ❤','Wachhund'); } } return; }
+          if(d>30) return;
+          const nx=B._gcd[gd.key]; if(nx===undefined){ B._gcd[gd.key]=now+Math.random()*2500; return; } if(now<nx) return; B._gcd[gd.key]=now+4000;
+          const sp=B.sprite('⚽',.35); sp.position.set(gd.x,1.6,gd.z); ZG.scene.add(sp); const dx=ZG.pl.x-gd.x, dz=ZG.pl.z-gd.z, l=Math.hypot(dx,dz)||1; B._balls.push({sp,vx:dx/l*19,vz:dz/l*19,t:now+2600,from:gd.name}); }); });
+      // Fallen (Stachel / Frost / Rauswerfer) und Sirenen
+      if(!dead) Object.keys(B.groups).forEach(k=>{ const g=B.groups[k].grp; if(!g.visible) return;
+        (g.userData.zones||[]).forEach(zn=>{ if(keyOf(zn.owner)===me) return; if(Math.hypot(ZG.pl.x-zn.x,ZG.pl.z-zn.z)>zn.r) return; if(now<(B._gcd[zn.key]||0)) return; B._gcd[zn.key]=now+2500;
+          if(zn.kind==='trap') B._hurt(1,'🪤 Stachel-Falle! −1 ❤','Stachel-Falle');
+          else if(zn.kind==='frost'){ ZG._minusUntil=now+4000; ZG._minusF=.3; ZP.toast('🥶 Frost-Falle! Du bist 4 Sek. stark verlangsamt.',3500); }
+          else if(zn.kind==='kick'){ const zc=(ZG.ZONES&&ZG.ZONES[0])||{x:0,z:55}; ZG.pl.x=zc.x; ZG.pl.z=zc.z+12; B._last=null; ZP.toast('🕳️ Rauswerfer-Falle! Du wurdest aus der Base geworfen.',3500); } });
+        (g.userData.sirens||[]).forEach(sr=>{ const near=keyOf(sr.owner)!==me&&Math.hypot(ZG.pl.x-sr.x,ZG.pl.z-sr.z)<25; sr.lg.forEach(m=>{ m.material.color.setHex(near&&(Math.floor(now/250)%2)?0xffffff:0xff2a2a); });
+          if(near&&now>=(B._gcd[sr.key]||0)){ B._gcd[sr.key]=now+10000; B._alarm(sr); } }); });
+      // Bälle bewegen & treffen
+      const dt=Math.min(.1,(now-(B._bt||now))/1000); B._bt=now;
+      for(let i=B._balls.length-1;i>=0;i--){ const b=B._balls[i]; b.sp.position.x+=b.vx*dt; b.sp.position.z+=b.vz*dt; b.sp.position.y=1.6+Math.sin((b.t-now)/90)*.25;
+        const hit=!dead&&Math.hypot(ZG.pl.x-b.sp.position.x,ZG.pl.z-b.sp.position.z)<1.3&&now>B._hitCd;
+        if(hit||now>b.t){ ZG.scene.remove(b.sp); B._balls.splice(i,1); if(hit){ B._hitCd=now+1500; B._minus(b.from); } } }
+    },
+    _hurt(dmg,txt,from){ try{ ZP.toast(txt,3000); if(typeof ZHearts!=='undefined') ZHearts.hit(dmg,{name:from,guard:true}); }catch(e){} },
+    _zap(){ const now=Date.now(); if(now<(B._zapCd||0)) return; B._zapCd=now+1500; B._hurt(.5,'⚡ Elektrozaun! −0,5 ❤','Elektrozaun'); },
+    _alarm(sr){ try{ ZP.toast('🚨 Alarm! Du betrittst fremdes Gebiet — '+sr.owner+' wird gewarnt.',4000);
+        const d=document.createElement('div'); d.style.cssText='position:fixed;inset:0;z-index:99000;pointer-events:none;box-shadow:inset 0 0 90px 30px rgba(255,0,0,.55);transition:opacity 1s'; document.body.appendChild(d); setTimeout(()=>{ d.style.opacity='0'; },400); setTimeout(()=>d.remove(),1500);
+        try{ if(ZSound.style!=='off'){ ZSound._init&&ZSound._init(); const c=ZSound.ctx; if(c){ [0,.22,.44].forEach(t0=>{ const o=c.createOscillator(), g=c.createGain(); o.type='square'; o.frequency.value=t0===.22?660:880; g.gain.setValueAtTime(.05,c.currentTime+t0); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+t0+.18); o.connect(g); g.connect(c.destination); o.start(c.currentTime+t0); o.stop(c.currentTime+t0+.2); }); } } }catch(e){}
+        const r=R(); if(r&&sr.owner) r.ref('zoo_alarm/'+keyOf(sr.owner)).set({by:ZS.player,at:Date.now()}); }catch(e){} },
+    _minus(from){ try{ ZG._minusUntil=Date.now()+3000; ZG._minusF=.5; B._flash(); ZP.toast('🟣 MINUSAURA! '+from+' hat dich getroffen: −1 ❤ und 3 Sek. langsam',3500); if(typeof ZHearts!=='undefined') ZHearts.hit(1,{name:from+' (Wächter)',guard:true}); }catch(e){} },
     // ── Monats-Sieger-Hinweis, Auto-Backup, Wiederherstellung ──
     _extras(){
       const z=ZS.zoo; if(!z) return; const now=Date.now();
@@ -196,7 +318,7 @@
       const r=R(), z=ZS.zoo; if(!r||!z||!ZS.player) return; const k=keyOf(ZS.player);
       if(B._bkBusy) return; B._bkBusy=true;
       try{
-        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v655'});
+        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v658'});
         if(j.length>400000){ B._bkBusy=false; return; }
         await r.ref('zoo_backup/'+k+'/'+ts).set({ts,j,mt:Math.round(z.mt||0),n:(z.enc||[]).filter(e=>e&&e.animal).length,rb:+z.reb||0,why:force?'vor Aktion':'auto'});
         localStorage.setItem('zb_bk_last',String(ts));
@@ -240,7 +362,7 @@
       const z=ZS.zoo, bs=B.sorted();
       try{ if(typeof rebHas==='function' && !rebHas('basen')) return ''; }catch(e){} // normale Spieler: erst ab 5 Rebirths
       const mine=B.pb[keyOf(ZS.player)], st=mine?(mine.status==='ok'?'✅ sichtbar':(mine.status==='pending'?'⏳ wird geprüft':'🚫 gesperrt')):'noch keine';
-      const own='<div style="margin-top:14px;background:rgba(120,200,255,.07);border:1px solid rgba(120,200,255,.3);border-radius:12px;padding:10px"><div style="font-weight:900;color:#7fd0ff;font-size:.85rem">🛠️ Meine eigene Base</div><div style="font-size:.68rem;color:rgba(255,255,255,.5);margin:3px 0 8px">Baue selbst: bis '+PL_OBJ+' Objekte, 5–'+PL_ENC+' Gehege (verschieben, färben, Grösse). Gibt ×1.2 Einkommen. Status: '+st+(B.winner&&keyOf(ZS.player)===B.winner?' · 👑 Base des Monats (×1.1)':'')+'</div><button class="ab" onclick="ZBases.openEditor(true)">'+(mine?'Bearbeiten':'Bauen')+'</button></div>';
+      const own='<div id="zb-own" style="margin-top:14px;background:rgba(120,200,255,.07);border:1px solid rgba(120,200,255,.3);border-radius:12px;padding:10px"><div style="font-weight:900;color:#7fd0ff;font-size:.85rem">🛠️ Meine eigene Base</div><div style="font-size:.68rem;color:rgba(255,255,255,.5);margin:3px 0 8px">Baue selbst: bis '+PL_OBJ+' Objekte, 5–'+PL_ENC+' Gehege (verschieben, färben, Grösse). Gibt ×1.2 Einkommen. Kostet <b>50 % deines Guthabens</b> (einmalig beim ersten Speichern). Gehege bleiben bei 5. Status: '+st+(B.winner&&keyOf(ZS.player)===B.winner?' · 👑 Base des Monats (×1.1)':'')+'</div><button class="ab" onclick="ZBases.openEditor(true)">'+(mine?'Bearbeiten':'Bauen')+'</button></div>';
       if(!bs.length) return own;
       let h=own+'<div style="margin-top:14px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.3);border-radius:12px;padding:10px"><div style="font-weight:900;color:#FFD700;font-size:.85rem;margin-bottom:4px">🏗️ Basen</div><div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:8px">Gestalte deinen Platz im Zoo — jede Base gibt einen Einkommens-Multi. Andere Spieler können dir ❤️ geben.</div>';
       bs.forEach(b=>{
@@ -265,6 +387,7 @@
     unequip(){ const z=ZS.zoo; z.baseEq=null; ZS.save&&ZS.save(true); B.tick(); try{ ZP._rShop&&ZP._rShop(); }catch(e){} },
     // ── Zeichnen (Editor + Vorschau) ──
     drawTo(cv,base,grid,sel){
+      const E=base.ext||extOf(base), U_MAX=E.u, V_MIN=E.vn, V_MAX=E.vx;
       const W=cv.width,H=cv.height,sx=W/(2*U_MAX),sy=H/(V_MAX-V_MIN), x=cv.getContext('2d');
       const px=u=>(u+U_MAX)*sx, py=v=>(v-V_MIN)*sy;
       x.fillStyle='#3f8f45'; x.fillRect(0,0,W,H);
@@ -296,12 +419,14 @@
         if(!rows.length) h+='<div style="font-size:.72rem;color:#889">Noch keine Spieler-Basen.</div>';
         rows.forEach(r=>{ const k=keyOf(r.by); h+='<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px solid rgba(255,255,255,.08)"><canvas class="za-th" data-k="'+esc(k)+'" width="72" height="54" style="border-radius:6px;background:#2c5a2e;flex:none"></canvas><div style="flex:1;min-width:0;font-size:.74rem"><b>'+esc(r.name)+'</b><br><span style="color:#aab">von '+esc(r.by)+' · '+(stTxt[r.status]||r.status)+'</span></div>'
           +'<button class="zb-i" data-st="ok" data-k="'+esc(k)+'" title="Freigeben">✔</button><button class="zb-i" data-st="hidden" data-k="'+esc(k)+'" title="Sperren">🚫</button><button class="zb-i" data-st="del" data-k="'+esc(k)+'" title="Löschen" style="background:#6b1f1f">🗑</button></div>'; });
-        h+='<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">💾 Spielstand-Backups</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Jeder Spielstand wird automatisch alle 6 h und vor jedem Rebirth gesichert (die letzten 7). Wiederherstellen wirkt sofort, wenn der Spieler online ist, sonst beim nächsten Start. Vorher wird der aktuelle Stand nochmals gesichert.</div>'
+        h+='<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">🛡️ Teleport-Schutz</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Zu einem Spieler, der näher als dieser Radius (Meter) an seiner Base ist, kann sich niemand teleportieren. 0 = aus.</div><div style="display:flex;gap:6px"><input id="za-tp" type="number" min="0" max="200" value="'+(+B.cfg.noTp||0)+'" style="flex:1;padding:9px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"><button class="zb-b" id="za-tps" style="flex:none;min-width:0;padding:9px 14px">Setzen</button></div>'
+          +'<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">💾 Spielstand-Backups</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Jeder Spielstand wird automatisch alle 6 h und vor jedem Rebirth gesichert (die letzten 7). Wiederherstellen wirkt sofort, wenn der Spieler online ist, sonst beim nächsten Start. Vorher wird der aktuelle Stand nochmals gesichert.</div>'
           +'<div style="display:flex;gap:6px"><input id="za-who" placeholder="Spielername" value="'+esc(who||'')+'" style="flex:1;padding:9px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"><button class="zb-b" id="za-load" style="flex:none;min-width:0;padding:9px 14px">Laden</button></div>';
         if(bk) h+=bk.length?bk.map(b=>'<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px solid rgba(255,255,255,.08);font-size:.72rem"><div style="flex:1">'+new Date(+b.ts).toLocaleString('de-CH')+'<br><span style="color:#aab">'+$mtS(b.mt)+' MT · '+(b.n||0)+' Tiere · Rebirth '+(b.rb||0)+' · '+esc(b.why||'')+'</span></div><button class="zb-i" data-rs="'+b.ts+'">♻️ Wiederherstellen</button></div>').join(''):'<div style="font-size:.72rem;color:#889;margin-top:6px">Keine Backups für diesen Spieler.</div>';
         h+='<div id="za-msg" style="font-size:.72rem;color:#9fd;margin-top:10px;min-height:1em"></div></div>';
         ov.innerHTML=h; const msg=t=>{ const m=ov.querySelector('#za-msg'); if(m) m.textContent=t; };
         ov.querySelector('#za-x').onclick=()=>ov.remove();
+        ov.querySelector('#za-tps').onclick=async()=>{ const v=Math.max(0,Math.min(200,+ov.querySelector('#za-tp').value||0)); const r=R(); if(!r) return; try{ await r.ref('zoo_cfg/noTpRadius').set(v); B.cfg.noTp=v; msg('✅ Teleport-Schutz: '+(v>0?v+' m':'aus')); }catch(err){ msg('❌ '+err.message); } };
         ov.querySelectorAll('canvas.za-th').forEach(c=>{ const r=B.pb[c.dataset.k]; if(r) B.drawTo(c,r,false); });
         ov.querySelectorAll('button[data-st]').forEach(b=>b.onclick=async()=>{ const k=b.dataset.k, st=b.dataset.st, r=R(); if(!r) return;
           try{ if(st==='del'){ let ok=true; try{ ok=await (typeof showConfirm==='function'?showConfirm('Diese Spieler-Base wirklich löschen?'):Promise.resolve(confirm('Löschen?'))); }catch(x){} if(!ok) return; await r.ref('zoo_pbases/'+k).remove(); delete B.pb[k]; }
@@ -319,10 +444,13 @@
     // ── Editor ──
     ed:null,
     openEditor(pl){
-      pl=pl===true;
+      if(pl==='go'){ pl=true; B._warned=true; } else pl=pl===true;
       if(!pl&&!isEd()){ ZP.toast('🔒 Nur für Bu:)'); return; }
       if(pl){ try{ if(typeof rebHas==='function'&&!rebHas('basen')){ ZP.toast('🔒 Eigene Basen gibt es erst nach 5 Rebirths.'); return; } }catch(e){} }
       B.init(); if(document.getElementById('zb-editor')) return;
+      if(pl&&!B._warned){ const mk=B.pb[keyOf(ZS.player)]; if(!(mk&&mk.paid)){ if(B._warnBusy) return; B._warnBusy=true;
+          bigConfirm('⚠️','Selber bauen kostet 50 %','Eine <b>eigene Base zu bauen</b> kostet dich <b>50 % deines Guthabens</b> (jetzt etwa <b>'+fmt(combinedMT()*0.5)+' MT</b>).<br><br>Du bezahlst nur <b>einmal</b> beim ersten Speichern — danach kannst du sie gratis umbauen. Die Gehege bleiben bei 5.','Verstanden, weiter','Abbrechen').then(ok=>{ B._warnBusy=false; if(ok) B.openEditor('go'); }); return; } }
+      B._warned=false;
       B.ed={id:null,name:'',price:100000,mult:1.5,rarity:'normal',objs:[],encs:defEncs(),selE:-1,pick:null,sel:-1,pl,mo:pl?PL_OBJ:MAXOBJ,me:pl?PL_ENC:MAXENC};
       if(pl){ const mine=B.pb[keyOf(ZS.player)]; if(mine){ Object.assign(B.ed,{id:mine.id,name:mine.name||'',objs:JSON.parse(JSON.stringify(mine.objs||[])).slice(0,PL_OBJ),encs:JSON.parse(JSON.stringify(mine.encs&&mine.encs.length?mine.encs:defEncs())).slice(0,PL_ENC)}); } }
       const ov=document.createElement('div'); ov.id='zb-editor';
@@ -348,20 +476,21 @@
     },
     _edUI(){
       const ov=document.getElementById('zb-editor'), e=B.ed, $=id=>ov.querySelector(id), cv=$('#zb-cv');
+      const X=e.pl?EXT_S:EXT_B, U_MAX=X.u, V_MIN=X.vn, V_MAX=X.vx; e.ext=X; if(!e.pl){ cv.width=360; cv.height=300; }
       const msg=t=>{ $('#zb-msg').textContent=t; };
       const draw=()=>B.drawTo(cv,e,true,e.sel);
       const sync=()=>{ e.name=$('#zb-name').value; e.price=+$('#zb-price').value||0; e.mult=+$('#zb-mult').value||1; e.rarity=$('#zb-rar').value; };
       const fill=()=>{ $('#zb-name').value=e.name; $('#zb-price').value=e.price; $('#zb-mult').value=e.mult; $('#zb-rar').value=e.rarity; };
-      const list=()=>{ const l=$('#zb-list'); l.innerHTML=B.sorted().map(b=>'<span style="flex:none;display:flex;align-items:center"><button class="zb-i'+(e.id===b.id?' on':'')+'" data-id="'+b.id+'" style="border-color:'+rarOf(b.rarity).c+'">'+esc(b.name)+'</button><button class="zb-i" data-del="'+b.id+'" title="Löschen" style="background:#6b1f1f;padding:5px 8px">🗑</button></span>').join('')||'<span style="font-size:.7rem;color:#889">Noch keine Basen gespeichert.</span>';
+      const list=()=>{ const l=$('#zb-list'); l.innerHTML=B.sorted().map(b=>'<span style="flex:none;display:flex;align-items:center"><button class="zb-i'+(e.id===b.id?' on':'')+'" data-id="'+b.id+'" style="border-color:'+rarOf(b.rarity).c+'">'+esc(b.name)+'</button>'+(b.bi&&!B.adminList[b.id]?'':'<button class="zb-i" data-del="'+b.id+'" title="Löschen" style="background:#6b1f1f;padding:5px 8px">🗑</button>')+'</span>').join('')||'<span style="font-size:.7rem;color:#889">Noch keine Basen gespeichert.</span>';
         l.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>delBase(b.dataset.del));
         l.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ const t=B.list[b.dataset.id]; if(!t) return; Object.assign(e,{id:t.id,name:t.name,price:t.price,mult:t.mult,rarity:t.rarity,objs:JSON.parse(JSON.stringify(t.objs||[])),encs:JSON.parse(JSON.stringify(t.encs&&t.encs.length?t.encs:defEncs())),selE:-1,sel:-1}); fill(); draw(); list(); selUI(); msg('„'+t.name+'" geladen.'); }); };
       const delBase=async id=>{ const t=B.list[id]; if(!t) return; let ok=true; try{ ok=await (typeof showConfirm==='function'?showConfirm('Base „'+t.name+'" wirklich für ALLE löschen?'):Promise.resolve(confirm('Base „'+t.name+'" wirklich löschen?'))); }catch(x){} if(!ok) return;
         const r=R(); try{ await r.ref('zoo_bases/'+id).remove(); delete B.list[id]; if(e.id===id) Object.assign(e,{id:null,objs:[],encs:defEncs(),selE:-1,sel:-1}); list(); draw(); selUI(); msg('🗑 „'+t.name+'" gelöscht.'); }catch(err){ msg('❌ '+err.message); } };
-      const pal=()=>{ $('#zb-pal').innerHTML='<div style="margin-bottom:4px"><button class="zb-i'+(e.pick?'':' on')+'" data-t="">✋ Auswählen / Verschieben</button></div>'+CAT.map(c=>'<div style="font-size:.66rem;color:#99a;margin:6px 0 2px">'+c.g+'</div>'+c.items.map(i=>'<button class="zb-i'+(e.pick===i.t?' on':'')+'" data-t="'+i.t+'">'+i.ic+' '+i.n+'</button>').join('')).join('');
+      const pal=()=>{ const CATv=e.pl?CAT.filter(c=>!c.adm):CAT; $('#zb-pal').innerHTML='<div style="margin-bottom:4px"><button class="zb-i'+(e.pick?'':' on')+'" data-t="">✋ Auswählen / Verschieben</button></div>'+CATv.map(c=>'<div style="font-size:.66rem;color:#99a;margin:6px 0 2px">'+c.g+'</div>'+c.items.map(i=>'<button class="zb-i'+(e.pick===i.t?' on':'')+'" data-t="'+i.t+'">'+i.ic+' '+i.n+'</button>').join('')).join('');
         $('#zb-pal').querySelectorAll('button').forEach(b=>b.onclick=()=>{ e.pick=b.dataset.t||null; pal(); }); };
-      const addEnc=()=>{ if(e.encs.length>=e.me){ msg('Maximal '+e.me+' Gehege.'); return; } let u=0,v=-9; for(let k=0;k<20;k++){ const cu=((k%5)-2)*8, cv2=(k<5?-9:(k<10?9:13)); if(!e.encs.some(z=>Math.hypot(z[0]-cu,z[1]-cv2)<6)){ u=cu; v=cv2; break; } } e.encs.push([u,v,1,null]); e.selE=e.encs.length-1; e.sel=-1; draw(); selUI(); msg('Gehege hinzugefügt – verschiebe es mit dem Finger.'); };
+      const addEnc=()=>{ if(e.pl) return; if(e.encs.length>=e.me){ msg('Maximal '+e.me+' Gehege.'); return; } let u=0,v=-9; for(let k=0;k<20;k++){ const cu=((k%5)-2)*8, cv2=(k<5?-9:(k<10?9:13)); if(!e.encs.some(z=>Math.hypot(z[0]-cu,z[1]-cv2)<6)){ u=cu; v=cv2; break; } } e.encs.push([u,v,1,null]); e.selE=e.encs.length-1; e.sel=-1; draw(); selUI(); msg('Gehege hinzugefügt – verschiebe es mit dem Finger.'); };
       const selUI=()=>{ const s=$('#zb-sel'), q=e.encs[e.selE], o=e.objs[e.sel];
-        if(q&&!o){ s.innerHTML='<b style="font-size:.75rem;align-self:center">🟫 Gehege #'+(e.selE+1)+'</b><button class="zb-i" data-q="big">＋ Grösser</button><button class="zb-i" data-q="small">－ Kleiner</button><button class="zb-i" data-q="del">🗑 Löschen</button><button class="zb-i" id="zb-addenc">➕ Gehege</button>'
+        if(q&&!o){ s.innerHTML='<b style="font-size:.75rem;align-self:center">🟫 Gehege #'+(e.selE+1)+'</b><button class="zb-i" data-q="big">＋ Grösser</button><button class="zb-i" data-q="small">－ Kleiner</button>'+(e.pl?'':'<button class="zb-i" data-q="del">🗑 Löschen</button><button class="zb-i" id="zb-addenc">➕ Gehege</button>')
           +'<div style="flex-basis:100%;display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap"><span style="font-size:.68rem;color:#aab">🎨 Holz-Farbe:</span>'
           +SW.map(c=>'<button class="zb-i" data-qc="'+c+'" style="width:26px;height:26px;padding:0;border-radius:50%;background:'+c+';border:2px solid '+(q[3]===c?'#fff':'#0008')+'"></button>').join('')
           +'<input type="color" id="zb-qcol" value="'+(q[3]||'#8b4513')+'" style="width:34px;height:28px;border:none;background:none;padding:0"><button class="zb-i" data-qc="">↺ Original</button></div>'
@@ -371,7 +500,7 @@
           const qi=s.querySelector('#zb-qcol'); if(qi) qi.oninput=()=>{ q[3]=qi.value; draw(); };
           s.querySelectorAll('button[data-q]').forEach(b=>b.onclick=()=>{ const a=b.dataset.q; if(a==='big') q[2]=Math.min(2,Math.round(((q[2]||1)+.25)*100)/100); else if(a==='small') q[2]=Math.max(.5,Math.round(((q[2]||1)-.25)*100)/100); else if(a==='del'){ e.encs.splice(e.selE,1); e.selE=-1; } draw(); selUI(); });
           return; }
-        if(!o){ s.innerHTML='<span style="font-size:.7rem;color:#889">'+e.objs.length+'/'+e.mo+' Objekte · '+e.encs.length+'/'+e.me+' Gehege · Tippe aufs Feld zum Platzieren, tippe ein Objekt oder Gehege zum Auswählen</span><button class="zb-i" id="zb-addenc">➕ Gehege hinzufügen</button>'; const ab=s.querySelector('#zb-addenc'); if(ab) ab.onclick=addEnc; return; }
+        if(!o){ s.innerHTML='<span style="font-size:.7rem;color:#889">'+e.objs.length+'/'+e.mo+' Objekte · '+e.encs.length+'/'+e.me+' Gehege · Tippe aufs Feld zum Platzieren, tippe ein Objekt oder Gehege zum Auswählen</span>'+(e.pl?'':'<button class="zb-i" id="zb-addenc">➕ Gehege hinzufügen</button>'); const ab=s.querySelector('#zb-addenc'); if(ab) ab.onclick=addEnc; return; }
         s.innerHTML='<b style="font-size:.75rem;align-self:center">'+ALL[o[0]].ic+' '+ALL[o[0]].n+'</b><button class="zb-i" data-a="rot">↻ Drehen</button><button class="zb-i" data-a="big">＋ Grösser</button><button class="zb-i" data-a="small">－ Kleiner</button><button class="zb-i" data-a="copy">⧉ Kopie</button><button class="zb-i" data-a="del">🗑 Löschen</button>'
           +'<div style="flex-basis:100%;display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap"><span style="font-size:.68rem;color:#aab">🎨 Farbe (Holz):</span>'
           +SW.map(c=>'<button class="zb-i" data-c="'+c+'" style="width:26px;height:26px;padding:0;border-radius:50%;background:'+c+';border:2px solid '+(o[5]===c?'#fff':'#0008')+'"></button>').join('')
@@ -398,14 +527,15 @@
       if(e.pl){
         $('#zb-save').onclick=async()=>{ sync(); const r=R(); if(!r){ msg('❌ Keine Cloud-Verbindung.'); return; } const nm=e.name.trim().slice(0,24); if(!nm){ msg('❌ Bitte einen Namen eingeben.'); return; }
           if(e.encs.length<MINENC){ msg('❌ Mindestens '+MINENC+' Gehege nötig (aktuell '+e.encs.length+').'); return; }
-          const k=keyOf(ZS.player), id='p_'+k, flagged=badText(nm);
-          const rec={id,name:nm,price:0,mult:1.2,rarity:'normal',objs:e.objs.slice(0,PL_OBJ),encs:e.encs.slice(0,PL_ENC).map(q=>[Math.round(q[0]*2)/2,Math.round(q[1]*2)/2,q[2]||1,q[3]||null]),by:ZS.player,at:Date.now(),status:flagged?'pending':((B.pb[k]&&B.pb[k].status==='hidden')?'hidden':'ok')};
-          try{ await r.ref('zoo_pbases/'+k).set(JSON.parse(JSON.stringify(rec))); B.pb[k]=rec; B._merge(); const z=ZS.zoo; z.bases=z.bases||{}; z.bases[id]=true; z.baseEq=id; ZS.save&&ZS.save(true); e.id=id; B.tick();
-            msg(flagged?'⏳ Gespeichert – der Name wird vom Admin geprüft, bis dahin sehen nur du die Base.':(rec.status==='hidden'?'🚫 Gespeichert, aber vom Admin gesperrt.':'✅ Gespeichert und angelegt (×1.2 Einkommen)! Alle sehen sie jetzt.')); }catch(err){ msg('❌ Speichern fehlgeschlagen: '+err.message); } };
+          const k=keyOf(ZS.player), id='p_'+k, flagged=badText(nm); const paid=!!(B.pb[k]&&B.pb[k].paid); let cost=0;
+          if(!paid){ cost=Math.round(combinedMT()*0.5); const ok=await bigConfirm('🏗️','Basis wirklich bauen?','Möchtest du wirklich die Basis bauen für <b>50 % deines Guthabens</b>?<br><br><span style="color:#FFD700;font-size:1.2rem;font-weight:900">− '+fmt(cost)+' MT</span><br><span style="font-size:.8rem;color:rgba(255,255,255,.6)">Das kostet nur beim ersten Speichern.</span>','Ja, bauen','Nein'); if(!ok){ msg('Abgebrochen – nichts bezahlt.'); return; } }
+          const rec={id,name:nm,price:0,mult:1.2,rarity:'normal',objs:e.objs.filter(o=>!(ADM_T.indexOf(o[0])>=0)).slice(0,PL_OBJ),encs:e.encs.slice(0,PL_ENC).map(q=>[Math.round(q[0]*2)/2,Math.round(q[1]*2)/2,q[2]||1,q[3]||null]),by:ZS.player,at:Date.now(),paid:true,big:false,status:flagged?'pending':((B.pb[k]&&B.pb[k].status==='hidden')?'hidden':'ok')};
+          try{ await r.ref('zoo_pbases/'+k).set(JSON.parse(JSON.stringify(rec))); B.pb[k]=rec; B._merge(); const z=ZS.zoo; if(cost>0){ z.mt-=cost; try{ ZG._updHUD&&ZG._updHUD(); }catch(x){} } z.bases=z.bases||{}; z.bases[id]=true; z.baseEq=id; ZS.save&&ZS.save(true); e.id=id; B.tick();
+            if(cost>0) ZP.toast('🏗️ Base gebaut! −'+fmt(cost)+' MT (50 %)',5000); msg(flagged?'⏳ Gespeichert – der Name wird vom Admin geprüft, bis dahin sehen nur du die Base.':(rec.status==='hidden'?'🚫 Gespeichert, aber vom Admin gesperrt.':'✅ Gespeichert und angelegt (×1.2 Einkommen)! Alle sehen sie jetzt.')); }catch(err){ msg('❌ Speichern fehlgeschlagen: '+err.message); } };
         $('#zb-del').onclick=async()=>{ let ok=true; try{ ok=await (typeof showConfirm==='function'?showConfirm('Deine Base wirklich löschen?'):Promise.resolve(confirm('Deine Base wirklich löschen?'))); }catch(x){} if(!ok) return; const r=R(); const k=keyOf(ZS.player); try{ await r.ref('zoo_pbases/'+k).remove(); delete B.pb[k]; B._merge(); const z=ZS.zoo; if(z.baseEq==='p_'+k){ z.baseEq=null; } if(z.bases) delete z.bases['p_'+k]; ZS.save&&ZS.save(true); Object.assign(e,{id:null,name:'',objs:[],encs:defEncs(),selE:-1,sel:-1}); fill(); draw(); selUI(); B.tick(); msg('🗑 Base gelöscht.'); }catch(err){ msg('❌ '+err.message); } };
       } else
       $('#zb-save').onclick=async()=>{ sync(); const r=R(); if(!r){ msg('❌ Keine Cloud-Verbindung.'); return; } if(!e.name.trim()){ msg('❌ Bitte einen Namen eingeben.'); return; } if(e.encs.length<MINENC){ msg('❌ Mindestens '+MINENC+' Gehege nötig (aktuell '+e.encs.length+').'); return; }
-        const id=e.id||('b'+Date.now().toString(36)); const rec={id,name:e.name.trim().slice(0,30),price:Math.max(0,e.price),mult:Math.max(1,e.mult),rarity:e.rarity,objs:e.objs.slice(0,e.mo),encs:e.encs.slice(0,e.me).map(q=>[Math.round(q[0]*2)/2,Math.round(q[1]*2)/2,q[2]||1,q[3]||null]),by:ZS.player,at:Date.now()};
+        const id=e.id||('b'+Date.now().toString(36)); const rec={id,name:e.name.trim().slice(0,30),price:Math.max(0,e.price),mult:Math.max(1,e.mult),rarity:e.rarity,objs:e.objs.slice(0,e.mo),big:true,encs:e.encs.slice(0,e.me).map(q=>[Math.round(q[0]*2)/2,Math.round(q[1]*2)/2,q[2]||1,q[3]||null]),by:ZS.player,at:Date.now()};
         try{ await r.ref('zoo_bases/'+id).set(JSON.parse(JSON.stringify(rec))); e.id=id; B.list[id]=rec; list(); msg('✅ „'+rec.name+'" gespeichert — ist jetzt im Shop.'); }catch(err){ msg('❌ Speichern fehlgeschlagen: '+err.message); } };
       if(!e.pl) $('#zb-del').onclick=()=>{ if(!e.id){ msg('Diese Base ist noch nicht gespeichert.'); return; } delBase(e.id); };
       ['#zb-name','#zb-price','#zb-mult','#zb-rar'].forEach(s=>$(s).addEventListener('input',sync));
@@ -413,4 +543,5 @@
     }
   };
   setInterval(()=>{ try{ B.tick(); }catch(e){} },1500);
+  setInterval(()=>{ try{ B._fx(); }catch(e){} },50);
 })();
