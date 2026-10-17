@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v652 -->
+<!-- ZOO v654 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=652"></script>
-<script src="rewardchests.js?v=652"></script>
-<script src="personality.js?v=652"></script>
+<script src="lang.js?v=654"></script>
+<script src="rewardchests.js?v=654"></script>
+<script src="personality.js?v=654"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v652','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v654','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -529,14 +529,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=652"></script>
-<script src="sanction.js?v=652"></script>
-<script src="zevents.js?v=652"></script>
-<script src="zevents2.js?v=652"></script>
-<script src="zevents3.js?v=652"></script>
-<script src="znet.js?v=652"></script>
-<script src="zbases.js?v=652"></script>
-<script src="worlds.js?v=652"></script>
+<script src="firebase-state.js?v=654"></script>
+<script src="sanction.js?v=654"></script>
+<script src="zevents.js?v=654"></script>
+<script src="zevents2.js?v=654"></script>
+<script src="zevents3.js?v=654"></script>
+<script src="znet.js?v=654"></script>
+<script src="zbases.js?v=654"></script>
+<script src="worlds.js?v=654"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1554,7 +1554,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v652) ──
+// ── REBIRTH-SYSTEM (v654) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1897,7 +1897,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v652: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v654: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2357,7 +2357,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v652: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v654: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -4139,7 +4139,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v652: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v654: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -4772,7 +4772,7 @@ const ZG={
       +'<button id="reb-explain-ok" style="margin-top:14px;width:100%;background:linear-gradient(135deg,#FFD700,#E0A800);border:none;color:#000;font-weight:900;padding:11px;border-radius:50px;font-size:.95rem;cursor:pointer">Verstanden ➜</button>'
       +'<div style="margin-top:8px;font-size:.66rem;color:rgba(255,255,255,.4)">💡 Tipp: schreib jederzeit /tipps in den Chat.</div></div>';
     document.body.appendChild(ov);
-    let done=false; const ok=ev=>{ if(done) return; done=true; try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} ov.remove(); try{ZG._rebGates();}catch(e){} if(rebNum>=REBIRTH_MAX){ setTimeout(()=>ZG._showCredits(false),400); } };
+    let done=false; const ok=ev=>{ if(done) return; done=true; try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} ov.remove(); try{ZG._rebGates();}catch(e){} const _tut=()=>{ try{ const zz=ZS.zoo; if(zz&&(zz.rebTutSeen||0)<rebNum){ zz.rebTutSeen=rebNum; ZS.save&&ZS.save(); Tutorial.startReb(rebNum); } }catch(e){} }; if(rebNum>=REBIRTH_MAX){ setTimeout(()=>ZG._showCredits(false,_tut),400); } else setTimeout(_tut,500); };
     const b=ov.querySelector('#reb-explain-ok'); ['pointerup','touchend','click'].forEach(n=>b.addEventListener(n,ok,{passive:false}));
   },
   // Schwarzer Bildschirm: man kann jetzt einen Rebirth machen
@@ -4789,8 +4789,9 @@ const ZG={
     const b=ov.querySelector('#reb-ready-ok'); ['pointerup','touchend','click'].forEach(n=>b.addEventListener(n,ok,{passive:false}));
   },
   // Abspann wie im Kino
-  _showCredits(manual){
+  _showCredits(manual,cb){
     if(document.getElementById('zoo-credits')) return;
+    try{ ZCreditsMusic.start(); }catch(e){}
     const wise=['Jedes Tier hat einmal klein angefangen, auch der grösste Zoo.','Wer gut füttert, wird selten gebissen. Wer gut slappt, schon.','Ein Gehege ist nur so schön wie die Zeit, die du darin verbracht hast.','Glück ist kein Zufall, es ist ein Kleeblatt mit Geduld.','Manche Tiere sind selten. Die besten Freunde sind es auch.','Wer alles zurücksetzt und neu beginnt, hat verstanden, worum es geht.','Im Zoo gewinnt nicht der Schnellste, sondern der, der wiederkommt.'];
     const H=t=>'<div style="font-size:.8rem;letter-spacing:3px;color:#FFD700;margin:46px 0 10px;font-weight:700">'+t+'</div>';
     const N=t=>'<div style="font-size:1.25rem;font-weight:900;margin:4px 0">'+t+'</div>';
@@ -4813,7 +4814,7 @@ const ZG={
     document.body.appendChild(ov);
     const roll=ov.querySelector('#zc-roll'); let y=window.innerHeight, alive=true, paused=false, last=performance.now();
     const SPEED=38; // Pixel pro Sekunde — langsam wie im Kino
-    const close=ev=>{ try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} alive=false; ov.remove(); };
+    let _cbDone=false; const close=ev=>{ try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} alive=false; ov.remove(); try{ZCreditsMusic.stop();}catch(e){} if(!_cbDone){ _cbDone=true; try{ cb&&setTimeout(cb,400); }catch(e){} } };
     const step=t=>{ if(!alive) return; const dt=Math.min(.1,(t-last)/1000); last=t; if(!paused) y-=SPEED*dt; roll.style.transform='translateY('+y+'px)';
       const endY=-(roll.scrollHeight-window.innerHeight*1.1); if(y<endY){ y=endY; paused=true; if(!ov.querySelector('#zc-end')){ const b=document.createElement('button'); b.id='zc-end'; b.textContent='Zurück zum Zoo ➜'; b.style.cssText='position:absolute;bottom:8vh;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFD700,#F39C12);border:none;color:#1a1a2e;font-weight:900;padding:12px 30px;border-radius:50px;font-size:1rem;cursor:pointer;z-index:2'; ov.appendChild(b); ['pointerup','touchend','click'].forEach(n=>b.addEventListener(n,close,{passive:false})); } }
       requestAnimationFrame(step); };
@@ -4948,7 +4949,7 @@ const ZG={
     }
     fireGroup.position.copy(worldPos);
     this.scene.add(fireGroup);
-    const start=Date.now(), dur=652;
+    const start=Date.now(), dur=654;
     const anim=()=>{
       const t=(Date.now()-start)/dur;
       if(t>=1 || !this.scene){ try{this.scene.remove(fireGroup);}catch(e){} return; }
@@ -8282,11 +8283,52 @@ const TUTORIAL_STEPS=[
   {id:'feederinfo', title:'🍬 So funktioniert der Leckerli-Automat', text:'Wähle ein Tier in deinen Gehegen und gib ihm ein Leckerli: Es verdient <b>5 Min lang 2× so schnell Geld</b> und kostet nur 5% des Tierpreises. Schau dich in Ruhe um. Schliess den Automaten mit dem ✕, dann geht’s weiter.', target:null, action:'closeel:feeder-panel'},
   {id:'hearts', title:'❤️ Deine Herzen', text:'Oben siehst du deine <b>10 Herzen</b>. Jeder Slap, der dich trifft, kostet Herzen (Basic 0,3 · Ice 0,5 · … · Hütten-Slap 5). Alle <b>15 Sek.</b> kommt ein Herz zurück. Bei 0 bist du besiegt — dann wählst du <b>Respawn</b> oder <b>Hauptmenü</b>.', target:'#zhearts', action:'button'},
 ];
+// ══ REBIRTH-TUTORIALS: pro Rebirth wird nur erklärt, was NEU ist ══
+const _RT=(id,title,text,extra)=>Object.assign({id,title,text,target:null,action:'button'},extra||{});
+const REB_TUT={
+  1:[ _RT('r1a','🔄 Neu durch Rebirth 1','Ich zeige dir kurz nur das, was jetzt neu für dich ist.'),
+      _RT('r1slap','✨❄️ Golden Slap &amp; Ice Slap','Unten in deiner <b>Waffen-Leiste</b> sind jetzt <b>Golden</b> und <b>Ice</b> dauerhaft freigeschaltet. Sie kosten beim Benutzen weiterhin MT. Tippe sie an, um sie auszurüsten.',{target:'#wbar',boxTop:true}),
+      _RT('r1mult','💰 Einkommen ×1,5','Dein Einkommen ist jetzt dauerhaft ×1,5 — dieser Boost bleibt bei jedem weiteren Rebirth erhalten und wird noch grösser.') ],
+  2:[ _RT('r2a','🔄 Neu durch Rebirth 2','Nur das, was jetzt neu ist:'),
+      _RT('r2slap','💜 Shadow Slap &amp; ×3','Der <b>Shadow Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×3.',{target:'#wbar',boxTop:true}),
+      {id:'r2g1',title:'🍀 Mehr Glück in der Gondel',text:'In der Gondel gibt es jetzt <b>mehr Glück</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},action:'panel:gond'},
+      _RT('r2g2','🍀 Glücks-Stufen &amp; Kleeblatt-Kette','Neu: die Glücks-Häufigkeit im Shop, die Stufen <b>×5, ×7, ×10</b> und die <b>Kleeblatt-Kette</b> (Grün-Glück). Alles hier in der Gondel.',{target:'#gluck'}),
+      {id:'r2g3',title:'🚡 Gondel schliessen',text:'Schliess die Gondel mit dem ✕, dann geht es weiter.',target:null,action:'close:gond'},
+      _RT('r2free','🕊️ Tiere freilassen','Tippe ein Tier in deinem Gehege an — jetzt kannst du es <b>freilassen</b>.'),
+      _RT('r2step','🔊 Schritt-Ton','Mit diesem Knopf wählst du den Ton deiner Schritte.',{target:'#hb-footstep-style'}),
+      {id:'r2t1',title:'🔍 Sammlungs-Terminal',text:'Das <b>Sammlungs-Terminal</b> zeigt dir, welche Tiere du schon hattest. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'terminal',action:'proximity'},
+      _RT('r2t2','🔍 So benutzt du es','Tippe das Terminal an (oder drück [E]), um deine Sammlung zu sehen. Das war alles Neue von Rebirth 2!') ],
+  3:[ _RT('r3a','🔄 Neu durch Rebirth 3','Nur das, was jetzt neu ist:'),
+      _RT('r3slap','🔥 Fire Slap &amp; ×5','Der <b>Fire Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×5.',{target:'#wbar',boxTop:true}),
+      _RT('r3pass','🎫 MT-Pass','Hier öffnest du den <b>MT-Pass</b> mit Belohnungen für deinen Fortschritt.',{target:'#hb-mtpass'}),
+      {id:'r3b1',title:'🧬 Zucht-Maschine',text:'Die <b>Zucht-Maschine</b> kreuzt Tiere zu neuen. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'breed',action:'proximity'},
+      _RT('r3b2','🧬 So benutzt du sie','Tippe die Maschine an (oder drück [E]), wähle zwei Tiere und lass sie züchten.'),
+      _RT('r3menu','📖 Sammelalbum &amp; 🎯 Deko-Quests','Beides findest du im <b>Menü</b>. Dort kannst du das Album ansehen und Deko-Quests erledigen.',{target:'#hb-menu'}),
+      {id:'r3g1',title:'🌟 ×100 Glücks-Bonus',text:'Neu in der Gondel: der <b>×100 Glücks-Bonus</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},action:'panel:gond'},
+      _RT('r3g2','🌟 ×100 Glücks-Bonus','Hier kaufst du den neuen ×100 Glücks-Bonus.',{target:'#gluck50'}),
+      {id:'r3g3',title:'🚡 Gondel schliessen',text:'Schliess die Gondel mit dem ✕ — das war alles Neue von Rebirth 3!',target:null,action:'close:gond'} ],
+  4:[ _RT('r4a','🔄 Neu durch Rebirth 4','Nur das, was jetzt neu ist:'),
+      _RT('r4slap','🌈 Rainbow Slap &amp; ×10','Der <b>Rainbow Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×10.',{target:'#wbar',boxTop:true}),
+      _RT('r4rank','🏅 Ränge','Im <b>Menü</b> kannst du jetzt einen <b>Rang ausrüsten</b>, der bei deinem Namen steht.',{target:'#hb-menu'}) ],
+  5:[ _RT('r5a','🔄 Neu durch Rebirth 5','Nur das, was jetzt neu ist:'),
+      _RT('r5slap','🌌 Void Slap &amp; ×50','Der <b>Void Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×50.',{target:'#wbar',boxTop:true}),
+      {id:'r5s1',title:'🏗️ Basen im Shop',text:'Im Shop gibt es jetzt <b>Basen</b>. Öffne ihn mal!',target:'#hb-shop',action:'panel:shop'},
+      {id:'r5s2',title:'🏗️ Basen &amp; Eigene Base',text:'Weiter unten findest du die <b>Basen</b>: Jede gibt dir einen Einkommens-Multi. Und im Kasten <b>„Meine eigene Base“</b> baust du deine eigene — Objekte setzen, Gehege verschieben und färben. Schliess den Shop, wenn du fertig bist.',target:'#scont',action:'close:shop'} ]
+};
 const Tutorial={
-  _active:false, _stepIdx:0, _startPos:null, _moveCheckIv:null, _arrowIv:null,
+  _active:false, _stepIdx:0, _startPos:null, _moveCheckIv:null, _arrowIv:null, _custom:null, _onDone:null,
+  _list(){ return this._custom||TUTORIAL_STEPS; },
+  // Rebirth-Tutorial: zeigt nur das Neue dieser Stufe (mit Pfeil, Abdunkeln, echten Aktionen)
+  startReb(n){
+    if(this._active) return false; const L=REB_TUT[n]; if(!L||!L.length) return false;
+    try{ ZG._rebGates&&ZG._rebGates(); }catch(e){}
+    this._custom=L; this._active=true; this._stepIdx=0;
+    try{ if(typeof ZChat!=='undefined' && ZChat.open) ZChat.close(); }catch(e){}
+    this._showStep(0); return true;
+  },
   start(){
     if(this._active) return;
-    this._active=true; this._stepIdx=0;
+    this._custom=null; this._active=true; this._stepIdx=0;
     try{ if(typeof ZChat!=='undefined' && ZChat.open) ZChat.close(); }catch(e){}
     this._showStep(0);
   },
@@ -8302,8 +8344,10 @@ const Tutorial={
     }
   },
   _finish(){
+    const wasReb=!!this._custom; this._custom=null;
     this._active=false; this._holdCat=false;
     this._cleanupStep();
+    if(wasReb){ try{ ZP.toast('✅ Fertig! Du kennst jetzt alles Neue.',3000); }catch(e){} return; }
     if(ZS.zoo){ ZS.zoo.tutorialSeen=true; ZS.save&&ZS.save(); }
   },
   skip(){
@@ -8313,11 +8357,11 @@ const Tutorial={
   advance(){
     this._cleanupStep();
     this._stepIdx++;
-    if(this._stepIdx>=TUTORIAL_STEPS.length){ this._finish(); return; }
+    if(this._stepIdx>=this._list().length){ this._finish(); return; }
     this._showStep(this._stepIdx);
   },
   _showStep(i){
-    const s=TUTORIAL_STEPS[i];
+    const s=this._list()[i];
     // Events-Schritt: ist gerade kein Event aktiv, ist #evt unsichtbar — dann kurz ein Beispiel zeigen
     if(s.id==='events'){
       const ev=document.getElementById('evt');
@@ -8402,6 +8446,8 @@ const Tutorial={
       if(typeof s.arrowTarget==='object') return s.arrowTarget;
       if(s.arrowTarget==='gold') return (ZG._goldMachinePositions&&ZG._goldMachinePositions[0])||{x:16,z:55};
       if(s.arrowTarget==='enc'){ try{ const ps=ZG.ENCPOS(); const sl=ZG.carrying?ZG.carrying.slot:0; return ps[sl]||ps[0]||{x:0,z:55}; }catch(e){ return {x:0,z:55}; } }
+      if(s.arrowTarget==='breed') return (ZG._breedPositions&&ZG._breedPositions[0])||{x:0,z:0};
+      if(s.arrowTarget==='terminal') return (ZG._terminalPositions&&ZG._terminalPositions[0])||{x:0,z:0};
       if(s.arrowTarget==='feeder') return (ZG._feederPositions&&ZG._feederPositions[0])||{x:-24,z:63};
       if(s.arrowTarget==='dice') return (ZG._dicePositions&&ZG._dicePositions[0])||{x:16,z:55};
       return {x:0,z:0};
@@ -8462,25 +8508,25 @@ const Tutorial={
   },
   _onPanelOpen(p){
     if(!this._active) return;
-    const s=TUTORIAL_STEPS[this._stepIdx];
+    const s=this._list()[this._stepIdx];
     // Schnell eine Katze: während Gondel-/Glück-/Kauf-Schritt liegt sofort eine Katze bereit
     if(p==='gond' && s && ['gondola','gluck','buy'].includes(s.id)){ try{ ZG._tutorialCat(); }catch(e){} }
     if(s && s.action==='panel:'+p) this.advance();
   },
   _onPlaced(){
     if(!this._active) return;
-    const s=TUTORIAL_STEPS[this._stepIdx];
+    const s=this._list()[this._stepIdx];
     if(s && s.action==='placed') this.advance();
   },
   _onBuy(){
     this._holdCat=false;
     if(!this._active) return;
-    const s=TUTORIAL_STEPS[this._stepIdx];
+    const s=this._list()[this._stepIdx];
     if(s && s.action==='buy') this.advance();
   },
   _onSlap(){
     if(!this._active) return;
-    const s=TUTORIAL_STEPS[this._stepIdx];
+    const s=this._list()[this._stepIdx];
     if(s && s.action==='slap') this.advance();
   },
 };
@@ -11353,6 +11399,7 @@ const ZP={
     const req=rebReq(z.reb||0);
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
     if(!(await showConfirm('Wirklich? Fast alle Tiere und MT gehen verloren!')))return;
+    try{ ZBases.backup(true); }catch(e){}
     const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];
     z.reb=(z.reb||0)+1;z.rebirthMult=rebMultOf(z.reb);z._rebMultFor=z.reb;
     // Gehege (z.xenc) bleiben unverändert — es gibt KEINE extra Gehege mehr als Rebirth-Belohnung.
@@ -12038,6 +12085,55 @@ const ZP={
 };
 
 
+// ═══ ABSPANN-MUSIK: ruhiges Klavier-Stück (live per WebAudio, kein Download) ═══
+const ZCreditsMusic = {
+  ctx:null, master:null, iv:null, nextBar:0, bar:0, playing:false, _resumeMelody:false,
+  _f:m=>440*Math.pow(2,(m-69)/12),
+  // Akkorde (MIDI): Am – F – C – G, je ein Takt = 4 Schläge
+  CH:[[45,48,52],[41,45,48],[48,52,55],[43,47,50]],
+  // Melodie: [Schlag im 8-Takte-Zyklus, MIDI, Dauer in Schlägen]
+  MEL:[[0,76,2],[2,72,1],[3,74,1],[4,72,2],[6,69,2],[8,67,1],[9,72,1],[10,76,2],[12,74,2],[14,71,2],
+       [16,76,1],[17,79,1],[18,76,2],[20,77,2],[22,72,2],[24,79,2],[26,76,1],[27,72,1],[28,74,4]],
+  _tone(t,freq,dur,vol,type,att){
+    const c=this.ctx, o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(vol,t+(att||0.012)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+0.05);
+  },
+  _pad(t,notes,dur){
+    const c=this.ctx; notes.forEach(m=>{ const o=c.createOscillator(), g=c.createGain(), f=c.createBiquadFilter(); o.type='sine'; o.frequency.value=this._f(m);
+      f.type='lowpass'; f.frequency.value=900; g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.035,t+1.4); g.gain.linearRampToValueAtTime(0.0001,t+dur+1.2);
+      o.connect(f); f.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+1.3); });
+  },
+  _schedBar(){
+    const BEAT=1.0, t0=this.nextBar, bi=this.bar%8, ch=this.CH[bi%4];
+    this._pad(t0,[ch[0]+12,ch[1]+12,ch[2]+12],4*BEAT);
+    this._tone(t0,this._f(ch[0]),3.6*BEAT,0.07,'triangle',0.05); // Bass
+    const tones=[ch[0]+12,ch[1]+12,ch[2]+12,ch[0]+24], pat=[0,1,2,3,2,1,2,1];
+    pat.forEach((k,i)=>{ this._tone(t0+i*0.5*BEAT,this._f(tones[k]),1.5,0.05+(i%2?0:0.012),'triangle'); });
+    this.MEL.forEach(([b,m,d])=>{ if(b>=bi*4&&b<bi*4+4){ const t=t0+(b-bi*4)*BEAT; this._tone(t,this._f(m),d*BEAT+1.6,0.075,'sine',0.03); this._tone(t,this._f(m+12),d*BEAT+0.8,0.012,'sine',0.03); } });
+    this.nextBar+=4*BEAT; this.bar++;
+  },
+  start(){
+    if(this.playing) return;
+    try{
+      if(ZSound.style==='off') return; // Spieler hat Ton ausgeschaltet
+      ZSound._init&&ZSound._init(); const c=this.ctx=ZSound.ctx||new (window.AudioContext||window.webkitAudioContext)(); if(c.state==='suspended') c.resume().catch(()=>{});
+      this._resumeMelody=!!ZSound._melodyIv; if(ZSound._melodyIv){ ZSound.stopMelody(); }
+      this.master=c.createGain(); this.master.gain.setValueAtTime(0.0001,c.currentTime); this.master.gain.linearRampToValueAtTime(1.3,c.currentTime+4);
+      // einfacher Hall: Delay-Feedback + Tiefpass
+      const d=c.createDelay(1.5); d.delayTime.value=0.42; const fb=c.createGain(); fb.gain.value=0.38; const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2200; const wet=c.createGain(); wet.gain.value=0.45;
+      this.master.connect(c.destination); this.master.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(wet); wet.connect(c.destination);
+      this.playing=true; this.bar=0; this.nextBar=c.currentTime+0.4;
+      const pump=()=>{ if(!this.playing) return; while(this.nextBar<this.ctx.currentTime+6) this._schedBar(); };
+      pump(); this.iv=setInterval(pump,1000);
+    }catch(e){ this.playing=false; }
+  },
+  stop(){
+    if(!this.playing) return; this.playing=false; clearInterval(this.iv); this.iv=null;
+    try{ const c=this.ctx, m=this.master; m.gain.cancelScheduledValues(c.currentTime); m.gain.setValueAtTime(Math.max(0.0001,m.gain.value),c.currentTime); m.gain.linearRampToValueAtTime(0.0001,c.currentTime+2.5); setTimeout(()=>{ try{ m.disconnect(); }catch(e){} },3500); }catch(e){}
+    try{ if(this._resumeMelody && ZSound.style!=='off') setTimeout(()=>{ try{ ZSound.startMelody(); }catch(e){} },2600); }catch(e){}
+  }
+};
 // ═══ SOUND SYSTEM ═══
 const ZSound = {
   ctx: null,
@@ -13744,7 +13840,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v652 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v654 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -18249,7 +18345,7 @@ const Arcade={
       const bm=this._machines.find(m=>m.i===best); const bd=bm?Math.hypot(bm.x-px,bm.z-pz):99;
       if(bd<=5.2 && !World1._ov && this._blockIdx!==best){
         if(this._dwellIdx!==best){ this._dwellIdx=best; this._dwellT=Date.now(); }
-        else if(Date.now()-this._dwellT>=652){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
+        else if(Date.now()-this._dwellT>=654){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
       } else if(bd>5.2){ this._dwellIdx=-1; }
       if(this._blockIdx===best && bd>9) this._blockIdx=-1;
     } else { this._dwellIdx=-1; if(this._blockIdx!==-1 && this._blockIdx!==undefined){ /* bleibt gesperrt bis weg vom Automaten */ const bm2=this._machines.find(m=>m.i===this._blockIdx); if(!bm2||Math.hypot(bm2.x-px,bm2.z-pz)>9) this._blockIdx=-1; } }
