@@ -31,6 +31,8 @@
     hero:{n:'Helden-Fanfare',e:'🏆',style:'hero',bpm:108},
     chase:{n:'Verfolgungsjagd',e:'🏃',style:'chase',bpm:172},
     disco:{n:'Disco-Fieber',e:'🪩',style:'disco',bpm:116},
+    // Sturm-Lied: düsteres, treibendes Moll, 140 BPM, Sägezahn-Lead mit Verzerrung, Donner-Kicks
+    storm:{n:'Gewitter-Sturm',e:'⛈️',bpm:140,root:38,scale:[0,2,3,5,7,8,10],wave:'sawtooth',drive:true,bassEvery:4,riff:[0,-1,-1,2,-1,3,-1,-1,5,-1,3,-1,2,-1,0,-1],kick:'x..x..x...x..x..',snare:'....x.......x..x',hat:'x.x.x.x.x.x.x.xx'},
     // Treibender Synth-Pop mit Moll-Arpeggio und Klatschen, 122 BPM
     sus:{bpm:122,root:45,scale:[0,2,3,5,7,8,10],wave:'square',bassEvery:2,riff:[0,2,4,2,0,2,4,7,0,2,4,2,5,4,2,0],kick:'x...x...x...x...',snare:'....x.......x...',hat:'x.x.x.x.x.x.x.x.'}
   };

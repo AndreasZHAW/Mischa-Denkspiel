@@ -259,10 +259,10 @@
       Object.keys(B.groups).forEach(k=>{ const g=B.groups[k].grp; if(!g.visible||!g.userData.solids) return; g.userData.solids.forEach(so=>{ if(so.kind==='laser'){ if(keyOf(so.owner)===me||!B.laserClosed(so)) return; } if(so.kind==='shield'&&keyOf(so.owner)===me) return; sol.push(so); }); });
       const L=B._last; B._last={x:pl.x,z:pl.z}; if(!sol.length||!L) return;
       const dx=pl.x-L.x, dz=pl.z-L.z; const dist=Math.hypot(dx,dz); let x=pl.x, z=pl.z;
-      const N=(dist>20)?1:Math.max(1,Math.ceil(dist/0.8)); if(N>1){ x=L.x; z=L.z; }
+      const N=(dist>150)?1:Math.min(400,Math.max(1,Math.ceil(dist/0.8))); if(N>1){ x=L.x; z=L.z; }
       for(let i=1;i<=N;i++){
         if(N>1){ x+=dx/N; z+=dz/N; }
-        for(const so of sol){ if(so.circ){ const dx2=x-so.x, dz2=z-so.z, d2=Math.hypot(dx2,dz2), R2=so.r+.7; if(d2<R2){ const k=d2>0.001?R2/d2:0; x=d2>0.001?so.x+dx2*k:so.x+R2; z=d2>0.001?so.z+dz2*k:so.z; } continue; } const c=Math.cos(so.th), sn=Math.sin(so.th), wx=x-so.x, wz=z-so.z, lx=wx*c-wz*sn, lz=wx*sn+wz*c, R=.7;
+        for(const so of sol){ if(so.circ){ const dx2=x-so.x, dz2=z-so.z, d2=Math.hypot(dx2,dz2), R2=so.r+.7; if(d2<R2){ const k=d2>0.001?R2/d2:0; x=d2>0.001?so.x+dx2*k:so.x+R2; z=d2>0.001?so.z+dz2*k:so.z; } continue; } const c=Math.cos(so.th), sn=Math.sin(so.th), wx=x-so.x, wz=z-so.z, lx=wx*c-wz*sn, lz=wx*sn+wz*c, R=.9;
           if(Math.abs(lx)<so.hx+R&&Math.abs(lz)<so.hz+R){ const px=so.hx+R-Math.abs(lx), pz=so.hz+R-Math.abs(lz); let nx=lx, nz=lz; if(pz<=px) nz=(lz>=0?1:-1)*(so.hz+R); else nx=(lx>=0?1:-1)*(so.hx+R); x=so.x+nx*c+nz*sn; z=so.z-nx*sn+nz*c; if(so.kind==='efence'&&keyOf(so.owner)!==me) B._zap(); } } }
       pl.x=x; pl.z=z; B._last={x,z};
     },
@@ -350,7 +350,7 @@
       const r=R(), z=ZS.zoo; if(!r||!z||!ZS.player) return; const k=keyOf(ZS.player);
       if(B._bkBusy) return; B._bkBusy=true;
       try{
-        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v659'});
+        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v661'});
         if(j.length>400000){ B._bkBusy=false; return; }
         await r.ref('zoo_backup/'+k+'/'+ts).set({ts,j,mt:Math.round(z.mt||0),n:(z.enc||[]).filter(e=>e&&e.animal).length,rb:+z.reb||0,why:force?'vor Aktion':'auto'});
         localStorage.setItem('zb_bk_last',String(ts));
