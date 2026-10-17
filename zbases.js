@@ -107,6 +107,8 @@
       try{ r.ref('zoo_bases').on('value',s=>{ B.adminList=s.val()||{}; B._merge(); B._shopRefresh(); }); }catch(e){}
       try{ r.ref('zoo_pbases').on('value',s=>{ B.pb=s.val()||{}; B._merge(); B._shopRefresh(); }); }catch(e){}
       try{ const k=keyOf(ZS.player); const t0=Date.now(); if(k) r.ref('zoo_alarm/'+k).on('value',s=>{ const v=s.val(); if(v&&v.at>t0&&v.at>(B._alSeen||0)){ B._alSeen=v.at; ZP.toast('🚨 ALARM in deiner Base! '+(v.by||'Jemand')+' ist eingedrungen.',6000); } }); }catch(e){}
+      try{ r.ref('zoo_cfg/steal').on('value',s=>{ const v=s.val(); B.cfg.steal=Object.assign({on:1,pct:2,sec:10},v||{}); }); }catch(e){}
+      try{ const k=keyOf(ZS.player); if(k){ r.ref('zoo_steal_ping/'+k).on('value',s=>B._onPing(s.val())); r.ref('zoo_steal_res/'+k).on('child_added',s=>B._onRes(s)); } }catch(e){}
       try{ r.ref('zoo_cfg/noTpRadius').on('value',s=>{ B.cfg.noTp=+s.val()||0; }); }catch(e){}
       try{ r.ref('zoo_likes_m').on('value',s=>{ B.lm=s.val()||{}; B._calcWinner(); }); }catch(e){}
       try{ const k=keyOf(ZS.player); if(k) r.ref('zoo_restore/'+k).on('value',s=>{ B._restoreReq=s.val()||null; }); }catch(e){}
@@ -248,7 +250,7 @@
       B._likeBtn(others);
     },
     // ═══ Sicherheit: Mauer, Laser-Tür, Wächter (Ronaldo/Messi), Teleport-Schutz ═══
-    cfg:{noTp:0}, _balls:[], _gcd:{}, _last:null, _hitCd:0,
+    cfg:{noTp:0,steal:{on:1,pct:2,sec:10}}, _balls:[], _gcd:{}, _last:null, _hitCd:0,
     _ownerPos(owner){ try{ if(keyOf(owner)===keyOf(ZS.player)) return {x:ZG.pl.x,z:ZG.pl.z}; const op=(ZG.otherPl||{})[owner]; return op?{x:op.x,z:op.z}:null; }catch(e){ return null; } },
     // Laser ist zu: alle 10 s Wechsel (zu/offen, für alle gleich per Uhr) — oder immer zu, solange der Besitzer in seiner Base ist
     laserClosed(so){ const ph=(Math.floor(Date.now()/10000)%2===0); if(ph) return true; const op=B._ownerPos(so.owner); return !!(op&&Math.hypot(op.x-so.cx,op.z-so.cz)<28); },
@@ -293,6 +295,36 @@
         const hit=!dead&&Math.hypot(ZG.pl.x-b.sp.position.x,ZG.pl.z-b.sp.position.z)<1.3&&now>B._hitCd;
         if(hit||now>b.t){ ZG.scene.remove(b.sp); B._balls.splice(i,1); if(hit){ B._hitCd=now+1500; B._minus(b.from); } } }
     },
+    // ═══ Zoo-Einbruch (ab Rebirth 5): wer in einem fremden Gehege steht, klaut dem Besitzer alle 10 s 2 % ═══
+    _stealT:{}, _stealN:0, _pingSeen:{}, _pingAt:{},
+    _inEnc(pl,op){ try{ const lay=ZG._slotEncPos(typeof op.slotIdx==='number'?op.slotIdx:0); return lay.positions.some(q=>{ const h=3.5*(q.s||1); return Math.abs(pl.x-q.x)<=h&&Math.abs(pl.z-q.z)<=h; }); }catch(e){ return false; } },
+    _stealLoop(){
+      try{
+        const c=B.cfg.steal||{}; if(!c.on||typeof rebHas==='function'&&!rebHas('steal')||!ZS.zoo||!ZG.pl||(typeof ZHearts!=='undefined'&&ZHearts.dead)) return; const r=R(); if(!r) return; const me=keyOf(ZS.player||'');
+        const others=ZG.otherPl||{}; let inside=null;
+        Object.keys(others).forEach(n=>{ const op=others[n]; if(!op||keyOf(n)===me) return; if(B._inEnc(ZG.pl,op)) inside=n; });
+        Object.keys(B._stealT).forEach(k=>{ if(k!==inside) delete B._stealT[k]; });
+        if(!inside) return; B._stealT[inside]=(B._stealT[inside]||0)+1;
+        if(B._stealT[inside]===1) ZP.toast('🕵️ Du bist im Gehege von '+inside+'! In '+(c.sec||10)+' Sek. klaust du '+(c.pct||2)+' % …',3500);
+        if(B._stealT[inside]>=(c.sec||10)){ B._stealT[inside]=0; B._stealN++; r.ref('zoo_steal_ping/'+keyOf(inside)+'/'+me).set({n:B._stealN,by:ZS.player,t:Date.now()}); }
+      }catch(e){}
+    },
+    // Besitzer: prüft selbst, ob der Dieb wirklich in seinem Gehege steht (Position aus seiner Sicht), und überweist
+    _onPing(v){
+      try{ if(!v) return; const c=B.cfg.steal||{}; if(!c.on||typeof rebHas==='function'&&!rebHas('steal')) return; const z=ZS.zoo; if(!z) return; const now=Date.now(); const r=R();
+        Object.keys(v).forEach(tk=>{ const p=v[tk]; if(!p||!p.n) return; const seen=B._pingSeen[tk]||0; if(p.n<=seen) return; B._pingSeen[tk]=p.n;
+          if(now-(B._pingAt[tk]||0)<((c.sec||10)*1000*0.8)) return; // nicht öfter als alle ~10 s pro Dieb
+          const op=(ZG.otherPl||{})[p.by]; if(!op||keyOf(p.by)!==tk) return;
+          const mine=ZG.ENCPOS?ZG.ENCPOS():[]; const inside=mine.slice(0,ZS.maxE()).some(q=>{ const h=3.5*(q.s||1); return Math.abs(op.x-q.x)<=h&&Math.abs(op.z-q.z)<=h; }); if(!inside) return;
+          const amt=Math.floor(Math.max(0,(ZS.dsMT||0)+(z.mt||0))*((c.pct||2)/100)); if(amt<=0) return; B._pingAt[tk]=now; z.mt-=amt; try{ ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); }catch(e){}
+          ZP.toast('🕵️ '+p.by+' klaut dir '+(c.pct||2)+' % ('+fmt(amt)+' MT) aus deinem Gehege!',5000);
+          r.ref('zoo_steal_res/'+tk).push({amt,from:ZS.player,at:now}); });
+      }catch(e){}
+    },
+    _onRes(snap){
+      try{ const v=snap.val(); if(!v||!(v.amt>0)||!ZS.zoo){ try{ snap.ref.remove(); }catch(e){} return; } const z=ZS.zoo; z.mt=(z.mt||0)+Math.min(v.amt,1e15); try{ ZG._updHUD&&ZG._updHUD(); ZS.save&&ZS.save(); }catch(e){}
+        ZP.toast('🕵️ +'+fmt(v.amt)+' MT von '+(v.from||'?')+' geklaut!',4000); snap.ref.remove(); }catch(e){}
+    },
     _hurt(dmg,txt,from){ try{ ZP.toast(txt,3000); if(typeof ZHearts!=='undefined') ZHearts.hit(dmg,{name:from,guard:true}); }catch(e){} },
     _zap(){ const now=Date.now(); if(now<(B._zapCd||0)) return; B._zapCd=now+1500; B._hurt(.5,'⚡ Elektrozaun! −0,5 ❤','Elektrozaun'); },
     _alarm(sr){ try{ ZP.toast('🚨 Alarm! Du betrittst fremdes Gebiet — '+sr.owner+' wird gewarnt.',4000);
@@ -318,7 +350,7 @@
       const r=R(), z=ZS.zoo; if(!r||!z||!ZS.player) return; const k=keyOf(ZS.player);
       if(B._bkBusy) return; B._bkBusy=true;
       try{
-        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v658'});
+        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v659'});
         if(j.length>400000){ B._bkBusy=false; return; }
         await r.ref('zoo_backup/'+k+'/'+ts).set({ts,j,mt:Math.round(z.mt||0),n:(z.enc||[]).filter(e=>e&&e.animal).length,rb:+z.reb||0,why:force?'vor Aktion':'auto'});
         localStorage.setItem('zb_bk_last',String(ts));
@@ -420,12 +452,16 @@
         rows.forEach(r=>{ const k=keyOf(r.by); h+='<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px solid rgba(255,255,255,.08)"><canvas class="za-th" data-k="'+esc(k)+'" width="72" height="54" style="border-radius:6px;background:#2c5a2e;flex:none"></canvas><div style="flex:1;min-width:0;font-size:.74rem"><b>'+esc(r.name)+'</b><br><span style="color:#aab">von '+esc(r.by)+' · '+(stTxt[r.status]||r.status)+'</span></div>'
           +'<button class="zb-i" data-st="ok" data-k="'+esc(k)+'" title="Freigeben">✔</button><button class="zb-i" data-st="hidden" data-k="'+esc(k)+'" title="Sperren">🚫</button><button class="zb-i" data-st="del" data-k="'+esc(k)+'" title="Löschen" style="background:#6b1f1f">🗑</button></div>'; });
         h+='<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">🛡️ Teleport-Schutz</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Zu einem Spieler, der näher als dieser Radius (Meter) an seiner Base ist, kann sich niemand teleportieren. 0 = aus.</div><div style="display:flex;gap:6px"><input id="za-tp" type="number" min="0" max="200" value="'+(+B.cfg.noTp||0)+'" style="flex:1;padding:9px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"><button class="zb-b" id="za-tps" style="flex:none;min-width:0;padding:9px 14px">Setzen</button></div>'
+          +'<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">🌦️ Wetter</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Setzt das Wetter für alle Spieler mit Rebirth 1+ (Dauer in Minuten). „Zufall" löscht deine Einstellung.</div><div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><button class="zb-i" data-w="">🎲 Zufall</button><button class="zb-i" data-w="sun">☀️ Sonne</button><button class="zb-i" data-w="rain">🌧️ Regen</button><button class="zb-i" data-w="wind">💨 Wind</button><button class="zb-i" data-w="clear">🌤️ Klar</button></div><div style="display:flex;gap:6px;margin-top:6px"><select id="za-wd" style="flex:1;padding:8px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"><option value="r">Wind-Richtung: zufällig</option><option value="0">→ Süd (+z)</option><option value="90">→ Ost (+x)</option><option value="180">→ Nord (−z)</option><option value="270">→ West (−x)</option></select><input id="za-wm" type="number" min="1" max="120" value="10" style="width:70px;padding:8px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"></div>'
+          +'<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">🕵️ Zoo-Einbruch (Rebirth 5)</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Wer in einem fremden Gehege steht, klaut dem Besitzer regelmässig einen Anteil. Hier steuerst du es.</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><label style="font-size:.7rem"><input type="checkbox" id="za-so" '+((B.cfg.steal&&B.cfg.steal.on)?'checked':'')+'> an</label><input id="za-sp" type="number" min="0.1" max="20" step="0.1" value="'+((B.cfg.steal&&B.cfg.steal.pct)||2)+'" style="width:64px;padding:8px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"> %<input id="za-ss" type="number" min="5" max="120" value="'+((B.cfg.steal&&B.cfg.steal.sec)||10)+'" style="width:64px;padding:8px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"> Sek.<button class="zb-b" id="za-sts" style="flex:none;min-width:0;padding:9px 14px">Setzen</button></div>'
           +'<div style="font-weight:800;font-size:.85rem;margin:18px 0 4px">💾 Spielstand-Backups</div><div style="font-size:.68rem;color:#889;margin-bottom:6px">Jeder Spielstand wird automatisch alle 6 h und vor jedem Rebirth gesichert (die letzten 7). Wiederherstellen wirkt sofort, wenn der Spieler online ist, sonst beim nächsten Start. Vorher wird der aktuelle Stand nochmals gesichert.</div>'
           +'<div style="display:flex;gap:6px"><input id="za-who" placeholder="Spielername" value="'+esc(who||'')+'" style="flex:1;padding:9px;border-radius:8px;border:1px solid #445;background:#161c2c;color:#fff"><button class="zb-b" id="za-load" style="flex:none;min-width:0;padding:9px 14px">Laden</button></div>';
         if(bk) h+=bk.length?bk.map(b=>'<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px solid rgba(255,255,255,.08);font-size:.72rem"><div style="flex:1">'+new Date(+b.ts).toLocaleString('de-CH')+'<br><span style="color:#aab">'+$mtS(b.mt)+' MT · '+(b.n||0)+' Tiere · Rebirth '+(b.rb||0)+' · '+esc(b.why||'')+'</span></div><button class="zb-i" data-rs="'+b.ts+'">♻️ Wiederherstellen</button></div>').join(''):'<div style="font-size:.72rem;color:#889;margin-top:6px">Keine Backups für diesen Spieler.</div>';
         h+='<div id="za-msg" style="font-size:.72rem;color:#9fd;margin-top:10px;min-height:1em"></div></div>';
         ov.innerHTML=h; const msg=t=>{ const m=ov.querySelector('#za-msg'); if(m) m.textContent=t; };
         ov.querySelector('#za-x').onclick=()=>ov.remove();
+        ov.querySelectorAll('button[data-w]').forEach(b=>b.onclick=async()=>{ try{ const t=b.dataset.w, wd=ov.querySelector('#za-wd').value, mins=+ov.querySelector('#za-wm').value||10; if(!window.ZWeather) throw new Error('Wetter nicht geladen'); await ZWeather.adminSet(t||null,(wd==='r')?null:(+wd)*Math.PI/180,mins); msg('✅ Wetter: '+(t?(ZWeather.TYPES[t].ic+' '+ZWeather.TYPES[t].n+' für '+mins+' Min.'):'Zufall')); }catch(err){ msg('❌ '+err.message); } });
+        ov.querySelector('#za-sts').onclick=async()=>{ const r=R(); if(!r) return; const v={on:ov.querySelector('#za-so').checked?1:0,pct:Math.max(.1,Math.min(20,+ov.querySelector('#za-sp').value||2)),sec:Math.max(5,Math.min(120,+ov.querySelector('#za-ss').value||10))}; try{ await r.ref('zoo_cfg/steal').set(v); B.cfg.steal=v; msg('✅ Zoo-Einbruch: '+(v.on?('an · '+v.pct+' % alle '+v.sec+' Sek.'):'aus')); }catch(err){ msg('❌ '+err.message); } };
         ov.querySelector('#za-tps').onclick=async()=>{ const v=Math.max(0,Math.min(200,+ov.querySelector('#za-tp').value||0)); const r=R(); if(!r) return; try{ await r.ref('zoo_cfg/noTpRadius').set(v); B.cfg.noTp=v; msg('✅ Teleport-Schutz: '+(v>0?v+' m':'aus')); }catch(err){ msg('❌ '+err.message); } };
         ov.querySelectorAll('canvas.za-th').forEach(c=>{ const r=B.pb[c.dataset.k]; if(r) B.drawTo(c,r,false); });
         ov.querySelectorAll('button[data-st]').forEach(b=>b.onclick=async()=>{ const k=b.dataset.k, st=b.dataset.st, r=R(); if(!r) return;
@@ -544,4 +580,5 @@
   };
   setInterval(()=>{ try{ B.tick(); }catch(e){} },1500);
   setInterval(()=>{ try{ B._fx(); }catch(e){} },50);
+  setInterval(()=>{ try{ B._stealLoop(); }catch(e){} },1000);
 })();

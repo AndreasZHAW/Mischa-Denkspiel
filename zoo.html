@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v658 -->
+<!-- ZOO v659 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=658"></script>
-<script src="rewardchests.js?v=658"></script>
-<script src="personality.js?v=658"></script>
+<script src="lang.js?v=659"></script>
+<script src="rewardchests.js?v=659"></script>
+<script src="personality.js?v=659"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v658','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v659','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -529,14 +529,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=658"></script>
-<script src="sanction.js?v=658"></script>
-<script src="zevents.js?v=658"></script>
-<script src="zevents2.js?v=658"></script>
-<script src="zevents3.js?v=658"></script>
-<script src="znet.js?v=658"></script>
-<script src="zbases.js?v=658"></script>
-<script src="worlds.js?v=658"></script>
+<script src="firebase-state.js?v=659"></script>
+<script src="sanction.js?v=659"></script>
+<script src="zevents.js?v=659"></script>
+<script src="zevents2.js?v=659"></script>
+<script src="zevents3.js?v=659"></script>
+<script src="znet.js?v=659"></script>
+<script src="zbases.js?v=659"></script>
+<script src="zweather.js?v=659"></script>
+<script src="worlds.js?v=659"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1554,7 +1555,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v658) ──
+// ── REBIRTH-SYSTEM (v659) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1564,13 +1565,13 @@ function rebMultOf(n){ n=n|0; return n<=0?1:REB_MULT[Math.min(n,REB_MULT.length)
 // Slaps, die jede Stufe dauerhaft freischaltet (Basic hat man immer). Sie kosten beim Benutzen weiterhin MT.
 const REB_SLAPS=[['ice','golden'],['shadow'],['fire'],['rainbow'],['void']];
 // Ab welcher Rebirth-Stufe ein Feature sichtbar/nutzbar ist
-const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:2, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5};
+const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:2, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5};
 const REB_FEAT_TXT={
-  1:['✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5'],
+  1:['✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🌦️ Wetter im Zoo: Sonne, Regen & Wind (bei Wind wirst du gepustet, wenn du stehen bleibst)'],
   2:['💜 Shadow Slap dauerhaft','💰 Einkommen ×3','🍀 Glück-Häufigkeit im Shop, Glücks-Stufen (×5, ×7, ×10) und Kleeblatt-Kette (Grün-Glück) in der Gondel','🔊 Schritt-Ton-Knopf','🔍 Sammlungs-Terminal'],
   3:['🔥 Fire Slap dauerhaft','🕊️ Tiere freilassen','💰 Einkommen ×5','🎫 MT-Pass','🧬 Zucht-Maschine','📖 Sammelalbum & 🎯 Deko-Quests','🌟 ×100 Glücks-Bonus (Gondel)'],
   4:['🌈 Rainbow Slap dauerhaft','💰 Einkommen ×10','🏅 Ränge (Rang ausrüsten)'],
-  5:['🌌 Void Slap dauerhaft','💰 Einkommen ×50','🏗️ Basen im Shop (eigener Platz mit Bäumen, Deko & Schild)','🎬 Du hast alles geschafft — der Abspann beginnt']
+  5:['🌌 Void Slap dauerhaft','💰 Einkommen ×50','🏗️ Basen im Shop (eigener Platz mit Bäumen, Deko & Schild)','🕵️ Zoo-Einbruch: Stehst du in einem Gehege eines anderen Spielers, klaust du ihm alle 10 Sek. 2 % seiner MT (und er dir, wenn du so erwischt wirst)','🎬 Du hast alles geschafft — der Abspann beginnt']
 };
 function rebHas(f){ try{ const z=ZS.zoo; if(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)) return true; return ((z&&z.reb)||0)>=(REB_NEED[f]||0); }catch(e){ return false; } }
 // Realtime Database forbids ".", "#", "$", "[", "]" in path keys — but
@@ -1897,7 +1898,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v658: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v659: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2357,7 +2358,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v658: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v659: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -4140,7 +4141,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v658: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v659: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -4950,7 +4951,7 @@ const ZG={
     }
     fireGroup.position.copy(worldPos);
     this.scene.add(fireGroup);
-    const start=Date.now(), dur=658;
+    const start=Date.now(), dur=659;
     const anim=()=>{
       const t=(Date.now()-start)/dur;
       if(t>=1 || !this.scene){ try{this.scene.remove(fireGroup);}catch(e){} return; }
@@ -8290,6 +8291,7 @@ const _RT=(id,title,text,extra)=>Object.assign({id,title,text,target:null,action
 const REB_TUT={
   1:[ _RT('r1a','🔄 Neu durch Rebirth 1','Ich zeige dir kurz nur das, was jetzt neu für dich ist.'),
       _RT('r1slap','✨❄️ Golden Slap &amp; Ice Slap','Unten in deiner <b>Waffen-Leiste</b> sind jetzt <b>Golden</b> und <b>Ice</b> dauerhaft freigeschaltet. Sie kosten beim Benutzen weiterhin MT. Tippe sie an, um sie auszurüsten.',{target:'#wbar',boxTop:true}),
+      _RT('r1w','🌦️ Wetter','Ab jetzt gibt es Wetter: ☀️ Sonne, 🌧️ Regen und 💨 Wind. Bei Wind wirst du in eine Richtung gepustet, wenn du stehen bleibst. Das Kästchen oben links zeigt das Wetter, der Pfeil, woher der Wind weht.'),
       _RT('r1mult','💰 Einkommen ×1,5','Dein Einkommen ist jetzt dauerhaft ×1,5 — dieser Boost bleibt bei jedem weiteren Rebirth erhalten und wird noch grösser.') ],
   2:[ _RT('r2a','🔄 Neu durch Rebirth 2','Nur das, was jetzt neu ist:'),
       _RT('r2slap','💜 Shadow Slap &amp; ×3','Der <b>Shadow Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×3.',{target:'#wbar',boxTop:true}),
@@ -8314,6 +8316,7 @@ const REB_TUT={
       _RT('r4rank','🏅 Ränge','Im <b>Menü</b> kannst du jetzt einen <b>Rang ausrüsten</b>, der bei deinem Namen steht.',{target:'#hb-menu'}) ],
   5:[ _RT('r5a','🔄 Neu durch Rebirth 5','Nur das, was jetzt neu ist:'),
       _RT('r5slap','🌌 Void Slap &amp; ×50','Der <b>Void Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×50.',{target:'#wbar',boxTop:true}),
+      _RT('r5steal','🕵️ Zoo-Einbruch','Stell dich in ein <b>Gehege eines anderen Spielers</b>: alle <b>10 Sekunden</b> klaust du ihm <b>2 % seiner MT</b>. Aber Vorsicht — Alarm-Sirenen, Wächter und Fallen schützen die Basen!'),
       {id:'r5s1',title:'🏗️ Basen im Shop',text:'Die <b>Basen</b> findest du im Shop. Öffne ihn mal!',target:'#hb-shop',action:'panel:shop'},
       {id:'r5s2',title:'⚡ Tab „Boosts"',text:'Tippe oben auf den Tab <b>⚡ Boosts</b> — die Basen sind dort versteckt.',target:'#st-b',action:'tab:b'},
       {id:'r5s3',title:'👇 Nach unten scrollen',text:'Scrolle jetzt im Shop <b>nach unten</b>, bis du die Basen und den Kasten „Meine eigene Base" siehst.',target:null,action:'seesec:zb-own',noDim:true},
@@ -13850,7 +13853,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v658 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v659 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -18355,7 +18358,7 @@ const Arcade={
       const bm=this._machines.find(m=>m.i===best); const bd=bm?Math.hypot(bm.x-px,bm.z-pz):99;
       if(bd<=5.2 && !World1._ov && this._blockIdx!==best){
         if(this._dwellIdx!==best){ this._dwellIdx=best; this._dwellT=Date.now(); }
-        else if(Date.now()-this._dwellT>=658){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
+        else if(Date.now()-this._dwellT>=659){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
       } else if(bd>5.2){ this._dwellIdx=-1; }
       if(this._blockIdx===best && bd>9) this._blockIdx=-1;
     } else { this._dwellIdx=-1; if(this._blockIdx!==-1 && this._blockIdx!==undefined){ /* bleibt gesperrt bis weg vom Automaten */ const bm2=this._machines.find(m=>m.i===this._blockIdx); if(!bm2||Math.hypot(bm2.x-px,bm2.z-pz)>9) this._blockIdx=-1; } }
