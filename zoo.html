@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v654 -->
+<!-- ZOO v655 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=654"></script>
-<script src="rewardchests.js?v=654"></script>
-<script src="personality.js?v=654"></script>
+<script src="lang.js?v=655"></script>
+<script src="rewardchests.js?v=655"></script>
+<script src="personality.js?v=655"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v654','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v655','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -529,14 +529,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=654"></script>
-<script src="sanction.js?v=654"></script>
-<script src="zevents.js?v=654"></script>
-<script src="zevents2.js?v=654"></script>
-<script src="zevents3.js?v=654"></script>
-<script src="znet.js?v=654"></script>
-<script src="zbases.js?v=654"></script>
-<script src="worlds.js?v=654"></script>
+<script src="firebase-state.js?v=655"></script>
+<script src="sanction.js?v=655"></script>
+<script src="zevents.js?v=655"></script>
+<script src="zevents2.js?v=655"></script>
+<script src="zevents3.js?v=655"></script>
+<script src="znet.js?v=655"></script>
+<script src="zbases.js?v=655"></script>
+<script src="worlds.js?v=655"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1554,7 +1554,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v654) ──
+// ── REBIRTH-SYSTEM (v655) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1897,7 +1897,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v654: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v655: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2357,7 +2357,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v654: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v655: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -4139,7 +4139,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v654: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v655: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -4949,7 +4949,7 @@ const ZG={
     }
     fireGroup.position.copy(worldPos);
     this.scene.add(fireGroup);
-    const start=Date.now(), dur=654;
+    const start=Date.now(), dur=655;
     const anim=()=>{
       const t=(Date.now()-start)/dur;
       if(t>=1 || !this.scene){ try{this.scene.remove(fireGroup);}catch(e){} return; }
@@ -13840,7 +13840,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v654 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v655 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -18345,7 +18345,7 @@ const Arcade={
       const bm=this._machines.find(m=>m.i===best); const bd=bm?Math.hypot(bm.x-px,bm.z-pz):99;
       if(bd<=5.2 && !World1._ov && this._blockIdx!==best){
         if(this._dwellIdx!==best){ this._dwellIdx=best; this._dwellT=Date.now(); }
-        else if(Date.now()-this._dwellT>=654){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
+        else if(Date.now()-this._dwellT>=655){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
       } else if(bd>5.2){ this._dwellIdx=-1; }
       if(this._blockIdx===best && bd>9) this._blockIdx=-1;
     } else { this._dwellIdx=-1; if(this._blockIdx!==-1 && this._blockIdx!==undefined){ /* bleibt gesperrt bis weg vom Automaten */ const bm2=this._machines.find(m=>m.i===this._blockIdx); if(!bm2||Math.hypot(bm2.x-px,bm2.z-pz)>9) this._blockIdx=-1; } }

@@ -168,7 +168,8 @@
       }
       if(t.msg&&!seen('tmsg',t.msg.id)){ mark('tmsg',t.msg.id); if(this.role&&this.role.id===t.id){ big(t.msg.big||'🗳️','#ffd166',3500); toast(t.msg.text,6000); } }
       if(t.state==='meeting'&&t.meeting) this._meetingUI(t); else this._meetingOff();
-      if(t.state==='over'&&!seen('tover',t.id)){ mark('tover',t.id); this._tOver(t); }
+      if(t.state!=='over') this._tSaw=t.id;
+      if(t.state==='over'&&!seen('tover',t.id)){ mark('tover',t.id); if((this.role&&this.role.id===t.id)||this._tSaw===t.id) this._tOver(t); }
       this._bodiesSync(t);
     },
     _reveal(t){
@@ -363,7 +364,9 @@
         toast(zom?'🧟 Slappe Menschen (aus der Nähe), um sie zu infizieren. Infiziere alle!':'🧍 Du bist ein Mensch: Renne weg und überlebe 5 Minuten! Wer überlebt, teilt sich den Preis. Du kannst nicht slappen.',8000); }
       if(inEv&&this._zWas===true&&c.zombies&&c.zombies[k]&&c.state==='run'){ big('🧟 Du wurdest infiziert!','#7bed4f',3000); toast('Jetzt bist du ein Zombie — infiziere die anderen!',5000); }
       this._zWas=!!(c.alive&&c.alive[k]);
-      if(c.state==='over'&&!seen('zover',c.id)){ mark('zover',c.id); this._zOver(c,inEv); }
+      if(c.state==='run') this._zSawRun=c.id;
+      // Nur wer mitgespielt oder den Ausbruch live gesehen hat, bekommt das Ende gemeldet (Neue sehen keine alte Meldung)
+      if(c.state==='over'&&!seen('zover',c.id)){ mark('zover',c.id); if(inEv||this._zSawRun===c.id) this._zOver(c,inEv); else { this._music(false); this._tint(false,'zzfx'); } }
     },
     _zOver(c,inEv){
       this._music(false); this._tint(false,'zzfx');
