@@ -7,7 +7,7 @@
   const me=()=>(typeof ZS!=='undefined'&&ZS&&ZS.player)||'';
   const inZoo=()=>{ try{ return !!(ZG&&ZG.cam&&ZG.scene&&ZS&&ZS.zoo&&me()); }catch(e){ return false; } };
   const rng=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; };
-  const INFO={storm:{e:'⛈️',n:'STURM',c:'#7fb3ff',t:'Wind, Regen & Blitze! Wer stehen bleibt, wird weggeweht.'},
+  const INFO={storm:{e:'⛈️',n:'STURM',c:'#7fb3ff',t:'Es wird Nacht, Regen & Blitze schlagen überall ein! Achte auf die gelben Warnkreise am Boden — wer getroffen wird, verliert 3 ❤.'},
     evac:{e:'🚨',n:'ZOO-RÄUMUNG',c:'#ff5252',t:'Alle raus aus fremden Gehegen — sonst wirst du zum Platz geschickt!'},
     traps:{e:'🪤',n:'FALLEN-FEST',c:'#ffb74d',t:'Überall Fallen! Pass auf, wo du hintrittst.'},
     magnet:{e:'🧲',n:'MAGNET-ADMIN',c:'#ff6bd6',t:'Der Admin zieht dich zu sich! Wer ihn als Erster berührt, gewinnt den Preis.'},
