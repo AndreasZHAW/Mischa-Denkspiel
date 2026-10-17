@@ -94,7 +94,7 @@
   const fmt=n=>{ n=Math.max(0,Math.round(+n||0)); return n>=1e9?(n/1e9).toFixed(2)+' Mrd':n>=1e6?(n/1e6).toFixed(2)+' Mio':n>=1e3?(n/1e3).toFixed(1)+'k':String(n); };
   const combinedMT=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const B=window.ZBases={
-    list:Object.assign({},BUILTIN), adminList:{}, pb:{}, BUILTIN, lm:{}, winner:null, groups:{}, likes:{}, _inited:false, preview:null, RAR, CAT, badText,
+    list:Object.assign({},BUILTIN), adminList:{}, pb:{}, BUILTIN, ALL, isEd, lm:{}, winner:null, groups:{}, likes:{}, _inited:false, preview:null, RAR, CAT, badText,
     slotEncs:{}, defEncs,
     // Zusatz-Gehege der angelegten Base (zählt zu ZS.maxE)
     extraEnc(z){ try{ const b=B.preview||((z&&z.baseEq&&z.bases&&z.bases[z.baseEq])?B.list[z.baseEq]:null); return (b&&b.encs&&b.encs.length>MINENC)?Math.min(MAXENC,b.encs.length)-MINENC:0; }catch(e){ return 0; } },
@@ -262,6 +262,7 @@
     collide(pl){
       let sol=[]; const me=keyOf(ZS.player||'');
       Object.keys(B.groups).forEach(k=>{ const g=B.groups[k].grp; if(!g.visible||!g.userData.solids) return; g.userData.solids.forEach(so=>{ if(so.kind==='laser'){ if(keyOf(so.owner)===me||!B.laserClosed(so)) return; } if(so.kind==='shield'&&keyOf(so.owner)===me) return; sol.push(so); }); });
+      try{ (window.ZWorld&&ZWorld.solids||[]).forEach(so=>sol.push(so)); }catch(e){}
       const L=B._last; B._last={x:pl.x,z:pl.z}; if(!sol.length||!L) return;
       const dx=pl.x-L.x, dz=pl.z-L.z; const dist=Math.hypot(dx,dz); let x=pl.x, z=pl.z;
       const N=(dist>150)?1:Math.min(400,Math.max(1,Math.ceil(dist/0.8))); if(N>1){ x=L.x; z=L.z; }
@@ -364,7 +365,7 @@
       const r=R(), z=ZS.zoo; if(!r||!z||!ZS.player) return; const k=keyOf(ZS.player);
       if(B._bkBusy) return; B._bkBusy=true;
       try{
-        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v666'});
+        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v667'});
         if(j.length>400000){ B._bkBusy=false; return; }
         await r.ref('zoo_backup/'+k+'/'+ts).set({ts,j,mt:Math.round(z.mt||0),n:(z.enc||[]).filter(e=>e&&e.animal).length,rb:+z.reb||0,why:force?'vor Aktion':'auto'});
         localStorage.setItem('zb_bk_last',String(ts));
