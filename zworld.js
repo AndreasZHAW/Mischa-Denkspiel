@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v668)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v671)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -227,4 +227,158 @@
     if(Object.keys(W.objs).length&&W.grp&&!Object.keys(W.nodes).length) Object.keys(W.objs).forEach(id=>W._set(id,W.objs[id]));
   }catch(e){} },1500);
   let _lt=performance.now(); const loop=()=>{ try{ const n=performance.now(), dt=Math.min(.1,(n-_lt)/1000); _lt=n; if(W.grp&&typeof ZG!=='undefined'&&ZG.cam) W.frame(dt); }catch(e){} requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+})();
+
+;
+/* ZCodes — Admin-Codes (v671): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+   Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
+(function(){
+  'use strict';
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
+  const norm=c=>String(c||'').trim().toLowerCase();
+  const okCode=c=>/^[a-z0-9äöüß_-]{3,24}$/.test(c);
+  const isAdm=()=>{ try{ return !!(window.ZBases&&ZBases.isEd&&ZBases.isEd()); }catch(e){ return false; } };
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const RTYPE={mt:{n:'💰 MT',u:'MT'},money:{n:'💰 Geld-Multi',u:'×'},luck:{n:'🍀 Glück',u:'×'},visitor:{n:'👥 Besucher',u:'×'}};
+  const descr=r=>r.type==='mt'?('+'+Math.round(r.amount)+' MT'):(RTYPE[r.type]?RTYPE[r.type].n+' ×'+r.amount+' für '+r.mins+' Min':'?');
+  const Z=window.ZCodes={
+    codes:{}, mm:null, _inited:false, _admL:false,
+    init(){
+      const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return;
+      if(!Z._inited){ Z._inited=true; try{ r.ref('zoo_cfg/moneyMult').on('value',s=>{ Z.mm=s.val()||null; Z._chip(); }); }catch(e){} }
+      if(!Z._admL&&isAdm()){ Z._admL=true; try{ r.ref('zoo_codes').on('value',s=>{ Z.codes=s.val()||{}; Z.adminRender(); }); }catch(e){} }
+    },
+    // Geld-Multi für alle (wird in earn() eingerechnet)
+    gm(){ const m=Z.mm; return (m&&m.until>Date.now()&&m.mult>0)?m.mult:1; },
+    _chip(){
+      let c=document.getElementById('zc-mm'); const m=Z.mm, on=m&&m.until>Date.now();
+      if(!on){ if(c) c.style.display='none'; return; }
+      if(!c){ c=document.createElement('div'); c.id='zc-mm'; c.style.cssText='position:fixed;left:8px;top:98px;z-index:600;background:rgba(0,0,0,.6);color:#ffd54f;font:800 .72rem Arial;padding:4px 9px;border-radius:14px;pointer-events:none'; document.body.appendChild(c); }
+      const left=Math.max(0,Math.ceil((m.until-Date.now())/1000)); c.style.display=''; c.textContent='💰 Geld ×'+m.mult+' (Admin) · '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+    },
+    adminMoney(mult,mins){
+      const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } mult=Math.max(1,Math.min(1000,+mult||2)); mins=Math.max(1,Math.min(240,+mins||10));
+      r.ref('zoo_cfg/moneyMult').set({mult,until:Date.now()+mins*60000,by:ZS.player,id:Date.now()}).then(()=>{ toast('💰 Geld ×'+mult+' für ALLE ('+mins+' Min) gestartet'); try{ ZG._bigText&&0; }catch(e){} }).catch(e=>toast('❌ '+e.message));
+    },
+    adminMoneyStop(){ const r=RT(); if(r) r.ref('zoo_cfg/moneyMult').remove().then(()=>toast('⏹️ Geld-Multi beendet')); },
+    // ── Codes anlegen/löschen (Admin) ──
+    adminCreate(){
+      const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } const $=id=>document.getElementById(id);
+      let code=norm($('zc-code').value); if(!code){ const a='abcdefghjkmnpqrstuvwxyz23456789'; code=''; for(let i=0;i<6;i++) code+=a[Math.floor(Math.random()*a.length)]; }
+      if(!okCode(code)){ toast('❗ Code: 3–24 Zeichen, nur Buchstaben, Zahlen, - und _'); return; }
+      const type=$('zc-type').value, amount=+$('zc-amt').value||0, mins=Math.max(1,+$('zc-min').value||10), hrs=Math.max(0,+$('zc-exp').value||0);
+      if(amount<=0){ toast('❗ Bitte eine Belohnung > 0 eingeben'); return; }
+      const rec={code,scope:$('zc-scope').value==='one'?'one':'all',reward:{type,amount:type==='mt'?Math.round(amount):Math.min(1000,amount),mins:type==='mt'?0:mins},by:ZS.player,at:Date.now(),exp:hrs>0?Date.now()+hrs*3600000:0};
+      r.ref('zoo_codes/'+code).transaction(v=>v?undefined:rec,(err,ok)=>{ if(err||!ok){ toast('❗ Diesen Code gibt es schon'); return; } $('zc-code').value=''; toast('🎟️ Code „'+code+'“ erstellt: '+descr(rec.reward)+' · '+(rec.scope==='one'?'nur 1 Person':'alle')); });
+    },
+    adminDelete(code){ const r=RT(); if(r) r.ref('zoo_codes/'+code).remove().then(()=>toast('🗑 Code gelöscht')); },
+    adminRender(){
+      const el=document.getElementById('zc-list'); if(!el) return; const l=Object.keys(Z.codes||{}).map(k=>Z.codes[k]).filter(c=>c&&c.code).sort((a,b)=>(b.at||0)-(a.at||0));
+      if(!l.length){ el.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.5)">Noch keine Codes.</div>'; return; }
+      el.innerHTML=l.map(c=>{ const used=c.scope==='one'?(c.claimedBy?('✅ von '+esc(c.claimedBy.n)):'⏳ frei'):('👥 '+Object.keys(c.used||{}).length+' eingelöst'); const ex=c.exp?(c.exp<Date.now()?' · ⌛ abgelaufen':' · bis '+new Date(c.exp).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})):'';
+        return '<div style="display:flex;gap:6px;align-items:center;padding:5px 0;border-top:1px solid rgba(255,255,255,.1);font-size:.74rem"><div style="flex:1;min-width:0"><b style="color:#ffd54f;font-size:.85rem">'+esc(c.code)+'</b> · '+(c.scope==='one'?'1 Person':'alle')+'<br><span style="color:rgba(255,255,255,.65)">'+esc(descr(c.reward||{}))+' · '+used+ex+'</span></div><button onclick="ZCodes.adminDelete(\''+esc(c.code)+'\')" style="background:#6b1f1f;border:none;color:#fff;border-radius:8px;padding:6px 9px;cursor:pointer">🗑</button></div>'; }).join('');
+    },
+    // ── Einlösen (Spieler) → true, wenn der Code in der Cloud existiert (egal ob erfolgreich) ──
+    async redeem(raw){
+      const code=norm(raw); if(!okCode(code)) return false; const r=RT(); if(!r||!ZS.zoo) return false;
+      let c=null; try{ c=(await r.ref('zoo_codes/'+code).once('value')).val(); }catch(e){ toast('❌ Keine Verbindung',2500); return true; }
+      if(!c) return false; const now=Date.now(), z=ZS.zoo, me=K(ZS.player);
+      if(c.exp&&c.exp<now){ toast('⌛ Dieser Code ist abgelaufen.',3000); return true; }
+      let ok=false;
+      if(c.scope==='one'){ ok=await new Promise(res=>r.ref('zoo_codes/'+code+'/claimedBy').transaction(v=>v?undefined:{n:ZS.player,t:now},(e,cm)=>res(!e&&cm))); if(!ok){ const w=(await r.ref('zoo_codes/'+code+'/claimedBy').once('value')).val(); toast('❌ Dieser Code wurde schon'+(w&&w.n?' von '+w.n:'')+' eingelöst.',3500); return true; } }
+      else { ok=await new Promise(res=>r.ref('zoo_codes/'+code+'/used/'+me).transaction(v=>v?undefined:now,(e,cm)=>res(!e&&cm))); if(!ok){ toast('❗ Du hast diesen Code schon eingelöst.',3000); return true; } }
+      const rw=c.reward||{};
+      if(rw.type==='mt'){ z.mt=(z.mt||0)+Math.round(rw.amount||0); }
+      else if(RTYPE[rw.type]){ if(!z.mtPassBoosts) z.mtPassBoosts={}; const cur=z.mtPassBoosts[rw.type], base=(cur&&cur.until>now)?cur.until:now; z.mtPassBoosts[rw.type]={mult:rw.amount,until:base+(rw.mins||10)*60000}; }
+      try{ ZS.save&&ZS.save(true); ZG._updHUD&&ZG._updHUD(); }catch(e){}
+      toast('🎁 Code eingelöst! '+descr(rw),4500); try{ ZG._bigText('🎁 CODE!','#ffd54f',2200); }catch(e){}
+      return true;
+    }
+  };
+  setInterval(()=>{ try{ Z.init(); Z._chip(); }catch(e){} },1000);
+})();
+
+;
+// ZWeather — Wetter im Zoo (ab Rebirth 1): Sonne, Regen, Sturm (mit Blitzen, 3 ❤ Schaden). Zufällig (für alle gleich per Uhr), Admin kann es überschreiben. (v659)
+(function(){
+  'use strict';
+  const TYPES={clear:{ic:'🌤️',n:'Klar'},sun:{ic:'☀️',n:'Sonne'},rain:{ic:'🌧️',n:'Regen'},storm:{ic:'⛈️',n:'STURM'}};
+  const R=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
+  const rng=seed=>{ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; };
+  const W=window.ZWeather={
+    TYPES, cur:{type:'clear',dir:0}, ovr:null, _inited:false, _last:null, _ui:null, _rain:null, _strikes:[], _nextStrike:0,
+    init(){ if(W._inited) return; const r=R(); if(!r) return; W._inited=true; try{ r.ref('zoo_weather').on('value',s=>{ W.ovr=s.val()||null; }); }catch(e){} },
+    // Zufälliges Wetter: alle 8 Minuten neu, bei allen Spielern gleich
+    _auto(){ const slot=Math.floor(Date.now()/480000), g=rng(slot*7919+13), r=g(); return {type:r<.3?'clear':r<.6?'sun':r<.85?'rain':'storm',dir:g()*Math.PI*2,auto:1}; },
+    calc(){ const o=W.ovr; W.cur=(o&&o.until>Date.now()&&TYPES[o.type])?{type:o.type,dir:+o.dir||0,ovr:1,until:o.until}:W._auto(); return W.cur; },
+    on(){ try{ if(typeof ZG==='undefined'||!ZG.scene||!ZG.cam||!ZS.zoo) return false; if(typeof rebHas==='function'&&!rebHas('weather')&&!(W.ovr&&W.ovr.type==='storm'&&W.ovr.until>Date.now())) return false; if(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive) return false; return true; }catch(e){ return false; } },
+    adminSet(type,dirRad,mins){ const r=R(); if(!r) return Promise.reject(new Error('Keine Cloud')); if(!type){ return r.ref('zoo_weather').remove(); } return r.ref('zoo_weather').set({type,dir:(dirRad==null?Math.random()*Math.PI*2:dirRad),until:Date.now()+Math.max(1,mins||10)*60000,by:ZS.player,id:Date.now()}); },
+    _mkUI(){
+      if(W._ui) return; const d=document.createElement('div'); d.id='zw-ui';
+      d.innerHTML='<div id="zw-tint" style="position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity 1.5s"></div><div id="zw-sun" style="position:fixed;top:-20px;right:-20px;font-size:7rem;pointer-events:none;z-index:4;opacity:0;transition:opacity 1.5s;filter:drop-shadow(0 0 30px rgba(255,220,80,.9))">☀️</div>'
+        +'<div id="zw-chip" style="position:fixed;left:8px;top:70px;z-index:600;background:rgba(0,0,0,.55);color:#fff;font:700 .72rem Arial;padding:4px 9px;border-radius:14px;display:none;align-items:center;gap:6px;pointer-events:none"><span id="zw-t"></span></div>';
+      document.body.appendChild(d); W._ui=d;
+    },
+    _mkRain(){
+      if(W._rain) return; const N=520, pos=new Float32Array(N*6), dr=[]; for(let i=0;i<N;i++) dr.push({x:(Math.random()-.5)*50,y:Math.random()*24,z:(Math.random()-.5)*50});
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); const m=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xa9d0ff,transparent:true,opacity:.65})); m.frustumCulled=false; m.visible=false; ZG.scene.add(m); W._rain={m,g,dr,N};
+    },
+    // ⚡ Blitze: Warnkreis am Boden (1,2 s), dann Einschlag. Wer im Kreis steht: 3 Herzen Schaden + „BLITZ"
+    _flash(op){ let f=document.getElementById('zw-bolt'); if(!f){ f=document.createElement('div'); f.id='zw-bolt'; f.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:5;background:#fff;opacity:0'; document.body.appendChild(f); } f.style.transition='none'; f.style.opacity=op; setTimeout(()=>{ f.style.transition='opacity .5s'; f.style.opacity=0; },60); },
+    _thunder(delay,vol){ setTimeout(()=>{ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return; const c=W._ac=W._ac||new A(); const n=c.sampleRate*1.8, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2); const s=c.createBufferSource(); s.buffer=b; const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=380; const g=c.createGain(); g.gain.value=vol; s.connect(lp); lp.connect(g); g.connect(c.destination); s.start(); }catch(e){} },delay); },
+    _mkBolt(x,z){
+      const g=new THREE.Group(), pts=[]; let px=x, pz=z; for(let i=0;i<=9;i++){ const y=36-i*4; pts.push(new THREE.Vector3(px,Math.max(0,y),pz)); px=x+(i<9?(Math.random()-.5)*5:0); pz=z+(i<9?(Math.random()-.5)*5:0); }
+      for(let i=0;i<9;i++){ const a=pts[i], b=pts[i+1], len=a.distanceTo(b); [[.13,0xffffff,1],[.45,0xbfd8ff,.35]].forEach(([r,col,op])=>{ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,5),new THREE.MeshBasicMaterial({color:col,transparent:op<1,opacity:op,depthWrite:false})); m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize()); g.add(m); }); }
+      const gl=new THREE.Mesh(new THREE.CircleGeometry(3.2,16),new THREE.MeshBasicMaterial({color:0xcfe4ff,transparent:true,opacity:.8,depthWrite:false})); gl.rotation.x=-Math.PI/2; gl.position.set(x,.1,z); g.add(gl); return g;
+    },
+    _strikeTick(dt){
+      const now=performance.now(), p=ZG.pl;
+      if(now>=W._nextStrike){ W._nextStrike=now+1100+Math.random()*2200;
+        const near=Math.random()<.35, R=near?9:34, a=Math.random()*Math.PI*2, d=Math.sqrt(Math.random())*R; const x=p.x+Math.cos(a)*d, z=p.z+Math.sin(a)*d;
+        const ring=new THREE.Mesh(new THREE.RingGeometry(1.7,2.5,24),new THREE.MeshBasicMaterial({color:0xfff176,transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false})); ring.rotation.x=-Math.PI/2; ring.position.set(x,.1,z); ZG.scene.add(ring);
+        W._strikes.push({x,z,at:now+1200,ring,bolt:null,end:0}); }
+      for(let i=W._strikes.length-1;i>=0;i--){ const s=W._strikes[i];
+        if(!s.bolt){ s.ring.material.opacity=.45+.45*Math.abs(Math.sin(now/90)); s.ring.scale.setScalar(1+.12*Math.sin(now/110));
+          if(now>=s.at){ ZG.scene.remove(s.ring); s.bolt=W._mkBolt(s.x,s.z); ZG.scene.add(s.bolt); s.end=now+380; const dist=Math.hypot(p.x-s.x,p.z-s.z); W._flash(Math.max(.2,.8-dist/60)); W._thunder(Math.min(1200,dist*18),Math.max(.15,.6-dist/80));
+            if(dist<2.7&&!(typeof ZHearts!=='undefined'&&ZHearts.dead)){ try{ ZHearts.hit(3,{name:'Blitz',guard:true}); }catch(e){} try{ ZG._bigText('⚡ BLITZ!','#ffee58',2000); ZP.toast('⚡ BLITZ! −3 ❤',3500); }catch(e){} } } }
+        else if(now>=s.end){ ZG.scene.remove(s.bolt); W._strikes.splice(i,1); } }
+    },
+    _clearStrikes(){ W._strikes.forEach(s=>{ try{ ZG.scene.remove(s.ring); if(s.bolt) ZG.scene.remove(s.bolt); }catch(e){} }); W._strikes=[]; },
+    // 💦 Pfützen bei Regen/Sturm (für alle gleich, alle 8 Min neu verteilt). Landest du nach einem Sprung in einer Pfütze, spritzt es.
+    _puddles(c,dt){
+      const rain=(c.type==='rain'||c.type==='storm');
+      if(!rain){ if(W._pg) W._pg.visible=false; W._pj=!!ZG._jumping; return; }
+      if(!W._pg){ W._pg=new THREE.Group(); ZG.scene.add(W._pg); W._spl=[]; }
+      const slot=Math.floor(Date.now()/480000);
+      if(W._pslot!==slot){ W._pslot=slot; while(W._pg.children.length) W._pg.remove(W._pg.children[0]); const g=rng(slot*131+7), R=(ZG.WR||150)-12; W._pgl=[];
+        for(let i=0;i<45;i++){ const a=g()*Math.PI*2, d=14+Math.sqrt(g())*(R-14), r=.9+g()*.9, x=Math.cos(a)*d, z=Math.sin(a)*d;
+          const m=new THREE.Mesh(new THREE.CircleGeometry(1,18),new THREE.MeshBasicMaterial({color:0x5fa8e8,transparent:true,opacity:.55,depthWrite:false})); m.rotation.x=-Math.PI/2; m.position.set(x,.05,z); m.scale.setScalar(r); W._pg.add(m); W._pgl.push({x,z,r}); } }
+      W._pg.visible=true;
+      const j=!!ZG._jumping; if(W._pj&&!j){ const p=ZG.pl; (W._pgl||[]).forEach(q=>{ if(Math.hypot(p.x-q.x,p.z-q.z)<q.r+.5) W._splash(q.x,q.z,q.r); }); } W._pj=j;
+      for(let i=(W._spl||[]).length-1;i>=0;i--){ const o=W._spl[i]; o.t+=dt; const a=o.m.geometry.attributes.position.array; for(let k=0;k<o.v.length;k++){ const v=o.v[k]; v[1]-=14*dt; a[k*3]+=v[0]*dt; a[k*3+1]=Math.max(.05,a[k*3+1]+v[1]*dt); a[k*3+2]+=v[2]*dt; } o.m.geometry.attributes.position.needsUpdate=true; o.m.material.opacity=Math.max(0,1-o.t/.9); if(o.t>.9){ ZG.scene.remove(o.m); W._spl.splice(i,1); } }
+    },
+    _splash(x,z,r){
+      const N=22, geo=new THREE.BufferGeometry(), pos=new Float32Array(N*3), v=[]; for(let i=0;i<N;i++){ pos[i*3]=x; pos[i*3+1]=.2; pos[i*3+2]=z; const a=Math.random()*Math.PI*2, sp=1.2+Math.random()*2.2*(r||1); v.push([Math.cos(a)*sp,4+Math.random()*3.5,Math.sin(a)*sp]); }
+      geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); const m=new THREE.Points(geo,new THREE.PointsMaterial({color:0xbfe3ff,size:.35,transparent:true,depthWrite:false})); m.frustumCulled=false; ZG.scene.add(m); W._spl.push({m,v,t:0});
+      W._pc=(W._pc||0)+1; try{ ZP.toast('💦 Platsch!'+(W._pc%5===0?' ('+W._pc+' Pfützen-Sprünge)':''),900); }catch(e){}
+    },
+    frame(dt){
+      const c=W.cur, cam=ZG.cam.position, cx=cam.x, cz=cam.z;
+      if((c.type==='rain'||c.type==='storm')&&W._rain){ const q=W._rain, a=q.g.attributes.position.array; q.m.visible=true;
+        q.dr.forEach((p,i)=>{ p.y-=30*dt; if(p.y<0){ p.y=22+Math.random()*3; p.x=cx+(Math.random()-.5)*50; p.z=cz+(Math.random()-.5)*50; } if(p.x-cx>25)p.x-=50; if(p.x-cx<-25)p.x+=50; if(p.z-cz>25)p.z-=50; if(p.z-cz<-25)p.z+=50; const o=i*6; a[o]=p.x; a[o+1]=p.y; a[o+2]=p.z; a[o+3]=p.x; a[o+4]=p.y+.9; a[o+5]=p.z; }); q.g.attributes.position.needsUpdate=true; } else if(W._rain) W._rain.m.visible=false;
+    },
+    _step(){
+      const now=performance.now(), dt=Math.min(.1,(now-(W._tt||now))/1000); W._tt=now;
+      const ui=W._ui; if(!W.on()){ if(ui){ ui.querySelector('#zw-chip').style.display='none'; ui.querySelector('#zw-tint').style.opacity=0; ui.querySelector('#zw-sun').style.opacity=0; } if(W._rain) W._rain.m.visible=false; if(W._strikes.length) W._clearStrikes(); if(W._pg) W._pg.visible=false; return; }
+      W.init(); W._mkUI(); W._mkRain(); const c=W.calc(), T=TYPES[c.type];
+      const tint=W._ui.querySelector('#zw-tint'), sun=W._ui.querySelector('#zw-sun'), chip=W._ui.querySelector('#zw-chip');
+      tint.style.background=c.type==='storm'?'rgba(3,5,22,.66)':c.type==='rain'?'rgba(45,65,100,.28)':c.type==='sun'?'radial-gradient(circle at 90% 0%,rgba(255,220,100,.28),rgba(255,200,80,.06) 60%)':'transparent'; tint.style.opacity=(c.type==='clear')?0:1;
+      sun.style.opacity=c.type==='sun'?1:0; chip.style.display='flex'; W._ui.querySelector('#zw-t').textContent=T.ic+' '+T.n+(c.ovr?' (Admin)':'');
+      W.frame(dt); W._puddles(c,dt);
+      if(c.type==='storm') W._strikeTick(dt); else if(W._strikes.length) W._clearStrikes();
+    }
+  };
+  setInterval(()=>{ try{ W._step(); }catch(e){} },33);
 })();

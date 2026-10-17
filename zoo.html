@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v668 -->
+<!-- ZOO v671 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -234,12 +234,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=668"></script>
-<script src="rewardchests.js?v=668"></script>
-<script src="personality.js?v=668"></script>
+<script src="lang.js?v=671"></script>
+<script src="rewardchests.js?v=671"></script>
+<script src="personality.js?v=671"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v668','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v671','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -531,17 +531,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=668"></script>
-<script src="sanction.js?v=668"></script>
-<script src="zevents.js?v=668"></script>
-<script src="zevents2.js?v=668"></script>
-<script src="zevents3.js?v=668"></script>
-<script src="zevents4.js?v=668"></script>
-<script src="znet.js?v=668"></script>
-<script src="zbases.js?v=668"></script>
-<script src="zworld.js?v=668"></script>
-<script src="zweather.js?v=668"></script>
-<script src="worlds.js?v=668"></script>
+<script src="firebase-state.js?v=671"></script>
+<script src="sanction.js?v=671"></script>
+<script src="zevents.js?v=671"></script>
+<script src="znet.js?v=671"></script>
+<script src="zbases.js?v=671"></script>
+<script src="zworld.js?v=671"></script>
+<script src="worlds.js?v=671"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1559,7 +1555,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v668) ──
+// ── REBIRTH-SYSTEM (v671) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1569,10 +1565,10 @@ function rebMultOf(n){ n=n|0; return n<=0?1:REB_MULT[Math.min(n,REB_MULT.length)
 // Slaps, die jede Stufe dauerhaft freischaltet (Basic hat man immer). Sie kosten beim Benutzen weiterhin MT.
 const REB_SLAPS=[['ice','golden'],['shadow'],['fire'],['rainbow'],['void']];
 // Ab welcher Rebirth-Stufe ein Feature sichtbar/nutzbar ist
-const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:2, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5};
+const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:1, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5};
 const REB_FEAT_TXT={
-  1:['✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🌦️ Wetter im Zoo: Sonne, Regen & Sturm (im Sturm ist es dunkel und Blitze schlagen ein: Treffer = −3 ❤)'],
-  2:['💜 Shadow Slap dauerhaft','💰 Einkommen ×3','🍀 Glück-Häufigkeit im Shop, Glücks-Stufen (×5, ×7, ×10) und Kleeblatt-Kette (Grün-Glück) in der Gondel','🔊 Schritt-Ton-Knopf','🔍 Sammlungs-Terminal'],
+  1:['✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🍀 Glücks-Stufen ×5, ×7 und ×10 in der Gondel','🌦️ Wetter im Zoo: Sonne, Regen & Sturm (im Sturm ist es dunkel und Blitze schlagen ein: Treffer = −3 ❤)','🎉 Admin-Events machen dich zum Teil des Spiels (Sturm, Magnet, Mystery-Box, Mini-Wahl …)','💦 Pfützen-Springen im Regen & 👋 Freunde-Winken'],
+  2:['💜 Shadow Slap dauerhaft','💰 Einkommen ×3','🍀 Glück-Häufigkeit im Shop und Kleeblatt-Kette (Grün-Glück) in der Gondel','🔊 Schritt-Ton-Knopf','🔍 Sammlungs-Terminal'],
   3:['🔥 Fire Slap dauerhaft','🕊️ Tiere freilassen','💰 Einkommen ×5','🎫 MT-Pass','🧬 Zucht-Maschine','📖 Sammelalbum & 🎯 Deko-Quests','🌟 ×100 Glücks-Bonus (Gondel)'],
   4:['🌈 Rainbow Slap dauerhaft','💰 Einkommen ×10','🏅 Ränge (Rang ausrüsten)'],
   5:['🌌 Void Slap dauerhaft','💰 Einkommen ×50','🏗️ Basen im Shop (eigener Platz mit Bäumen, Deko & Schild)','🕵️ Zoo-Einbruch: Stehst du in einem Gehege eines anderen Spielers, klaust du ihm alle 10 Sek. 2 % seiner MT (und er dir, wenn du so erwischt wirst)','🎬 Du hast alles geschafft — der Abspann beginnt']
@@ -1589,7 +1585,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85}; // v668: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85}; // v671: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1857,7 +1853,7 @@ const DailyCalendar = {
   },
 };
 
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*(typeof ZBases!=='undefined'?ZBases.multOf(z):1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*(z.rebirthMult||1)*(typeof ZBases!=='undefined'?ZBases.multOf(z):1)*Math.pow(1.05,enc.sl||0);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;if(typeof ZCodes!=='undefined'&&ZCodes.gm)e*=ZCodes.gm();
   // EARLY GAME PACING: with just the first animal and no rebirth yet, income
   // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
   // that to roughly 7 minutes so the very beginning isn't instantly rushed —
@@ -1903,7 +1899,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v668: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v671: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2363,7 +2359,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v668: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v671: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3603,7 +3599,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v668: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v671: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4148,7 +4144,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v668: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v671: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -4959,7 +4955,7 @@ const ZG={
     }
     fireGroup.position.copy(worldPos);
     this.scene.add(fireGroup);
-    const start=Date.now(), dur=668;
+    const start=Date.now(), dur=671;
     const anim=()=>{
       const t=(Date.now()-start)/dur;
       if(t>=1 || !this.scene){ try{this.scene.remove(fireGroup);}catch(e){} return; }
@@ -8300,11 +8296,20 @@ const REB_TUT={
   1:[ _RT('r1a','🔄 Neu durch Rebirth 1','Ich zeige dir kurz nur das, was jetzt neu für dich ist.'),
       _RT('r1slap','✨❄️ Golden Slap &amp; Ice Slap','Unten in deiner <b>Waffen-Leiste</b> sind jetzt <b>Golden</b> und <b>Ice</b> dauerhaft freigeschaltet. Sie kosten beim Benutzen weiterhin MT. Tippe sie an, um sie auszurüsten.',{target:'#wbar',boxTop:true}),
       _RT('r1w','🌦️ Wetter','Ab jetzt gibt es Wetter: ☀️ Sonne, 🌧️ Regen und ⛈️ Sturm. Im Sturm wird es dunkel wie in der Nacht und überall schlagen Blitze ein. Achte auf die gelben Warnkreise am Boden: Ein Treffer kostet 3 ❤. Das Kästchen oben links zeigt das Wetter.'),
+      {id:'r1g1',title:'🍀 Mehr Glück in der Gondel',text:'Ab jetzt gibt es in der Gondel <b>mehr Glück</b> zu kaufen. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},action:'panel:gond'},
+      _RT('r1g2','🍀 Glücks-Stufen ×1,5 bis ×10','Hier kaufst du die Glücks-Stufen <b>×1,5 · ×2 · ×3 · ×5 · ×7 · ×10</b>. Mehr Glück macht seltene Tiere wahrscheinlicher. Sie gelten für eine bestimmte Zeit, danach kannst du neu kaufen.',{target:'#gluck'}),
+      {id:'r1g3',title:'🚡 Gondel schliessen',text:'Schliess die Gondel mit dem ✕, dann geht es weiter.',target:null,action:'close:gond'},
+      _RT('r1ev','🎉 Admin-Events','Manchmal startet der Admin ein <b>Event</b> für alle: ⛈️ <b>Sturm</b>, 🚨 <b>Zoo-Räumung</b> (raus aus fremden Gehegen!), 🪤 <b>Fallen-Fest</b>, 🧲 <b>Magnet-Admin</b> (wer ihn zuerst berührt, gewinnt), 📦 <b>Mystery-Box</b>, 🌈 <b>Farb-Chaos</b> und 🏆 <b>Mini-Wahl</b> (abstimmen). Du siehst dann oben eine grosse Ansage — einfach mitmachen!'),
+      _RT('r1world','🌍 Der Zoo lebt','Der Admin kann den ganzen Zoo mit Dingen ausbauen: Riesenrad, Karussell, Schmetterlinge, Feuerwerk, UFO und mehr. Schau dich ruhig um — es kommt immer mal etwas Neues dazu.'),
+      _RT('r1pud','💦 Pfützen-Springen','Wenn es <b>regnet</b>, entstehen blaue <b>Pfützen</b> auf dem Boden. Spring hinein (Leertaste / Sprung-Knopf) — dann spritzt es!'),
+      _RT('r1wave','👋 Freunde-Winken','Steht ein anderer Spieler nah bei dir, erscheint unten rechts ein Knopf <b>👋 Winken</b>. Tippst du ihn, winkt dein Spieler — und ihr bekommt beide ein ❤ zurück (alle 5 Minuten pro Person).'),
       _RT('r1mult','💰 Einkommen ×1,5','Dein Einkommen ist jetzt dauerhaft ×1,5 — dieser Boost bleibt bei jedem weiteren Rebirth erhalten und wird noch grösser.') ],
   2:[ _RT('r2a','🔄 Neu durch Rebirth 2','Nur das, was jetzt neu ist:'),
       _RT('r2slap','💜 Shadow Slap &amp; ×3','Der <b>Shadow Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×3.',{target:'#wbar',boxTop:true}),
-      {id:'r2g1',title:'🍀 Mehr Glück in der Gondel',text:'In der Gondel gibt es jetzt <b>mehr Glück</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},action:'panel:gond'},
-      _RT('r2g2','🍀 Glücks-Stufen &amp; Kleeblatt-Kette','Neu: die Glücks-Häufigkeit im Shop, die Stufen <b>×5, ×7, ×10</b> und die <b>Kleeblatt-Kette</b> (Grün-Glück). Alles hier in der Gondel.',{target:'#gluck'}),
+      {id:'r2g1',title:'🍀 Kleeblatt-Kette',text:'In der Gondel gibt es jetzt die <b>Kleeblatt-Kette</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},action:'panel:gond'},
+      _RT('r2g2','🍀 Glück-Häufigkeit &amp; Kleeblatt-Kette','Neu: die <b>Glück-Häufigkeit</b> (im Shop) und die <b>Kleeblatt-Kette</b> (Grün-Glück). Die Stufen ×5, ×7 und ×10 kennst du schon von Rebirth 1.',{target:'#gluck'}),
+      _RT('r2chain','🍀 So funktioniert die Kette','Die Kleeblatt-Kette geht in Stufen: <b>Grün → Gelb → Lila → Silber → Gold → Diamant</b>. Jede Stufe macht das <b>nächste Tier</b> glücklicher (Grün ×1,25 · Gelb ×1,5 · Lila ×20 · Silber ×100 · Gold ×5 · Diamant ×1000). Je höher die Stufe, desto seltener — und bei Silber, Gold und Diamant sehen es <b>alle im Zoo</b>.'),
+      _RT('r2list','📋 Tier-Liste','Unten in der Gondel ist die Liste <b>„Alle Tiere nach Seltenheit“</b>. Sie ist eingeklappt — tippe auf <b>▼ aufklappen</b>, wenn du sie sehen willst. Mehr Glück macht seltene Tiere wahrscheinlicher, aber auch ×100 gibt nicht ständig Ultra-Tiere.',{target:'#rboard-tog'}),
       {id:'r2g3',title:'🚡 Gondel schliessen',text:'Schliess die Gondel mit dem ✕, dann geht es weiter.',target:null,action:'close:gond'},
       _RT('r2step','🔊 Schritt-Ton','Mit diesem Knopf wählst du den Ton deiner Schritte.',{target:'#hb-footstep-style'}),
       {id:'r2t1',title:'🔍 Sammlungs-Terminal',text:'Das <b>Sammlungs-Terminal</b> zeigt dir, welche Tiere du schon hattest. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'terminal',action:'proximity'},
@@ -8325,6 +8330,8 @@ const REB_TUT={
   5:[ _RT('r5a','🔄 Neu durch Rebirth 5','Nur das, was jetzt neu ist:'),
       _RT('r5slap','🌌 Void Slap &amp; ×50','Der <b>Void Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×50.',{target:'#wbar',boxTop:true}),
       _RT('r5steal','🕵️ Zoo-Einbruch','Stell dich in ein <b>Gehege eines anderen Spielers</b>: alle <b>10 Sekunden</b> klaust du ihm <b>2 % seiner MT</b>. Aber Vorsicht — Alarm-Sirenen, Wächter und Fallen schützen die Basen!'),
+      _RT('r5sec','🛡️ Sicherheit in fremden Basen','Admin-Basen haben Schutz: ⚽ <b>Ronaldo &amp; Messi</b> schiessen auf dich (30 m) → <b>Minus-Aura</b>: −1 ❤ und 3 Sek. langsam · 🔴 <b>Laser-Tür</b> (10 Sek. zu, 10 Sek. offen, nur der Besitzer kommt immer durch) · 🧱 <b>Mauer</b> &amp; ⚡ <b>Elektrozaun</b> blocken dich · 🐕 <b>Wachhund</b> beisst · 🪤 <b>Stachel-</b>, 🥶 <b>Frost-</b> und 🕳️ <b>Rauswerfer-Falle</b> · 🚨 <b>Sirene</b> meldet dich dem Besitzer. Es gibt auch den <b>Bunker</b> mit allem davon!'),
+      _RT('r5tp','📍 Schutzzone &amp; Likes','Zu Spielern, die in der Nähe ihrer Base sind, kann man sich je nach Einstellung des Admins <b>nicht teleportieren</b>. Gefällt dir eine Base, gib ein ❤ — die Base mit den meisten Likes ist die <b>Base des Monats</b> und gibt <b>×1,1</b> extra.'),
       {id:'r5s1',title:'🏗️ Basen im Shop',text:'Die <b>Basen</b> findest du im Shop. Öffne ihn mal!',target:'#hb-shop',action:'panel:shop'},
       {id:'r5s2',title:'⚡ Tab „Boosts"',text:'Tippe oben auf den Tab <b>⚡ Boosts</b> — die Basen sind dort versteckt.',target:'#st-b',action:'tab:b'},
       {id:'r5s3',title:'👇 Nach unten scrollen',text:'Scrolle jetzt im Shop <b>nach unten</b>, bis du die Basen und den Kasten „Meine eigene Base" siehst.',target:null,action:'seesec:zb-own',noDim:true},
@@ -10472,7 +10479,7 @@ const ZP={
       'mischajanoschandi': {type:'visitor', mult:2,  durMin:10, label:'👥 Besucher ×2 für 10 Min!'},
     };
     const def=CODES[code];
-    if(!def){ this.toast('❌ Ungültiger Code.',2200); return; }
+    if(!def){ try{ ZCodes.redeem(code).then(h=>{ if(!h) this.toast('❌ Ungültiger Code.',2200); else if(input) input.value=''; }); }catch(e){ this.toast('❌ Ungültiger Code.',2200); } return; }
     if(z.redeemedCodes.includes(code)){ this.toast('❗ Du hast den Code bereits eingelöst.',2500); return; }
     if(!z.mtPassBoosts) z.mtPassBoosts={};
     const cur=z.mtPassBoosts[def.type];
@@ -13861,7 +13868,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v668 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v671 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -18366,7 +18373,7 @@ const Arcade={
       const bm=this._machines.find(m=>m.i===best); const bd=bm?Math.hypot(bm.x-px,bm.z-pz):99;
       if(bd<=5.2 && !World1._ov && this._blockIdx!==best){
         if(this._dwellIdx!==best){ this._dwellIdx=best; this._dwellT=Date.now(); }
-        else if(Date.now()-this._dwellT>=668){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
+        else if(Date.now()-this._dwellT>=671){ this._blockIdx=best; this._dwellIdx=-1; World1.openGame(best); return; }
       } else if(bd>5.2){ this._dwellIdx=-1; }
       if(this._blockIdx===best && bd>9) this._blockIdx=-1;
     } else { this._dwellIdx=-1; if(this._blockIdx!==-1 && this._blockIdx!==undefined){ /* bleibt gesperrt bis weg vom Automaten */ const bm2=this._machines.find(m=>m.i===this._blockIdx); if(!bm2||Math.hypot(bm2.x-px,bm2.z-pz)>9) this._blockIdx=-1; } }
@@ -20875,6 +20882,31 @@ window.ZooEvents = ZooEvents;
             <input id="zev4-opts" type="text" placeholder="Mini-Wahl: 2–4 Antworten mit Komma, z. B. Löwe, Panda, Fuchs" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.78rem">
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#1565C0" onclick="ZEvt4.adminStart(document.getElementById('zev4-type').value,parseInt(document.getElementById('zev4-mins').value),{prize:document.getElementById('zev4-prize').value,q:document.getElementById('zev4-q').value,opts:document.getElementById('zev4-opts').value})">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZEvt4.adminStop()">⏹️ Ende</button></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">🎟️ Admin-Codes</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:6px">Spieler lösen den Code im Shop unter „🎁 Code einlösen“ ein. „Nur 1 Person“ = wer ihn zuerst eingibt bekommt die Belohnung. „Alle“ = jeder darf ihn einmal einlösen.</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px">
+            <input id="zc-code" type="text" maxlength="24" placeholder="Code (leer = zufälliger Code)" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <select id="zc-scope" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.78rem"><option value="all">👥 Alle (jeder 1×)</option><option value="one">☝️ Nur 1 Person</option></select>
+              <select id="zc-type" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.78rem"><option value="mt">💰 MT</option><option value="money">💰 Geld-Multi</option><option value="luck">🍀 Glück-Multi</option><option value="visitor">👥 Besucher-Multi</option></select>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <input id="zc-amt" type="number" min="1" value="1000" placeholder="MT oder Multi (×)" title="MT-Betrag oder Multiplikator" style="width:120px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.78rem">
+              <input id="zc-min" type="number" min="1" value="10" placeholder="Min (nur Multi)" title="Dauer in Minuten (nur bei Multi)" style="width:100px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.78rem">
+              <input id="zc-exp" type="number" min="0" value="0" placeholder="Std gültig" title="Code läuft nach X Stunden ab (0 = nie)" style="width:90px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.78rem">
+            </div>
+            <button class="padmin-btn" style="background:#8E44AD" onclick="ZCodes.adminCreate()">➕ Code erstellen</button>
+          </div>
+          <div id="zc-list" style="margin-bottom:8px"></div>
+
+          <div class="padmin-section-title" style="margin-top:14px">💰 Geld-Multi für alle</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:6px">Alle Spieler verdienen für die Dauer ×N mehr MT (zusätzlich zu allem anderen). Oben links erscheint eine Anzeige mit Countdown.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <input id="zm-mult" type="number" min="1" max="1000" value="2" style="width:80px;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"> ×
+            <select id="zm-mins" style="background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px;font-size:.8rem"><option value="5">5 Min</option><option value="10" selected>10 Min</option><option value="30">30 Min</option><option value="60">60 Min</option><option value="180">3 Std</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="padmin-btn" style="background:#2E7D32" onclick="ZCodes.adminMoney(document.getElementById('zm-mult').value,document.getElementById('zm-mins').value)">▶️ Start</button><button class="padmin-btn" style="background:#555" onclick="ZCodes.adminMoneyStop()">⏹️ Ende</button></div>
 
           <div class="padmin-section-title" style="margin-top:14px">🎵 Admin-Musik (6 Lieder)</div>
           <div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:6px">Spielt ein selbst erzeugtes Lied (ohne Gesang) bei allen im Zoo. Passend zu Events, auch einzeln nutzbar.</div>
