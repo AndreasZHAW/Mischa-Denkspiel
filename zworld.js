@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v674)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v675)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v674): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v675): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v674) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v675) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -395,6 +395,7 @@
     menu:{t:'Menü',s:['☰','➜','⚙️','➜','📖'],d:'Hier findest du Einstellungen, Profil und Hilfe.'},
     mtpass:{t:'MT-Pass',s:['⭐','➜','🎫','➜','🎁'],d:'Sammle XP und hole dir Belohnungen Stufe für Stufe.'},
     report:{t:'Melden',s:['🚩','➜','📝','➜','✅'],d:'Hier meldest du Spieler, die sich nicht fair verhalten.'},
+    basebuild:{t:'Eigene Base bauen',s:['🌳','➜','🏗️','➜','🏡'],d:'Tippe aufs Feld, um Bäume, Deko und Schild zu setzen und deine 5 Gehege zu platzieren. Beim ersten Speichern zahlst du 50 % deines Guthabens – danach darfst du gratis umbauen.'},
     sound:{t:'Ton',s:['🔈','➜','🎚️','➜','🔊'],d:'Hier stellst du Musik und Geräusche ein.'}
   };
   const css=document.createElement('style'); css.textContent='@keyframes zhp-pop{0%{opacity:0;transform:scale(.2) translateY(14px)}60%{opacity:1;transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}@keyframes zhp-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}@keyframes zhp-in{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}#zhp-tip span.zi{display:inline-block;opacity:0;animation:zhp-pop .5s forwards}';

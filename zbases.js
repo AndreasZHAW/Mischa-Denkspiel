@@ -365,7 +365,7 @@
       const r=R(), z=ZS.zoo; if(!r||!z||!ZS.player) return; const k=keyOf(ZS.player);
       if(B._bkBusy) return; B._bkBusy=true;
       try{
-        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v674'});
+        const ts=Date.now(); const j=JSON.stringify({zoo:z,v:'v675'});
         if(j.length>400000){ B._bkBusy=false; return; }
         await r.ref('zoo_backup/'+k+'/'+ts).set({ts,j,mt:Math.round(z.mt||0),n:(z.enc||[]).filter(e=>e&&e.animal).length,rb:+z.reb||0,why:force?'vor Aktion':'auto'});
         localStorage.setItem('zb_bk_last',String(ts));
@@ -501,6 +501,7 @@
       if(!pl&&!isEd()){ ZP.toast('🔒 Nur für Bu:)'); return; }
       if(pl){ try{ if(typeof rebHas==='function'&&!rebHas('basen')){ ZP.toast('🔒 Eigene Basen gibt es erst nach 5 Rebirths.'); return; } }catch(e){} }
       B.init(); if(document.getElementById('zb-editor')) return;
+      if(pl){ const pm=B.pb[keyOf(ZS.player)]; if(!(pm&&pm.paid)&&combinedMT()<1e9){ ZP.toast('🔒 Selber bauen geht erst ab 1 B (1 Milliarde) MT.\nDir fehlen noch '+fmt(1e9-combinedMT())+' MT.',4500); B._warned=false; return; } }
       if(pl&&!B._warned){ const mk=B.pb[keyOf(ZS.player)]; if(!(mk&&mk.paid)){ if(B._warnBusy) return; B._warnBusy=true;
           bigConfirm('⚠️','Selber bauen kostet 50 %','Eine <b>eigene Base zu bauen</b> kostet dich <b>50 % deines Guthabens</b> (jetzt etwa <b>'+fmt(combinedMT()*0.5)+' MT</b>).<br><br>Du bezahlst nur <b>einmal</b> beim ersten Speichern — danach kannst du sie gratis umbauen. Die Gehege bleiben bei 5.','Verstanden, weiter','Abbrechen').then(ok=>{ B._warnBusy=false; if(ok) B.openEditor('go'); }); return; } }
       B._warned=false;
@@ -521,7 +522,7 @@
         +'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button id="zb-save" class="zb-b" style="background:#27AE60">💾 Speichern</button><button id="zb-new" class="zb-b">🆕 Neu</button><button id="zb-prev" class="zb-b" style="background:#8e44ad">👁 Im Zoo ansehen</button><button id="zb-del" class="zb-b" style="background:#c0392b">🗑 Base löschen</button></div>'
         +'<div id="zb-msg" style="font-size:.72rem;color:#9fd;margin-top:8px;min-height:1em"></div></div>'
         +'<style>.zb-b{flex:1;min-width:110px;border:none;color:#fff;background:#34495e;padding:10px;border-radius:10px;font-weight:800;cursor:pointer;font-size:.8rem}.zb-i{border:2px solid transparent;background:#1d2538;color:#fff;border-radius:9px;padding:5px 7px;margin:2px;font-size:.72rem;cursor:pointer}.zb-i.on{border-color:#FFD700;background:#34415f}</style>';
-      document.body.appendChild(ov);
+      document.body.appendChild(ov); if(pl){ try{ setTimeout(()=>{ if(typeof ZHelp!=='undefined') ZHelp.tip('basebuild'); },400); }catch(e){} };
       if(pl){ ov.querySelector('div[style*="grid-template-columns"]').querySelectorAll('label').forEach(l=>{ l.style.display='none'; }); ov.querySelector('#zb-name').placeholder='Name deiner Base'; ov.querySelector('#zb-list').style.display='none'; ov.querySelector('#zb-new').style.display='none'; ov.querySelector('div[style*="font-weight:900;color:#FFD700"]').textContent='🏗️ Meine eigene Base';
         ov.insertAdjacentHTML('beforeend',''); }
       else { const hb=document.createElement('button'); hb.textContent='🛡 Admin-Werkzeuge'; hb.className='zb-b'; hb.style.cssText='background:#6c3483;margin-top:8px;width:100%'; hb.onclick=()=>B.openAdmin(); ov.firstChild.appendChild(hb); }
