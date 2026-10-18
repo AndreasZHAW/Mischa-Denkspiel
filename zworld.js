@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v673)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v674)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v673): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v674): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -381,4 +381,64 @@
     }
   };
   setInterval(()=>{ try{ W._step(); }catch(e){} },33);
+})();
+
+;
+/* ZHelp (v674) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+(function(){
+  'use strict';
+  const TIPS={
+    shop:{t:'Shop',s:['🪙','➜','🛒','➜','🐘'],d:'Hier gibst du Münzen (MT) aus: Tiere, Upgrades, Codes. Tippe auf etwas, um es zu kaufen!'},
+    gond:{t:'Gondel',s:['🚡','➜','🎰','➜','🍀'],d:'Die Gondel schenkt dir neue Tiere. Mehr Glück = seltenere Tiere!'},
+    trade:{t:'Tauschen',s:['🙂','⇄','🤝','⇄','🙂'],d:'Tausche Tiere mit anderen Spielern. Beide müssen zustimmen.'},
+    reb:{t:'Rebirth',s:['🐘','➜','🔄','➜','✨'],d:'Du fängst von vorn an, bekommst aber mehr Einkommen und neue Funktionen.'},
+    menu:{t:'Menü',s:['☰','➜','⚙️','➜','📖'],d:'Hier findest du Einstellungen, Profil und Hilfe.'},
+    mtpass:{t:'MT-Pass',s:['⭐','➜','🎫','➜','🎁'],d:'Sammle XP und hole dir Belohnungen Stufe für Stufe.'},
+    report:{t:'Melden',s:['🚩','➜','📝','➜','✅'],d:'Hier meldest du Spieler, die sich nicht fair verhalten.'},
+    sound:{t:'Ton',s:['🔈','➜','🎚️','➜','🔊'],d:'Hier stellst du Musik und Geräusche ein.'}
+  };
+  const css=document.createElement('style'); css.textContent='@keyframes zhp-pop{0%{opacity:0;transform:scale(.2) translateY(14px)}60%{opacity:1;transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}@keyframes zhp-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}@keyframes zhp-in{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}#zhp-tip span.zi{display:inline-block;opacity:0;animation:zhp-pop .5s forwards}';
+  document.head.appendChild(css);
+  const H=window.ZHelp={
+    TIPS, _el:null, _t:0,
+    seen(k){ try{ return !!(ZS.zoo&&ZS.zoo.tipsSeen&&ZS.zoo.tipsSeen[k]); }catch(e){ return true; } },
+    tip(k,force){
+      const T=TIPS[k]; if(!T||typeof ZS==='undefined'||!ZS.zoo) return; if(!force&&H.seen(k)) return;
+      if(!force){ if(!ZS.zoo.tipsSeen) ZS.zoo.tipsSeen={}; ZS.zoo.tipsSeen[k]=1; try{ ZS.save&&ZS.save(); }catch(e){} }
+      H.hide(); const el=document.createElement('div'); el.id='zhp-tip';
+      el.style.cssText='position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:2147483000;background:rgba(14,12,34,.97);border:2px solid #ffd54f;border-radius:18px;padding:12px 16px;color:#fff;font-family:Arial,sans-serif;text-align:center;width:min(88vw,330px);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:zhp-in .35s;cursor:pointer';
+      el.innerHTML='<div style="font-weight:900;color:#ffd54f;font-size:.85rem">💡 Kurz erklärt: '+T.t+'</div><div style="font-size:2rem;margin:8px 0;white-space:nowrap">'+T.s.map((e,i)=>'<span class="zi" style="animation-delay:'+(.25+i*.5)+'s">'+e+'</span>').join(' ')+'</div><div style="font-size:.82rem;line-height:1.35">'+T.d+'</div><div style="font-size:.66rem;color:rgba(255,255,255,.5);margin-top:6px">Tippen zum Schliessen · wird nur einmal gezeigt</div>';
+      el.onclick=H.hide; document.body.appendChild(el); H._el=el; clearTimeout(H._t); H._t=setTimeout(H.hide,8000);
+    },
+    hide(){ clearTimeout(H._t); if(H._el){ H._el.remove(); H._el=null; } }
+  };
+  // ── Tipps beim ersten Öffnen einhängen ──
+  const hook=(obj,fn,key)=>{ try{ if(!obj||typeof obj[fn]!=='function'||obj[fn]._zh) return false; const o=obj[fn]; const w=function(){ const r=o.apply(this,arguments); try{ const k=typeof key==='function'?key.apply(null,arguments):key; if(k) setTimeout(()=>H.tip(k),350); }catch(e){} return r; }; w._zh=1; obj[fn]=w; return true; }catch(e){ return false; } };
+  // ── Sprechende Fehlermeldungen ──
+  let last=0, rate=0; const num=s=>{ const m=String(s).match(/([\d][\d'’.,]*)\s*([KMBTkmbt]|Mio|Mrd)?/); if(!m) return NaN; let t=m[1].replace(/['’]/g,''); if(/,\d{1,2}$/.test(t)) t=t.replace(',','.'); else t=t.replace(/[.,](?=\d{3})/g,''); let v=parseFloat(t); const u=(m[2]||'').toLowerCase(); v*=({k:1e3,m:1e6,mio:1e6,b:1e9,mrd:1e9,t:1e12}[u]||1); return v; };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const dur=s=>{ if(s<10) return 'ein paar Sekunden'; if(s<90) return 'ca. '+Math.round(s)+' Sek.'; if(s<5400) return 'ca. '+Math.round(s/60)+' Min.'; if(s<172800) return 'ca. '+(s/3600).toFixed(1).replace('.',',')+' Std.'; return 'sehr, sehr lange 😅'; };
+  const JOKES=['Deine Tiere arbeiten schon dran! 🐘','Geduld – der Löwe zählt noch die Münzen. 🦁','Tipp: Schau bei Codes, Events & Gondel vorbei! 🎁','Die Affen verhandeln noch den Preis. 🐒'];
+  const hint=msg=>{
+    try{
+      if(!/^❌/.test(msg)||!/(Zu wenig|Nicht genug|brauch)/i.test(msg)||/Taler|XP|Speed|Rebirth|Wiedergeburt/i.test(msg)||msg.indexOf('\n')>=0) return msg;
+      const m=msg.match(/[Bb]rauch\w*\s+(?:mindestens\s+)?([^!.\n]*)/); let cost=m?num(m[1]):NaN, add='';
+      if(isFinite(cost)&&cost>0){ const miss=cost-bal(); if(miss>0){ add='\nEs fehlen noch '+fmt(miss); if(rate>0) add+=' – dein Zoo schafft das in '+dur(miss/rate); else add+=' MT'; add+='.'; } }
+      if(!add){ add='\n'+JOKES[Math.floor(Math.random()*JOKES.length)]; if(rate>0) add+=' (Zoo verdient ~'+fmt(rate)+'/Sek.)'; }
+      return msg+add;
+    }catch(e){ return msg; }
+  };
+  let _hooked=false;
+  setInterval(()=>{ try{
+    if(typeof ZS==='undefined'||!ZS.zoo) return;
+    const b=bal(), n=Date.now(); if(last){ const dt=(n-last.t)/1000, d=b-last.b; if(dt>0.5&&dt<5){ const r=Math.max(0,d)/dt; if(r>0) rate=rate?rate*.8+r*.2:r; } } last={t:n,b};
+    if(_hooked) return;
+    if(typeof ZP!=='undefined'&&ZP.open&&ZP.toast){
+      hook(ZP,'open',p=>TIPS[p]?p:null);
+      const ot=ZP.toast; if(!ot._zh){ const nt=function(m,ms){ const t=hint(m); return ot.call(this,t,t!==m?Math.max(ms||2500,3800):ms); }; nt._zh=1; ZP.toast=nt; }
+      if(typeof MTPass!=='undefined') hook(MTPass,'open','mtpass');
+      _hooked=true;
+    }
+  }catch(e){} },1000);
 })();
