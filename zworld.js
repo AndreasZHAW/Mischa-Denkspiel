@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v675)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v676)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v675): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v676): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v675) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v676) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -442,4 +442,85 @@
       _hooked=true;
     }
   }catch(e){} },1000);
+})();
+
+;
+/* ZTipp (v676) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +50 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+(function(){
+  'use strict';
+  const TEAM=16, API='https://api.openligadb.de/getmatchesbyteamid/'+TEAM+'/2/6';
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const T=window.ZTipp={
+    games:[], err:null, at:0, el:null, sel:null, _iv:null, loading:false,
+    // Normalisiert ein Spiel: s = Stuttgart-Tore, o = Gegner-Tore (links Stuttgart, rechts Gegner – egal ob Heim oder Auswärts)
+    _norm(m){
+      const home=m.team1&&m.team1.teamId===TEAM, opp=home?m.team2:m.team1, ko=Date.parse(m.matchDateTimeUTC||m.matchDateTime||'')||0;
+      let r1=null,r2=null; const res=(m.matchResults||[]).find(x=>x.resultTypeID===2)||null;
+      if(res){ r1=res.pointsTeam1; r2=res.pointsTeam2; }
+      else if(m.goals&&m.goals.length){ const g=m.goals[m.goals.length-1]; r1=g.scoreTeam1; r2=g.scoreTeam2; }
+      const fin=!!m.matchIsFinished&&res!=null;
+      return {id:String(m.matchID),ko,opp:(opp&&(opp.shortName||opp.teamName))||'Gegner',oppFull:(opp&&opp.teamName)||'',league:(m.leagueName||'').replace(/\s*\d{4}\/\d{4}/,''),home,fin,s:r1==null?null:(home?r1:r2),o:r1==null?null:(home?r2:r1),live:!fin&&ko<=Date.now()};
+    },
+    async load(){
+      if(T.loading) return; T.loading=true;
+      try{
+        const r=await fetch(API,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+        const a=await r.json(); const lim=Date.now()+35*86400000;
+        T.games=(a||[]).map(T._norm).filter(g=>g.ko&&(g.ko<lim)).sort((x,y)=>x.ko-y.ko); T.err=null; T.at=Date.now();
+        T.settle();
+      }catch(e){ T.err=(e&&e.message)||'Fehler'; }
+      T.loading=false; T.draw();
+    },
+    tips(){ try{ if(!ZS.zoo.tips) ZS.zoo.tips={}; return ZS.zoo.tips; }catch(e){ return {}; } },
+    // Abgepfiffene Spiele auswerten → 50 % des Guthabens bei richtigem Tipp (einmalig)
+    settle(){
+      try{
+        const tp=T.tips(); let win=0, rw=0;
+        T.games.forEach(g=>{ const t=tp[g.id]; if(!t||t.paid||!g.fin||g.s==null) return; t.paid=1;
+          if(t.t<g.ko&&t.h===g.s&&t.a===g.o){ const add=Math.floor(bal()*0.5); ZS.zoo.mt=(ZS.zoo.mt||0)+add; t.won=1; t.rw=add; win++; rw+=add; } else t.won=0; });
+        if(win||Object.keys(tp).length){ try{ ZS.save&&ZS.save(true); }catch(e){} }
+        if(win){ toast('⚽ RICHTIG GETIPPT! +'+fmt(rw)+' MT (50 % deines Guthabens)',6000); try{ ZG._bigText('⚽ TIPP RICHTIG!','#7dffb0',3000); ZG._updHUD&&ZG._updHUD(); }catch(e){} }
+      }catch(e){}
+    },
+    open(){
+      if(T.el){ T.close(); return; } if(typeof ZS==='undefined'||!ZS.zoo) return;
+      const el=document.createElement('div'); el.id='ztipp';
+      el.style.cssText='position:fixed;inset:0;z-index:99991;background:rgba(10,14,24,.98);color:#fff;font-family:Arial,sans-serif;overflow-y:auto;-webkit-overflow-scrolling:touch';
+      document.body.appendChild(el); T.el=el; T.sel=null; T.draw(); T.load();
+      clearInterval(T._iv); T._iv=setInterval(()=>{ if(T.el) T.load(); },30000); // lädt sich selbst neu
+      try{ if(typeof ZHelp!=='undefined') setTimeout(()=>ZHelp.tip('tipp'),400); }catch(e){}
+    },
+    close(){ clearInterval(T._iv); if(T.el){ T.el.remove(); T.el=null; } },
+    _when(ko){ try{ return new Date(ko).toLocaleString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Zurich'}); }catch(e){ return new Date(ko).toLocaleString(); } },
+    draw(){
+      const el=T.el; if(!el) return; const tp=T.tips(); const g=T.sel&&T.games.find(x=>x.id===T.sel);
+      let h='<div style="max-width:440px;margin:0 auto;padding:12px 12px 40px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="flex:1;font-weight:900;color:#ff6b6b;font-size:1.05rem">⚽ Tippspiel · VfB Stuttgart</div><button id="zt-x" style="background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer">✕</button></div>';
+      if(g){
+        const t=tp[g.id], can=g.ko>Date.now()&&!g.fin;
+        h+='<button id="zt-back" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;margin-bottom:8px">← Alle Spiele</button>'
+          +'<div style="text-align:center;font-size:.78rem;color:rgba(255,255,255,.6)">'+esc(g.league)+' · '+T._when(g.ko)+' · '+(g.home?'Heim':'Auswärts')+'</div>'
+          +'<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0"><div style="flex:1;text-align:center"><div style="font-weight:900;font-size:.95rem">VfB Stuttgart</div><input id="zt-h" type="number" min="0" max="20" inputmode="numeric" value="'+(t?t.h:0)+'" '+(can?'':'disabled')+' style="width:74px;margin-top:8px;padding:12px 4px;font-size:1.6rem;font-weight:900;text-align:center;border-radius:12px;border:2px solid #ff6b6b;background:#161c2c;color:#fff"></div><div style="font-size:1.6rem;font-weight:900">:</div><div style="flex:1;text-align:center"><div style="font-weight:900;font-size:.95rem">'+esc(g.opp)+'</div><input id="zt-a" type="number" min="0" max="20" inputmode="numeric" value="'+(t?t.a:0)+'" '+(can?'':'disabled')+' style="width:74px;margin-top:8px;padding:12px 4px;font-size:1.6rem;font-weight:900;text-align:center;border-radius:12px;border:2px solid #64b5f6;background:#161c2c;color:#fff"></div></div>';
+        if(can) h+='<button id="zt-go" style="display:block;width:100%;padding:12px;border-radius:12px;border:none;background:#ff6b6b;color:#fff;font-weight:900;font-size:1rem;cursor:pointer">'+(t?'Tipp ändern':'Tipp abgeben')+'</button><div style="font-size:.7rem;color:rgba(255,255,255,.55);text-align:center;margin-top:6px">Du kannst bis zum Anpfiff ändern. Richtiges Ergebnis = 50 % deines Guthabens.</div>';
+        else h+='<div style="text-align:center;font-weight:800;margin-top:6px">'+(g.fin?'Endstand ':'🔴 läuft · Stand ')+(g.s==null?'?':g.s+' : '+g.o)+'</div>'+(t?'<div style="text-align:center;margin-top:8px">Dein Tipp: <b>'+t.h+' : '+t.a+'</b> '+(t.paid?(t.won?'✅ richtig! +'+fmt(t.rw||0):'❌ leider falsch'):'· wird nach dem Abpfiff ausgewertet')+'</div>':'<div style="text-align:center;margin-top:8px;color:rgba(255,255,255,.55)">Du hast nicht getippt.</div>');
+      } else {
+        h+='<div style="font-size:.74rem;color:rgba(255,255,255,.6);margin-bottom:8px">Tippe auf ein Spiel und gib dein Ergebnis ein (links Stuttgart, rechts Gegner). Nach dem Abpfiff gewinnst du bei richtigem Tipp 50 % deines Guthabens.</div>';
+        if(T.err&&!T.games.length) h+='<div style="padding:14px;border-radius:10px;background:rgba(255,80,80,.15);font-size:.8rem">❌ Spielplan konnte nicht geladen werden ('+esc(T.err)+'). Prüfe deine Verbindung – es versucht es alle 30 Sek. neu.</div>';
+        else if(!T.games.length) h+='<div style="padding:14px;text-align:center;color:rgba(255,255,255,.6)">'+(T.at?'Keine Spiele im nächsten Monat gefunden.':'Lade Spielplan …')+'</div>';
+        h+=T.games.map(x=>{ const t=tp[x.id]; const st=x.fin?('Endstand '+x.s+':'+x.o):x.live?'🔴 läuft '+(x.s==null?'':x.s+':'+x.o):'';
+          const badge=t?('<span style="font-size:.7rem;background:rgba(125,255,176,.18);border:1px solid #7dffb0;border-radius:8px;padding:2px 7px">'+(t.paid?(t.won?'✅ ':'❌ '):'')+'Tipp '+t.h+':'+t.a+'</span>'):'<span style="font-size:.7rem;color:rgba(255,255,255,.45)">kein Tipp</span>';
+          return '<div data-g="'+x.id+'" style="padding:11px 12px;margin:7px 0;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);cursor:pointer"><div style="font-size:.7rem;color:rgba(255,255,255,.55)">'+T._when(x.ko)+' · '+esc(x.league)+'</div><div style="font-weight:900;margin:3px 0">VfB Stuttgart – '+esc(x.oppFull||x.opp)+'</div><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.78rem;color:#ffd54f">'+st+'</span>'+badge+'</div></div>'; }).join('');
+      }
+      el.innerHTML=h+'</div>';
+      const q=id=>el.querySelector(id); q('#zt-x').onclick=T.close;
+      el.querySelectorAll('[data-g]').forEach(d=>d.onclick=()=>{ T.sel=d.dataset.g; T.draw(); });
+      if(g){ q('#zt-back').onclick=()=>{ T.sel=null; T.draw(); };
+        const go=q('#zt-go'); if(go) go.onclick=()=>{ if(g.ko<=Date.now()){ toast('⏱️ Das Spiel hat schon begonnen.'); T.draw(); return; } const hh=Math.max(0,Math.min(20,Math.floor(+q('#zt-h').value||0))), aa=Math.max(0,Math.min(20,Math.floor(+q('#zt-a').value||0))); const tp=T.tips(); tp[g.id]={h:hh,a:aa,t:Date.now()}; try{ ZS.save&&ZS.save(true); }catch(e){} toast('✅ Tipp gespeichert: Stuttgart '+hh+' : '+aa+' '+g.opp,3000); T.sel=null; T.draw(); }; }
+    }
+  };
+  // Im Hintergrund auswerten, solange offene Tipps existieren
+  setInterval(()=>{ try{ if(typeof ZS==='undefined'||!ZS.zoo) return; const tp=ZS.zoo.tips||{}; if(Object.keys(tp).some(k=>!tp[k].paid)&&Date.now()-T.at>180000) T.load(); }catch(e){} },30000);
+  try{ if(window.ZHelp) ZHelp.TIPS.tipp={t:'Tippspiel',s:['⚽','➜','🔢','➜','💰'],d:'Wähle ein VfB-Spiel und tippe das Ergebnis (links Stuttgart, rechts Gegner). Stimmt es nach dem Abpfiff, bekommst du 50 % deines Guthabens!'}; }catch(e){}
 })();
