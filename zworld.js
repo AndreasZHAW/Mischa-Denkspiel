@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v678)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v679)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v678): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v679): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v678) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v679) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v678) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v679) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const TEAM=16, API='https://api.openligadb.de/getmatchesbyteamid/'+TEAM+'/2/6';
@@ -487,9 +487,71 @@
           +'<div style="position:absolute;left:50%;top:calc(15% + 70px);margin-left:20px;font-size:42px;animation:za-keep 4s forwards">🧤</div>'
           +'<div style="position:absolute;left:50%;bottom:20%;margin-left:-20px;font-size:40px;animation:za-ball 1.9s .6s cubic-bezier(.3,.6,.5,1) forwards">⚽</div>'
           +'<div style="position:absolute;left:0;right:0;bottom:6%;text-align:center"><div style="display:inline-block;font-size:clamp(2.2rem,12vw,4rem);font-weight:900;color:#fff;text-shadow:0 0 0 #e32219,3px 3px 0 #e32219,-3px -3px 0 #e32219,3px -3px 0 #e32219,-3px 3px 0 #e32219,0 8px 24px rgba(0,0,0,.6);animation:za-txt 4s forwards;opacity:0">TOOOOR!</div><div style="margin-top:6px;font-size:1.05rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);opacity:0;animation:za-txt 4s forwards">⚪🔴 VfB Stuttgart '+(s==null?'':s+' : '+o+' ')+esc(opp||'')+(test?' · Test':'')+'</div></div>'+conf;
-        el.onclick=()=>el.remove(); document.body.appendChild(el); setTimeout(()=>{ try{ el.remove(); }catch(e){} },6200);
+        el.onclick=()=>el.remove(); document.body.appendChild(el); setTimeout(()=>{ try{ el.remove(); }catch(e){} },6200); setTimeout(()=>T.song(),5500);
       }catch(e){}
     },
+    // ── 🎼 Eigenes Siegeslied (original, ~2 Min, "Freizeitpark-Fanfare" in D-Dur, 96 BPM, 48 Takte) ──
+    song(){
+      try{
+        if(T._song) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+        const ctx=new AC(); if(ctx.state==='suspended') ctx.resume();
+        const master=ctx.createGain(); master.gain.value=0; const comp=ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);
+        const t0=ctx.currentTime+0.2, BEAT=60/96, BAR=BEAT*4, TOTAL=48*BAR;
+        master.gain.setValueAtTime(0,t0); master.gain.linearRampToValueAtTime(.55,t0+2.5); master.gain.setValueAtTime(.55,t0+TOTAL-6); master.gain.linearRampToValueAtTime(0,t0+TOTAL);
+        const mf=m=>440*Math.pow(2,(m-69)/12);
+        const nb=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate), nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+        const env=(g,t,a,d,pk,end)=>{ g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(pk,t+a); g.gain.exponentialRampToValueAtTime(Math.max(.0002,end==null?.0002:end),t+d); };
+        const tone=(type,m,t,dur,vol,opt)=>{ opt=opt||{}; const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type; o.frequency.value=mf(m); if(opt.det) o.detune.value=opt.det; let n=o; if(opt.lp){ const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=opt.lp; o.connect(f); n=f; }
+          const a=opt.a==null?.02:opt.a; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+a); g.gain.setValueAtTime(vol,t+Math.max(a,dur-(opt.r||.12))); g.gain.linearRampToValueAtTime(0,t+dur);
+          if(opt.vib){ const l=ctx.createOscillator(), lg=ctx.createGain(); l.frequency.value=5.2; lg.gain.value=opt.vib; l.connect(lg); lg.connect(o.detune); l.start(t); l.stop(t+dur+.05); }
+          n.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.05); };
+        const pluck=(m,t,vol)=>{ const o=ctx.createOscillator(), g=ctx.createGain(); o.type='triangle'; o.frequency.value=mf(m); env(g,t,.005,.5,vol,.0005); o.connect(g); g.connect(master); o.start(t); o.stop(t+.55); };
+        const timp=(t,vol)=>{ const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(110,t); o.frequency.exponentialRampToValueAtTime(52,t+.25); env(g,t,.004,.6,vol,.0005); o.connect(g); g.connect(master); o.start(t); o.stop(t+.65); };
+        const snare=(t,vol)=>{ const s=ctx.createBufferSource(), g=ctx.createGain(), f=ctx.createBiquadFilter(); s.buffer=nb; f.type='highpass'; f.frequency.value=1800; env(g,t,.002,.14,vol,.0005); s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t+.16); };
+        const cym=(t,vol)=>{ const s=ctx.createBufferSource(), g=ctx.createGain(), f=ctx.createBiquadFilter(); s.buffer=nb; f.type='highpass'; f.frequency.value=5000; env(g,t,.01,1.6,vol,.0005); s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t+1.7); };
+        // Akkorde je Takt (Grundton-MIDI, Moll?) – D-Dur: D A Bm G
+        const CH={D:[62,66,69],A:[57,61,64],Bm:[59,62,66],G:[55,59,62]}, ROOT={D:38,A:45,Bm:47,G:43};
+        const prog=['D','A','Bm','G','D','A','G','A'], progB=['Bm','G','D','A','Bm','G','A','A'];
+        const bars=[]; // [chord, section]
+        for(let i=0;i<4;i++) bars.push([prog[i<2?0:i===2?2:3],'intro']);              // 0-3 Intro: D D Bm G
+        for(let i=0;i<8;i++) bars.push([prog[i],'A']);                                  // 4-11
+        for(let i=0;i<8;i++) bars.push([progB[i],'B']);                                 // 12-19
+        ['Bm','G','Bm','G','A','A','A','A'].forEach(c=>bars.push([c,'build']));         // 20-27
+        for(let i=0;i<8;i++) bars.push([prog[i],'A2']);                                 // 28-35
+        for(let i=0;i<8;i++) bars.push([progB[i],'B2']);                                // 36-43
+        ['G','A','D','D'].forEach(c=>bars.push([c,'end']));                             // 44-47
+        const MA=[[[0,1.5,69],[1.5,.5,66],[2,1,69],[3,1,74]],[[0,1.5,73],[1.5,.5,69],[2,2,76]],[[0,1,74],[1,1,71],[2,2,78]],[[0,1.5,76],[1.5,.5,74],[2,1,71],[3,1,67]],[[0,1.5,69],[1.5,.5,66],[2,1,69],[3,1,74]],[[0,1.5,76],[1.5,.5,73],[2,1,69],[3,1,73]],[[0,1,71],[1,1,74],[2,2,79]],[[0,2,78],[2,1,76],[3,1,73]]];
+        const MB=[[[0,1,78],[1,1,74],[2,1,71],[3,1,74]],[[0,1,79],[1,1,74],[2,2,71]],[[0,1,78],[1,1,74],[2,1,69],[3,1,74]],[[0,2,76],[2,2,73]],[[0,1,78],[1,1,81],[2,1,78],[3,1,74]],[[0,2,79],[2,1,76],[3,1,74]],[[0,1.5,73],[1.5,.5,76],[2,2,81]],[[0,4,81]]];
+        bars.forEach((b,i)=>{
+          const t=t0+i*BAR, c=b[0], sec=b[1], ch=CH[c], big=(sec==='A2'||sec==='B2'||sec==='end'), mid=(sec!=='intro');
+          // Streicher-Teppich
+          ch.forEach(m=>{ tone('sawtooth',m,t,BAR,big?.05:.034,{a:.45,r:.5,lp:big?2600:1500,det:-6,vib:big?5:3}); tone('sawtooth',m+12,t,BAR,big?.03:.018,{a:.5,r:.5,lp:2200,det:7}); });
+          // Bass
+          tone('triangle',ROOT[c],t,BEAT*1.9,.2,{a:.02,r:.2}); if(sec!=='intro'&&sec!=='end') tone('triangle',ROOT[c],t+BEAT*2,BEAT*1.9,.17,{a:.02,r:.2});
+          // Harfe (Arpeggio)
+          if(sec==='intro'||sec==='A'||sec==='B'||sec==='build'){ for(let k=0;k<8;k++){ const m=ch[k%3]+12*(k>=3&&k<6?1:k>=6?1:0)+(sec==='build'&&i>=24?12:0); pluck(m+12,t+k*BEAT/2,.07); } }
+          // Pauke / Becken / Snare
+          if(sec==='intro'){ timp(t,.3); if(i===3){ for(let k=0;k<8;k++) timp(t+k*BEAT/2,.08+.05*k); cym(t+BAR-.01,.1); } }
+          if(sec==='A'||sec==='B') timp(t,.22);
+          if(sec==='build'){ timp(t,.28); timp(t+BEAT*2,.22); const stp=BAR/(i<24?4:i<26?8:16); for(let tt=0;tt<BAR-.001;tt+=stp) snare(t+tt,.03+.12*((i-20)/8)+(tt/BAR)*.05); if(i===27) cym(t+BAR-.02,.12); }
+          if(big){ timp(t,.34); timp(t+BEAT*2,.28); if(sec!=='end'){ snare(t+BEAT,.08); snare(t+BEAT*3,.1); timp(t+BEAT*2.5,.2); } if(i%2===0||sec==='end') cym(t,.07); }
+          if(sec==='end'&&i===47){ cym(t,.2); ch.forEach(m=>tone('sawtooth',m,t,BAR*1.0,.07,{a:.05,r:1.2,lp:2800})); }
+          // Melodie
+          const mel=sec==='A'?MA[i-4]:sec==='A2'?MA[i-28]:sec==='B'?MB[i-12]:sec==='B2'?MB[i-36]:null;
+          if(mel) mel.forEach(n=>{ const st=t+n[0]*BEAT, du=n[1]*BEAT; if(sec==='A'||sec==='B'){ tone('triangle',n[2],st,du*.98,.17,{a:.03,r:.12,vib:9}); tone('sine',n[2]+12,st,du*.98,.05,{a:.04}); } else { tone('sawtooth',n[2],st,du*.98,.085,{a:.03,r:.1,lp:3400,vib:11}); tone('sawtooth',n[2]-12,st,du*.98,.06,{a:.03,r:.1,lp:1800}); tone('triangle',n[2]+12,st,du*.98,.08,{a:.03,vib:9}); } });
+          if(sec==='end'){ const E=[[0,2,78],[2,2,81]],E2=[[0,2,76],[2,2,79]],E3=[[0,1,74],[1,1,78],[2,2,81]],E4=[[0,4,86]]; ((i===44?E:i===45?E2:i===46?E3:E4)).forEach(n=>tone('sawtooth',n[2],t+n[0]*BEAT,n[1]*BEAT*.98,.09,{a:.03,r:.3,lp:3600,vib:10})); }
+          if(sec==='build'){ // ansteigende Linie
+            const up=[69,71,73,74,76,78,79,81]; tone('triangle',up[i-20],t,BAR,.1,{a:.2,r:.3,vib:8}); }
+        });
+        T._song={ctx,master,end:Date.now()+TOTAL*1000+500};
+        // Stopp-Knopf
+        const b=document.createElement('button'); b.id='ztipp-song'; b.textContent='🎼 Lied stoppen';
+        b.style.cssText='position:fixed;left:8px;bottom:70px;z-index:2147481000;background:rgba(227,34,25,.92);color:#fff;border:none;border-radius:18px;padding:7px 13px;font:800 .75rem Arial;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.5)';
+        b.onclick=()=>T.songStop(); document.body.appendChild(b);
+        T._songT=setTimeout(()=>T.songStop(),TOTAL*1000+800);
+      }catch(e){ try{ console.warn('ZTipp song',e); }catch(_){} }
+    },
+    songStop(){ try{ clearTimeout(T._songT); const s=T._song; T._song=null; const b=document.getElementById('ztipp-song'); if(b) b.remove(); if(s){ s.master.gain.cancelScheduledValues(s.ctx.currentTime); s.master.gain.setValueAtTime(s.master.gain.value,s.ctx.currentTime); s.master.gain.linearRampToValueAtTime(0,s.ctx.currentTime+.6); setTimeout(()=>{ try{ s.ctx.close(); }catch(e){} },900); } }catch(e){} },
     _autoAnim(){
       try{
         const sn=(ZS.zoo.tippAnim=ZS.zoo.tippAnim||{}); const first=!Object.keys(sn).length&&!ZS.zoo._tippInit; let play=null, ch=false;
