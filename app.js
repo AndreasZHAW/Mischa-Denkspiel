@@ -39,6 +39,10 @@ window.MISCHA_EMBED = (function(){try{return new URLSearchParams(location.search
   window.addEventListener('unhandledrejection',function(e){_push('E','PROMISE: '+(e.reason?.message||String(e.reason||'')));});
 })();
 
+// 👁 Passwort anzeigen/verbergen (Anmelden + Registrieren)
+window._pwEye = function(inputId, btn){
+  try{ const i=document.getElementById(inputId); if(!i) return; const show=i.type==='password'; i.type=show?'text':'password'; btn.textContent=show?'🙈':'👁️'; btn.setAttribute('aria-label',show?'Passwort verbergen':'Passwort anzeigen'); i.focus(); }catch(e){}
+};
 // Layout-Diagnose (nur messen, nichts ändern). Konzept wie ChaosKalender: effectiveWidth = min(innerWidth, screen.width)
 // Sensor-Weiterleitung vom Zoo (nur im Embed): echte Events haben Vorrang
 if(window.MISCHA_EMBED){
@@ -207,7 +211,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v681';
+const APP_VERSION = 'v682';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -617,8 +621,8 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v681 · 2026-08-04</p>
-          <p style="font-size:.62rem;color:rgba(255,150,150,.7);margin-top:4px;font-family:monospace;word-break:break-all">pfad: ${window.location.pathname} → testmode: ${window.MISCHA_TESTMODE}</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v682 · 2026-08-04</p>
+          
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
           <div style="text-align:center;margin-bottom:10px">${typeof LANG!=='undefined'?LANG.selectorHTML(true):''}</div>
@@ -630,8 +634,10 @@ const App = {
           </div>
 
           <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn btn-primary btn-full btn-big" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>
-            <button class="btn btn-secondary btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>
+            ${(()=>{ let kd=false; try{ kd=!!localStorage.getItem('mischa_known_device'); }catch(e){}
+              const reg=`<button class="btn ${kd?'btn-secondary':'btn-primary btn-big'} btn-full" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>`;
+              const log=`<button class="btn ${kd?'btn-primary btn-big':'btn-secondary'} btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>`;
+              return '<div style="text-align:center;font-size:.8rem;color:rgba(255,255,255,.7);margin-bottom:2px">'+(kd?'Schön, dass du wieder da bist! Melde dich an – oder registriere einen neuen Spieler.':'Neu hier? Registriere dich. Schon ein Konto? Melde dich an.')+'</div>'+(kd?log+reg:reg+log); })()}
             <div style="display:flex;gap:6px;margin-top:6px;opacity:.8">
               <button class="btn" style="flex:1;background:rgba(255,255,255,0.35);color:var(--text-dark);padding:5px 10px;font-size:.72rem;border-radius:8px" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:5px 10px;border-radius:8px;font-size:.72rem;cursor:pointer" title="QR Code">📱 QR</button>
@@ -1253,7 +1259,7 @@ const App = {
           <div class="input-group"><label>Dein Name</label>
             <input type="text" id="p-name" placeholder="z.B. Mischa" maxlength="20" autocomplete="off"/></div>
           <div class="input-group"><label>Passwort</label>
-            <input type="password" id="p-pw" placeholder="Geheimwort" maxlength="20"/></div>
+            <div style="position:relative"><input type="password" id="p-pw" placeholder="Geheimwort" maxlength="20" style="padding-right:48px"/><button type="button" onclick="_pwEye('p-pw',this)" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;padding:6px 10px" aria-label="Passwort anzeigen">👁️</button></div></div>
           <div class="input-group"><label>Alter</label>
             <p style="font-size:.78rem;color:var(--text-mid);margin:0 0 8px;line-height:1.4;text-transform:none;font-weight:400">
               Damit die Fragen und Aufgaben zum Alter passen — nicht zu leicht, nicht zu schwer.
@@ -1357,7 +1363,7 @@ const App = {
           <div class="card-subtitle">${typeof t!=='undefined'?t('login.welcome_back'):'Willkommen zurück!'}</div>
           <div class="input-group"><label>Name</label><input type="text" id="l-name" autocomplete="off"/></div>
           <div class="input-group"><label>Passwort</label>
-            <input type="password" id="l-pw" onkeyup="if(event.key==='Enter')App.doLogin()"/></div>
+            <div style="position:relative"><input type="password" id="l-pw" onkeyup="if(event.key==='Enter')App.doLogin()" style="padding-right:48px"/><button type="button" onclick="_pwEye('l-pw',this)" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.3rem;cursor:pointer;padding:6px 10px" aria-label="Passwort anzeigen">👁️</button></div></div>
           <div id="l-err" style="color:#E74C3C;font-size:0.88rem;text-align:center;display:none;margin-bottom:8px"></div>
           <button class="btn btn-primary btn-full btn-big" onclick="App.doLogin()">${typeof t!=='undefined'?t('login.btn'):'Anmelden ➜'}</button>
           ${window.MISCHA_TESTMODE?`<div style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="var p=window.location.pathname;var i=p.lastIndexOf('/test');window.location.href=window.location.origin+(i>=0?p.substring(0,i):p.replace(/\\/[^\\/]*$/,''))+'/index.html'" style="color:rgba(255,255,255,.5);font-size:.8rem;text-decoration:none">← Zurück zur normalen Welt</a></div>`:''}

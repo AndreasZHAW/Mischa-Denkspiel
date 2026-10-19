@@ -1123,6 +1123,7 @@ const State = {
     sessionStorage.setItem('mischa_current', player.name.toLowerCase());
     // Also save to localStorage as backup (survives page refresh)
     localStorage.setItem('mischa_current_backup', player.name.toLowerCase());
+    try { localStorage.setItem('mischa_known_device','1'); } catch(e) {} // bekanntes Gerät: Vorgeschichte nicht mehr zeigen
     this._resetActivityTimer();
     this.startSessionWatch(player.name);
   },
