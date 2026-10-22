@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v685)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v686)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v685): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v686): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v685) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v686) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v685) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v686) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v685) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v686) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -772,4 +772,187 @@
   // Zirkustiere wippen
   const loop=()=>{ try{ if(C.grp&&C.an){ const t=performance.now()/500; C.an.forEach(s=>{ s.position.y=s.userData.y0+Math.abs(Math.sin(t+s.userData.ph))*.35; }); } }catch(e){} requestAnimationFrame(loop); }; requestAnimationFrame(loop);
   try{ if(window.ZHelp){ ZHelp.TIPS.circus={t:'Wanderzirkus',s:['🎪','➜','🎭','➜','🎡'],d:'Der Zirkus ist kurz im Zoo (im Osten). Lauf hin, tippe oben links aufs Zirkus-Feld: Kunststück üben oder am Glücksrad drehen!'}; ZHelp.TIPS.wish={t:'Besucher-Wunsch',s:['🧑','➜','🐧','➜','🎁'],d:'Ein Besucher wünscht sich ein Tier. Lauf hin und tippe „zeigen“ – du bekommst Trinkgeld!'}; } }catch(e){}
+})();
+
+;
+/* ZCoaster (v686) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+(function(){
+  'use strict';
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  let _off=0; const tn=()=>Date.now()+_off;
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const isAdm=()=>{ try{ return !!(window.ZBases&&ZBases.isEd&&ZBases.isEd()); }catch(e){ return false; } };
+  const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive); }catch(e){ return false; } };
+  const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const smooth=t=>t*t*(3-2*t);
+  const G=9.81, X0=-70, ZST=-12;           // Station / Streckenstart (Welt-Koordinaten)
+  const SPACING=0.7;
+
+  // ── Strecke (Polylinie, 1 Runde, Start+Ende an der Station) ──
+  function raw(){
+    const P=[]; const add=(x,y,z)=>P.push(V3(x,y,z));
+    const ST=(z0,z1,y,x)=>{ const n=Math.max(2,Math.round(Math.abs(z1-z0)/SPACING)); for(let i=0;i<n;i++) add(x,y,z0+(z1-z0)*i/n); };
+    // Station + Lift (ansteigend, ca. 36 m) bis zur Kuppe
+    ST(-8,-2,0.9,X0);
+    { const z0=-2,z1=34,n=Math.round((z1-z0)/SPACING); for(let i=0;i<n;i++){ const t=i/n; add(X0,0.9+29*t*(0.85+0.15*t),z0+(z1-z0)*t); } }
+    // Kuppe (Ausblick): rundet oben ab
+    { const n=14; for(let i=0;i<n;i++){ const t=i/n; add(X0+ Math.sin(t*Math.PI)*0.0,29.9+Math.sin(t*Math.PI)*1.3,34+t*6); } }
+    // 1. Abfahrt: S-Kurve von 31 m auf 2,5 m
+    { const z0=40,z1=58,n=Math.round((z1-z0)/SPACING*1.5); for(let i=0;i<=n;i++){ const t=i/n; add(X0,2.5+28.5*(0.5+0.5*Math.cos(Math.PI*t)),z0+(z1-z0)*t); } }
+    // Looping (R=8, seitlicher Versatz 4 m, Vorwärtsdrift)
+    { const R=8,n=Math.round(2*Math.PI*R*1.5/SPACING); for(let i=1;i<=n;i++){ const t=2*Math.PI*i/n; add(X0+4*(t/(2*Math.PI)),2.5+R*(1-Math.cos(t)),58+R*Math.sin(t)+2.8*t); } }
+    // Rechts-Kehre (R=10, überhöht) → Rückweg bei x=-86
+    { const cx=X0+4-10, cz=58+2.8*2*Math.PI, n=Math.round(Math.PI*10/SPACING); for(let i=1;i<=n;i++){ const a=Math.PI*i/n; add(cx+10*Math.cos(a),2.5+1.6*Math.sin(a),cz+10*Math.sin(a)); } }
+    // Rückweg mit Hügeln und S-Schwüngen
+    { const zs=58+2.8*2*Math.PI, z1=-12, xr=X0+4-20, n=Math.round((zs-z1)/SPACING);
+      for(let i=1;i<=n;i++){ const u=i/n, z=zs+(z1-zs)*u; const hill=10.5*Math.exp(-Math.pow((z-52)/6.5,2))+7.5*Math.exp(-Math.pow((z-28)/5.5,2))+9.5*Math.exp(-Math.pow((z-6)/5,2));
+        const wig=3.2*Math.sin(4*Math.PI*u)*Math.sin(Math.PI*u); add(xr+wig,2.5+hill*Math.min(1,u*8)*Math.min(1,(1-u)*8),z); } }
+    // Linkskehre zurück zur Station
+    { const xr=X0+4-20, cx=xr+8, n=Math.round(Math.PI*8/SPACING); for(let i=1;i<=n;i++){ const a=Math.PI*i/n; add(cx-8*Math.cos(a),2.5-1.6*smooth(i/n),-12-8*Math.sin(a)); } }
+    // Einfahrt in die Station
+    { const n=Math.round(4/SPACING); for(let i=1;i<=n;i++){ add(X0,0.9,-12+4*i/n); } }
+    return P;
+  }
+  function resample(P){ // gleichmässiger Abstand
+    const out=[P[0].clone()]; let acc=0; for(let i=1;i<P.length;i++){ let a=P[i-1], b=P[i], d=a.distanceTo(b); while(acc+d>=SPACING){ const t=(SPACING-acc)/d; const q=a.clone().lerp(b,t); out.push(q); a=q; d=a.distanceTo(b); acc=0; } acc+=d; } return out;
+  }
+  function frames(P){
+    const N=P.length, T=[], U=[], R=[]; for(let i=0;i<N;i++){ const a=P[(i+N-1)%N], b=P[(i+1)%N]; T.push(b.clone().sub(a).normalize()); }
+    let u=V3(0,1,0); u.sub(T[0].clone().multiplyScalar(u.dot(T[0]))).normalize(); U.push(u);
+    for(let i=1;i<N;i++){ const q=new THREE.Quaternion().setFromUnitVectors(T[i-1],T[i]); u=U[i-1].clone().applyQuaternion(q); u.sub(T[i].clone().multiplyScalar(u.dot(T[i]))).normalize(); U.push(u); }
+    // Verdrillung am Ende gleichmässig ausgleichen, Banking in Kurven
+    const e=U[N-1], s0=U[0]; const ang=Math.atan2(T[0].clone().dot(e.clone().cross(s0)),e.dot(s0));
+    for(let i=0;i<N;i++){ const k=(T[(i+1)%N].clone().cross(T[(i+N-1)%N])).y/(2*SPACING); // >0: Linkskurve (grob)
+      const bank=Math.max(-.75,Math.min(.75,-k*55)); const roll=ang*(i/(N-1))+((T[i].y>.97||T[i].y<-.97)?0:bank*(1-Math.abs(T[i].y)));
+      U[i].applyAxisAngle(T[i],roll); R.push(T[i].clone().cross(U[i]).normalize()); }
+    return {T,U,R};
+  }
+  function sweep(P,F,off,up,w,h){ // Schiene als Quader-Schlauch
+    const N=P.length, pos=[], idx=[]; const cs=[[-w,-h],[w,-h],[w,h],[-w,h]];
+    for(let i=0;i<N;i++){ const c=P[i].clone().addScaledVector(F.R[i],off).addScaledVector(F.U[i],up); cs.forEach(([a,b])=>{ const v=c.clone().addScaledVector(F.R[i],a).addScaledVector(F.U[i],b); pos.push(v.x,v.y,v.z); }); }
+    for(let i=0;i<N-1;i++) for(let k=0;k<4;k++){ const a=i*4+k, b=i*4+(k+1)%4, c=(i+1)*4+k, d=(i+1)*4+(k+1)%4; idx.push(a,c,b,b,c,d); }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+  }
+  const spr=(draw,w,h,sx,sy)=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const tex=new THREE.CanvasTexture(c); const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}); const s=new THREE.Sprite(m); s.scale.set(sx,sy,1); return s; };
+
+  const C=window.ZCoaster={
+    adm:null, local:0, grp:null, P:null, F:null, S:null, L:0, trainG:null, ride:null, id:null, ann:null, _inited:false, view:'ego', _ac:null,
+    init(){ if(C._inited) return; const r=RT(); if(!r) return; C._inited=true; try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){} try{ r.ref('zoo_coaster').on('value',s=>{ C.adm=s.val()||null; }); }catch(e){} },
+    state(){ const n=tn(), a=C.adm; if(a&&a.until>n) return {id:String(a.id),until:a.until}; if(C.local>Date.now()) return {id:'local',until:C.local}; return null; },
+    adminStart(mins){ const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } mins=Math.max(1,Math.min(180,+mins||15)); r.ref('zoo_coaster').set({id:String(Date.now()),until:tn()+mins*60000,by:ZS.player}).then(()=>toast('🎢 Achterbahn für alle gestartet ('+mins+' Min)')).catch(e=>toast('❌ '+e.message)); },
+    adminStop(){ const r=RT(); if(r) r.ref('zoo_coaster').set({id:String(Date.now()),until:0,by:ZS.player}).then(()=>toast('⏹️ Achterbahn beendet')); C.local=0; },
+    adminLocal(){ C.local=Date.now()+30*60000; toast('🎢 Test: Achterbahn nur bei dir (30 Min)'); },
+    // ── Aufbau ──
+    _build(){
+      if(C.grp) return; const P=resample(raw()); const F=frames(P); C.P=P; C.F=F; const N=P.length;
+      const S=new Float32Array(N); for(let i=1;i<N;i++) S[i]=S[i-1]+P[i].distanceTo(P[i-1]); C.S=S; C.L=S[N-1];
+      const g=new THREE.Group();
+      const matR=new THREE.MeshLambertMaterial({color:0x4aa3ff}), matS=new THREE.MeshLambertMaterial({color:0xd62828}), matT=new THREE.MeshLambertMaterial({color:0x5a4632}), matP=new THREE.MeshLambertMaterial({color:0xb0b0b8});
+      [-0.62,0.62].forEach(o=>{ g.add(new THREE.Mesh(sweep(P,F,o,0,.07,.07),matR)); });
+      g.add(new THREE.Mesh(sweep(P,F,0,-.5,.17,.17),matS));
+      // Schwellen
+      const step=4, nt=Math.floor(N/step); const tie=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,.07,.16),matT,nt); const m4=new THREE.Matrix4();
+      for(let k=0;k<nt;k++){ const i=k*step; m4.makeBasis(F.R[i],F.U[i],F.T[i]); m4.setPosition(P[i].x,P[i].y-.07,P[i].z); tie.setMatrixAt(k,m4); } g.add(tie);
+      // Stützen
+      const sup=[]; for(let i=0;i<N;i+=Math.round(9/SPACING)){ if(P[i].y>1.8&&F.U[i].y>-.2) sup.push(i); }
+      const col=new THREE.InstancedMesh(new THREE.CylinderGeometry(.17,.21,1,8),matP,sup.length); sup.forEach((i,k)=>{ const h=P[i].y-.7; m4.makeScale(1,h,1); m4.setPosition(P[i].x,h/2,P[i].z); col.setMatrixAt(k,m4); }); g.add(col);
+      // Station
+      const plat=new THREE.Mesh(new THREE.BoxGeometry(3.4,.6,14),new THREE.MeshLambertMaterial({color:0xcfc2a8})); plat.position.set(X0+3,.3,-7); g.add(plat);
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(6.2,.25,14.4),new THREE.MeshLambertMaterial({color:0xd62828})); roof.position.set(X0+1.2,4.3,-7); g.add(roof);
+      [[-6,X0-1.7],[-6,X0+4.6],[-13,X0-1.7],[-13,X0+4.6]].forEach(([z,x])=>{ const p=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,4.2,8),matP); p.position.set(x,2.1,z+3); g.add(p); });
+      const sign=spr((c,w,h)=>{ c.fillStyle='rgba(0,0,0,.75)'; c.fillRect(0,0,w,h); c.strokeStyle='#ffd54f'; c.lineWidth=6; c.strokeRect(6,6,w-12,h-12); c.fillStyle='#ffd54f'; c.font='bold 46px Arial'; c.textAlign='center'; c.fillText('🎢 RIESEN-ACHTERBAHN',w/2,72); },640,110,8,1.4); sign.position.set(X0+1.2,6.2,-7); g.add(sign);
+      g.userData.board={x:X0+2.7,z:-6};
+      ZG.scene.add(g); C.grp=g;
+      // Zug (3 Wagen)
+      const train=new THREE.Group(); C.cars=[];
+      for(let k=0;k<3;k++){ const car=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(1.5,.5,2.1),new THREE.MeshLambertMaterial({color:k?0xe63946:0xffb703})); body.position.y=.05; car.add(body);
+        const back=new THREE.Mesh(new THREE.BoxGeometry(1.4,.8,.25),new THREE.MeshLambertMaterial({color:0x222})); back.position.set(0,.6,.8); car.add(back);
+        const bar=new THREE.Mesh(new THREE.BoxGeometry(1.3,.12,.12),new THREE.MeshLambertMaterial({color:0xcccccc})); bar.position.set(0,.55,-.3); car.add(bar); train.add(car); C.cars.push(car); }
+      g.add(train); C.trainG=train; C._poseTrain(C._boardS());
+    },
+    _boardS(){ return 0; },
+    // Pose an Bogenlänge s (Position, T, U, R)
+    _pose(s){
+      const N=C.P.length, L=C.L; s=((s%L)+L)%L; let lo=0, hi=N-1; const S=C.S; while(hi-lo>1){ const m=(lo+hi)>>1; if(S[m]<=s) lo=m; else hi=m; }
+      const t=(s-S[lo])/Math.max(1e-6,S[hi]-S[lo]), i=lo, j=hi%N;
+      const p=C.P[i].clone().lerp(C.P[j],t), T=C.F.T[i].clone().lerp(C.F.T[j],t).normalize(), U=C.F.U[i].clone().lerp(C.F.U[j],t).normalize(); U.sub(T.clone().multiplyScalar(U.dot(T))).normalize(); const R=T.clone().cross(U).normalize();
+      return {p,T,U,R};
+    },
+    _poseTrain(s){
+      C.cars.forEach((car,k)=>{ const q=C._pose(s-k*2.7); const m=new THREE.Matrix4(); m.makeBasis(q.R,q.U,q.T.clone().negate()); car.position.copy(q.p).addScaledVector(q.U,.45); car.quaternion.setFromRotationMatrix(m); });
+    },
+    _destroy(){ try{ if(C.grp){ ZG.scene.remove(C.grp); C.grp.traverse(o=>{ if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); } if(o.geometry) o.geometry.dispose(); }); } }catch(e){} C.grp=null; C.P=null; C.F=null; C.trainG=null; ['zcoaster-chip','zcoaster-btn'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); },
+    // ── Fahrt ──
+    board(){
+      if(C.ride||!C.grp||busy()) return; try{ if(ZG.carrying){ toast('🐾 Setz zuerst dein Tier im Gehege ab!',2500); return; } }catch(e){}
+      C.ride={s:0,v:0,t:0,phase:'lift',yaw0:ZG.yaw||0,saved:{x:ZG.pl.x,y:ZG.pl.y,z:ZG.pl.z},tick:0}; C.view='ego'; ZG._coasterRide=true;
+      C._ui(); C._audio(true); big('🎢 LOS GEHT’S!','#ffd54f',2200); toast('Zieh am Bildschirm, um dich umzuschauen – oben gibt es eine tolle Aussicht!',4200);
+    },
+    _end(){ const r=C.ride; if(!r) return; C.ride=null; ZG._coasterRide=false; C._audio(false); const u=document.getElementById('zcoaster-ui'); if(u) u.remove(); ZG.pl.x=X0+4.4; ZG.pl.z=-6; ZG.pl.y=1.7; ZG.pitch=0; ZG.yaw=Math.PI/2; C._poseTrain(C._boardS()); toast('🎢 Das war die Fahrt! Nochmal? Geh zum Bahnsteig.',3500); },
+    _ui(){
+      let u=document.getElementById('zcoaster-ui'); if(u) u.remove(); u=document.createElement('div'); u.id='zcoaster-ui';
+      u.innerHTML='<div id="zcr-info" style="position:fixed;left:50%;top:104px;transform:translateX(-50%);z-index:640;background:rgba(0,0,0,.55);color:#fff;font:800 .8rem Arial;padding:5px 12px;border-radius:14px;pointer-events:none"></div>'
+        +'<button id="zcr-view" style="position:fixed;right:10px;top:150px;z-index:640;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:16px;padding:8px 12px;font:800 .75rem Arial;cursor:pointer">👁️ Ansicht</button>'
+        +'<button id="zcr-exit" style="position:fixed;right:10px;top:192px;z-index:640;background:rgba(150,20,20,.85);color:#fff;border:none;border-radius:16px;padding:8px 12px;font:800 .75rem Arial;cursor:pointer;display:none">🚪 Aussteigen</button>';
+      document.body.appendChild(u); u.querySelector('#zcr-view').onclick=()=>{ C.view=C.view==='ego'?'chase':'ego'; };
+      u.querySelector('#zcr-exit').onclick=()=>{ if(confirm('Fahrt abbrechen und aussteigen?')) C._end(); };
+    },
+    _audio(on){
+      try{ if(on){ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; const c=C._ac||(C._ac=new AC()); if(c.state==='suspended') c.resume();
+          const nb=c.createBuffer(1,c.sampleRate*2,c.sampleRate), d=nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; const src=c.createBufferSource(); src.buffer=nb; src.loop=true; const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=500; bp.Q.value=.6; const g=c.createGain(); g.gain.value=0; src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(); C._wind={src,bp,g}; }
+        else if(C._wind){ const w=C._wind; C._wind=null; try{ w.g.gain.setTargetAtTime(0,C._ac.currentTime,.2); setTimeout(()=>{ try{ w.src.stop(); }catch(e){} },700); }catch(e){} } }catch(e){}
+    },
+    _click(){ try{ const c=C._ac; if(!c) return; const o=c.createOscillator(), g=c.createGain(); o.type='square'; o.frequency.value=150+Math.random()*30; g.gain.setValueAtTime(.05,c.currentTime); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.05); o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+.06); }catch(e){} },
+    _step(dt){
+      const r=C.ride; if(!r) return; dt=Math.min(.1,dt); r.t+=dt;
+      const q=C._pose(r.s), y=q.p.y, crestY=31, Lc=C._crestS||(C._crestS=C._findCrest());
+      let v;
+      if(r.s<Lc-6){ v=4.4; r.phase='lift'; }
+      else { r.phase=r.s<Lc+8?'crest':'run'; v=Math.sqrt(Math.max(9,2*G*.86*(crestY-y))); if(r.s<Lc+4) v=Math.min(v,3.2); }
+      const rem=C.L-r.s; if(rem<16) v=Math.min(v,Math.max(1.4,rem*.85)); v=Math.min(v,24);
+      r.v+= (v-r.v)*Math.min(1,dt*3); if(r.phase==='lift'&&Math.abs(r.v-4.4)<.5) r.tick+=r.v*dt; if(r.tick>1.2){ r.tick=0; C._click(); }
+      r.s+=r.v*dt; if(r.s>=C.L-.15){ C._end(); return; }
+      C._poseTrain(r.s);
+      const seat=C._pose(r.s).p; // Sitz im ersten Wagen
+      const qq=C._pose(r.s); const sp=qq.p.clone().addScaledVector(qq.U,.62); ZG.pl.x=sp.x; ZG.pl.z=sp.z; ZG.pl.y=sp.y+1.2;
+      const inf=document.getElementById('zcr-info'); if(inf) inf.textContent='🎢 '+Math.round(r.v*3.6)+' km/h · Höhe '+Math.max(0,Math.round(q.p.y-.9))+' m · '+Math.round(r.s/C.L*100)+'%'+(r.phase==='lift'?' · ⬆ Lift':(r.phase==='crest'?' · 🌄 Aussicht!':''));
+      const ex=document.getElementById('zcr-exit'); if(ex) ex.style.display=r.t>4?'block':'none';
+      if(C._wind){ const k=Math.min(1,r.v/22); C._wind.g.gain.setTargetAtTime(.02+.2*k*k,C._ac.currentTime,.1); C._wind.bp.frequency.setTargetAtTime(300+1500*k,C._ac.currentTime,.1); }
+    },
+    _findCrest(){ let b=0,by=-1; for(let i=0;i<C.P.length;i++){ if(C.P[i].y>by){ by=C.P[i].y; b=i; } } return C.S[b]; },
+    // Kamera (wird nach ZG._camUpdate aufgerufen)
+    _cam(){
+      const r=C.ride; if(!r||!C.P) return; const q=C._pose(r.s), cam=ZG.cam;
+      if(C.view==='ego'){
+        cam.position.copy(q.p).addScaledVector(q.U,1.25).addScaledVector(q.T,.15);
+        const m=new THREE.Matrix4(); m.makeBasis(q.R,q.U,q.T.clone().negate()); const qf=new THREE.Quaternion().setFromRotationMatrix(m);
+        let dy=(ZG.yaw||0)-r.yaw0; while(dy>Math.PI) dy-=2*Math.PI; while(dy<-Math.PI) dy+=2*Math.PI; dy=Math.max(-2.2,Math.min(2.2,dy));
+        const qy=new THREE.Quaternion().setFromAxisAngle(V3(0,1,0),dy), qx=new THREE.Quaternion().setFromAxisAngle(V3(1,0,0),Math.max(-1.2,Math.min(1.2,ZG.pitch||0)));
+        cam.quaternion.copy(qf).multiply(qy).multiply(qx);
+      } else {
+        const back=C._pose(r.s-8).p; const tgt=q.p.clone().addScaledVector(q.U,.8); cam.position.copy(back).add(V3(0,3.6,0)).addScaledVector(q.U,1.2); cam.lookAt(tgt); cam.up.set(0,1,0);
+      }
+    },
+    tick(){
+      try{
+        if(!ready()) return; C.init(); const st=C.state();
+        if(!st){ if(C.ride) return; if(C.grp){ C._destroy(); C.id=null; } return; }
+        if(C.id!==st.id){ C.id=st.id; if(C.ann!==st.id&&st.until-tn()>30000){ C.ann=st.id; big('🎢 Die Riesen-Achterbahn ist da!','#ffd54f',3500); toast('🎢 Admin-Event: Riesen-Achterbahn im Westen des Zoos! Geh zum Bahnsteig und steig ein.',6500); } }
+        C._build();
+        const b=C.grp.userData.board, dx=b.x-ZG.pl.x, dz=b.z-ZG.pl.z, d=Math.hypot(dx,dz);
+        let chip=document.getElementById('zcoaster-chip'); if(!chip){ chip=document.createElement('div'); chip.id='zcoaster-chip'; chip.style.cssText='position:fixed;left:8px;top:182px;z-index:600;background:rgba(0,0,0,.62);color:#fff;font:800 .72rem Arial;padding:5px 10px;border-radius:14px;cursor:pointer;border-left:4px solid #4aa3ff'; chip.onclick=()=>{ if(C.ride) return; const dd=Math.hypot(b.x-ZG.pl.x,b.z-ZG.pl.z); if(dd>12&&!busy()){ ZG.pl.x=b.x+3; ZG.pl.z=b.z; ZG.pl.y=1.7; ZG.yaw=Math.PI/2; toast('📍 Du stehst jetzt am Bahnsteig der Achterbahn.',2500); } else toast('Geh zum Zug am Gleis und tippe auf „Einsteigen“.',2500); }; document.body.appendChild(chip); }
+        const left=Math.max(0,st.until-tn()); chip.style.display=C.ride?'none':'block'; chip.textContent='🎢 Achterbahn · '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0')+' · '+(d>12?'tippen = hinbeamen':'am Bahnsteig');
+        let btn=document.getElementById('zcoaster-btn'); if(!btn){ btn=document.createElement('button'); btn.id='zcoaster-btn'; btn.style.cssText='position:fixed;left:50%;bottom:210px;transform:translateX(-50%);z-index:630;background:#e63946;color:#fff;border:none;border-radius:24px;padding:12px 22px;font:900 1rem Arial;box-shadow:0 4px 16px rgba(0,0,0,.5);cursor:pointer;display:none'; btn.textContent='🎢 Einsteigen'; btn.onclick=()=>C.board(); document.body.appendChild(btn); }
+        btn.style.display=(!C.ride&&d<6&&st.until>tn()&&!busy())?'block':'none';
+      }catch(e){}
+    }
+  };
+  setInterval(C.tick,1000);
+  let _last=performance.now();
+  const loop=()=>{ const n=performance.now(), dt=(n-_last)/1000; _last=n; try{ if(C.ride){ C._step(dt); } }catch(e){} requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+  // Kamera nach dem normalen Kamera-Update überschreiben
+  const hook=()=>{ try{ if(typeof ZG==='undefined'||!ZG._camUpdate||ZG._camUpdate._zc) return false; const o=ZG._camUpdate; const w=function(){ o.apply(this,arguments); if(C.ride){ try{ C._cam(); }catch(e){} } }; w._zc=1; ZG._camUpdate=w; return true; }catch(e){ return false; } };
+  const iv=setInterval(()=>{ if(hook()) clearInterval(iv); },500);
 })();
