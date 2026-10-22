@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v683)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v684)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v683): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v684): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v683) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v684) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v683) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v684) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -551,7 +551,7 @@
         T._song={ctx,master,end:Date.now()+TOTAL*1000+500};
         // Stopp-Knopf
         const b=document.createElement('button'); b.id='ztipp-song'; b.textContent='🎼 Lied stoppen';
-        b.style.cssText='position:fixed;left:8px;bottom:70px;z-index:2147481000;background:rgba(227,34,25,.92);color:#fff;border:none;border-radius:18px;padding:7px 13px;font:800 .75rem Arial;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.5)';
+        b.style.cssText='position:fixed;right:8px;top:112px;z-index:2147481000;background:rgba(227,34,25,.92);color:#fff;border:none;border-radius:18px;padding:7px 13px;font:800 .75rem Arial;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.5)';
         b.onclick=()=>T.songStop(); document.body.appendChild(b);
         T._songT=setTimeout(()=>T.songStop(),TOTAL*1000+800);
       }catch(e){ try{ console.warn('ZTipp song',e); }catch(_){} }
@@ -619,4 +619,157 @@
   // Im Hintergrund auswerten, solange offene Tipps existieren
   setInterval(()=>{ try{ if(typeof ZS==='undefined'||!ZS.zoo||!T.fav()) return; const tp=ZS.zoo.tips||{}; const g=T.games, near=g.some(x=>!x.fin&&x.ko<Date.now()+600000&&x.ko>Date.now()-5*3600000); const wait=(Object.keys(tp).some(k=>!tp[k].paid)||near)?180000:(T.at?1800000:0); if(Date.now()-T.at>wait) T.load(); }catch(e){} },30000);
   try{ if(window.ZHelp) ZHelp.TIPS.tipp={t:'Tippspiel',s:['⚽','➜','🔢','➜','💰'],d:'Wähle deinen Lieblingsverein und tippe seine Spiele (links dein Verein, rechts Gegner). Stimmt es nach dem Abpfiff, bekommst du 20 % deines Guthabens!'}; }catch(e){}
+})();
+
+;
+/* ZFun (v684) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+(function(){
+  'use strict';
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  let _off=0; const tn=()=>Date.now()+_off;
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive); }catch(e){ return false; } };
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const boost=(type,mult,mins)=>{ const z=ZS.zoo, now=Date.now(); if(!z.mtPassBoosts) z.mtPassBoosts={}; const cur=z.mtPassBoosts[type], base=(cur&&cur.until>now)?cur.until:now; z.mtPassBoosts[type]={mult:Math.max(mult,(cur&&cur.until>now)?cur.mult:0),until:base+mins*60000}; };
+  const giveMT=n=>{ const z=ZS.zoo; z.mt=(z.mt||0)+Math.round(n); };
+  const save=()=>{ try{ ZS.save&&ZS.save(true); ZG._updHUD&&ZG._updHUD(); }catch(e){} };
+  const spr=(draw,w,h,sx,sy)=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const tex=new THREE.CanvasTexture(c); const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}); const s=new THREE.Sprite(m); s.scale.set(sx,sy,1); return s; };
+  const rrect=(x,a,b,w,h,r)=>{ x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r); x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); };
+  const chip=(id,top)=>{ let c=document.getElementById(id); if(!c){ c=document.createElement('div'); c.id=id; c.style.cssText='position:fixed;left:8px;top:'+top+'px;z-index:600;background:rgba(0,0,0,.62);color:#fff;font:800 .72rem Arial;padding:5px 10px;border-radius:14px;display:none;cursor:pointer'; document.body.appendChild(c); } return c; };
+  const arrow=(tx,tz)=>{ try{ const dx=tx-ZG.pl.x, dz=tz-ZG.pl.z, d=Math.hypot(dx,dz), y=ZG.yaw||0; const f=-(Math.sin(y)*dx)-(Math.cos(y)*dz), r=(Math.cos(y)*dx)-(Math.sin(y)*dz); const a=Math.atan2(r,f); const i=Math.round(a/(Math.PI/4)); const A=['⬆️','↗️','➡️','↘️','⬇️','↙️','⬅️','↖️'][((i%8)+8)%8]; return {d,A}; }catch(e){ return {d:999,A:'⬆️'}; } };
+
+  // ═════════════ 🧑 Besucher-Wünsche ═════════════
+  const WISHER=['🧑','👩','👨','🧒','👵','👴','🧔'];
+  const Wi=window.ZWish={
+    w:null, nextAt:0, sp:null,
+    _animals(){ try{ return (typeof ANIMALS!=='undefined')?ANIMALS:[]; }catch(e){ return []; } },
+    _owned(id){ try{ return (ZS.zoo.enc||[]).some(e=>e&&e.animal&&e.animal.id===id); }catch(e){ return false; } },
+    _pick(){
+      const A=Wi._animals(), z=ZS.zoo, own=[]; (z.enc||[]).forEach(e=>{ if(e&&e.animal&&e.animal.id&&!own.find(a=>a.id===e.animal.id)) own.push(e.animal); });
+      const rare=A.filter(a=>(a.r==='rare'||a.r==='epic')&&a.e);
+      if(Math.random()<.3&&rare.length){ const a=rare[Math.floor(Math.random()*rare.length)]; return {a,rare:1}; }
+      if(own.length){ const a=own[Math.floor(Math.random()*own.length)]; return {a,rare:0}; }
+      if(rare.length){ const a=rare[Math.floor(Math.random()*rare.length)]; return {a,rare:1}; }
+      return null;
+    },
+    spawn(){
+      const p=Wi._pick(); if(!p) { Wi.nextAt=Date.now()+60000; return; }
+      const ang=Math.random()*Math.PI*2, d=7+Math.random()*6, x=ZG.pl.x+Math.cos(ang)*d, z=ZG.pl.z+Math.sin(ang)*d;
+      const who=WISHER[Math.floor(Math.random()*WISHER.length)], a=p.a;
+      const s=spr((c,w,h)=>{ c.clearRect(0,0,w,h); c.fillStyle='rgba(255,255,255,.97)'; rrect(c,8,6,w-16,150,26); c.fill(); c.strokeStyle=p.rare?'#ff9800':'#7dffb0'; c.lineWidth=7; c.stroke(); c.beginPath(); c.moveTo(w/2-16,156); c.lineTo(w/2,184); c.lineTo(w/2+16,156); c.closePath(); c.fillStyle='rgba(255,255,255,.97)'; c.fill();
+        c.fillStyle='#222'; c.textAlign='center'; c.font='bold 26px Arial'; c.fillText(p.rare?'Ich suche etwas Seltenes!':'Ich wünsche mir …',w/2,40); c.font='64px Arial'; c.fillText(a.e,w/2,112); c.font='bold 28px Arial'; c.fillText(a.n,w/2,146); c.font='110px Arial'; c.fillText(who,w/2,310); },256,330,2.4,3.1);
+      s.position.set(x,1.55,z); ZG.scene.add(s);
+      Wi.w={id:String(Date.now()),a:{id:a.id,n:a.n,e:a.e,r:a.r},rare:p.rare,x,z,until:Date.now()+(p.rare?6:3)*60000}; Wi.sp=s;
+      toast('🧑 Ein Besucher hat einen Wunsch: '+a.e+' '+a.n+'!',3500); try{ if(typeof ZHelp!=='undefined') ZHelp.tip('wish'); }catch(e){}
+    },
+    clear(){ try{ if(Wi.sp){ ZG.scene.remove(Wi.sp); Wi.sp.material.map.dispose(); Wi.sp.material.dispose(); } }catch(e){} Wi.sp=null; Wi.w=null; const c=document.getElementById('zwish-chip'); if(c) c.style.display='none'; const b=document.getElementById('zwish-btn'); if(b) b.style.display='none'; Wi.nextAt=Date.now()+(90+Math.random()*90)*1000; },
+    fulfil(){
+      const w=Wi.w; if(!w) return; if(!Wi._owned(w.a.id)){ toast('Du hast noch kein '+w.a.e+' '+w.a.n+'! Hol dir eins (z. B. in der Gondel).',3800); return; }
+      const r=Math.random(), base=Math.max(50,bal()*(w.rare?.03:.01)); let msg;
+      if(r<.6){ giveMT(base); msg='+'+fmt(base)+' MT Trinkgeld'; }
+      else if(r<.8){ boost('luck',w.rare?3:2,3); msg='🍀 Glück ×'+(w.rare?3:2)+' für 3 Min'; }
+      else if(r<.93){ boost('money',w.rare?3:2,3); msg='💰 Geld ×'+(w.rare?3:2)+' für 3 Min'; }
+      else { giveMT(base*3); msg='🎉 Jackpot! +'+fmt(base*3)+' MT'; }
+      ZS.zoo.wishDone=(ZS.zoo.wishDone||0)+1; save(); toast('🧑 „Danke!“ '+msg,5000); big('🎁 WUNSCH ERFÜLLT!','#7dffb0',2200); Wi.clear();
+    },
+    tick(){
+      try{
+        if(!ready()||typeof rebHas!=='function'||!rebHas('wish')){ if(Wi.w) Wi.clear(); return; }
+        if(busy()){ return; }
+        if(!Wi.w){ if(!Wi.nextAt) Wi.nextAt=Date.now()+25000; if(Date.now()>=Wi.nextAt) Wi.spawn(); return; }
+        const w=Wi.w, left=w.until-Date.now(); if(left<=0){ toast('🧑 Der Besucher ist weitergegangen …',2500); Wi.clear(); return; }
+        const ar=arrow(w.x,w.z), c=chip('zwish-chip',154), own=Wi._owned(w.a.id); c.style.display='block'; c.style.borderLeft='4px solid '+(w.rare?'#ff9800':'#7dffb0');
+        c.textContent='🧑 Wunsch: '+w.a.e+' '+w.a.n+(own?' ✅':' ❌ fehlt')+' · '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0')+' · '+ar.A+' '+Math.round(ar.d)+' m';
+        c.onclick=()=>{ if(ar.d<=5) Wi.fulfil(); else toast('Lauf zum Besucher: '+ar.A+' '+Math.round(ar.d)+' m',2200); };
+        let b=document.getElementById('zwish-btn'); if(!b){ b=document.createElement('button'); b.id='zwish-btn'; b.style.cssText='position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:620;background:#2ecc71;color:#fff;border:none;border-radius:22px;padding:11px 20px;font:900 .95rem Arial;box-shadow:0 4px 16px rgba(0,0,0,.5);display:none;cursor:pointer'; b.onclick=()=>Wi.fulfil(); document.body.appendChild(b); }
+        if(ar.d<=5){ b.style.display='block'; b.textContent='🎁 '+w.a.e+' '+w.a.n+' zeigen'; } else b.style.display='none';
+      }catch(e){}
+    }
+  };
+  setInterval(Wi.tick,1000);
+
+  // ═════════════ 🎪 Wanderzirkus ═════════════
+  const CX=40, CZ=48, PER=3*3600000, DUR=10*60000;
+  const C=window.ZCircus={
+    adm:null, grp:null, ann:null, id:null, until:0, ui:null, _t:0, _loop:false,
+    _inited:false,
+    init(){ if(C._inited) return; const r=RT(); if(!r) return; C._inited=true; try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){} try{ r.ref('zoo_circus').on('value',s=>{ C.adm=s.val()||null; }); }catch(e){} },
+    // aktiv? → {id,until}
+    state(){ const n=tn(), a=C.adm; if(a&&a.until>n) return {id:'a'+a.id,until:a.until,adm:1};
+      const ph=n%PER; if(ph<DUR) return {id:'t'+Math.floor(n/PER),until:n-ph+DUR}; return null; },
+    adminStart(mins){ const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } mins=Math.max(1,Math.min(120,+mins||10)); r.ref('zoo_circus').set({id:String(Date.now()),until:tn()+mins*60000,by:ZS.player}).then(()=>toast('🎪 Wanderzirkus für alle gestartet ('+mins+' Min)')).catch(e=>toast('❌ '+e.message)); },
+    adminStop(){ const r=RT(); if(!r) return; r.ref('zoo_circus').set({id:String(Date.now()),until:0,by:ZS.player}).then(()=>toast('⏹️ Zirkus beendet (der automatische Zirkus-Termin bleibt)')); },
+    _build(){
+      if(C.grp) return; const g=new THREE.Group(); g.position.set(CX,0,CZ);
+      const stripes=(()=>{ const c=document.createElement('canvas'); c.width=256; c.height=64; const x=c.getContext('2d'); for(let i=0;i<8;i++){ x.fillStyle=i%2?'#ffffff':'#e32219'; x.fillRect(i*32,0,32,64); } const t=new THREE.CanvasTexture(c); t.wrapS=THREE.RepeatWrapping; t.repeat.set(2,1); return t; })();
+      const floor=new THREE.Mesh(new THREE.CylinderGeometry(9,9,.06,40),new THREE.MeshBasicMaterial({color:0xd9b77a})); floor.position.y=.03; g.add(floor);
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(5,5,2.6,32,1,true),new THREE.MeshBasicMaterial({map:stripes,side:THREE.DoubleSide})); body.position.y=1.3; g.add(body);
+      const roof=new THREE.Mesh(new THREE.ConeGeometry(5.6,3.2,32,1,true),new THREE.MeshBasicMaterial({map:stripes,side:THREE.DoubleSide})); roof.position.y=4.2; g.add(roof);
+      const pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,2.4,8),new THREE.MeshBasicMaterial({color:0xffd54f})); pole.position.y=6.6; g.add(pole);
+      const flag=spr((c,w,h)=>{ c.font='90px Arial'; c.textAlign='center'; c.fillText('🚩',w/2,80); },128,128,1.6,1.6); flag.position.set(.7,7.6,0); g.add(flag);
+      const sign=spr((c,w,h)=>{ c.fillStyle='rgba(0,0,0,.65)'; rrect(c,4,4,w-8,h-8,22); c.fill(); c.strokeStyle='#ffd54f'; c.lineWidth=5; c.stroke(); c.fillStyle='#ffd54f'; c.font='bold 40px Arial'; c.textAlign='center'; c.fillText('🎪 WANDERZIRKUS',w/2,64); },512,96,6.4,1.2); sign.position.set(0,9,0); g.add(sign);
+      // Eingang (dunkles Tor) + Tiere
+      const door=new THREE.Mesh(new THREE.PlaneGeometry(2.2,2.2),new THREE.MeshBasicMaterial({color:0x2a0a0a,side:THREE.DoubleSide})); door.position.set(0,1.1,5.02); g.add(door);
+      const AN=[['🐘','Elefant'],['🦁','Löwe'],['🐅','Tiger'],['🐒','Affe'],['🦓','Zebra'],['🐻','Bär']]; C.an=[];
+      AN.forEach((a,i)=>{ const ang=Math.PI*.8+i*(Math.PI*1.4/5), r=7.6; const s=spr((c,w,h)=>{ c.font='120px Arial'; c.textAlign='center'; c.fillText(a[0],w/2,130); c.fillStyle='rgba(0,0,0,.6)'; rrect(c,40,150,176,40,12); c.fill(); c.fillStyle='#fff'; c.font='bold 26px Arial'; c.fillText(a[1],w/2,180); },256,200,2.6,2.0); s.position.set(Math.cos(ang)*r,1.2,Math.sin(ang)*r); s.userData.y0=1.2; s.userData.ph=i; g.add(s); C.an.push(s); });
+      ZG.scene.add(g); C.grp=g;
+    },
+    _destroy(){ try{ if(C.grp){ ZG.scene.remove(C.grp); C.grp.traverse(o=>{ if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); } if(o.geometry) o.geometry.dispose(); }); } }catch(e){} C.grp=null; C.an=[]; const c=document.getElementById('zcirc-chip'); if(c) c.style.display='none'; C.closePanel(); },
+    _used(id){ const z=ZS.zoo; if(!z.circ||z.circ.id!==id) z.circ={id,trick:0,wheel:0}; return z.circ; },
+    openPanel(){
+      const st=C.state(); if(!st) return; const u=C._used(st.id); C.closePanel();
+      const el=document.createElement('div'); el.id='zcirc-panel'; el.style.cssText='position:fixed;inset:0;z-index:2147480000;background:rgba(10,4,20,.9);color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:14px';
+      el.innerHTML='<div style="width:min(94vw,380px);background:linear-gradient(135deg,#3a0a14,#1a1038);border:2px solid #ffd54f;border-radius:20px;padding:16px;text-align:center"><div style="display:flex;align-items:center"><div style="flex:1;font-weight:900;color:#ffd54f;font-size:1.1rem">🎪 Wanderzirkus</div><button id="zc-x" style="background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer">✕</button></div><div id="zc-body" style="margin-top:12px"></div></div>';
+      document.body.appendChild(el); C.ui=el; el.querySelector('#zc-x').onclick=C.closePanel; C._home();
+    },
+    closePanel(){ cancelAnimationFrame(C._raf); if(C.ui){ C.ui.remove(); C.ui=null; } },
+    _home(){
+      const b=C.ui&&C.ui.querySelector('#zc-body'); if(!b) return; const st=C.state(); if(!st){ C.closePanel(); return; } const u=C._used(st.id);
+      b.innerHTML='<div style="font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:10px">Pro Zirkus-Besuch darfst du jedes einmal probieren.</div>'
+        +'<button id="zc-t" '+(u.trick?'disabled':'')+' style="display:block;width:100%;padding:13px;margin:6px 0;border-radius:14px;border:none;background:'+(u.trick?'#555':'#e32219')+';color:#fff;font-weight:900;font-size:1rem;cursor:pointer">🎭 Kunststück einüben'+(u.trick?' ✔ erledigt':'')+'</button>'
+        +'<button id="zc-w" '+(u.wheel?'disabled':'')+' style="display:block;width:100%;padding:13px;margin:6px 0;border-radius:14px;border:none;background:'+(u.wheel?'#555':'#8E44AD')+';color:#fff;font-weight:900;font-size:1rem;cursor:pointer">🎡 Glücksrad drehen'+(u.wheel?' ✔ erledigt':'')+'</button>'
+        +'<div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-top:8px">Schau dir auch die Zirkustiere draussen an 🐘🦁🐅</div>';
+      const t=b.querySelector('#zc-t'), w=b.querySelector('#zc-w'); if(t&&!u.trick) t.onclick=C._trick; if(w&&!u.wheel) w.onclick=C._wheel;
+    },
+    _trick(){
+      const b=C.ui&&C.ui.querySelector('#zc-body'); if(!b) return; const st=C.state(); if(!st) return; const u=C._used(st.id); u.trick=1; save();
+      let tries=0, hits=0, zone=.25+Math.random()*.4, pos=0, dir=1, run=true; const W=.2;
+      b.innerHTML='<div style="font-weight:800;margin-bottom:8px">Triff die grüne Zone! (3 Versuche)</div><div id="zc-bar" style="position:relative;height:34px;border-radius:17px;background:#2a2342;overflow:hidden"><div id="zc-zone" style="position:absolute;top:0;bottom:0;background:#2ecc71;opacity:.85"></div><div id="zc-mk" style="position:absolute;top:2px;bottom:2px;width:8px;border-radius:4px;background:#fff"></div></div><div id="zc-st" style="margin:8px 0;font-size:.85rem">Versuch 1 von 3 · Treffer: 0</div><button id="zc-go" style="width:100%;padding:13px;border:none;border-radius:14px;background:#ffd54f;color:#000;font-weight:900;font-size:1.05rem;cursor:pointer">🎯 JETZT!</button>';
+      const zn=b.querySelector('#zc-zone'), mk=b.querySelector('#zc-mk'), stt=b.querySelector('#zc-st'), go=b.querySelector('#zc-go');
+      const setZone=()=>{ zone=.12+Math.random()*(.76-W); zn.style.left=(zone*100)+'%'; zn.style.width=(W*100)+'%'; }; setZone();
+      let last=performance.now(); const loop=n=>{ if(!run) return; const dt=(n-last)/1000; last=n; pos+=dir*dt*(.9+tries*.35); if(pos>=1){ pos=1; dir=-1; } if(pos<=0){ pos=0; dir=1; } mk.style.left='calc('+(pos*100)+'% - 4px)'; C._raf=requestAnimationFrame(loop); }; C._raf=requestAnimationFrame(loop);
+      go.onclick=()=>{ tries++; const hit=pos>=zone&&pos<=zone+W; if(hit) hits++; stt.textContent=(hit?'✅ Treffer! ':'❌ Daneben! ')+(tries<3?'Versuch '+(tries+1)+' von 3':'')+' · Treffer: '+hits;
+        if(tries>=3){ run=false; cancelAnimationFrame(C._raf); go.disabled=true; setTimeout(()=>{ let msg; if(hits>=2){ const rw=Math.max(200,bal()*.02); giveMT(rw); save(); msg='🎭 Bravo! Der Zirkusdirektor schenkt dir <b>+'+fmt(rw)+' MT</b>!'; big('🎭 BRAVO!','#ffd54f',2000); } else msg='Fast! Diesmal hat es nicht gereicht – beim nächsten Zirkus klappt es bestimmt.'; const bb=C.ui&&C.ui.querySelector('#zc-body'); if(bb){ bb.innerHTML='<div style="font-size:1rem;margin:8px 0">'+msg+'</div><button id="zc-b" style="padding:10px 18px;border:none;border-radius:12px;background:#555;color:#fff;font-weight:800;cursor:pointer">Zurück</button>'; bb.querySelector('#zc-b').onclick=C._home; } },700); } else setZone(); };
+    },
+    _wheel(){
+      const b=C.ui&&C.ui.querySelector('#zc-body'); if(!b) return; const st=C.state(); if(!st) return; const u=C._used(st.id); u.wheel=1; save();
+      const P=[[35,'mt1','+1 % deines Guthabens'],[15,'mt3','+3 % deines Guthabens'],[15,'luck','🍀 Glück ×2 (5 Min)'],[15,'money','💰 Geld ×2 (5 Min)'],[10,'vis','👥 Besucher ×2 (5 Min)'],[10,'nix','🎊 Konfetti – diesmal nichts']];
+      let r=Math.random()*100, pr=P[P.length-1]; for(const p of P){ if(r<p[0]){ pr=p; break; } r-=p[0]; }
+      b.innerHTML='<div id="zc-wh" style="font-size:5rem;display:inline-block;transition:transform 2.4s cubic-bezier(.1,.7,.2,1)">🎡</div><div id="zc-wt" style="margin-top:8px;font-weight:800;min-height:40px">Das Rad dreht sich …</div>';
+      const wh=b.querySelector('#zc-wh'); setTimeout(()=>{ wh.style.transform='rotate('+(1080+Math.floor(Math.random()*360))+'deg)'; },30);
+      setTimeout(()=>{ const bb=C.ui&&C.ui.querySelector('#zc-wt'); let txt=pr[2]; const k=pr[1];
+        if(k==='mt1') giveMT(Math.max(100,bal()*.01)); else if(k==='mt3') giveMT(Math.max(300,bal()*.03)); else if(k==='luck') boost('luck',2,5); else if(k==='money') boost('money',2,5); else if(k==='vis') boost('visitor',2,5);
+        save(); if(k!=='nix') big('🎡 GEWONNEN!','#ffd54f',2000);
+        if(bb){ bb.innerHTML='<div style="font-size:1.05rem">'+esc(txt)+'</div><button id="zc-b" style="margin-top:10px;padding:10px 18px;border:none;border-radius:12px;background:#555;color:#fff;font-weight:800;cursor:pointer">Zurück</button>'; bb.querySelector('#zc-b').onclick=C._home; } },2700);
+    },
+    tick(){
+      try{
+        if(!ready()){ return; } C.init(); const st=C.state();
+        if(!st){ if(C.grp||C.id){ C._destroy(); C.id=null; } return; }
+        if(C.id!==st.id){ C.id=st.id; C.until=st.until; if(C.ann!==st.id&&st.until-tn()>20000){ C.ann=st.id; big('🎪 Der Wanderzirkus ist da!','#ffd54f',3500); toast('🎪 Wanderzirkus im Zoo (Osten)! Noch '+Math.ceil((st.until-tn())/60000)+' Min – Kunststücke, Glücksrad & Zirkustiere.',6000); try{ if(typeof ZHelp!=='undefined') setTimeout(()=>ZHelp.tip('circus'),1800); }catch(e){} } }
+        C._build();
+        const ar=arrow(CX,CZ), left=Math.max(0,st.until-tn()), c=chip('zcirc-chip',126); c.style.display='block'; c.style.borderLeft='4px solid #e32219';
+        c.textContent='🎪 Zirkus · '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0')+' · '+(ar.d<=11?'tippen zum Mitmachen':ar.A+' '+Math.round(ar.d)+' m');
+        c.onclick=()=>{ if(ar.d<=11) C.openPanel(); else toast('🎪 Zelt: '+ar.A+' '+Math.round(ar.d)+' m (Osten, hinter dem Eingang)',2600); };
+      }catch(e){}
+    }
+  };
+  setInterval(C.tick,1000);
+  // Zirkustiere wippen
+  const loop=()=>{ try{ if(C.grp&&C.an){ const t=performance.now()/500; C.an.forEach(s=>{ s.position.y=s.userData.y0+Math.abs(Math.sin(t+s.userData.ph))*.35; }); } }catch(e){} requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+  try{ if(window.ZHelp){ ZHelp.TIPS.circus={t:'Wanderzirkus',s:['🎪','➜','🎭','➜','🎡'],d:'Der Zirkus ist kurz im Zoo (im Osten). Lauf hin, tippe oben links aufs Zirkus-Feld: Kunststück üben oder am Glücksrad drehen!'}; ZHelp.TIPS.wish={t:'Besucher-Wunsch',s:['🧑','➜','🐧','➜','🎁'],d:'Ein Besucher wünscht sich ein Tier. Lauf hin und tippe „zeigen“ – du bekommst Trinkgeld!'}; } }catch(e){}
 })();
