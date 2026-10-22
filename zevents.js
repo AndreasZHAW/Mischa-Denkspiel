@@ -493,13 +493,13 @@
         const len=this.ctx.sampleRate; const b=this.ctx.createBuffer(1,len,this.ctx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1; this._noise=b;
         this.on=true; this._step=0; this._next=this.ctx.currentTime+0.15; this._stopAt=Date.now()+(durMs||300000); this._t0=Date.now();
         this._timer=setInterval(()=>this._sched(),80);
-        if(this.mode==='team') this._lyrUI();
+        if(this.mode==='team'||(cfg&&cfg.style==='doc')) this._lyrUI();
         if(this.mode==='lullaby'||(cfg&&cfg.echo)) this._lullSetup();
       }catch(e){ console.log('[Music-debug] '+e.message); }
     },
     stop(){
       if(!this.on) return; this.on=false;
-      clearInterval(this._timer);
+      clearInterval(this._timer); try{ clearTimeout(this._singT); window.speechSynthesis&&speechSynthesis.cancel(); }catch(e){}
       try{ this._master.gain.cancelScheduledValues(this.ctx.currentTime); this._master.gain.setTargetAtTime(0,this.ctx.currentTime,0.5); const m=this._master; setTimeout(()=>{ try{m.disconnect();}catch(e){} },2500); }catch(e){}
       if(this._lyr){ this._lyr.remove(); this._lyr=null; }
       try{ if(this._echo){ const e=this._echo; setTimeout(()=>{ try{e.disconnect();}catch(x){} },3000); this._echo=null; } }catch(x){}
@@ -583,9 +583,47 @@
     _clap(t){ const c=this.ctx,s=c.createBufferSource(); s.buffer=this._noise; const f=c.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1250; f.Q.value=.8; const g=c.createGain(); this._env(g,t,.002,.13,.8); s.connect(f); f.connect(g); g.connect(this._master); s.start(t); s.stop(t+.3); },
     _tom(t,fr){ const c=this.ctx,o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.setValueAtTime(fr,t); o.frequency.exponentialRampToValueAtTime(fr/2.2,t+.22); this._env(g,t,.004,.3,.9); o.connect(g); g.connect(this._master); o.start(t); o.stop(t+.4); },
     _stab(t,ms,len,wave,vol,drive){ ms.forEach(m=>this._bossNote(t,m,len,wave,vol,drive)); },
+    // ── 🤘 „Total im Eimer“: Punk-Rock, 172 BPM, E-Dur-Powerchords, Sprechgesang über die Browser-Stimme ──
+    _DOC:[ '', '',
+      'Ich bin komplett am Ende, mein Akku ist leer!','Die Tiere im Zoo wollen alle noch mehr!','Ich füttere Löwen, ich putze den Stall,','und trotzdem ist Chaos im ganzen Areal!',
+      'Ich bin total im Eimer, mir tun die Füsse weh!','Ich schlafe schon im Stehen, doch ich geb nicht auf, juhee!','Und wenn die Sonne scheint und der Elefant lacht,','dann hab ich es ganz sicher noch einmal gemacht!',
+      'Der Affe klaut Bananen, der Pinguin flitzt,','die Giraffe schaut zu und der Wächter schwitzt!','Ich zähl meine Münzen, es fehlen noch drei,','doch gleich kommt der Blitz, und dann ist alles vorbei!',
+      'Ich bin total im Eimer, mir tun die Füsse weh!','Ich schlafe schon im Stehen, doch ich geb nicht auf, juhee!','Und wenn die Sonne scheint und der Elefant lacht,','dann hab ich es ganz sicher noch einmal gemacht!',
+      'Ahh, ich kann nicht mehr, ich kann nicht mehr!','Aber Pause gibt es erst nach dem nächsten Tier!',
+      'Ich bin total im Eimer, mir tun die Füsse weh!','Ich schlafe schon im Stehen, doch ich geb nicht auf, juhee!','Und wenn die Sonne scheint und der Elefant lacht,','dann hab ich es ganz sicher noch einmal gemacht!',
+      'Total im Eimer – aber glücklich dabei!' ],
+    _sing(line,t,spb){
+      try{
+        if(this._lyr){ this._lyr.textContent=line?('🎤 '+line):'🎸'; }
+        if(!line||!window.speechSynthesis) return;
+        const delay=Math.max(0,(t-this.ctx.currentTime)*1000);
+        clearTimeout(this._singT); this._singT=setTimeout(()=>{ try{
+          if(!this.on) return; const u=new SpeechSynthesisUtterance(line); u.lang='de-DE';
+          const v=(speechSynthesis.getVoices()||[]).filter(x=>/^de/i.test(x.lang)); if(v.length) u.voice=v.find(x=>/female|anna|petra|katja|google/i.test(x.name))||v[0];
+          // Rate so wählen, dass die Zeile in ~2 Takte passt
+          const dur=spb*8, est=Math.max(1,line.length/14); u.rate=Math.max(.9,Math.min(1.9,est/dur*1.0)); u.pitch=1.15; u.volume=1;
+          speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} },delay);
+      }catch(e){}
+    },
     _playSong(step,t,spb){
       const st=this.cfg.style, s=step%16, bar=Math.floor(step/16), b4=bar%4, b8=bar%8;
       const rest=-1;
+      if(st==='doc'){
+        const B=bar%50, line=Math.floor(B/2); // 25 Zeilen à 2 Takte (≈ 70 s, danach Wiederholung)
+        const sec=B<4?0:(B<12?1:(B<20?2:(B<28?1:(B<36?2:(B<40?3:(B<48?2:4))))));
+        const CH=sec===2?[[57,64],[52,59],[59,66],[59,66]]:[[52,59],[52,59],[57,64],[59,66]];
+        const pc=CH[Math.floor(B/2)%4], root=pc[0]-12;
+        // Drums: Punk-Beat (Kick 1+3, Snare 2+4, 8tel-Hi-Hat), Fill am Abschnittsende
+        const fill=(B%8===7&&s>=8);
+        if(s===0||s===8||s===10) this._kick(t); if(s===4||s===12||(fill&&s%2===0)) this._snare(t);
+        if(s%2===0) this._hat(t,s%8===6);
+        // Gitarre: Powerchord-Achtel (Palm-Mute) + Bass
+        if(s%2===0){ this._stab(t,[pc[0]+12,pc[1]+12,pc[0]+24],spb/2*.7,'sawtooth',.045,true); this._bass(t,root,spb/2*.8); }
+        if(sec===2&&s===0) this._stab(t,[pc[0]+24,pc[1]+24],spb*1.6,'square',.04,false);
+        if(s===0&&B%2===0) this._sing(this._DOC[line]||'',t,spb);
+        if(B===49&&s===15) this._clap(t);
+        return;
+      }
       if(st==='party'){
         // C-Dur Party: I–V–vi–IV, Four-on-the-floor, Offbeat-Hi-Hat, Klatschen, hüpfender Bass, Synth-Hook
         const ROOT=[48,43,45,41][b4], TRI=[[60,64,67],[59,62,67],[60,64,69],[60,65,69]][b4];
@@ -1098,6 +1136,8 @@
     hero:{n:'Helden-Fanfare',e:'🏆',style:'hero',bpm:108},
     chase:{n:'Verfolgungsjagd',e:'🏃',style:'chase',bpm:172},
     disco:{n:'Disco-Fieber',e:'🪩',style:'disco',bpm:116},
+    // Punk-Rock mit Sprechgesang (Browser-Stimme) – eigener Text, ohne Schimpfwörter
+    doc:{n:'Total im Eimer (Punk, mit Gesang)',e:'🤘',style:'doc',bpm:172},
     // Sturm-Lied: düsteres, treibendes Moll, 140 BPM, Sägezahn-Lead mit Verzerrung, Donner-Kicks
     storm:{n:'Gewitter-Sturm',e:'⛈️',bpm:140,root:38,scale:[0,2,3,5,7,8,10],wave:'sawtooth',drive:true,bassEvery:4,riff:[0,-1,-1,2,-1,3,-1,-1,5,-1,3,-1,2,-1,0,-1],kick:'x..x..x...x..x..',snare:'....x.......x..x',hat:'x.x.x.x.x.x.x.xx'},
     // Treibender Synth-Pop mit Moll-Arpeggio und Klatschen, 122 BPM
