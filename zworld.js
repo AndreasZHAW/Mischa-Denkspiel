@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v691)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v692)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v691): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v692): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v691) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v692) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v691) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v692) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v691) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v692) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v691) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v692) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v691) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v692) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1073,8 +1073,8 @@
 })();
 
 ;
-/* ZCoaster2 (v691) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v691) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v692) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v692) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1086,11 +1086,11 @@
   const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
   const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
-  const G=9.81, OX=170, OZ=-60, SP=.8;
+  const G=9.81, OX=140, OZ=-35, SP=.8;
   // Strecke: S = gerade (m) · L/R = Winkel, Radius (L = Rechtskurve des Fahrgasts in Fahrtrichtung, siehe cv)
-  const PROG=[['S',12],['S',74],['S',16],['S',38],['L',180,22],['R',180,19],['L',180,17],['S',28],['S',30],['L',180,16],['R',90,21],['R',180,20],['L',180,20],['S',33],['L',90,19],['S',38]];
+  const PROG=[['S',12],['S',74],['S',16],['S',38],['L',180,22],['R',180,19],['L',180,17],['S',28],['S',30],['L',180,16],['R',90,21],['R',180,20],['L',180,20],['S',33],['L',90,19],['S',38],['R',180,15],['L',6,15],['S',103],['R',186,15],['S',26]];
   const KEY=[[0,.9],[12,.9],[86,58],[102,60],[140,3],[160,3],[205,26],[245,5],[290,30],[330,6],[375,24],[410,4],[450,27],[490,5],[530,22],[570,4],[610,18],[650,3],[690,.9]];
-  const hgt=s=>{ if(s<=KEY[0][0]) return KEY[0][1]; for(let i=1;i<KEY.length;i++){ if(s<=KEY[i][0]){ const a=KEY[i-1], b=KEY[i], t=(s-a[0])/(b[0]-a[0]); return a[1]+(b[1]-a[1])*(0.5-0.5*Math.cos(Math.PI*t)); } } return KEY[KEY.length-1][1]; };
+  let KEYX=KEY; const hgt=s=>{ const K=KEYX; if(s<=K[0][0]) return K[0][1]; for(let i=1;i<K.length;i++){ if(s<=K[i][0]){ const a=K[i-1], b=K[i], t=(s-a[0])/(b[0]-a[0]); return a[1]+(b[1]-a[1])*(0.5-0.5*Math.cos(Math.PI*t)); } } return K[K.length-1][1]; };
   const spr=(draw,w,h,sx,sy)=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const tex=new THREE.CanvasTexture(c); const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false})); s.scale.set(sx,sy,1); return s; };
   const sweep=(P,F,off,up,w,h)=>{ const N=P.length, pos=[], idx=[]; const cs=[[-w,-h],[w,-h],[w,h],[-w,h]];
     for(let i=0;i<N;i++){ const c=P[i].clone().addScaledVector(F.R[i],off).addScaledVector(F.U[i],up); cs.forEach(([a,b])=>{ const v=c.clone().addScaledVector(F.R[i],a).addScaledVector(F.U[i],b); pos.push(v.x,v.y,v.z); }); }
@@ -1101,9 +1101,12 @@
     // horizontale Bahn in 0,5-m-Schritten + Höhenprofil
     let x=0,z=0,psi=0,sh=0; const h=.5, raw=[{x:0,z:0,sh:0,cv:0}];
     for(const g of PROG){
-      if(g[0]==='S'){ const n=Math.round(g[1]/h); for(let i=0;i<n;i++){ x+=Math.sin(psi)*h; z+=Math.cos(psi)*h; sh+=h; raw.push({x,z,sh,cv:0}); } }
-      else { const sg=g[0]==='R'?1:-1, r=g[2], n=Math.round(g[1]*Math.PI/180*r/h); for(let i=0;i<n;i++){ psi+=sg*h/r; x+=Math.sin(psi)*h; z+=Math.cos(psi)*h; sh+=h; raw.push({x,z,sh,cv:-sg}); } }
+      if(g[0]==='S'){ const n=Math.max(1,Math.round(g[1]/h)), l=g[1]/n; for(let i=0;i<n;i++){ x+=Math.sin(psi)*l; z+=Math.cos(psi)*l; sh+=l; raw.push({x,z,sh,cv:0}); } }
+      else { const sg=g[0]==='R'?1:-1, r=g[2], A=g[1]*Math.PI/180, n=Math.max(1,Math.round(A*r/h)), dp=sg*A/n, ch=2*r*Math.sin(Math.abs(dp)/2); for(let i=0;i<n;i++){ const pm=psi+dp/2; x+=Math.sin(pm)*ch; z+=Math.cos(pm)*ch; psi+=dp; sh+=ch; raw.push({x,z,sh,cv:-sg}); } }
     }
+    // Schleife schliessen: Endfehler über die letzten 40 m ausgleichen → Ende = Startbahnhof
+    { const ex=x, ez=z, n=raw.length; for(let i=0;i<n;i++){ const f=Math.max(0,(raw[i].sh-(sh-40))/40); raw[i].x-=ex*f*f*(3-2*f); raw[i].z-=ez*f*f*(3-2*f); } }
+    { const K=KEY.slice(); let a=690,i=0; while(a+45<sh-40){ a+=45; K.push([a,(i++%2)?4:14]); } K.push([sh-30,2]); K.push([sh,.9]); KEYX=K; }
     const P3=raw.map(p=>V3(OX+p.x,hgt(p.sh),OZ+p.z));
     // gleichmässig neu abtasten
     const P=[P3[0].clone()], SH=[0], CV=[0]; let acc=0;
@@ -1274,5 +1277,5 @@
 })();
 
 ;
-/* v691 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v692 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
