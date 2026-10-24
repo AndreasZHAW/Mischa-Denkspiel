@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v687)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v689)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v687): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v689): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v687) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v689) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v687) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v689) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v687) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v689) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -674,7 +674,9 @@
       else if(r<.8){ boost('luck',w.rare?3:2,3); msg='🍀 Glück ×'+(w.rare?3:2)+' für 3 Min'; }
       else if(r<.93){ boost('money',w.rare?3:2,3); msg='💰 Geld ×'+(w.rare?3:2)+' für 3 Min'; }
       else { giveMT(base*3); msg='🎉 Jackpot! +'+fmt(base*3)+' MT'; }
-      ZS.zoo.wishDone=(ZS.zoo.wishDone||0)+1; save(); toast('🧑 „Danke!“ '+msg,5000); big('🎁 WUNSCH ERFÜLLT!','#7dffb0',2200); Wi.clear();
+      ZS.zoo.wishDone=(ZS.zoo.wishDone||0)+1; save(); toast('🧑 „Danke!“ '+msg,5000); big('🎁 WUNSCH ERFÜLLT!','#7dffb0',2200);
+      try{ const old=document.getElementById('zwish-got'); if(old) old.remove(); const d=document.createElement('div'); d.id='zwish-got'; d.style.cssText='position:fixed;left:50%;top:38%;transform:translate(-50%,0) scale(.8);z-index:2147482000;background:rgba(14,30,20,.97);border:2px solid #7dffb0;border-radius:18px;padding:14px 20px;color:#fff;font-family:Arial,sans-serif;text-align:center;width:min(78vw,300px);box-shadow:0 8px 30px rgba(0,0,0,.6);opacity:0;transition:all .3s'; d.innerHTML='<div style="font-size:2.2rem">'+w.a.e+' 🧑 🎁</div><div style="font-weight:900;color:#7dffb0;margin:4px 0">Wunsch erfüllt!</div><div style="font-size:.78rem;color:rgba(255,255,255,.7)">Der Besucher bedankt sich und schenkt dir:</div><div style="font-weight:900;font-size:1.05rem;margin-top:5px;color:#ffd54f">'+msg+'</div>'; document.body.appendChild(d); requestAnimationFrame(()=>{ d.style.opacity='1'; d.style.transform='translate(-50%,0) scale(1)'; }); d.onclick=()=>d.remove(); setTimeout(()=>{ d.style.opacity='0'; setTimeout(()=>d.remove(),400); },5200); }catch(e){}
+      Wi.clear();
     },
     tick(){
       try{
@@ -718,7 +720,7 @@
       AN.forEach((a,i)=>{ const ang=Math.PI*.8+i*(Math.PI*1.4/5), r=7.6; const s=spr((c,w,h)=>{ c.font='120px Arial'; c.textAlign='center'; c.fillText(a[0],w/2,130); c.fillStyle='rgba(0,0,0,.6)'; rrect(c,40,150,176,40,12); c.fill(); c.fillStyle='#fff'; c.font='bold 26px Arial'; c.fillText(a[1],w/2,180); },256,200,2.6,2.0); s.position.set(Math.cos(ang)*r,1.2,Math.sin(ang)*r); s.userData.y0=1.2; s.userData.ph=i; g.add(s); C.an.push(s); });
       ZG.scene.add(g); C.grp=g;
     },
-    _destroy(){ try{ if(C.grp){ ZG.scene.remove(C.grp); C.grp.traverse(o=>{ if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); } if(o.geometry) o.geometry.dispose(); }); } }catch(e){} C.grp=null; C.an=[]; const c=document.getElementById('zcirc-chip'); if(c) c.style.display='none'; C.closePanel(); },
+    _destroy(){ try{ if(C.grp){ ZG.scene.remove(C.grp); C.grp.traverse(o=>{ if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); } if(o.geometry) o.geometry.dispose(); }); } }catch(e){} C.grp=null; C.an=[]; const c=document.getElementById('zcirc-chip'); if(c) c.style.display='none'; const ob0=document.getElementById('zcirc-open'); if(ob0) ob0.style.display='none'; C.closePanel(); },
     _used(id){ const z=ZS.zoo; if(!z.circ||z.circ.id!==id) z.circ={id,trick:0,wheel:0}; return z.circ; },
     openPanel(){
       const st=C.state(); if(!st) return; const u=C._used(st.id); C.closePanel();
@@ -765,17 +767,19 @@
         const ar=arrow(CX,CZ), left=Math.max(0,st.until-tn()), c=chip('zcirc-chip',126); c.style.display='block'; c.style.borderLeft='4px solid #e32219';
         c.textContent='🎪 Zirkus · '+Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0')+' · '+(ar.d<=11?'tippen zum Mitmachen':ar.A+' '+Math.round(ar.d)+' m');
         c.onclick=()=>{ if(ar.d<=11) C.openPanel(); else toast('🎪 Zelt: '+ar.A+' '+Math.round(ar.d)+' m (Osten, hinter dem Eingang)',2600); };
+        let ob=document.getElementById('zcirc-open'); if(!ob){ ob=document.createElement('button'); ob.id='zcirc-open'; ob.style.cssText='position:fixed;left:50%;bottom:210px;transform:translateX(-50%);z-index:630;background:#e32219;color:#fff;border:2px solid #ffd54f;border-radius:24px;padding:12px 24px;font:900 1rem Arial;box-shadow:0 4px 16px rgba(0,0,0,.5);cursor:pointer;display:none'; ob.textContent='🎪 Öffnen'; ob.onclick=()=>C.openPanel(); document.body.appendChild(ob); }
+        ob.style.display=(ar.d<=11&&!C.ui&&!busy())?'block':'none';
       }catch(e){}
     }
   };
   setInterval(C.tick,1000);
   // Zirkustiere wippen
   const loop=()=>{ try{ if(C.grp&&C.an){ const t=performance.now()/500; C.an.forEach(s=>{ s.position.y=s.userData.y0+Math.abs(Math.sin(t+s.userData.ph))*.35; }); } }catch(e){} requestAnimationFrame(loop); }; requestAnimationFrame(loop);
-  try{ if(window.ZHelp){ ZHelp.TIPS.circus={t:'Wanderzirkus',s:['🎪','➜','🎭','➜','🎡'],d:'Der Zirkus ist kurz im Zoo (im Osten). Lauf hin, tippe oben links aufs Zirkus-Feld: Kunststück üben oder am Glücksrad drehen!'}; ZHelp.TIPS.wish={t:'Besucher-Wunsch',s:['🧑','➜','🐧','➜','🎁'],d:'Ein Besucher wünscht sich ein Tier. Lauf hin und tippe „zeigen“ – du bekommst Trinkgeld!'}; } }catch(e){}
+  try{ if(window.ZHelp){ ZHelp.TIPS.circus={t:'Wanderzirkus',s:['🎪','➜','🎭','➜','🎡'],d:'Der Zirkus ist kurz im Zoo (im Osten). Lauf hin und tippe auf „🎪 Öffnen“: Kunststück üben oder am Glücksrad drehen!'}; ZHelp.TIPS.wish={t:'Besucher-Wunsch',s:['🧑','➜','🐧','➜','🎁'],d:'Ein Besucher wünscht sich ein Tier. Lauf hin und tippe „zeigen“ – du bekommst Trinkgeld!'}; } }catch(e){}
 })();
 
 ;
-/* ZCoaster (v687) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v689) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -955,4 +959,115 @@
   // Kamera nach dem normalen Kamera-Update überschreiben
   const hook=()=>{ try{ if(typeof ZG==='undefined'||!ZG._camUpdate||ZG._camUpdate._zc) return false; const o=ZG._camUpdate; const w=function(){ o.apply(this,arguments); if(C.ride){ try{ C._cam(); }catch(e){} } }; w._zc=1; ZG._camUpdate=w; return true; }catch(e){ return false; } };
   const iv=setInterval(()=>{ if(hook()) clearInterval(iv); },500);
+})();
+
+;
+/* ZGoals (v689) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+(function(){
+  'use strict';
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const ready=()=>{ try{ return !!(typeof ZS!=='undefined'&&ZS.zoo&&typeof ZG!=='undefined'&&ZG.pl&&typeof ZP!=='undefined'&&ZP.open); }catch(e){ return false; } };
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const day=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  const hash=s=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; };
+  // Ziele: ev = Ereignis, n = Anzahl, lvl 0 leicht / 1 mittel / 2 schwer
+  const POOL=[
+    {id:'shop',lvl:0,e:'🛒',t:'Öffne den Shop',ev:'shop',n:1},
+    {id:'gond',lvl:0,e:'🚡',t:'Besuche die Gondel',ev:'gond',n:1},
+    {id:'pass',lvl:0,e:'🎫',t:'Schau in den MT-Pass',ev:'mtpass',n:1},
+    {id:'walk1',lvl:0,e:'🚶',t:'Laufe 150 Meter',ev:'walk',n:150},
+    {id:'buy1',lvl:1,e:'🐾',t:'Kaufe 1 Tier',ev:'buy',n:1},
+    {id:'walk2',lvl:1,e:'🏃',t:'Laufe 500 Meter',ev:'walk',n:500},
+    {id:'time1',lvl:1,e:'⏱️',t:'Spiele 10 Minuten',ev:'time',n:600},
+    {id:'buy3',lvl:2,e:'🐘',t:'Kaufe 3 Tiere',ev:'buy',n:3},
+    {id:'time2',lvl:2,e:'🕒',t:'Spiele 25 Minuten',ev:'time',n:1500},
+    {id:'walk3',lvl:2,e:'🥾',t:'Laufe 1200 Meter',ev:'walk',n:1200}
+  ];
+  const PCT=[.01,.02,.03], MINR=[100,300,800];
+  const G=window.ZGoals={
+    POOL, el:null, _lx:null, _lz:null,
+    st(){ const z=ZS.zoo; if(!z) return null; let g=z.goals; if(!g||g.d!==day()){ const d=day(); const ids=[0,1,2].map(l=>{ const L=POOL.filter(q=>q.lvl===l); return L[hash(d+':'+(ZS.player||'')+':'+l)%L.length].id; }); g=z.goals={d,ids,p:{},done:{},bonus:0}; try{ ZS.save&&ZS.save(); }catch(e){} } return g; },
+    quests(){ const g=G.st(); return g?g.ids.map(id=>POOL.find(q=>q.id===id)).filter(Boolean):[]; },
+    add(ev,n){ try{ if(!ready()) return; const g=G.st(); if(!g) return; let ch=false; G.quests().forEach(q=>{ if(q.ev!==ev||g.done[q.id]) return; g.p[q.id]=Math.min(q.n,(g.p[q.id]||0)+(n||1)); ch=true; if(g.p[q.id]>=q.n) G._finish(q); }); if(ch){ G._badge(); if(G.el) G.draw(); } }catch(e){} },
+    _finish(q){
+      const g=G.st(); if(g.done[q.id]) return; g.done[q.id]=1; const z=ZS.zoo, r=Math.max(MINR[q.lvl],Math.floor(bal()*PCT[q.lvl])); z.mt=(z.mt||0)+r;
+      big('🎯 Ziel geschafft!','#7CFC00',2200); toast('🎯 '+q.t+' ✓  +'+fmt(r)+' MT',3500);
+      if(G.quests().every(x=>g.done[x.id])&&!g.bonus){ g.bonus=1; const b=Math.floor(bal()*.03); z.mt+=b; try{ if(!z.mtPassBoosts) z.mtPassBoosts={}; const cur=z.mtPassBoosts.luck; const base=(cur&&cur.until>Date.now())?cur.until:Date.now(); z.mtPassBoosts.luck={mult:2,until:base+10*60000}; }catch(e){} setTimeout(()=>{ big('🏆 Alle Tagesziele!','#ffd54f',3000); toast('🏆 Bonus: +'+fmt(b)+' MT und 10 Min Glück ×2 🍀',5000); },1600); }
+      try{ ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){}
+    },
+    _badge(){ const b=document.getElementById('zgoals-badge'); if(!b||!ready()) return; const g=G.st(); if(!g) return; const n=g.ids.filter(id=>g.done[id]).length; b.textContent=n+'/3'; b.style.background=n>=3?'#27ae60':'#e63946'; },
+    open(){ try{ ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p)); }catch(e){} G.close(); const o=document.createElement('div'); o.id='zgoals'; o.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px'; o.onclick=e=>{ if(e.target===o) G.close(); }; document.body.appendChild(o); G.el=o; G.draw(); },
+    close(){ if(G.el){ G.el.remove(); G.el=null; } },
+    draw(){
+      const o=G.el; if(!o) return; const g=G.st(); const Ls=['Leicht','Mittel','Schwer'], Cs=['#27ae60','#f39c12','#e74c3c'];
+      const rows=G.quests().map(q=>{ const p=g.p[q.id]||0, dn=!!g.done[q.id], pc=Math.round(Math.min(1,p/q.n)*100), r=Math.max(MINR[q.lvl],Math.floor(bal()*PCT[q.lvl]));
+        return '<div style="background:rgba(255,255,255,'+(dn?'.04':'.08')+');border-left:4px solid '+Cs[q.lvl]+';border-radius:10px;padding:10px 12px;margin-bottom:8px;'+(dn?'opacity:.7':'')+'"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.4rem">'+q.e+'</span><div style="flex:1"><div style="font-weight:900;font-size:.88rem">'+q.t+(dn?' ✅':'')+'</div><div style="font-size:.68rem;color:rgba(255,255,255,.55)">'+Ls[q.lvl]+' · Belohnung ca. '+fmt(r)+' MT</div></div></div><div style="height:8px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:7px;overflow:hidden"><div style="height:100%;width:'+pc+'%;background:'+(dn?'#27ae60':Cs[q.lvl])+'"></div></div><div style="font-size:.64rem;color:rgba(255,255,255,.5);margin-top:3px;text-align:right">'+(q.ev==='walk'?Math.round(p)+' / '+q.n+' m':q.ev==='time'?Math.floor(p/60)+' / '+Math.round(q.n/60)+' Min':p+' / '+q.n)+'</div></div>'; }).join('');
+      const all=G.quests().every(x=>g.done[x.id]);
+      o.innerHTML='<div style="background:linear-gradient(135deg,#1c2b1f,#10161f);border:1px solid rgba(124,252,0,.4);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;color:#fff;font-family:Arial,sans-serif"><div style="display:flex;align-items:center;margin-bottom:6px"><h2 style="flex:1;margin:0;font-size:1.1rem;color:#7CFC00">🎯 Tagesziele</h2><button onclick="ZGoals.close()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">✕</button></div><div style="font-size:.72rem;color:rgba(255,255,255,.6);margin-bottom:10px">Jeden Tag 3 neue Ziele. Schaffst du alle, gibt es einen Bonus: 3 % deines Guthabens + 10 Min Glück ×2 🍀</div>'+rows+'<div style="text-align:center;font-weight:900;font-size:.8rem;margin-top:4px;color:'+(all?'#7CFC00':'rgba(255,255,255,.5)')+'">'+(all?'🏆 Alle Ziele heute geschafft – bis morgen!':'Noch '+G.quests().filter(x=>!g.done[x.id]).length+' offen')+'</div></div>';
+    }
+  };
+  // ── Ereignisse einhängen + Lauf-/Zeit-Zähler ──
+  let hooked=false;
+  const hookAll=()=>{
+    if(hooked||!ready()) return;
+    const wrap=(obj,fn,cb)=>{ try{ if(!obj||typeof obj[fn]!=='function'||obj[fn]._zg) return; const o=obj[fn]; const w=function(){ const r=o.apply(this,arguments); try{ cb.apply(null,arguments); }catch(e){} return r; }; w._zg=1; obj[fn]=w; }catch(e){} };
+    wrap(ZP,'open',p=>{ if(p==='shop') G.add('shop'); else if(p==='gond') G.add('gond'); });
+    if(typeof MTPass!=='undefined') wrap(MTPass,'open',()=>G.add('mtpass'));
+    if(typeof ZNews!=='undefined') wrap(ZNews,'push',t=>{ if(t==='animal_bought') G.add('buy'); });
+    hooked=true;
+  };
+  setInterval(()=>{ try{
+    if(!ready()) return; hookAll(); G.st(); G._badge();
+    if(document.visibilityState==='visible'){ G.add('time',1); }
+    const x=ZG.pl.x,z=ZG.pl.z; if(G._lx!=null&&!ZG._coasterRide){ const d=Math.hypot(x-G._lx,z-G._lz); if(d>0&&d<8) G.add('walk',d); } G._lx=x; G._lz=z;
+  }catch(e){} },1000);
+
+  // ── Linke Leiste: gruppieren & einklappen ──
+  const css=document.createElement('style'); css.textContent='#hleft .zb-grp{display:flex;flex-direction:column;align-items:center;gap:5px;width:62px}#hleft .zb-grp.zb-c{display:none!important}#hleft .zb-hd .hbb{background:rgba(255,255,255,.14)!important;font-size:1.15rem!important}#zgoals-badge{position:absolute;top:-4px;right:-2px;color:#fff;font:900 .6rem Arial;border-radius:9px;padding:1px 5px;pointer-events:none}';
+  document.head.appendChild(css);
+  const getC=k=>{ try{ const v=localStorage.getItem('zbar_'+k); if(v!==null) return v==='1'; }catch(e){} return window.innerHeight<720; };
+  const setC=(k,v)=>{ try{ localStorage.setItem('zbar_'+k,v?'1':'0'); }catch(e){} };
+  let built=false;
+  const build=()=>{
+    if(built) return true; const hl=document.getElementById('hleft'); if(!hl||!document.getElementById('hb-shop')||!document.getElementById('hb-menu')) return false;
+    const by=sel=>{ try{ return hl.querySelector(sel); }catch(e){ return null; } };
+    const q=(a)=>by(a), hbs=[...hl.querySelectorAll(':scope > .hb')];
+    const find=re=>hbs.find(e=>re.test(e.getAttribute('onclick')||''));
+    // neue Knöpfe
+    const mk=(id,ic,lb,bg,fn)=>{ const d=document.createElement('div'); d.className='hb'; d.id=id; d.style.position='relative'; d.innerHTML='<div class="hbb" style="background:'+bg+'">'+ic+'</div><div class="hbl">'+lb+'</div>'; d.onclick=fn; return d; };
+    const goals=mk('hb-goals','🎯','Ziele','rgba(46,160,67,.9)',()=>G.open()); const bd=document.createElement('span'); bd.id='zgoals-badge'; bd.textContent='0/3'; goals.firstChild.style.position='relative'; goals.appendChild(bd);
+    const help=mk('hb-help','❓','Hilfe','rgba(90,110,200,.9)',()=>ZHelpPanel.open());
+    const always=[by('#hud-toggle'),goals,q('#hb-shop'),find(/goToMarket/),q('#rewardHbZoo'),q('#hb-footstep-style')].filter(Boolean);
+    const social=[find(/open\('report'\)/),find(/open\('trade'\)/),q('#hb-group-join'),find(/showZooRangliste/),q('#hb-tipp')].filter(Boolean);
+    const more=[help,q('#tipsToggleBtn'),q('#hb-mtpass'),find(/DailyCalendar/),find(/open\('sound'\)/),q('#hb-base-editor'),q('#hb-world-editor'),q('#hb-tester-panel'),find(/location\.reload/)].filter(Boolean);
+    const menu=q('#hb-menu');
+    const group=(k,ic,lb,items)=>{ const hd=mk('hb-grp-'+k,ic,lb+' ▾','rgba(255,255,255,.14)',()=>{}); hd.classList.add('zb-hd'); const c=document.createElement('div'); c.className='hb zb-grp'; c.id='zb-grp-'+k; items.forEach(i=>c.appendChild(i)); const set=v=>{ c.classList.toggle('zb-c',v); hd.querySelector('.hbl').textContent=lb+(v?' ▸':' ▾'); setC(k,v); }; hd.onclick=()=>set(!c.classList.contains('zb-c')); const v=getC(k); c.classList.toggle('zb-c',v); hd.querySelector('.hbl').textContent=lb+(v?' ▸':' ▾'); return [hd,c]; };
+    const seq=[...always,...group('soz','👥','Sozial',social),...group('mehr','🧰','Mehr',more)];
+    seq.forEach(e=>hl.insertBefore(e,menu)); built=true; return true;
+  };
+  const bi=setInterval(()=>{ try{ if(build()) clearInterval(bi); }catch(e){ clearInterval(bi); } },700);
+
+  // ── ❓ Hilfe-Fenster ──
+  const H=window.ZHelpPanel={
+    el:null,
+    close(){ if(H.el){ H.el.remove(); H.el=null; } },
+    open(){
+      H.close(); try{ ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p)); }catch(e){}
+      const o=document.createElement('div'); o.id='zhelp-panel'; o.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:16px'; o.onclick=e=>{ if(e.target===o) H.close(); }; H.el=o;
+      const T=(window.ZHelp&&ZHelp.TIPS)||{}; const reb=(ZS.zoo&&ZS.zoo.reb)||0; let rr='';
+      for(let n=1;n<=Math.min(reb,12);n++){ try{ if(typeof REB_TUT!=='undefined'&&REB_TUT[n]) rr+='<button class="zhp-b" data-r="'+n+'">🔄 Neu durch Rebirth '+n+'</button>'; }catch(e){} }
+      o.innerHTML='<div style="background:linear-gradient(135deg,#1c2040,#11142a);border:1px solid rgba(140,160,255,.45);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;color:#fff;font-family:Arial,sans-serif"><div style="display:flex;align-items:center;margin-bottom:8px"><h2 style="flex:1;margin:0;font-size:1.1rem;color:#9fb3ff">❓ Hilfe &amp; Tipps</h2><button onclick="ZHelpPanel.close()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">✕</button></div>'
+        +'<style>.zhp-b{display:block;width:100%;text-align:left;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;margin-bottom:6px;font:700 .82rem Arial;cursor:pointer}.zhp-b:active{background:rgba(255,255,255,.2)}</style>'
+        +'<div style="font-size:.72rem;color:rgba(255,255,255,.6);margin-bottom:8px">Tippe auf etwas, um es dir nochmal zeigen zu lassen.</div>'
+        +'<button class="zhp-b" data-t="1" style="background:rgba(124,252,0,.18)">🎓 Ganzes Tutorial nochmal von vorne</button>'
+        +rr
+        +'<div style="font-weight:900;font-size:.8rem;margin:10px 0 6px;color:#ffd54f">💡 Kurz erklärt</div>'
+        +Object.keys(T).map(k=>'<button class="zhp-b" data-k="'+k+'">'+((T[k].s||[])[0]||'💡')+' '+T[k].t+'</button>').join('')
+        +'<div style="font-size:.66rem;color:rgba(255,255,255,.45);margin-top:8px">Tipp: Im Chat geht auch /tipps.</div></div>';
+      document.body.appendChild(o);
+      o.querySelectorAll('.zhp-b').forEach(b=>b.onclick=()=>{ const k=b.dataset.k, r=b.dataset.r; H.close(); setTimeout(()=>{ try{ if(k) ZHelp.tip(k,true); else if(r) Tutorial.startReb(+r); else Tutorial.start(); }catch(e){ toast('❌ Das ging gerade nicht'); } },200); });
+    }
+  };
 })();
