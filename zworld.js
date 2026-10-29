@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v694)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v696)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v694): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v696): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v694) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v696) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v694) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v696) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v694) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v696) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v694) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v696) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v694) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v696) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1074,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v694) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v694) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v696) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v696) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1278,13 +1278,13 @@
 })();
 
 ;
-/* v694 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v696 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v694) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v694) — 🧠 Tier-Quiz beim Kauf eines neuen Tiers (richtig = +1 % Guthaben). */
+/* ZGuest (v696) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v696) — 🧠 Tier-Quiz beim Kauf eines neuen Tiers (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1370,27 +1370,27 @@
 
 
 ;
-/* ZMeadow (v694) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v696) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
-  const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=5;
+  const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
   const SPX=0, SPZ=62; // Ankunft im Zoo
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&ZG.renderer&&typeof THREE!=='undefined'&&typeof ZS!=='undefined'&&ZS.zoo); }catch(e){ return false; } };
   const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
   const sm=t=>{ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   function drawPortal(ctx,w,h,rot){
-    ctx.clearRect(0,0,w,h); const cx=w/2, cy=h/2, R=w*.36;
+    ctx.clearRect(0,0,w,h); const cx=w/2, cy=h/2, R=w*.36; let _sd=12345; const Math2=Object.create(Math); Math2.random=()=>{ _sd=(_sd*1664525+1013904223)%4294967296; return _sd/4294967296; };
     let g=ctx.createRadialGradient(cx,cy,0,cx,cy,w*.5); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.25,'rgba(200,235,255,.95)'); g.addColorStop(.5,'rgba(60,140,255,.6)'); g.addColorStop(.8,'rgba(20,70,200,.25)'); g.addColorStop(1,'rgba(0,30,120,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
     ctx.lineCap='round'; ctx.lineJoin='round'; ctx.shadowColor='#5cf'; ctx.shadowBlur=16;
-    for(let k=0;k<34;k++){ const a0=Math.random()*Math.PI*2, len=.25+Math.random()*.9, rr=R*(.86+Math.random()*.3); ctx.strokeStyle=k%3?'rgba(255,255,255,.95)':'rgba(130,200,255,.9)'; ctx.lineWidth=1+Math.random()*2.6; ctx.beginPath();
-      const n=7+Math.floor(Math.random()*6); for(let i=0;i<=n;i++){ const a=a0+len*i/n, r2=rr+(Math.random()-.5)*w*.07; const x=cx+Math.cos(a+rot)*r2, y=cy+Math.sin(a+rot)*r2; if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y); } ctx.stroke(); }
-    for(let k=0;k<14;k++){ const a=Math.random()*Math.PI*2, r1=R*.9, r2=R*(1.2+Math.random()*.25); ctx.strokeStyle='rgba(190,225,255,.8)'; ctx.lineWidth=1+Math.random()*1.6; ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1); let px=cx+Math.cos(a)*r1, py=cy+Math.sin(a)*r1; for(let i=1;i<=4;i++){ const t=i/4, rr=r1+(r2-r1)*t; px=cx+Math.cos(a+(Math.random()-.5)*.2)*rr; py=cy+Math.sin(a+(Math.random()-.5)*.2)*rr; ctx.lineTo(px,py); } ctx.stroke(); }
+    for(let k=0;k<34;k++){ const a0=Math2.random()*Math.PI*2, len=.25+Math2.random()*.9, rr=R*(.86+Math2.random()*.3); ctx.strokeStyle=k%3?'rgba(255,255,255,.95)':'rgba(130,200,255,.9)'; ctx.lineWidth=1+Math2.random()*2.6; ctx.beginPath();
+      const n=7+Math.floor(Math2.random()*6); for(let i=0;i<=n;i++){ const a=a0+len*i/n, r2=rr+(Math2.random()-.5)*w*.07; const x=cx+Math.cos(a+rot)*r2, y=cy+Math.sin(a+rot)*r2; if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y); } ctx.stroke(); }
+    for(let k=0;k<14;k++){ const a=Math2.random()*Math.PI*2, r1=R*.9, r2=R*(1.2+Math2.random()*.25); ctx.strokeStyle='rgba(190,225,255,.8)'; ctx.lineWidth=1+Math2.random()*1.6; ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1); let px=cx+Math.cos(a)*r1, py=cy+Math.sin(a)*r1; for(let i=1;i<=4;i++){ const t=i/4, rr=r1+(r2-r1)*t; px=cx+Math.cos(a+(Math2.random()-.5)*.2)*rr; py=cy+Math.sin(a+(Math2.random()-.5)*.2)*rr; ctx.lineTo(px,py); } ctx.stroke(); }
     ctx.shadowBlur=0;
   }
   function mkPortal(size){
     const c=document.createElement('canvas'); c.width=c.height=256; const ctx=c.getContext('2d'); drawPortal(ctx,256,256,0); const tex=new THREE.CanvasTexture(c);
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); sp.scale.set(size,size,1); sp.userData={ctx,tex,rot:0,at:0}; return sp;
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); sp.scale.set(size,size,1); sp.frustumCulled=false; sp.renderOrder=999; sp.material.depthTest=false; sp.userData={ctx,tex,rot:0,at:0}; return sp;
   }
   function animPortal(sp,now){ if(!sp) return; const u=sp.userData; if(now-u.at<90) return; u.at=now; u.rot+=.12; drawPortal(u.ctx,256,256,u.rot); u.tex.needsUpdate=true; }
   const M=window.ZMeadow={
@@ -1416,20 +1416,55 @@
         else if(kind==='whoosh'){ const nb=c.createBuffer(1,c.sampleRate*6,c.sampleRate), d=nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; const src=c.createBufferSource(); src.buffer=nb; const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=2; bp.frequency.setValueAtTime(200,now); bp.frequency.exponentialRampToValueAtTime(3000,now+4.5); bp.frequency.exponentialRampToValueAtTime(400,now+6); const g=c.createGain(); g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(.35,now+2); g.gain.linearRampToValueAtTime(.05,now+5.4); g.gain.linearRampToValueAtTime(.3,now+5.6); g.gain.linearRampToValueAtTime(0,now+9); src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(now); src.stop(now+9); } }catch(e){} },
     begin(){
       if(M.on||!ready()){ if(!ready()&&typeof Tutorial!=='undefined') setTimeout(()=>Tutorial.advance(),200); return; }
-      M.on=true; M.stage='walk'; M.prog={l:0,r:0,f:0,b:0}; M._build(); M.saved={x:ZG.pl.x,z:ZG.pl.z,yaw:ZG.yaw};
-      ZG._meadowActive=true; ZG.pl.x=MX; ZG.pl.z=MZ+12; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0; M._last={x:ZG.pl.x,z:ZG.pl.z};
+      M.on=true; M.stage='joy'; M._compact=false; M.prog={l:0,r:0,f:0,b:0}; M._build(); M.saved={x:ZG.pl.x,z:ZG.pl.z,yaw:ZG.yaw};
+      ZG._meadowActive=true; ZG.pl.x=MX; ZG.pl.z=MZ+2; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0; M._last={x:ZG.pl.x,z:ZG.pl.z};
       M._flash(); M._startLoop(); M._renderList();
+      setTimeout(()=>{ try{ M._joyStage(); }catch(e){ M.stage='info'; } },60);
     },
     _flash(){ const f=document.createElement('div'); f.style.cssText='position:fixed;inset:0;z-index:9690;background:#fff;opacity:1;transition:opacity 1.1s;pointer-events:none'; document.body.appendChild(f); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.opacity='0'; })); setTimeout(()=>f.remove(),1400); },
-    _renderList(){ const l=document.getElementById('tm-list'); if(!l) return; const it=[['l','⬅️','Links'],['r','➡️','Rechts'],['f','⬆️','Vorne'],['b','⬇️','Zurück']]; l.innerHTML=it.map(([k,ic,n])=>{ const v=Math.min(1,M.prog[k]/NEED), ok=v>=1; return '<div style="background:'+(ok?'rgba(46,204,113,.28)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:6px 8px;text-align:left"><div style="font-weight:900;font-size:.8rem">'+ic+' '+n+(ok?' ✅':'')+'</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(v*100)+'%;background:'+(ok?'#2ecc71':'#ffd54f')+'"></div></div></div>'; }).join(''); },
+    _ov(){ return document.getElementById('tut-overlay'); },
+    _box(){ const o=M._ov(); if(!o) return null; return Array.from(o.children).find(e=>e.style&&e.style.zIndex==='9701'&&e.tagName==='DIV'&&!e.id)||null; },
+    _killFx(){ ['zm-dim','zm-ring'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); },
+    _joyVisible(){ let touch=false; try{ touch=('ontouchstart' in window)||navigator.maxTouchPoints>0||matchMedia('(pointer:coarse)').matches; }catch(e){} if(!touch) return null; const j=document.getElementById('jzone'); if(!j) return null; const r=j.getBoundingClientRect(); return (r.width>20&&r.height>20&&getComputedStyle(j).display!=='none')?j:null; },
+    // Stufe 1: alles schwarz ausser dem Joystick (nur wenn es einen Joystick gibt)
+    _joyStage(){
+      const j=M._joyVisible(), o=M._ov(), box=M._box(); if(!o) return;
+      const td=o.firstElementChild; if(td&&td!==box) td.style.display='none';
+      if(!j){ M._infoStage(); return; }
+      const r=j.getBoundingClientRect(), pad=14, L=Math.max(0,r.left-pad), T=Math.max(0,r.top-pad), R=r.right+pad, B=r.bottom+pad;
+      const d=document.createElement('div'); d.id='zm-dim'; d.style.cssText='position:fixed;inset:0;z-index:9699;pointer-events:none;background:rgba(0,0,0,.95);clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,'+L+'px '+T+'px,'+R+'px '+T+'px,'+R+'px '+B+'px,'+L+'px '+B+'px,'+L+'px '+T+'px)'; document.body.appendChild(d);
+      const ring=document.createElement('div'); ring.id='zm-ring'; ring.style.cssText='position:fixed;z-index:9699;pointer-events:none;left:'+L+'px;top:'+T+'px;width:'+(R-L)+'px;height:'+(B-T)+'px;border:3px solid #FFD700;border-radius:50%;box-shadow:0 0 24px rgba(255,215,0,.9);animation:tutPulse 1.1s infinite'; document.body.appendChild(ring);
+      if(box){ box.style.top='14%'; box.style.bottom='auto'; box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">🕹️ Das ist dein Joystick</div><div style="font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.4">Er ist unten links. <b>Berühre ihn</b> und schiebe ihn in eine Richtung — dann läufst du los. Mit dem Finger auf dem restlichen Bildschirm schaust du dich um.</div><div style="margin-top:10px;font-size:.72rem;color:rgba(255,215,0,.8);font-weight:700">👉 Tippe auf den Joystick</div>'; }
+      M._yaw0=ZG.yaw;
+    },
+    // Stufe 2: Erklärung mit „Verstanden“
+    _infoStage(){
+      M.stage='info'; M._killFx(); const o=M._ov(), box=M._box(); if(!o||!box){ M.stage='walk'; return; }
+      const d=document.createElement('div'); d.id='zm-dim'; d.style.cssText='position:fixed;inset:0;z-index:9699;pointer-events:none;background:rgba(0,0,0,.5)'; document.body.appendChild(d);
+      box.style.top='auto'; box.style.bottom='190px'; box.style.pointerEvents='auto';
+      box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">🌿 Laufen lernen</div><div style="font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.4">Lauf mit dem Joystick (am Computer: W A S D) je <b>'+NEED+' Meter</b> nach <b>links</b>, <b>rechts</b>, <b>vorne</b> und <b>hinten</b>. Wenn du auf „Verstanden“ tippst, rückt dieser Kasten nach oben, damit du alles siehst.</div><div id="tm-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px"></div><button id="tm-ok" style="margin-top:12px;background:linear-gradient(135deg,#FFD700,#E0A800);border:none;color:#000;font-weight:900;padding:9px 24px;border-radius:50px;cursor:pointer;font-size:.9rem">Verstanden ✓</button>';
+      M._compact=false; M._renderList();
+      const ok=box.querySelector('#tm-ok'); ok.onclick=()=>M._walkStage();
+    },
+    // Stufe 3: Kasten klein nach oben, freie Sicht
+    _walkStage(){
+      M._killFx(); const box=M._box(); M.stage='walk'; M._last={x:ZG.pl.x,z:ZG.pl.z}; if(!box) return;
+      box.style.pointerEvents='none'; box.style.top='58px'; box.style.bottom='auto'; box.style.padding='9px 12px'; box.style.maxWidth='min(92vw,360px)';
+      box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:.9rem;margin-bottom:6px">🌿 Wohin noch? <span style="font-weight:600;font-size:.72rem;color:rgba(255,255,255,.7)">(je '+NEED+' m)</span></div><div id="tm-list" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px"></div>';
+      M._compact=true; M._renderList();
+    },
+    _renderList(){ const l=document.getElementById('tm-list'); if(!l) return; const it=[['l','⬅️','Links'],['r','➡️','Rechts'],['f','⬆️','Vorne'],['b','⬇️','Zurück']]; l.innerHTML=it.map(([k,ic,n])=>{ const v=Math.min(1,M.prog[k]/NEED), ok=v>=1; return '<div style="background:'+(ok?'rgba(46,204,113,.28)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:'+(M._compact?'4px 5px':'6px 8px')+';text-align:left"><div style="font-weight:900;font-size:'+(M._compact?'.66rem':'.8rem')+'">'+ic+' '+(M._compact?'':n)+(ok?' ✅':(M._compact?' '+Math.max(0,Math.ceil(NEED-M.prog[k]))+' m':''))+'</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(v*100)+'%;background:'+(ok?'#2ecc71':'#ffd54f')+'"></div></div></div>'; }).join(''); },
     _startLoop(){ cancelAnimationFrame(M._raf); let t0=performance.now(); const lp=n=>{ if(!M.on) return; const dt=Math.min(.1,(n-t0)/1000); t0=n; try{ M._tick(dt,n); }catch(e){} M._raf=requestAnimationFrame(lp); }; M._raf=requestAnimationFrame(lp); },
     _tick(dt,now){
-      if(M.portal){ animPortal(M.portal,now); const a=Math.min(1,(now-M._pt)/1200); if(!M.cut||M.cut.phase==='A') M.portal.material.opacity=a; M.portal.position.y=PY+Math.sin(now/600)*.12; }
+      if(M.portal){ animPortal(M.portal,now); const a=Math.max(0,Math.min(1,(now-M._pt)/1200)); if(!(a>=0)) M.portal.material.opacity=1; if(!M.cut||M.cut.phase==='A') M.portal.material.opacity=a; M.portal.position.y=PY+Math.sin(now/600)*.12; }
       if(M.portal2){ animPortal(M.portal2,now); }
       if(M.cut) return;
       const p=ZG.pl; // Plattform-Rand
       p.x=Math.max(MX-HALF,Math.min(MX+HALF,p.x)); p.z=Math.max(MZ-HALF,Math.min(MZ+HALF,p.z));
-      if(M.stage==='walk'){
+      if(M.stage==='joy'){
+        let moved=false; try{ moved=!!ZG.joy.on; }catch(e){} try{ const K=ZG.keys||{}; if(K.KeyW||K.KeyA||K.KeyS||K.KeyD||K.ArrowUp||K.ArrowDown||K.ArrowLeft||K.ArrowRight) moved=true; }catch(e){} if(M._yaw0!=null&&Math.abs((ZG.yaw||0)-M._yaw0)>.08) moved=true;
+        if(moved) M._infoStage(); M._last={x:p.x,z:p.z};
+      } else if(M.stage==='walk'){
         const dx=p.x-M._last.x, dz=p.z-M._last.z; M._last={x:p.x,z:p.z}; const d=Math.hypot(dx,dz);
         if(d>0&&d<3){ const y=ZG.yaw||0, fw=dx*(-Math.sin(y))+dz*(-Math.cos(y)), rt=dx*Math.cos(y)-dz*Math.sin(y); const P=M.prog; const th=.02; if(fw>th) P.f+=fw; else if(fw<-th) P.b-=fw; if(rt>th) P.r+=rt; else if(rt<-th) P.l-=rt; M._renderList(); }
         if(['l','r','f','b'].every(k=>M.prog[k]>=NEED)){ M.stage='portal'; M._showPortal(); M._sfx('chime'); toast('🌀 Ein Portal ist aufgegangen!',3000); setTimeout(()=>{ try{ Tutorial.advance(); }catch(e){} },900); }
@@ -1484,7 +1519,7 @@
       const was=M.cut; M.on=false; cancelAnimationFrame(M._raf); M.cut=null; ZG._meadowCut=false; ZG._meadowActive=false; M.stage='walk';
       try{ ZG.renderer.domElement.style.filter=''; }catch(e){}
       if(was&&was._ov) was._ov.remove(); document.querySelectorAll('#zmeadow-fx').forEach(e=>e.remove());
-      if(M.portal){ ZG.scene.remove(M.portal); M.portal=null; } if(M.portal2){ ZG.scene.remove(M.portal2); M.portal2=null; }
+      M._killFx(); if(M.portal){ ZG.scene.remove(M.portal); M.portal=null; } if(M.portal2){ ZG.scene.remove(M.portal2); M.portal2=null; }
       try{ if(window.ZDrone&&!ZDrone.on) ZDrone._rm(); else if(window.ZDrone&&ZDrone.on) ZDrone.pos=null; }catch(e){}
       if(M.grp){ ZG.scene.remove(M.grp); M.grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); } }); M.grp=null; }
       ZG.pl.x=SPX; ZG.pl.z=SPZ; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0;
