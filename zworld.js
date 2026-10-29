@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v692)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v694)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v692): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v694): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -313,20 +313,20 @@
     // Zufälliges Wetter: alle 8 Minuten neu, bei allen Spielern gleich
     _auto(){ const slot=Math.floor(Date.now()/480000), g=rng(slot*7919+13), r=g(); return {type:r<.3?'clear':r<.6?'sun':r<.85?'rain':'storm',dir:g()*Math.PI*2,auto:1}; },
     calc(){ const o=W.ovr; W.cur=(o&&o.until>Date.now()&&TYPES[o.type])?{type:o.type,dir:+o.dir||0,ovr:1,until:o.until}:W._auto(); return W.cur; },
-    on(){ try{ if(typeof ZG==='undefined'||!ZG.scene||!ZG.cam||!ZS.zoo) return false; if(typeof rebHas==='function'&&!rebHas('weather')&&!(W.ovr&&W.ovr.type==='storm'&&W.ovr.until>Date.now())) return false; if(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive) return false; return true; }catch(e){ return false; } },
+    on(){ try{ if(typeof ZG==='undefined'||!ZG.scene||!ZG.cam||!ZS.zoo) return false; if(typeof rebHas==='function'&&!rebHas('weather')&&!(W.ovr&&W.ovr.type==='storm'&&W.ovr.until>Date.now())) return false; if(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive) return false; return true; }catch(e){ return false; } },
     adminSet(type,dirRad,mins){ const r=R(); if(!r) return Promise.reject(new Error('Keine Cloud')); if(!type){ return r.ref('zoo_weather').remove(); } return r.ref('zoo_weather').set({type,dir:(dirRad==null?Math.random()*Math.PI*2:dirRad),until:Date.now()+Math.max(1,mins||10)*60000,by:ZS.player,id:Date.now()}); },
     _mkUI(){
       if(W._ui) return; const d=document.createElement('div'); d.id='zw-ui';
-      d.innerHTML='<div id="zw-tint" style="position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity 1.5s"></div><div id="zw-sun" style="position:fixed;top:-20px;right:-20px;font-size:7rem;pointer-events:none;z-index:4;opacity:0;transition:opacity 1.5s;filter:drop-shadow(0 0 30px rgba(255,220,80,.9))">☀️</div>'
+      d.innerHTML='<div id="zw-tint" style="position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.5s"></div><div id="zw-sun" style="position:fixed;top:-20px;right:-20px;font-size:7rem;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.5s;filter:drop-shadow(0 0 30px rgba(255,220,80,.9))">☀️</div>'
         +'<div id="zw-chip" style="position:fixed;left:8px;top:70px;z-index:600;background:rgba(0,0,0,.55);color:#fff;font:700 .72rem Arial;padding:4px 9px;border-radius:14px;display:none;align-items:center;gap:6px;pointer-events:none"><span id="zw-t"></span></div>';
-      document.body.appendChild(d); W._ui=d;
+      (document.getElementById('s-zoo')||document.body).appendChild(d); W._ui=d;
     },
     _mkRain(){
       if(W._rain) return; const N=520, pos=new Float32Array(N*6), dr=[]; for(let i=0;i<N;i++) dr.push({x:(Math.random()-.5)*50,y:Math.random()*24,z:(Math.random()-.5)*50});
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); const m=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xa9d0ff,transparent:true,opacity:.65})); m.frustumCulled=false; m.visible=false; ZG.scene.add(m); W._rain={m,g,dr,N};
     },
     // ⚡ Blitze: Warnkreis am Boden (1,2 s), dann Einschlag. Wer im Kreis steht: 3 Herzen Schaden + „BLITZ"
-    _flash(op){ let f=document.getElementById('zw-bolt'); if(!f){ f=document.createElement('div'); f.id='zw-bolt'; f.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:5;background:#fff;opacity:0'; document.body.appendChild(f); } f.style.transition='none'; f.style.opacity=op; setTimeout(()=>{ f.style.transition='opacity .5s'; f.style.opacity=0; },60); },
+    _flash(op){ let f=document.getElementById('zw-bolt'); if(!f){ f=document.createElement('div'); f.id='zw-bolt'; f.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:105;background:#fff;opacity:0'; (document.getElementById('s-zoo')||document.body).appendChild(f); } f.style.transition='none'; f.style.opacity=op; setTimeout(()=>{ f.style.transition='opacity .5s'; f.style.opacity=0; },60); },
     _thunder(delay,vol){ setTimeout(()=>{ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return; const c=W._ac=W._ac||new A(); const n=c.sampleRate*1.8, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2); const s=c.createBufferSource(); s.buffer=b; const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=380; const g=c.createGain(); g.gain.value=vol; s.connect(lp); lp.connect(g); g.connect(c.destination); s.start(); }catch(e){} },delay); },
     _mkBolt(x,z){
       const g=new THREE.Group(), pts=[]; let px=x, pz=z; for(let i=0;i<=9;i++){ const y=36-i*4; pts.push(new THREE.Vector3(px,Math.max(0,y),pz)); px=x+(i<9?(Math.random()-.5)*5:0); pz=z+(i<9?(Math.random()-.5)*5:0); }
@@ -374,7 +374,7 @@
       const ui=W._ui; if(!W.on()){ if(ui){ ui.querySelector('#zw-chip').style.display='none'; ui.querySelector('#zw-tint').style.opacity=0; ui.querySelector('#zw-sun').style.opacity=0; } if(W._rain) W._rain.m.visible=false; if(W._strikes.length) W._clearStrikes(); if(W._pg) W._pg.visible=false; return; }
       W.init(); W._mkUI(); W._mkRain(); const c=W.calc(), T=TYPES[c.type];
       const tint=W._ui.querySelector('#zw-tint'), sun=W._ui.querySelector('#zw-sun'), chip=W._ui.querySelector('#zw-chip');
-      tint.style.background=c.type==='storm'?'rgba(3,5,22,.66)':c.type==='rain'?'rgba(45,65,100,.28)':c.type==='sun'?'radial-gradient(circle at 90% 0%,rgba(255,220,100,.28),rgba(255,200,80,.06) 60%)':'transparent'; tint.style.opacity=(c.type==='clear')?0:1;
+      tint.style.background=c.type==='storm'?'radial-gradient(ellipse at 50% 38%,rgba(4,7,26,.68),rgba(0,2,12,.88))':c.type==='rain'?'rgba(35,50,85,.4)':c.type==='sun'?'radial-gradient(circle at 90% 0%,rgba(255,220,100,.28),rgba(255,200,80,.06) 60%)':'transparent'; tint.style.opacity=(c.type==='clear')?0:1;
       sun.style.opacity=c.type==='sun'?1:0; chip.style.display='flex'; W._ui.querySelector('#zw-t').textContent=T.ic+' '+T.n+(c.ovr?' (Admin)':'');
       W.frame(dt); W._puddles(c,dt);
       if(c.type==='storm') W._strikeTick(dt); else if(W._strikes.length) W._clearStrikes();
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v692) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v694) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v692) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v694) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v692) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v694) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -632,7 +632,7 @@
   const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive); }catch(e){ return false; } };
   const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const boost=(type,mult,mins)=>{ const z=ZS.zoo, now=Date.now(); if(!z.mtPassBoosts) z.mtPassBoosts={}; const cur=z.mtPassBoosts[type], base=(cur&&cur.until>now)?cur.until:now; z.mtPassBoosts[type]={mult:Math.max(mult,(cur&&cur.until>now)?cur.mult:0),until:base+mins*60000}; };
   const giveMT=n=>{ const z=ZS.zoo; z.mt=(z.mt||0)+Math.round(n); };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v692) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v694) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -788,7 +788,7 @@
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
   const isAdm=()=>{ try{ return !!(window.ZBases&&ZBases.isEd&&ZBases.isEd()); }catch(e){ return false; } };
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive); }catch(e){ return false; } };
   const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
   const smooth=t=>t*t*(3-2*t);
   const G=9.81, X0=-70, ZST=-12;           // Station / Streckenstart (Welt-Koordinaten)
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v692) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v694) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -988,7 +988,7 @@
   const PCT=[.01,.02,.03], MINR=[100,300,800];
   const G=window.ZGoals={
     POOL, el:null, _lx:null, _lz:null,
-    st(){ const z=ZS.zoo; if(!z) return null; let g=z.goals; if(!g||g.d!==day()){ const d=day(); const ids=[0,1,2].map(l=>{ const L=POOL.filter(q=>q.lvl===l); return L[hash(d+':'+(ZS.player||'')+':'+l)%L.length].id; }); g=z.goals={d,ids,p:{},done:{},bonus:0}; try{ ZS.save&&ZS.save(); }catch(e){} } return g; },
+    st(){ const z=ZS.zoo; if(!z) return null; let g=z.goals; if(!g||g.d!==day()){ const d=day(); const used=[]; const ids=[0,1,2].map(l=>{ let L=POOL.filter(q=>q.lvl===l&&!used.includes(q.ev)); if(!L.length) L=POOL.filter(q=>q.lvl===l); const q=L[hash(d+':'+(ZS.player||'')+':'+l)%L.length]; used.push(q.ev); return q.id; }); g=z.goals={d,ids,p:{},done:{},bonus:0}; try{ ZS.save&&ZS.save(); }catch(e){} } return g; },
     quests(){ const g=G.st(); return g?g.ids.map(id=>POOL.find(q=>q.id===id)).filter(Boolean):[]; },
     add(ev,n){ try{ if(!ready()) return; const g=G.st(); if(!g) return; let ch=false; G.quests().forEach(q=>{ if(q.ev!==ev||g.done[q.id]) return; g.p[q.id]=Math.min(q.n,(g.p[q.id]||0)+(n||1)); ch=true; if(g.p[q.id]>=q.n) G._finish(q); }); if(ch){ G._badge(); if(G.el) G.draw(); } }catch(e){} },
     _finish(q){
@@ -1040,7 +1040,8 @@
     const goals=mk('hb-goals','🎯','Ziele','rgba(46,160,67,.9)',()=>G.open()); const bd=document.createElement('span'); bd.id='zgoals-badge'; bd.textContent='0/3'; goals.firstChild.style.position='relative'; goals.appendChild(bd);
     const help=mk('hb-help','❓','Hilfe','rgba(90,110,200,.9)',()=>ZHelpPanel.open());
     const always=[by('#hud-toggle'),goals,q('#hb-shop'),find(/goToMarket/),q('#rewardHbZoo'),q('#hb-footstep-style')].filter(Boolean);
-    const social=[find(/open\('report'\)/),find(/open\('trade'\)/),q('#hb-group-join'),find(/showZooRangliste/),q('#hb-tipp')].filter(Boolean);
+    const gb=mk('hb-guest','📖','Gästebuch','rgba(176,120,60,.95)',()=>ZGuest.open()); const gbd=document.createElement('span'); gbd.id='zguest-badge'; gbd.style.cssText='position:absolute;top:-4px;right:-2px;color:#fff;background:#e63946;font:900 .6rem Arial;border-radius:9px;padding:1px 5px;pointer-events:none;display:none'; gb.appendChild(gbd);
+    const social=[gb,find(/open\('report'\)/),find(/open\('trade'\)/),q('#hb-group-join'),find(/showZooRangliste/),q('#hb-tipp')].filter(Boolean);
     const more=[help,q('#tipsToggleBtn'),q('#hb-mtpass'),find(/DailyCalendar/),find(/open\('sound'\)/),q('#hb-base-editor'),q('#hb-world-editor'),q('#hb-tester-panel'),find(/location\.reload/)].filter(Boolean);
     const menu=q('#hb-menu');
     const group=(k,ic,lb,items)=>{ const hd=mk('hb-grp-'+k,ic,lb+' ▾','rgba(255,255,255,.14)',()=>{}); hd.classList.add('zb-hd'); const c=document.createElement('div'); c.className='hb zb-grp'; c.id='zb-grp-'+k; items.forEach(i=>c.appendChild(i)); const set=v=>{ c.classList.toggle('zb-c',v); hd.querySelector('.hbl').textContent=lb+(v?' ▸':' ▾'); setC(k,v); }; hd.onclick=()=>set(!c.classList.contains('zb-c')); const v=getC(k); c.classList.toggle('zb-c',v); hd.querySelector('.hbl').textContent=lb+(v?' ▸':' ▾'); return [hd,c]; };
@@ -1073,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v692) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v692) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v694) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v694) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1082,7 +1083,7 @@
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive); }catch(e){ return false; } };
   const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
   const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -1271,11 +1272,224 @@
   const mkBtn=()=>{ if(document.getElementById('zdrone-btn')) return true; const w=document.getElementById('home-arrow-wrap'); if(!w||!document.getElementById('hud')) return false; const b=document.createElement('button'); b.id='zdrone-btn'; b.innerHTML='🚁<div style="font:800 .55rem Arial;margin-top:-2px">Kamera</div>'; const r=w.getBoundingClientRect(); b.style.cssText='position:fixed;right:34px;top:'+(Math.round(r.bottom)+6)+'px;z-index:140;width:52px;height:46px;border-radius:14px;border:2px solid rgba(255,255,255,.55);color:#fff;font-size:1.25rem;line-height:1;cursor:pointer;background:'+(D.on?'rgba(46,160,255,.92)':'rgba(0,0,0,.7)')+';padding:2px'; b.onclick=D.toggle; document.body.appendChild(b); return true; };
   setInterval(()=>{ try{ if(!ready()) return; mkBtn(); const b=document.getElementById('zdrone-btn'); if(b){ const hud=document.getElementById('hud'); const vis=!ZG._coasterRide&&!busy()&&(!hud||!hud.classList.contains('off')); b.style.display=vis?'block':'none'; const w=document.getElementById('home-arrow-wrap'); if(w){ const rr=w.getBoundingClientRect(); if(rr.bottom>0) b.style.top=(Math.round(rr.bottom)+6)+'px'; } } }catch(e){} },1000);
   // Kamera-Hooks (nach dem normalen Kamera-Update)
-  const hook=()=>{ try{ if(typeof ZG==='undefined'||!ZG._camUpdate||ZG._camUpdate._zc2) return false; const o=ZG._camUpdate; const w=function(){ o.apply(this,arguments); try{ if(C.ride) C._cam(); else D.cam(); }catch(e){} }; w._zc2=1; ZG._camUpdate=w; return true; }catch(e){ return false; } };
+  const hook=()=>{ try{ if(typeof ZG==='undefined'||!ZG._camUpdate||ZG._camUpdate._zc2) return false; const o=ZG._camUpdate; const w=function(){ o.apply(this,arguments); try{ if(C.ride) C._cam(); else if(window.ZMeadow&&ZMeadow.cut) ZMeadow.cam(); else D.cam(); }catch(e){} }; w._zc2=1; ZG._camUpdate=w; return true; }catch(e){ return false; } };
   setInterval(()=>{ try{ hook(); }catch(e){} },700);
   try{ if(window.ZHelp) ZHelp.TIPS.coaster2={t:'Mega-Achterbahn',s:['🎢','➜','◀▶','➜','🏆'],d:'Lehne dich mit den zwei Knöpfen in jede Kurve: Rechtskurve = RECHTS, Linkskurve = LINKS. Falsch lehnen oder auf der Geraden wackeln = Absturz. Geschafft = 5 % Guthaben!'}; }catch(e){}
 })();
 
 ;
-/* v692 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v694 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
+
+
+;
+/* ZGuest (v694) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v694) — 🧠 Tier-Quiz beim Kauf eines neuen Tiers (richtig = +1 % Guthaben). */
+(function(){
+  'use strict';
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const ready=()=>{ try{ return !!(typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof ZG!=='undefined'&&ZG.pl&&typeof ZP!=='undefined'); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._coasterRide); }catch(e){ return false; } };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const key=n=>String(n||'').trim().toLowerCase().replace(/[.#$\[\]\/]/g,'_').slice(0,40);
+  const day=()=>{ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); };
+  const PRE=[['❤️','Schöner Zoo!'],['🐘','Tolle Tiere!'],['🌟','Super gemacht!'],['😄','Hallo, ich war hier!'],['🎢','Bis zur Achterbahn!'],['🍀','Viel Glück!'],['🥟','Guten Appetit!'],['🏆','Du bist Spitze!']];
+  const css=document.createElement('style'); css.textContent='.zgb-b{display:block;width:100%;text-align:left;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 11px;margin-bottom:6px;font:700 .8rem Arial;cursor:pointer}.zgb-b:active{background:rgba(255,255,255,.22)}.zgb-c{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:14px;padding:5px 10px;margin:0 5px 5px 0;font:700 .74rem Arial;cursor:pointer}.zgb-c.on{background:#b07a3c;border-color:#ffd54f}';
+  document.head.appendChild(css);
+  const Gu=window.ZGuest={
+    el:null, entries:[], tab:'book', to:null, _inited:false, _maxT:0, _first:true, _tw:0,
+    init(){ if(Gu._inited) return; const r=RT(); if(!r||!ready()) return; Gu._inited=true;
+      try{ r.ref('zoo_guest/'+key(ZS.player)).on('value',s=>{ const v=s.val()||{}; const a=Object.keys(v).map(k=>Object.assign({k},v[k])).filter(x=>x&&x.from).sort((x,y)=>(y.t||0)-(x.t||0)).slice(0,40); const mx=a.length?Math.max(...a.map(x=>x.t||0)):0;
+        if(!Gu._first){ a.filter(x=>(x.t||0)>Gu._maxT).forEach(x=>{ toast('📖 '+x.e+' '+x.from+' war in deinem Zoo: „'+x.msg+'“',5000); }); }
+        Gu._first=false; Gu._maxT=Math.max(Gu._maxT,mx); Gu.entries=a; Gu._badge(); if(Gu.el) Gu.draw(); }); }catch(e){} },
+    _seen(){ try{ return +ZS.zoo.gbSeen||0; }catch(e){ return 0; } },
+    _unseen(){ const sn=Gu._seen(); return Gu.entries.filter(x=>(x.t||0)>sn).length; },
+    _badge(){ const b=document.getElementById('zguest-badge'); if(!b) return; const n=Gu._unseen(); b.textContent=n; b.style.display=n?'block':'none'; },
+    close(){ if(Gu.el){ Gu.el.remove(); Gu.el=null; } },
+    open(){ Gu.init(); try{ ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(p=>ZP.close(p)); }catch(e){} Gu.close(); const o=document.createElement('div'); o.id='zguest'; o.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:16px'; o.onclick=e=>{ if(e.target===o) Gu.close(); }; document.body.appendChild(o); Gu.el=o; Gu.tab='book'; Gu.draw(); try{ if(typeof ZHelp!=='undefined') ZHelp.tip('guest'); }catch(e){} },
+    _names(){ const set=[]; try{ Object.keys(ZG.otherPl||{}).forEach(n=>{ if(n&&n.toLowerCase()!==String(ZS.player).toLowerCase()&&!set.includes(n)) set.push(n); }); }catch(e){} return set; },
+    send(msgIdx){
+      const to=(Gu.to||'').trim(); if(!to){ toast('❌ Wähle zuerst einen Spieler.'); return; } if(key(to)===key(ZS.player)){ toast('😄 In deinen eigenen Zoo kannst du dir keinen Gruß schreiben!'); return; }
+      const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } const p=PRE[msgIdx]; if(!p) return; const path='zoo_guest/'+key(to)+'/'+key(ZS.player)+'_'+day();
+      r.ref(path).once('value').then(sn=>{ if(sn.val()){ toast('📖 Du hast '+to+' heute schon gegrüsst. Morgen wieder!',3500); return; }
+        const t=Date.now(); return r.ref(path).set({from:ZS.player,e:p[0],msg:p[1],t}).then(()=>{ big('📖 GRUSS GESENDET!','#ffd54f',1800); toast('📖 '+p[0]+' Gruss an '+to+' hinterlassen!',3500); try{ if(typeof ZGoals!=='undefined') ZGoals.add('guest',1); }catch(e){} Gu.tab='book'; Gu.draw(); }); }).catch(e=>toast('❌ '+(e&&e.message||'Fehler')));
+    },
+    draw(){
+      const o=Gu.el; if(!o) return; const me=Gu.tab==='book';
+      if(me){ try{ ZS.zoo.gbSeen=Math.max(Gu._seen(),Gu._maxT); ZS.save&&ZS.save(); }catch(e){} Gu._badge(); }
+      let body='';
+      if(me){ body=Gu.entries.length?Gu.entries.map(x=>'<div style="background:rgba(255,255,255,.08);border-radius:10px;padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;align-items:center"><div style="font-size:1.6rem">'+esc(x.e||'💬')+'</div><div style="flex:1"><div style="font-weight:900;font-size:.82rem">'+esc(x.from)+'</div><div style="font-size:.76rem;color:rgba(255,255,255,.75)">'+esc(x.msg)+'</div></div><div style="font-size:.6rem;color:rgba(255,255,255,.4)">'+new Date(x.t||0).toLocaleDateString('de-CH')+'</div></div>').join(''):'<div style="text-align:center;color:rgba(255,255,255,.55);font-size:.8rem;padding:16px 0">Noch niemand war in deinem Zoo.<br>Besuche andere und hinterlasse einen Gruss! 😊</div>'; }
+      else { const nm=Gu._names(); body='<div style="font-size:.74rem;color:rgba(255,255,255,.65);margin-bottom:6px">Wem möchtest du einen Gruss hinterlassen? (1× pro Tag je Spieler)</div>'+(nm.length?nm.map(n=>'<span class="zgb-c'+(Gu.to===n?' on':'')+'" data-n="'+esc(n)+'">'+esc(n)+'</span>').join(''):'<div style="font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:4px">Gerade ist niemand sonst im Zoo – schreib einen Namen:</div>')
+        +'<input id="zgb-in" placeholder="Name eines Spielers" value="'+esc(Gu.to||'')+'" style="width:100%;box-sizing:border-box;margin:6px 0 8px;padding:9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.4);color:#fff;font:700 .85rem Arial">'
+        +PRE.map((p,i)=>'<button class="zgb-b" data-m="'+i+'">'+p[0]+' '+p[1]+'</button>').join(''); }
+      o.innerHTML='<div style="background:linear-gradient(135deg,#3b2a14,#1c140a);border:1px solid rgba(255,200,100,.45);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;color:#fff;font-family:Arial,sans-serif"><div style="display:flex;align-items:center;margin-bottom:8px"><h2 style="flex:1;margin:0;font-size:1.1rem;color:#ffd08a">📖 Besucher-Gästebuch</h2><button onclick="ZGuest.close()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer">✕</button></div>'
+        +'<div style="display:flex;gap:6px;margin-bottom:10px"><button class="zgb-c'+(me?' on':'')+'" data-t="book">📖 Mein Buch'+(Gu.entries.length?' ('+Gu.entries.length+')':'')+'</button><button class="zgb-c'+(me?'':' on')+'" data-t="send">✍️ Gruss hinterlassen</button></div>'+body+'</div>';
+      o.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ Gu.tab=b.dataset.t; Gu.draw(); });
+      o.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{ Gu.to=b.dataset.n; Gu.draw(); });
+      const inp=o.querySelector('#zgb-in'); if(inp) inp.oninput=()=>{ Gu.to=inp.value; };
+      o.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>Gu.send(+b.dataset.m));
+    }
+  };
+  setInterval(()=>{ try{ if(ready()){ Gu.init(); Gu._badge(); } }catch(e){} },2000);
+
+  // ═════════ 🧠 Tier-Quiz ═════════
+  const F={ 'Pinguin':['Wo leben Pinguine?','Auf der Südhalbkugel (z. B. Antarktis)',['Am Nordpol','In der Sahara']],'Känguru':['Auf welchem Kontinent leben Kängurus?','Australien',['Afrika','Südamerika']],'Koala':['Was frisst der Koala?','Eukalyptus-Blätter',['Fisch','Gras']],'Panda':['Was frisst der Panda am liebsten?','Bambus',['Honig','Fleisch']],'Giraffe':['Was ist an der Giraffe besonders?','Ihr sehr langer Hals',['Ihr Rüssel','Ihre Streifen']],'Elefant':['Wie heisst die lange Nase des Elefanten?','Rüssel',['Schnabel','Fühler']],'Zebra':['Welches Muster hat ein Zebra?','Streifen',['Punkte','Karos']],'Schildkröte':['Was trägt die Schildkröte auf dem Rücken?','Einen Panzer',['Ein Fell','Flügel']],'Schmetterling':['Woraus wird ein Schmetterling?','Aus einer Raupe',['Aus einer Kaulquappe','Aus einem Welpen']],'Frosch':['Wie heissen Frosch-Babys?','Kaulquappen',['Küken','Welpen']],'Kuh':['Was gibt uns die Kuh?','Milch',['Eier','Wolle']],'Schaf':['Was bekommt man vom Schaf?','Wolle',['Federn','Honig']],'Huhn':['Was legt das Huhn?','Eier',['Milch','Nüsse']],'Flamingo':['Warum sind Flamingos rosa?','Wegen ihres Futters',['Sie werden angemalt','Vom Sonnenbrand']],'Delphin':['Ist ein Delphin ein Fisch?','Nein, ein Säugetier',['Ja, ein Fisch','Nein, ein Vogel']],'Wal':['Was ist der Blauwal?','Das grösste Tier der Erde',['Das schnellste Tier','Das kleinste Tier']],'Oktopus':['Wie viele Arme hat ein Oktopus?','8',['6','10']],'Nashorn':['Was hat das Nashorn auf der Nase?','Ein Horn',['Einen Rüssel','Eine Krone']],'Nilpferd':['Wo verbringt das Nilpferd den Tag?','Im Wasser',['Auf Bäumen','In der Wüste']],'Kamel':['Was speichert der Höcker des Kamels?','Fett',['Wasser','Luft']],'Wolf':['Wie nennt man eine Wolfs-Gruppe?','Rudel',['Schwarm','Herde']],'Bär':['Was machen Braunbären im Winter?','Winterruhe',['Sie fliegen weg','Sie tauchen']],'Fuchs':['Wo wohnt der Fuchs?','In einem Bau',['In einem Nest','Im Stall']],'Papagei':['Was können manche Papageien?','Sprechen',['Bellen','Tauchen']],'Pfau':['Was zeigt der Pfau beim Rad?','Seine Federn',['Seine Zähne','Seine Flossen']],'Löwe':['Wer jagt im Löwenrudel meistens?','Die Löwinnen',['Die Männchen','Die Babys']],'Seepferd':['Wer trägt beim Seepferdchen die Babys?','Das Männchen',['Das Weibchen','Die Möwe']],'Mammut':['Wann lebte das Mammut?','In der Eiszeit',['Im Mittelalter','Vor 5 Jahren']],'Hamster':['Wo versteckt der Hamster Futter?','In den Backentaschen',['In den Ohren','Im Schwanz']],'Ente':['Was ist besonders an Entenfedern?','Sie halten Wasser ab',['Sie leuchten','Sie sind sehr schwer']],'Hund':['Was wedelt ein froher Hund?','Den Schwanz',['Die Ohren','Die Nase']],'Katze':['Was macht eine zufriedene Katze?','Schnurren',['Bellen','Muhen']],'Tiger':['Welches Muster hat ein Tiger?','Streifen',['Punkte','Karos']] };
+  const Q={ el:null, last:0,
+    off(){ try{ return localStorage.getItem('zquiz_off')==='1'; }catch(e){ return false; } },
+    maybe(name,emoji){
+      try{ if(!ready()||Q.off()||Q.el||busy()) return; if(Date.now()-Q.last<150000) return; if(Math.random()>.6) return; Q.last=Date.now(); setTimeout(()=>Q.show(name,emoji),1800); }catch(e){}
+    },
+    _build(name,emoji){
+      const f=F[name]; if(f){ return {q:emoji+' '+f[0],ok:f[1],opts:[f[1]].concat(f[2])}; }
+      let names=[]; try{ ANIMALS.forEach(a=>{ if(a&&a.n&&a.n!==name&&!/SLAP/i.test(a.n)&&!names.includes(a.n)) names.push(a.n); }); }catch(e){}
+      for(let i=names.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [names[i],names[j]]=[names[j],names[i]]; }
+      return {q:'Welches Tier ist das?  '+emoji,ok:name,opts:[name,names[0]||'Hund',names[1]||'Katze']};
+    },
+    show(name,emoji){
+      if(Q.el||busy()) return; const b=Q._build(name,emoji); const opts=b.opts.map(t=>({t,ok:t===b.ok})); for(let i=opts.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [opts[i],opts[j]]=[opts[j],opts[i]]; }
+      const o=document.createElement('div'); o.id='zquiz'; o.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px'; Q.el=o;
+      o.innerHTML='<div style="background:linear-gradient(135deg,#1b2f4a,#101a2c);border:2px solid #7fd1ff;border-radius:18px;padding:16px;max-width:360px;width:100%;color:#fff;font-family:Arial,sans-serif;text-align:center"><div style="font-weight:900;color:#7fd1ff;font-size:.95rem">🧠 Tier-Quiz zu deinem neuen Tier!</div><div style="font-size:1.05rem;font-weight:800;margin:12px 0">'+esc(b.q)+'</div>'+opts.map((x,i)=>'<button class="zgb-b" data-i="'+i+'" style="text-align:center">'+esc(x.t)+'</button>').join('')+'<div id="zq-res" style="min-height:22px;font-weight:900;margin:6px 0"></div><div style="display:flex;gap:8px;justify-content:center"><button id="zq-x" style="background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:6px 12px;font:700 .72rem Arial;cursor:pointer">Überspringen</button><button id="zq-off" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);border-radius:10px;padding:6px 12px;font:700 .72rem Arial;cursor:pointer">Nicht mehr fragen</button></div></div>';
+      document.body.appendChild(o); let done=false;
+      const end=()=>{ if(Q.el){ Q.el.remove(); Q.el=null; } };
+      o.querySelectorAll('[data-i]').forEach(btn=>btn.onclick=()=>{ if(done) return; done=true; const x=opts[+btn.dataset.i]; const res=o.querySelector('#zq-res');
+        o.querySelectorAll('[data-i]').forEach(bb=>{ const oo=opts[+bb.dataset.i]; if(oo.ok) bb.style.background='rgba(46,204,113,.55)'; else if(bb===btn) bb.style.background='rgba(231,76,60,.55)'; });
+        if(x.ok){ const rw=Math.max(50,Math.floor(bal()*.01)); try{ ZS.zoo.mt=(ZS.zoo.mt||0)+rw; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} res.style.color='#7dffb0'; res.textContent='✅ Richtig! +'+fmt(rw)+' MT'; big('🧠 RICHTIG!','#7dffb0',1500); }
+        else { res.style.color='#ffb199'; res.textContent='❌ Fast! Richtig war: '+b.ok; }
+        setTimeout(end,x.ok?1700:2600); });
+      o.querySelector('#zq-x').onclick=()=>{ if(!done) end(); }; o.querySelector('#zq-off').onclick=()=>{ try{ localStorage.setItem('zquiz_off','1'); }catch(e){} toast('🧠 Quiz ausgeschaltet.',2500); end(); };
+    }
+  };
+  window.ZQuiz=Q;
+  let hk=false; setInterval(()=>{ try{ if(hk||typeof ZNews==='undefined'||!ZNews.push) return; if(ZNews.push._zq){ hk=true; return; } const o=ZNews.push; const w=function(t,d){ const r=o.apply(this,arguments); try{ if(t==='animal_bought'&&d&&d.animal) Q.maybe(d.animal,d.emoji||'🐾'); }catch(e){} return r; }; w._zq=1; ZNews.push=w; hk=true; }catch(e){} },1000);
+  try{ if(window.ZHelp){ ZHelp.TIPS.guest={t:'Gästebuch',s:['🧑','➜','📖','➜','❤️'],d:'Hinterlasse anderen Spielern einen Gruss (1× pro Tag je Spieler). Wer bei dir war, steht in deinem Buch.'}; } }catch(e){}
+})();
+
+
+;
+/* ZMeadow (v694) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+(function(){
+  'use strict';
+  const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=5;
+  const SPX=0, SPZ=62; // Ankunft im Zoo
+  const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&ZG.renderer&&typeof THREE!=='undefined'&&typeof ZS!=='undefined'&&ZS.zoo); }catch(e){ return false; } };
+  const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const sm=t=>{ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  function drawPortal(ctx,w,h,rot){
+    ctx.clearRect(0,0,w,h); const cx=w/2, cy=h/2, R=w*.36;
+    let g=ctx.createRadialGradient(cx,cy,0,cx,cy,w*.5); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.25,'rgba(200,235,255,.95)'); g.addColorStop(.5,'rgba(60,140,255,.6)'); g.addColorStop(.8,'rgba(20,70,200,.25)'); g.addColorStop(1,'rgba(0,30,120,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.shadowColor='#5cf'; ctx.shadowBlur=16;
+    for(let k=0;k<34;k++){ const a0=Math.random()*Math.PI*2, len=.25+Math.random()*.9, rr=R*(.86+Math.random()*.3); ctx.strokeStyle=k%3?'rgba(255,255,255,.95)':'rgba(130,200,255,.9)'; ctx.lineWidth=1+Math.random()*2.6; ctx.beginPath();
+      const n=7+Math.floor(Math.random()*6); for(let i=0;i<=n;i++){ const a=a0+len*i/n, r2=rr+(Math.random()-.5)*w*.07; const x=cx+Math.cos(a+rot)*r2, y=cy+Math.sin(a+rot)*r2; if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y); } ctx.stroke(); }
+    for(let k=0;k<14;k++){ const a=Math.random()*Math.PI*2, r1=R*.9, r2=R*(1.2+Math.random()*.25); ctx.strokeStyle='rgba(190,225,255,.8)'; ctx.lineWidth=1+Math.random()*1.6; ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1); let px=cx+Math.cos(a)*r1, py=cy+Math.sin(a)*r1; for(let i=1;i<=4;i++){ const t=i/4, rr=r1+(r2-r1)*t; px=cx+Math.cos(a+(Math.random()-.5)*.2)*rr; py=cy+Math.sin(a+(Math.random()-.5)*.2)*rr; ctx.lineTo(px,py); } ctx.stroke(); }
+    ctx.shadowBlur=0;
+  }
+  function mkPortal(size){
+    const c=document.createElement('canvas'); c.width=c.height=256; const ctx=c.getContext('2d'); drawPortal(ctx,256,256,0); const tex=new THREE.CanvasTexture(c);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); sp.scale.set(size,size,1); sp.userData={ctx,tex,rot:0,at:0}; return sp;
+  }
+  function animPortal(sp,now){ if(!sp) return; const u=sp.userData; if(now-u.at<90) return; u.at=now; u.rot+=.12; drawPortal(u.ctx,256,256,u.rot); u.tex.needsUpdate=true; }
+  const M=window.ZMeadow={
+    on:false, cut:null, grp:null, portal:null, portal2:null, stage:'walk', prog:{l:0,r:0,f:0,b:0}, _last:null, saved:null, _raf:0, _ov:null, _ac:null,
+    _build(){
+      if(M.grp) return; const g=new THREE.Group();
+      const ground=new THREE.Mesh(new THREE.PlaneGeometry(900,900),new THREE.MeshBasicMaterial({color:0x5DBB63})); ground.rotation.x=-Math.PI/2; ground.position.set(MX,-.03,MZ); g.add(ground);
+      const plat=new THREE.Mesh(new THREE.BoxGeometry(44,.3,44),new THREE.MeshBasicMaterial({color:0x8be58f})); plat.position.set(MX,.15,MZ); g.add(plat);
+      const bm=new THREE.MeshBasicMaterial({color:0x2f9e4a}); [[0,-22,46,1],[0,22,46,1],[-22,0,1,46],[22,0,1,46]].forEach(([x,z,w,d])=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,.5,d),bm); b.position.set(MX+x,.25,MZ+z); g.add(b); });
+      // Blumen
+      [[0xff5c8a],[0xffd54f],[0xffffff],[0x9b6bff]].forEach(([col])=>{ const im=new THREE.InstancedMesh(new THREE.SphereGeometry(.16,6,5),new THREE.MeshBasicMaterial({color:col}),70); const m4=new THREE.Matrix4(); for(let i=0;i<70;i++){ m4.makeTranslation(MX+(Math.random()-.5)*40,.42,MZ+(Math.random()-.5)*40); im.setMatrixAt(i,m4); } g.add(im); });
+      // Bäume am Rand
+      for(let i=0;i<22;i++){ const a=i/22*Math.PI*2, r=36+Math.random()*10, x=MX+Math.cos(a)*r, z=MZ+Math.sin(a)*r; const tr=new THREE.Mesh(new THREE.CylinderGeometry(.35,.45,2.2,6),new THREE.MeshBasicMaterial({color:0x6b4a2b})); tr.position.set(x,1.1,z); g.add(tr); const cr=new THREE.Mesh(new THREE.ConeGeometry(2.1,5.5,8),new THREE.MeshBasicMaterial({color:i%2?0x2e8b3d:0x3aa64d})); cr.position.set(x,4.6,z); g.add(cr); }
+      // Startpunkt-Markierung
+      const sp=new THREE.Mesh(new THREE.RingGeometry(1.6,2.1,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7,side:THREE.DoubleSide})); sp.rotation.x=-Math.PI/2; sp.position.set(MX,.33,MZ+12); g.add(sp);
+      // Portal-Sockel in der Ecke (anfangs unsichtbar)
+      const pad=new THREE.Mesh(new THREE.CircleGeometry(2.6,32),new THREE.MeshBasicMaterial({color:0x58b6ff,transparent:true,opacity:.55,side:THREE.DoubleSide})); pad.rotation.x=-Math.PI/2; pad.position.set(PX,.34,PZ); pad.visible=false; g.add(pad); g.userData.pad=pad;
+      ZG.scene.add(g); M.grp=g;
+    },
+    _showPortal(){ if(M.portal) return; const p=mkPortal(7.2); p.position.set(PX,PY,PZ); p.material.opacity=0; ZG.scene.add(p); M.portal=p; M.grp.userData.pad.visible=true; M._pt=performance.now(); },
+    _sfx(kind){ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return; const c=M._ac||(M._ac=new A()); if(c.state==='suspended') c.resume(); const now=c.currentTime;
+        if(kind==='chime'){ [660,880,1320].forEach((f,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0,now+i*.12); g.gain.linearRampToValueAtTime(.12,now+i*.12+.03); g.gain.exponentialRampToValueAtTime(.001,now+i*.12+.7); o.connect(g); g.connect(c.destination); o.start(now+i*.12); o.stop(now+i*.12+.8); }); }
+        else if(kind==='whoosh'){ const nb=c.createBuffer(1,c.sampleRate*6,c.sampleRate), d=nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; const src=c.createBufferSource(); src.buffer=nb; const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=2; bp.frequency.setValueAtTime(200,now); bp.frequency.exponentialRampToValueAtTime(3000,now+4.5); bp.frequency.exponentialRampToValueAtTime(400,now+6); const g=c.createGain(); g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(.35,now+2); g.gain.linearRampToValueAtTime(.05,now+5.4); g.gain.linearRampToValueAtTime(.3,now+5.6); g.gain.linearRampToValueAtTime(0,now+9); src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(now); src.stop(now+9); } }catch(e){} },
+    begin(){
+      if(M.on||!ready()){ if(!ready()&&typeof Tutorial!=='undefined') setTimeout(()=>Tutorial.advance(),200); return; }
+      M.on=true; M.stage='walk'; M.prog={l:0,r:0,f:0,b:0}; M._build(); M.saved={x:ZG.pl.x,z:ZG.pl.z,yaw:ZG.yaw};
+      ZG._meadowActive=true; ZG.pl.x=MX; ZG.pl.z=MZ+12; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0; M._last={x:ZG.pl.x,z:ZG.pl.z};
+      M._flash(); M._startLoop(); M._renderList();
+    },
+    _flash(){ const f=document.createElement('div'); f.style.cssText='position:fixed;inset:0;z-index:9690;background:#fff;opacity:1;transition:opacity 1.1s;pointer-events:none'; document.body.appendChild(f); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.opacity='0'; })); setTimeout(()=>f.remove(),1400); },
+    _renderList(){ const l=document.getElementById('tm-list'); if(!l) return; const it=[['l','⬅️','Links'],['r','➡️','Rechts'],['f','⬆️','Vorne'],['b','⬇️','Zurück']]; l.innerHTML=it.map(([k,ic,n])=>{ const v=Math.min(1,M.prog[k]/NEED), ok=v>=1; return '<div style="background:'+(ok?'rgba(46,204,113,.28)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:6px 8px;text-align:left"><div style="font-weight:900;font-size:.8rem">'+ic+' '+n+(ok?' ✅':'')+'</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden"><div style="height:100%;width:'+Math.round(v*100)+'%;background:'+(ok?'#2ecc71':'#ffd54f')+'"></div></div></div>'; }).join(''); },
+    _startLoop(){ cancelAnimationFrame(M._raf); let t0=performance.now(); const lp=n=>{ if(!M.on) return; const dt=Math.min(.1,(n-t0)/1000); t0=n; try{ M._tick(dt,n); }catch(e){} M._raf=requestAnimationFrame(lp); }; M._raf=requestAnimationFrame(lp); },
+    _tick(dt,now){
+      if(M.portal){ animPortal(M.portal,now); const a=Math.min(1,(now-M._pt)/1200); if(!M.cut||M.cut.phase==='A') M.portal.material.opacity=a; M.portal.position.y=PY+Math.sin(now/600)*.12; }
+      if(M.portal2){ animPortal(M.portal2,now); }
+      if(M.cut) return;
+      const p=ZG.pl; // Plattform-Rand
+      p.x=Math.max(MX-HALF,Math.min(MX+HALF,p.x)); p.z=Math.max(MZ-HALF,Math.min(MZ+HALF,p.z));
+      if(M.stage==='walk'){
+        const dx=p.x-M._last.x, dz=p.z-M._last.z; M._last={x:p.x,z:p.z}; const d=Math.hypot(dx,dz);
+        if(d>0&&d<3){ const y=ZG.yaw||0, fw=dx*(-Math.sin(y))+dz*(-Math.cos(y)), rt=dx*Math.cos(y)-dz*Math.sin(y); const P=M.prog; const th=.02; if(fw>th) P.f+=fw; else if(fw<-th) P.b-=fw; if(rt>th) P.r+=rt; else if(rt<-th) P.l-=rt; M._renderList(); }
+        if(['l','r','f','b'].every(k=>M.prog[k]>=NEED)){ M.stage='portal'; M._showPortal(); M._sfx('chime'); toast('🌀 Ein Portal ist aufgegangen!',3000); setTimeout(()=>{ try{ Tutorial.advance(); }catch(e){} },900); }
+      } else if(M.stage==='portal'){
+        if(Math.hypot(p.x-PX,p.z-PZ)<2.5) M._startCut();
+      }
+    },
+    abort(){ // Tutorial abgebrochen/übersprungen → sofort in den Zoo
+      if(!M.on) return; M._end(true); },
+    // ── Zwischensequenz ──
+    _startCut(){
+      if(M.cut) return; M.stage='cut'; ZG._meadowCut=true; try{ ZG.joy.on=false; }catch(e){}
+      const ov=document.getElementById('tut-overlay'); if(ov) ov.style.display='none';
+      const av=(window.ZDrone&&ZDrone._avatar)?ZDrone._avatar():null; const p=ZG.pl;
+      const d=V3(PX-p.x,0,PZ-p.z).normalize(); const c1=V3(p.x-d.x*7,8,p.z-d.z*7);
+      M.cut={phase:'A',t0:performance.now(),av,s0:V3(p.x,0,p.z),eye:V3(p.x,p.y,p.z),d,c1,R0:Math.hypot(c1.x-PX,c1.z-PZ),th0:Math.atan2(c1.x-PX,c1.z-PZ),fovIn:true,tele:false,_ov:M._mkOverlay()};
+      ZG.pitch=0; M._sfx('whoosh');
+    },
+    _mkOverlay(){ const o=document.createElement('div'); o.id='zmeadow-fx'; o.style.cssText='position:fixed;inset:0;z-index:9691;pointer-events:none;opacity:0'; o.innerHTML='<div id="zmf-sw" style="position:absolute;left:50%;top:50%;width:230vmax;height:230vmax;margin:-115vmax 0 0 -115vmax;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(10,40,140,.0) 0deg 9deg,rgba(90,170,255,.55) 9deg 18deg,rgba(220,245,255,.4) 18deg 20deg);-webkit-mask:radial-gradient(circle,transparent 4%,#000 38%,#000 60%,transparent 70%);mask:radial-gradient(circle,transparent 4%,#000 38%,#000 60%,transparent 70%);mix-blend-mode:screen"></div><div id="zmf-wh" style="position:absolute;inset:0;background:radial-gradient(circle,#fff,#bfe3ff);opacity:0"></div>'; document.body.appendChild(o); return o; },
+    cam(){
+      const C=M.cut; if(!C||!M.on) return; const now=performance.now(), t=(now-C.t0)/1000, cam=ZG.cam, av=C.av, ov=C._ov, sw=ov&&ov.querySelector('#zmf-sw'), wh=ov&&ov.querySelector('#zmf-wh'), cv=ZG.renderer.domElement;
+      const T_RISE=1.3, T_END=5.4, T_B=4.4;
+      if(C.phase==='A'){
+        const ctr=V3(PX,PY,PZ);
+        // Figur: läuft zum Portal, schrumpft und wird hineingesogen
+        if(av){ const w=sm(t/1.6); av.position.set(C.s0.x+(PX-C.s0.x)*w*.82,.3,C.s0.z+(PZ-C.s0.z)*w*.82); av.rotation.y=Math.atan2(C.d.x,C.d.z); const k=sm((t-1.5)/1.9); const sc=1-k; av.scale.setScalar(Math.max(.001,sc)); if(k>0){ av.position.x+= (PX-av.position.x)*k; av.position.z+=(PZ-av.position.z)*k; av.position.y=.3+(PY-.3)*k; av.rotation.y+=k*14; } }
+        let lookAt, pos, roll=0;
+        if(t<T_RISE){ const e=sm(t/T_RISE); pos=C.eye.clone().lerp(C.c1,e); const a=av?av.position.clone().add(V3(0,1,0)):C.s0; const fwd=C.eye.clone().add(C.d.clone().multiplyScalar(5)); lookAt=fwd.lerp(a.clone().lerp(ctr,.35),e); }
+        else { const u=Math.min(1,(t-T_RISE)/(T_END-T_RISE)), e=sm(u), R=C.R0*(1-e)+2.4*e, H=C.c1.y*(1-e)+PY*e, th=C.th0+Math.PI*5*e; pos=V3(PX+Math.sin(th)*R,H,PZ+Math.cos(th)*R); lookAt=ctr; roll=Math.PI*5*e; }
+        cam.position.copy(pos); cam.lookAt(lookAt); cam.rotateZ(roll);
+        const b=sm((t-2)/3.2); cv.style.filter=b>0?'blur('+(b*16).toFixed(1)+'px) saturate('+(1+b*.8).toFixed(2)+')':''; if(ov){ ov.style.opacity=String(Math.min(.9,b*1.1)); if(sw) sw.style.transform='rotate('+(t*220)+'deg) scale('+(1+b*.3)+')'; if(wh) wh.style.opacity=String(sm((t-4.7)/.7)); }
+        if(t>=T_END&&!C.tele){ C.tele=true; M._teleport(); }
+      } else if(C.phase==='B'){
+        const tt=(now-C.tB)/1000, u=Math.min(1,tt/T_B), ctr=V3(SPX,PY,SPZ-6);
+        if(av){ const k=sm((tt-.3)/1.8); av.scale.setScalar(Math.max(.001,k)); const w=sm((tt-.6)/2.2); av.position.set(SPX,.3+(PY-.3)*(1-k),SPZ-6+6*w); av.rotation.y=(1-k)*14+Math.PI; }
+        let pos,roll=0; const e1=sm(tt/2.6), e2=sm((tt-2.4)/(T_B-2.4));
+        const R=2.4+(8.5-2.4)*e1, H=PY+(7.5-PY)*e1, th=Math.PI*4*(1-e1); pos=V3(SPX+Math.sin(th)*R,H,(SPZ-6)+Math.cos(th)*R); roll=Math.PI*4*(1-e1);
+        cam.position.copy(pos); cam.lookAt(ctr.clone().lerp(V3(SPX,1.2,SPZ-3),e1)); cam.rotateZ(roll);
+        if(e2>0){ const q0=cam.quaternion.clone(), qe=new THREE.Quaternion(); cam.position.lerp(V3(SPX,1.7,SPZ),e2); cam.quaternion.copy(q0.slerp(qe,e2)); }
+        const b=1-sm(tt/2.8); cv.style.filter=b>.01?'blur('+(b*16).toFixed(1)+'px)':''; if(ov){ ov.style.opacity=String(Math.max(0,b*.9)); if(sw) sw.style.transform='rotate('+(-tt*180)+'deg)'; if(wh) wh.style.opacity=String(Math.max(0,1-tt/.8)); }
+        if(M.portal2) M.portal2.material.opacity=Math.max(0,1-sm((tt-2.4)/1.2));
+        if(u>=1) M._end(false);
+      }
+    },
+    _teleport(){
+      const C=M.cut; ZG.pl.x=SPX; ZG.pl.z=SPZ; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0;
+      if(M.portal){ ZG.scene.remove(M.portal); M.portal=null; } if(M.grp) M.grp.visible=false;
+      const p2=mkPortal(7.2); p2.position.set(SPX,PY,SPZ-6); ZG.scene.add(p2); M.portal2=p2; M._pt2=performance.now();
+      C.phase='B'; C.tB=performance.now(); M._sfx('chime');
+    },
+    _end(abortNow){
+      const was=M.cut; M.on=false; cancelAnimationFrame(M._raf); M.cut=null; ZG._meadowCut=false; ZG._meadowActive=false; M.stage='walk';
+      try{ ZG.renderer.domElement.style.filter=''; }catch(e){}
+      if(was&&was._ov) was._ov.remove(); document.querySelectorAll('#zmeadow-fx').forEach(e=>e.remove());
+      if(M.portal){ ZG.scene.remove(M.portal); M.portal=null; } if(M.portal2){ ZG.scene.remove(M.portal2); M.portal2=null; }
+      try{ if(window.ZDrone&&!ZDrone.on) ZDrone._rm(); else if(window.ZDrone&&ZDrone.on) ZDrone.pos=null; }catch(e){}
+      if(M.grp){ ZG.scene.remove(M.grp); M.grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); } }); M.grp=null; }
+      ZG.pl.x=SPX; ZG.pl.z=SPZ; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0;
+      const ov=document.getElementById('tut-overlay'); if(ov) ov.style.display='';
+      if(!abortNow){ toast('✨ Willkommen in deinem Zoo!',3000); setTimeout(()=>{ try{ if(typeof Tutorial!=='undefined'&&Tutorial._active) Tutorial.advance(); }catch(e){} },300); }
+    }
+  };
+})();
