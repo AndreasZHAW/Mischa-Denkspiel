@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v700)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v702)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v700): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v702): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v700) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v702) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v700) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v702) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v700) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v702) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v700) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v702) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v700) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v702) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1074,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v700) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v700) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v702) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v702) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1278,13 +1278,13 @@
 })();
 
 ;
-/* v700 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v702 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v700) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v700) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v702) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v702) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1370,7 +1370,7 @@
 
 
 ;
-/* ZMeadow (v700) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v702) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1529,7 +1529,7 @@
   };
 })();
 
-/* ZMap (v700) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v702) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1567,6 +1567,7 @@
       add(ZG.pl.x,ZG.pl.z,'<div style="transform:rotate('+(-ZG.yaw*180/Math.PI+180)+'deg);font-size:1.5rem;color:#FFD700;filter:drop-shadow(0 0 4px #000)">⬆️</div><div style="color:#FFD700;text-align:center">Du</div>','z-index:2');
     },
     _click(ev){
+      if(ZG.carrying){ try{ ZP.toast('🐾 Du trägst noch ein Tier!',2500); }catch(e){} return; }
       const w=K._s2w(ev.clientX,ev.clientY); if(!w) return; let tx=w.x,tz=w.z, best=14;
       POI.forEach(p=>{ const d=Math.hypot(p[1]-w.x,p[2]-w.z); if(d<best){ best=d; tx=p[1]; tz=p[2]; } });
       try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach(e=>{ const d=Math.hypot(e.x-w.x,e.z-w.z); if(d<best){ best=d; tx=e.x; tz=e.z; } }); }catch(e){}
@@ -1578,4 +1579,207 @@
   };
   const hook=()=>{ const m=document.getElementById('mmap'); if(!m||m._zm) return; m._zm=1; m.style.pointerEvents='auto'; m.style.cursor='pointer'; m.title='Grosse Karte'; m.addEventListener('click',e=>{ e.stopPropagation(); K.open(); }); };
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
+})();
+
+/* ZSweeper (v702) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+(function(){
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
+  let _off=0; const tn=()=>Date.now()+_off;
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const me=()=>{ try{ return K(ZS.player); }catch(e){ return ''; } };
+  const isTouch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
+  const PC=.10, DUR=600000, SPEED=15, SUCK=15000, REV_PC=.05;
+  const S=window.ZSweeper={ on:false, until:0, v:0, gas:false, brk:false, all:{}, seen:{}, hitCd:{}, rev:null, _inited:false,
+    init(){
+      if(S._inited) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; S._inited=true;
+      try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){}
+      r.ref('zoo_sweeper').on('value',s=>{ const v=s.val()||{}; const first=!S._got; S._got=true; const now=tn();
+        Object.keys(v).forEach(k=>{ const e=v[k]; if(!e||e.until<=now) return; const id=k+'_'+e.at; if(S.seen[id]) return; S.seen[id]=1; if(!first&&k!==me()&&now-e.at<20000) S._banner('🧹 '+e.name+' ist Kehrmaschine geworden!'); });
+        S.all=v; });
+      r.ref('zoo_sweeper_hit/'+me()).on('value',s=>{ const v=s.val(); if(v&&tn()-v.at<8000&&!S.seen['h'+v.at]){ S.seen['h'+v.at]=1; S._sucked(v.from); } });
+      r.ref('zoo_sweeper_kill/'+me()).on('value',s=>{ const v=s.val(); if(v&&tn()-v.at<20000&&!S.seen['k'+v.at]){ S.seen['k'+v.at]=1; if(S.on) S._licenseGone(v.by); } });
+      setInterval(S._slow,500); S._loop();
+    },
+    // ── Kauf ──
+    buy(){
+      const z=ZS.zoo; if(!z) return;
+      if(S.on){ toast('🧹 Du bist schon Kehrmaschine!',2000); return; }
+      if(ZG.carrying){ toast('🐾 Du trägst noch ein Tier!',2500); return; }
+      if(busy()){ toast('🧹 Jetzt gerade nicht möglich.',2000); return; }
+      const cost=Math.floor(bal()*PC); if(bal()<10||z.mt<cost){ toast('❌ Zu wenig MT!'); return; }
+      z.mt-=cost; try{ ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){}
+      try{ ZP._updShopBal&&ZP._updShopBal(); }catch(e){}
+      try{ ZP.close('shop'); }catch(e){}
+      S.start(tn()+DUR,true);
+    },
+    start(until,announce){
+      S.on=true; S.until=until; S.v=0; S._hud(true);
+      const r=RT(); if(r&&announce){ try{ r.ref('zoo_sweeper/'+me()).set({name:ZS.player,until,at:tn()}); r.ref('zoo_sweeper/'+me()).onDisconnect().remove(); }catch(e){} }
+      big('🧹 KEHRMASCHINE!','#ffd54f',2200); toast(isTouch()?'🧹 Unten rechts: Gas & Bremse · Joystick lenkt':'🧹 W = Gas · S = Bremse · A/D lenken',5000);
+      try{ ZG.pl.y=1.7; }catch(e){}
+    },
+    stop(msg){
+      if(!S.on) return; S.on=false; S.v=0; S.gas=S.brk=false; S._hud(false); const r=RT(); try{ r&&r.ref('zoo_sweeper/'+me()).remove(); }catch(e){}
+      if(msg) toast(msg,3500);
+    },
+    // ── Fahren (wird aus ZG._move aufgerufen) ──
+    move(dt){
+      dt=Math.min(.1,dt); const k=ZG.keys||{}; const gas=S.gas||k.KeyW||k.ArrowUp, brk=S.brk||k.KeyS||k.ArrowDown;
+      let st=0; if(k.KeyD||k.ArrowRight) st+=1; if(k.KeyA||k.ArrowLeft) st-=1; try{ if(ZG.joy&&ZG.joy.on) st+=ZG.joy.dx||0; }catch(e){} st=Math.max(-1,Math.min(1,st));
+      if(brk) S.v=Math.max(0,S.v-45*dt); else if(gas) S.v=Math.min(SPEED,S.v+11*dt); else S.v=Math.max(0,S.v-5*dt);
+      ZG.yaw-=st*2.1*dt*(.35+.65*Math.min(1,S.v/6));
+      const p=ZG.pl; p.x+=-Math.sin(ZG.yaw)*S.v*dt; p.z+=-Math.cos(ZG.yaw)*S.v*dt;
+      const lim=(ZG.WR||210)-3, rr=Math.hypot(p.x,p.z); if(rr>lim){ p.x*=lim/rr; p.z*=lim/rr; S.v*=.5; }
+    },
+    _slow(){
+      try{
+        if(S.on){ const left=S.until-tn(); if(left<=0){ S.stop('🧹 Deine Kehrmaschinen-Zeit ist um.'); return; }
+          const h=document.getElementById('zsw-hud'); if(h){ const m=Math.floor(left/60000), s=Math.floor(left/1000)%60; h.innerHTML='🧹 Kehrmaschine · '+m+':'+String(s).padStart(2,'0')+' · '+Math.round(S.v*3.6)+' km/h'; }
+          // einsaugen
+          const now=tn(), r=RT(); if(S.v>1.5&&r){ Object.values(ZG.otherPl||{}).forEach(op=>{ const k=K(op.name); if(!op.name||k===me()) return; if(Math.hypot(op.x-ZG.pl.x,op.z-ZG.pl.z)<3.2&&(!S.hitCd[k]||now-S.hitCd[k]>25000)){ S.hitCd[k]=now; try{ r.ref('zoo_sweeper_hit/'+k).set({from:ZS.player,at:now}); }catch(e){} toast('🧹 '+op.name+' eingesaugt!',2000); big('🌀 EINGESAUGT','#7fd1ff',1200); S._tone(300,90,.45); } }); }
+        }
+      }catch(e){}
+    },
+    _loop(){ const f=()=>{ try{ S._dress(); }catch(e){} requestAnimationFrame(f); }; requestAnimationFrame(f); },
+    // ── Optik bei anderen Spielern ──
+    _model(){
+      const g=new THREE.Group(); g.userData.zsw=1; const M=(c)=>new THREE.MeshBasicMaterial({color:c});
+      const body=new THREE.Mesh(new THREE.BoxGeometry(1.5,.8,2.6),M(0xffc107)); body.position.y=.75; g.add(body);
+      const cab=new THREE.Mesh(new THREE.BoxGeometry(1.2,.7,1.1),M(0x37474f)); cab.position.set(0,1.45,-.35); g.add(cab);
+      const win=new THREE.Mesh(new THREE.BoxGeometry(1.0,.45,.05),M(0x81d4fa)); win.position.set(0,1.5,.22); g.add(win);
+      [[-.8,-.9],[.8,-.9],[-.8,.9],[.8,.9]].forEach(p=>{ const w=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.28,12),M(0x212121)); w.rotation.z=Math.PI/2; w.position.set(p[0],.38,p[1]); g.add(w); });
+      const br=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,1.5,10),M(0xe53935)); br.rotation.z=Math.PI/2; br.position.set(0,.34,1.55); g.add(br); g.userData.brush=br;
+      const bc=new THREE.Mesh(new THREE.SphereGeometry(.18,8,6),M(0xff6d00)); bc.position.set(0,1.95,-.4); g.add(bc); g.userData.beacon=bc;
+      g.scale.setScalar(1.25); return g;
+    },
+    _dress(){
+      const now=tn(), t=performance.now()/1000;
+      Object.keys(ZG.otherM||{}).forEach(n=>{
+        const m=ZG.otherM[n]; if(!m) return; const e=S.all[K(n)]; const act=!!(e&&e.until>now); let sw=m.userData._zsw;
+        if(act&&!sw){ sw=S._model(); m.add(sw); m.userData._zsw=sw; m.children.forEach(c=>{ if(c!==sw){ c.userData._zwas=c.visible; c.visible=false; } }); }
+        if(act&&sw){ const op=(ZG.otherPl||{})[n]; if(op&&op._heading!=null) sw.rotation.y=op._heading; if(sw.userData.brush) sw.userData.brush.rotation.x=t*14; if(sw.userData.beacon) sw.userData.beacon.visible=Math.sin(t*10)>0; m.children.forEach(c=>{ if(c!==sw&&c.visible) c.visible=false; }); }
+        if(!act&&sw){ m.remove(sw); m.userData._zsw=null; m.children.forEach(c=>{ c.visible=true; }); }
+      });
+    },
+    // ── Eingesaugt / Rächen ──
+    _sucked(from){
+      if(S.on) return; try{ if(ZG.carrying) ZG._dropCarried(from); }catch(e){}
+      const end=Date.now()+SUCK; try{ ZG._slapStunEnd=end; ZG._stunType='suck'; }catch(e){}
+      S._tone(120,500,.5); big('🌀 EINGESAUGT!','#7fd1ff',1800);
+      S.rev={from,till:end+45000,done:false}; S._revUI(from,end);
+    },
+    _revUI(from,end){
+      const old=document.getElementById('zsw-rev'); if(old) old.remove();
+      const o=document.createElement('div'); o.id='zsw-rev'; o.style.cssText='position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:10004;background:rgba(10,20,40,.94);border:2px solid #7fd1ff;border-radius:16px;padding:14px 18px;color:#fff;font-family:Arial,sans-serif;text-align:center;max-width:90vw;box-shadow:0 0 30px rgba(80,180,255,.5)';
+      document.body.appendChild(o);
+      const tick=()=>{ if(!document.body.contains(o)) return; const w=Math.ceil((end-Date.now())/1000), cost=Math.floor(bal()*REV_PC);
+        const stillOn=(S.all[K(from)]&&S.all[K(from)].until>tn());
+        if(w>0){ o.innerHTML='<div style="font-weight:900;color:#7fd1ff;font-size:1rem">🌀 Du wurdest eingesaugt von '+from+'!</div><div style="margin-top:6px;font-size:.85rem">Du musst noch <b>'+w+' s</b> warten …</div>'; }
+        else if(!stillOn||S.rev.done||Date.now()>S.rev.till){ o.remove(); return; }
+        else { o.innerHTML='<div style="font-weight:900;color:#ffd54f;font-size:1rem">Frei! 😈 Willst du dich rächen?</div><div style="font-size:.74rem;opacity:.8;margin:6px 0">Du zahlst 5 % deines Guthabens ('+fmt(cost)+' MT) — dafür wird <b>'+from+'</b> die Kehrmaschinen-Lizenz abgezogen.</div><button id="zsw-rb" style="background:linear-gradient(135deg,#e74c3c,#a93226);border:none;color:#fff;font-weight:900;padding:9px 22px;border-radius:50px;cursor:pointer;margin-right:6px">😈 Rächen</button><button id="zsw-no" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:9px 14px;border-radius:50px;cursor:pointer">Nein</button>';
+          o.querySelector('#zsw-rb').onclick=()=>S.revenge(from,o); o.querySelector('#zsw-no').onclick=()=>{ S.rev.done=true; o.remove(); }; }
+        setTimeout(tick,w>0?500:3000); };
+      tick();
+    },
+    revenge(from,o){
+      const z=ZS.zoo, cost=Math.floor(bal()*REV_PC), r=RT(); if(!z||!r) return;
+      if(z.mt<cost){ toast('❌ Zu wenig MT!'); return; }
+      z.mt-=cost; try{ ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){}
+      S.rev.done=true; if(o) o.remove();
+      try{ r.ref('zoo_sweeper_kill/'+K(from)).set({by:ZS.player,at:tn()}); r.ref('zoo_sweeper/'+K(from)).remove(); }catch(e){}
+      toast('😈 Rache! '+from+' wurde die Lizenz abgezogen. (−'+fmt(cost)+' MT)',4000); S._tone(500,80,.6);
+    },
+    _licenseGone(by){
+      S.stop(); const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;z-index:10005;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;overflow:hidden';
+      o.innerHTML='<style>@keyframes zswStamp{0%{transform:scale(4) rotate(-25deg);opacity:0}60%{transform:scale(.9) rotate(-14deg);opacity:1}75%{transform:scale(1.1) rotate(-14deg)}100%{transform:scale(1) rotate(-14deg);opacity:1}}@keyframes zswCard{0%{transform:translateY(-120vh) rotate(8deg)}60%{transform:translateY(6px) rotate(-2deg)}100%{transform:none}}@keyframes zswShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}@keyframes zswFly{to{transform:translate(var(--x),var(--y)) rotate(720deg);opacity:0}}</style>'
+        +'<div style="position:relative;animation:zswCard .7s ease-out both"><div style="background:linear-gradient(135deg,#fff8e1,#ffe082);border:4px solid #8d6e63;border-radius:16px;padding:18px 26px;text-align:center;color:#4e342e;min-width:250px"><div style="font-size:.8rem;font-weight:900;letter-spacing:2px">KEHRMASCHINEN-LIZENZ</div><div style="font-size:3rem">🧹🪪</div><div style="font-weight:900">'+(ZS.player||'')+'</div></div>'
+        +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="font-weight:900;font-size:2rem;color:#d50000;border:6px solid #d50000;border-radius:10px;padding:4px 14px;background:rgba(255,255,255,.2);animation:zswStamp .5s .8s ease-out both;opacity:0">ENTZOGEN!</div></div></div>'
+        +'<div style="position:absolute;bottom:18%;left:0;right:0;text-align:center;color:#fff;font-weight:900;font-size:1.05rem;text-shadow:0 2px 8px #000;animation:zswShake .4s 1.1s 3">'+by+' hat dir die Lizenz abgezogen!</div>';
+      for(let i=0;i<18;i++){ const p=document.createElement('div'); p.textContent=['🧹','💥','🪪','✨'][i%4]; const a=Math.random()*6.28, d=200+Math.random()*260; p.style.cssText='position:absolute;left:50%;top:44%;font-size:1.6rem;--x:'+Math.cos(a)*d+'px;--y:'+Math.sin(a)*d+'px;animation:zswFly 1.3s '+(1.0+Math.random()*.3)+'s ease-out both;opacity:1'; o.appendChild(p); }
+      document.body.appendChild(o); S._tone(700,60,.7); setTimeout(()=>o.remove(),3600);
+    },
+    _tone(f0,f1,d){ try{ const A=window.AudioContext||window.webkitAudioContext; const c=S._ac||(S._ac=new A()); const o=c.createOscillator(), g=c.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(f0,c.currentTime); o.frequency.exponentialRampToValueAtTime(f1,c.currentTime+d); g.gain.setValueAtTime(.12,c.currentTime); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d); o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+d); }catch(e){} },
+    _banner(t){
+      const b=document.createElement('div'); b.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:10001;background:linear-gradient(135deg,#ffc107,#ff8f00);color:#000;font:900 .9rem Arial;padding:9px 18px;border-radius:30px;box-shadow:0 4px 18px rgba(0,0,0,.5);max-width:92vw;text-align:center;pointer-events:none'; b.textContent=t; document.body.appendChild(b); setTimeout(()=>b.remove(),6000);
+    },
+    // ── HUD + Pedale ──
+    _hud(on){
+      ['zsw-hud','zsw-gas','zsw-brk'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); S.gas=S.brk=false; if(!on) return;
+      const h=document.createElement('div'); h.id='zsw-hud'; h.style.cssText='position:fixed;top:118px;left:50%;transform:translateX(-50%);z-index:9000;background:rgba(0,0,0,.65);border:2px solid #ffc107;color:#ffd54f;font:900 .85rem Arial;padding:5px 14px;border-radius:20px;pointer-events:none'; document.body.appendChild(h);
+      if(!isTouch()) return;
+      const mk=(id,txt,col,right,key)=>{ const b=document.createElement('div'); b.id=id; b.style.cssText='position:fixed;bottom:22px;right:'+right+'px;width:92px;height:112px;z-index:9001;border-radius:18px;background:rgba(0,0,0,.55);border:4px solid '+col+';color:#fff;font:900 .95rem Arial;display:flex;align-items:center;justify-content:center;text-align:center;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 0 14px '+col; b.textContent=txt;
+        const set=v=>{ S[key]=v; b.style.background=v?col.replace('#','#')+'88':'rgba(0,0,0,.55)'; };
+        b.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); try{ b.setPointerCapture(e.pointerId); }catch(x){} set(true); }); ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,()=>set(false)));
+        document.body.appendChild(b); };
+      mk('zsw-gas','GAS','#2ecc71',128,'gas'); mk('zsw-brk','BREMSEN','#e74c3c',22,'brk');
+    }
+  };
+  setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
+})();
+
+/* ZSfx (v702) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+(function(){
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const EVENTS=[['walk','👣 Laufen'],['click','👆 Auf etwas klicken'],['placed','🏠 Tier abgesetzt'],['slapped','💫 Getroffen (Slap)'],['sweeper','🧹 Kehrmaschine startet']];
+  const NSLOT=8, MAXMS=4000;
+  const X=window.ZSfx={ data:{slots:{},map:{}}, cache:{}, _inited:false, _last:{},
+    init(){
+      if(X._inited) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; X._inited=true;
+      r.ref('zoo_sounds').on('value',s=>{ const v=s.val()||{}; X.data={slots:v.slots||{},map:v.map||{}}; X.cache={}; if(X.el) X._draw(); });
+      document.addEventListener('pointerdown',e=>{ if(e.target&&e.target.closest&&e.target.closest('button,.ab,.hb,[onclick]')&&!e.target.closest('#zsfx-panel')) X.play('click'); },true);
+      let lx=0,lz=0; setInterval(()=>{ try{ const p=ZG.pl; const d=Math.hypot(p.x-lx,p.z-lz); lx=p.x; lz=p.z; if(d>.3&&d<8&&!(ZG._meadowCut)) X.play('walk',420); }catch(e){} },200);
+      try{ const o=ZG._applyReceivedSlap; if(o&&!o._zs){ ZG._applyReceivedSlap=function(){ X.play('slapped'); return o.apply(this,arguments); }; ZG._applyReceivedSlap._zs=1; } }catch(e){}
+      try{ const o=ZG._placeCarried; if(o&&!o._zs){ ZG._placeCarried=function(){ const had=!!this.carrying; const r=o.apply(this,arguments); if(had) X.play('placed'); return r; }; ZG._placeCarried._zs=1; } }catch(e){}
+      try{ const o=window.ZSweeper&&ZSweeper.start; if(o&&!o._zs){ ZSweeper.start=function(){ X.play('sweeper'); return o.apply(this,arguments); }; ZSweeper.start._zs=1; } }catch(e){}
+    },
+    play(ev,minGap){
+      const n=X.data.map&&X.data.map[ev]; if(!n) return; const u=X.data.slots&&X.data.slots[n]; if(!u) return;
+      const now=Date.now(); if(minGap&&now-(X._last[ev]||0)<minGap) return; if(now-(X._last[ev]||0)<80) return; X._last[ev]=now;
+      try{ const a=X.cache[n]||(X.cache[n]=new Audio(u)); const b=a.cloneNode(); b.volume=.9; b.play().catch(()=>{}); }catch(e){}
+    },
+    // ── Admin-Panel ──
+    open(){
+      if(!ZS.isAdmin||X.el) return;
+      const o=document.createElement('div'); o.id='zsfx-panel'; o.style.cssText='position:fixed;inset:0;z-index:10006;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px'; X.el=o; document.body.appendChild(o);
+      X._draw(true);
+    },
+    close(){ if(X.el){ X.el.remove(); X.el=null; } try{ X._stream&&X._stream.getTracks().forEach(t=>t.stop()); }catch(e){} X._stream=null; },
+    _draw(first){
+      const o=X.el; if(!o) return; const D=X.data;
+      let rows=''; for(let i=1;i<=NSLOT;i++){ const has=!!D.slots[i]; rows+='<div style="display:flex;align-items:center;gap:6px;margin:5px 0;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 8px"><b style="width:62px;font-size:.8rem">Sound '+i+'</b>'
+        +'<button data-rec="'+i+'" style="background:'+(X._recN===i?'#e74c3c':'#c0392b')+';border:none;color:#fff;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer">'+(X._recN===i?'⏹ Stopp':'🔴 Aufnehmen')+'</button>'
+        +'<button data-pl="'+i+'" '+(has?'':'disabled')+' style="background:#2d7;border:none;color:#000;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer;opacity:'+(has?1:.35)+'">▶</button>'
+        +'<button data-del="'+i+'" '+(has?'':'disabled')+' style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 8px;cursor:pointer;opacity:'+(has?1:.35)+'">🗑</button></div>'; }
+      let mp=''; EVENTS.forEach(([k,l])=>{ let op='<option value="">— kein Sound —</option>'; for(let i=1;i<=NSLOT;i++) if(D.slots[i]) op+='<option value="'+i+'"'+(String(D.map[k])===String(i)?' selected':'')+'>Sound '+i+'</option>'; mp+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;font-size:.8rem"><span>'+l+'</span><select data-map="'+k+'" style="background:#1d2540;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px">'+op+'</select></div>'; });
+      o.innerHTML='<div style="background:linear-gradient(135deg,#1c2040,#11142a);border:1px solid rgba(140,160,255,.45);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;color:#fff;font-family:Arial,sans-serif"><div style="display:flex;align-items:center;margin-bottom:8px"><h2 style="flex:1;margin:0;font-size:1.05rem">🎙️ Sound-Studio (Admin)</h2><button id="zsfx-x" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer">✕</button></div>'
+        +'<div style="font-size:.72rem;opacity:.75;margin-bottom:8px">Nimm bis zu 4 Sekunden auf. Danach wählst du unten, wann welcher Sound für <b>alle Spieler</b> abgespielt wird.</div><div id="zsfx-st" style="font-size:.75rem;color:#ffd54f;min-height:1em">'+(X._msg||'')+'</div>'+rows
+        +'<div style="font-weight:900;margin:12px 0 4px;font-size:.85rem">Wann abspielen?</div>'+mp+'</div>';
+      o.querySelector('#zsfx-x').onclick=()=>X.close();
+      o.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>X._rec(+b.dataset.rec));
+      o.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{ try{ new Audio(D.slots[+b.dataset.pl]).play(); }catch(e){} });
+      o.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const r=RT(); r&&r.ref('zoo_sounds/slots/'+b.dataset.del).remove(); Object.keys(D.map).forEach(k=>{ if(String(D.map[k])===b.dataset.del) r.ref('zoo_sounds/map/'+k).remove(); }); });
+      o.querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{ const r=RT(); if(!r) return; if(s.value) r.ref('zoo_sounds/map/'+s.dataset.map).set(+s.value); else r.ref('zoo_sounds/map/'+s.dataset.map).remove(); X.play(s.dataset.map); });
+    },
+    _say(t){ X._msg=t; const e=document.getElementById('zsfx-st'); if(e) e.textContent=t; },
+    async _rec(n){
+      if(X._recN===n){ try{ X._mr&&X._mr.stop(); }catch(e){} return; } if(X._recN) return;
+      try{
+        if(!navigator.mediaDevices||!window.MediaRecorder){ X._say('❌ Dieses Gerät kann keine Aufnahme.'); return; }
+        X._say('🎙️ Mikro wird angefragt … bitte erlauben.'); const st=await navigator.mediaDevices.getUserMedia({audio:true}); X._stream=st;
+        const chunks=[]; const mr=new MediaRecorder(st); X._mr=mr; X._recN=n; X._draw();
+        mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+        mr.onstop=()=>{ clearTimeout(X._rt); X._recN=0; try{ st.getTracks().forEach(t=>t.stop()); }catch(e){} X._stream=null;
+          const bl=new Blob(chunks,{type:mr.mimeType||'audio/webm'}); const fr=new FileReader(); fr.onload=()=>{ const r=RT(); const u=String(fr.result); if(u.length>200000){ X._say('❌ Zu lang/gross, bitte kürzer.'); X._draw(); return; } r&&r.ref('zoo_sounds/slots/'+n).set(u).then(()=>{ X._say('✅ Sound '+n+' gespeichert.'); }).catch(()=>X._say('❌ Speichern fehlgeschlagen.')); X._draw(); }; fr.readAsDataURL(bl); };
+        mr.start(); X._say('🔴 Aufnahme läuft … (max. 4 s)'); X._rt=setTimeout(()=>{ try{ mr.stop(); }catch(e){} },MAXMS);
+      }catch(e){ X._recN=0; X._say('❌ Mikro nicht erlaubt: '+(e&&e.name||'Fehler')); X._draw(); }
+    }
+  };
+  const hook=()=>{ try{ if(!ZS.isAdmin||document.getElementById('hb-sfx')) return; const src=document.getElementById('hb-help'); const hl=document.getElementById('hleft'); if(!src||!hl) return; const d=src.cloneNode(true); d.id='hb-sfx'; d.querySelector('.hbb').textContent='🎙️'; d.querySelector('.hbb').style.background='rgba(200,60,60,.9)'; d.querySelector('.hbl').textContent='Sounds'; d.onclick=()=>X.open(); const menu=document.getElementById('hb-menu'); hl.insertBefore(d,menu||null); }catch(e){} };
+  setInterval(()=>{ try{ X.init(); hook(); }catch(e){} },2000);
 })();
