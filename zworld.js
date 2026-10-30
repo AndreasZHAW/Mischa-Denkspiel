@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v705)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v707)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v705): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v707): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v705) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v707) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v705) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v707) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v705) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v707) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v705) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v707) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v705) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v707) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1074,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v705) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v705) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v707) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v707) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1278,13 +1278,13 @@
 })();
 
 ;
-/* v705 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v707 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v705) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v705) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v707) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v707) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1370,7 +1370,7 @@
 
 
 ;
-/* ZMeadow (v705) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v707) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1529,7 +1529,7 @@
   };
 })();
 
-/* ZMap (v705) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v707) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1581,7 +1581,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v705) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v707) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1722,15 +1722,15 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v705) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v707) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const EVENTS=[['walk','👣 Laufen'],['click','👆 Auf etwas klicken'],['jump','🦘 Springen'],['buy','🛒 Etwas kaufen'],['pickup','🎒 Tier aufnehmen'],['placed','🏠 Tier abgesetzt'],['eat','🥟 Essen'],['heart','❤️ Herz verlieren'],['death','💀 Alle Herzen weg'],['slapped','💫 Getroffen (Slap)'],['rebirth','🔄 Rebirth'],['money','💰 Geld bekommen'],['wish','🌟 Wunsch erfüllt'],['coaster','🎢 Achterbahn startet'],['fall','😱 Runterfallen'],['circus','🎪 Zirkus betreten'],['map','🗺️ Per Karte hinbeamen'],['sweeper','🧹 Kehrmaschine startet'],['sucked','🌀 Eingesaugt werden'],['revenge','😈 Rache'],['quiz','🧠 Quiz richtig'],['goal','🎯 Tagesziel geschafft']];
-  const NSLOT=8, MAXMS=4000;
-  const X=window.ZSfx={ adm(){ try{ const n=String(ZS.player||'').toLowerCase(); return !!(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)||localStorage.getItem('zoo_secret_admin')===ZS.player||n==='bu:)'||n==='bu:3'); }catch(e){ return false; } }, data:{slots:{},map:{}}, cache:{}, _inited:false, _last:{},
+  const NSLOT=8, MAXMS=30000;
+  const X=window.ZSfx={ adm(){ try{ const n=String(ZS.player||'').toLowerCase(); return !!(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)||localStorage.getItem('zoo_secret_admin')===ZS.player||n==='bu:)'||n==='bu:3'); }catch(e){ return false; } }, data:{slots:{},map:{}}, cache:{}, aud:{}, _ld:{}, _lp:{}, _inited:false, _last:{},
     init(){
-      const r=RT(); if(r&&!X._listen&&typeof ZS!=='undefined'&&ZS.player){ X._listen=true; r.ref('zoo_sounds').on('value',s=>{ const v=s.val()||{}; X.data={slots:v.slots||{},map:v.map||{}}; X.cache={}; if(X.el) X._draw(); }); }
+      const r=RT(); if(r&&!X._listen&&typeof ZS!=='undefined'&&ZS.player){ X._listen=true; r.ref('zoo_sounds/meta').on('value',s=>{ X.data.slots=s.val()||{}; X._pre(); if(X.el) X._draw(); }); r.ref('zoo_sounds/map').on('value',s=>{ X.data.map=s.val()||{}; X._pre(); if(X.el) X._draw(); }); }
       if(X._inited) return; if(typeof ZS==='undefined'||!ZS.player||typeof ZG==='undefined'||!ZG.pl) return; X._inited=true;
       document.addEventListener('pointerdown',e=>{ if(e.target&&e.target.closest&&e.target.closest('button,.ab,.hb,[onclick]')&&!e.target.closest('#zsfx-panel')) X.play('click'); },true);
       let lx=0,lz=0; setInterval(()=>{ try{ const p=ZG.pl; const d=Math.hypot(p.x-lx,p.z-lz); lx=p.x; lz=p.z; if(d>.3&&d<8&&!(ZG._meadowCut)) X.play('walk',420); }catch(e){} },200);
@@ -1756,10 +1756,13 @@
       document.addEventListener('pointerdown',e=>{ try{ if(e.target&&e.target.id==='zcirc-open') X.play('circus'); }catch(x){} },true);
       try{ const o=window.ZSweeper&&ZSweeper.start; if(o&&!o._zs){ ZSweeper.start=function(){ X.play('sweeper'); return o.apply(this,arguments); }; ZSweeper.start._zs=1; } }catch(e){}
     },
+    // Audio wird einzeln und nur bei Bedarf geladen (Meta = Zeitstempel der Aufnahme)
+    _get(n){ const ts=X.data.slots[n]; if(!ts) return Promise.resolve(null); const c=X.aud[n]; if(c&&c.ts===ts) return Promise.resolve(c.u); if(X._ld[n]===ts) return X._lp[n]; const r=RT(); if(!r) return Promise.resolve(null); X._ld[n]=ts; X._lp[n]=r.ref('zoo_sounds/audio/'+n).once('value').then(s=>{ const u=s.val(); if(u){ X.aud[n]={ts,u}; delete X.cache[n]; } return u; }).catch(()=>null); return X._lp[n]; },
+    _pre(){ try{ Object.values(X.data.map||{}).forEach(n=>X._get(n)); }catch(e){} },
     play(ev,minGap){
-      const n=X.data.map&&X.data.map[ev]; if(!n) return; const u=X.data.slots&&X.data.slots[n]; if(!u) return;
+      const n=X.data.map&&X.data.map[ev]; if(!n) return; const c=X.aud[n]; const u=c&&c.ts===X.data.slots[n]?c.u:null; if(!u){ X._get(n); return; }
       const now=Date.now(); if(minGap&&now-(X._last[ev]||0)<minGap) return; if(now-(X._last[ev]||0)<80) return; X._last[ev]=now;
-      try{ const a=X.cache[n]||(X.cache[n]=new Audio(u)); const b=a.cloneNode(); b.volume=.9; b.play().catch(()=>{}); }catch(e){}
+      try{ X._cur=X._cur||{}; const q=X._cur[ev]; if(q&&!q.ended&&!q.paused) return; const a=X.cache[n]||(X.cache[n]=new Audio(u)); const b=a.cloneNode(); b.volume=.9; X._cur[ev]=b; b.play().catch(()=>{}); }catch(e){}
     },
     // ── Admin-Panel ──
     open(){
@@ -1767,7 +1770,7 @@
       const o=document.createElement('div'); o.id='zsfx-panel'; o.style.cssText='position:fixed;inset:0;z-index:10006;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px'; X.el=o; document.body.appendChild(o);
       X._draw(true);
     },
-    close(){ if(X.el){ X.el.remove(); X.el=null; } try{ X._stream&&X._stream.getTracks().forEach(t=>t.stop()); }catch(e){} X._stream=null; },
+    close(){ if(X.el){ X.el.remove(); X.el=null; } try{ X._stream&&X._stream.getTracks().forEach(t=>t.stop()); X._dsrc&&X._dsrc.getTracks().forEach(t=>t.stop()); }catch(e){} X._stream=null; },
     _draw(first){
       const o=X.el; if(!o) return; const D=X.data;
       let rows=''; for(let i=1;i<=NSLOT;i++){ const has=!!D.slots[i]; rows+='<div style="display:flex;align-items:center;gap:6px;margin:5px 0;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 8px"><b style="width:62px;font-size:.8rem">Sound '+i+'</b>'
@@ -1776,12 +1779,12 @@
         +'<button data-del="'+i+'" '+(has?'':'disabled')+' style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 8px;cursor:pointer;opacity:'+(has?1:.35)+'">🗑</button></div>'; }
       let mp=''; EVENTS.forEach(([k,l])=>{ let op='<option value="">— kein Sound —</option>'; for(let i=1;i<=NSLOT;i++) if(D.slots[i]) op+='<option value="'+i+'"'+(String(D.map[k])===String(i)?' selected':'')+'>Sound '+i+'</option>'; mp+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;font-size:.8rem"><span>'+l+'</span><select data-map="'+k+'" style="background:#1d2540;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px">'+op+'</select></div>'; });
       o.innerHTML='<div style="background:linear-gradient(135deg,#1c2040,#11142a);border:1px solid rgba(140,160,255,.45);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;color:#fff;font-family:Arial,sans-serif"><div style="display:flex;align-items:center;margin-bottom:8px"><h2 style="flex:1;margin:0;font-size:1.05rem">🎙️ Sound-Studio (Admin)</h2><button id="zsfx-x" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer">✕</button></div>'
-        +'<div style="font-size:.72rem;opacity:.75;margin-bottom:8px">Nimm bis zu 4 Sekunden auf. Danach wählst du unten, wann welcher Sound für <b>alle Spieler</b> abgespielt wird.</div><div id="zsfx-st" style="font-size:.75rem;color:#ffd54f;min-height:1em">'+(X._msg||'')+'</div>'+rows
+        +'<div style="font-size:.72rem;opacity:.75;margin-bottom:8px">Nimm bis zu 30 Sekunden auf. Danach wählst du unten, wann welcher Sound für <b>alle Spieler</b> abgespielt wird.</div><div style="display:flex;gap:6px;margin-bottom:8px"><button data-src="mic" style="flex:1;padding:7px;border-radius:8px;border:2px solid '+(X._src==='dev'?'rgba(255,255,255,.25)':'#7fd1ff')+';background:rgba(255,255,255,.08);color:#fff;font-weight:700;cursor:pointer;font-size:.75rem">🎙️ Mikrofon</button><button data-src="dev" style="flex:1;padding:7px;border-radius:8px;border:2px solid '+(X._src==='dev'?'#7fd1ff':'rgba(255,255,255,.25)')+';background:rgba(255,255,255,.08);color:#fff;font-weight:700;cursor:pointer;font-size:.75rem">🔊 Geräte-Sound</button></div><div id="zsfx-st" style="font-size:.75rem;color:#ffd54f;min-height:1em">'+(X._msg||'')+'</div>'+rows
         +'<div style="font-weight:900;margin:12px 0 4px;font-size:.85rem">Wann abspielen?</div>'+mp+'</div>';
-      o.querySelector('#zsfx-x').onclick=()=>X.close();
+      o.querySelector('#zsfx-x').onclick=()=>X.close(); o.querySelectorAll('[data-src]').forEach(b=>b.onclick=()=>{ X._src=b.dataset.src; X._draw(); });
       o.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>X._rec(+b.dataset.rec));
-      o.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{ try{ new Audio(D.slots[+b.dataset.pl]).play(); }catch(e){} });
-      o.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const r=RT(); r&&r.ref('zoo_sounds/slots/'+b.dataset.del).remove(); Object.keys(D.map).forEach(k=>{ if(String(D.map[k])===b.dataset.del) r.ref('zoo_sounds/map/'+k).remove(); }); });
+      o.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{ X._get(+b.dataset.pl).then(u=>{ try{ u&&new Audio(u).play(); }catch(e){} }); });
+      o.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const r=RT(); r&&r.ref('zoo_sounds/meta/'+b.dataset.del).remove(); r&&r.ref('zoo_sounds/audio/'+b.dataset.del).remove(); Object.keys(D.map).forEach(k=>{ if(String(D.map[k])===b.dataset.del) r.ref('zoo_sounds/map/'+k).remove(); }); });
       o.querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{ const r=RT(); if(!r) return; if(s.value) r.ref('zoo_sounds/map/'+s.dataset.map).set(+s.value); else r.ref('zoo_sounds/map/'+s.dataset.map).remove(); X.play(s.dataset.map); });
     },
     _say(t){ X._msg=t; const e=document.getElementById('zsfx-st'); if(e) e.textContent=t; },
@@ -1789,12 +1792,20 @@
       if(X._recN===n){ try{ X._mr&&X._mr.stop(); }catch(e){} return; } if(X._recN) return;
       try{
         if(!navigator.mediaDevices||!window.MediaRecorder){ X._say('❌ Dieses Gerät kann keine Aufnahme.'); return; }
-        X._say('🎙️ Mikro wird angefragt … bitte erlauben.'); const st=await navigator.mediaDevices.getUserMedia({audio:true}); X._stream=st;
-        const chunks=[]; const mr=new MediaRecorder(st); X._mr=mr; X._recN=n; X._draw();
+        let st;
+        if(X._src==='dev'){
+          if(!navigator.mediaDevices.getDisplayMedia){ X._say('❌ Geräte-Sound geht nur am Computer (Chrome/Edge). Auf Handy/Tablet bitte Mikro nehmen.'); X._draw(); return; }
+          X._say('🔊 Wähle gleich den Tab oder Bildschirm und hake „Ton teilen" an …');
+          const ds=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true}); ds.getVideoTracks().forEach(t=>t.stop());
+          if(!ds.getAudioTracks().length){ ds.getTracks().forEach(t=>t.stop()); X._say('❌ Kein Ton geteilt. Beim Teilen unten „Tab-Audio / Systemton teilen" anhaken.'); X._draw(); return; }
+          st=new MediaStream(ds.getAudioTracks()); X._dsrc=ds;
+        } else { X._say('🎙️ Mikro wird angefragt … bitte erlauben.'); st=await navigator.mediaDevices.getUserMedia({audio:true}); }
+        X._stream=st;
+        const chunks=[]; let mr; try{ mr=new MediaRecorder(st,{audioBitsPerSecond:40000}); }catch(e){ mr=new MediaRecorder(st); } X._mr=mr; X._recN=n; X._draw();
         mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
-        mr.onstop=()=>{ clearTimeout(X._rt); X._recN=0; try{ st.getTracks().forEach(t=>t.stop()); }catch(e){} X._stream=null;
-          const bl=new Blob(chunks,{type:mr.mimeType||'audio/webm'}); const fr=new FileReader(); fr.onload=()=>{ const r=RT(); const u=String(fr.result); if(u.length>200000){ X._say('❌ Zu lang/gross, bitte kürzer.'); X._draw(); return; } r&&r.ref('zoo_sounds/slots/'+n).set(u).then(()=>{ X._say('✅ Sound '+n+' gespeichert.'); }).catch(()=>X._say('❌ Speichern fehlgeschlagen.')); X._draw(); }; fr.readAsDataURL(bl); };
-        mr.start(); X._say('🔴 Aufnahme läuft … (max. 4 s)'); X._rt=setTimeout(()=>{ try{ mr.stop(); }catch(e){} },MAXMS);
+        mr.onstop=()=>{ clearTimeout(X._rt); X._recN=0; try{ st.getTracks().forEach(t=>t.stop()); X._dsrc&&X._dsrc.getTracks().forEach(t=>t.stop()); }catch(e){} X._stream=null;
+          const bl=new Blob(chunks,{type:mr.mimeType||'audio/webm'}); const fr=new FileReader(); fr.onload=()=>{ const r=RT(); const u=String(fr.result); if(u.length>900000){ X._say('❌ Zu gross, bitte kürzer.'); X._draw(); return; } r&&r.ref('zoo_sounds/audio/'+n).set(u).then(()=>r.ref('zoo_sounds/meta/'+n).set(Date.now())).then(()=>{ X._say('✅ Sound '+n+' gespeichert.'); }).catch(()=>X._say('❌ Speichern fehlgeschlagen.')); X._draw(); }; fr.readAsDataURL(bl); };
+        mr.start(); X._say((X._src==='dev'?'🔴 Nimmt Geräte-Sound auf – spiel ihn jetzt ab … ':'🔴 Aufnahme läuft … ')+'(max. 30 s, nochmal tippen = Stopp)'); X._rt=setTimeout(()=>{ try{ mr.stop(); }catch(e){} },MAXMS);
       }catch(e){ X._recN=0; X._say('❌ Mikro nicht erlaubt: '+(e&&e.name||'Fehler')); X._draw(); }
     }
   };
@@ -1803,7 +1814,7 @@
 })();
 
 
-/* ZLoginLog (v705) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v707) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1812,7 +1823,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v705'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v707'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
