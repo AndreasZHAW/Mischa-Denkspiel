@@ -211,7 +211,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v717';
+const APP_VERSION = 'v718';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -621,7 +621,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v717 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v718 · 2026-08-04</p>
           
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -1208,7 +1208,7 @@ const App = {
           <div class="char-grid">
             ${CHARACTERS.map(ch => `
               <div class="char-card" id="char-${ch.id}" onclick="App.selectChar('${ch.id}')">
-                <span class="char-img">${ch.emoji}</span>
+                <span class="char-img">${(window.CHARHEADS&&CHARHEADS[ch.id])?`<img src="${CHARHEADS[ch.id]}" alt="${ch.name}" style="width:58px;height:58px;object-fit:contain;display:block;margin:0 auto">`:ch.emoji}</span>
                 <span class="char-name">${ch.name}</span>
               </div>`).join('')}
           </div>
