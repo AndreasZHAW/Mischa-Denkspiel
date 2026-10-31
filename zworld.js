@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v710)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v711)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v710): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v711): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v710) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v711) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v710) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v711) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v710) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v711) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v710) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v711) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v710) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v711) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1074,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v710) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v710) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v711) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v711) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1261,7 +1261,7 @@
     cam(){
       if(!D.on||ZG._coasterRide||busy()){ if(D.av) D._rm(); return; }
       const now=performance.now(), dt=Math.min(.1,(now-D._t)/1000); D._t=now; const cam=ZG.cam, p=ZG.pl;
-      const feet=p.y-(ZG._sizeMul?p.y*(1-1/ZG._sizeMul):0)-1.7+0; const av=D._avatar(); av.position.set(p.x,Math.max(0,p.y-1.7),p.z); av.rotation.y=(ZG.yaw||0);
+      const feet=p.y-(ZG._sizeMul?p.y*(1-1/ZG._sizeMul):0)-1.7+0; const av=D._avatar(); av.position.set(p.x,Math.max(0,p.y-1.7),p.z); av.rotation.y=(ZG.yaw||0)+Math.PI;
       const yaw=ZG.yaw||0, pitch=Math.max(-1.2,Math.min(1.2,ZG.pitch||0)), fx=-Math.sin(yaw), fz=-Math.cos(yaw);
       const dist=6.2, hh=Math.max(1.4,3.4-pitch*5);
       const want=V3(p.x-fx*dist,p.y-1.7+hh,p.z-fz*dist); if(!D.pos) D.pos=want.clone(); D.pos.lerp(want,Math.min(1,dt*7)); if(D.pos.y<.7) D.pos.y=.7;
@@ -1278,13 +1278,13 @@
 })();
 
 ;
-/* v710 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v711 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v710) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v710) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v711) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v711) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1370,7 +1370,7 @@
 
 
 ;
-/* ZMeadow (v710) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v711) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1529,7 +1529,7 @@
   };
 })();
 
-/* ZMap (v710) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v711) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1581,7 +1581,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v710) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v711) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1663,7 +1663,7 @@
       Object.keys(ZG.otherM||{}).forEach(n=>{
         const m=ZG.otherM[n]; if(!m) return; const e=S.all[K(n)]; const act=!!(e&&e.until>now); let sw=m.userData._zsw;
         if(act&&!sw){ sw=S._model(); m.add(sw); m.userData._zsw=sw; m.children.forEach(c=>{ if(c!==sw&&!(c.isSprite&&c.position.y>2)){ c.userData._zwas=c.visible; c.visible=false; } }); }
-        if(act&&sw){ const op=(ZG.otherPl||{})[n]; if(op&&op._heading!=null) sw.rotation.y=op._heading; if(sw.userData.brush) sw.userData.brush.rotation.x=t*14; if(sw.userData.beacon) sw.userData.beacon.visible=Math.sin(t*10)>0; m.children.forEach(c=>{ if(c!==sw&&!c.userData._keep&&!(c.isSprite&&c.position.y>2)&&c.visible) c.visible=false; }); }
+        if(act&&sw){ const op=(ZG.otherPl||{})[n]; if(op&&op._heading!=null) sw.rotation.y=op._heading-m.rotation.y; if(sw.userData.brush) sw.userData.brush.rotation.x=t*14; if(sw.userData.beacon) sw.userData.beacon.visible=Math.sin(t*10)>0; m.children.forEach(c=>{ if(c!==sw&&!c.userData._keep&&!(c.isSprite&&c.position.y>2)&&c.visible) c.visible=false; }); }
         if(!act&&sw){ m.remove(sw); m.userData._zsw=null; m.children.forEach(c=>{ c.visible=true; }); }
       });
     },
@@ -1723,7 +1723,7 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v710) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v711) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1815,7 +1815,7 @@
 })();
 
 
-/* ZLoginLog (v710) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v711) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1824,7 +1824,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v710'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v711'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1845,7 +1845,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v710) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v711) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -1952,6 +1952,61 @@
     return g; };
   const mkTail=(col,kind)=>{ const g=new THREE.Group(); const m=mat(col); if(kind==='thin'){ const a=new THREE.Mesh(new THREE.CylinderGeometry(.04,.06,.6,6),m); a.position.set(0,.25,0); a.rotation.x=-.5; g.add(a); } else if(kind==='bush'){ const a=new THREE.Mesh(new THREE.SphereGeometry(.17,8,6),m); a.scale.set(.8,.8,1.7); a.position.set(0,.12,-.1); g.add(a); const t=new THREE.Mesh(new THREE.SphereGeometry(.09,6,5),mat(0xffffff)); t.position.set(0,.14,-.36); g.add(t); } else { const a=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),m); g.add(a); } g.position.set(0,.4,-.42); return g; };
   function shadowTex(){ return L._st||(L._st=canvasTex(64,64,(x)=>{ const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(0,0,0,.55)'); g.addColorStop(.6,'rgba(0,0,0,.25)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); })); }
+  const KD=(function(){
+  // ═══ 3D-Köpfe + Zubehör für die Start-Figuren ═══
+  const KIND={'🧑‍🚀':'astronaut','🥷':'ninja','🕵':'detective','👸':'princess','⚔':'knight','🧪':'scientist','🧭':'explorer','🎨':'stick','👩':'woman','👨':'man'};
+  const kindOf=chr=>{ const s=String(chr||'').replace(/️/g,''); return KIND[s]||null; };
+  const LM=c=>new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide});
+  const SK=0xf0b88a;
+  const sph=(r,c,x,y,z,sx,sy,sz)=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),LM(c)); m.position.set(x||0,y||0,z||0); if(sx!=null) m.scale.set(sx,sy,sz); return m; };
+  const cyl=(rt,rb,h,c,x,y,z,seg,open)=>{ const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||14,1,!!open),LM(c)); m.position.set(x||0,y||0,z||0); return m; };
+  const bx=(w,h,d,c,x,y,z)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),LM(c)); m.position.set(x||0,y||0,z||0); return m; };
+  const tor=(R,r,c,x,y,z,seg,arc)=>{ const m=new THREE.Mesh(new THREE.TorusGeometry(R,r,8,seg||18,arc||6.283),LM(c)); m.position.set(x||0,y||0,z||0); return m; };
+  const cone=(r,h,c,x,y,z,seg)=>{ const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg||10),LM(c)); m.position.set(x||0,y||0,z||0); return m; };
+  function face(g,skin,o){ o=o||{}; const head=sph(.5,skin,0,0,0,1,.97,1); g.add(head); g.userData.skull=head; g.userData.eyes=[]; 
+    [-1,1].forEach(sd=>{ const e=new THREE.Group(); e.position.set(sd*.18,.06,.44); e.add(sph(.075,0x1a1a1a,0,0,0,1,1.25,.6)); e.add(sph(.026,0xffffff,.025,.03,.045)); g.add(e); g.userData.eyes.push(e); if(o.noEars!==true) g.add(sph(.1,skin,sd*.5,-.02,0,.7,1,1)); if(o.blush!==false){ const b=sph(.07,0xff9a9a,sd*.3,-.1,.4,1,.6,.4); g.add(b); } });
+    if(o.mouth!==false){ const m=tor(.11,.022,0x7a2a1a,0,-.1,.465,12,Math.PI); m.rotation.z=Math.PI; g.add(m); g.userData.mouth=m; }
+    return g; }
+  function buildKind(kind,col){
+    const H=new THREE.Group(); H.position.y=1.45; const B=[]; const out={head:H,body:B,hand:{},anim:[]};
+    const skin=SK;
+    if(kind==='stick'){ face(H,0xffffff); H.userData.skull.material.color.setHex(0xf6f6f6); const pen=cyl(.025,.025,.5,0xffd600,.52,.12,-.05,6); pen.rotation.z=-.6; pen.add(cyl(.03,.03,.06,0xff8a80,0,-.28,0,6)); const tip=cone(.025,.07,0x3b3b3b,0,.285,0,6); pen.add(tip); H.add(pen); }
+    else if(kind==='woman'){ face(H,skin); H.add(sph(.54,0x7b4a26,0,.07,-.06,1,.95,.95)); const pt=new THREE.Group(); pt.position.set(0,.12,-.5); pt.add(sph(.13,0x7b4a26,0,0,0)); pt.add(sph(.11,0x7b4a26,0,-.2,-.05)); pt.add(sph(.09,0x7b4a26,0,-.38,-.04)); H.add(pt); out.anim.push((t,u)=>{ pt.rotation.x=Math.sin(t*4+u.ph)*.18*(.3+u.walk); });
+      H.add(cyl(.95,.95,.045,0xf1d28a,0,.38,0,24)); H.add(cyl(.42,.5,.3,0xf1d28a,0,.5,0,20)); H.add(cyl(.5,.5,.06,0xc0392b,0,.4,0,20));
+      const pk=new THREE.Group(); pk.add(bx(.55,.62,.3,0x2e7d32,0,.7,-.45)); const roll=cyl(.14,.14,.6,0xcfd8dc,0,1.08,-.45,10); roll.rotation.z=Math.PI/2; pk.add(roll); pk.add(bx(.4,.25,.12,0x1b5e20,0,.62,-.64)); B.push(pk); }
+    else if(kind==='man'){ face(H,skin); const beard=sph(.5,0x5d3a1a,0,-.12,.06,1,.7,.95); H.add(beard); H.add(sph(.15,0x5d3a1a,0,-.2,.5,1.2,.6,.5)); // Bart + Mund darüber
+      if(H.userData.mouth) H.userData.mouth.position.y=-.06; H.add(cyl(.55,.55,.045,0x6d4c41,0,.36,0,24)); H.add(cyl(.38,.46,.32,0x795548,0,.5,0,20)); H.add(cyl(.46,.46,.07,0x2e7d32,0,.4,0,20));
+      const st=new THREE.Group(); st.add(cyl(.035,.035,1.9,0x8d6e63,0,0,0,6)); st.add(sph(.06,0x5d4037,0,.96,0)); out.hand.R=st; st.position.set(0,-.35,.1); out.stick=st;
+      const bt=new THREE.Group(); bt.add(cyl(.09,.09,.3,0x1e88e5,0,0,0,10)); bt.add(cyl(.05,.05,.07,0x37474f,0,.18,0,8)); bt.position.set(-.5,.42,.2); B.push(bt); B.push(bx(.8,.07,.5,0x5d4037,0,.4,0)); }
+    else if(kind==='ninja'){ face(H,0x212121,{mouth:false,blush:false,noEars:true}); H.userData.eyes.forEach(e=>{ H.remove(e); }); const slit=bx(.72,.2,.06,skin,0,.07,.47); H.add(slit); H.userData.eyes.forEach((e,i)=>{ e.position.set((i?1:-1)*.2,.07,.5); e.scale.setScalar(1.05); H.add(e); });
+      const band=tor(.5,.045,0xe53935,0,.22,0,24); band.rotation.x=Math.PI/2; H.add(band); const kn=sph(.1,0xe53935,0,.22,-.52); H.add(kn); const rb=[-1,1].map(sd=>{ const r=bx(.06,.04,.5,0xe53935,sd*.07,.2,-.78); r.geometry.translate(0,0,0); H.add(r); return r; }); out.anim.push((t,u)=>{ rb.forEach((r,i)=>{ r.rotation.y=(i?1:-1)*(.25+Math.sin(t*9+i)*.18*(.4+u.walk)); r.rotation.x=Math.sin(t*7+i*2)*.15*(.4+u.walk); }); });
+      B.push(tor(.46,.05,0xe53935,0,.38,0)); B[0].rotation.x=Math.PI/2; const sh=new THREE.Group(); [0,1].forEach(i=>{ const b=bx(.3,.03,.07,0xb0bec5); b.rotation.z=i*Math.PI/2+Math.PI/4; sh.add(b); }); sh.position.set(.5,.38,.18); sh.rotation.y=.6; B.push(sh); out.anim.push((t)=>{ sh.rotation.z=t*2; });
+      const tr=new THREE.Group(); [0,1,2].forEach(i=>{ const p=new THREE.Mesh(new THREE.PlaneGeometry(.9-.15*i,.12),new THREE.MeshBasicMaterial({color:0x9ad0ff,transparent:true,opacity:.35-.08*i,depthWrite:false,side:THREE.DoubleSide})); p.position.set(0,.55+i*.12-.1,-.8-i*.55); p.rotation.x=Math.PI/2; tr.add(p); }); tr.visible=false; B.push(tr); out.trail=tr; }
+    else if(kind==='astronaut'){ face(H,skin); const gl=sph(.7,0xbfe9ff,0,.0,0,1,1,1); gl.material=new THREE.MeshLambertMaterial({color:0x9fdcff,transparent:true,opacity:.32,side:THREE.DoubleSide}); H.add(gl); const sine=sph(.1,0xffffff,.28,.34,.5,.8,1.4,.4); sine.material=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}); H.add(sine);
+      H.add(tor(.5,.09,0xeceff1,0,-.62,0,20)); H.children[H.children.length-1].rotation.x=Math.PI/2; const an=cyl(.02,.02,.4,0xeceff1,.45,.75,-.1,6); H.add(an); const ab=sph(.06,0xff1744,.45,.97,-.1); H.add(ab); out.anim.push(t=>{ ab.visible=Math.sin(t*5)>0; });
+      const pk=new THREE.Group(); pk.add(bx(.6,.7,.28,0xeceff1,0,.7,-.45)); [-1,1].forEach(sd=>pk.add(cyl(.09,.09,.55,0x4dd0e1,sd*.17,.72,-.66,10))); B.push(pk); }
+    else if(kind==='detective'){ face(H,skin); const mu=sph(.09,0x3e2723,-.07,-.04,.5,1.3,.5,.5); H.add(mu); H.add(sph(.09,0x3e2723,.07,-.04,.5,1.3,.5,.5)); H.add(cyl(.74,.74,.05,0x455a64,0,.36,0,24)); H.add(cyl(.42,.5,.42,0x546e7a,0,.55,0,20)); H.add(cyl(.5,.5,.09,0x263238,0,.42,0,20));
+      const co=new THREE.Group(); [-1,1].forEach(sd=>{ const c=bx(.05,.5,.35,0xa1887f,sd*.36,1.02,.02); c.rotation.z=sd*-.35; co.add(c); }); co.add(cyl(.47,.52,.6,0xa1887f,0,.55,0,14,true)); B.push(co);
+      const mg=new THREE.Group(); mg.add(tor(.17,.03,0x424242,0,.45,0,16)); const gl=new THREE.Mesh(new THREE.CircleGeometry(.15,16),new THREE.MeshBasicMaterial({color:0xbfefff,transparent:true,opacity:.5,side:THREE.DoubleSide})); gl.position.y=.45; mg.add(gl); mg.add(cyl(.025,.025,.35,0x5d4037,0,.15,0,6)); out.hand.R=mg; mg.position.set(0,-.2,.12); out.mag=mg; }
+    else if(kind==='princess'){ face(H,skin); H.add(sph(.55,0xf4c542,0,.06,-.07,1,.95,.95)); const hair=cyl(.42,.5,.9,0xf4c542,0,-.55,-.4,12); H.add(hair); const cr=new THREE.Group(); cr.add(cyl(.34,.38,.14,0xffd54f,0,0,0,16)); for(let i=0;i<5;i++){ const a=i/5*6.283; cr.add(cone(.06,.18,0xffd54f,Math.cos(a)*.34,.15,Math.sin(a)*.34,6)); } cr.position.y=.55; H.add(cr);
+      const dr=cyl(.45,.9,.7,0xff8fd1,0,.4,0,18,true); B.push(dr); const sp=[0,1,2,3,4,5].map(i=>{ const s=emo('✨',.28); B.push(s); return s; }); out.anim.push(t=>{ sp.forEach((s,i)=>{ const a=t*.9+i/6*6.283; s.position.set(Math.cos(a)*.9,.25+((Math.sin(t*2+i*2)+1)/2)*.6,Math.sin(a)*.9); s.material.opacity=.5+Math.sin(t*4+i)*.4; }); });
+      const zp=new THREE.Group(); zp.add(cyl(.025,.025,.9,0xffd54f,0,0,0,6)); const st=sph(.1,0xffeb3b,0,.52,0); zp.add(st); try{ zp.add(halo(0xffee58,.9,.8)); zp.children[zp.children.length-1].position.y=.52; }catch(e){} out.hand.R=zp; zp.position.set(0,-.25,.1); }
+    else if(kind==='knight'){ face(H,0x90a4ae,{mouth:false,blush:false,noEars:true}); H.userData.eyes.forEach(e=>{ H.remove(e); }); H.userData.skull.scale.set(1.08,1.04,1.08); const vz=bx(.78,.2,.1,0x263238,0,.06,.5); H.add(vz); H.userData.eyes.forEach((e,i)=>{ e.position.set((i?1:-1)*.2,.06,.55); e.children[0].material=new THREE.MeshBasicMaterial({color:0xffffff}); e.children[1].visible=false; H.add(e); });
+      const vp=bx(.78,.5,.06,0x78909c,0,-.2,.5); H.add(vp); const fe=cone(.09,.7,0xe53935,0,.7,-.1,8); fe.rotation.x=-.6; H.add(fe); out.anim.push((t,u)=>{ fe.rotation.x=-.6+Math.sin(t*5+u.ph)*.12*(.3+u.walk); }); const crest=bx(.07,.12,.6,0x607d8b,0,.52,0); H.add(crest);
+      B.push(cyl(.47,.47,.42,0x90a4ae,0,.65,0,16,true)); [-1,1].forEach(sd=>B.push(sph(.17,0x78909c,sd*.46,.92,0))); }
+    else if(kind==='scientist'){ face(H,skin); for(let i=0;i<9;i++){ const a=i/9*6.283; const h=sph(.2,0xffffff,Math.cos(a)*.42,.28+(i%3)*.05,Math.sin(a)*.42-.04); h.scale.set(1,1.4,1); h.rotation.z=Math.cos(a)*.6; H.add(h); } H.add(sph(.3,0xffffff,0,.5,0,1,.8,1));
+      [-1,1].forEach(sd=>{ const g=tor(.11,.02,0xffd54f,sd*.18,.07,.5,14); H.add(g); }); H.add(bx(.12,.02,.02,0xffd54f,0,.08,.5)); const gb=tor(.5,.04,0x4e342e,0,.3,0,22); gb.rotation.x=Math.PI/2; gb.position.y=.34; H.add(gb); [-1,1].forEach(sd=>{ const gg=cyl(.1,.1,.1,0x76ff03,sd*.17,.37,.46,10); gg.rotation.x=Math.PI/2; H.add(gg); });
+      const kit=cyl(.5,.56,.78,0xfafafa,0,.55,0,16,true); B.push(kit); B.push(bx(.12,.08,.05,0xfafafa,-.12,.97,.34)); B.push(bx(.12,.08,.05,0xfafafa,.12,.97,.34)); B.push(bx(.14,.14,.04,0xeeeeee,.25,.45,.5)); B.push(bx(.02,.14,.02,0x1e88e5,.27,.55,.52));
+      const tb=new THREE.Group(); const gl=cyl(.07,.07,.5,0xcfe9ff,0,0,0,10); gl.material=new THREE.MeshLambertMaterial({color:0xcfe9ff,transparent:true,opacity:.55}); tb.add(gl); tb.add(cyl(.062,.062,.28,0x76ff03,0,-.1,0,10)); out.hand.R=tb; tb.position.set(0,-.25,.1); const bb=[0,1,2].map(i=>{ const s=sph(.045,0xb9ffa0,0,0,0); tb.add(s); return s; }); out.anim.push(t=>{ bb.forEach((s,i)=>{ const p=((t*.6+i/3)%1); s.position.set(Math.sin(t*3+i*2)*.05,.25+p*.7,0); s.scale.setScalar(Math.max(.01,1-p)); }); }); }
+    else if(kind==='explorer'){ face(H,skin); H.add(cyl(.7,.7,.05,0xd7b97a,0,.36,0,24)); const dm=sph(.45,0xe6cd94,0,.42,0,1,.72,1); H.add(dm); H.add(cyl(.5,.5,.08,0x6d4c41,0,.4,0,20));
+      const bn=new THREE.Group(); [-1,1].forEach(sd=>bn.add(cyl(.09,.09,.28,0x263238,sd*.13,0,0,10))); bn.add(bx(.14,.08,.08,0x263238,0,0,0)); bn.position.set(0,.82,.4); B.push(bn); const strap=tor(.3,.015,0x5d4037,0,.95,.1,14); strap.rotation.x=Math.PI/2; B.push(strap);
+      const mp=cyl(.07,.07,.6,0xf3e0b0,0,0,0,10); mp.rotation.z=Math.PI/2; mp.rotation.y=.4; out.handL=mp; mp.position.set(0,-.3,.2);
+      const cp=new THREE.Group(); cp.add(cyl(.17,.17,.05,0x8d6e63,0,0,0,16)); const cf=cyl(.14,.14,.02,0xffffff,0,.03,0,16); cp.add(cf); const nd=bx(.02,.012,.2,0xe53935,0,.05,0); cp.add(nd); out.hand.R=cp; cp.position.set(0,-.25,.12); out.anim.push(t=>{ nd.rotation.y=t*3+Math.sin(t*7)*.3; }); }
+    return out;
+  }
+
+    return {kindOf,buildKind};
+  })();
   function dress(m,op,isSelf){
     let u=m.userData._zl;
     if(!u){ u=m.userData._zl={ ph:Math.random()*10, lx:m.position.x, lz:m.position.z, walk:0, idle:0, nextBlink:performance.now()+2000+Math.random()*3000, blink:0, extra:[] };
@@ -1960,6 +2015,9 @@
       const chr=String((op&&op.char)||(isSelf&&ZS._myPersonality?ZS._myPersonality().char:'')||''); let face=null; for(const k in TAILS){ if(chr.includes(k)){ face=k; break; } }
       if(face){ const t=mkTail(TAILS[face][0],TAILS[face][1]); m.add(t); u.tail=t; u.extra.push(t); }
       for(const h in OUT){ if(chr.includes(h)){ const o=mkOutfit(OUT[h],u.body); m.add(o); u.extra.push(o); u.outfit=o; break; } }
+      try{ const kd0=KD.kindOf(chr); if(kd0&&u.head){ const kb=KD.buildKind(kd0); u.kd=kb; u.kdKind=kd0; m.add(kb.head); u.extra.push(kb.head); kb.body.forEach(o=>{ m.add(o); u.extra.push(o); });
+        const armR=u.arms.find(a=>a.position.x>0), armL=u.arms.find(a=>a.position.x<0); u.armR=armR; const att=(arm,o)=>{ if(!arm||!o) return; const w=new THREE.Group(); w.scale.set(1,1/1.5,1); w.position.y=-.1; w.add(o); arm.add(w); u.extra.push(w); };
+        att(armR,kb.hand.R); att(armL,kb.handL); m.children.forEach(c=>{ if(c.isSprite&&c.position.y>2&&!c.userData._keep) c.position.y+=.35; }); } }catch(e){ u.kd=null; }
       const mk=e=>{ const s=emo(e,.9); s.position.set(.75,2.0,0); s.visible=false; s.userData._keep=1; m.add(s); u.extra.push(s); return s; }; u.em={hit:mk('💫'),dead:mk('💀'),idle:mk('💤'),happy:mk('😊'),sweep:mk('😎')};
     }
     // 👽 Spieler fliegt gerade als UFO (Alien-Event): UFO statt Figur, in der Luft
@@ -1968,6 +2026,13 @@
     const now=performance.now(), dt=Math.min(.1,(now-(u.t||now))/1000); u.t=now; const dx=m.position.x-u.lx, dz=m.position.z-u.lz; u.lx=m.position.x; u.lz=m.position.z; const spd=dt>0?Math.hypot(dx,dz)/dt:0;
     const st=op||{}; const sweep=!!(window.ZSweeper&&((isSelf&&ZSweeper.on)||(!isSelf&&ZSweeper.all&&st.name&&ZSweeper.all[String(st.name).toLowerCase().replace(/[.#$\[\]\/]/g,'_')])));
     const on=cfg.fx; u.extra.forEach(e=>{ if(e.isSprite) return; const v=e.userData._keep?on:(on&&!sweep); if(e.visible!==v) e.visible=v; });
+    if(u.head&&u.kd) u.head.visible=!on;
+    if(u.kd&&on&&!sweep){ const kd=u.kd, tt=now/1000; kd.anim.forEach(f=>{ try{ f(tt,u); }catch(e){} });
+      if(kd.trail) kd.trail.visible=spd>12&&spd<40; if(kd.mag&&u.armR){ if(u.idle>4){ u.armR.rotation.x=-2.2+Math.sin(tt*2)*.1; kd._up=1; } }
+      if(kd.stick) kd.stick.rotation.x=-.2+Math.sin(u.ph)*.2*u.walk;
+      let k=1; if(now>u.nextBlink){ u.blink=now; u.nextBlink=now+2500+Math.random()*3500; } const bt=now-u.blink; if(bt<140) k=1-.9*Math.sin(bt/140*Math.PI);
+      (kd.head.userData.eyes||[]).forEach(e=>{ e.scale.y=(st.dead?.15:k); }); kd.head.position.y=1.45+Math.sin(u.ph*2)*.03*u.walk;
+      if(kd.head.userData.mouth) kd.head.userData.mouth.scale.set(1,(!st.dead&&u.idle<=25&&u.walk>.3)?1.4:1,1); }
     if(!on){ Object.values(u.em).forEach(s=>s.visible=false); return; } if(spd>.4&&spd<40){ u.walk=Math.min(1,u.walk+dt*6); u.idle=0; } else { u.walk=Math.max(0,u.walk-dt*5); u.idle+=dt; }
     u.ph+=dt*(4+Math.min(spd,18)*.5); const sw=Math.sin(u.ph)*u.walk;
     u.arms.forEach((a,i)=>{ const sd=a.position.x>0?1:-1; a.position.z=(u.armZ[i]||0)+sw*.28*sd; a.rotation.x=sw*.7*sd; });
@@ -1975,6 +2040,7 @@
     if(u.tail){ u.tail.rotation.y=Math.sin(now/220+u.ph)*(.25+u.walk*.35); }
     if(u.outfit&&u.outfit.userData.cape){ u.outfit.userData.cape.rotation.x=.18+u.walk*.35+Math.sin(now/180)*.06*u.walk; }
     if(u.sh){ u.sh.visible=true; }
+    if(u.kd){ let tgt=isSelf?(ZG.yaw||0)+Math.PI:(st._heading!=null?st._heading:m.rotation.y); let d=tgt-m.rotation.y; d=Math.atan2(Math.sin(d),Math.cos(d)); m.rotation.y+=d*Math.min(1,dt*10); }
     // Blinzeln / Quetschen des Kopfes
     if(u.head&&u.hs){ let k=1; if(now>u.nextBlink){ u.blink=now; u.nextBlink=now+2500+Math.random()*3500; } const bt=now-u.blink; if(bt<140) k=1-.16*Math.sin(bt/140*Math.PI); const bob=1+Math.sin(u.ph*2)*.03*u.walk; u.head.scale.set(u.hs.x*(2-k)*.5+u.hs.x*.5,u.hs.y*k*bob,1); }
     // Gefühle
@@ -2032,7 +2098,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v710) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v711) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
