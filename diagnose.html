@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v712</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v712 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v713</span>
+  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v713 steht → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -1032,7 +1032,7 @@ async function runDeviceDiag(){
     rows.sort((a,b)=>a.ageMs-b.ageMs);
     summary.innerHTML=`📡 ${rows.length} Gerät${rows.length===1?'':'e'} haben je einen aktuellen Eintrag.`
       +(rows.length?` Neuester vor ${(rows[0].ageMs/1000).toFixed(0)}s (${rows[0].player||'?'}, ${rows[0].device||'?'}).`:'');
-    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v712+.</div>'; _deviceDiagText=''; return; }
+    if(!rows.length){ out.innerHTML='<div class="dim">Noch keine Geräte-Snapshots vorhanden — kommen erst nach dem nächsten Login/Spiel-Öffnen auf einem Gerät mit v713+.</div>'; _deviceDiagText=''; return; }
     let txt='';
     out.innerHTML=rows.map(r=>{
       const ageMin=(r.ageMs/60000).toFixed(1);
@@ -1095,7 +1095,7 @@ async function runTrafficDiag(){
     // ausgeloggt und würden die Instanz-Zahlen künstlich aufblähen.
     const fresh=rows.filter(r=>r.ageMs<30000);
     if(!rows.length){
-      out.innerHTML='<div class="dim">Noch keine Traffic-Snapshots vorhanden — kommen erst, wenn mindestens ein Spieler mit v712+ aktiv im Zoo ist (schreibt alle ~5s).</div>';
+      out.innerHTML='<div class="dim">Noch keine Traffic-Snapshots vorhanden — kommen erst, wenn mindestens ein Spieler mit v713+ aktiv im Zoo ist (schreibt alle ~5s).</div>';
       summary.innerHTML=''; _trafficDiagText=''; return;
     }
     // Gruppieren nach Instanz
@@ -1150,7 +1150,7 @@ async function runTrafficDiag(){
         +`<tbody>${memberRows}</tbody></table>`
         +`</div>`;
     }).join('');
-    // v712: Netz-/Ruckel-Monitor (ZNet) aller Geräte
+    // v713: Netz-/Ruckel-Monitor (ZNet) aller Geräte
     try{
       const ns=(await rtdb.ref('zoo_net_diag').once('value')).val()||{};
       const nr=Object.entries(ns).map(([id,d])=>({id,...d,age:now-(d.ts||0)})).filter(r=>r.age<600000).sort((a,b)=>a.age-b.age);
@@ -1161,7 +1161,7 @@ async function runTrafficDiag(){
         const bad=r.fps<25||r.long>20;
         h+='<tr style="color:'+(bad?'#e74c3c':'#ddd')+'"><td>'+r.id.slice(0,10)+'</td><td>'+r.fps+'</td><td>'+r.frameP95+'/'+r.frameMax+'ms</td><td>'+r.long+'</td><td>'+r.inKBmin+'</td><td>'+r.outKBmin+'</td><td>'+r.live+'/'+r.stale+'</td><td>'+Math.round(r.age/1000)+'s</td></tr>';
       });
-      if(!nr.length){ txt+='Noch keine Daten (kommen erst mit v712 im Zoo, alle 30 s).\n'; h+='<tr><td colspan="8" style="color:#888">Noch keine Daten — erst mit v712 im Zoo (alle 30 s).</td></tr>'; }
+      if(!nr.length){ txt+='Noch keine Daten (kommen erst mit v713 im Zoo, alle 30 s).\n'; h+='<tr><td colspan="8" style="color:#888">Noch keine Daten — erst mit v713 im Zoo (alle 30 s).</td></tr>'; }
       h+='</tbody></table></div>'; out.innerHTML+=h;
     }catch(e){ txt+='Netz-Monitor Fehler: '+e.message+'\n'; }
     _trafficDiagText=txt;

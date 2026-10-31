@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v712)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v713)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v712): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v713): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v712) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v713) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v712) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v713) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v712) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v713) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v712) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v713) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v712) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v713) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1074,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v712) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v712) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v713) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v713) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1279,13 +1279,13 @@
 })();
 
 ;
-/* v712 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v713 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v712) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v712) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v713) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v713) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1371,7 +1371,7 @@
 
 
 ;
-/* ZMeadow (v712) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v713) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1530,7 +1530,7 @@
   };
 })();
 
-/* ZMap (v712) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v713) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1582,7 +1582,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v712) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v713) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1724,7 +1724,7 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v712) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v713) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1816,7 +1816,7 @@
 })();
 
 
-/* ZLoginLog (v712) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v713) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1825,7 +1825,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v712'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v713'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1846,7 +1846,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v712) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v713) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -1955,7 +1955,7 @@
   function shadowTex(){ return L._st||(L._st=canvasTex(64,64,(x)=>{ const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(0,0,0,.55)'); g.addColorStop(.6,'rgba(0,0,0,.25)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); })); }
   const KD=(function(){
   // ═══ 3D-Köpfe + Zubehör für die Start-Figuren ═══
-  const KIND={'🧑‍🚀':'astronaut','🥷':'ninja','🕵':'detective','👸':'princess','⚔':'knight','🧪':'scientist','🧭':'explorer','🎨':'stick','👩':'woman','👨':'man'};
+  const KIND={'👧':'girl','👦':'boy','🧑‍🚀':'astronaut','🥷':'ninja','🕵':'detective','👸':'princess','⚔':'knight','🧪':'scientist','🧭':'explorer','🎨':'stick','👩':'woman','👨':'man'};
   const kindOf=chr=>{ const s=String(chr||'').replace(/️/g,''); return KIND[s]||null; };
   const LM=c=>new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide});
   const SK=0xf0b88a;
@@ -2006,8 +2006,53 @@
     return out;
   }
 
-    return {kindOf,buildKind};
+    // ═══ Zusatz-Skins (Admin-Shop) + Mädchen/Junge ═══
+    const XK=['girl','boy','vampire','robot','pirate','wizard','cowboy','clown','chef','pharaoh','viking','santa','alien','zombie','skeleton','bunny','cat','bear','dino','superhero','fairy','pumpkin'];
+    const MB=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:o!=null,opacity:o==null?1:o,side:THREE.DoubleSide,depthWrite:o==null});
+    const mkEye=(H,x,y,z,r,c,sy)=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),MB(c)); e.position.set(x,y,z); e.scale.set(1,sy||1.2,.6); H.add(e); H.userData.eyes.push(e); return e; };
+    const bare=(H,col,sx,sy,sz)=>{ const sk=sph(.5,col,0,0,0,sx||1,sy||.97,sz||1); H.add(sk); H.userData.skull=sk; H.userData.eyes=[]; return sk; };
+    const ears2=(H,col,fn)=>{ [-1,1].forEach(sd=>{ const e=fn(sd); H.add(e); }); };
+    function buildX(kind){
+      const H=new THREE.Group(); H.position.y=1.45; const B=[]; const out={head:H,body:B,hand:{},anim:[]}; const skin=SK;
+      if(kind==='girl'){ face(H,skin); H.add(sph(.54,0x6d3b1a,0,.1,-.07,1,.9,.95)); [-1,1].forEach(sd=>{ H.add(sph(.15,0x6d3b1a,sd*.5,-.28,-.1)); const r=sph(.07,0xff4d9d,sd*.45,-.08,-.05); H.add(r); }); const bw=new THREE.Group(); bw.add(sph(.13,0xff4d9d,-.14,0,0,1,.8,.6),sph(.13,0xff4d9d,.14,0,0,1,.8,.6),sph(.07,0xd81b60,0,0,0)); bw.position.set(0,.5,.05); H.add(bw); B.push(cyl(.4,.72,.45,0xff8fd1,0,.25,0,18,true)); B.push(tor(.42,.04,0xd81b60,0,.45,0)); B[1].rotation.x=Math.PI/2; }
+      else if(kind==='boy'){ face(H,skin); H.add(sph(.53,0x5d3a1a,0,.14,-.05,1,.78,1)); H.add(sph(.53,0x1e88e5,0,.2,-.02,1,.62,1)); H.add(bx(.55,.05,.4,0x1565c0,0,.12,.55)); B.push(cyl(.43,.43,.14,0xffeb3b,0,.55,0,16,true)); B.push(cyl(.43,.43,.14,0x1e88e5,0,.75,0,16,true)); }
+      else if(kind==='vampire'){ face(H,0xe9e2f2,{blush:false}); H.add(sph(.53,0x15101a,0,.1,-.08,1,.85,.95)); H.add(cone(.2,.25,0x15101a,0,.42,.3,6)); [-1,1].forEach(sd=>{ const f=cone(.032,.12,0xffffff,sd*.07,-.17,.47,6); f.rotation.x=Math.PI; H.add(f); }); const cp=bx(.95,1.0,.05,0x7b0d1e,0,.6,-.45); cp.rotation.x=.12; B.push(cp); [-1,1].forEach(sd=>{ const c=bx(.05,.5,.35,0x15101a,sd*.36,1.04,.0); c.rotation.z=sd*-.4; B.push(c); }); out.anim.push((t,u)=>{ cp.rotation.x=.12+u.walk*.3+Math.sin(t*6)*.05*u.walk; }); }
+      else if(kind==='robot'){ H.userData.eyes=[]; H.userData.skull=bx(.92,.8,.8,0xb0bec5); H.add(H.userData.skull); mkEye(H,-.22,.08,.41,.1,0x00e5ff,1); mkEye(H,.22,.08,.41,.1,0x00e5ff,1); H.add(bx(.4,.08,.03,0x37474f,0,-.2,.41)); for(let i=-1;i<=1;i++) H.add(bx(.03,.08,.04,0xeceff1,i*.1,-.2,.42)); [-1,1].forEach(sd=>{ const e=cyl(.1,.1,.12,0x607d8b,sd*.5,0,0,10); e.rotation.z=Math.PI/2; H.add(e); }); H.add(cyl(.025,.025,.35,0x607d8b,0,.55,0,6)); const ab=sph(.07,0xff1744,0,.76,0); H.add(ab); out.anim.push(t=>{ ab.visible=Math.sin(t*6)>0; }); B.push(bx(.55,.36,.06,0x37474f,0,.72,.42)); [0,1,2].forEach(i=>B.push(sph(.04,[0xff1744,0xffea00,0x00e676][i],-.14+i*.14,.72,.46))); }
+      else if(kind==='pirate'){ face(H,skin); H.add(sph(.53,0xb71c1c,0,.15,-.02,1,.68,1)); H.add(bx(.2,.2,.03,0x111111,.18,.08,.47)); const bd=tor(.5,.012,0x111111,0,.1,0); bd.rotation.x=Math.PI/2; bd.rotation.y=.35; H.add(bd); H.add(sph(.12,0x3e2723,0,-.2,.46,1.5,.5,.4)); H.add(cyl(.62,.62,.05,0x1a1a1a,0,.42,0,20)); H.add(cone(.4,.3,0x1a1a1a,0,.6,0,16)); H.add(sph(.07,0xffffff,0,.5,.42)); B.push(sph(.1,0xe53935,.4,1.0,0)); const hk=tor(.1,.025,0xb0bec5,0,-.1,0,10,4.5); out.handL=hk; hk.position.set(0,-.3,0); }
+      else if(kind==='wizard'){ face(H,skin); const bd=cone(.38,1.0,0xf5f5f5,0,-.55,.28,12); bd.rotation.x=Math.PI; bd.scale.z=.5; H.add(bd); H.add(cyl(.72,.72,.05,0x4a148c,0,.4,0,22)); const hc=cone(.46,1.1,0x4a148c,0,.98,0,16); hc.rotation.z=.12; H.add(hc); H.add(cyl(.5,.5,.1,0xffd54f,0,.5,0,20)); const st=emo('⭐',.25); st.position.set(0,.8,.42); H.add(st); B.push(cyl(.46,.78,.95,0x4a148c,0,.42,0,18,true));
+        const sf=new THREE.Group(); sf.add(cyl(.03,.03,1.6,0x6d4c41,0,0,0,6)); sf.add(sph(.1,0x40c4ff,0,.85,0)); try{ const h=halo(0x80d8ff,.9,.8); h.position.y=.85; sf.add(h); }catch(e){} out.hand.R=sf; sf.position.set(0,-.3,.1); }
+      else if(kind==='cowboy'){ face(H,skin); H.add(cyl(.82,.82,.05,0x8d5a2b,0,.4,0,24)); H.add(cyl(.4,.46,.38,0x9c6b3a,0,.6,0,18)); H.add(cyl(.47,.47,.07,0x4e342e,0,.46,0,18)); H.add(sph(.09,0x4e342e,-.07,-.05,.5,1.4,.5,.4)); H.add(sph(.09,0x4e342e,.07,-.05,.5,1.4,.5,.4)); const bn=tor(.3,.06,0xd32f2f,0,.99,0); bn.rotation.x=Math.PI/2; B.push(bn); const sh=sph(.1,0xffd54f,.2,.78,.42,1,1,.3); B.push(sh); B.push(tor(.44,.05,0x5d4037,0,.4,0)); B[B.length-1].rotation.x=Math.PI/2; B.push(sph(.07,0xffd54f,0,.4,.44)); }
+      else if(kind==='clown'){ face(H,0xffffff,{blush:false}); H.add(sph(.13,0xe53935,0,-.02,.5)); [-1,1].forEach(sd=>{ H.add(sph(.2,sd>0?0x2196f3:0xff5722,sd*.5,.18,0)); H.add(sph(.1,0xe53935,sd*.18,.06,.43,1.4,.7,.3)); }); H.add(sph(.22,0xffeb3b,0,.52,0,1,.6,1)); const mt=H.userData.mouth; if(mt){ mt.material.color.setHex(0xe53935); mt.scale.set(1.6,1.6,1); } const rf=tor(.4,.12,0xffeb3b,0,.98,0); rf.rotation.x=Math.PI/2; B.push(rf); B.push(sph(.1,0xe53935,-.1,.9,.44)); B.push(sph(.1,0xe53935,.1,.9,.44)); B.push(sph(.06,0x2196f3,0,.9,.46)); [0,1,2].forEach(i=>B.push(sph(.07,[0xff5722,0x4caf50,0x2196f3][i],0,.7-i*.17,.43))); }
+      else if(kind==='chef'){ face(H,skin); H.add(cyl(.42,.4,.45,0xffffff,0,.65,0,18)); H.add(sph(.5,0xffffff,0,.95,0,1,.7,1)); H.add(sph(.09,0x333333,-.07,-.05,.5,1.4,.5,.4)); H.add(sph(.09,0x333333,.07,-.05,.5,1.4,.5,.4)); B.push(bx(.6,.7,.05,0xffffff,0,.55,.43)); const nk=tor(.28,.04,0xe53935,0,.98,.03); nk.rotation.x=Math.PI/2; B.push(nk); const sp=new THREE.Group(); sp.add(cyl(.025,.025,.5,0x8d6e63,0,0,0,6)); sp.add(bx(.2,.2,.03,0xb0bec5,0,.35,0)); out.hand.R=sp; sp.position.set(0,-.3,.1); }
+      else if(kind==='pharaoh'){ face(H,0xd9a066); H.add(sph(.55,0xffd54f,0,.12,-.04,1,.85,1)); [-1,1].forEach(sd=>{ for(let i=0;i<5;i++) H.add(bx(.2,.16,.38,i%2?0x1e88e5:0xffd54f,sd*.5,-.05-i*.17,-.06)); });
+      const cb=cone(.07,.28,0x43a047,0,.55,.4,8); H.add(cb); H.add(cyl(.05,.04,.35,0x1e88e5,0,-.55,.45,8)); const cl=tor(.4,.1,0xffd54f,0,.95,0); cl.rotation.x=Math.PI/2; B.push(cl); const cl2=tor(.46,.05,0x1e88e5,0,.9,0); cl2.rotation.x=Math.PI/2; B.push(cl2); }
+      else if(kind==='viking'){ face(H,skin); const hl=sph(.55,0x90a4ae,0,.14,0,1,.8,1); H.add(hl); H.add(cyl(.55,.55,.07,0x546e7a,0,.28,0,18)); [-1,1].forEach(sd=>{ const h=cone(.1,.5,0xf5f5dc,sd*.58,.5,0,8); h.rotation.z=-sd*.7; H.add(h); }); H.add(sph(.42,0xe08a2e,0,-.26,.2,1,.8,.8)); [-1,1].forEach(sd=>{ const b=cyl(.07,.04,.5,0xe08a2e,sd*.12,-.6,.35,6); H.add(b); }); B.push(tor(.44,.1,0x6d4c41,0,.95,0)); B[0].rotation.x=Math.PI/2; B.push(tor(.44,.05,0x3e2723,0,.4,0)); B[1].rotation.x=Math.PI/2; const ax=new THREE.Group(); ax.add(cyl(.03,.03,1,0x6d4c41,0,0,0,6)); ax.add(bx(.35,.3,.04,0xb0bec5,.17,.42,0)); out.hand.R=ax; ax.position.set(0,-.3,.1); }
+      else if(kind==='santa'){ face(H,skin); const ht=cone(.46,.95,0xe53935,0,.8,-.05,16); ht.rotation.x=-.3; H.add(ht); H.add(sph(.1,0xffffff,0,1.2,-.4)); const br=tor(.46,.09,0xffffff,0,.4,0); br.rotation.x=Math.PI/2; H.add(br); H.add(sph(.4,0xffffff,0,-.3,.22,1,.85,.7)); H.add(sph(.1,0xffffff,0,-.02,.5,1.6,.5,.4)); B.push(cyl(.46,.5,.7,0xe53935,0,.55,0,16,true)); B.push(bx(.8,.1,.5,0x1a1a1a,0,.45,0)); B.push(bx(.16,.14,.04,0xffd54f,0,.45,.5)); B.push(sph(.3,0x8d6e63,0,.72,-.5)); }
+      else if(kind==='alien'){ bare(H,0x7ee06b,1.1,1.05,1.05); [-1,1].forEach(sd=>{ const e=mkEye(H,sd*.2,.04,.44,.14,0x0a0a0a,1.6); e.rotation.z=sd*.4; H.add(sph(.03,0xffffff,sd*.2+.03,.1,.52)); const an=cyl(.015,.015,.4,0x7ee06b,sd*.2,.68,0,5); an.rotation.z=-sd*.25; H.add(an); H.add(sph(.07,0xffee58,sd*.28,.88,0)); }); H.add(bx(.12,.02,.02,0x2e7d32,0,-.22,.5)); B.push(tor(.44,.06,0xcfd8dc,0,.98,0)); B[0].rotation.x=Math.PI/2; out.anim.push(t=>{ H.rotation.z=Math.sin(t*2)*.06; }); }
+      else if(kind==='zombie'){ face(H,0x9bb88a,{blush:false}); const ey=H.userData.eyes; ey[0].scale.setScalar(1.5); ey[1].scale.setScalar(.8); H.userData.skull.scale.y=.94; [0,1,2].forEach(i=>H.add(cone(.05,.2,0x2f3b2a,-.2+i*.2,.5,0,5))); H.add(bx(.25,.025,.03,0x3a2a2a,.1,.3,.45)); [0,1,2].forEach(i=>H.add(bx(.015,.07,.03,0x3a2a2a,.0+i*.07,.3,.46))); if(H.userData.mouth){ H.userData.mouth.scale.set(1,1,1); H.userData.mouth.material.color.setHex(0x2a1010); } B.push(cyl(.46,.5,.5,0x607d8b,0,.62,0,10,true)); [-1,1].forEach(sd=>B.push(bx(.1,.3,.03,0x607d8b,sd*.25,.3,.46))); }
+      else if(kind==='skeleton'){ bare(H,0xf4f4f4,1,1,1); [-1,1].forEach(sd=>mkEye(H,sd*.19,.06,.43,.12,0x111111,1.1)); const ns=cone(.04,.1,0x222222,0,-.06,.49,3); ns.rotation.x=Math.PI; H.add(ns); H.add(bx(.3,.08,.03,0x222222,0,-.22,.47)); for(let i=-2;i<=2;i++) H.add(bx(.015,.08,.04,0xf4f4f4,i*.06,-.22,.49)); [0,1,2].forEach(i=>B.push(bx(.5-i*.06,.05,.05,0xf4f4f4,0,.45+i*.14,.43))); B.push(bx(.05,.5,.05,0xf4f4f4,0,.62,.43)); }
+      else if(kind==='bunny'){ face(H,0xfafafa,{noEars:true}); [-1,1].forEach(sd=>{ const e=sph(.12,0xfafafa,sd*.2,.95,-.02,1,3.2,.6); e.rotation.z=-sd*.12; H.add(e); const i2=sph(.06,0xffb6c1,sd*.2,.95,.03,1,3,.4); i2.rotation.z=-sd*.12; H.add(i2); }); H.add(sph(.06,0xff8fa3,0,-.02,.5,1.2,.9,.8)); [-1,1].forEach(sd=>H.add(bx(.05,.1,.03,0xffffff,sd*.03,-.2,.48))); B.push(sph(.17,0xffffff,0,.35,-.45)); B.push(sph(.3,0xffffff,0,.62,.3,1,1.1,.4)); out.anim.push((t,u)=>{ H.children.forEach(c=>{}); }); }
+      else if(kind==='cat'){ face(H,0xf0a04b,{noEars:true}); [-1,1].forEach(sd=>{ const e=cone(.17,.32,0xf0a04b,sd*.33,.5,0,3); e.rotation.z=-sd*.25; H.add(e); const i2=cone(.09,.2,0xffb6c1,sd*.33,.48,.06,3); i2.rotation.z=-sd*.25; H.add(i2); for(let i=0;i<3;i++){ const w=bx(.4,.012,.012,0x333333,sd*.42,-.1+(i-1)*.05,.48); w.rotation.z=sd*(i-1)*.15; H.add(w); } }); H.add(cone(.05,.06,0xff8fa3,0,-.04,.5,3)).children; const tl=new THREE.Group(); tl.add(cyl(.05,.07,.8,0xf0a04b,0,.4,0,8)); tl.position.set(0,.35,-.45); tl.rotation.x=-.6; B.push(tl); out.anim.push((t,u)=>{ tl.rotation.z=Math.sin(t*4)*(.3+u.walk*.3); }); }
+      else if(kind==='bear'){ face(H,0x8d5a2b,{noEars:true}); [-1,1].forEach(sd=>{ H.add(sph(.18,0x8d5a2b,sd*.38,.38,0)); H.add(sph(.1,0xd7b48a,sd*.38,.38,.1)); }); H.add(sph(.22,0xd7b48a,0,-.12,.4,1,.8,.8)); H.add(sph(.07,0x222222,0,-.05,.58,1.2,.8,.7)); B.push(sph(.17,0x8d5a2b,0,.35,-.45)); B.push(sph(.3,0xd7b48a,0,.6,.3,1,1.1,.4)); }
+      else if(kind==='dino'){ bare(H,0x4caf50,1,.95,1.05); H.add(sph(.34,0x4caf50,0,-.1,.4,1,.75,1.1)); [-1,1].forEach(sd=>{ mkEye(H,sd*.24,.14,.38,.09,0xffee58,1).rotation.y=0; H.add(sph(.03,0x111111,sd*.24,.14,.45)); H.add(sph(.03,0x2e7d32,sd*.1,-.05,.74)); }); for(let i=0;i<4;i++) H.add(cone(.07,.16,0xff9800,0,.5-i*.0,-.1-i*.12,5)); H.children.slice(-4).forEach((c,i)=>{ c.position.set(0,.5-i*.12,-.18-i*.12); c.rotation.x=-.5-i*.2; }); H.add(bx(.3,.05,.04,0xffffff,0,-.22,.7)); for(let i=0;i<4;i++) B.push(cone(.09,.2,0xff9800,0,1.0-i*.2,-.4+Math.sin(i)*.0,5)); const tl=cone(.2,.8,0x4caf50,0,.3,-.7,8); tl.rotation.x=-1.9; B.push(tl); out.anim.push((t,u)=>{ tl.rotation.z=Math.sin(t*4)*(.1+u.walk*.3); }); }
+      else if(kind==='superhero'){ face(H,skin); H.add(sph(.53,0x222222,0,.14,-.04,1,.78,1)); H.add(bx(.82,.22,.05,0x1565c0,0,.08,.46)); H.userData.eyes.forEach(e=>{ e.position.z=.52; e.children[0].material=new THREE.MeshBasicMaterial({color:0xffffff}); e.children[1].visible=false; }); const cp=bx(.85,1.0,.05,0xe53935,0,.62,-.44); cp.rotation.x=.1; B.push(cp); out.anim.push((t,u)=>{ cp.rotation.x=.1+u.walk*.4+Math.sin(t*7)*.06*u.walk; }); const em=cone(.17,.24,0xffeb3b,0,.8,.45,3); em.rotation.x=Math.PI/2; B.push(em); B.push(tor(.43,.05,0xffeb3b,0,.4,0)); B[B.length-1].rotation.x=Math.PI/2; }
+      else if(kind==='fairy'){ face(H,skin); H.add(sph(.54,0xff8fd1,0,.1,-.07,1,.9,.95)); H.add(sph(.17,0xff8fd1,0,.55,-.1)); const fc=tor(.42,.05,0x66bb6a,0,.42,0,18); fc.rotation.x=Math.PI/2; H.add(fc); [0,1,2,3,4,5].forEach(i=>{ const a=i/6*6.283; H.add(sph(.07,[0xffeb3b,0xffffff][i%2],Math.cos(a)*.42,.45,Math.sin(a)*.42)); }); const wg=[-1,1].map(sd=>{ const w=new THREE.Mesh(new THREE.CircleGeometry(.5,14),MB(0xb3e5fc,.55)); w.scale.set(.7,1.1,1); w.position.set(sd*.38,.9,-.4); w.rotation.y=sd*.5; B.push(w); return w; }); out.anim.push((t,u)=>{ wg.forEach((w,i)=>{ w.rotation.y=(i?1:-1)*(.5+Math.sin(t*12)*.3); }); }); B.push(cyl(.4,.58,.5,0xce93d8,0,.4,0,16,true)); const wd=new THREE.Group(); wd.add(cyl(.02,.02,.55,0xfff59d,0,0,0,6)); const s2=emo('⭐',.3); s2.position.y=.35; wd.add(s2); out.hand.R=wd; wd.position.set(0,-.3,.1); }
+      else if(kind==='pumpkin'){ H.userData.eyes=[]; const sk=sph(.55,0xff7a00,0,0,0,1.15,.95,1.15); H.add(sk); H.userData.skull=sk; [-.35,0,.35].forEach(x=>{ const r=sph(.5,0xe66a00,x,0,0,.45,.92,1.05); H.add(r); }); H.add(cyl(.07,.1,.22,0x558b2f,0,.52,0,6)); const lf=sph(.12,0x7cb342,.14,.55,0,1.6,.3,.8); H.add(lf); [-1,1].forEach(sd=>{ const e=cone(.1,.17,0xffee58,sd*.22,.1,.55,3); e.material=MB(0xffee58); H.add(e); H.userData.eyes.push(e); }); for(let i=-2;i<=2;i++){ H.add(bx(.08,.07,.03,0xffee58,i*.1,-.16-(Math.abs(i)===1?.02:0)+(i%2?0:.03),.56)); } B.push(cyl(.44,.48,.5,0x4a148c,0,.6,0,12,true)); out.anim.push(t=>{ H.userData.eyes.forEach(e=>e.material.color.setHex(Math.sin(t*9)>-.7?0xffee58:0xffb300)); }); }
+      return out;
+    }
+    const SKINS=[['girl','Mädchen','👧'],['boy','Junge','👦'],['vampire','Vampir','🧛'],['robot','Roboter','🤖'],['pirate','Pirat','🏴‍☠️'],['wizard','Zauberer','🧙'],['cowboy','Cowboy','🤠'],['clown','Clown','🤡'],['chef','Koch','👨‍🍳'],['pharaoh','Pharao','🏺'],['viking','Wikinger','🪓'],['santa','Weihnachtsmann','🎅'],['alien','Alien','👽'],['zombie','Zombie','🧟'],['skeleton','Skelett','💀'],['bunny','Hase','🐰'],['cat','Katze','🐱'],['bear','Bär','🐻'],['dino','Dino','🦖'],['superhero','Superheld','🦸'],['fairy','Fee','🧚'],['pumpkin','Kürbis','🎃']];
+    const _bk=buildKind; function buildAll(k,c){ return XK.includes(k)?buildX(k):_bk(k,c); }
+    return {kindOf,buildKind:buildAll,SKINS,XK};
   })();
+  L.KD=KD;
+  function setKind(m,u,kind){
+    if(u.kd){ const kb=u.kd; [kb.head].concat(kb.body).forEach(o=>{ m.remove(o); const i=u.extra.indexOf(o); if(i>=0) u.extra.splice(i,1); }); (u.kdW||[]).forEach(w=>{ if(w.parent) w.parent.remove(w); const i=u.extra.indexOf(w); if(i>=0) u.extra.splice(i,1); }); }
+    u.kd=null; u.kdW=[]; u.kdKind=kind||null; u.kdArm=null; if(!kind||!u.head){ if(u.head) u.head.visible=true; return; }
+    const kb=KD.buildKind(kind); if(!kb) return; u.kd=kb; m.add(kb.head); u.extra.push(kb.head); kb.body.forEach(o=>{ m.add(o); u.extra.push(o); });
+    const armR=u.arms.find(a=>a.position.x>0), armL=u.arms.find(a=>a.position.x<0); u.armR=armR; const att=(arm,o)=>{ if(!arm||!o) return; const w=new THREE.Group(); w.scale.set(1,1/1.5,1); w.position.y=-.1; w.add(o); arm.add(w); u.extra.push(w); u.kdW.push(w); };
+    att(armR,kb.hand.R); att(armL,kb.handL);
+    if(!u.raised){ u.raised=1; m.children.forEach(c=>{ if(c.isSprite&&c.position.y>2&&!c.userData._keep) c.position.y+=.35; }); }
+  }
   function dress(m,op,isSelf){
     let u=m.userData._zl;
     if(!u){ u=m.userData._zl={ ph:Math.random()*10, lx:m.position.x, lz:m.position.z, walk:0, idle:0, nextBlink:performance.now()+2000+Math.random()*3000, blink:0, extra:[] };
@@ -2016,9 +2061,7 @@
       const chr=String((op&&op.char)||(isSelf&&ZS._myPersonality?ZS._myPersonality().char:'')||''); let face=null; for(const k in TAILS){ if(chr.includes(k)){ face=k; break; } }
       if(face){ const t=mkTail(TAILS[face][0],TAILS[face][1]); m.add(t); u.tail=t; u.extra.push(t); }
       for(const h in OUT){ if(chr.includes(h)){ const o=mkOutfit(OUT[h],u.body); m.add(o); u.extra.push(o); u.outfit=o; break; } }
-      try{ const kd0=KD.kindOf(chr); if(kd0&&u.head){ const kb=KD.buildKind(kd0); u.kd=kb; u.kdKind=kd0; m.add(kb.head); u.extra.push(kb.head); kb.body.forEach(o=>{ m.add(o); u.extra.push(o); });
-        const armR=u.arms.find(a=>a.position.x>0), armL=u.arms.find(a=>a.position.x<0); u.armR=armR; const att=(arm,o)=>{ if(!arm||!o) return; const w=new THREE.Group(); w.scale.set(1,1/1.5,1); w.position.y=-.1; w.add(o); arm.add(w); u.extra.push(w); };
-        att(armR,kb.hand.R); att(armL,kb.handL); m.children.forEach(c=>{ if(c.isSprite&&c.position.y>2&&!c.userData._keep) c.position.y+=.35; }); } }catch(e){ u.kd=null; }
+      u.chr=chr; try{ setKind(m,u,KD.kindOf(chr)); }catch(e){ u.kd=null; }
       const mk=e=>{ const s=emo(e,.9); s.position.set(.75,2.0,0); s.visible=false; s.userData._keep=1; m.add(s); u.extra.push(s); return s; }; u.em={hit:mk('💫'),dead:mk('💀'),idle:mk('💤'),happy:mk('😊'),sweep:mk('😎')};
     }
     // 👽 Spieler fliegt gerade als UFO (Alien-Event): UFO statt Figur, in der Luft
@@ -2027,6 +2070,7 @@
     const now=performance.now(), dt=Math.min(.1,(now-(u.t||now))/1000); u.t=now; const dx=m.position.x-u.lx, dz=m.position.z-u.lz; u.lx=m.position.x; u.lz=m.position.z; const spd=dt>0?Math.hypot(dx,dz)/dt:0;
     const st=op||{}; const sweep=!!(window.ZSweeper&&((isSelf&&ZSweeper.on)||(!isSelf&&ZSweeper.all&&st.name&&ZSweeper.all[String(st.name).toLowerCase().replace(/[.#$\[\]\/]/g,'_')])));
     const on=cfg.fx; u.extra.forEach(e=>{ if(e.isSprite) return; const v=e.userData._keep?on:(on&&!sweep); if(e.visible!==v) e.visible=v; });
+    try{ const wantK=(isSelf?(window.ZSkins&&ZSkins.cur&&ZSkins.cur()):(op&&op.sk))||KD.kindOf(u.chr); if((wantK||null)!==u.kdKind){ setKind(m,u,wantK); } }catch(e){}
     if(u.head&&u.kd) u.head.visible=!on;
     if(u.kd&&on&&!sweep){ const kd=u.kd, tt=now/1000; kd.anim.forEach(f=>{ try{ f(tt,u); }catch(e){} });
       if(kd.trail) kd.trail.visible=spd>12&&spd<40; if(kd.mag&&u.armR){ if(u.idle>4){ u.armR.rotation.x=-2.2+Math.sin(tt*2)*.1; kd._up=1; } }
@@ -2099,7 +2143,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v712) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v713) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2226,4 +2270,67 @@
   };
   const n0=()=>tn();
   setInterval(()=>{ try{ A.init(); }catch(e){} },2000);
+})();
+
+// ═══ ZSkins – Skin-Shop (Admin stellt Skins mit Preis + Frist ein) ═══
+;(function(){
+  'use strict';
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  let _off=0; const tn=()=>Date.now()+_off;
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const KD=()=>window.ZLife&&ZLife.KD;
+  const list=()=>{ const k=KD(); return k?k.SKINS.slice(2):[]; };   // die 20 Admin-Skins (ohne Mädchen/Junge)
+  const nm=id=>{ const k=KD(); const s=k&&k.SKINS.find(x=>x[0]===id); return s?s:[id,id,'🎭']; };
+  const adm=()=>{ try{ return !!(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)||localStorage.getItem('zoo_secret_admin')===ZS.player); }catch(e){ return false; } };
+  const S=window.ZSkins={ offers:{}, _inited:false, _pv:null,
+    init(){ if(S._inited) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; S._inited=true;
+      try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){}
+      r.ref('zoo_skins/offers').on('value',s=>{ S.offers=s.val()||{}; }); },
+    cur(){ try{ const id=ZS.zoo&&ZS.zoo.skin; return id&&(ZS.zoo.skins||{})[id]?id:null; }catch(e){ return null; } },
+    active(){ const n=tn(); return Object.keys(S.offers).map(id=>({id,...(S.offers[id]||{})})).filter(o=>!o.until||o.until>n); },
+    fmt(ms){ if(ms<=0) return 'abgelaufen'; const s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), x=s%60; return (d?d+' T ':'')+(d||h?h+' Std ':'')+m+' Min'+(!d?' '+x+' s':''); },
+    // ── Admin ──
+    adminHtml(){ const opts=list().map(s=>'<option value="'+s[0]+'">'+s[2]+' '+s[1]+'</option>').join('');
+      return '<div class="padmin-section-title" style="margin-top:14px">🎭 Skin-Shop (nur Admin)</div><div style="font-size:.72rem;color:rgba(255,255,255,.6);margin-bottom:6px">Wähle einen der 20 Skins, setze Preis und Frist – er erscheint für alle im Shop unter „Skins“ mit großem Timer.</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px"><select id="zsk-id" style="grid-column:1/3;padding:8px;border-radius:8px">'+opts+'</select><input id="zsk-pr" type="number" min="0" value="50000" placeholder="Preis MT" style="padding:8px;border-radius:8px"><input id="zsk-d" type="number" min="0" value="7" placeholder="Tage (0 = unbegrenzt)" style="padding:8px;border-radius:8px"><input id="zsk-h" type="number" min="0" value="0" placeholder="Stunden" style="padding:8px;border-radius:8px"><button class="padmin-btn" style="background:#8e24aa" onclick="ZSkins.adminAdd()">➕ In den Shop</button></div><div id="zsk-adm"></div>'; },
+    adminAdd(){ if(!adm()) return; const r=RT(); if(!r) return toast('❌ Offline'); const id=document.getElementById('zsk-id').value, pr=Math.max(0,Math.floor(+document.getElementById('zsk-pr').value||0)), d=+document.getElementById('zsk-d').value||0, h=+document.getElementById('zsk-h').value||0; const ms=d*86400000+h*3600000; r.ref('zoo_skins/offers/'+id).set({price:pr,until:ms?tn()+ms:0,at:tn(),by:ZS.player}); toast('🎭 '+nm(id)[1]+' im Shop ('+(ms?S.fmt(ms):'unbegrenzt')+')'); },
+    adminDel(id){ if(!adm()) return; const r=RT(); if(r) r.ref('zoo_skins/offers/'+id).remove(); },
+    admDraw(){ const e=document.getElementById('zsk-adm'); if(!e) return; const a=S.active(); e.innerHTML=a.length?a.map(o=>'<div style="display:flex;gap:8px;align-items:center;padding:5px 0;font-size:.74rem">'+nm(o.id)[2]+' <b style="flex:1">'+nm(o.id)[1]+'</b> '+(o.price||0).toLocaleString('de-CH')+' MT · '+(o.until?S.fmt(o.until-tn()):'∞')+' <button class="padmin-btn" style="background:#c62828;padding:4px 8px" onclick="ZSkins.adminDel(\''+o.id+'\')">✕</button></div>').join(''):'<div style="font-size:.7rem;opacity:.5">Keine Skins im Shop.</div>'; },
+    // ── Shop ──
+    shopHtml(){ S.init(); const z=ZS.zoo||{}, owned=z.skins||{}, a=S.active(), c=S.cur();
+      let h='<div style="font-weight:900;font-size:.78rem;margin:2px 0 6px">🎭 Skins</div>';
+      if(c) h+='<div class="ac" style="border-left:4px solid #8e24aa"><div style="font-size:1.5rem">'+nm(c)[2]+'</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">Du trägst: '+nm(c)[1]+'</div></div><button class="ab" onclick="ZSkins.wear(null)">Standard</button></div>';
+      Object.keys(owned).filter(id=>id!==c&&!a.find(o=>o.id===id)).forEach(id=>{ h+='<div class="ac"><div style="font-size:1.5rem">'+nm(id)[2]+'</div><div style="flex:1;font-weight:900;font-size:.8rem">'+nm(id)[1]+' <span style="color:#27AE60;font-size:.66rem">✅ gehört dir</span></div><button class="ab" onclick="ZSkins.wear(\''+id+'\')">Anziehen</button></div>'; });
+      if(!a.length&&!Object.keys(owned).length) h+='<div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:8px">Gerade keine Skins im Angebot.</div>';
+      a.forEach(o=>{ const own=!!owned[o.id]; h+='<div class="ac" style="border-left:4px solid #8e24aa;align-items:center"><div style="font-size:2rem">'+nm(o.id)[2]+'</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">'+nm(o.id)[1]+'</div>'+(own?'<div style="font-size:.66rem;color:#27AE60">✅ gehört dir</div>':'<div style="font-size:1.05rem;font-weight:900;color:#ffd54f">'+(o.price||0).toLocaleString('de-CH')+' MT</div>')+(o.until?'<div class="zsk-t" data-u="'+o.until+'" style="font-size:.95rem;font-weight:900;color:#ff8a65">⏳ '+S.fmt(o.until-tn())+'</div>':'<div style="font-size:.66rem;opacity:.5">unbegrenzt</div>')+'</div>'+(own?(c===o.id?'':'<button class="ab" onclick="ZSkins.wear(\''+o.id+'\')">Anziehen</button>'):'<button class="ab" onclick="ZSkins.preview(\''+o.id+'\')">Kaufen</button>')+'</div>'; });
+      return h; },
+    wear(id){ const z=ZS.zoo; if(!z) return; if(id&&!(z.skins||{})[id]) return; z.skin=id||null; ZS.save&&ZS.save(); toast(id?'🎭 '+nm(id)[1]+' angezogen':'Standard-Figur'); try{ ZP._sS(document.getElementById('scont')); }catch(e){} },
+    // ── Vorschau ──
+    mkFigure(id,col){ const k=KD(); const kb=k.buildKind(id); const g=new THREE.Group(); const M=c=>new THREE.MeshLambertMaterial({color:c}); const b=new THREE.Mesh(new THREE.SphereGeometry(.42,14,10),M(col)); b.scale.set(1,1.05,1); b.position.y=.58; g.add(b); const nk=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),M(col)); nk.position.y=1.02; g.add(nk); const arms=[-1,1].map(sd=>{ const a=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),M(col)); a.scale.set(1,1.5,1); a.position.set(sd*.55,.62,0); a.rotation.z=sd*.35; g.add(a); return a; }); [-1,1].forEach(sd=>{ const f=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),M(0x5a4a3a)); f.scale.set(1,.6,1.2); f.position.set(sd*.2,.06,.05); g.add(f); });
+      g.add(kb.head); kb.body.forEach(o=>g.add(o)); const att=(arm,o)=>{ if(!arm||!o) return; const w=new THREE.Group(); w.scale.set(1,1/1.5,1); w.position.y=-.1; w.add(o); arm.add(w); }; att(arms[1],kb.hand.R); att(arms[0],kb.handL); return {g,kb}; },
+    preview(id){ const z=ZS.zoo; const o=S.offers[id]; if(!o||(o.until&&o.until<=tn())) return toast('⌛ Nicht mehr erhältlich'); S.closePv(); const ov=document.createElement('div'); ov.id='zsk-pv'; ov.style.cssText='position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:14px';
+      ov.innerHTML='<div style="background:#1b1030;border:2px solid #8e24aa;border-radius:18px;padding:14px;text-align:center;color:#fff;max-width:340px;width:100%"><div style="font-weight:900;font-size:1.1rem">'+nm(id)[2]+' '+nm(id)[1]+'</div><canvas id="zsk-cv" width="300" height="320" style="width:100%;max-width:300px;border-radius:12px;background:radial-gradient(#4a2a7a,#150a25)"></canvas><div style="font-size:1.4rem;font-weight:900;color:#ffd54f;margin:6px 0 0">'+(o.price||0).toLocaleString('de-CH')+' MT</div>'+(o.until?'<div class="zsk-t" data-u="'+o.until+'" style="font-size:1.1rem;font-weight:900;color:#ff8a65">⏳ '+S.fmt(o.until-tn())+'</div>':'')+'<div style="display:flex;gap:8px;margin-top:10px"><button id="zsk-no" style="flex:1;padding:12px;border-radius:12px;border:none;background:#444;color:#fff;font-weight:800">Abbrechen</button><button id="zsk-yes" style="flex:1;padding:12px;border-radius:12px;border:none;background:#8e24aa;color:#fff;font-weight:900">🛒 Kaufen</button></div></div>';
+      document.body.appendChild(ov); const cv=document.getElementById('zsk-cv'); let col=0x3498db; try{ const p=ZS._myPersonality&&ZS._myPersonality(); if(p&&p.color) col=parseInt(String(p.color).replace('#',''),16)||col; }catch(e){}
+      let rd=null; try{ rd=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true,preserveDrawingBuffer:true}); rd.setSize(300,320,false); }catch(e){}
+      const sc=new THREE.Scene(); sc.add(new THREE.AmbientLight(0xffffff,.75)); const dl=new THREE.DirectionalLight(0xffffff,.7); dl.position.set(2,4,5); sc.add(dl); const cam=new THREE.PerspectiveCamera(32,300/320,.1,50); cam.position.set(0,1.7,6.2); cam.lookAt(0,1.2,0); const f=S.mkFigure(id,col); sc.add(f.g); const u={ph:0,walk:.3,idle:0}; let on=true; const t0=performance.now();
+      const loop=()=>{ if(!on||!rd) return; const t=(performance.now()-t0)/1000; f.g.rotation.y=Math.sin(t*.9)*.9; u.ph=t*5; f.kb.anim.forEach(a=>{ try{ a(t,u); }catch(e){} }); rd.render(sc,cam); requestAnimationFrame(loop); }; loop();
+      S._pv={ov,rd,stop:()=>{ on=false; try{ rd&&rd.dispose(); }catch(e){} }};
+      document.getElementById('zsk-no').onclick=S.closePv;
+      document.getElementById('zsk-yes').onclick=()=>{ let img=''; try{ rd.render(sc,cam); img=cv.toDataURL('image/png'); }catch(e){} S.buy(id,img); }; },
+    closePv(){ if(S._pv){ S._pv.stop(); S._pv.ov.remove(); S._pv=null; } },
+    buy(id,img){ const z=ZS.zoo; const o=S.offers[id]; if(!z||!o) return; if(o.until&&o.until<=tn()){ S.closePv(); return toast('⌛ Nicht mehr erhältlich'); } z.skins=z.skins||{}; if(z.skins[id]){ S.closePv(); return S.wear(id); } const pr=o.price||0; if((z.mt||0)<pr) return toast('❌ Zu wenig MT!'); z.mt-=pr; z.skins[id]=1; S.closePv();
+      S.cartAnim(id,img,()=>{ z.skin=id; try{ ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} try{ ZP._sS(document.getElementById('scont')); ZP._updShopBal&&ZP._updShopBal(); }catch(e){} toast('🎉 Du bist jetzt '+nm(id)[1]+'!',3500); }); try{ ZS.save&&ZS.save(); }catch(e){} },
+    cartAnim(id,img,done){ const ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.6);overflow:hidden;pointer-events:all'; const W=innerWidth,Hh=innerHeight;
+      ov.innerHTML='<div id="zc-cart" style="position:absolute;left:0;top:'+(Hh*.62)+'px;font-size:6.5rem;transform:translateX(-30vw)">🛒</div><img id="zc-img" src="'+img+'" style="position:absolute;left:'+(W/2-70)+'px;top:-200px;width:140px;border-radius:14px"><div id="zc-fl" style="position:absolute;inset:0;background:#fff;opacity:0"></div><div id="zc-tx" style="position:absolute;left:0;right:0;top:18%;text-align:center;font:900 2rem Arial;color:#fff;text-shadow:0 2px 10px #8e24aa;opacity:0">'+nm(id)[2]+' '+nm(id)[1]+'!</div>'; document.body.appendChild(ov);
+      const q=i=>ov.querySelector(i), cart=q('#zc-cart'), im=q('#zc-img'), fl=q('#zc-fl'), tx=q('#zc-tx'); const cx=W/2-55, ty=Hh*.62;
+      const A=(e,k,o)=>{ try{ return e.animate(k,Object.assign({fill:'forwards',easing:'ease-in-out'},o)); }catch(x){ return null; } };
+      A(cart,[{transform:'translateX(-30vw)'},{transform:'translateX('+cx+'px)'}],{duration:900});
+      setTimeout(()=>{ A(im,[{top:'-200px',transform:'rotate(0deg)'},{top:(ty-30)+'px',transform:'rotate(540deg) scale(.5)'}],{duration:800,easing:'ease-in'}); },900);
+      setTimeout(()=>{ A(cart,[{transform:'translateX('+cx+'px) scale(1)'},{transform:'translateX('+cx+'px) scale(1.15)'},{transform:'translateX('+cx+'px) scale(1)'}],{duration:350}); im.style.display='none'; },1700);
+      setTimeout(()=>{ A(cart,[{transform:'translateX('+cx+'px)'},{transform:'translateX('+(W+200)+'px)'}],{duration:800,easing:'ease-in'}); },2100);
+      setTimeout(()=>{ A(fl,[{opacity:0},{opacity:1},{opacity:0}],{duration:900}); },2700);
+      setTimeout(()=>{ done&&done(); A(tx,[{opacity:0,transform:'scale(.5)'},{opacity:1,transform:'scale(1.1)'},{opacity:1,transform:'scale(1)'}],{duration:500}); },3050);
+      setTimeout(()=>{ A(ov,[{opacity:1},{opacity:0}],{duration:500}); },4000); setTimeout(()=>ov.remove(),4600); }
+  };
+  setInterval(()=>{ try{ S.init(); S.admDraw(); document.querySelectorAll('.zsk-t').forEach(e=>{ const u=+e.dataset.u; e.textContent='⏳ '+S.fmt(u-tn()); }); }catch(e){} },1000);
 })();
