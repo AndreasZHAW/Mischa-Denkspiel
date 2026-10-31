@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v722)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v723)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v722): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v723): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v722) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v723) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v722) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v723) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v722) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v723) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v722) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v723) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v722) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v723) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1076,8 +1076,8 @@
 })();
 
 ;
-/* ZCoaster2 (v722) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v722) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v723) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v723) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1281,13 +1281,13 @@
 })();
 
 ;
-/* v722 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v723 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v722) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v722) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v723) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v723) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1373,7 +1373,7 @@
 
 
 ;
-/* ZMeadow (v722) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v723) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1532,7 +1532,7 @@
   };
 })();
 
-/* ZMap (v722) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v723) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1584,7 +1584,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v722) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v723) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1726,12 +1726,53 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v722) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v723) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const EVENTS=[['walk','👣 Laufen'],['click','👆 Auf etwas klicken'],['jump','🦘 Springen'],['buy','🛒 Etwas kaufen'],['pickup','🎒 Tier aufnehmen'],['placed','🏠 Tier abgesetzt'],['eat','🥟 Essen'],['heart','❤️ Herz verlieren'],['death','💀 Alle Herzen weg'],['slapped','💫 Getroffen (Slap)'],['rebirth','🔄 Rebirth'],['money','💰 Geld bekommen'],['wish','🌟 Wunsch erfüllt'],['coaster','🎢 Achterbahn startet'],['fall','😱 Runterfallen'],['circus','🎪 Zirkus betreten'],['map','🗺️ Per Karte hinbeamen'],['sweeper','🧹 Kehrmaschine startet'],['sucked','🌀 Eingesaugt werden'],['revenge','😈 Rache'],['quiz','🧠 Quiz richtig'],['goal','🎯 Tagesziel geschafft'],['alien','👽 Alien-Event startet'],['abduct','🛸 Vom UFO eingesaugt']];
-  const NSLOT=8, MAXMS=30000;
+
+  // ── 30 fertige, weiche Sounds (selbst erzeugt, nichts schrill) ──
+  const BI=(function(){
+    const mf=n=>440*Math.pow(2,(n-69)/12);
+    const L=[];
+    // h = Helfer {t(freq,at,dur,type,vol,lp), n(at,dur,vol,lp,hp), g(freq0,freq1,at,dur,vol,type)}
+    const add=(name,len,fn)=>L.push({n:name,len,f:fn});
+    // ── kurz ──
+    add('💧 Tropfen','kurz',h=>{ h.g(900,380,0,.18,.22,'sine'); });
+    add('🫧 Blubb','kurz',h=>{ h.g(260,520,0,.16,.25,'sine'); h.g(300,600,.1,.14,.15,'sine'); });
+    add('✨ Sanftes Pling','kurz',h=>{ h.t(mf(84),0,.5,'sine',.2,3000); h.t(mf(96),0,.3,'sine',.05,3000); });
+    add('🪵 Holzklopfen','kurz',h=>{ h.g(420,230,0,.1,.3,'triangle'); });
+    add('👆 Weiches Klick','kurz',h=>{ h.n(0,.04,.12,1800); h.t(700,0,.06,'sine',.12,2000); });
+    add('🎈 Sanfter Pop','kurz',h=>{ h.g(500,160,0,.09,.3,'sine'); });
+    add('🔔 Mini-Glocke','kurz',h=>{ h.t(mf(88),0,.9,'sine',.16,3200); h.t(mf(88)*2.76,0,.4,'sine',.035,3200); });
+    add('🎹 Marimba-Ton','kurz',h=>{ h.t(mf(72),0,.35,'triangle',.3,1800); h.t(mf(84),0,.12,'sine',.07,2500); });
+    add('🪕 Harfen-Zupfer','kurz',h=>{ h.t(mf(76),0,.8,'triangle',.22,2200); });
+    add('🪈 Flötenhauch','kurz',h=>{ h.t(mf(79),0,.5,'sine',.2,2200,.12); h.n(0,.5,.015,2400); });
+    add('🎼 Daumenklavier','kurz',h=>{ h.t(mf(74),0,.5,'sine',.22,2400); h.t(mf(74)*2,0,.2,'sine',.05,2400); });
+    add('☁️ Wattebausch','kurz',h=>{ h.g(160,70,0,.16,.35,'sine'); });
+    add('🛎️ Kleiner Gong','kurz',h=>{ h.t(mf(60),0,1.4,'sine',.22,1500); h.t(mf(60)*1.5,0,.8,'sine',.06,1500); });
+    add('🐦 Sanfter Zwitscher','kurz',h=>{ h.g(1800,2300,0,.1,.09,'sine'); h.g(2200,1900,.12,.12,.08,'sine'); });
+    add('🎐 Windspiel','kurz',h=>{ [88,91,95].forEach((m,i)=>h.t(mf(m),i*.09,.7,'sine',.08,3200)); });
+    // ── länger ──
+    add('😊 Aufsteigend (Freude)','lang',h=>{ [72,76,79,84].forEach((m,i)=>h.t(mf(m),i*.13,.6,'triangle',.18,2400)); });
+    add('😌 Absteigend (sanft)','lang',h=>{ [79,76,72,67].forEach((m,i)=>h.t(mf(m),i*.16,.7,'sine',.2,2000)); });
+    add('🏆 Erfolgs-Akkord','lang',h=>{ [60,64,67,72].forEach(m=>h.t(mf(m),0,1.6,'sine',.12,2200)); [72,76].forEach((m,i)=>h.t(mf(m),.3+i*.1,1.2,'triangle',.07,2200)); });
+    add('🔔 Glöckchenkette','lang',h=>{ [84,88,86,91,88,93].forEach((m,i)=>h.t(mf(m),i*.15,.8,'sine',.1,3200)); });
+    add('🎶 Spieluhr-Melodie','lang',h=>{ [72,76,79,76,74,77,81,77].forEach((m,i)=>h.t(mf(m),i*.28,.7,'triangle',.14,2600)); });
+    add('🪽 Harfen-Glissando','lang',h=>{ [60,64,67,72,76,79,84,88].forEach((m,i)=>h.t(mf(m),i*.07,1.1,'triangle',.11,2400)); });
+    add('🌊 Wellenrauschen','lang',h=>{ h.sw(0,3.2,.1,500); });
+    add('🍃 Sanfter Wind','lang',h=>{ h.sw(0,3.5,.07,300,2); });
+    add('🌧️ Regentropfen','lang',h=>{ for(let i=0;i<9;i++) h.g(1000+((i*397)%700),500,i*.22+(i%2)*.06,.16,.1,'sine'); });
+    add('🌌 Traumakkord','lang',h=>{ [57,64,69,76].forEach(m=>h.t(mf(m),0,3.4,'sine',.09,1800,.8)); });
+    add('🌙 Schlaflied','lang',h=>{ [67,64,67,72,71,67].forEach((m,i)=>h.t(mf(m),i*.4,.9,'sine',.17,1900)); });
+    add('🎺 Weiche Fanfare','lang',h=>{ [[67,0],[72,.2],[76,.4],[79,.6]].forEach(a=>h.t(mf(a[0]),a[1],a[1]?.7:.6,'triangle',.14,1500)); h.t(mf(84),.6,1.2,'triangle',.1,1500); });
+    add('💎 Kristall-Funkeln','lang',h=>{ for(let i=0;i<8;i++) h.t(mf(90+[0,4,7,12][i%4]),i*.11,.5,'sine',.06,3500); });
+    add('🕰️ Tiefer Gong','lang',h=>{ h.t(mf(48),0,3.5,'sine',.3,900); h.t(mf(55),0,2.5,'sine',.1,900); h.t(mf(60),0,1.5,'sine',.05,900); });
+    add('🏠 Ding-Dong','lang',h=>{ h.t(mf(79),0,1.1,'sine',.2,2600); h.t(mf(72),.5,1.6,'sine',.2,2600); });
+    return L;
+  })();
+  const NSLOT=30, MAXMS=30000;
   const X=window.ZSfx={ adm(){ try{ const n=String(ZS.player||'').toLowerCase(); return !!(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)||localStorage.getItem('zoo_secret_admin')===ZS.player||n==='bu:)'||n==='bu:3'); }catch(e){ return false; } }, data:{slots:{},map:{}}, cache:{}, aud:{}, _ld:{}, _lp:{}, _inited:false, _last:{},
     init(){
       const r=RT(); if(r&&!X._listen&&typeof ZS!=='undefined'&&ZS.player){ X._listen=true; r.ref('zoo_sounds/meta').on('value',s=>{ X.data.slots=s.val()||{}; X._pre(); if(X.el) X._draw(); }); r.ref('zoo_sounds/map').on('value',s=>{ X.data.map=s.val()||{}; X._pre(); if(X.el) X._draw(); }); }
@@ -1760,11 +1801,20 @@
       document.addEventListener('pointerdown',e=>{ try{ if(e.target&&e.target.id==='zcirc-open') X.play('circus'); }catch(x){} },true);
       try{ const o=window.ZSweeper&&ZSweeper.start; if(o&&!o._zs){ ZSweeper.start=function(){ X.play('sweeper'); return o.apply(this,arguments); }; ZSweeper.start._zs=1; } }catch(e){}
     },
+
+    _actx(){ if(!X._ac2){ try{ X._ac2=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(X._ac2.state==='suspended') X._ac2.resume().catch(()=>{}); return X._ac2; },
+    _synth(id){ const i=parseInt(String(id).slice(1),10)-1; const d=BI[i]; if(!d) return; const c=X._actx(); if(!c) return; const out=c.createGain(); out.gain.value=.8; out.connect(c.destination); const t0=c.currentTime+.02;
+      const lpf=(f,type)=>{ const b=c.createBiquadFilter(); b.type=type||'lowpass'; b.frequency.value=f; return b; };
+      const H={ t(fr,at,dur,type,vol,lp,att){ const o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.value=fr; const a=att||.012; g.gain.setValueAtTime(0,t0+at); g.gain.linearRampToValueAtTime(vol,t0+at+a); g.gain.exponentialRampToValueAtTime(.0001,t0+at+dur); const f=lpf(lp||2500); o.connect(f); f.connect(g); g.connect(out); o.start(t0+at); o.stop(t0+at+dur+.05); },
+        g(f0,f1,at,dur,vol,type){ const o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f0,t0+at); o.frequency.exponentialRampToValueAtTime(f1,t0+at+dur); g.gain.setValueAtTime(0,t0+at); g.gain.linearRampToValueAtTime(vol,t0+at+.012); g.gain.exponentialRampToValueAtTime(.0001,t0+at+dur); const f=lpf(2500); o.connect(f); f.connect(g); g.connect(out); o.start(t0+at); o.stop(t0+at+dur+.05); },
+        n(at,dur,vol,lp,hp){ const b=c.createBuffer(1,Math.max(1,Math.floor(c.sampleRate*dur)),c.sampleRate), da=b.getChannelData(0); for(let k=0;k<da.length;k++) da[k]=Math.random()*2-1; const s=c.createBufferSource(); s.buffer=b; const g=c.createGain(); g.gain.setValueAtTime(vol,t0+at); g.gain.exponentialRampToValueAtTime(.0001,t0+at+dur); const f=lpf(lp||800); s.connect(f); f.connect(g); g.connect(out); s.start(t0+at); },
+        sw(at,dur,vol,lp,slow){ const b=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate), da=b.getChannelData(0); for(let k=0;k<da.length;k++) da[k]=Math.random()*2-1; const s=c.createBufferSource(); s.buffer=b; const g=c.createGain(); const f=lpf(lp||500); const m=slow||1; const N=Math.max(2,Math.round(dur*.5*m)); g.gain.setValueAtTime(0,t0+at); for(let k=0;k<N;k++){ const tt=at+(k+.5)*dur/N; g.gain.linearRampToValueAtTime(vol*(k%2?.55:1),t0+tt); } g.gain.linearRampToValueAtTime(0,t0+at+dur); s.connect(f); f.connect(g); g.connect(out); s.start(t0+at); } };
+      try{ d.f(H); }catch(e){} },
     // Audio wird einzeln und nur bei Bedarf geladen (Meta = Zeitstempel der Aufnahme)
     _get(n){ const ts=X.data.slots[n]; if(!ts) return Promise.resolve(null); const c=X.aud[n]; if(c&&c.ts===ts) return Promise.resolve(c.u); if(X._ld[n]===ts) return X._lp[n]; const r=RT(); if(!r) return Promise.resolve(null); X._ld[n]=ts; X._lp[n]=r.ref('zoo_sounds/audio/'+n).once('value').then(s=>{ const u=s.val(); if(u){ X.aud[n]={ts,u}; delete X.cache[n]; } return u; }).catch(()=>null); return X._lp[n]; },
-    _pre(){ try{ Object.values(X.data.map||{}).forEach(n=>X._get(n)); }catch(e){} },
+    _pre(){ try{ Object.values(X.data.map||{}).forEach(n=>{ if(typeof n!=='string'||n[0]!=='b') X._get(n); }); }catch(e){} },
     play(ev,minGap){
-      const n=X.data.map&&X.data.map[ev]; if(!n) return; const c=X.aud[n]; const u=c&&c.ts===X.data.slots[n]?c.u:null; if(!u){ X._get(n); return; }
+      const n=X.data.map&&X.data.map[ev]; if(!n) return; if(typeof n==='string'&&n[0]==='b'){ const nw=Date.now(); if(minGap&&nw-(X._last[ev]||0)<minGap) return; if(nw-(X._last[ev]||0)<80) return; X._last[ev]=nw; X._synth(n); return; } const c=X.aud[n]; const u=c&&c.ts===X.data.slots[n]?c.u:null; if(!u){ X._get(n); return; }
       const now=Date.now(); if(minGap&&now-(X._last[ev]||0)<minGap) return; if(now-(X._last[ev]||0)<80) return; X._last[ev]=now;
       try{ X._cur=X._cur||{}; const q=X._cur[ev]; if(q&&!q.ended&&!q.paused) return; const a=X.cache[n]||(X.cache[n]=new Audio(u)); const b=a.cloneNode(); b.volume=.9; X._cur[ev]=b; b.play().catch(()=>{}); }catch(e){}
     },
@@ -1781,15 +1831,15 @@
         +'<button data-rec="'+i+'" style="background:'+(X._recN===i?'#e74c3c':'#c0392b')+';border:none;color:#fff;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer">'+(X._recN===i?'⏹ Stopp':'🔴 Aufnehmen')+'</button>'
         +'<button data-pl="'+i+'" '+(has?'':'disabled')+' style="background:#2d7;border:none;color:#000;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer;opacity:'+(has?1:.35)+'">▶</button>'
         +'<button data-del="'+i+'" '+(has?'':'disabled')+' style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 8px;cursor:pointer;opacity:'+(has?1:.35)+'">🗑</button></div>'; }
-      let mp=''; EVENTS.forEach(([k,l])=>{ let op='<option value="">— kein Sound —</option>'; for(let i=1;i<=NSLOT;i++) if(D.slots[i]) op+='<option value="'+i+'"'+(String(D.map[k])===String(i)?' selected':'')+'>Sound '+i+'</option>'; mp+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;font-size:.8rem"><span>'+l+'</span><select data-map="'+k+'" style="background:#1d2540;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px">'+op+'</select></div>'; });
+      let mp=''; EVENTS.forEach(([k,l])=>{ let op='<option value="">— kein Sound —</option>'; for(let i=1;i<=NSLOT;i++) if(D.slots[i]) op+='<option value="'+i+'"'+(String(D.map[k])===String(i)?' selected':'')+'>Sound '+i+' (eigene Aufnahme)</option>'; op+='<optgroup label="Fertige Sounds (weich)">'+BI.map((d,j)=>'<option value="b'+(j+1)+'"'+(String(D.map[k])==='b'+(j+1)?' selected':'')+'>'+d.n+' ('+d.len+')</option>').join('')+'</optgroup>'; mp+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;font-size:.8rem"><span>'+l+'</span><select data-map="'+k+'" style="background:#1d2540;color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px">'+op+'</select></div>'; });
       o.innerHTML='<div style="background:linear-gradient(135deg,#1c2040,#11142a);border:1px solid rgba(140,160,255,.45);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;color:#fff;font-family:Arial,sans-serif"><div style="display:flex;align-items:center;margin-bottom:8px"><h2 style="flex:1;margin:0;font-size:1.05rem">🎙️ Sound-Studio (Admin)</h2><button id="zsfx-x" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer">✕</button></div>'
         +'<div style="font-size:.72rem;opacity:.75;margin-bottom:8px">Nimm bis zu 30 Sekunden auf. Danach wählst du unten, wann welcher Sound für <b>alle Spieler</b> abgespielt wird.</div><div style="display:flex;gap:6px;margin-bottom:8px"><button data-src="mic" style="flex:1;padding:7px;border-radius:8px;border:2px solid '+(X._src==='dev'?'rgba(255,255,255,.25)':'#7fd1ff')+';background:rgba(255,255,255,.08);color:#fff;font-weight:700;cursor:pointer;font-size:.75rem">🎙️ Mikrofon</button><button data-src="dev" style="flex:1;padding:7px;border-radius:8px;border:2px solid '+(X._src==='dev'?'#7fd1ff':'rgba(255,255,255,.25)')+';background:rgba(255,255,255,.08);color:#fff;font-weight:700;cursor:pointer;font-size:.75rem">🔊 Geräte-Sound</button></div><div id="zsfx-st" style="font-size:.75rem;color:#ffd54f;min-height:1em">'+(X._msg||'')+'</div>'+rows
-        +'<div style="font-weight:900;margin:12px 0 4px;font-size:.85rem">Wann abspielen?</div>'+mp+'</div>';
+        +'<div style="font-weight:900;margin:12px 0 4px;font-size:.85rem">🎵 30 fertige Sounds zum Anhören (weich &amp; angenehm)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">'+BI.map((d,j)=>'<button data-bi="'+(j+1)+'" style="text-align:left;background:rgba(255,255,255,.09);border:none;color:#fff;border-radius:8px;padding:6px 8px;font-size:.7rem;cursor:pointer">▶ '+(j+1)+'. '+d.n+'</button>').join('')+'</div>'+'<div style="font-weight:900;margin:12px 0 4px;font-size:.85rem">Wann abspielen?</div>'+mp+'</div>';
       o.querySelector('#zsfx-x').onclick=()=>X.close(); o.querySelectorAll('[data-src]').forEach(b=>b.onclick=()=>{ X._src=b.dataset.src; X._draw(); });
-      o.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>X._rec(+b.dataset.rec));
+      o.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>X._rec(+b.dataset.rec)); o.querySelectorAll('[data-bi]').forEach(b=>b.onclick=()=>X._synth('b'+b.dataset.bi));
       o.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{ X._get(+b.dataset.pl).then(u=>{ try{ u&&new Audio(u).play(); }catch(e){} }); });
       o.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const r=RT(); r&&r.ref('zoo_sounds/meta/'+b.dataset.del).remove(); r&&r.ref('zoo_sounds/audio/'+b.dataset.del).remove(); Object.keys(D.map).forEach(k=>{ if(String(D.map[k])===b.dataset.del) r.ref('zoo_sounds/map/'+k).remove(); }); });
-      o.querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{ const r=RT(); if(!r) return; if(s.value) r.ref('zoo_sounds/map/'+s.dataset.map).set(+s.value); else r.ref('zoo_sounds/map/'+s.dataset.map).remove(); X.play(s.dataset.map); });
+      o.querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{ const r=RT(); if(!r) return; if(s.value) r.ref('zoo_sounds/map/'+s.dataset.map).set(s.value[0]==='b'?s.value:+s.value); else r.ref('zoo_sounds/map/'+s.dataset.map).remove(); X.play(s.dataset.map); });
     },
     _say(t){ X._msg=t; const e=document.getElementById('zsfx-st'); if(e) e.textContent=t; },
     async _rec(n){
@@ -1818,7 +1868,7 @@
 })();
 
 
-/* ZLoginLog (v722) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v723) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1827,7 +1877,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v722'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v723'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1848,7 +1898,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v722) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v723) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -2152,7 +2202,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v722) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v723) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
