@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v723)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v725)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v723): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v725): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v723) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v725) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v723) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v725) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v723) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v725) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v723) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v725) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v723) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v725) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1076,8 +1076,8 @@
 })();
 
 ;
-/* ZCoaster2 (v723) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v723) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v725) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v725) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1281,13 +1281,13 @@
 })();
 
 ;
-/* v723 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v725 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v723) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v723) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v725) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v725) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1373,7 +1373,7 @@
 
 
 ;
-/* ZMeadow (v723) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v725) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1532,7 +1532,7 @@
   };
 })();
 
-/* ZMap (v723) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v725) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1584,7 +1584,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v723) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v725) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1726,7 +1726,7 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v723) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v725) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1868,7 +1868,7 @@
 })();
 
 
-/* ZLoginLog (v723) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v725) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1877,7 +1877,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v723'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v725'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1898,7 +1898,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v723) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v725) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -2202,7 +2202,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v723) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v725) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2452,9 +2452,10 @@
     admDraw(){ Object.keys(EV).forEach(id=>{ const e=document.getElementById('zse-st-'+id); if(!e) return; const p=S.phase(id), d=S.data[id]; e.textContent=!d?'— nicht gesetzt —':p==='pre'?'⏳ Event in '+S.fmt(d.at-tn())+' ('+new Date(d.at).toLocaleString('de-CH')+')':p==='act'?'🔥 Läuft – noch '+S.fmt(d.at+ACT-tn()):'(abgelaufen)'; }); },
     // ── 3D ──
     _tex:{}, _spr(e){ const T=S._tex; if(e==='FOG'){ if(!T.FOG){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const gr=x.createRadialGradient(64,64,0,64,64,64); gr.addColorStop(0,'rgba(215,205,230,.55)'); gr.addColorStop(1,'rgba(215,205,230,0)'); x.fillStyle=gr; x.fillRect(0,0,128,128); T.FOG=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,opacity:.7}); } return new THREE.Sprite(T.FOG); } if(!T[e]){ const c=document.createElement('canvas'); c.width=c.height=96; const x=c.getContext('2d'); x.font='72px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(e,48,54); T[e]=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}); } return new THREE.Sprite(T[e]); },
-    _clear(){ if(S.grp){ try{ ZG.scene.remove(S.grp); }catch(e){} S.grp=null; } S.mov=[]; S.elves=[]; S.snow=null; S.plane=null; },
+    allS:[],
+    _clear(){ S.allS=[]; if(S.grp){ try{ ZG.scene.remove(S.grp); }catch(e){} S.grp=null; } S.mov=[]; S.elves=[]; S.snow=null; S.plane=null; },
     _build(id,p){ S._clear(); const g=new THREE.Group(); const R=rng(hash(id)+(p==='act'?99:1)); const WR=(ZG.WR||210)*.92;
-      DECO[id][p].forEach(d=>{ for(let i=0;i<d[1];i++){ const s=S._spr(d[0]); const a=R()*6.283, r=Math.sqrt(R())*WR; const x=Math.cos(a)*r, z=Math.sin(a)*r; s.scale.set(d[2],d[2],1); s.position.set(x,d[3],z); g.add(s); if(d[4]) S.mov.push({s,x,z,y:d[3],k:d[4],ph:R()*6.283,rad:3+R()*10,sp:.3+R()*.6}); } });
+      DECO[id][p].forEach(d=>{ for(let i=0;i<d[1];i++){ const s=S._spr(d[0]); const a=R()*6.283, r=Math.sqrt(R())*WR; const x=Math.cos(a)*r, z=Math.sin(a)*r; s.scale.set(d[2],d[2],1); s.position.set(x,d[3],z); g.add(s); S.allS.push(s); if(d[4]) S.mov.push({s,x,z,y:d[3],k:d[4],ph:R()*6.283,rad:3+R()*10,sp:.3+R()*.6}); } });
       if(id==='christmas'){ const pl=new THREE.Mesh(new THREE.PlaneGeometry(700,700),new THREE.MeshLambertMaterial({color:0xf2f7ff})); pl.rotation.x=-Math.PI/2; pl.position.y=.09; g.add(pl); S.plane=pl; }
       if(id==='christmas'||id==='spring'){ const N=700, pos=new Float32Array(N*3); for(let i=0;i<N;i++){ pos[i*3]=(Math.random()-.5)*60; pos[i*3+1]=Math.random()*22; pos[i*3+2]=(Math.random()-.5)*60; } const ge=new THREE.BufferGeometry(); ge.setAttribute('position',new THREE.BufferAttribute(pos,3)); const pt=new THREE.Points(ge,new THREE.PointsMaterial({color:id==='christmas'?0xffffff:0xffb7d5,size:id==='christmas'?.28:.34,transparent:true,opacity:.9,depthWrite:false})); pt.frustumCulled=false; g.add(pt); S.snow={pt,pos,N}; }
       if(id==='christmas'&&p==='act'){ for(let i=0;i<22;i++){ const e=S._elf(); const a=R()*6.283, r=Math.sqrt(R())*WR*.8; e.position.set(Math.cos(a)*r,0,Math.sin(a)*r); g.add(e); S.elves.push({e,tx:e.position.x,tz:e.position.z,ph:R()*10,sp:2.2+R()*1.5,wait:0}); } }
@@ -2462,6 +2463,7 @@
     _elf(){ const g=new THREE.Group(); const M=c=>new THREE.MeshLambertMaterial({color:c}); const b=new THREE.Mesh(new THREE.SphereGeometry(.4,10,8),M(0x2e9d4b)); b.scale.set(1,1.1,1); b.position.y=.55; g.add(b); const bl=new THREE.Mesh(new THREE.TorusGeometry(.38,.05,6,12),M(0xc62828)); bl.rotation.x=Math.PI/2; bl.position.y=.5; g.add(bl); const h=new THREE.Mesh(new THREE.SphereGeometry(.34,12,9),M(0xffd6b0)); h.position.y=1.25; g.add(h); const hat=new THREE.Mesh(new THREE.ConeGeometry(.3,.7,10),M(0xc62828)); hat.position.y=1.8; hat.rotation.z=.25; g.add(hat); const pm=new THREE.Mesh(new THREE.SphereGeometry(.09,6,5),M(0xffffff)); pm.position.set(.22,2.12,0); g.add(pm); [-1,1].forEach(sd=>{ const ear=new THREE.Mesh(new THREE.ConeGeometry(.07,.3,5),M(0xffd6b0)); ear.position.set(sd*.38,1.3,0); ear.rotation.z=-sd*1.3; g.add(ear); const e=new THREE.Mesh(new THREE.SphereGeometry(.045,6,5),M(0x111111)); e.position.set(sd*.13,1.28,.3); g.add(e); const f=new THREE.Mesh(new THREE.SphereGeometry(.14,6,5),M(0x5a3a1a)); f.scale.set(1,.6,1.3); f.position.set(sd*.18,.06,.05); f.name='f'; g.add(f); }); const al=g.children.filter(c=>c.name==='f'); g.userData.feet=al; return g; },
     _frame(dt,t,ph){ const g=S.grp; if(!g) return; const cam=ZG.cam.position;
       S.mov.forEach(m=>{ if(m.k==='drift'){ m.s.position.x=m.x+Math.sin(t*.12*m.sp+m.ph)*8; m.s.position.z=m.z+Math.cos(t*.1*m.sp+m.ph)*8; } else if(m.k==='fly'){ const a=t*m.sp+m.ph; m.s.position.set(m.x+Math.cos(a)*m.rad,m.y+Math.sin(t*1.7+m.ph)*.8,m.z+Math.sin(a)*m.rad); } else { m.s.position.y=m.y+Math.sin(t*1.2+m.ph)*.4; if(ph==='act'){ const a=t*.1*m.sp+m.ph; m.s.position.x=m.x+Math.cos(a)*m.rad; m.s.position.z=m.z+Math.sin(a)*m.rad; } } });
+      { const cx=cam.x, cy=cam.y, cz=cam.z; for(let i=0,n=S.allS.length;i<n;i++){ const q=S.allS[i], p=q.position; const dx=p.x-cx, dy=p.y-cy, dz=p.z-cz; const nr=q.scale.x*.6+1.3; q.visible=(dx*dx+dy*dy+dz*dz)>nr*nr; } }
       if(S.plane){ S.plane.position.x=cam.x; S.plane.position.z=cam.z; }
       if(S.snow){ const a=S.snow.pos, N=S.snow.N, xmas=S.key&&S.key.id==='christmas'; for(let i=0;i<N;i++){ let y=a[i*3+1]-(xmas?3:1.6)*dt; let x=a[i*3]+(xmas?Math.sin(t+i)*.3:Math.sin(t*.7+i)*1.2)*dt, z=a[i*3+2]; if(y<0){ y=22; x=cam.x+(Math.random()-.5)*60; z=cam.z+(Math.random()-.5)*60; } if(x-cam.x>30) x-=60; if(x-cam.x<-30) x+=60; if(z-cam.z>30) z-=60; if(z-cam.z<-30) z+=60; a[i*3]=x; a[i*3+1]=y; a[i*3+2]=z; } S.snow.pt.geometry.attributes.position.needsUpdate=true; }
       S.elves.forEach(o=>{ const e=o.e, dx=o.tx-e.position.x, dz=o.tz-e.position.z, d=Math.hypot(dx,dz); if(o.wait>0){ o.wait-=dt; e.position.y=Math.abs(Math.sin(t*6+o.ph))*.1; } else if(d<.5){ o.wait=1+Math.random()*3; const a=Math.random()*6.283, r=8+Math.random()*25; o.tx=Math.max(-190,Math.min(190,e.position.x+Math.cos(a)*r)); o.tz=Math.max(-190,Math.min(190,e.position.z+Math.sin(a)*r)); } else { e.position.x+=dx/d*o.sp*dt; e.position.z+=dz/d*o.sp*dt; e.rotation.y=Math.atan2(dx,dz); e.position.y=Math.abs(Math.sin(t*9+o.ph))*.18; e.userData.feet.forEach((f,i)=>{ f.position.z=.05+Math.sin(t*9+o.ph+i*3.14)*.2; }); } });
@@ -2504,7 +2506,7 @@
       if(key!==old){ const prev=S.key; S.key=k; if(k){ S._build(k.id,k.p); if(k.p==='act'){ toast(EV[k.id].ic+' '+EV[k.id].n+'-Höhepunkt! '+(k.id==='halloween'?'Der Zoo ist gruselig geworden …':k.id==='christmas'?'Überall laufen Elfen herum!':'Genieße die Stimmung!'),5000); S._startMusic(k.id); } else { toast(EV[k.id].ic+' '+EV[k.id].n+'-Deko ist da! Das Event kommt bald …',4000); S._stopMusic(); } } else { S._clear(); S._stopMusic(); if(prev) toast('Alles wieder normal 🙂',3000); } }
       if(S.grp) S.grp.visible=!hide; if(k) S._overlay(hide?null:k.id,k.p,t); else if(S.tint) S._overlay(null);
       if(!S._ct||now-S._ct>500){ S._ct=now; S._chip(k,hide); } S._atmo(k&&k.id,k&&k.p,hide); if(k&&!hide) S._frame(dt,t,k.p); },
-    _chip(k,hide){ let c=S.chipEl; if(!c){ c=S.chipEl=document.createElement('div'); c.style.cssText='position:fixed;left:50%;transform:translateX(-50%);z-index:9990;display:none;align-items:center;gap:8px;padding:5px 12px;border-radius:16px;color:#fff;font:900 .8rem Arial,sans-serif;text-shadow:0 1px 3px #000;box-shadow:0 2px 10px rgba(0,0,0,.5);white-space:nowrap;border:2px solid rgba(255,255,255,.6)'; c.innerHTML='<span id="zse-chip-t"></span><button id="zse-chip-x" style="display:none;background:#c62828;color:#fff;border:none;border-radius:8px;padding:2px 8px;font-weight:900;cursor:pointer;pointer-events:auto">⏹</button>'; document.body.appendChild(c); c.querySelector('#zse-chip-x').onclick=()=>{ if(S.key&&confirm('Event "'+EV[S.key.id].n+'" stoppen?')) S.adminDel(S.key.id); }; }
+    _chip(k,hide){ let c=S.chipEl; if(!c){ c=S.chipEl=document.createElement('div'); c.style.cssText='position:fixed;left:50%;transform:translateX(-50%);z-index:250;display:none;align-items:center;gap:8px;padding:5px 12px;border-radius:16px;color:#fff;font:900 .8rem Arial,sans-serif;text-shadow:0 1px 3px #000;box-shadow:0 2px 10px rgba(0,0,0,.5);white-space:nowrap;border:2px solid rgba(255,255,255,.6)'; c.innerHTML='<span id="zse-chip-t"></span><button id="zse-chip-x" style="display:none;background:#c62828;color:#fff;border:none;border-radius:8px;padding:2px 8px;font-weight:900;cursor:pointer;pointer-events:auto">⏹</button>'; document.body.appendChild(c); c.querySelector('#zse-chip-x').onclick=()=>{ if(S.key&&confirm('Event "'+EV[S.key.id].n+'" stoppen?')) S.adminDel(S.key.id); }; }
       if(!k){ c.style.display='none'; return; } const d=S.data[k.id], E=EV[k.id]; const hz=document.getElementById('zhearts'); const top=hz?Math.round(hz.getBoundingClientRect().bottom)+6:120; c.style.top=top+'px'; c.style.display='flex'; c.style.background=k.p==='act'?E.col:'rgba(20,20,40,.82)';
       const ms=k.p==='act'?d.at+ACT-tn():d.at-tn(); const s2=Math.max(0,Math.floor(ms/1000)); const h=Math.floor(s2/3600), m=Math.floor(s2%3600/60), x=s2%60; const tm=(h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(x).padStart(2,'0');
       c.querySelector('#zse-chip-t').textContent=k.p==='act'?E.ic+' '+E.n+'-Höhepunkt · noch '+tm:'⏳ '+E.n+' in '+(h>=24?Math.floor(h/24)+' T '+(h%24)+' Std':tm); c.querySelector('#zse-chip-x').style.display=S.isAdm()?'':'none'; },
