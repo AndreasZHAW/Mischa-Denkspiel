@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v729)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v730)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v729): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v730): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v729) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v730) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v729) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v730) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v729) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v730) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v729) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v730) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v729) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v730) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1076,8 +1076,8 @@
 })();
 
 ;
-/* ZCoaster2 (v729) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v729) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v730) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v730) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1281,13 +1281,13 @@
 })();
 
 ;
-/* v729 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v730 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v729) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v729) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v730) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v730) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1373,7 +1373,7 @@
 
 
 ;
-/* ZMeadow (v729) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v730) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1532,7 +1532,7 @@
   };
 })();
 
-/* ZMap (v729) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v730) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1584,7 +1584,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v729) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v730) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1726,7 +1726,7 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v729) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v730) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1868,7 +1868,7 @@
 })();
 
 
-/* ZLoginLog (v729) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v730) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1877,7 +1877,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v729'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v730'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1898,7 +1898,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v729) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v730) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -2208,7 +2208,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v729) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v730) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2531,16 +2531,28 @@
   const kind=()=>{ const touch=mm('(hover: none) and (pointer: coarse)')||(('ontouchstart' in window)&&navigator.maxTouchPoints>0&&!mm('(hover: hover) and (pointer: fine)')); if(!touch) return null; return Math.min(screen.width,screen.height)>=600?'tablet':'phone'; };
   const D=window.ZDetector={ on:false, ac:null, nextBeep:0, el:null, btn:null, jit:0,
     cfg(){ const k=kind(); return k==='phone'?{range:220,jit:0}:k==='tablet'?{range:120,jit:.22}:null; },
-    toggle(){ D.on=!D.on; try{ localStorage.setItem('zdet',D.on?'1':'0'); }catch(e){} D._ui(); try{ ZP.toast(D.on?'📡 Tier-Detektor an – der Pfeil zeigt zum nächsten freien Tier':'📡 Detektor aus',2500); }catch(e){} if(D.on) D._ctx(); },
+    sel:null,
+    _key(a){ return String((a&&a.animal&&(a.animal.id||a.animal.n))||''); },
+    toggle(){ D._pick(); },
+    _off(){ D.on=false; D.sel=null; try{ localStorage.setItem('zdet','0'); }catch(e){} D._ui(); try{ ZP.toast('📡 Detektor aus',2000); }catch(e){} },
+    _pick(){ const old=document.getElementById('zdet-pick'); if(old){ old.remove(); return; } const list=(ZG.droppedAnimals||[]).filter(a=>a&&typeof a.x==='number'&&!a.caught);
+      const g={}; list.forEach(a=>{ const k=D._key(a); if(!k) return; (g[k]=g[k]||{e:a.animal.e||'🐾',n:a.animal.n||k,c:0,k}).c++; });
+      const rows=Object.values(g); const o=document.createElement('div'); o.id='zdet-pick'; o.style.cssText='position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:14px'; o.onclick=e=>{ if(e.target===o) o.remove(); };
+      let h='<div style="background:#10253a;border:2px solid #2ec878;border-radius:16px;padding:14px;max-width:340px;width:100%;max-height:80vh;overflow-y:auto;color:#fff;font-family:Arial"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b>📡 Welches Tier suchst du?</b><button id="zdet-x" style="background:none;border:none;color:#fff;font-size:1.2rem">✕</button></div>';
+      if(!rows.length) h+='<div style="font-size:.8rem;opacity:.8;padding:8px 0">Gerade ist kein Tier frei. Sobald jemand eins fallen lässt oder ein Event Tiere befreit, erscheint es hier.</div>';
+      else h+='<div style="font-size:.72rem;opacity:.7;margin-bottom:6px">Tippe das Tier an, dann zeigt dir der Pfeil den Weg.</div>'+rows.map(r=>'<button data-k="'+r.k.replace(/"/g,'')+'" style="display:flex;width:100%;align-items:center;gap:10px;margin:5px 0;padding:10px;border-radius:12px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:.9rem;font-weight:800;text-align:left;cursor:pointer"><span style="font-size:1.8rem">'+r.e+'</span><span style="flex:1">'+r.n+'</span><span style="opacity:.7;font-size:.75rem">'+r.c+'× frei</span></button>').join('');
+      if(D.on) h+='<button id="zdet-off" style="width:100%;margin-top:8px;padding:10px;border-radius:12px;border:none;background:#c62828;color:#fff;font-weight:900">❌ Detektor aus</button>'; h+='</div>'; o.innerHTML=h; document.body.appendChild(o);
+      o.querySelector('#zdet-x').onclick=()=>o.remove(); const off=o.querySelector('#zdet-off'); if(off) off.onclick=()=>{ o.remove(); D._off(); };
+      o.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ D.sel=b.dataset.k; D.on=true; try{ localStorage.setItem('zdet','1'); }catch(e){} o.remove(); D._ui(); D._ctx(); try{ ZP.toast('📡 Suche: '+(g[D.sel]?g[D.sel].e+' '+g[D.sel].n:D.sel),2500); }catch(e){} }); },
     _ctx(){ if(!D.ac){ try{ D.ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(D.ac&&D.ac.state==='suspended') D.ac.resume().catch(()=>{}); return D.ac; },
     _beep(){ const c=D._ctx(); if(!c) return; const o=c.createOscillator(), g=c.createGain(); o.type='sine'; o.frequency.value=880; const t=c.currentTime; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.18,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.09); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.1); },
     _ui(){ if(D.btn){ D.btn.style.background=D.on?'rgba(46,200,120,.95)':'rgba(0,0,0,.7)'; } if(!D.on&&D.el) D.el.style.display='none'; },
     _mk(){ if(D.btn) return true; const ref=document.getElementById('zdrone-btn'); if(!ref||!document.getElementById('hud')) return false; const r=ref.getBoundingClientRect(); const b=document.createElement('button'); b.id='zdet-btn'; b.innerHTML='📡<div style="font:800 .5rem Arial;margin-top:-2px">Detektor</div>'; b.style.cssText='position:fixed;right:34px;top:'+(Math.round(r.bottom)+6)+'px;z-index:140;width:52px;height:46px;border-radius:14px;border:2px solid rgba(255,255,255,.55);color:#fff;font-size:1.2rem;line-height:1;cursor:pointer;padding:2px;background:rgba(0,0,0,.7)'; b.onclick=D.toggle; document.body.appendChild(b); D.btn=b;
-      const e=document.createElement('div'); e.id='zdet-ui'; e.style.cssText='position:fixed;left:50%;top:160px;transform:translateX(-50%);z-index:249;display:none;text-align:center;pointer-events:none;color:#fff;font:900 .8rem Arial,sans-serif;text-shadow:0 1px 4px #000'; e.innerHTML='<div id="zdet-ar" style="font-size:3rem;line-height:1;filter:drop-shadow(0 0 6px #000)">⬆️</div><div id="zdet-tx"></div>'; document.body.appendChild(e); D.el=e; try{ D.on=localStorage.getItem('zdet')==='1'; }catch(x){} D._ui(); return true; },
+      const e=document.createElement('div'); e.id='zdet-ui'; e.style.cssText='position:fixed;left:50%;top:160px;transform:translateX(-50%);z-index:249;display:none;text-align:center;pointer-events:none;color:#fff;font:900 .8rem Arial,sans-serif;text-shadow:0 1px 4px #000'; e.innerHTML='<div id="zdet-ar" style="font-size:3rem;line-height:1;filter:drop-shadow(0 0 6px #000)">⬆️</div><div id="zdet-tx"></div>'; document.body.appendChild(e); D.el=e; D.on=false; D._ui(); return true; },
     _tick(){ const cf=D.cfg(); if(!cf) return; if(!D._mk()) return; const now=performance.now(); if(!D.on||typeof ZG==='undefined'||!ZG.pl) return;
-      const list=(ZG.droppedAnimals||[]).filter(a=>a&&typeof a.x==='number'&&!a.caught); let best=null, bd=1e9; list.forEach(a=>{ const d=Math.hypot(a.x-ZG.pl.x,a.z-ZG.pl.z); if(d<bd){ bd=d; best=a; } });
+      const list=(ZG.droppedAnimals||[]).filter(a=>a&&typeof a.x==='number'&&!a.caught&&(!D.sel||D._key(a)===D.sel)); let best=null, bd=1e9; list.forEach(a=>{ const d=Math.hypot(a.x-ZG.pl.x,a.z-ZG.pl.z); if(d<bd){ bd=d; best=a; } });
       const el=D.el; el.style.display=ZG._meadowActive?'none':'block'; const ar=el.querySelector('#zdet-ar'), tx=el.querySelector('#zdet-tx');
-      if(!best||bd>cf.range){ ar.style.opacity=.35; ar.textContent='📡'; ar.style.transform='none'; tx.textContent=best?'Zu weit weg …':'Kein Tier in der Nähe'; return; }
+      if(!best||bd>cf.range){ ar.style.opacity=.35; ar.textContent='📡'; ar.style.transform='none'; tx.textContent=best?'Zu weit weg …':(D.sel?'Dieses Tier ist nicht mehr frei':'Kein Tier in der Nähe'); return; }
       const yaw=ZG.yaw||0, dx=best.x-ZG.pl.x, dz=best.z-ZG.pl.z, dot=dx*(-Math.sin(yaw))+dz*(-Math.cos(yaw)), rx=dx*Math.cos(yaw)-dz*Math.sin(yaw); let ang=Math.atan2(rx,dot);
       if(cf.jit){ D.jit=Math.sin(now/1700)*cf.jit+Math.sin(now/530)*cf.jit*.4; ang+=D.jit*(.3+Math.min(1,bd/cf.range)); }
       ar.style.opacity=1; ar.textContent='⬆️'; ar.style.transform='rotate('+(ang*180/Math.PI)+'deg)'; tx.textContent=(best.animal?best.animal.e+' ':'')+(cf.jit?'ca. '+Math.round(bd/5)*5:Math.round(bd))+' m';
