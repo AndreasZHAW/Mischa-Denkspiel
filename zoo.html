@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v713 -->
+<!-- ZOO v714 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -235,12 +235,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=713"></script>
-<script src="rewardchests.js?v=713"></script>
-<script src="personality.js?v=713"></script>
+<script src="lang.js?v=714"></script>
+<script src="rewardchests.js?v=714"></script>
+<script src="personality.js?v=714"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v713','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v714','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -491,7 +491,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     </div>
   </div>
 </div>
-<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button></div><div id="scont"></div>
+<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button><button id="st-k" class="tab ti" onclick="ZP.shopTab('k')">🎭 Skins</button></div><div id="scont"></div>
   <div style="margin-top:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px">
     <div style="font-size:.8rem;font-weight:900;color:#FFD700;margin-bottom:6px">🎁 Code einlösen</div>
     <div style="display:flex;gap:6px">
@@ -533,13 +533,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=713"></script>
-<script src="sanction.js?v=713"></script>
-<script src="zevents.js?v=713"></script>
-<script src="znet.js?v=713"></script>
-<script src="zbases.js?v=713"></script>
-<script src="zworld.js?v=713"></script>
-<script src="worlds.js?v=713"></script>
+<script src="firebase-state.js?v=714"></script>
+<script src="sanction.js?v=714"></script>
+<script src="zevents.js?v=714"></script>
+<script src="znet.js?v=714"></script>
+<script src="zbases.js?v=714"></script>
+<script src="zworld.js?v=714"></script>
+<script src="worlds.js?v=714"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1557,7 +1557,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v713) ──
+// ── REBIRTH-SYSTEM (v714) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1587,7 +1587,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85}; // v713: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85}; // v714: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1905,7 +1905,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v713: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v714: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2365,7 +2365,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v713: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v714: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3606,7 +3606,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v713: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v714: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4151,7 +4151,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v713: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v714: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -10493,7 +10493,7 @@ const ZP={
   },
 
   // SHOP
-  shopTab(t){this._st=t;['z','b','s'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  shopTab(t){this._st=t;['z','b','s','k'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
   redeemShopCode(){
     const input=G('shop-code-input');
     const code=(input?.value||'').trim().toLowerCase();
@@ -10587,7 +10587,7 @@ const ZP={
     this._sP(document.getElementById('scont'));
   },
 
-  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else this._sB(el);},
+  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else if(this._st==='k'){ el.innerHTML=(typeof ZSkins!=='undefined'?ZSkins.shopHtml():''); }else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'Nochmal +50% (braucht rote Schuhe) — tippen für Details',p:500,shoe:true,col:'#FFD700',req:'redshoes'},{id:'platinumshoes',n:'💎 Platin-Turnschuhe',d:'Nochmal +50%, plus Platin-Rush beim Geradeauslaufen (braucht goldene Schuhe) — tippen für Details',p:2000,shoe:true,col:'#B9F2FF',req:'goldshoes'},{id:'hikingboots',n:'🥾 Wanderschuhe',d:'+30% Tragegeschwindigkeit beim Tragen von Tieren — tippen für Details',p:100,shoe:true,col:'#8B5E3C'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50},{id:'dice_license',n:'🎲 Würfel-Maschine Lizenz',d:'Schaltet die Würfel-Maschine im Zoo frei — dort selbst gewählten Betrag setzen, 50/50 auf verdoppeln oder verlieren!',p:10000}];
@@ -11135,7 +11135,7 @@ const ZP={
     el.innerHTML = '<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.4">'
       +'🥊 Jeder Slap kostet beim Benutzen einen Prozentsatz deines Vermögens — <b>stärkere Slaps kosten mehr</b> (Basic 1%, jede Stufe +1%), halten Spieler aber auch länger ausser Gefecht. Permanent (unbegrenzt nutzbar) bekommst du Slaps weiterhin über Rebirth. Hier kannst du stattdessen ein <b>10er-Paket</b> für einen bestimmten Slap kaufen — 10 Nutzungen, unabhängig von der Stufe, immer 2\'124 MT. <b>Tippe eine Zeile an für Details.</b></div>'
       + (()=>{ const bal=(ZS.dsMT||0)+z.mt, bu=(z.breadUntil||0)>Date.now(); const mk=(k,e,n,pc,d)=>`<div class="ac" style="border-left:4px solid #f4a261"><div style="font-size:1.5rem">${e}</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">${n}</div><div style="font-size:.66rem;color:rgba(255,255,255,.55)">${d}</div></div><button class="ab" onclick="ZP._buyFood('${k}')">${pc}% · ${$mt(Math.floor(bal*pc/100))}</button></div>`;
-        return (typeof ZSkins!=='undefined'?ZSkins.shopHtml():'')+'<div style="font-weight:900;font-size:.78rem;margin:10px 0 6px">🧹 Fahrzeuge</div><div class="ac" style="border-left:4px solid #ffc107"><div style="font-size:1.5rem">🧹</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">Kehrmaschine</div><div style="font-size:.66rem;color:rgba(255,255,255,.55)">10 Min lang <b>du bist die Kehrmaschine</b> · 15 m/s · saugt andere Spieler ein (15 s Pause) · alle sehen es · kostet 10 %</div></div><button class="ab" onclick="ZSweeper.buy()">10% · '+$mt(Math.floor(bal*10/100))+'</button></div>'+'<div style="font-weight:900;font-size:.78rem;margin:10px 0 6px">🍽️ Essen</div>'+mk('maul','🥟','Maultaschen',5,'Füllt sofort <b>alle Herzen</b> auf (einmalig) · kostet 5 % deines Guthabens')+mk('brot','🍞','Brot',4,'Heilt nicht sofort, aber Herzen regenerieren <b>5× so schnell</b> für 5 Min'+(bu?' · läuft noch '+Math.ceil(((z.breadUntil||0)-Date.now())/1000)+' s':'')+' · kostet 4 %')+'<div style="font-weight:900;font-size:.78rem;margin:10px 0 6px">🥊 Slaps</div>'; })()
+        return '<div style="font-weight:900;font-size:.78rem;margin:10px 0 6px">🧹 Fahrzeuge</div><div class="ac" style="border-left:4px solid #ffc107"><div style="font-size:1.5rem">🧹</div><div style="flex:1"><div style="font-weight:900;font-size:.8rem">Kehrmaschine</div><div style="font-size:.66rem;color:rgba(255,255,255,.55)">10 Min lang <b>du bist die Kehrmaschine</b> · 15 m/s · saugt andere Spieler ein (15 s Pause) · alle sehen es · kostet 10 %</div></div><button class="ab" onclick="ZSweeper.buy()">10% · '+$mt(Math.floor(bal*10/100))+'</button></div>'+'<div style="font-weight:900;font-size:.78rem;margin:10px 0 6px">🍽️ Essen</div>'+mk('maul','🥟','Maultaschen',5,'Füllt sofort <b>alle Herzen</b> auf (einmalig) · kostet 5 % deines Guthabens')+mk('brot','🍞','Brot',4,'Heilt nicht sofort, aber Herzen regenerieren <b>5× so schnell</b> für 5 Min'+(bu?' · läuft noch '+Math.ceil(((z.breadUntil||0)-Date.now())/1000)+' s':'')+' · kostet 4 %')+'<div style="font-weight:900;font-size:.78rem;margin:10px 0 6px">🥊 Slaps</div>'; })()
       + SLAPS.map(sl=>{
         const isOwned=owned.includes(sl.id);
         const packs=(z.slapPacks||{})[sl.id]||0;
@@ -13928,7 +13928,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v713 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v714 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
