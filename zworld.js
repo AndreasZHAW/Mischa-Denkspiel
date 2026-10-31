@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v708)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v709)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v708): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v709): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v708) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v709) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v708) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v709) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v708) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v709) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -632,7 +632,7 @@
   const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive); }catch(e){ return false; } };
   const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const boost=(type,mult,mins)=>{ const z=ZS.zoo, now=Date.now(); if(!z.mtPassBoosts) z.mtPassBoosts={}; const cur=z.mtPassBoosts[type], base=(cur&&cur.until>now)?cur.until:now; z.mtPassBoosts[type]={mult:Math.max(mult,(cur&&cur.until>now)?cur.mult:0),until:base+mins*60000}; };
   const giveMT=n=>{ const z=ZS.zoo; z.mt=(z.mt||0)+Math.round(n); };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v708) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v709) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -788,7 +788,7 @@
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
   const isAdm=()=>{ try{ return !!(window.ZBases&&ZBases.isEd&&ZBases.isEd()); }catch(e){ return false; } };
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive); }catch(e){ return false; } };
   const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
   const smooth=t=>t*t*(3-2*t);
   const G=9.81, X0=-70, ZST=-12;           // Station / Streckenstart (Welt-Koordinaten)
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v708) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v709) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1074,8 +1074,8 @@
 })();
 
 ;
-/* ZCoaster2 (v708) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v708) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v709) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v709) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1083,7 +1083,7 @@
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&ZG.cam&&typeof ZS!=='undefined'&&ZS.zoo&&ZS.player&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive); }catch(e){ return false; } };
   const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
   const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -1278,13 +1278,13 @@
 })();
 
 ;
-/* v708 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v709 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v708) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v708) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v709) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v709) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1370,7 +1370,7 @@
 
 
 ;
-/* ZMeadow (v708) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v709) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1529,10 +1529,10 @@
   };
 })();
 
-/* ZMap (v708) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v709) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
   const R=215, POI=[['⛩️ Gondel',0,0],['🚪 Eingang',0,62],['🎪 Zirkus',40,48],['🎢 Mega-Achterbahn',140,-35]];
   const K=window.ZMap={ el:null, cam:null,
     open(){
@@ -1581,18 +1581,19 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v708) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v709) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
   let _off=0; const tn=()=>Date.now()+_off;
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
   const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const vib=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
   const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
   const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
   const me=()=>{ try{ return K(ZS.player); }catch(e){ return ''; } };
   const isTouch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){ return false; } };
-  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
   const PC=.10, DUR=600000, SPEED=15, SUCK=15000, REV_PC=.05;
   const S=window.ZSweeper={ on:false, until:0, v:0, gas:false, brk:false, all:{}, seen:{}, hitCd:{}, rev:null, _inited:false,
     init(){
@@ -1641,7 +1642,7 @@
         if(S.on){ const left=S.until-tn(); if(left<=0){ S.stop('🧹 Deine Kehrmaschinen-Zeit ist um.'); return; }
           const h=document.getElementById('zsw-hud'); if(h){ const m=Math.floor(left/60000), s=Math.floor(left/1000)%60; h.innerHTML='🧹 Kehrmaschine · '+m+':'+String(s).padStart(2,'0')+' · '+Math.round(S.v*3.6)+' km/h'; }
           // einsaugen
-          const now=tn(), r=RT(); if(S.v>1.5&&r){ Object.values(ZG.otherPl||{}).forEach(op=>{ const k=K(op.name); if(!op.name||k===me()) return; if(Math.hypot(op.x-ZG.pl.x,op.z-ZG.pl.z)<3.2&&(!S.hitCd[k]||now-S.hitCd[k]>25000)){ S.hitCd[k]=now; try{ r.ref('zoo_sweeper_hit/'+k).set({from:ZS.player,at:now}); }catch(e){} toast('🧹 '+op.name+' eingesaugt!',2000); big('🌀 EINGESAUGT','#7fd1ff',1200); S._tone(300,90,.45); } }); }
+          const now=tn(), r=RT(); if(S.v>1.5&&r){ Object.values(ZG.otherPl||{}).forEach(op=>{ const k=K(op.name); if(!op.name||k===me()) return; if(Math.hypot(op.x-ZG.pl.x,op.z-ZG.pl.z)<3.2&&(!S.hitCd[k]||now-S.hitCd[k]>25000)){ S.hitCd[k]=now; try{ r.ref('zoo_sweeper_hit/'+k).set({from:ZS.player,at:now}); }catch(e){} toast('🧹 '+op.name+' eingesaugt!',2000); vib([80,40,80]); big('🌀 EINGESAUGT','#7fd1ff',1200); S._tone(300,90,.45); } }); }
         }
       }catch(e){}
     },
@@ -1670,7 +1671,7 @@
     _sucked(from){
       if(S.on) return; try{ if(ZG.carrying) ZG._dropCarried(from); }catch(e){}
       const end=Date.now()+SUCK; try{ ZG._slapStunEnd=end; ZG._stunType='suck'; }catch(e){}
-      S._tone(120,500,.5); big('🌀 EINGESAUGT!','#7fd1ff',1800);
+      S._tone(120,500,.5); vib([250,70,250]); big('🌀 EINGESAUGT!','#7fd1ff',1800);
       S.rev={from,till:end+45000,done:false}; S._revUI(from,end);
     },
     _revUI(from,end){
@@ -1722,11 +1723,11 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v708) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v709) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
-  const EVENTS=[['walk','👣 Laufen'],['click','👆 Auf etwas klicken'],['jump','🦘 Springen'],['buy','🛒 Etwas kaufen'],['pickup','🎒 Tier aufnehmen'],['placed','🏠 Tier abgesetzt'],['eat','🥟 Essen'],['heart','❤️ Herz verlieren'],['death','💀 Alle Herzen weg'],['slapped','💫 Getroffen (Slap)'],['rebirth','🔄 Rebirth'],['money','💰 Geld bekommen'],['wish','🌟 Wunsch erfüllt'],['coaster','🎢 Achterbahn startet'],['fall','😱 Runterfallen'],['circus','🎪 Zirkus betreten'],['map','🗺️ Per Karte hinbeamen'],['sweeper','🧹 Kehrmaschine startet'],['sucked','🌀 Eingesaugt werden'],['revenge','😈 Rache'],['quiz','🧠 Quiz richtig'],['goal','🎯 Tagesziel geschafft']];
+  const EVENTS=[['walk','👣 Laufen'],['click','👆 Auf etwas klicken'],['jump','🦘 Springen'],['buy','🛒 Etwas kaufen'],['pickup','🎒 Tier aufnehmen'],['placed','🏠 Tier abgesetzt'],['eat','🥟 Essen'],['heart','❤️ Herz verlieren'],['death','💀 Alle Herzen weg'],['slapped','💫 Getroffen (Slap)'],['rebirth','🔄 Rebirth'],['money','💰 Geld bekommen'],['wish','🌟 Wunsch erfüllt'],['coaster','🎢 Achterbahn startet'],['fall','😱 Runterfallen'],['circus','🎪 Zirkus betreten'],['map','🗺️ Per Karte hinbeamen'],['sweeper','🧹 Kehrmaschine startet'],['sucked','🌀 Eingesaugt werden'],['revenge','😈 Rache'],['quiz','🧠 Quiz richtig'],['goal','🎯 Tagesziel geschafft'],['alien','👽 Alien-Event startet'],['abduct','🛸 Vom UFO eingesaugt']];
   const NSLOT=8, MAXMS=30000;
   const X=window.ZSfx={ adm(){ try{ const n=String(ZS.player||'').toLowerCase(); return !!(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)||localStorage.getItem('zoo_secret_admin')===ZS.player||n==='bu:)'||n==='bu:3'); }catch(e){ return false; } }, data:{slots:{},map:{}}, cache:{}, aud:{}, _ld:{}, _lp:{}, _inited:false, _last:{},
     init(){
@@ -1814,7 +1815,7 @@
 })();
 
 
-/* ZLoginLog (v708) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v709) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1823,7 +1824,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v708'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v709'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1844,7 +1845,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v708) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v709) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -2026,4 +2027,133 @@
     d.querySelectorAll('input').forEach(i=>i.onchange=()=>{ cfg[i.dataset.k]=i.checked; save(); L.apply(); });
     pm.parentNode.insertBefore(d,pm.nextSibling); }catch(e){} };
   requestAnimationFrame(loop);
+})();
+
+/* ZAlien (v709) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+(function(){
+  const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
+  let _off=0; const tn=()=>Date.now()+_off;
+  const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
+  const big=(t,c,ms)=>{ try{ ZG._bigText(t,c||'#fff',ms||2500); }catch(e){} };
+  const bal=()=>{ try{ return (ZS.dsMT||0)+(ZS.zoo.mt||0); }catch(e){ return 0; } };
+  const fmt=v=>{ try{ if(typeof $mt==='function') return $mt(v); }catch(e){} return Math.round(v).toLocaleString('de-CH'); };
+  const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
+  const isTouch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){ return false; } };
+  const vib=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
+  const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZSweeper&&ZSweeper.on)||(typeof Tutorial!=='undefined'&&Tutorial._active)||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
+  const AUTO=3*3600000, AUTO_LEN=10*60000, T=22, NU=3, FLY=180000, CLICKS=30, CLICK_MS=10000;
+  const ease=t=>{ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };
+  const A=window.ZAlien={ moving:false, ph:null, admin:null, local:0, _inited:false, ufo:[], immune:0, v:0, vy:0, gas:false, brk:false, up:false, dn:false, clicks:0,
+    init(){
+      if(A._inited) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; A._inited=true;
+      try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){}
+      r.ref('zoo_alien/admin').on('value',s=>{ A.admin=s.val(); });
+      setInterval(A._slow,1000); A._loop();
+      window.addEventListener('wheel',e=>{ if(A.ph==='fly'){ A.vyc=Math.max(-10,Math.min(10,(A.vyc||0)-e.deltaY*.04)); e.preventDefault(); } },{passive:false});
+      document.addEventListener('pointerdown',e=>{ if(A.ph==='sling'&&A.slingState==='click'){ if(e.target&&e.target.closest&&e.target.closest('#zal-skip')) return; A.clicks++; vib(12); A._clickFx(e.clientX,e.clientY); A._clkUI(); } },true);
+    },
+    // ── Zeitplan ──
+    until(){ const n=tn(); let u=0; const slot=Math.floor(n/AUTO)*AUTO; if(n-slot<AUTO_LEN) u=slot+AUTO_LEN; if(A.admin&&A.admin.until>n) u=Math.max(u,A.admin.until); if(A.local>n) u=Math.max(u,A.local); return u>n?u:0; },
+    nextAuto(){ const n=tn(); return Math.ceil((n+1)/AUTO)*AUTO; },
+    adminStart(min){ const r=RT(); if(!r) return; const u=tn()+(min||10)*60000; r.ref('zoo_alien/admin').set({until:u,at:tn(),by:ZS.player}); toast('👽 Alien-Event gestartet ('+(min||10)+' Min)'); },
+    adminStop(){ const r=RT(); if(r) r.ref('zoo_alien/admin').remove(); A.local=0; toast('👽 Alien-Event beendet'); },
+    adminLocal(){ A.local=tn()+10*60000; toast('👽 Test: Aliens nur bei dir (10 Min)'); },
+    _slow(){ try{ const u=A.until(), on=u>0; if(on&&!A._on){ A._banner('👽 ALIEN-EVENT! UFOs über dem Zoo – lauf weg vor dem grünen Strahl!'); try{ ZSfx&&ZSfx.play('alien'); }catch(e){} } if(!on&&A._on&&A.grp){ A._clear(); } A._on=on; }catch(e){} },
+    _banner(t){ const b=document.createElement('div'); b.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:10001;background:linear-gradient(135deg,#39ff14,#0a8f3a);color:#000;font:900 .9rem Arial;padding:9px 18px;border-radius:30px;box-shadow:0 4px 22px rgba(60,255,100,.6);max-width:92vw;text-align:center;pointer-events:none'; b.textContent=t; document.body.appendChild(b); setTimeout(()=>b.remove(),7000); },
+    // ── Modelle ──
+    _mkUfo(){
+      const g=new THREE.Group(); const M=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
+      const disc=new THREE.Mesh(new THREE.SphereGeometry(4,20,12),M(0x9aa6b2)); disc.scale.set(1,.28,1); g.add(disc);
+      const belly=new THREE.Mesh(new THREE.SphereGeometry(2.4,14,8),M(0x5c6772)); belly.scale.set(1,.4,1); belly.position.y=-.9; g.add(belly);
+      const dome=new THREE.Mesh(new THREE.SphereGeometry(1.9,16,10,0,6.283,0,1.571),M(0x7dff9a,{transparent:true,opacity:.55})); dome.position.y=.5; g.add(dome);
+      const al=ZG._makeEmojiSprite('👽'); al.scale.set(2.2,2.2,1); al.position.y=1.4; g.add(al);
+      g.userData.lights=[]; for(let i=0;i<10;i++){ const a=i/10*6.283; const l=new THREE.Mesh(new THREE.SphereGeometry(.28,6,5),M(0xffee58)); l.position.set(Math.cos(a)*3.9,0,Math.sin(a)*3.9); g.add(l); g.userData.lights.push(l); }
+      try{ if(window.ZLife){ const h=ZLife.halo(0x66ff88,9,.28); h.position.y=-1; g.add(h); } }catch(e){}
+      g.scale.setScalar(1.4); return g; },
+    _build(){
+      if(A.grp) return; const g=new THREE.Group(); ZG.scene.add(g); A.grp=g;
+      for(let i=0;i<NU;i++){ const u=A._mkUfo(); g.add(u); const bm=new THREE.Mesh(new THREE.CylinderGeometry(.8,4.8,1,24,1,true),new THREE.MeshBasicMaterial({color:0x6dff7a,transparent:true,opacity:.3,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false})); bm.visible=false; g.add(bm);
+        const ring=new THREE.Mesh(new THREE.RingGeometry(3.7,4.9,32),new THREE.MeshBasicMaterial({color:0x6dff7a,transparent:true,opacity:.7,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false})); ring.rotation.x=-Math.PI/2; ring.visible=false; g.add(ring);
+        A.ufo.push({u,bm,ring,pos:V3((i-1)*30,48,-20),tg:null,inzone:0}); } },
+    _clear(){ try{ ZG.scene.remove(A.grp); }catch(e){} A.grp=null; A.ufo=[]; },
+    _names(){ const set={}; try{ set[K(ZS.player)]={x:ZG.pl.x,z:ZG.pl.z,me:1}; Object.values(ZG.otherPl||{}).forEach(op=>{ if(op&&op.name) set[K(op.name)]={x:op.x,z:op.z}; }); }catch(e){} return set; },
+    _hash(a,b){ let h=(a*374761393+b*668265263)|0; h=(h^(h>>>13))*1274126177|0; return (h^(h>>>16))>>>0; },
+    _tick(dt){
+      const n=tn(), on=A.until()>0; if(!on&&!A.ph){ if(A.grp) A._clear(); return; }
+      if(!A.grp) A._build(); const t=n/1000; const names=A._names(), keys=Object.keys(names).sort(); if(!keys.length) return;
+      A.ufo.forEach((o,i)=>{
+        const sh=t+i*7.3, k=Math.floor(sh/T), ph=(sh%T)/T; const pick=kk=>keys[A._hash(i+1,kk)%keys.length]; const tg=names[pick(k)], pv=names[pick(k-1)]||tg;
+        const hov=V3(tg.x,48,tg.z), from=V3(pv.x,48,pv.z); const fly=ease(ph/.45); const want=ph<.45?from.clone().lerp(hov,fly):hov; want.y=48-ease((ph-.4)/.2)*10+Math.sin(t*1.3+i)*.8; if(ph>=.95) want.y=38+ease((1-ph)/.05)*10;
+        o.pos.lerp(want,Math.min(1,dt*(ph<.45?3:1.4))); o.u.position.copy(o.pos); o.u.rotation.y+=dt*.6; o.u.userData.lights.forEach((l,j)=>{ l.material.color.setHex((Math.floor(t*6)+j)%2?0xffee58:0xff5252); });
+        const warn=ph>=.5&&ph<.62, beam=ph>=.62&&ph<.95; o.beam=beam;
+        const gy=0.1, H=o.pos.y-gy; o.bm.visible=beam; if(beam){ o.bm.scale.set(1,H,1); o.bm.position.set(o.pos.x,gy+H/2,o.pos.z); o.bm.material.opacity=.26+Math.sin(t*14)*.06; }
+        o.ring.visible=warn||beam; if(o.ring.visible){ o.ring.position.set(o.pos.x,.14,o.pos.z); o.ring.material.color.setHex(warn?0xffd54f:0x6dff7a); o.ring.material.opacity=warn?(.4+Math.sin(t*12)*.3):.8; o.ring.scale.setScalar(1+Math.sin(t*5)*.05); }
+        // Einsaugen?
+        if(beam&&!A.ph&&A._eligible()){ const d=Math.hypot(ZG.pl.x-o.pos.x,ZG.pl.z-o.pos.z); if(d<4.3){ o.inzone+=dt; if(o.inzone>1.1) A._abduct(o); } else o.inzone=Math.max(0,o.inzone-dt); } else o.inzone=0;
+      });
+    },
+    _eligible(){ try{ return !busy()&&!ZG.carrying&&n0()>A.immune&&!(ZHearts&&ZHearts.dead)&&!ZG._deathAt; }catch(e){ return false; } },
+    // ── Entführung ──
+    _abduct(o){
+      A.ph='lift'; A.moving=true; ZG._alienActive=true; A.t0=performance.now(); A.y0=ZG.pl.y; A.x0=ZG.pl.x; A.z0=ZG.pl.z; A.v=0; A.vy=0; A.vyc=0; try{ ZG.joy.on=false; }catch(e){}
+      vib([120,60,200]); big('👽 EINGESAUGT!','#6dff7a',2000); try{ ZSfx&&ZSfx.play('abduct'); }catch(e){} try{ ZSweeper&&ZSweeper._tone&&ZSweeper._tone(120,900,2.4); }catch(e){}
+      A._ov(true); A.src=o;
+    },
+    _ov(on){ let e=document.getElementById('zal-ov'); if(!on){ if(e) e.remove(); return; } if(e) return; e=document.createElement('div'); e.id='zal-ov'; e.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,rgba(60,255,110,.0),rgba(20,160,70,.35) 70%,rgba(0,60,20,.6));animation:zalPulse 1.4s infinite'; document.body.appendChild(e); if(!document.getElementById('zal-st')){ const s=document.createElement('style'); s.id='zal-st'; s.textContent='@keyframes zalPulse{0%,100%{opacity:.7}50%{opacity:1}}@keyframes zalBurst{from{transform:translate(-50%,-50%) scale(.3);opacity:1}to{transform:translate(-50%,-50%) scale(1.6);opacity:0}}'; document.head.appendChild(s); } },
+    move(dt){
+      dt=Math.min(.1,dt); const p=ZG.pl, now=performance.now();
+      if(A.ph==='lift'){ const k=ease((now-A.t0)/2800); p.y=A.y0+(40-A.y0)*k; p.x=A.x0+(A.src?(A.src.pos.x-A.x0)*k*.9:0); p.z=A.z0+(A.src?(A.src.pos.z-A.z0)*k*.9:0); ZG.yaw+=dt*1.2; if(k>=1){ A.ph='fly'; A.tf=now; A.immune=0; A._hud(true); toast(isTouch()?'👽 Steuern: Joystick lenkt · GAS/BREMSEN · ▲▼ Höhe':'👽 W/S Gas·Bremse · A/D lenken · Mausrad = hoch/runter',6000); } return; }
+      if(A.ph==='fly'){
+        const kk=ZG.keys||{}; const gas=A.gas||kk.KeyW||kk.ArrowUp, brk=A.brk||kk.KeyS||kk.ArrowDown; let st=0; if(kk.KeyD||kk.ArrowRight) st+=1; if(kk.KeyA||kk.ArrowLeft) st-=1; try{ if(ZG.joy&&ZG.joy.on) st+=ZG.joy.dx||0; }catch(e){} st=Math.max(-1,Math.min(1,st));
+        if(brk) A.v=Math.max(0,A.v-40*dt); else if(gas) A.v=Math.min(24,A.v+12*dt); else A.v=Math.max(0,A.v-4*dt);
+        ZG.yaw-=st*1.9*dt*(.4+.6*Math.min(1,A.v/6));
+        let vt=0; if(A.up||kk.KeyE||kk.Space) vt=9; if(A.dn||kk.KeyQ||kk.ShiftLeft) vt=-9; A.vyc=(A.vyc||0)*Math.max(0,1-3*dt); vt+=A.vyc; A.vy+=(vt-A.vy)*Math.min(1,dt*5);
+        p.x+=-Math.sin(ZG.yaw)*A.v*dt; p.z+=-Math.cos(ZG.yaw)*A.v*dt; p.y=Math.max(6,Math.min(130,p.y+A.vy*dt));
+        const lim=(ZG.WR||210)-3, rr=Math.hypot(p.x,p.z); if(rr>lim){ p.x*=lim/rr; p.z*=lim/rr; A.v*=.6; }
+        const left=FLY-(now-A.tf); const h=document.getElementById('zal-hud'); if(h){ const m=Math.floor(Math.max(0,left)/60000), s=Math.floor(Math.max(0,left)/1000)%60; h.innerHTML='👽 <b>'+Math.round(Math.hypot(A.v,A.vy)*3.6)+' km/h</b> · ↕ '+Math.round(p.y)+' m · '+m+':'+String(s).padStart(2,'0'); }
+        if(left<=0) A._sling(); return; }
+      if(A.ph==='sling'){ A._slingTick(dt,now); return; }
+      if(A.ph==='down'){ const k=ease((now-A.t0)/(A.dur||2500)); p.y=A.y0+(1.7-A.y0)*k; if(k>=1){ A._finish(); } return; }
+    },
+    _hud(on){ ['zal-hud','zal-gas','zal-brk','zal-up','zal-dn'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); A.gas=A.brk=A.up=A.dn=false; if(!on) return;
+      const h=document.createElement('div'); h.id='zal-hud'; h.style.cssText='position:fixed;top:14px;right:122px;z-index:9001;background:rgba(0,20,0,.7);border:2px solid #6dff7a;color:#b9ffc7;font:700 .8rem Arial;padding:6px 12px;border-radius:14px;pointer-events:none;box-shadow:0 0 14px rgba(80,255,120,.5)'; document.body.appendChild(h);
+      if(!isTouch()) return;
+      const mk=(id,txt,col,right,bottom,w,hh,key)=>{ const b=document.createElement('div'); b.id=id; b.style.cssText='position:fixed;bottom:'+bottom+'px;right:'+right+'px;width:'+w+'px;height:'+hh+'px;z-index:9001;border-radius:16px;background:rgba(0,0,0,.55);border:4px solid '+col+';color:#fff;font:900 '+(w>70?'.9rem':'1.4rem')+' Arial;display:flex;align-items:center;justify-content:center;text-align:center;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 0 12px '+col; b.textContent=txt; const set=v=>{ A[key]=v; b.style.background=v?col+'88':'rgba(0,0,0,.55)'; }; b.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); try{ b.setPointerCapture(e.pointerId); }catch(x){} set(true); }); ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,()=>set(false))); document.body.appendChild(b); };
+      mk('zal-gas','GAS','#2ecc71',128,22,92,112,'gas'); mk('zal-brk','BREMSEN','#e74c3c',22,22,92,112,'brk'); mk('zal-up','▲','#7fd1ff',30,222,64,64,'up'); mk('zal-dn','▼','#ffb74d',30,146,64,64,'dn'); },
+    // ── Geschenkschleuder ──
+    _sling(){
+      A.ph='sling'; A.slingState='intro'; A.t0=performance.now(); A._hud(false); A.clicks=0; A.v=0; vib([200,100,200]); big('👽 DIE ALIENS KOMMEN!','#ff5252',2500);
+      try{ ZSweeper&&ZSweeper._tone&&ZSweeper._tone(500,100,1.6); }catch(e){}
+      const g=new THREE.Group(); ZG.scene.add(g); A.sg=g; A.su=[]; for(let i=0;i<3;i++){ const u=A._mkUfo(); u.scale.setScalar(.8); g.add(u); A.su.push(u); }
+      const rig=new THREE.Group(); const M=(c)=>new THREE.MeshBasicMaterial({color:c}); const wood=0x7a4a22;
+      const stem=new THREE.Mesh(new THREE.CylinderGeometry(.18,.22,2.2,8),M(wood)); stem.position.y=-1.1; rig.add(stem); [-1,1].forEach(sd=>{ const f=new THREE.Mesh(new THREE.CylinderGeometry(.14,.18,1.6,8),M(wood)); f.position.set(sd*.7,.5,0); f.rotation.z=-sd*.45; rig.add(f); });
+      A.band=[-1,1].map(sd=>{ const b=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1,6),M(0xe53935)); b.userData.sd=sd; rig.add(b); return b; });
+      const gift=new THREE.Group(); const box=new THREE.Mesh(new THREE.BoxGeometry(1.3,1.3,1.3),M(0xe53935)); gift.add(box); const r1=new THREE.Mesh(new THREE.BoxGeometry(1.34,.28,1.34),M(0xffd54f)); gift.add(r1); const r2=new THREE.Mesh(new THREE.BoxGeometry(.28,1.34,1.34),M(0xffd54f)); gift.add(r2); const bow=new THREE.Mesh(new THREE.OctahedronGeometry(.4,0),M(0xffd54f)); bow.position.y=.85; gift.add(bow); rig.add(gift); A.gift=gift; A.rig=rig; ZG.scene.add(rig); A._ov(true); },
+    _slingTick(dt,now){
+      const t=(now-A.t0)/1000, cam=ZG.cam, p=ZG.pl; const fw=V3(-Math.sin(ZG.yaw),0,-Math.cos(ZG.yaw));
+      A.su.forEach((u,i)=>{ const ang=(i-1)*.7, d=26-ease(t/2.2)*8, dd=V3(-Math.sin(ZG.yaw+ang)*d,5+i%2*3+Math.sin(t*2+i),-Math.cos(ZG.yaw+ang)*d); u.position.set(p.x+dd.x,p.y+dd.y+ (1-ease(t/2.2))*25,p.z+dd.z); u.rotation.y+=dt; u.userData.lights.forEach((l,j)=>{ l.material.color.setHex((Math.floor(t*8)+j)%2?0xffee58:0xff5252); }); });
+      const ten=A.slingState==='click'?Math.min(1,(now-A.ct0)/CLICK_MS):Math.min(1,t/2.5)*.3; const pull=A.slingState==='fire'?-1:ten;
+      const rig=A.rig; rig.position.set(p.x+fw.x*7,p.y-2.2+Math.sin(t*3)*.05,p.z+fw.z*7); rig.rotation.set(0,ZG.yaw,0);
+      const gz=pull>=0?-pull*2.2:A.fireZ||0, gp=V3(0,.5,gz); A.gift.position.copy(gp); if(A.slingState==='click') A.gift.position.x=Math.sin(now/40)*.05*ten; A.gift.rotation.y+=dt*.8;
+      A.band.forEach(b=>{ const a=V3(b.userData.sd*1.0,1.2,0), c=gp.clone(); const len=a.distanceTo(c); b.scale.y=len; b.position.copy(a).lerp(c,.5); b.lookAt(rig.localToWorld(c.clone())); b.rotateX(Math.PI/2); });
+      if(A.slingState==='intro'&&t>2.6){ A.slingState='click'; A.ct0=now; A._clkUI(true); vib(80); }
+      if(A.slingState==='click'){ const left=CLICK_MS-(now-A.ct0); const tt=document.getElementById('zal-ct'); if(tt) tt.textContent=Math.max(0,Math.ceil(left/1000))+' s'; if(A.clicks>=CLICKS){ A._win(); } else if(left<=0){ A._lose(); } }
+      if(A.slingState==='win'){ const k=(now-A.wt)/1000; A.gift.position.y+=dt*3; A.gift.position.z-=dt*2; A.su.forEach((u,i)=>{ u.position.y+=dt*(14+i*5); u.position.x+=dt*(i-1)*10; }); if(k>2.4){ A._down(); } }
+      if(A.slingState==='fire'){ const k=(now-A.ft)/700; A.fireZ=-2.2+Math.min(1,k)*9.5; A.gift.position.z=A.fireZ; A.gift.scale.setScalar(1+k*1.8); if(k>=1){ A.slingState='hit'; A.ht=now; const f=document.createElement('div'); f.id='zal-fl'; f.style.cssText='position:fixed;inset:0;z-index:10003;background:#fff;pointer-events:none;transition:opacity 1.2s'; document.body.appendChild(f); setTimeout(()=>{ f.style.opacity='0'; },60); setTimeout(()=>f.remove(),1400); vib([300,80,300,80,500]); big('💥 VOLLTREFFER!','#ff5252',2600); try{ ZSweeper&&ZSweeper._tone&&ZSweeper._tone(700,40,1.0); }catch(e){} } }
+      if(A.slingState==='hit'&&now-A.ht>900){ A.hitFall=true; A._down(); }
+    },
+    _clkUI(show){ let e=document.getElementById('zal-ck'); if(show&&!e){ e=document.createElement('div'); e.id='zal-ck'; e.style.cssText='position:fixed;top:16%;left:50%;transform:translateX(-50%);z-index:9002;text-align:center;color:#fff;font-family:Arial,sans-serif;text-shadow:0 2px 8px #000;pointer-events:none;width:min(92vw,420px)'; e.innerHTML='<div style="font:900 1.6rem Arial;color:#ff5252">KLICK! KLICK! KLICK!</div><div style="font-size:.85rem;opacity:.9">Tippe so oft du kannst – mindestens '+CLICKS+'× in 10 Sekunden!</div><div style="font:900 2.6rem Arial;margin-top:4px"><span id="zal-cn">0</span> / '+CLICKS+'</div><div style="height:14px;background:rgba(255,255,255,.2);border-radius:8px;overflow:hidden;margin:6px 0"><div id="zal-bar" style="height:100%;width:0;background:linear-gradient(90deg,#ff5252,#6dff7a)"></div></div><div id="zal-ct" style="font:900 1.4rem Arial;color:#ffd54f">10 s</div>'; document.body.appendChild(e); } if(e){ const c=document.getElementById('zal-cn'); if(c) c.textContent=A.clicks; const b=document.getElementById('zal-bar'); if(b) b.style.width=Math.min(100,A.clicks/CLICKS*100)+'%'; } },
+    _clickFx(x,y){ const d=document.createElement('div'); d.textContent='💥'; d.style.cssText='position:fixed;left:'+x+'px;top:'+y+'px;font-size:2rem;z-index:10002;pointer-events:none;animation:zalBurst .45s forwards'; document.body.appendChild(d); setTimeout(()=>d.remove(),500); },
+    _win(){ A.slingState='win'; A.wt=performance.now(); const c=document.getElementById('zal-ck'); if(c) c.remove(); vib([80,40,80,40,200]); big('🎉 FREIGELASSEN!','#6dff7a',2600); try{ window.ZLife&&ZLife.fireworks(); }catch(e){}
+      const z=ZS.zoo; const rw=Math.max(100,Math.floor(bal()*.05)); try{ z.mt=(z.mt||0)+rw; ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} toast('🎁 Die Aliens lassen dich frei! +'+fmt(rw)+' MT (5 %)',5000); },
+    _lose(){ A.slingState='fire'; A.ft=performance.now(); const c=document.getElementById('zal-ck'); if(c) c.remove(); A.fireZ=0; },
+    _down(){ A.ph='down'; A.t0=performance.now(); A.y0=ZG.pl.y; A.dur=A.hitFall?1600:2800; A._cleanSling(); },
+    _cleanSling(){ try{ ZG.scene.remove(A.sg); ZG.scene.remove(A.rig); }catch(e){} A.sg=A.rig=null; const c=document.getElementById('zal-ck'); if(c) c.remove(); },
+    _finish(){ const hf=A.hitFall; A.hitFall=false; A.ph=null; A.moving=false; ZG._alienActive=false; A._ov(false); A._hud(false); A.immune=n0()+90000; ZG.pl.y=1.7; ZG.pitch=0;
+      if(hf){ try{ ZHearts.hit(ZHearts.max+5,'alien'); }catch(e){} toast('👽 Volltreffer! Du hast alle Herzen verloren.',4000); } else toast('🌍 Zurück im Zoo!',2500); },
+    _loop(){ let t0=performance.now(); const f=n=>{ const dt=Math.min(.1,(n-t0)/1000); t0=n; try{ if(typeof ZG!=='undefined'&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined') A._tick(dt); }catch(e){} requestAnimationFrame(f); }; requestAnimationFrame(f); }
+  };
+  const n0=()=>tn();
+  setInterval(()=>{ try{ A.init(); }catch(e){} },2000);
 })();
