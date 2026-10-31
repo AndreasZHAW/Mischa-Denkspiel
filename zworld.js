@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v718)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v720)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v718): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v720): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v718) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v720) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v718) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v720) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v718) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v720) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v718) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v720) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v718) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v720) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1076,8 +1076,8 @@
 })();
 
 ;
-/* ZCoaster2 (v718) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v718) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v720) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v720) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1281,13 +1281,13 @@
 })();
 
 ;
-/* v718 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v720 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v718) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v718) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v720) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v720) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1373,7 +1373,7 @@
 
 
 ;
-/* ZMeadow (v718) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v720) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1532,7 +1532,7 @@
   };
 })();
 
-/* ZMap (v718) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v720) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1584,7 +1584,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v718) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v720) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1726,7 +1726,7 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v718) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v720) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1818,7 +1818,7 @@
 })();
 
 
-/* ZLoginLog (v718) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v720) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1827,7 +1827,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v718'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v720'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1848,7 +1848,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v718) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v720) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -1957,7 +1957,7 @@
   function shadowTex(){ return L._st||(L._st=canvasTex(64,64,(x)=>{ const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(0,0,0,.55)'); g.addColorStop(.6,'rgba(0,0,0,.25)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); })); }
   const KD=(function(){
   // ═══ 3D-Köpfe + Zubehör für die Start-Figuren ═══
-  const KIND={'🧽':'sponge','⭐':'star','🍄':'mushroom','💚':'heart','👧':'girl','👦':'boy','🧑‍🚀':'astronaut','🥷':'ninja','🕵':'detective','👸':'princess','⚔':'knight','🧪':'scientist','🧭':'explorer','🎨':'stick','👩':'woman','👨':'man'};
+  const KIND={'🐺':'wolf','🐼':'panda','🦁':'lion','🧽':'sponge','⭐':'star','🍄':'mushroom','💚':'heart','👧':'girl','👦':'boy','🧑‍🚀':'astronaut','🥷':'ninja','🕵':'detective','👸':'princess','⚔':'knight','🧪':'scientist','🧭':'explorer','🎨':'stick','👩':'woman','👨':'man'};
   const kindOf=chr=>{ const s=String(chr||'').replace(/️/g,''); return KIND[s]||null; };
   const LM=c=>new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide});
   const SK=0xf0b88a;
@@ -2009,14 +2009,17 @@
   }
 
     // ═══ Zusatz-Skins (Admin-Shop) + Mädchen/Junge ═══
-    const XK=['sponge','star','mushroom','heart','girl','boy','vampire','robot','pirate','wizard','cowboy','clown','chef','pharaoh','viking','santa','alien','zombie','skeleton','bunny','cat','bear','dino','superhero','fairy','pumpkin'];
+    const XK=['wolf','panda','lion','sponge','star','mushroom','heart','girl','boy','vampire','robot','pirate','wizard','cowboy','clown','chef','pharaoh','viking','santa','alien','zombie','skeleton','bunny','cat','bear','dino','superhero','fairy','pumpkin'];
     const MB=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:o!=null,opacity:o==null?1:o,side:THREE.DoubleSide,depthWrite:o==null});
     const mkEye=(H,x,y,z,r,c,sy)=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),MB(c)); e.position.set(x,y,z); e.scale.set(1,sy||1.2,.6); H.add(e); H.userData.eyes.push(e); return e; };
     const bare=(H,col,sx,sy,sz)=>{ const sk=sph(.5,col,0,0,0,sx||1,sy||.97,sz||1); H.add(sk); H.userData.skull=sk; H.userData.eyes=[]; return sk; };
     const ears2=(H,col,fn)=>{ [-1,1].forEach(sd=>{ const e=fn(sd); H.add(e); }); };
     function buildX(kind){
       const H=new THREE.Group(); H.position.y=1.45; const B=[]; const out={head:H,body:B,hand:{},anim:[]}; const skin=SK;
-      if(kind==='sponge'){ H.userData.eyes=[]; const sk=new THREE.Mesh(new THREE.BoxGeometry(.95,1.05,.7),LM(0xf2c230)); sk.userData.x=1; H.add(sk); H.userData.skull=sk; for(let i=0;i<9;i++){ const hl=sph(.075+(i%3)*.02,0xc98a14,(i%3-1)*.3+(i>5?.08:0),(Math.floor(i/3)-1)*.34+.05,.355,1,1,.3); H.add(hl); if(i%2===0){ const h2=sph(.07,0xc98a14,(i%3-1)*.3,(Math.floor(i/3)-1)*.34,-.355,1,1,.3); H.add(h2); } } [-1,1].forEach(sd=>{ const w=sph(.15,0xffffff,sd*.2,.14,.36,1,1.1,.4); H.add(w); const ey=sph(.065,0x1a3a6a,sd*.2,.14,.42,1,1.2,.5); H.add(ey); H.userData.eyes.push(ey); }); const mt=tor(.16,.025,0x7a2a1a,0,-.1,.37,12,Math.PI); mt.rotation.z=Math.PI; H.add(mt); H.userData.mouth=mt; B.push(bx(.8,.3,.5,0x8d5a2b,0,.7,0)); B.push(bx(.82,.1,.52,0xffffff,0,.88,0)); }
+      if(kind==='wolf'){ face(H,0x8e929c,{noEars:true,blush:false}); [-1,1].forEach(sd=>{ const e=cone(.17,.4,0x6e727c,sd*.32,.52,0,4); e.rotation.z=-sd*.2; H.add(e); const i2=cone(.09,.25,0xd7a5a5,sd*.32,.48,.07,4); i2.rotation.z=-sd*.2; H.add(i2); H.add(sph(.2,0xb9bdc6,sd*.28,-.1,.36,1,.9,1)); }); H.add(sph(.2,0xcfd3da,0,-.12,.45,1,.8,1.1)); H.add(sph(.07,0x111111,0,-.04,.64,1.2,.9,.8)); H.userData.eyes.forEach(e=>{ e.children[0].material=new THREE.MeshBasicMaterial({color:0xffe082}); e.children[0].scale.set(1,1,.6); }); if(H.userData.mouth) H.userData.mouth.visible=false; H.add(bx(.2,.025,.03,0x333333,0,-.24,.6)); B.push(sph(.3,0xb9bdc6,0,.9,.28,1,.8,.5)); }
+      else if(kind==='panda'){ face(H,0xffffff,{noEars:true,blush:false}); [-1,1].forEach(sd=>{ H.add(sph(.17,0x1a1a1a,sd*.38,.4,0)); const p=sph(.13,0x1a1a1a,sd*.2,.07,.4,1,1.4,.4); p.rotation.z=sd*.4; H.add(p); }); H.userData.eyes.forEach(e=>{ e.position.z=.5; }); H.add(sph(.1,0xf2f2f2,0,-.1,.45,1.2,.8,.8)); H.add(sph(.06,0x111111,0,-.06,.54,1.3,.8,.6)); B.push(cyl(.44,.44,.2,0x1a1a1a,0,.95,0,14,true)); B.push(sph(.17,0x1a1a1a,.5,.55,.1)); B.push(sph(.17,0x1a1a1a,-.5,.55,.1)); }
+      else if(kind==='lion'){ face(H,0xe5b25d,{noEars:true}); for(let i=0;i<14;i++){ const a=i/14*6.283; const m=sph(.2,i%2?0xa8641a:0xc27a24,Math.cos(a)*.5,Math.sin(a)*.5,-.12,1,1,1); H.add(m); } H.add(sph(.5,0xb06d1e,0,0,-.2,1.05,1.05,.6)); [-1,1].forEach(sd=>{ H.add(sph(.13,0xe5b25d,sd*.34,.46,.1)); }); H.add(sph(.2,0xf3d9a0,0,-.12,.42,1.1,.8,.8)); H.add(sph(.07,0x8d3b3b,0,-.04,.58,1.3,.8,.6)); const tl=new THREE.Group(); tl.add(cyl(.03,.03,.7,0xe5b25d,0,.3,0,6)); tl.add(sph(.1,0x8d5a1b,0,.7,0)); tl.position.set(0,.3,-.45); tl.rotation.x=-.5; B.push(tl); out.anim.push((t,u)=>{ tl.rotation.z=Math.sin(t*3)*(.2+u.walk*.3); }); }
+      else if(kind==='sponge'){ H.userData.eyes=[]; const sk=new THREE.Mesh(new THREE.BoxGeometry(.95,1.05,.7),LM(0xf2c230)); sk.userData.x=1; H.add(sk); H.userData.skull=sk; for(let i=0;i<9;i++){ const hl=sph(.075+(i%3)*.02,0xc98a14,(i%3-1)*.3+(i>5?.08:0),(Math.floor(i/3)-1)*.34+.05,.355,1,1,.3); H.add(hl); if(i%2===0){ const h2=sph(.07,0xc98a14,(i%3-1)*.3,(Math.floor(i/3)-1)*.34,-.355,1,1,.3); H.add(h2); } } [-1,1].forEach(sd=>{ const w=sph(.15,0xffffff,sd*.2,.14,.36,1,1.1,.4); H.add(w); const ey=sph(.065,0x1a3a6a,sd*.2,.14,.42,1,1.2,.5); H.add(ey); H.userData.eyes.push(ey); }); const mt=tor(.16,.025,0x7a2a1a,0,-.1,.37,12,Math.PI); mt.rotation.z=Math.PI; H.add(mt); H.userData.mouth=mt; B.push(bx(.8,.3,.5,0x8d5a2b,0,.7,0)); B.push(bx(.82,.1,.52,0xffffff,0,.88,0)); }
       else if(kind==='star'){ H.userData.eyes=[]; const sh=new THREE.Shape(); for(let i=0;i<10;i++){ const a=Math.PI/2+i*Math.PI/5, r=i%2?.34:.75; const x=Math.cos(a)*r, y=Math.sin(a)*r; if(i) sh.lineTo(x,y); else sh.moveTo(x,y); } sh.closePath(); const ge=new THREE.ExtrudeGeometry(sh,{depth:.35,bevelEnabled:true,bevelSize:.06,bevelThickness:.06,bevelSegments:2}); ge.translate(0,0,-.17); const sk=new THREE.Mesh(ge,LM(0xffd21f)); H.add(sk); H.userData.skull=sk; [-1,1].forEach(sd=>{ const w=sph(.1,0xffffff,sd*.16,.06,.27,1,1.1,.4); H.add(w); const ey=sph(.045,0x222222,sd*.16,.06,.32,1,1.2,.5); H.add(ey); H.userData.eyes.push(ey); H.add(sph(.07,0xff8a80,sd*.3,-.08,.25,1,.6,.3)); }); const mt=tor(.1,.02,0x7a2a1a,0,-.06,.28,12,Math.PI); mt.rotation.z=Math.PI; H.add(mt); H.userData.mouth=mt; B.push(cyl(.4,.45,.35,0xff8fb0,0,.8,0,16,true)); }
       else if(kind==='mushroom'){ H.userData.eyes=[]; const sk=sph(.42,0xfff1d6,0,-.1,0,1,.95,1); H.add(sk); H.userData.skull=sk; const cap=new THREE.Mesh(new THREE.SphereGeometry(.7,18,10,0,6.283,0,1.45),LM(0xe53935)); cap.position.y=.02; cap.scale.set(1,.85,1); H.add(cap); [[0,.55,.0,.15],[.38,.4,.3,.12],[-.38,.4,.3,.12],[.4,.35,-.3,.11],[-.4,.35,-.3,.11],[0,.38,.52,.12]].forEach(d=>H.add(sph(d[3],0xffffff,d[0],d[1],d[2],1,.4,1))); [-1,1].forEach(sd=>{ const w=sph(.09,0xffffff,sd*.15,-.12,.36,1,1.2,.4); H.add(w); const ey=sph(.045,0x222222,sd*.15,-.12,.41,1,1.2,.5); H.add(ey); H.userData.eyes.push(ey); }); const mt=tor(.09,.02,0x7a2a1a,0,-.26,.4,12,Math.PI); mt.rotation.z=Math.PI; H.add(mt); H.userData.mouth=mt; B.push(cyl(.45,.5,.5,0x2e7d32,0,.6,0,14,true)); }
       else if(kind==='heart'){ H.userData.eyes=[]; const sh=new THREE.Shape(); sh.moveTo(0,-.62); sh.bezierCurveTo(-.2,-.4,-.7,-.15,-.7,.2); sh.bezierCurveTo(-.7,.55,-.25,.7,0,.42); sh.bezierCurveTo(.25,.7,.7,.55,.7,.2); sh.bezierCurveTo(.7,-.15,.2,-.4,0,-.62); const ge=new THREE.ExtrudeGeometry(sh,{depth:.4,bevelEnabled:true,bevelSize:.08,bevelThickness:.08,bevelSegments:3}); ge.translate(0,0,-.2); const sk=new THREE.Mesh(ge,LM(0x2ecc71)); H.add(sk); H.userData.skull=sk; [-1,1].forEach(sd=>{ const w=sph(.1,0xffffff,sd*.2,.12,.3,1,1.1,.4); H.add(w); const ey=sph(.045,0x222222,sd*.2,.12,.35,1,1.2,.5); H.add(ey); H.userData.eyes.push(ey); H.add(sph(.07,0xa5d6a7,sd*.34,-.05,.3,1,.6,.3)); }); const mt=tor(.1,.02,0x1b5e20,0,-.08,.33,12,Math.PI); mt.rotation.z=Math.PI; H.add(mt); H.userData.mouth=mt; B.push(cyl(.43,.43,.4,0x1b5e20,0,.7,0,14,true)); }
@@ -2149,7 +2152,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v718) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v720) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2383,8 +2386,16 @@
     adminHtml(){ const d=new Date(Date.now()+3600000); const v=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
       return '<div class="padmin-section-title" style="margin-top:14px">🗓️ Jahreszeiten-Events</div><div style="font-size:.72rem;color:rgba(255,255,255,.6);margin-bottom:6px">Wähle Datum + Uhrzeit des Events. Bis dahin: Deko-Look. Ab dann 5 Std Höhepunkt (Musik; Halloween gruselig, Weihnachten mit Elfen), danach wieder normal.</div>'
       +Object.keys(EV).map(id=>'<div style="border:1px solid rgba(255,255,255,.15);border-left:4px solid '+EV[id].col+';border-radius:10px;padding:8px;margin-bottom:6px"><div style="font-weight:900;font-size:.85rem">'+EV[id].ic+' '+EV[id].n+'</div><div id="zse-st-'+id+'" style="font-size:.74rem;color:#ffd54f;margin:3px 0"></div><div style="display:flex;gap:6px;flex-wrap:wrap"><input type="datetime-local" id="zse-in-'+id+'" value="'+v+'" style="flex:1;min-width:150px;padding:6px;border-radius:8px"><button class="padmin-btn" style="background:'+EV[id].col+'" onclick="ZSeason.adminSet(\''+id+'\')">Setzen</button><button class="padmin-btn" style="background:#2e7d32" onclick="ZSeason.adminNow(\''+id+'\')">▶ Jetzt</button><button class="padmin-btn" style="background:#c62828" onclick="ZSeason.adminDel(\''+id+'\')">✕</button></div></div>').join(''); },
-    openAdmin(){ if(!S.isAdm()) return; const old=document.getElementById('zse-admov'); if(old) old.remove(); const o=document.createElement('div'); o.id='zse-admov'; o.style.cssText='position:fixed;inset:0;z-index:10040;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:14px'; o.onclick=e=>{ if(e.target===o) o.remove(); };
-      o.innerHTML='<div style="background:#1b1030;border:2px solid #ff7a00;border-radius:16px;padding:14px;max-width:440px;width:100%;max-height:88vh;overflow-y:auto;color:#fff;font-family:Arial"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:1rem">🗓️ Jahreszeiten-Events</b><button onclick="this.closest(\'#zse-admov\').remove()" style="background:none;border:none;color:#fff;font-size:1.2rem">✕</button></div>'+S.adminHtml()+'</div>'; document.body.appendChild(o); S.admDraw(); },
+    openAdmin(sel){ if(!S.isAdm()) return; const old=document.getElementById('zse-admov'); if(old) old.remove(); const o=document.createElement('div'); o.id='zse-admov'; o.style.cssText='position:fixed;inset:0;z-index:10040;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:14px'; o.onclick=e=>{ if(e.target===o) o.remove(); };
+      const head='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:1rem">🗓️ Jahreszeiten-Event</b><button onclick="document.getElementById(\'zse-admov\').remove()" style="background:none;border:none;color:#fff;font-size:1.2rem">✕</button></div>'; let body='';
+      if(!sel){ body='<div style="font-size:.8rem;margin-bottom:8px;opacity:.8">Welches Event möchtest du einstellen?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+Object.keys(EV).map(id=>'<button onclick="ZSeason.openAdmin(\''+id+'\')" style="background:'+EV[id].col+';border:none;border-radius:14px;padding:16px 6px;color:#fff;font-weight:900;font-size:.95rem;cursor:pointer"><div style="font-size:2rem">'+EV[id].ic+'</div>'+EV[id].n+'<div id="zse-st-'+id+'" style="font-size:.62rem;font-weight:700;margin-top:4px;opacity:.95"></div></button>').join('')+'</div>'; }
+      else { const d=new Date(Date.now()+3600000); const v=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16); const E=EV[sel];
+        body='<button onclick="ZSeason.openAdmin()" style="background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:4px 10px;margin-bottom:8px">◀ Zurück</button><div style="font-size:1.1rem;font-weight:900;color:'+E.col+'">'+E.ic+' '+E.n+'</div><div id="zse-st-'+sel+'" style="font-size:.78rem;color:#ffd54f;margin:4px 0 8px"></div>'
+        +'<div style="font-size:.78rem;margin-bottom:4px">Wann ist der Höhepunkt? (Bis dahin Deko-Look, danach 5 Std Höhepunkt)</div><input type="datetime-local" id="zse-in-'+sel+'" value="'+v+'" style="width:100%;padding:8px;border-radius:8px;box-sizing:border-box">'
+        +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0">'+[['+1 Std',1],['+6 Std',6],['+1 Tag',24],['+7 Tage',168]].map(q=>'<button onclick="ZSeason.quick(\''+sel+'\','+q[1]+')" style="background:#37306b;border:none;color:#fff;border-radius:8px;padding:8px 2px;font-size:.72rem;font-weight:700">'+q[0]+'</button>').join('')+'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><button class="padmin-btn" style="background:'+E.col+'" onclick="ZSeason.adminSet(\''+sel+'\')">✔ Setzen</button><button class="padmin-btn" style="background:#2e7d32" onclick="ZSeason.adminNow(\''+sel+'\')">▶ Jetzt</button><button class="padmin-btn" style="background:#c62828" onclick="ZSeason.adminDel(\''+sel+'\')">✕ Löschen</button></div>'; }
+      o.innerHTML='<div style="background:#1b1030;border:2px solid #ff7a00;border-radius:16px;padding:14px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;color:#fff;font-family:Arial">'+head+body+'</div>'; document.body.appendChild(o); S.admDraw(); },
+    quick(id,h){ const d=new Date(Date.now()+h*3600000); const v=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16); const e=document.getElementById('zse-in-'+id); if(e) e.value=v; },
     adminSet(id){ if(!S.isAdm()) return; const r=RT(); if(!r) return toast('❌ Offline'); const e=document.getElementById('zse-in-'+id); const t=e&&e.value?new Date(e.value).getTime():0; if(!t) return toast('❌ Datum wählen'); r.ref('zoo_season/'+id).set({at:t,by:ZS.player}); toast(EV[id].ic+' '+EV[id].n+' gesetzt'); },
     adminNow(id){ if(!S.isAdm()) return; const r=RT(); if(r) r.ref('zoo_season/'+id).set({at:tn(),by:ZS.player}); toast(EV[id].ic+' '+EV[id].n+' startet jetzt (5 Std)'); },
     adminDel(id){ if(!S.isAdm()) return; const r=RT(); if(r) r.ref('zoo_season/'+id).remove(); },
