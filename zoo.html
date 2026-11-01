@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v731 -->
+<!-- ZOO v732 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -236,12 +236,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=731"></script>
-<script src="rewardchests.js?v=731"></script>
-<script src="personality.js?v=731"></script>
+<script src="lang.js?v=732"></script>
+<script src="rewardchests.js?v=732"></script>
+<script src="personality.js?v=732"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v731','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v732','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -535,14 +535,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=731"></script>
-<script src="sanction.js?v=731"></script>
-<script src="zevents.js?v=731"></script>
-<script src="znet.js?v=731"></script>
-<script src="zbases.js?v=731"></script>
-<script src="charheads.js?v=731"></script>
-<script src="zworld.js?v=731"></script>
-<script src="worlds.js?v=731"></script>
+<script src="firebase-state.js?v=732"></script>
+<script src="sanction.js?v=732"></script>
+<script src="zevents.js?v=732"></script>
+<script src="znet.js?v=732"></script>
+<script src="zbases.js?v=732"></script>
+<script src="charheads.js?v=732"></script>
+<script src="zworld.js?v=732"></script>
+<script src="worlds.js?v=732"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1560,7 +1560,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v731) ──
+// ── REBIRTH-SYSTEM (v732) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1590,7 +1590,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v731: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v732: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8,eternal:3.0};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1908,7 +1908,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v731: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v732: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2368,7 +2368,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v731: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v732: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3613,7 +3613,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v731: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v732: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4158,7 +4158,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v731: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v732: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -7339,6 +7339,15 @@ const ZG={
     const xm=(evIds.includes('snow')&&Math.random()<.05)?3.5:(evIds.includes('party')&&Math.random()<.15)?4:1;
     return {a,sh,tr,xm,chainResult:appliedStage};
   },
+  _gInject(animalId,from){
+    const an=ANIMALS.find(x=>x.id===animalId); if(!an) return;
+    const car={a:{...an},sh:null,tr:[],xm:1,chainResult:null,_pinUntil:Date.now()+90000,_admin:true};
+    this.gQ.unshift(car); if(this.gQ.length>6) this.gQ.pop();
+    this.gCD=2500;
+    try{ZP.toast('🚡 '+an.e+' '+an.n+' ist in deiner Gondel angekommen! (90 Sek.)',5000);}catch(e){}
+    try{ZSound.gondolaArrive&&ZSound.gondolaArrive();}catch(e){}
+    try{if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}}catch(e){}
+  },
   _slapLaunchSelf(dur){
     if(window.ZCalm&&ZCalm.on) return; // ruhiger Modus: kein Hochschleudern
     const start=Date.now(); const half=dur*.45;
@@ -7406,7 +7415,7 @@ const ZG={
       // animal (sometimes an ultra-rare!) was gone before they could
       // actually buy it. Skip the swap entirely while a buy click on
       // THIS exact car is still being processed (see _buyG's guard).
-      if(!ZP._buyInFlight && !(typeof Tutorial!=='undefined'&&Tutorial._holdCat)){
+      if(!ZP._buyInFlight && !(typeof Tutorial!=='undefined'&&Tutorial._holdCat) && !(this.gQ[0]&&this.gQ[0]._pinUntil>Date.now())){
         this.gQ.shift();this.gQ.push(this._mkG());if(ZSound.style!=='important')ZSound.gondolaArrive();if(!G('p-gond').classList.contains('off')){ZP._rGond();ZP._rGCars();}
       }
     }
@@ -8093,6 +8102,8 @@ const ZG={
       const a=(window.ANIMALS||[]).find(x=>x.id===cmd.animalId);
       if(a){a.n=cmd.n;a.earn=cmd.earn;a.r=cmd.r;
         ZP.toast('✏️ Admin hat '+a.e+' '+a.n+' geändert',2000);}
+    } else if(cmd.type==='gondola_inject'){
+      try{this._gInject(cmd.animalId,cmd.from);}catch(e){}
     } else if(cmd.type==='spawn_animal'){
   const a=ANIMALS.find(x=>x.id===cmd.animalId)||ANIMALS[0];
   const sh=cmd.shinyId?{id:cmd.shinyId,...(SHINY?.[cmd.shinyId]||{})}:null;
@@ -8124,7 +8135,7 @@ const ZG={
       z.enc[slot]={animal:{...a},shiny:sh,traits:tr,xm:1,addedAt:Date.now(),sl:0};
       this._encs();
       ZS.save&&ZS.save();
-    }
+    } else { try{ZP.toast('⚠️ Dein Zoo ist voll – das Geschenk-Tier hat keinen Platz!',5000);}catch(e){} }
   }
   // ALWAYS show the message (even if zoo full / already placed)
   const msg=cmd.spawnMsg||('⬇️ Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt!');
@@ -11904,7 +11915,7 @@ const ZP={
       '</div>';
   },
 
-  // ── v731: Admin-Gondel (nur Bu:) / Bu:3) ──
+  // ── v732: Admin-Gondel (nur Bu:) / Bu:3) ──
   _gAdm(){
     const n=(ZS.player||'').toLowerCase(); if(n!=='bu:)'&&n!=='bu:3') return;
     let o=document.getElementById('gadm-ov'); if(o) o.remove();
@@ -11954,18 +11965,14 @@ const ZP={
       tgt=pick.toLowerCase();
       this._gAdmPickName=pick;
     }
-    const cmd={type:'spawn_animal',target:tgt,animalId:a.id,shinyId:null,traitIds:[],
-      spawnMsg:'Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt! 👇',
-      id:Date.now().toString(),exp:Date.now()+30000};
-    await this._cmd(cmd);
+    const cmd={type:'gondola_inject',target:tgt,animalId:a.id,from:ZS.player,id:'gi_'+Date.now(),exp:Date.now()+30000};
+    if(mode!=='me') await this._cmd(cmd);
     if(tgt===me||tgt==='_all'){
-      const slot=ZS.zoo.enc.findIndex(e=>!e);
-      if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};try{ZG._encs();ZS.save&&ZS.save();}catch(e){}}
-      else this.toast('⚠️ Kein freies Gehege bei dir',3000);
       try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
+      ZG._gInject(a.id,ZS.player);
     }
     const who=mode==='me'?'dich':mode==='all'?'alle':this._gAdmPickName;
-    this.toast('✅ '+a.e+' '+a.n+' → '+who);
+    this.toast('✅ '+a.e+' '+a.n+' erscheint in der Gondel von '+who);
     try{document.getElementById('gadm-ov').remove();}catch(e){}
   },
   async _adSp(){
@@ -14019,7 +14026,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v731 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v732 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
