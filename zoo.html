@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v730 -->
+<!-- ZOO v731 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -177,6 +177,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .ab{padding:4px 10px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-size:.7rem;font-weight:900;margin-top:2px}
 .ab:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
 .rn{color:#9e9e9e}.rr{color:#4fc3f7}.re{color:#ce93d8}.rl{color:#ffb74d}.ru{color:#ef5350}.rg{color:#FFD700}.rm{color:#ff6ec7}
+.rx{background:linear-gradient(90deg,#ff0000,#ff9900,#ffee00,#33dd33,#00ccff,#5555ff,#cc00ff,#ff0000);background-size:200% 100%;animation:rxm 3s linear infinite;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}@keyframes rxm{to{background-position:200% 0}}
 .rs{background:linear-gradient(90deg,#ff6b6b,#FFD700,#27AE60,#4A90D9,#cc00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
 .tb{display:inline-block;padding:1px 4px;border-radius:4px;font-size:.55rem;font-weight:700;margin:1px}
 .tg{background:#FFD700;color:#333}.td{background:#00CFFF;color:#000}.tr2{background:linear-gradient(90deg,#ff6b6b,#27AE60);color:#fff}.tv{background:#9B59B6;color:#fff}
@@ -235,12 +236,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=730"></script>
-<script src="rewardchests.js?v=730"></script>
-<script src="personality.js?v=730"></script>
+<script src="lang.js?v=731"></script>
+<script src="rewardchests.js?v=731"></script>
+<script src="personality.js?v=731"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v730','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v731','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -443,6 +444,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 
 <span data-i18n="zoo.next">Nächste:</span> <b id="gtimer" style="color:#FFD700">2.5s</b>
 </div>
+<div id="gadmbtn" style="display:none;text-align:right;margin-bottom:6px"><button class="btn btng" style="font-size:.74rem;padding:6px 14px" onclick="ZP._gAdm()">👑 Admin</button></div>
 <div class="gcars" id="gcars"></div>
 <div id="ganim" style="min-height:118px;display:flex;align-items:center;justify-content:center;margin-bottom:8px"><div style="color:rgba(255,255,255,.3)" data-i18n="zoo.waiting_gondola">Warte auf Gondel...</div></div>
 <div style="font-weight:900;color:rgba(255,255,255,.45);font-size:.76rem;margin-bottom:4px" data-i18n="zoo.more_luck">🍀 Mehr Glück:</div>
@@ -533,14 +535,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=730"></script>
-<script src="sanction.js?v=730"></script>
-<script src="zevents.js?v=730"></script>
-<script src="znet.js?v=730"></script>
-<script src="zbases.js?v=730"></script>
-<script src="charheads.js?v=730"></script>
-<script src="zworld.js?v=730"></script>
-<script src="worlds.js?v=730"></script>
+<script src="firebase-state.js?v=731"></script>
+<script src="sanction.js?v=731"></script>
+<script src="zevents.js?v=731"></script>
+<script src="znet.js?v=731"></script>
+<script src="zbases.js?v=731"></script>
+<script src="charheads.js?v=731"></script>
+<script src="zworld.js?v=731"></script>
+<script src="worlds.js?v=731"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -988,7 +990,7 @@ const ANIMALS=[
   {id:'cerberus',n:'Cerberus',e:'🔱',r:'mythic',w:.0001,p:30838182,earn:2040000},{id:'poseidon',n:'Poseidon',e:'🌊',r:'mythic',w:.00005,p:82020101,earn:5440000},
   {id:'zeus',n:'Zeus',e:'⚡',r:'mythic',w:.00002,p:218951521,earn:13600000},{id:'thor',n:'Thor',e:'🔨',r:'mythic',w:.00001,p:558825534,earn:40800000},
   // ── GEHEIM ──
-  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:1572472160,earn:68000000},{id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:3235135022,earn:680000000},
+  {id:'dino',n:'Dinosaurier',e:'🦕',r:'secret',w:.00001,p:1572472160,earn:68000000},{id:'megalodon',n:'Megalodon',e:'🦈',r:'secret',w:.0000009,p:3235135022,earn:680000000},{id:'aetheria',n:'Aetheria',e:'✨',r:'eternal',w:9e-10,p:25900000000,earn:8160000000},
 ];
 window.ANIMALS = ANIMALS;
 // Per-species idle animation, hand-picked to fit each animal:
@@ -1135,7 +1137,7 @@ const ANIMAL_I18N={
   }catch(e){}
 })();
 
-const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'}};
+const RAR={normal:{n:'Normal',c:'rn'},rare:{n:'Selten',c:'rr'},epic:{n:'Episch',c:'re'},legendary:{n:'Legendär',c:'rl'},ultralegendary:{n:'Ultra',c:'ru'},god:{n:'Gott',c:'rg'},mythic:{n:'Mythisch',c:'rm'},secret:{n:'SECRET',c:'rs'},eternal:{n:'ETERNEL',c:'rx'}};
 const SHINY={gold:{n:'GOLD',c:'tg',m:1.5,p:8},diamond:{n:'DIAMOND',c:'td',m:2,p:5},rainbow:{n:'RAINBOW',c:'tr2',m:3,p:2.5},void:{n:'VOID',c:'tv',m:5,p:1.5}};
 const TRAITS=[{id:'crystal',n:'CRYSTAL',c:'tk',m:1.4,p:5,ev:'snow'},{id:'electric',n:'ELECTRIC',c:'te',m:1.3,p:5,ev:'rush'},{id:'cosmic',n:'COSMIC',c:'tc',m:1.6,p:4,ev:'night'},{id:'fire',n:'FIRE',c:'tf',m:1.5,p:5,ev:'golden'},{id:'concert',n:'CONCERT',c:'tr2',m:1.8,p:4,ev:'party'},{id:'glitch',n:'GLITCH',c:'tgl',m:4,p:3,ev:'glitch'},
   // New event traits
@@ -1464,9 +1466,9 @@ function getEffectiveEscSpeed(){
 
 // ── SAMMELALBUM: MT-Bonus (% vom Gesamtguthaben) fürs Vervollständigen
 // einer Seltenheitsstufe (jemals besessen, siehe z.everOwned). ──
-const ALBUM_BONUS_PCT={normal:.02,rare:.03,epic:.05,legendary:.08,ultralegendary:.12,god:.18,mythic:.25,secret:.4};
-const RARITY_LABELS={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra-Legendär',god:'Göttlich',mythic:'Mystisch',secret:'Geheim'};
-const RARITY_ORDER=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+const ALBUM_BONUS_PCT={normal:.02,rare:.03,epic:.05,legendary:.08,ultralegendary:.12,god:.18,mythic:.25,secret:.4,eternal:.6};
+const RARITY_LABELS={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra-Legendär',god:'Göttlich',mythic:'Mystisch',secret:'Geheim',eternal:'Eternel'};
+const RARITY_ORDER=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret','eternal'];
 
 // ── DEKO-QUESTS: vorgefertigter Aufgaben-Pool, aus dem der Admin 15 für
 // eine Quest auswählt. Jede Aufgabe prüft sich automatisch anhand
@@ -1558,7 +1560,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v730) ──
+// ── REBIRTH-SYSTEM (v731) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1588,8 +1590,8 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85}; // v730: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
-function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v731: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8,eternal:3.0};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
   const activeIds=(typeof ZG!=='undefined'&&ZG.evs&&ZG.evs.length)?ZG.evs.map(e=>e.id):(ev?[ev]:[]);
@@ -1906,7 +1908,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v730: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v731: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2366,7 +2368,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v730: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v731: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3611,7 +3613,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v730: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v731: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4156,7 +4158,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v730: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v731: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -5018,13 +5020,13 @@ const ZG={
   _anSp(animal,shiny){
     const g=new THREE.Group();
     // Rarity-based accent colors (used for the ground ring + glow, not a body anymore)
-    const rarityColors={normal:0x95a5a6,rare:0x3498DB,epic:0x9B59B6,legendary:0xF39C12,god:0xE74C3C,mythic:0x00FF88,ultralegendary:0xFFD700,secret:0xFF1493};
+    const rarityColors={normal:0x95a5a6,rare:0x3498DB,epic:0x9B59B6,legendary:0xF39C12,god:0xE74C3C,mythic:0x00FF88,ultralegendary:0xFFD700,secret:0xFF1493,eternal:0xFFFFFF};
     const bodyCol=rarityColors[animal.r]||0x95a5a6;
     const shinyCol=shiny?({gold:0xFFD700,diamond:0x00CFFF,rainbow:0xFF69B4,void:0x9B59B6}[shiny.id]||bodyCol):bodyCol;
     const col=shiny?shinyCol:bodyCol;
 
     // Size scales with rarity, same tiers as before.
-    const sizeMap={normal:.55,rare:.7,epic:.85,legendary:1.0,god:1.15,mythic:1.3,ultralegendary:1.5,secret:1.4};
+    const sizeMap={normal:.55,rare:.7,epic:.85,legendary:1.0,god:1.15,mythic:1.3,ultralegendary:1.5,secret:1.4,eternal:1.7};
     const s=sizeMap[animal.r]||.6;
 
     // A soft colored disc on the ground under the animal — keeps the
@@ -5070,7 +5072,7 @@ const ZG={
 
     // Shiny aura ring for special animals — around the ground disc now,
     // instead of trying to hug a body that no longer exists.
-    if(shiny||['legendary','god','mythic','ultralegendary','secret'].includes(animal.r)){
+    if(shiny||['legendary','god','mythic','ultralegendary','secret','eternal'].includes(animal.r)){
       const ring=new THREE.Mesh(
         new THREE.TorusGeometry(s*.85,.08,6,20),
         new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.7})
@@ -7385,11 +7387,11 @@ const ZG={
       const ahead=this.gQ[3]||this.gQ[2];
       if(ahead&&ahead.a&&!this._warned10?.has(ahead.a.id)){
         const r=ahead.a.r;
-        const WARN_RARITIES=['ultralegendary','god','mythic','secret'];
+        const WARN_RARITIES=['ultralegendary','god','mythic','secret','eternal'];
         if(WARN_RARITIES.includes(r)){
           if(!this._warned10)this._warned10=new Set();
           this._warned10.add(ahead.a.id+'_'+Date.now());
-          const label=r==='ultralegendary'?'Ultra-Legendär':r==='god'?'Göttlich':r==='mythic'?'Mythisch':'SECRET';
+          const label=r==='eternal'?'ETERNEL':r==='ultralegendary'?'Ultra-Legendär':r==='god'?'Göttlich':r==='mythic'?'Mythisch':'SECRET';
           ZP.toast('⚡ In ~10 Sek kommt ein '+label+' Tier! '+ahead.a.e+' '+ahead.a.n+' — sei bereit!',8000);
         }
       }
@@ -9636,7 +9638,7 @@ const ZTips = {
     if(pct>=1) return pct.toFixed(1)+'% Guthaben';
     return pct.toFixed(2)+'% Guthaben';
   };
-  const TIER_ORDER = ['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+  const TIER_ORDER = ['normal','rare','epic','legendary','ultralegendary','god','mythic','secret','eternal'];
   const MAX_TIER_IDX = TIER_ORDER.indexOf('legendary');
   Object.values(LW.WHEELS).forEach(wheel=>{
     const mtPrizes = (wheel.prizes||[]).filter(p=>typeof p.mt==='number' && p.mt>0);
@@ -10129,7 +10131,7 @@ const ZP={
     ['gond','index','shop','reb','enc','menu','adm','sound','report','rank'].forEach(x=>{if(x!==p)hide('p-'+x);});
     show('p-'+p);
     try{ Tutorial._onPanelOpen(p); }catch(e){}
-    if(p==='gond'){G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');try{this._rLuck();}catch(e){console.log('[Luck50-debug] _rLuck() warf einen Fehler: '+e.message);}try{this._rLuck50();}catch(e){console.log('[Luck50-debug] _rLuck50() warf einen Fehler: '+e.message);}if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
+    if(p==='gond'){try{const _n=(ZS.player||'').toLowerCase();G('gadmbtn').style.display=(_n==='bu:)'||_n==='bu:3')?'block':'none';}catch(e){}G('gsrv').textContent=(ZS.isPrivate?'Privat':(1+Math.floor(Math.random()*3))+'/3');try{this._rLuck();}catch(e){console.log('[Luck50-debug] _rLuck() warf einen Fehler: '+e.message);}try{this._rLuck50();}catch(e){console.log('[Luck50-debug] _rLuck50() warf einen Fehler: '+e.message);}if(!ZG.gQ.length)ZG.gQ.push(ZG._mkG());this._rGond();this._rGCars();this._rRboard();}
     if(p==='index')this._rIndex();
     if(p==='shop'){if(G('sbal'))G('sbal').textContent='🌀 '+$mt(ZS.zoo?.mt||0).replace('🌀','');this._rShop();}
     if(p==='trade'){this._rTrade('m');try{if(typeof ZTips!=='undefined')ZTips.notify('trade');}catch(e){}}
@@ -10230,7 +10232,7 @@ const ZP={
   _openGondolaEgg(eggAnimal){
     const rar=eggAnimal.eggRar||'normal';
     // Rarity ladder: normal→rare→epic→legendary→ultralegendary→god→mythic→secret
-    const RARS=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+    const RARS=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret','eternal'];
     const rarIdx=RARS.indexOf(rar);
     // Start with the egg's own rarity pool
     // Each click: 1.5% chance to upgrade to the next rarity tier
@@ -10254,8 +10256,8 @@ const ZP={
       '<div id="egg-cur-animal" style="font-size:1rem;color:rgba(255,255,255,.45);margin:10px 0;min-height:24px"></div>'+
       '<div id="egg-hint-g" style="font-size:clamp(1rem,4vw,1.25rem);font-weight:700;margin-top:6px">👆 Tippe '+remaining+'× zum Öffnen!</div>'+
       '<div id="egg-dots-g" style="margin-top:8px;font-size:1.3rem;letter-spacing:5px;color:'+col+'">'+'○'.repeat(4)+'</div>';
-    const rarNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra',god:'Göttlich',mythic:'Mythisch',secret:'SECRET'};
-    const rarColors2={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#c89bff',secret:'#fff'};
+    const rarNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra',god:'Göttlich',mythic:'Mythisch',secret:'SECRET',eternal:'ETERNEL'};
+    const rarColors2={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#c89bff',secret:'#fff',eternal:'#ff66ff'};
     const click=()=>{
       if(state.clicks>=4)return;
       state.clicks++;
@@ -10309,8 +10311,8 @@ const ZP={
       z.enc[slot]={animal:{...animal},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
       try{ZG._encs&&ZG._encs();}catch(e){} ZS.save&&ZS.save(); placed=true;
     }
-    const rarNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra-Legendär',god:'Göttlich',mythic:'Mythisch',secret:'SECRET'};
-    const rarCols={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#c89bff',secret:'#fff'};
+    const rarNames={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra-Legendär',god:'Göttlich',mythic:'Mythisch',secret:'SECRET',eternal:'ETERNEL'};
+    const rarCols={normal:'#8e9da8',rare:'#3498db',epic:'#9b59b6',legendary:'#e8a020',ultralegendary:'#e74c3c',god:'#FFD700',mythic:'#c89bff',secret:'#fff',eternal:'#ff66ff'};
     const col2=rarCols[animal.r]||'#fff';
     ov.innerHTML=
       '<div style="font-size:1.4rem;font-weight:900;color:'+col2+';margin-bottom:8px;text-shadow:0 0 20px '+col2+'">'+(rarNames[animal.r]||animal.r).toUpperCase()+'</div>'+
@@ -10321,21 +10323,21 @@ const ZP={
       '<button onclick="document.getElementById(\"egg-crack-ui\").remove()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:14px 40px;border-radius:14px;font-weight:900;font-size:1.1rem;cursor:pointer">Super! ➜</button>';
     ov.onclick=null; ov.ontouchend=null;
     // Sound
-    if(animal.r==='mythic'||animal.r==='secret') ZSound._sndSuperEpic&&ZSound._sndSuperEpic();
+    if(animal.r==='mythic'||animal.r==='secret'||animal.r==='eternal') ZSound._sndSuperEpic&&ZSound._sndSuperEpic();
     else ZSound._sndUpgrade&&ZSound._sndUpgrade(2);
     ZG._updHUD&&ZG._updHUD();
     try{ ZNews.push('egg_hatched', {animal:animal.n, emoji:animal.e}); }catch(e){}
-    if(['ultralegendary','god','mythic','secret'].includes(animal.r)){
+    if(['ultralegendary','god','mythic','secret','eternal'].includes(animal.r)){
       try{ ZNews.push('achievement', {animal:animal.n, emoji:animal.e}); }catch(e){}
     }
   },
 
   _rRboard(){
     const el=G('rboard-content'); if(!el) return;
-    const order=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret'];
+    const order=['normal','rare','epic','legendary','ultralegendary','god','mythic','secret','eternal'];
     const _rl = (k, de) => (typeof t!=='undefined' && t('zoo.rarity_'+k) !== 'zoo.rarity_'+k) ? t('zoo.rarity_'+k) : de;
-    const labels={normal:_rl('normal','Normal'),rare:_rl('rare','Selten'),epic:_rl('epic','Episch'),legendary:_rl('legendary','Legendär'),ultralegendary:'Ultra',god:'Gott',mythic:_rl('mythic','Mythisch'),secret:'SECRET'};
-    const cls={normal:'rn',rare:'rr',epic:'re',legendary:'rl',ultralegendary:'ru',god:'rg',mythic:'rm',secret:'rs'};
+    const labels={normal:_rl('normal','Normal'),rare:_rl('rare','Selten'),epic:_rl('epic','Episch'),legendary:_rl('legendary','Legendär'),ultralegendary:'Ultra',god:'Gott',mythic:_rl('mythic','Mythisch'),secret:'SECRET',eternal:'ETERNEL'};
+    const cls={normal:'rn',rare:'rr',epic:'re',legendary:'rl',ultralegendary:'ru',god:'rg',mythic:'rm',secret:'rs',eternal:'rx'};
     const all=(window.ANIMALS||ANIMALS||[]);
     // Total weight for % calc
     const totalW=all.reduce((s,a)=>s+(a.w||0),0)||1;
@@ -10401,7 +10403,7 @@ const ZP={
     this.toast('🐾 '+g.a.e+' '+g.a.n+' gekauft! Trage es zum Gehege '+(slot+1)+'! (Vorsicht: andere können dich slappen!)',3500);
     try{ ZNews.push('animal_bought', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
     try{ ZTips.notify('buy_first'); }catch(e){}
-    const rareR=['ultralegendary','god','mythic','secret'];
+    const rareR=['ultralegendary','god','mythic','secret','eternal'];
     if(rareR.includes(g.a.r)){
       try{ ZNews.push('achievement', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
       const pop=document.createElement('div');
@@ -10413,7 +10415,7 @@ const ZP={
       ZSound.rare();
       setTimeout(()=>pop.remove(),6000);
     }
-    ZSound.buy();const rareSound=['ultralegendary','god','mythic','secret'].includes(g.a.r);if(rareSound)setTimeout(()=>ZSound.rare(),300);this.toast('✅ '+g.a.e+' '+g.a.n+' läuft ins Gehege '+(slot+1)+'! 🏃',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
+    ZSound.buy();const rareSound=['ultralegendary','god','mythic','secret','eternal'].includes(g.a.r);if(rareSound)setTimeout(()=>ZSound.rare(),300);this.toast('✅ '+g.a.e+' '+g.a.n+' läuft ins Gehege '+(slot+1)+'! 🏃',2500);G('ganim').innerHTML='<div style="color:rgba(255,255,255,.3)">Warte auf nächste Gondel...</div>';ZG._updHUD();},
   _rLuck(){const z=ZS.zoo,el=G('gluck');if(!el)return;el.innerHTML=LUCK_UPS.map((u,i)=>{const bought=z.luckLv>i,active=z.luckLv===i;if(bought)return`<div class="ac" style="opacity:.5"><div>🍀</div><div><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="color:#27AE60;font-size:.68rem">✅</div></div></div>`;if(!active)return'';return`<div class="ac"><div>🍀</div><div style="flex:1"><div style="font-size:.84rem;font-weight:900">${u.l}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(u.cost)}</div></div><button class="ab" ${((ZS.dsMT||0)+z.mt)<u.cost?'disabled':''} onclick="ZP._bLuck(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');},
   _bLuck(i){const z=ZS.zoo,u=LUCK_UPS[i];if(((ZS.dsMT||0)+z.mt)<u.cost){this.toast('❌ Zu wenig!');return;}z.mt-=u.cost;z.luck=u.m;z.luckLv=i+1;ZS.save&&ZS.save();this.toast('✅ '+u.l);this._rLuck();this._rLuck50();ZG._updHUD();try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}},
 
@@ -10458,7 +10460,7 @@ const ZP={
     const cnt={gold:0,diamond:0,rainbow:0,void:0};
     enc.forEach(e=>{if(e.shiny?.id)cnt[e.shiny.id]=(cnt[e.shiny.id]||0)+1;});
     const tot=enc.length||1;
-    const rarityCol={normal:'#95a5a6',rare:'#3498DB',epic:'#9B59B6',legendary:'#F39C12',god:'#E74C3C',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
+    const rarityCol={normal:'#95a5a6',rare:'#3498DB',epic:'#9B59B6',legendary:'#F39C12',god:'#E74C3C',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493',eternal:'#ffffff'};
     
     // Progress bar (how many of all ANIMALS owned)
     const allA=ANIMALS||[];
@@ -11731,7 +11733,7 @@ const ZP={
     ZG._updHUD();
     try{ ZNews.push('animal_bought', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
     try{ ZTips.notify('buy_first'); }catch(e){}
-    if(['ultralegendary','god','mythic','secret'].includes(g.a.r)){
+    if(['ultralegendary','god','mythic','secret','eternal'].includes(g.a.r)){
       try{ ZNews.push('achievement', {animal:g.a.n, emoji:g.a.e}); }catch(e){}
       // Landing an ultra-rare animal from the gondola kicks off 3 random world events (5 min each) as a celebratory
       // bonus. Reuses the exact same "3 random events" mechanic already
@@ -11900,6 +11902,71 @@ const ZP={
         '<button class="btn btnd" onclick="LuckyBlocks.spawn(&quot;mythic&quot;)" style="font-size:.72rem;padding:6px;background:rgba(255,105,180,.2)">🌸 Mythos</button>'+
         '<button class="btn btnd" onclick="LuckyBlocks.spawn(&quot;secret&quot;)" style="font-size:.72rem;padding:6px;background:rgba(0,0,0,.5)">🖤 Geheim</button>'+
       '</div>';
+  },
+
+  // ── v731: Admin-Gondel (nur Bu:) / Bu:3) ──
+  _gAdm(){
+    const n=(ZS.player||'').toLowerCase(); if(n!=='bu:)'&&n!=='bu:3') return;
+    let o=document.getElementById('gadm-ov'); if(o) o.remove();
+    o=document.createElement('div'); o.id='gadm-ov';
+    o.style.cssText='position:fixed;inset:0;z-index:320;background:rgba(0,0,0,.88);display:flex;align-items:flex-end;justify-content:center';
+    this._gAdmSel=null; this._gAdmRar='all';
+    const rars=['all'].concat(RARITY_ORDER);
+    o.innerHTML='<div style="background:linear-gradient(160deg,#0a1628,#0d1f3c);width:100%;max-width:450px;border-radius:22px 22px 0 0;padding:14px;max-height:90vh;overflow-y:auto;position:relative">'
+     +'<button class="pcls" onclick="document.getElementById(\'gadm-ov\').remove()">✕</button>'
+     +'<div class="pt">👑 Admin-Gondel</div>'
+     +'<div id="gadm-car" style="text-align:center;min-height:96px;padding:8px;background:rgba(0,0,0,.4);border-radius:12px;margin-bottom:8px;color:rgba(255,255,255,.4)">🚡 Wähle ein Tier</div>'
+     +'<div id="gadm-rar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">'+rars.map(r=>'<button class="btn" data-r="'+r+'" style="font-size:.66rem;padding:4px 8px" onclick="ZP._gAdmFilt(\''+r+'\')">'+(r==='all'?'Alle':(RAR[r]?RAR[r].n:r))+'</button>').join('')+'</div>'
+     +'<div id="gadm-list" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>'
+     +'<div id="gadm-go" style="display:none"><div style="font-weight:900;font-size:.8rem;margin-bottom:5px;color:#FFD700">Für wen?</div>'
+     +'<div style="display:flex;gap:6px"><button class="btn btng" style="flex:1;font-size:.74rem;padding:9px 4px" onclick="ZP._gAdmGive(\'me\')">🙋 Für mich</button>'
+     +'<button class="btn btng" style="flex:1;font-size:.74rem;padding:9px 4px" onclick="ZP._gAdmGive(\'all\')">🌍 Für alle</button>'
+     +'<button class="btn btng" style="flex:1;font-size:.74rem;padding:9px 4px" onclick="ZP._gAdmGive(\'rnd\')">🎲 Zufällig (online)</button></div></div>'
+     +'</div>';
+    document.body.appendChild(o);
+    this._gAdmFilt('all');
+  },
+  _gAdmFilt(r){
+    this._gAdmRar=r;
+    const l=G('gadm-list'); if(!l) return;
+    const arr=ANIMALS.filter(a=>r==='all'||a.r===r);
+    l.innerHTML=arr.map(a=>'<div onclick="ZP._gAdmPick(\''+a.id+'\')" style="cursor:pointer;text-align:center;background:rgba(255,255,255,.07);border-radius:9px;padding:5px 2px;font-size:.58rem;'+(this._gAdmSel===a.id?'outline:2px solid #FFD700':'')+'"><div style="font-size:1.5rem">'+a.e+'</div>'+a.n+'</div>').join('');
+    document.querySelectorAll('#gadm-rar button').forEach(b=>{b.style.outline=b.dataset.r===r?'2px solid #FFD700':'none';});
+  },
+  _gAdmPick(id){
+    const a=ANIMALS.find(x=>x.id===id); if(!a) return;
+    this._gAdmSel=id;
+    const rd=RAR[a.r]||{n:a.r,c:''};
+    G('gadm-car').innerHTML='<div style="font-size:3.2rem">'+a.e+'</div><div style="font-weight:900">'+a.n+'</div><div class="'+rd.c+'" style="font-size:.8rem">'+rd.n+'</div>';
+    G('gadm-go').style.display='block';
+    this._gAdmFilt(this._gAdmRar);
+  },
+  async _gAdmGive(mode){
+    const a=ANIMALS.find(x=>x.id===this._gAdmSel); if(!a) return;
+    const me=(ZS.player||'').toLowerCase();
+    let tgt;
+    if(mode==='me') tgt=me;
+    else if(mode==='all') tgt='_all';
+    else{
+      const names=Object.keys(ZG.otherPl||{}).filter(k=>k.toLowerCase()!==me);
+      if(!names.length){this.toast('❌ Keine andere Person online!',3000);return;}
+      const pick=names[Math.floor(Math.random()*names.length)];
+      tgt=pick.toLowerCase();
+      this._gAdmPickName=pick;
+    }
+    const cmd={type:'spawn_animal',target:tgt,animalId:a.id,shinyId:null,traitIds:[],
+      spawnMsg:'Mischa hat in deinem Zoo '+a.e+' '+a.n+' gespawnt! 👇',
+      id:Date.now().toString(),exp:Date.now()+30000};
+    await this._cmd(cmd);
+    if(tgt===me||tgt==='_all'){
+      const slot=ZS.zoo.enc.findIndex(e=>!e);
+      if(slot>=0){ZS.zoo.enc[slot]={animal:{...a},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};try{ZG._encs();ZS.save&&ZS.save();}catch(e){}}
+      else this.toast('⚠️ Kein freies Gehege bei dir',3000);
+      try{const h=JSON.parse(localStorage.getItem('zoo_cmd_h')||'[]');h.push(cmd.id);if(h.length>20)h.shift();localStorage.setItem('zoo_cmd_h',JSON.stringify(h));}catch(e){}
+    }
+    const who=mode==='me'?'dich':mode==='all'?'alle':this._gAdmPickName;
+    this.toast('✅ '+a.e+' '+a.n+' → '+who);
+    try{document.getElementById('gadm-ov').remove();}catch(e){}
   },
   async _adSp(){
     const tgt=(G('at')?.value?.trim()||ZS.player).toLowerCase();
@@ -13952,7 +14019,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v730 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v731 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -17455,7 +17522,7 @@ const CRAFT_RECIPES = [
 ];
 window.CRAFT_RECIPES=CRAFT_RECIPES;
 
-const RARITY_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#e67e22',god:'#e74c3c',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493'};
+const RARITY_COL={normal:'#95a5a6',rare:'#3498db',epic:'#9b59b6',legendary:'#e67e22',god:'#e74c3c',mythic:'#00FF88',ultralegendary:'#FFD700',secret:'#FF1493',eternal:'#ffffff'};
 const RARITY_NAME={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',god:'Gott',mythic:'Mythisch',ultralegendary:'Ultra Legendär',secret:'Geheim'};
 
 
