@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v736 -->
+<!-- ZOO v737 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -236,12 +236,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=736"></script>
-<script src="rewardchests.js?v=736"></script>
-<script src="personality.js?v=736"></script>
+<script src="lang.js?v=737"></script>
+<script src="rewardchests.js?v=737"></script>
+<script src="personality.js?v=737"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v736','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v737','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -535,14 +535,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=736"></script>
-<script src="sanction.js?v=736"></script>
-<script src="zevents.js?v=736"></script>
-<script src="znet.js?v=736"></script>
-<script src="zbases.js?v=736"></script>
-<script src="charheads.js?v=736"></script>
-<script src="zworld.js?v=736"></script>
-<script src="worlds.js?v=736"></script>
+<script src="firebase-state.js?v=737"></script>
+<script src="sanction.js?v=737"></script>
+<script src="zevents.js?v=737"></script>
+<script src="znet.js?v=737"></script>
+<script src="zbases.js?v=737"></script>
+<script src="charheads.js?v=737"></script>
+<script src="zworld.js?v=737"></script>
+<script src="worlds.js?v=737"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1563,7 +1563,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v736) ──
+// ── REBIRTH-SYSTEM (v737) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1593,7 +1593,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v736: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v737: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8,eternal:3.0};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1911,7 +1911,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v736: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v737: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2371,7 +2371,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v736: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v737: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3616,7 +3616,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v736: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v737: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4193,7 +4193,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v736: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v737: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -4835,11 +4835,11 @@ const ZG={
     const ov=document.createElement('div'); ov.id='reb-ready';
     ov.style.cssText='position:fixed;inset:0;z-index:99998;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:24px;opacity:0;transition:opacity .8s';
     ov.innerHTML='<div style="font-size:3.4rem;margin-bottom:12px">🔄</div>'
-      +'<div style="font-size:1.35rem;font-weight:900;color:#FFD700;margin-bottom:8px">Du kannst jetzt einen Rebirth im Shop machen!</div>'
+      +'<div style="font-size:clamp(2.2rem,9vw,3.6rem);line-height:1.1;font-weight:900;color:#FFD700;margin-bottom:12px;text-shadow:0 0 24px rgba(255,215,0,.7)">DU KANNST JETZT REBIRTHEN!</div><div style="font-size:1rem;color:#fff;margin-bottom:8px">Im Shop findest du die 🔄 Wiedergeburt.</div>'
       +'<div style="font-size:.9rem;color:rgba(255,255,255,.65);max-width:340px;line-height:1.5">Rebirth '+nextNum+' ist bereit: neuer Boost ×'+rebMultOf(nextNum)+', neue Slap und neue Features warten auf dich.</div>'
       +'<button id="reb-ready-ok" style="margin-top:22px;background:linear-gradient(135deg,#FFD700,#F39C12);color:#1a1a2e;border:none;padding:12px 34px;border-radius:12px;font-size:1rem;font-weight:900;cursor:pointer">Okay ➜</button>';
     document.body.appendChild(ov); requestAnimationFrame(()=>{ ov.style.opacity='1'; });
-    let done=false; const ok=ev=>{ if(done) return; done=true; try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} ov.style.opacity='0'; setTimeout(()=>ov.remove(),500); };
+    let done=false; const ok=ev=>{ if(done) return; done=true; try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} ov.style.opacity='0'; setTimeout(()=>ov.remove(),500); try{ ZG._bigText('🔄 DU KANNST REBIRTHEN!','#FFD700',3200); }catch(e){} };
     const b=ov.querySelector('#reb-ready-ok'); ['pointerup','touchend','click'].forEach(n=>b.addEventListener(n,ok,{passive:false}));
   },
   // Abspann wie im Kino
@@ -8429,7 +8429,7 @@ setInterval(()=>{ try{
   const z=(typeof ZS!=='undefined')&&ZS.zoo; if(!z||typeof Tutorial==='undefined'||Tutorial._active||!(typeof ZG!=='undefined'&&ZG.scene)||ZG._arcadeActive) return;
   for(const a of REB_ADDONS){ if((z.reb||0)<a.reb) continue; z.addonSeen=z.addonSeen||{}; if(z.addonSeen[a.id]) continue; if(!z.tutorialSeen&&!(z.reb>0)) continue; z.addonSeen[a.id]=1; ZS.save&&ZS.save(); Tutorial.startReb(null,a.steps); break; }
 }catch(e){} },4000);
-// ══ REBIRTH-ANLEITUNG (v736): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
+// ══ REBIRTH-ANLEITUNG (v737): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
 function _rebHowSteps(){
   const z=ZS.zoo||{}, rb=z.reb||0, N=rb+1;
   if(rb>=REBIRTH_MAX) return [ _RT('rbm0','🏆 Alle Rebirths geschafft','Du hast alle '+REBIRTH_MAX+' Wiedergeburten gemacht. Dein Einkommen ist dauerhaft <b>×'+rebMultOf(rb)+'</b> — mehr geht nicht. Im Rebirth-Fenster kannst du dir den Abspann ansehen.') ];
@@ -11992,7 +11992,7 @@ const ZP={
       '</div>';
   },
 
-  // ── v736: Admin-Gondel (nur Bu:) / Bu:3) ──
+  // ── v737: Admin-Gondel (nur Bu:) / Bu:3) ──
   _gAdm(){
     const n=(ZS.player||'').toLowerCase(); if(n!=='bu:)'&&n!=='bu:3') return;
     let o=document.getElementById('gadm-ov'); if(o) o.remove();
@@ -14108,7 +14108,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v736 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v737 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
