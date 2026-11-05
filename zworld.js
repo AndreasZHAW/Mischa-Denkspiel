@@ -1,4 +1,4 @@
-/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v745)
+/* ZWorld — Welt-Bauer (nur Admin): Objekte im ganzen Zoo platzieren, für alle sichtbar (RTDB zoo_world/objs). (v747)
    ~80 Elemente aus dem Base-Katalog + 35 neue, lebendige (animierte) 3D-Elemente. */
 (function(){
   'use strict';
@@ -230,7 +230,7 @@
 })();
 
 ;
-/* ZCodes — Admin-Codes (v745): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
+/* ZCodes — Admin-Codes (v747): Admin erstellt Codes (nur 1 Person oder alle je 1×, mit Belohnung), Spieler lösen sie im Shop unter „Code einlösen“ ein.
    Dazu: Geld-Multi für alle (zoo_cfg/moneyMult). RTDB: zoo_codes/<code>. */
 (function(){
   'use strict';
@@ -384,7 +384,7 @@
 })();
 
 ;
-/* ZHelp (v745) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
+/* ZHelp (v747) — 💬 sprechende Fehlermeldungen (Wartezeit-Schätzung) + 🎬 Mini-Tipp-Animation beim ersten Öffnen einer Funktion. */
 (function(){
   'use strict';
   const TIPS={
@@ -445,7 +445,7 @@
 })();
 
 ;
-/* ZTipp (v745) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
+/* ZTipp (v747) — ⚽ Tippspiel: VfB-Stuttgart-Spiele (OpenLigaDB), Tipp abgeben, bei richtigem Ergebnis +20 % des Guthabens. Tipps liegen in ZS.zoo.tips. */
 (function(){
   'use strict';
   const CLUBS=[[65,'1. FC Köln'],[80,'1. FC Union Berlin'],[81,'1. FSV Mainz 05'],[6,'Bayer 04 Leverkusen'],[7,'Borussia Dortmund'],[87,'Borussia Mönchengladbach'],[91,'Eintracht Frankfurt'],[95,'FC Augsburg'],[40,'FC Bayern München'],[9,'FC Schalke 04'],[100,'Hamburger SV'],[1635,'RB Leipzig'],[112,'SC Freiburg'],[31,'SC Paderborn 07'],[198,'SV 07 Elversberg'],[134,'SV Werder Bremen'],[175,'TSG Hoffenheim'],[16,'VfB Stuttgart']];
@@ -622,7 +622,7 @@
 })();
 
 ;
-/* ZFun (v745) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
+/* ZFun (v747) — 🧑 Besucher-Wünsche (ab Rebirth 3) + 🎪 Wanderzirkus (alle, automatisch alle 3 Std. 10 Min + Admin-Start). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -779,7 +779,7 @@
 })();
 
 ;
-/* ZCoaster (v745) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
+/* ZCoaster (v747) — 🎢 Admin-Event: begehbare 3D-Achterbahn (Lift, Ausblick, Abfahrt, Looping, Hügel, Kurven). RTDB zoo_coaster {id,until}. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -962,7 +962,7 @@
 })();
 
 ;
-/* ZGoals (v745) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
+/* ZGoals (v747) — 🎯 Tagesziele · 🗂️ gruppierte, einklappbare linke Leiste · ❓ Hilfe-Fenster („Tipps nochmal zeigen“). Für alle Rebirth-Stufen. */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1076,8 +1076,8 @@
 })();
 
 ;
-/* ZCoaster2 (v745) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
-/* ZDrone (v745) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
+/* ZCoaster2 (v747) — 🎢 Mega-Achterbahn (Admin-Event): ~700 m, 58 m hoch, Kurven. Mit ◀ ▶ in die Kurve lehnen – falsch lehnen = Absturz (alle Herzen weg), Ziel erreicht = 5 % Guthaben. RTDB zoo_coaster2 {id,until}. */
+/* ZDrone (v747) — 🚁 zweite Kameraansicht (Drohne hinter dir), Knopf unter dem Heim-Pfeil oben rechts. */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1281,13 +1281,13 @@
 })();
 
 ;
-/* v745 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
+/* v747 — Meldungen (#zt) liegen immer ÜBER den Herzen: Toast direkt an <body> hängen, damit er nicht in einem tieferen Stapel (#hud) steckt. */
 (function(){ const fix=()=>{ try{ const t=document.getElementById('zt'); if(t&&t.parentElement!==document.body){ document.body.appendChild(t); } if(t){ t.style.zIndex='2147483000'; } }catch(e){} }; fix(); setInterval(fix,1500); })();
 
 
 ;
-/* ZGuest (v745) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
-   ZQuiz (v745) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
+/* ZGuest (v747) — 📖 Besucher-Gästebuch: Gruß in fremdem Zoo hinterlassen (1× pro Tag je Spieler). RTDB zoo_guest/<spieler>/<von>_<tag>.
+   ZQuiz (v747) — 🧠 Tier-Quiz nach dem Absetzen im Gehege (richtig = +1 % Guthaben). */
 (function(){
   'use strict';
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
@@ -1373,7 +1373,7 @@
 
 
 ;
-/* ZMeadow (v745) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
+/* ZMeadow (v747) — 🌿 Tutorial-Station „Laufen lernen“ auf einer fernen Wiese + 🌀 Portal-Zwischensequenz (Drohne steigt auf, Schrauben-Kamera, Verwischen) in den Zoo. */
 (function(){
   'use strict';
   const MX=1200, MZ=1200, PX=MX+15, PZ=MZ-15, PY=2.7, HALF=20.5, NEED=15;
@@ -1532,7 +1532,7 @@
   };
 })();
 
-/* ZMap (v745) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
+/* ZMap (v747) — 🗺️ Grosse 3D-Karte: Klick auf die Mini-Karte → Blick von oben, Klick irgendwohin → hinbeamen */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
@@ -1584,7 +1584,7 @@
   setInterval(()=>{ try{ hook(); }catch(e){} },1500);
 })();
 
-/* ZSweeper (v745) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
+/* ZSweeper (v747) — 🧹 Kehrmaschine: 10 % Guthaben, 10 Min, 15 m/s, Gas/Bremse, Einsaugen, Rächen (5 %) */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1726,7 +1726,7 @@
   setInterval(()=>{ try{ S.init(); }catch(e){} },2000);
 })();
 
-/* ZSfx (v745) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
+/* ZSfx (v747) — 🎙️ Admin nimmt eigene Sounds auf (Mikro) und ordnet sie Ereignissen zu; alle Spieler hören sie */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||3000); }catch(e){} };
@@ -1868,7 +1868,7 @@
 })();
 
 
-/* ZLoginLog (v745) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
+/* ZLoginLog (v747) — 📋 Login-Protokoll: jeder Login wird gespeichert, Admin sieht die Liste */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const K=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
@@ -1877,7 +1877,7 @@
     init(){
       if(L.done) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; L.done=true;
       try{ if(sessionStorage.getItem('zlog_'+ZS.player)) return; sessionStorage.setItem('zlog_'+ZS.player,'1'); }catch(e){}
-      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v745'}); }catch(e){}
+      try{ const at=Date.now(); r.ref('zoo_loginlog/'+at+'_'+K(ZS.player)).set({name:ZS.player,at,dev:dev(),v:'v747'}); }catch(e){}
     },
     open(){
       if(L.el||!(window.ZSfx&&ZSfx.adm())) return; const r=RT(); if(!r) return;
@@ -1898,7 +1898,7 @@
   setInterval(()=>{ try{ L.init(); hook(); }catch(e){} },2000);
 })();
 
-/* ZLife (v745) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
+/* ZLife (v747) — 🌿 Lebendige Grafik: Bäume/Gras/Blumen im Wind, Wolken+Schatten, Teiche, Vögel, Schmetterlinge,
    Blätter beim Laufen, lebendigere Figuren (Schatten, Laufen, Blinzeln, Gefühle, Kleidung), Glühen, Feuerwerk, Öffnen-Animation */
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
@@ -1921,7 +1921,7 @@
   L.halo=halo;
 
   // ── Belegungsraster: wo steht schon etwas? ──
-  const CELL=3, N=150, OFF=225;
+  const CELL=3, N=200, OFF=300;
   const cellOf=v=>Math.floor((v+OFF)/CELL);
   function occupancy(){
     const occ=new Uint8Array(N*N), box=new THREE.Box3(), sz=new THREE.Vector3();
@@ -1955,7 +1955,7 @@
     L.ponds=[]; const wtex=canvasTex(128,128,(x,w,h)=>{ x.fillStyle='#2f96e0'; x.fillRect(0,0,w,h); x.strokeStyle='rgba(255,255,255,.55)'; x.lineWidth=2; for(let i=0;i<9;i++){ x.beginPath(); const y=i*h/9+6; x.moveTo(0,y); for(let k=0;k<=w;k+=8) x.lineTo(k,y+Math.sin(k/10+i)*3); x.stroke(); } });
     wtex.wrapS=wtex.wrapT=THREE.RepeatWrapping; wtex.repeat.set(3,3);
     const glt=canvasTex(128,128,(x,w,h)=>{ x.clearRect(0,0,w,h); for(let i=0;i<22;i++){ x.fillStyle='rgba(255,255,255,'+(.4+Math.random()*.6)+')'; x.beginPath(); x.arc(Math.random()*w,Math.random()*h,1+Math.random()*2.2,0,6.3); x.fill(); } }); glt.wrapS=glt.wrapT=THREE.RepeatWrapping; glt.repeat.set(4,4);
-    let np=0; for(let tries=0;tries<400&&np<3;tries++){ const a=rng()*6.283, r=70+rng()*(Math.min(190,(ZG.WR||210)-20)-70), x=Math.cos(a)*r, z=Math.sin(a)*r; let ok=true; for(let dx=-12;dx<=12&&ok;dx+=3) for(let dz=-12;dz<=12&&ok;dz+=3) if(dx*dx+dz*dz<=144&&!free(occ,x+dx,z+dz)) ok=false; if(!ok||L.ponds.some(q=>Math.hypot(q.x-x,q.z-z)<45)) continue; np++;
+    let np=0; for(let tries=0;tries<400&&np<3;tries++){ const a=rng()*6.283, r=70+rng()*(Math.min(260,(ZG.WR||210)-20)-70), x=Math.cos(a)*r, z=Math.sin(a)*r; let ok=true; for(let dx=-12;dx<=12&&ok;dx+=3) for(let dz=-12;dz<=12&&ok;dz+=3) if(dx*dx+dz*dz<=144&&!free(occ,x+dx,z+dz)) ok=false; if(!ok||L.ponds.some(q=>Math.hypot(q.x-x,q.z-z)<45)) continue; np++;
       const sand=new THREE.Mesh(new THREE.CircleGeometry(11.4,32),new THREE.MeshBasicMaterial({color:0xd9c58f})); sand.rotation.x=-Math.PI/2; sand.position.set(x,.05,z); g.add(sand);
       const w=new THREE.Mesh(new THREE.CircleGeometry(10,32),new THREE.MeshBasicMaterial({map:wtex,transparent:true,opacity:.92})); w.rotation.x=-Math.PI/2; w.position.set(x,.09,z); g.add(w);
       const gl=new THREE.Mesh(new THREE.CircleGeometry(10,32),new THREE.MeshBasicMaterial({map:glt,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false})); gl.rotation.x=-Math.PI/2; gl.position.set(x,.11,z); g.add(gl);
@@ -2208,7 +2208,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v745) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v747) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2561,7 +2561,7 @@
   setInterval(()=>{ try{ D._tick(); }catch(e){} },60);
 })();
 
-/* ZTread (v745) — 🏃 Laufbänder & 🌱 Pflanzen: ab Rebirth 1 im Shop. Training sammelt Laufpunkte (nur die Tragegeschwindigkeit hängt davon ab). */
+/* ZTread (v747) — 🏃 Laufbänder & 🌱 Pflanzen: ab Rebirth 1 im Shop. Training sammelt Laufpunkte (nur die Tragegeschwindigkeit hängt davon ab). */
 (function(){
   'use strict';
   const toast=(m,ms)=>{ try{ ZP.toast(m,ms||2500); }catch(e){} };
@@ -2573,8 +2573,11 @@
     {id:'mega',  n:'Mega-Laufband',           e:'⚡', p:100000,     pt:10,     col:0xe056fd},
     {id:'hacker',n:'Hacker-Laufband',         e:'💻', p:1000000,    pt:100,    col:0x00ff66},
     {id:'inf',   n:'Unendlichkeits-Laufband', e:'♾️', p:10000000,   pt:1000,   col:0x8a6bff},
-    {id:'fire',  n:'Feuer-Laufband',          e:'🔥', p:1000000000, pt:100000, col:0xff4500}
+    {id:'fire',  n:'Feuer-Laufband',          e:'🔥', p:1000000000, pt:100000, col:0xff4500},
+    {id:'sky',   n:'Himmel-Laufband',         e:'☁️', p:100000000000, pt:750000, col:0x66ddff}
   ];
+  const ADM={id:'adm',n:'ADMIN-Laufband',e:'👑',p:0,pt:5,col:0xb400ff}; const ADMPOS={x:34,z:30,fx:-1,fz:0};
+  const isAdm=()=>{ try{ const n=String(ZS.player||'').toLowerCase(); return n==='bu:)'||n==='bu:3'; }catch(e){ return false; } };
   const PL=[
     {id:'p1', n:'Gänseblümchen', e:'🌼', p:2000,    b:1.1},
     {id:'p2', n:'Sonnenblume',   e:'🌻', p:20000,   b:1.25},
@@ -2630,9 +2633,9 @@
 
   /* ── Platz im eigenen Zoo: hinter den Gehegen (aussen), nah dran ── */
   const frame=()=>{ const lay=ZG._slotEncPos((typeof ZS.mySlot==='number')?ZS.mySlot:0); const a=lay.angle; return {c:lay.center,rx:Math.cos(a),rz:Math.sin(a),tx:-Math.sin(a),tz:Math.cos(a)}; };
-  const trPos=i=>{ const f=frame(), row=i<3?0:1, col=i%3, rad=16+row*17, off=(col-1)*13; return {x:f.c.x+f.rx*rad+f.tx*off, z:f.c.z+f.rz*rad+f.tz*off, fx:-f.rx, fz:-f.rz}; };
-  const plPos=i=>{ const f=frame(); return {x:f.c.x+f.rx*48+f.tx*(i-2)*7, z:f.c.z+f.rz*48+f.tz*(i-2)*7}; };
-  T.trPos=trPos;
+  const trPos=i=>{ const f=frame(), row=Math.floor(i/3), col=i%3, rad=16+row*17, off=(col-1)*13; return {x:f.c.x+f.rx*rad+f.tx*off, z:f.c.z+f.rz*rad+f.tz*off, fx:-f.rx, fz:-f.rz}; };
+  const plPos=i=>{ const f=frame(); return {x:f.c.x+f.rx*76+f.tx*(i-2)*7, z:f.c.z+f.rz*76+f.tz*(i-2)*7}; };
+  T.trPos=trPos; const posOf=o=>o.pos||trPos(o.i);
   const M=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
   const box=(w,h,d,c,x,y,z,p)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.position.set(x,y,z); p.add(m); return m; };
   let beltTex=null;
@@ -2642,14 +2645,17 @@
   const lavaTex=()=>{ const c=document.createElement('canvas'); c.width=64; c.height=128; const g=c.getContext('2d'); g.fillStyle='#d62a00'; g.fillRect(0,0,64,128); for(let k=0;k<26;k++){ g.fillStyle=k%3?'#ff8a00':'#ffd23a'; g.beginPath(); g.arc(Math.random()*64,Math.random()*128,3+Math.random()*9,0,6.3); g.fill(); } for(let k=0;k<12;k++){ g.fillStyle='#4a1200'; g.fillRect(Math.random()*56,Math.random()*120,8+Math.random()*10,5+Math.random()*6); } const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,3); return t; };
   const flame=(g,x,y,z,s,upd)=>{ const cs=[]; for(let k=0;k<4;k++){ const f=mk(new THREE.ConeGeometry(.5*s*(1-k*.18),1.8*s,7),[0xff3d00,0xff8a00,0xffc800,0xfff3a0][k],x,y+k*.15*s,z,g,{transparent:true,opacity:.88}); cs.push(f); } upd.push((t)=>{ cs.forEach((f,k)=>{ const q=.75+.45*Math.abs(Math.sin(t*8+k*1.9+x)); f.scale.set(1,q,1); f.position.y=y+.9*s*q+k*.12*s; f.rotation.y=t*3+k; }); }); };
   const orbPillar=(g,x,z,h,colP,colO,upd,big)=>{ mk(cyl(.55,.7,.4,10),0x3a3a44,x,.2,z,g); mk(cyl(.32,.4,h,10),colP,x,.4+h/2,z,g); mk(cyl(.55,.4,.35,10),colO===0xffd700?0xc99a1a:0x333344,x,.4+h+.15,z,g); const o=mk(new THREE.SphereGeometry(big?.55:.4,12,10),colO,x,.4+h+.9,z,g,{transparent:true,opacity:.95}); const halo=mk(new THREE.SphereGeometry(big?.95:.7,12,10),colO,x,.4+h+.9,z,g,{transparent:true,opacity:.22}); upd.push((t)=>{ const q=1+.12*Math.sin(t*3+x*2); o.scale.setScalar(q); halo.scale.setScalar(1+.25*Math.sin(t*2.4+z)); o.position.y=halo.position.y=.4+h+.9+Math.sin(t*2+x)*.12; }); };
-  const mkTread=(t,i)=>{
-    const g=new THREE.Group(); const p=trPos(i); g.position.set(p.x,0,p.z); g.rotation.y=Math.atan2(p.fx,p.fz);
-    const upd=[]; const id=t.id, rank=TR.findIndex(x=>x.id===id);
-    const lava=id==='fire';
+  const bg_vis=(gr,v)=>{ gr.children.forEach(c=>{ c.visible=v; }); };
+  const skyTex=()=>{ const c=document.createElement('canvas'); c.width=64; c.height=128; const g=c.getContext('2d'); g.fillStyle='#6fcfff'; g.fillRect(0,0,64,128); for(let k=0;k<20;k++){ g.fillStyle='rgba(255,255,255,.85)'; g.beginPath(); g.arc(Math.random()*64,Math.random()*128,4+Math.random()*10,0,6.3); g.fill(); } for(let k=0;k<8;k++){ g.fillStyle='#ffe58a'; g.fillRect(Math.random()*60,Math.random()*124,4,4); } const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,3); return t; };
+  const admTex=()=>{ const c=document.createElement('canvas'); c.width=32; c.height=128; const g=c.getContext('2d'); g.fillStyle='#14091f'; g.fillRect(0,0,32,128); g.fillStyle='#a020f0'; for(let i=0;i<8;i++) g.fillRect(0,i*16,32,5); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,4); return t; };
+  const mkTread=(t,i,pos)=>{
+    const g=new THREE.Group(); const p=pos||trPos(i); g.position.set(p.x,0,p.z); g.rotation.y=Math.atan2(p.fx,p.fz);
+    const upd=[]; const id=t.id, rank=id==='adm'?7:TR.findIndex(x=>x.id===id);
+    const lava=id==='fire', skyB=id==='sky', admB=id==='adm';
     box(3,.45,6.8,lava?0x1a0d0a:0x1d1d22,0,.22,0,g);
-    let bt; if(lava) bt=lavaTex(); else { bt=mkBelt(); bt.needsUpdate=true; }
+    let bt; if(lava) bt=lavaTex(); else if(skyB) bt=skyTex(); else if(admB) bt=admTex(); else { bt=mkBelt(); bt.needsUpdate=true; }
     const belt=new THREE.Mesh(new THREE.BoxGeometry(2.2,.1,6.2),new THREE.MeshBasicMaterial({map:bt})); belt.position.set(0,.5,0); g.add(belt);
-    if(!lava){ box(.25,.9,6.4,t.col,-1.32,.7,0,g); box(.25,.9,6.4,t.col,1.32,.7,0,g); }
+    if(skyB){ box(.25,.9,6.4,0xffd54f,-1.32,.7,0,g); box(.25,.9,6.4,0xffd54f,1.32,.7,0,g); } else if(!lava){ box(.25,.9,6.4,t.col,-1.32,.7,0,g); box(.25,.9,6.4,t.col,1.32,.7,0,g); }
     else { for(let s=-1;s<=1;s+=2){ box(.5,.8,6.4,0x2a1a1a,s*1.55,.6,0,g); for(let k=0;k<5;k++) box(.52,.12,.5,0xff5a00,s*1.55,1.05,-2.4+k*1.2,g); } }
     // Konsole vorne (einfache Bänder) bzw. grosse Aufbauten (bessere Bänder)
     if(rank<=1){ box(.18,2.3,.18,0x555560,-1.1,1.6,3,g); box(.18,2.3,.18,0x555560,1.1,1.6,3,g); box(2.6,.9,.3,0x101018,0,2.9,3,g); box(2.1,.55,.1,t.col,0,2.9,3.18,g); }
@@ -2680,6 +2686,56 @@
       upd.push(t2=>{ em.forEach(q=>{ const y=(t2*q[1]+q[2])%9; q[0].position.y=y; q[0].material.opacity=1-y/9; }); });
       const gl=mk(cyl(5.5,5.5,.04,28),0xff3d00,0,.03,1,g,{transparent:true,opacity:.28}); upd.push(t2=>{ gl.material.opacity=.2+.12*Math.sin(t2*2.6); });
       labY=11.6; }
+    if(id==='sky'){
+      const W=0xffffff, GLD=0xffd54f;
+      // Wolkenplattform
+      for(let k=0;k<16;k++){ const a=k/16*6.283, r=5.6+(k%3)*.7; const c=mk(new THREE.SphereGeometry(1.6+(k%4)*.3,10,8),W,Math.cos(a)*r,.3,Math.sin(a)*r,g,{transparent:true,opacity:.92}); c.scale.y=.55; upd.push(t2=>{ c.position.y=.3+Math.sin(t2*1.2+k)*.12; }); }
+      mk(cyl(7.5,7.5,.05,36),0xbfefff,0,.04,0,g,{transparent:true,opacity:.45});
+      const gl0=mk(cyl(9.5,9.5,.04,36),GLD,0,.03,0,g,{transparent:true,opacity:.25}); upd.push(t2=>{ gl0.material.opacity=.18+.12*Math.sin(t2*2.2); });
+      // zwei riesige Marmorsäulen mit Goldringen, Lichtkugeln und Strahlen
+      [-1,1].forEach((s,si)=>{ const x=s*5.4; mk(new THREE.BoxGeometry(2.8,1.2,2.8),0xe9f6ff,x,.6,2.4,g); mk(new THREE.BoxGeometry(2,17,2),0xf4fbff,x,9.7,2.4,g);
+        for(let k=0;k<9;k++) mk(new THREE.BoxGeometry(2.25,.28,2.25),GLD,x,1.8+k*1.9,2.4,g);
+        mk(new THREE.BoxGeometry(3,.9,3),GLD,x,18.6,2.4,g);
+        const orb=mk(new THREE.SphereGeometry(1.1,14,10),0xfff7b0,x,20.2,2.4,g); const ha=mk(new THREE.SphereGeometry(2.1,14,10),0xfff2a8,x,20.2,2.4,g,{transparent:true,opacity:.25}); upd.push(t2=>{ const q=1+.12*Math.sin(t2*3+si); orb.scale.setScalar(q); ha.scale.setScalar(1+.2*Math.sin(t2*2.4+si)); });
+        const beam=mk(cyl(.7,1.6,70,14),0xfff6c0,x,36,2.4,g,{transparent:true,opacity:.13}); upd.push(t2=>{ beam.material.opacity=.09+.07*Math.sin(t2*1.7+si*2); });
+        // Engelsflügel
+        const wing=new THREE.Group(); wing.position.set(x+s*1.4,13,2.4); g.add(wing);
+        for(let k=0;k<7;k++){ const f=mk(new THREE.BoxGeometry(.5,3.6-k*.28,.18),W,0,0,0,wing,{transparent:true,opacity:.95}); f.geometry.translate(s*(.35+k*.55),0,0); f.rotation.z=s*(-.15-k*.11); f.position.y=-k*.25; }
+        upd.push(t2=>{ wing.rotation.y=s*(.35+.28*Math.sin(t2*2.4+si)); });
+      });
+      // Regenbogen-Torbogen
+      const rb=[0xff2a2a,0xff8a00,0xffe600,0x2ecc40,0x2e9bff,0x4b3bff,0xb040ff];
+      rb.forEach((c,k)=>{ const a=mk(new THREE.TorusGeometry(8.6-k*.42,.26,8,44,Math.PI),c,0,1.2,2.5,g); });
+      // Sonne mit Strahlen
+      const sun=new THREE.Group(); sun.position.set(0,25,2.4); g.add(sun); mk(new THREE.SphereGeometry(2.6,16,12),0xffe36a,0,0,0,sun); mk(new THREE.SphereGeometry(3.6,14,10),0xfff0a0,0,0,0,sun,{transparent:true,opacity:.3});
+      for(let k=0;k<16;k++){ const r=mk(new THREE.BoxGeometry(.35,3.4+(k%2)*1.6,.2),k%2?0xffd54f:0xfff6c0,0,0,0,sun); r.geometry.translate(0,5.8+(k%2)*.8,0); r.rotation.z=k/16*6.283; }
+      upd.push(t2=>{ sun.rotation.z=t2*.5; sun.scale.setScalar(1+.06*Math.sin(t2*2)); });
+      // Heiligenscheine
+      for(let k=0;k<2;k++){ const rg=mk(new THREE.TorusGeometry(6+k*2,.22,8,48),k?0xffffff:GLD,0,17.5+k*2.2,2.4,g,{transparent:true,opacity:.9}); rg.rotation.x=Math.PI/2.2; upd.push(t2=>{ rg.rotation.z=t2*(k?-.7:.9); rg.position.y=17.5+k*2.2+Math.sin(t2*1.4+k)*.4; }); }
+      // kreisende Wolken & Sterne
+      const orb2=[]; for(let k=0;k<18;k++){ const m=k%3===0?mk(new THREE.OctahedronGeometry(.4),0xffeb70,0,0,0,g):mk(new THREE.SphereGeometry(.7+(k%3)*.25,8,6),0xffffff,0,0,0,g,{transparent:true,opacity:.9}); if(k%3) m.scale.y=.6; orb2.push([m,k/18*6.283,9+(k%4)*1.3,4+(k%6)*2.2,(k%2?1:-1)*(.35+(k%5)*.07)]); }
+      upd.push(t2=>{ orb2.forEach(q=>{ const a=q[1]+t2*q[4]; q[0].position.set(Math.cos(a)*q[2],q[3]+Math.sin(t2*1.5+q[1])*.5,2.4+Math.sin(a)*q[2]*.8); q[0].rotation.y=t2*2; }); });
+      // Engel
+      [[-9,9],[9,12],[0,15]].forEach((q,k)=>{ const an=ZG._txt('👼',1,'#fff'); an.scale.set(3,3,1); an.position.set(q[0],q[1],4); g.add(an); upd.push(t2=>{ an.position.y=q[1]+Math.sin(t2*1.8+k*2)*.8; an.position.x=q[0]+Math.sin(t2*.9+k)*1.2; }); });
+      // aufsteigende Funken
+      const sp=[]; for(let k=0;k<46;k++){ const e=mk(new THREE.SphereGeometry(.12+Math.random()*.1,5,4),k%3?0xfff6c0:0xbfefff,(Math.random()-.5)*14,Math.random()*22,2.4+(Math.random()-.5)*6,g,{transparent:true}); sp.push([e,.9+Math.random()*1.6,Math.random()*22]); }
+      upd.push(t2=>{ sp.forEach(q=>{ const y=(t2*q[1]+q[2])%22; q[0].position.y=y; q[0].material.opacity=1-y/22; }); });
+      labY=30; }
+    if(id==='adm'){
+      const V=0xb400ff, V2=0xe8a0ff;
+      mk(cyl(7,7.4,.4,6),0x120a1c,0,.2,0,g); const fg=mk(cyl(6.6,6.6,.05,6),V,0,.42,0,g,{transparent:true,opacity:.35}); upd.push(t2=>{ fg.material.opacity=.25+.2*Math.sin(t2*3); });
+      [-1,1].forEach((s,si)=>{ const x=s*4.2; mk(new THREE.BoxGeometry(2.2,.8,2.2),0x1a0f28,x,.4,2.4,g); mk(new THREE.BoxGeometry(1.7,9,1.7),0x0d0714,x,5.2,2.4,g);
+        for(let k=0;k<6;k++) mk(new THREE.BoxGeometry(1.82,.14,1.82),V,x,1.6+k*1.4,2.4,g);
+        const st=mk(new THREE.BoxGeometry(.2,9,.2),V2,x+s*.9,5.2,3.3,g); upd.push(t2=>{ st.material.opacity=.7+.3*Math.sin(t2*5+si); st.material.transparent=true; }); });
+      mk(new THREE.BoxGeometry(10.6,1.6,2),0x0d0714,0,10.3,2.4,g); mk(new THREE.BoxGeometry(10.8,.2,2.1),V,0,9.4,2.4,g); mk(new THREE.BoxGeometry(10.8,.2,2.1),V,0,11.2,2.4,g);
+      const sg=ZG._txt('👑 ADMIN 👑',.9,'#e8a0ff'); sg.scale.set(8,1.9,1); sg.position.set(0,10.3,3.6); g.add(sg);
+      const cr=ZG._txt('👑',1,'#fff'); cr.scale.set(4,4,1); cr.position.set(0,14.5,2.4); g.add(cr); upd.push(t2=>{ cr.position.y=14.5+Math.sin(t2*2)*.5; cr.material.rotation=Math.sin(t2*1.6)*.2; });
+      // Blitze
+      const bolts=[]; for(let b=0;b<8;b++){ const bg=new THREE.Group(); const x0=(b%2?1:-1)*(1.5+Math.floor(b/2)*1.8), segs=5; let cx=0; for(let k=0;k<segs;k++){ const dx=(Math.random()-.5)*1.6; const s=mk(new THREE.BoxGeometry(.18,2.1,.18),k%2?0xffffff:0xd070ff,cx+dx/2,k*1.9,0,bg,{transparent:true}); s.rotation.z=-dx*.4; cx+=dx; } bg.position.set(x0,1,2.4+(Math.random()-.5)*3); g.add(bg); bolts.push([bg,Math.random()*5,1.2+Math.random()*1.5]); }
+      upd.push(t2=>{ bolts.forEach(q=>{ const ph=((t2+q[1])%q[2])/q[2]; bg_vis(q[0],ph<.18||(ph>.3&&ph<.36)); }); });
+      const em=[]; for(let k=0;k<26;k++){ const e=mk(new THREE.SphereGeometry(.1,5,4),k%2?0xe8a0ff:0xffffff,(Math.random()-.5)*10,Math.random()*10,2.4+(Math.random()-.5)*4,g,{transparent:true}); em.push([e,1+Math.random()*1.5,Math.random()*10]); }
+      upd.push(t2=>{ em.forEach(q=>{ const y=(t2*q[1]+q[2])%10; q[0].position.y=y; q[0].material.opacity=1-y/10; }); });
+      labY=17; }
     // schwebende „+N“-Zahlen (wie im Vorbild) — schneller & häufiger, wenn man trainiert
     if(rank>=1){ const cols=['#66ccff','#f3a6ff','#7dffb0','#ffe066','#ff9a4a'], txt='+'+nf(t.pt), fl=[]; const tc=cols[Math.min(rank-1,4)];
       for(let k=0;k<4;k++){ const s=ZG._txt(txt,.6,tc); s.scale.set(2.4,.6,1); s.position.set((k-1.5)*.9,3,((k*37)%5)*.3-.2); g.add(s); fl.push([s,k/4]); }
@@ -2704,17 +2760,20 @@
     const lb2=ZG._txt('Trainings-Boost ×'+p.b,.45,'#ffd54f'); lb2.position.set(0,p.id==='p5'?6.1:4.2,0); lb2.scale.set(3.6,.9,1); g.add(lb2);
     return {g,top,p,i};
   };
+  const ADMPT=()=>5*Math.max(1,...TR.filter(t=>T.owned(t.id)).map(t=>t.pt));
+  T.admToggle=function(){ if(!isAdm()) return; const z=Z(); z.admTr=z.admTr?0:1; try{ ZS.save&&ZS.save(); }catch(e){} T._sync(true); toast(z.admTr?'👑 Admin-Laufband steht jetzt beim Marktplatz (×5 dein bestes = '+nf(ADMPT())+' Pkt/s)':'👑 Admin-Laufband entfernt',3500); return z.admTr; };
   T._objs=[]; T._grp=null; T._sig='';
   T._sync=function(force){
     try{
       if(!ZG||!ZG.scene||!ZG._txt||typeof ZS==='undefined'||!Z()) return;
-      const sig=(T.unlocked()?'1':'0')+'|'+TR.filter(t=>T.owned(t.id)).map(t=>t.id).join(',')+'|'+PL.filter(p=>T.hasPl(p.id)).map(p=>p.id).join(',')+'|'+ZS.mySlot+'|'+(Z().enc||[]).map(e=>e&&e.trT?e.trT.tid+e.animal.id+T.fitLv(e):'').join(',');
+      const sig=(T.unlocked()?'1':'0')+'|'+TR.filter(t=>T.owned(t.id)).map(t=>t.id).join(',')+'|'+PL.filter(p=>T.hasPl(p.id)).map(p=>p.id).join(',')+'|'+ZS.mySlot+'|'+(isAdm()&&Z().admTr?'A'+ADMPT():'')+'|'+(Z().enc||[]).map(e=>e&&e.trT?e.trT.tid+e.animal.id+T.fitLv(e):'').join(',');
       if(!force&&sig===T._sig) return; T._sig=sig;
       if(T._grp){ ZG.scene.remove(T._grp); T._grp=null; } T._objs=[];
       if(!T.unlocked()) return;
       const grp=new THREE.Group(); T._grp=grp;
       TR.forEach((t,i)=>{ if(T.owned(t.id)){ const o=mkTread(t,i); grp.add(o.g); T._objs.push(o); const te=(Z().enc||[]).find(e=>e&&e.trT&&e.trT.tid===t.id&&e.animal); if(te) aniAdd(o,te); } });
       PL.forEach((p,i)=>{ if(T.hasPl(p.id)){ const o=mkPlant(p,i); grp.add(o.g); T._objs.push(o); } });
+      if(isAdm()&&Z().admTr){ ADM.pt=ADMPT(); const o=mkTread(ADM,-1,ADMPOS); o.pos=ADMPOS; grp.add(o.g); T._objs.push(o); }
       ZG.scene.add(grp);
     }catch(e){ console.warn('ZTread sync',e); }
   };
@@ -2751,8 +2810,8 @@
     try{ ZG.yaw=T._save.yaw; ZG.pitch=T._save.pitch; ZG.pl.x=T._save.x; ZG.pl.z=T._save.z; ZG.pl.y=1.7; }catch(e){} T.cur=null;
     try{ ZS.save&&ZS.save(); }catch(e){} T.pubLb(); toast('🏁 Training beendet — Laufpunkte: '+nf(T.pts())+' · Tragetempo '+T.speedTxt(),4000);
   };
-  T._lock=function(){ const o=T.cur; if(!o) return; const p=trPos(o.i); ZG.pl.x=p.x; ZG.pl.z=p.z; ZG.pl.y=1.7; ZG._jumping=false; ZG._jumpV=0; ZG.yaw=Math.atan2(-p.fx,-p.fz); ZG.pitch=0; };
-  T._cam=function(){ const o=T.cur; if(!o) return; const p=trPos(o.i), c=ZG.cam; const big=TR.findIndex(x=>x.id===o.t.id)>=3, d=big?9:6.2; c.position.set(p.x-p.fx*d, big?5:3.6, p.z-p.fz*d); c.lookAt(p.x,big?2.4:1.4,p.z); };
+  T._lock=function(){ const o=T.cur; if(!o) return; const p=posOf(o); ZG.pl.x=p.x; ZG.pl.z=p.z; ZG.pl.y=1.7; ZG._jumping=false; ZG._jumpV=0; ZG.yaw=Math.atan2(-p.fx,-p.fz); ZG.pitch=0; };
+  T._cam=function(){ const o=T.cur; if(!o) return; const p=posOf(o), c=ZG.cam; const ri=o.t.id==='adm'?7:TR.findIndex(x=>x.id===o.t.id), big=ri>=3, huge=ri>=6, d=huge?13:big?9:6.2, hh=huge?7.5:big?5:3.6; c.position.set(p.x-p.fx*d, hh, p.z-p.fz*d); c.lookAt(p.x,huge?4.5:big?2.4:1.4,p.z); };
   T._hud=function(){ if(!ui) return; const z=Z(); if(!z) return;
     const stt=ui.querySelector('#zt-st'); if(stt&&T.on&&T.cur) stt.innerHTML='🏃 +'+nf(T.cur.t.pt*T.mult())+' Pkt/s<br>Punkte: '+nf(T.pts())+'<br>Tragen '+T.speedTxt()+(T.runMul()>1?'<br>Laufen '+T.runTxt():'');
     const show=T.unlocked()&&T.anyOwned(); const hm=document.getElementById('hm');
@@ -2778,7 +2837,7 @@
     }catch(e){}
   };
   requestAnimationFrame(anim);
-  /* ═════════ v745: Abzeichen · Bestenliste · Wettrennen · Tier-Training ═════════ */
+  /* ═════════ v747: Abzeichen · Bestenliste · Wettrennen · Tier-Training ═════════ */
   const BADGES=[[1e9,'👑 Läufer-Legende'],[5e6,'🏎️ Rennfahrer'],[1e5,'💨 Sprinter'],[1000,'🏃 Läufer']];
   T.badge=()=>{ const p=T.pts(); for(const b of BADGES) if(p>=b[0]) return b[1]; return ''; };
   const RTD=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
@@ -2813,7 +2872,8 @@
     try{ ZS.save&&ZS.save(); }catch(e2){} T._sync(true); toast('🐾 '+e.animal.e+' '+e.animal.n+' trainiert jetzt auf dem '+t.n+'! (Fitness = mehr Geld)',3500); T.menu(tid); };
   T.release=function(tid){ const z=Z(); z.enc.forEach(x=>{ if(x&&x.trT&&x.trT.tid===tid){ T.bank(x); toast('✅ '+x.animal.e+' Fitness-Level '+T.fitLv(x)+' · Geld ×'+fx(T.fitMul(x)),3500); } }); try{ ZS.save&&ZS.save(); }catch(e){} T._sync(true); T.menu(tid); };
   T.menu=function(tid){
-    const z=Z(), t=TR.find(x=>x.id===tid); if(!z||!t) return;
+    const z=Z(), t=tid==='adm'?ADM:TR.find(x=>x.id===tid); if(!z||!t) return;
+    if(tid==='adm'){ ov('zt-menu','<div style="font-weight:900;font-size:1.05rem;color:#e8a0ff">👑 ADMIN-Laufband</div><div style="font-size:.72rem;opacity:.7;margin-bottom:4px">+'+nf(t.pt)+' Pkt/s (5× dein bestes Laufband)</div><button style="'+btn+'" onclick="document.getElementById(\'zt-menu\').remove();ZTread.start(\'adm\')">🏃 Selbst trainieren</button><button style="'+btn+';background:rgba(255,255,255,.1);color:#fff" onclick="document.getElementById(\'zt-menu\').remove();ZTread.admToggle()">🗑 Entfernen</button>'); return; }
     const tr=z.enc.findIndex(x=>x&&x.trT&&x.trT.tid===tid), te=tr>=0?z.enc[tr]:null;
     let h='<div style="font-weight:900;font-size:1.05rem;color:#ffd54f">'+t.e+' '+t.n+'</div><div style="font-size:.72rem;opacity:.7;margin-bottom:4px">+'+nf(t.pt)+' Pkt/s</div>';
     h+='<button style="'+btn+'" onclick="document.getElementById(\'zt-menu\').remove();ZTread.start(\''+tid+'\')">🏃 Selbst trainieren</button>';
@@ -2882,7 +2942,7 @@
   T._claim=function(){ try{ const r=RTD(); if(!r||T._claimOn) return; T._claimOn=1; r.ref('zoo_tread/pay/'+key(me())).on('child_added',s=>{ const v=s.val(); s.ref.remove().then(()=>{ if(v&&v.amt>0){ const z=Z(); z.mt=(z.mt||0)+v.amt; try{ ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); }catch(e){} toast('💰 +'+nf(v.amt)+' MT vom Wettrennen gegen '+(v.from||'?')+'!',4000); } }).catch(()=>{}); });
       r.ref('zoo_tread/in/'+key(me())).on('value',s=>T._inbox(s.val())); r.ref('zoo_tread/rc/'+key(me())).on('value',s=>T._rc(s.val())); }catch(e){} };
 
-  /* ── Turnier (v745) ── */
+  /* ── Turnier (v747) ── */
   const BOSS=[
     {n:'Trainings-Bot',e:'🤖',p:5e3},{n:'Hasen-Hektor',e:'🐇',p:5e4},{n:'Fuchs-Flitzer',e:'🦊',p:2.5e5},{n:'Gepard-Gustav',e:'🐆',p:1e6},{n:'Blitz-Bella',e:'🐎',p:5e6},
     {n:'Falken-Fridolin',e:'🦅',p:2.5e7},{n:'Wolfs-Wirbel',e:'🐺',p:1e8},{n:'Einhorn-Ella',e:'🦄',p:5e8},{n:'Drachen-Dario',e:'🐉',p:2.5e9},{n:'Turbo-Titan',e:'🦾',p:1e10},
@@ -2891,7 +2951,7 @@
     {k:'money',m:1.5,min:10},{k:'money',m:2,min:15},{k:'luck',m:2,min:15},{k:'money',m:3,min:20},{k:'animal',r:'epic'},
     {k:'money',m:5,min:30},{k:'animal',r:'legendary'},{k:'luck',m:5,min:30},{k:'animal',r:'ultralegendary'},{k:'money',m:10,min:45},
     {k:'luck',m:10,min:45},{k:'animal',r:'ultralegendary',m2:10,min:60},{k:'money',m:10,min:60,a:'ultralegendary'},{k:'money',m:10,min:60,a:'legendary'}];
-  const TCD=30*60000, TCD1=5*60000;
+  const TCD=24*3600000, TCD1=24*3600000;
   const RN={epic:'Episch',legendary:'Legendär',ultralegendary:'Ultra-Legendär'}; const rewTxt=r=>!r?'nichts':r.k==='money'?'💰 Geld ×'+r.m+' · '+r.min+' Min'+(r.a?' + '+RN[r.a]+'es Tier':''):r.k==='luck'?'🍀 Glück ×'+r.m+' · '+r.min+' Min':'🐾 '+RN[r.r]+'es Tier'+(r.m2?' + Geld ×'+r.m2+' · '+r.min+' Min':'');
   T.BOSS=BOSS; T.TREW=TREW;
   const tBoost=(type,m,min)=>{ const z=Z(); if(!z.mtPassBoosts) z.mtPassBoosts={}; const c=z.mtPassBoosts[type]; const base=(c&&c.until>Date.now())?c.until:Date.now(); z.mtPassBoosts[type]={mult:Math.max(m,(c&&c.until>Date.now()&&c.mult)||0),until:base+min*60000}; };
@@ -2899,13 +2959,13 @@
     if(slot>=0){ z.enc[slot]={animal:{...a},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0}; try{ ZG._encs&&ZG._encs(); }catch(e){} return a.e+' '+a.n; }
     z.mt=(z.mt||0)+a.p; try{ ZG._updHUD&&ZG._updHUD(); }catch(e){} return a.e+' '+a.n+' (Gehege voll → '+nf(a.p)+' MT)'; };
   T.tourGrant=function(k,won){ const z=Z(); const out=[];
-    if(won){ const g=tAnimal('god'); out.push('🌟 HAUPTPREIS: '+(g||'Göttliches Tier')); T.tourBoost&&0; tBoost('money',10,60); out.push('💰 Geld ×10 · 60 Min'); }
+    if(won){ if(!z.tour.godWon){ z.tour.godWon=1; const g=tAnimal('god'); out.push('🌟 HAUPTPREIS: '+(g||'Göttliches Tier')); } else { tBoost('money',10,10); out.push('💰 Geld ×10 · 10 Min'); } }
     else { const r=TREW[k]; if(r){ if(r.k==='money'){ tBoost('money',r.m,r.min); out.push('💰 Geld ×'+r.m+' · '+r.min+' Min'); } else if(r.k==='luck'){ tBoost('luck',r.m,r.min); out.push('🍀 Glück ×'+r.m+' · '+r.min+' Min'); } else { const a=tAnimal(r.r); if(a) out.push('🐾 '+a); if(r.m2){ tBoost('money',r.m2,r.min); out.push('💰 Geld ×'+r.m2+' · '+r.min+' Min'); } } if(r.a){ const a=tAnimal(r.a); if(a) out.push('🐾 '+a); } } }
     try{ ZS.save&&ZS.save(); }catch(e){} return out; };
   T.tourMenu=function(){ const z=Z(); if(!z) return; const tn=z.tour||{}; const cd=(tn.cd||0)-Date.now(); const pts=T.pts();
-    let h='<div style="font-weight:900;font-size:1.05rem;color:#ffd54f">🏆 Turnier</div><div style="font-size:.74rem;opacity:.75;margin:2px 0 6px">Dein Tempo: <b>'+nf(pts)+'</b> Laufpunkte. Wer mehr Punkte hat als der Gegner, gewinnt das Rennen und kommt eine Runde weiter. Verlierst du, bekommst du die Belohnung der Runde. Besiege alle 15 → <b>göttliches Tier</b>!</div>';
-    h+=BOSS.map((b,i)=>'<div style="display:flex;align-items:center;gap:6px;font-size:.72rem;padding:3px 4px;border-radius:8px;background:'+((tn.best||0)>i?'rgba(80,200,120,.2)':'rgba(255,255,255,.06)')+';margin:2px 0"><span style="width:18px;opacity:.6">'+(i+1)+'</span><span>'+b.e+'</span><span style="flex:1"><b>'+b.n+'</b><br><span style="opacity:.6">'+nf(b.p)+' Pkt</span></span><span style="text-align:right;opacity:.85;max-width:44%">'+(i===14?'🌟 Göttliches Tier':'Verlust: '+rewTxt(TREW[i]))+'</span></div>').join('');
-    h+=cd>0?'<div style="margin-top:8px;text-align:center;font-weight:900">⏳ Nächstes Turnier in '+Math.ceil(cd/60000)+' Min</div>':'<button style="'+btn+'" onclick="document.getElementById(\'zt-menu\').remove();ZTread.tourStart()">▶ Turnier starten</button>';
+    let h='<div style="font-weight:900;font-size:1.05rem;color:#ffd54f">🏆 Turnier</div><div style="font-size:.74rem;opacity:.75;margin:2px 0 6px">Dein Tempo: <b>'+nf(pts)+'</b> Laufpunkte. Wer mehr Punkte hat als der Gegner, gewinnt das Rennen und kommt eine Runde weiter. Verlierst du, bekommst du die Belohnung der Runde. Besiege alle 15 → <b>göttliches Tier</b> (nur beim 1. Mal, danach Geld ×10 · 10 Min). Nur 1× pro Tag!</div>';
+    h+=BOSS.map((b,i)=>'<div style="display:flex;align-items:center;gap:6px;font-size:.72rem;padding:3px 4px;border-radius:8px;background:'+((tn.best||0)>i?'rgba(80,200,120,.2)':'rgba(255,255,255,.06)')+';margin:2px 0"><span style="width:18px;opacity:.6">'+(i+1)+'</span><span>'+b.e+'</span><span style="flex:1"><b>'+b.n+'</b><br><span style="opacity:.6">'+nf(b.p)+' Pkt</span></span><span style="text-align:right;opacity:.85;max-width:44%">'+(i===14?(tn.godWon?'💰 Geld ×10 · 10 Min':'🌟 Göttliches Tier (1×), danach Geld ×10 · 10 Min'):'Verlust: '+rewTxt(TREW[i]))+'</span></div>').join('');
+    h+=cd>0?'<div style="margin-top:8px;text-align:center;font-weight:900">⏳ Nächstes Turnier in '+(cd>3600000?Math.ceil(cd/3600000)+' Std':Math.ceil(cd/60000)+' Min')+'</div>':'<button style="'+btn+'" onclick="document.getElementById(\'zt-menu\').remove();ZTread.tourStart()">▶ Turnier starten</button>';
     ov('zt-menu',h); };
   let TK=null;
   T.tourStart=function(){ const z=Z(); if(!z||T.on||T.tour) return; if(((z.tour&&z.tour.cd)||0)>Date.now()) return toast('⏳ Turnier noch gesperrt');
@@ -2950,12 +3010,12 @@
     T.tour=null; document.body.classList.remove('zt-on'); const u=document.getElementById('zt-tourui'); if(u) u.remove(); ['_tm','_tb'].forEach(q=>{ if(T[q]&&T[q].parent) T[q].parent.remove(T[q]); T[q]=null; });
     if(T._tg){ ZG.scene.remove(T._tg); T._tg=null; T._tor=null; }
     try{ const s=T._tsave; ZG.yaw=s.yaw; ZG.pitch=s.pitch; ZG.pl.x=s.x; ZG.pl.z=s.z; ZG.pl.y=1.7; }catch(e){} };
-  T._tfinal=function(title,list,won,k){ ov('zt-res','<div style="text-align:center"><div style="font-weight:900;font-size:1.1rem;padding:8px 4px;color:'+(won?'#ffd54f':'#fff')+'">'+title+'</div>'+(list.length?'<div style="font-size:.85rem;margin:6px 0">Belohnung:</div>'+list.map(x=>'<div style="font-weight:900;font-size:.95rem;margin:3px 0">'+x+'</div>').join(''):(k===0?'<div style="opacity:.8">Diesmal keine Belohnung — trainiere weiter!</div>':''))+'<div style="font-size:.7rem;opacity:.6;margin-top:8px">Nächstes Turnier in '+(k===0?5:30)+' Min</div></div><button style="'+btn+'" onclick="this.closest(\'[id]\').remove()">OK</button>'); };
+  T._tfinal=function(title,list,won,k){ ov('zt-res','<div style="text-align:center"><div style="font-weight:900;font-size:1.1rem;padding:8px 4px;color:'+(won?'#ffd54f':'#fff')+'">'+title+'</div>'+(list.length?'<div style="font-size:.85rem;margin:6px 0">Belohnung:</div>'+list.map(x=>'<div style="font-weight:900;font-size:.95rem;margin:3px 0">'+x+'</div>').join(''):(k===0?'<div style="opacity:.8">Diesmal keine Belohnung — trainiere weiter!</div>':''))+'<div style="font-size:.7rem;opacity:.6;margin-top:8px">Nächstes Turnier in 24 Std</div></div><button style="'+btn+'" onclick="this.closest(\'[id]\').remove()">OK</button>'); };
 
   /* ── Takte ── */
   setInterval(()=>{ try{
     T._sync(); T._badges(); T._claim(); if(!ZG||!ZG.pl||!Z()) return;
-    if(!T.on){ let best=null,bd=5.5; T._objs.forEach(o=>{ if(!o.t) return; const p=trPos(o.i); const d=Math.hypot(ZG.pl.x-p.x,ZG.pl.z-p.z); if(d<bd){ bd=d; best=o; } });
+    if(!T.on){ let best=null,bd=5.5; T._objs.forEach(o=>{ if(!o.t) return; const p=posOf(o); const d=Math.hypot(ZG.pl.x-p.x,ZG.pl.z-p.z); if(d<bd){ bd=d; best=o; } });
       ZG._nearTread=best?best.t.id:null; if(best&&!T._hint){ T._hint=1; toast('🏃 Tippe das Laufband an, um zu trainieren!',2500); } else if(!best) T._hint=0; }
     else { ZG._nearTread=T.cur?T.cur.t.id:null; T._lock(); }
     if(!window.__ztw&&ZG.renderer){ window.__ztw=1; const r=ZG.renderer, o=r.render.bind(r); r.render=function(s,c){ try{ if(T.on&&c===ZG.cam){ T._lock(); T._cam(); } else if(T.tour&&c===ZG.cam) T._tcam(); }catch(e){} return o(s,c); };
