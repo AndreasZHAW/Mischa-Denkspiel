@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v737 -->
+<!-- ZOO v738 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -236,12 +236,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=737"></script>
-<script src="rewardchests.js?v=737"></script>
-<script src="personality.js?v=737"></script>
+<script src="lang.js?v=738"></script>
+<script src="rewardchests.js?v=738"></script>
+<script src="personality.js?v=738"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v737','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v738','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -493,7 +493,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
     </div>
   </div>
 </div>
-<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button><button id="st-k" class="tab ti" onclick="ZP.shopTab('k')">🎭 Skins</button></div><div id="scont"></div>
+<div class="zp off" id="p-shop"><div class="zpi"><button class="pcls" onclick="ZP.close('shop')">✕</button><div class="pt">🛒 Zoo-Shop</div><div style="background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);border-radius:9px;padding:6px 11px;margin-bottom:7px;display:flex;justify-content:space-between"><span style="font-size:.78rem;color:rgba(255,255,255,.5)">MT:</span><span id="sbal" style="font-weight:900;color:#00CFFF">🌀0</span></div><div style="display:flex;gap:4px;margin-bottom:8px"><button id="st-z" class="tab ta" onclick="ZP.shopTab('z')">🦁 Zoo</button><button id="st-b" class="tab ti" onclick="ZP.shopTab('b')">⚡ Boosts</button><button id="st-s" class="tab ti" onclick="ZP.shopTab('s')">🤚 Slaps</button><button id="st-k" class="tab ti" onclick="ZP.shopTab('k')">🎭 Skins</button><button id="st-t" class="tab ti" onclick="ZP.shopTab('t')" style="display:none">🏃 Laufbänder</button></div><div id="scont"></div>
   <div style="margin-top:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px">
     <div style="font-size:.8rem;font-weight:900;color:#FFD700;margin-bottom:6px">🎁 Code einlösen</div>
     <div style="display:flex;gap:6px">
@@ -535,14 +535,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=737"></script>
-<script src="sanction.js?v=737"></script>
-<script src="zevents.js?v=737"></script>
-<script src="znet.js?v=737"></script>
-<script src="zbases.js?v=737"></script>
-<script src="charheads.js?v=737"></script>
-<script src="zworld.js?v=737"></script>
-<script src="worlds.js?v=737"></script>
+<script src="firebase-state.js?v=738"></script>
+<script src="sanction.js?v=738"></script>
+<script src="zevents.js?v=738"></script>
+<script src="znet.js?v=738"></script>
+<script src="zbases.js?v=738"></script>
+<script src="charheads.js?v=738"></script>
+<script src="zworld.js?v=738"></script>
+<script src="worlds.js?v=738"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1563,7 +1563,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v737) ──
+// ── REBIRTH-SYSTEM (v738) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1573,9 +1573,9 @@ function rebMultOf(n){ n=n|0; return n<=0?1:REB_MULT[Math.min(n,REB_MULT.length)
 // Slaps, die jede Stufe dauerhaft freischaltet (Basic hat man immer). Sie kosten beim Benutzen weiterhin MT.
 const REB_SLAPS=[['ice','golden'],['shadow','swap'],['fire','bubble'],['rainbow','snail'],['void']];
 // Ab welcher Rebirth-Stufe ein Feature sichtbar/nutzbar ist
-const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:1, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5, wish:3};
+const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:1, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5, wish:3, treadmill:1};
 const REB_FEAT_TXT={
-  1:['✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🍀 Glücks-Stufen ×5, ×7 und ×10 in der Gondel','🌦️ Wetter im Zoo: Sonne, Regen & Sturm (im Sturm ist es dunkel und Blitze schlagen ein: Treffer = −3 ❤)','🎉 Admin-Events machen dich zum Teil des Spiels (Sturm, Magnet, Mystery-Box, Mini-Wahl …)','💦 Pfützen-Springen im Regen & 👋 Freunde-Winken'],
+  1:['🏃 Laufbänder & 🌱 Pflanzen im Shop (Training = schneller beim Tragen)','✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🍀 Glücks-Stufen ×5, ×7 und ×10 in der Gondel','🌦️ Wetter im Zoo: Sonne, Regen & Sturm (im Sturm ist es dunkel und Blitze schlagen ein: Treffer = −3 ❤)','🎉 Admin-Events machen dich zum Teil des Spiels (Sturm, Magnet, Mystery-Box, Mini-Wahl …)','💦 Pfützen-Springen im Regen & 👋 Freunde-Winken'],
   2:['💜 Shadow Slap dauerhaft','💰 Einkommen ×3','🍀 Glück-Häufigkeit im Shop und Kleeblatt-Kette (Grün-Glück) in der Gondel','🔊 Schritt-Ton-Knopf','🔍 Sammlungs-Terminal'],
   3:['🔥 Fire Slap dauerhaft','🕊️ Tiere freilassen','💰 Einkommen ×5','🎫 MT-Pass','🧬 Zucht-Maschine','📖 Sammelalbum & 🎯 Deko-Quests','🌟 ×100 Glücks-Bonus (Gondel)','🧑 Besucher-Wünsche: Besucher wünschen sich ein Tier – erfülle es für Trinkgeld, Glücks- oder Geld-Boost'],
   4:['🌈 Rainbow Slap dauerhaft','💰 Einkommen ×10','🏅 Ränge (Rang ausrüsten)'],
@@ -1593,7 +1593,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v737: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v738: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8,eternal:3.0};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1911,7 +1911,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v737: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v738: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2371,7 +2371,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v737: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v738: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3616,7 +3616,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v737: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v738: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4193,7 +4193,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v737: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v738: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -5175,7 +5175,7 @@ const ZG={
       if(this._nearFeeder){Feeder.open();return;}
       if(this._nearSweeper){Sweeper.open();return;}
       if(this._nearBreedMachine){BreedMachine.open();return;}
-      if(this._nearDiceMachine){DiceMachine.open();return;}
+      if(this._nearTread){ZTread.interact();return;}if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
       if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}
       // Lucky Wheel: open on tap/click when near
@@ -5220,7 +5220,7 @@ const ZG={
       if(this._nearFeeder){Feeder.open();return;}
       if(this._nearSweeper){Sweeper.open();return;}
       if(this._nearBreedMachine){BreedMachine.open();return;}
-      if(this._nearDiceMachine){DiceMachine.open();return;}
+      if(this._nearTread){ZTread.interact();return;}if(this._nearDiceMachine){DiceMachine.open();return;}
       if(this._nearTerminal){CollectionTerminal.open();return;}
       if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}
         // Lucky Wheel: tap to open when near
@@ -5230,7 +5230,7 @@ const ZG={
       }
     },{passive:true});
     // Desktop slap: LEFT CLICK on canvas (when pointer locked) OR click the slap button
-    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
+    G('zc')?.addEventListener('click',()=>{if(this._trashActive){if(this._nearTrash>=0)this._pickupTrash(this._nearTrash);return;}if(this._nearGoldMachine){GoldMachine.open();return;}if(this._nearFeeder){Feeder.open();return;}if(this._nearSweeper){Sweeper.open();return;}if(this._nearBreedMachine){BreedMachine.open();return;}if(this._nearTread){ZTread.interact();return;}if(this._nearDiceMachine){DiceMachine.open();return;}if(this._nearTerminal){CollectionTerminal.open();return;}if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}if(this._nearWheel){LW.open();return;}if(this.pLock)this.slap();});
   },
 
   _carAngle:0,
@@ -5443,8 +5443,9 @@ const ZG={
     //    the protected animal.
     let carry_mod;
     if(this.carrying){
-      if(this.carrying.protected) carry_mod=0.21*1.5;
-      else carry_mod=(ZS.zoo?.upg?.hikingboots)?0.21*1.3:0.21;
+      const _tm=(window.ZTread&&ZTread.carryMod&&ZTread.carryMod())||0;
+      if(this.carrying.protected) carry_mod=Math.max(0.21*1.5,_tm);
+      else carry_mod=_tm||((ZS.zoo?.upg?.hikingboots)?0.21*1.3:0.21);
     }else{
       carry_mod=1.2;
     }
@@ -6717,7 +6718,7 @@ const ZG={
     if(this._nearFeeder){Feeder.open();return;}
     if(this._nearSweeper){Sweeper.open();return;}
     if(this._nearBreedMachine){BreedMachine.open();return;}
-    if(this._nearDiceMachine){DiceMachine.open();return;}
+    if(this._nearTread){ZTread.interact();return;}if(this._nearDiceMachine){DiceMachine.open();return;}
     if(this._nearTerminal){CollectionTerminal.open();return;}
     if(this._nearSpeedTemple){SpeedTemple.open();return;}if(this._nearWorldTree){World1.open();return;}if(this._arcadeActive&&Arcade.interact()){return;}
   },
@@ -8420,6 +8421,14 @@ const REB_TUT={
 };
 // Nachträglich hinzugefügte Rebirth-Neuheiten: jeder, der die Stufe schon hat, bekommt NUR diese Erklärung (einmalig).
 const REB_ADDONS=[
+  {id:'tread',reb:1,steps:[
+    _RT('tm0','🏃 Neu: Laufbänder &amp; Pflanzen','Ab Rebirth 1 kannst du im Shop <b>Laufbänder</b> kaufen. Sie stehen dann <b>in deinem Zoo, hinter den Gehegen</b> — jedes Laufband ist ein eigenes 3D-Gerät.'),
+    _RT('tm1','⚡ Wozu das Ganze?','Du <b>trainierst</b> auf einem Laufband und sammelst <b>Laufpunkte</b>. Je mehr Punkte, desto schneller bist du — <b>aber nur, wenn du ein Tier trägst</b>. Das ersetzt die Wanderschuhe: 30 Punkte = wie ohne Schuhe, 1.000 Punkte = wie Wanderschuhe, 5 Mio Punkte = 2,5× so schnell!'),
+    {id:'tmshop',title:'🛒 Zum Shop',text:'Öffne den Shop!',target:'#hb-shop',action:'panel:shop'},
+    {id:'tmtab',title:'🏃 Tab „Laufbänder“',text:'Tippe oben auf den Tab <b>🏃 Laufbänder</b>.',target:'#st-t',action:'tab:t'},
+    _RT('tm2','🏃 Laufbänder &amp; 🌱 Pflanzen','Vom <b>Basic-Laufband</b> (1.000 MT, 1 Punkt/Sek.) bis zum <b>Feuer-Laufband</b> (100.000 Punkte/Sek.). Die <b>Pflanzen</b> stehen auch in 3D in deinem Zoo und geben einen <b>Trainings-Boost</b> — die beste ist ×3. Es zählt nur die beste Pflanze.',{target:'#scont',boxTop:true}),
+    _RT('tm3','⏹ So trainierst du','Lauf in deinem Zoo zu einem Laufband und <b>tippe es an</b>. Dann läuft dein Männchen darauf, alle Knöpfe verschwinden (nur Fehlermeldungen, Geld und Tragen bleiben). Dein Geld verdienst du weiter. Mit <b>„Training stoppen“</b> oben rechts spielst du normal weiter. 💡 Schreib <b>/laufband</b> in den Chat, um das hier nochmal zu sehen.')
+  ]},
   {id:'wish',reb:3,steps:[
     _RT('aw0','🔄 Neu für dich (Rebirth 3)','Nur das hier ist neu:'),
     _RT('aw1','🧑 Besucher-Wünsche','Ab jetzt kommen Besucher in deinen Zoo und <b>wünschen sich ein Tier</b>. Über ihrem Kopf schwebt eine Sprechblase. Oben links siehst du den Wunsch, die Zeit und wie weit der Besucher weg ist.'),
@@ -8429,7 +8438,7 @@ setInterval(()=>{ try{
   const z=(typeof ZS!=='undefined')&&ZS.zoo; if(!z||typeof Tutorial==='undefined'||Tutorial._active||!(typeof ZG!=='undefined'&&ZG.scene)||ZG._arcadeActive) return;
   for(const a of REB_ADDONS){ if((z.reb||0)<a.reb) continue; z.addonSeen=z.addonSeen||{}; if(z.addonSeen[a.id]) continue; if(!z.tutorialSeen&&!(z.reb>0)) continue; z.addonSeen[a.id]=1; ZS.save&&ZS.save(); Tutorial.startReb(null,a.steps); break; }
 }catch(e){} },4000);
-// ══ REBIRTH-ANLEITUNG (v737): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
+// ══ REBIRTH-ANLEITUNG (v738): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
 function _rebHowSteps(){
   const z=ZS.zoo||{}, rb=z.reb||0, N=rb+1;
   if(rb>=REBIRTH_MAX) return [ _RT('rbm0','🏆 Alle Rebirths geschafft','Du hast alle '+REBIRTH_MAX+' Wiedergeburten gemacht. Dein Einkommen ist dauerhaft <b>×'+rebMultOf(rb)+'</b> — mehr geht nicht. Im Rebirth-Fenster kannst du dir den Abspann ansehen.') ];
@@ -8502,7 +8511,7 @@ const Tutorial={
   _closeStray(s){
     // Beim Tutorial darf kein anderes Fenster offen sein, das stören könnte
     try{
-      const keep={gluck:['gond'],buy:['gond'],shopcont:['shop'],menuinfo:['menu'],rbshopinfo:['shop'],rbpanel:['reb']}[s.id]||[];
+      const keep={gluck:['gond'],buy:['gond'],shopcont:['shop'],menuinfo:['menu'],rbshopinfo:['shop'],rbpanel:['reb'],tmtab:['shop'],tmshop:['shop']}[s.id]||[];
       if(/^(open|closeel):/.test(s.action||'')||s.id==='goldinfo'||s.id==='goldopen') return;
       ['gond','index','shop','reb','enc','menu','adm','sound','report','rank','trade'].forEach(pp=>{ if(!keep.includes(pp)){ try{ ZP.close(pp); }catch(e){} } });
       ['zguest','zsk-pv','zsk-admov','zse-admov','zsfx-panel','zmap'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); });
@@ -10604,7 +10613,7 @@ const ZP={
   },
 
   // SHOP
-  shopTab(t){this._st=t;['z','b','s','k'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
+  shopTab(t){this._st=t;['z','b','s','k','t'].forEach(x=>{G('st-'+x)?.classList.toggle('ta',x===t);G('st-'+x)?.classList.toggle('ti',x!==t);});this._rShop();},
   redeemShopCode(){
     const input=G('shop-code-input');
     const code=(input?.value||'').trim().toLowerCase();
@@ -10698,7 +10707,7 @@ const ZP={
     this._sP(document.getElementById('scont'));
   },
 
-  _rShop(){const el=G('scont');if(!el)return;if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else if(this._st==='k'){ el.innerHTML=(typeof ZSkins!=='undefined'?ZSkins.shopHtml():''); }else this._sB(el);},
+  _rShop(){const el=G('scont');if(!el)return;try{const _tb=G('st-t');if(_tb)_tb.style.display=rebHas('treadmill')?'':'none';}catch(e){}if(this._st==='z')this._sZ(el);else if(this._st==='p')this._sP(el);else if(this._st==='e')this._sE(el);else if(this._st==='s')this._sS(el);else if(this._st==='t'){ if(window.ZTread) ZTread.shopHTML(el); }else if(this._st==='k'){ el.innerHTML=(typeof ZSkins!=='undefined'?ZSkins.shopHtml():''); }else this._sB(el);},
   _sZ(el){const z=ZS.zoo;const IT=[
 
   {id:'net',n:'🥅 Fangnetz',d:'Fängt entlaufene Tiere zurück — unbedingt früh kaufen!',p:30},{id:'vis',n:'🚀 Besucher ×2',d:'Schneller',p:11269},{id:'vis2',n:'🚀🚀 Besucher ×4',d:'Noch schneller!',p:66651,req:'vis'},{id:'vis_m',n:'👥 ×2 Besucher',d:'Doppelt viele',p:17751},{id:'earn',n:'💰 ×2 Einnahmen',d:'Alle ×2',p:47265},{id:'earn2',n:'💰💰 ×4 Einnahmen',d:'Nochmal ×2!',p:112234,req:'earn'},{id:'redshoes',n:'👟 Rote Turnschuhe',d:'+50% Laufgeschwindigkeit — tippen für Details',p:100,shoe:true,col:'#E74C3C'},{id:'goldshoes',n:'✨ Goldene Turnschuhe',d:'Nochmal +50% (braucht rote Schuhe) — tippen für Details',p:500,shoe:true,col:'#FFD700',req:'redshoes'},{id:'platinumshoes',n:'💎 Platin-Turnschuhe',d:'Nochmal +50%, plus Platin-Rush beim Geradeauslaufen (braucht goldene Schuhe) — tippen für Details',p:2000,shoe:true,col:'#B9F2FF',req:'goldshoes'},{id:'hikingboots',n:'🥾 Wanderschuhe',d:'+30% Tragegeschwindigkeit beim Tragen von Tieren — tippen für Details',p:100,shoe:true,col:'#8B5E3C'},{id:'sweepIns',n:'🧹🛡️ Kehrmaschinenversicherung',d:'Nie wieder Müll aufheben — tippen für Details',p:50},{id:'dice_license',n:'🎲 Würfel-Maschine Lizenz',d:'Schaltet die Würfel-Maschine im Zoo frei — dort selbst gewählten Betrag setzen, 50/50 auf verdoppeln oder verlieren!',p:10000}];
@@ -11992,7 +12001,7 @@ const ZP={
       '</div>';
   },
 
-  // ── v737: Admin-Gondel (nur Bu:) / Bu:3) ──
+  // ── v738: Admin-Gondel (nur Bu:) / Bu:3) ──
   _gAdm(){
     const n=(ZS.player||'').toLowerCase(); if(n!=='bu:)'&&n!=='bu:3') return;
     let o=document.getElementById('gadm-ov'); if(o) o.remove();
@@ -13090,6 +13099,11 @@ const ZChat = {
       try{ if(!Tutorial.startReb(null,_rebHowSteps())) this._addMsg('🔄','Erst das aktuelle Tutorial beenden.',true); }catch(e){}
       return;
     }
+    if(msg.toLowerCase()==='/laufband'){
+      this._addMsg('🏃','Laufband-Anleitung wird gestartet...',true);
+      try{ const a=REB_ADDONS.find(x=>x.id==='tread'); if(!Tutorial.startReb(null,a.steps)) this._addMsg('🏃','Erst das aktuelle Tutorial beenden.',true); }catch(e){}
+      return;
+    }
     if(msg.toLowerCase()==='/tipps'){
       this._addMsg('💡','Tutorial wird gestartet...',true);
       Tutorial.start();
@@ -14108,7 +14122,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v737 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v738 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
