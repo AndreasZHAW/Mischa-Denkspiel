@@ -1,3 +1,4 @@
+window.MISCHA_PRACTICE = (function(){try{return new URLSearchParams(location.search).get('practice')==='1';}catch(e){return false;}})();
 window.MISCHA_EMBED = (function(){try{return new URLSearchParams(location.search).get('embed')==='1';}catch(e){return false;}})();
 // ═══ DIAGNOSE-SEITE BRIDGE ═══
 // The diagnose tool's crash-log only ever read from zoo.html's console
@@ -211,7 +212,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v750';
+const APP_VERSION = 'v751';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -621,7 +622,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v750 · 2026-08-04</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v751 · 2026-08-04</p>
           
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -2794,6 +2795,7 @@ const App = {
     };
 
     const onComplete = async (result) => {
+      if(window.MISCHA_PRACTICE){ try{ parent.postMessage({type:'mischa-ipad-done'},location.origin); }catch(e){} return; }
       const _player=State.currentPlayer?.name||'?';
       const _age=State.getAge?State.getAge(State.currentPlayer):'?';
       const _ageGrp=State.getAgeGroup?State.getAgeGroup(State.currentPlayer):'?';
