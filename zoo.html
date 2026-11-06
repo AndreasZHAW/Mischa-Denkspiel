@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v751 -->
+<!-- ZOO v753 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -236,12 +236,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=751"></script>
-<script src="rewardchests.js?v=751"></script>
-<script src="personality.js?v=751"></script>
+<script src="lang.js?v=753"></script>
+<script src="rewardchests.js?v=753"></script>
+<script src="personality.js?v=753"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v751','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v753','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -535,14 +535,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=751"></script>
-<script src="sanction.js?v=751"></script>
-<script src="zevents.js?v=751"></script>
-<script src="znet.js?v=751"></script>
-<script src="zbases.js?v=751"></script>
-<script src="charheads.js?v=751"></script>
-<script src="zworld.js?v=751"></script>
-<script src="worlds.js?v=751"></script>
+<script src="firebase-state.js?v=753"></script>
+<script src="sanction.js?v=753"></script>
+<script src="zevents.js?v=753"></script>
+<script src="znet.js?v=753"></script>
+<script src="zbases.js?v=753"></script>
+<script src="charheads.js?v=753"></script>
+<script src="zworld.js?v=753"></script>
+<script src="worlds.js?v=753"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1563,7 +1563,7 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v751) ──
+// ── REBIRTH-SYSTEM (v753) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
 const REB_COST=[100000,1000000,2500000,10000000,100000000];
 const REB_MULT=[1.5,3,5,10,50];
@@ -1593,7 +1593,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v751: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v753: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8,eternal:3.0};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1911,7 +1911,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v751: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v753: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2371,7 +2371,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v751: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v753: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3616,7 +3616,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v751: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v753: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4193,7 +4193,7 @@ const ZG={
       const slot = typeof op.slotIdx==='number' ? op.slotIdx : 0;
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
-      // v751: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v753: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -8422,12 +8422,6 @@ const REB_TUT={
 };
 // Nachträglich hinzugefügte Rebirth-Neuheiten: jeder, der die Stufe schon hat, bekommt NUR diese Erklärung (einmalig).
 const REB_ADDONS=[
-  {id:'tread2',reb:1,steps:[
-    _RT('t2a','🏃 Neu bei den Laufbändern','Drei neue Sachen — tippe in deinem Zoo ein Laufband an, dann siehst du das Menü:'),
-    _RT('t2b','🐾 Tier-Training','Lass ein Tier aus deinem Gehege auf dem Band laufen (es läuft auch, wenn du weg bist). Es wird <b>fitter</b>: bis Level 8 verdient es <b>×3 Geld</b> pro Besucher. Mit „Tier abholen“ nimmst du es wieder runter.'),
-    _RT('t2c','🏁 Wettrennen','Fordere einen Spieler heraus, der online ist: 20 Sekunden lang so schnell wie möglich auf <b>TEMPO!</b> tippen. Wer öfter tippt, gewinnt den Einsatz (oder nur die Ehre).'),
-    _RT('t2d','🏆 Bestenliste &amp; Abzeichen','Im Shop-Tab „Laufbänder“ siehst du die Bestenliste. Dein Rang (🏃 Läufer, 💨 Sprinter, 🏎️ Rennfahrer, 👑 Läufer-Legende) steht über deinem Kopf.')
-  ]},
   {id:'tread',reb:1,steps:[
     _RT('tm0','🏃 Neu: Laufbänder &amp; Pflanzen','Ab Rebirth 1 kannst du im Shop <b>Laufbänder</b> kaufen. Sie stehen dann <b>in deinem Zoo, hinter den Gehegen</b> — jedes Laufband ist ein eigenes 3D-Gerät.'),
     _RT('tm1','⚡ Wozu das Ganze?','Du <b>trainierst</b> auf einem Laufband und sammelst <b>Laufpunkte</b>. Je mehr Punkte, desto schneller bist du: <b>zuerst beim normalen Laufen</b> (bis 2×, ab 100 Punkten), <b>danach beim Tragen eines Tieres</b> (ersetzt die Wanderschuhe, ab 10 Mio Punkten; bei 1 Mrd Punkten bist du <b>2,6× so schnell wie normalerweise</b>). Bei jeder neuen Stufe gibt es einen Klang und eine Meldung.'),
@@ -8435,6 +8429,12 @@ const REB_ADDONS=[
     {id:'tmtab',title:'🏃 Tab „Laufbänder“',text:'Tippe oben auf den Tab <b>🏃 Laufbänder</b>.',target:'#st-t',action:'tab:t'},
     _RT('tm2','🏃 Laufbänder &amp; 🌱 Pflanzen','Vom <b>Basic-Laufband</b> (1.000 MT, 1 Punkt/Sek.) bis zum <b>Feuer-Laufband</b> (100.000 Punkte/Sek.). Die <b>Pflanzen</b> stehen auch in 3D in deinem Zoo und geben einen <b>Trainings-Boost</b> — die beste ist ×3. Es zählt nur die beste Pflanze.',{target:'#scont',boxTop:true}),
     _RT('tm3','⏹ So trainierst du','Lauf in deinem Zoo zu einem Laufband und <b>tippe es an</b>. Dann läuft dein Männchen darauf, alle Knöpfe verschwinden (nur Fehlermeldungen, Geld und Tragen bleiben). Dein Geld verdienst du weiter. Mit <b>„Training stoppen“</b> oben rechts spielst du normal weiter. 💡 Schreib <b>/laufband</b> in den Chat, um das hier nochmal zu sehen.')
+  ]},
+  {id:'tread2',reb:1,steps:[
+    _RT('t2a','🏃 Und noch mehr bei den Laufbändern','Drei weitere Sachen — tippe in deinem Zoo ein Laufband an, dann siehst du das Menü:'),
+    _RT('t2b','🐾 Tier-Training','Lass ein Tier aus deinem Gehege auf dem Band laufen (es läuft auch, wenn du weg bist). Es wird <b>fitter</b>: bis Level 8 verdient es <b>×3 Geld</b> pro Besucher. Mit „Tier abholen“ nimmst du es wieder runter.'),
+    _RT('t2c','🏁 Wettrennen','Fordere einen Spieler heraus, der online ist: 20 Sekunden lang so schnell wie möglich auf <b>TEMPO!</b> tippen. Wer öfter tippt, gewinnt den Einsatz (oder nur die Ehre).'),
+    _RT('t2d','🏆 Bestenliste &amp; Abzeichen','Im Shop-Tab „Laufbänder“ siehst du die Bestenliste. Dein Rang (🏃 Läufer, 💨 Sprinter, 🏎️ Rennfahrer, 👑 Läufer-Legende) steht über deinem Kopf.')
   ]},
   {id:'wish',reb:3,steps:[
     _RT('aw0','🔄 Neu für dich (Rebirth 3)','Nur das hier ist neu:'),
@@ -8445,7 +8445,7 @@ setInterval(()=>{ try{
   const z=(typeof ZS!=='undefined')&&ZS.zoo; if(!z||typeof Tutorial==='undefined'||Tutorial._active||!(typeof ZG!=='undefined'&&ZG.scene)||ZG._arcadeActive) return;
   for(const a of REB_ADDONS){ if((z.reb||0)<a.reb) continue; z.addonSeen=z.addonSeen||{}; if(z.addonSeen[a.id]) continue; if(!z.tutorialSeen&&!(z.reb>0)) continue; z.addonSeen[a.id]=1; ZS.save&&ZS.save(); Tutorial.startReb(null,a.steps); break; }
 }catch(e){} },4000);
-// ══ REBIRTH-ANLEITUNG (v751): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
+// ══ REBIRTH-ANLEITUNG (v753): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
 function _rebHowSteps(){
   const z=ZS.zoo||{}, rb=z.reb||0, N=rb+1;
   if(rb>=REBIRTH_MAX) return [ _RT('rbm0','🏆 Alle Rebirths geschafft','Du hast alle '+REBIRTH_MAX+' Wiedergeburten gemacht. Dein Einkommen ist dauerhaft <b>×'+rebMultOf(rb)+'</b> — mehr geht nicht. Im Rebirth-Fenster kannst du dir den Abspann ansehen.') ];
@@ -12006,10 +12006,9 @@ const ZP={
         '<button class="btn btnd" onclick="LuckyBlocks.spawn(&quot;mythic&quot;)" style="font-size:.72rem;padding:6px;background:rgba(255,105,180,.2)">🌸 Mythos</button>'+
         '<button class="btn btnd" onclick="LuckyBlocks.spawn(&quot;secret&quot;)" style="font-size:.72rem;padding:6px;background:rgba(0,0,0,.5)">🖤 Geheim</button>'+
       '</div>';
-    try{ el.insertAdjacentHTML('beforeend', window.ZLetters?ZLetters.adminHTML():''); }catch(e){}
   },
 
-  // ── v751: Admin-Gondel (nur Bu:) / Bu:3) ──
+  // ── v753: Admin-Gondel (nur Bu:) / Bu:3) ──
   _gAdm(){
     const n=(ZS.player||'').toLowerCase(); if(n!=='bu:)'&&n!=='bu:3') return;
     let o=document.getElementById('gadm-ov'); if(o) o.remove();
@@ -13983,6 +13982,7 @@ const ZAdmin = {
     if(tab==='einst')this._populateEvents();
     if(tab==='battle')this._battleStatus();
     if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); ZEvt.adminTeamLoad(); }
+    if(tab==='wjagd'){ const b=document.getElementById('padmin-wjagd-body'); if(b&&window.ZLetters) b.innerHTML=ZLetters.adminHTML(); }
     if(tab==='gucker')this._guckerList(false);
     if(tab==='ministat')this._miniStat();
     if(tab==='cal')this._loadCalFromFirebase();
@@ -14132,7 +14132,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v751 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v753 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -20627,6 +20627,10 @@ window.ZooEvents = ZooEvents;
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">🍀 Glück &amp; Boosts</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
           <div class="padmin-tab-btn" data-tab="belohnungen" onclick="ZAdmin.switchTab('belohnungen')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏅 Rang / Glück / Speed</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">🔤 Spiel-Events</div>
+          <div class="padmin-tab-btn" data-tab="wjagd" onclick="ZAdmin.switchTab('wjagd')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔤 Buchstaben-Suche</div>
+          <div class="padmin-tab-btn" data-tab="lblock" onclick="ZAdmin.switchTab('lblock')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📦 Glücksblöcke</div>
+          <div class="padmin-tab-btn" data-tab="lband" onclick="ZAdmin.switchTab('lband')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏃 Laufband-Admin</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">💀 Admin Abuse</div>
           <div class="padmin-tab-btn" data-tab="evcenter" onclick="ZAdmin.switchTab('evcenter')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎪 Event-Zentrale</div>
           <div class="padmin-tab-btn" data-tab="battle" onclick="ZAdmin.switchTab('battle')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚔️ Kampf-Event</div>
@@ -20682,6 +20686,21 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: SICHERHEIT -->
+        <div class="padmin-tab" id="padmin-tab-wjagd" style="display:none"><div class="padmin-section-title">🔤 Buchstaben-Suche (Wort-Jagd)</div><div id="padmin-wjagd-body"></div></div>
+        <div class="padmin-tab" id="padmin-tab-lblock" style="display:none"><div class="padmin-section-title">📦 Glücksblöcke spawnen</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.4">Lässt einen Glücksblock im Zoo erscheinen. Wähle die Seltenheit:</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <button class="padmin-btn" onclick="LuckyBlocks.spawn('common')">📦 Normal</button>
+            <button class="padmin-btn" style="background:rgba(142,68,173,.6)" onclick="LuckyBlocks.spawn('epic')">💜 Episch</button>
+            <button class="padmin-btn" style="background:rgba(243,156,18,.6)" onclick="LuckyBlocks.spawn('legendary')">🟡 Legendär</button>
+            <button class="padmin-btn" style="background:rgba(255,255,255,.25)" onclick="LuckyBlocks.spawn('god')">⚪ Gott</button>
+            <button class="padmin-btn" style="background:rgba(255,105,180,.45)" onclick="LuckyBlocks.spawn('mythic')">🌸 Mythos</button>
+            <button class="padmin-btn" style="background:rgba(0,0,0,.6)" onclick="LuckyBlocks.spawn('secret')">🖤 Geheim</button>
+          </div></div>
+        <div class="padmin-tab" id="padmin-tab-lband" style="display:none"><div class="padmin-section-title">🏃 Laufband-Admin</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.4">Das Admin-Laufband steht beim Marktplatz und macht 5× so viele Punkte wie dein bestes Laufband. Alle Spieler sehen es.</div>
+          <button class="padmin-btn" style="width:100%;margin-bottom:8px" onclick="ZTread.admToggle()">🏃👑 Admin-Laufband beim Marktplatz (an/aus)</button>
+          <button class="padmin-btn" style="width:100%;background:#8e44ad" onclick="ZTread.admEvent()">🎉 Admin-Event: ALLE trainieren (an/aus)</button></div>
         <div class="padmin-tab" id="padmin-tab-safety" style="display:none">
           <div class="padmin-section-title">🛟 Sicherheits-Tools</div>
           <div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.4">Wenn jemand feststeckt, gestorben ist oder du kurz Ruhe brauchst.</div>
