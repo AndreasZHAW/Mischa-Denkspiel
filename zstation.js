@@ -1,9 +1,9 @@
-/* ═══ ZStation (v763): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
+/* ═══ ZStation (v764): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
 (function(){
   if(window.ZStation) return;
   const S=window.ZStation={inside:false,cabins:[],built:false,owner:new WeakMap(),pylonX:[24,33]};
   // ── Strecke (geschlossene Schleife): Halle (Wende bei x=-9) → Seil → Gegenstation (Wende bei x=45) → zurück ──
-  const R=5, AX=-9, CX=45, SL=54, ARC=Math.PI*R, L=2*SL+2*ARC, SP=11,VD=4.4, YH=1.3, YO=6.8;
+  const R=5, AX=-9, CX=45, SL=54, ARC=Math.PI*R, L=2*SL+2*ARC, SP=11,VD=4.4, YH=1.3, YO=14, EX=YO-6.8;
   const hgt=x=>{ const t=Math.min(1,Math.max(0,(x-12)/16)); return YH+(YO-YH)*t*t*(3-2*t); };
   S.pathAt=function(u){ u=((u%L)+L)%L; let x,z,dx,dz,th;
     if(u<ARC/2){ th=Math.PI+u/R; x=AX+R*Math.cos(th); z=R*Math.sin(th); dx=-Math.sin(th); dz=Math.cos(th); }
@@ -46,6 +46,7 @@
     const lab=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false})); lab.scale.set(4.2,2.1,1); lab.position.set(0,3.5,0); lab.renderOrder=20; lab.visible=false; b.add(lab);
     return {g,b,dL,dR,spr,lab,bar,u:-i*SP,door:0,fresh:true,obj:null,key:'',idx:i,sway:Math.random()*6};
   }
+  S._mkCabin=mkCabin; S.L=L;
   const labTex=(a,sub)=>{ const c=cv(256,128), g=c.getContext('2d'); const col=hex(RC[a.r]||0x95a5a6); g.fillStyle='rgba(10,14,28,.88)'; g.strokeStyle=col; g.lineWidth=5; const r=14; g.beginPath(); g.moveTo(r,3); g.arcTo(253,3,253,125,r); g.arcTo(253,125,3,125,r); g.arcTo(3,125,3,3,r); g.arcTo(3,3,253,3,r); g.fill(); g.stroke();
     g.font='46px serif'; g.textAlign='left'; g.textBaseline='middle'; g.fillText(a.e,14,44); g.fillStyle='#fff'; g.font='900 25px Arial'; g.fillText(a.n.length>14?a.n.slice(0,13)+'…':a.n,70,34); g.fillStyle=col; g.font='900 21px Arial'; g.fillText((RN[a.r]||a.r).toUpperCase(),16,86); g.fillStyle='#ffd54f'; g.textAlign='right'; g.font='900 23px Arial'; g.fillText(sub,244,96); return new THREE.CanvasTexture(c); };
   // ── Bauen ──
@@ -91,18 +92,18 @@
       const fp=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,9,6),MB(0xcccccc)); fp.position.set(s*17.2,4.5,10.8); G.add(fp); const fl=box(2.2,1.3,.05,s>0?0xd32f2f:0xffffff,s*17.2+s*1.1,8.2,10.8,G); });
     // Mast-Gegenstation
     const CS=new THREE.Group(); G.add(CS); box(17,5,19,0xb7bbc1,45,2.5,0,CS); box(17.4,.4,19.4,0x8f939a,45,5.2,0,CS);
-    [-9.3,9.3].forEach(z=>box(17,6.8,.3,glassM,45,8.6,z,CS)); box(.3,6.8,19,glassM,53.7,8.6,0,CS);
-    [[36.7,-9.3],[36.7,9.3],[53.4,-9.3],[53.4,9.3]].forEach(q=>box(.6,7.2,.6,RED,q[0],8.6,q[1],CS)); box(18,.5,20,0x3a4a6a,45,12.4,0,CS); box(17.4,.14,19.4,new THREE.MeshBasicMaterial({map:solarTex()}),45,12.7,0,CS);
-    [-5,5].forEach(z=>box(17,.5,.4,RED,45,11.2,z,CS)); sign('GEGENSTATION',480,110,6,1.4,'#0d47a1','#fff',45,3.6,9.7,0,CS);
+    [-9.3,9.3].forEach(z=>box(17,6.8+EX,.3,glassM,45,8.6+EX/2,z,CS)); box(.3,6.8+EX,19,glassM,53.7,8.6+EX/2,0,CS);
+    [[36.7,-9.3],[36.7,9.3],[53.4,-9.3],[53.4,9.3]].forEach(q=>box(.6,7.2+EX,.6,RED,q[0],8.6+EX/2,q[1],CS)); box(18,.5,20,0x3a4a6a,45,12.4+EX,0,CS); box(17.4,.14,19.4,new THREE.MeshBasicMaterial({map:solarTex()}),45,12.7+EX,0,CS);
+    [-5,5].forEach(z=>box(17,.5,.4,RED,45,11.2+EX,z,CS)); sign('GEGENSTATION',480,110,6,1.4,'#0d47a1','#fff',45,3.6,9.7,0,CS);
     const wh2=new THREE.Group(); wh2.position.set(CX,YO+2.6,0); CS.add(wh2); S.wheel2=wh2; const t2=new THREE.Mesh(new THREE.TorusGeometry(R+.3,.28,6,40),MB(RED)); t2.rotation.x=Math.PI/2; wh2.add(t2); for(let k=0;k<6;k++){ const sp=box(R*2+.6,.16,.3,0xa82323,0,0,0,wh2); sp.rotation.y=k*Math.PI/6; }
     const ps=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,YO+2.6-5.2,10),MB(0x6b6f76)); ps.position.set(CX,5.2+(YO+2.6-5.2)/2,0); CS.add(ps);
     // Masten (Gitter)
-    S.pylonX.forEach(px=>{ const P=new THREE.Group(); P.position.set(px,0,0); G.add(P); const H=13, tp=.9, bs=2.1; const cor=[[-1,-1],[1,-1],[-1,1],[1,1]];
+    S.pylonX.forEach(px=>{ const P=new THREE.Group(); P.position.set(px,0,0); G.add(P); const HY=hgt(px)+2.6, H=Math.round(HY+1.8), tp=.9, bs=2.1; const cor=[[-1,-1],[1,-1],[-1,1],[1,1]];
       cor.forEach(c=>strut(new THREE.Vector3(c[0]*bs,0,c[1]*bs),new THREE.Vector3(c[0]*tp,H,c[1]*tp),.32,0x8e9399,P));
       for(let lv=0;lv<4;lv++){ const y0=lv*H/4, y1=(lv+1)*H/4, w0=bs-(bs-tp)*lv/4, w1=bs-(bs-tp)*(lv+1)/4;
         [[-1,0],[1,0],[0,-1],[0,1]].forEach(f=>{ const a=f[0]!==0?[[f[0]*w0,y0,-w0],[f[0]*w0,y0,w0],[f[0]*w1,y1,-w1],[f[0]*w1,y1,w1]]:[[-w0,y0,f[1]*w0],[w0,y0,f[1]*w0],[-w1,y1,f[1]*w1],[w1,y1,f[1]*w1]]; const v=a.map(q=>new THREE.Vector3(q[0],q[1],q[2])); strut(v[0],v[3],.14,0xaab0b6,P); strut(v[1],v[2],.14,0xaab0b6,P); strut(v[0],v[1],.16,0x8e9399,P); });
       }
-      box(1.8,.5,13.6,0x6e737a,0,H+.2,0,P); [-R,R].forEach(z=>{ box(.35,2.6,.35,0x30343a,0,H-1.2,z,P); box(1.4,.5,1.0,0x1d1f23,0,YO+2.6-.35+0,z,P); const sh=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.3,12),MB(0xc62828)); sh.rotation.x=Math.PI/2; sh.position.set(0,YO+2.6,z); P.add(sh); });
+      box(1.8,.5,13.6,0x6e737a,0,H+.2,0,P); [-R,R].forEach(z=>{ box(.35,2.6,.35,0x30343a,0,H-1.2,z,P); box(1.4,.5,1.0,0x1d1f23,0,HY-.35,z,P); const sh=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.3,12),MB(0xc62828)); sh.rotation.x=Math.PI/2; sh.position.set(0,HY,z); P.add(sh); });
       box(.9,.6,.9,0xd32f2f,0,H+.75,0,P); });
     // Seil (Röhre entlang der Schleife)
     const pts=[]; for(let u=0;u<L;u+=1.2){ const p=S.pathAt(u); pts.push(new THREE.Vector3(p.x,p.y+2.6,p.z)); } const cur=new THREE.CatmullRomCurve3(pts,true); const cab=new THREE.Mesh(new THREE.TubeGeometry(cur,360,.07,5,true),MB(0x2b2d31)); G.add(cab);
@@ -129,18 +130,20 @@
       const mov=d>.05||c.dep; c.sway+=dt*(mov?3:1.4); c.g.rotation.z=Math.sin(c.sway)*(p.x>16?.045:.012)*(mov?1.4:1); c.g.rotation.x=Math.sin(c.sway*.7)*.015;
       const open=(!c.dep&&c.slot===0&&d<.2)?1:0; c.door+=Math.sign(open-c.door)*Math.min(Math.abs(open-c.door),dt*.7);
       const o=c.door, ss=1-.6*o; c.dL.scale.z=ss; c.dR.scale.z=ss; c.dL.position.z=-(.55+.46*o); c.dR.position.z=.55+.46*o;
+      try{ if(window.ZFx) ZFx.cabinRare(c); }catch(e){}
       const ob=c.obj; c.spr.visible=true; c.lab.visible=false;
       if(c.key!==(ob.isCloverOnly?'clover':ob.a.id)){ c.key=ob.isCloverOnly?'clover':ob.a.id; const e=ob.isCloverOnly?'🍀':ob.a.e; c.spr.material.map=emojiTex(e); c.spr.material.needsUpdate=true; const col=ob.isCloverOnly?0x4caf50:(RC[ob.a.r]||0x95a5a6); c.bar.material.color.setHex(col); c.lab.material.map=ob.isCloverOnly?labTex({e:'🍀',n:'Kleeblatt',r:'normal'},'Glück'):labTex(ob.a,price(ob.a.p)); c.lab.material.needsUpdate=true; }
       c.spr.position.y=.2+Math.sin(c.sway*1.3)*.04; c.lab.visible=S.inside&&p.x<15.6&&!c.dep&&c.slot<=1; });
     if(S.wheel) S.wheel.rotation.y+=dt*.55; if(S.wheel2) S.wheel2.rotation.y+=dt*.55;
+    if(S.riding){ try{ S._rideFrame(dt); }catch(e){ console.warn('ride',e); S.rideEnd(true); } }
     // Kollision + Innen-Erkennung
-    try{ const pl=Z.pl; if(pl&&pl.y<4){ const x=pl.x,zz=pl.z, inO=Math.abs(x)<16.6&&Math.abs(zz)<10.8, inI=Math.abs(x)<14.4&&Math.abs(zz)<8.6, gap=zz>8.6&&Math.abs(x)<2.6;
+    if(!S.riding) try{ const pl=Z.pl; if(pl&&pl.y<4){ const x=pl.x,zz=pl.z, inO=Math.abs(x)<16.6&&Math.abs(zz)<10.8, inI=Math.abs(x)<14.4&&Math.abs(zz)<8.6, gap=zz>8.6&&Math.abs(x)<2.6;
         if(inO&&!inI&&!gap&&S._lp){ pl.x=S._lp.x; pl.z=S._lp.z; } else S._lp={x:pl.x,z:pl.z};
         const ins=Math.abs(pl.x)<14.4&&Math.abs(pl.z)<8.6&&pl.y<4; if(ins!==S.inside){ S.inside=ins; S._uiUpd(true); } } }catch(e){}
     S._uiUpd();
   };
 
-  // Pfeil-Navigation: um die Gondelstation herumleiten (v763)
+  // Pfeil-Navigation: um die Gondelstation herumleiten (v764)
   (function(){ const HX=19,HZ=13;
     const inR=(x,z)=>Math.abs(x)<HX&&Math.abs(z)<HZ;
     const hit=(a,b)=>{ for(let i=0;i<=24;i++){ const t=i/24; if(inR(a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t)) return true; } return false; };
@@ -161,6 +164,7 @@
     const b=document.createElement('button'); b.id='zs-in'; b.textContent='🚪 Drinnen'; b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:196px;z-index:130;display:none;padding:12px 26px;border:none;border-radius:30px;background:linear-gradient(135deg,#ffd54f,#ff9800);color:#2a1700;font:900 1rem Arial;box-shadow:0 4px 0 #b35c00,0 8px 16px rgba(0,0,0,.4)'; b.onclick=()=>S.enter(); document.body.appendChild(b);
     const r=document.createElement('div'); r.id='zs-bar'; r.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:186px;z-index:130;display:none;width:min(94vw,430px);background:rgba(8,12,26,.92);border:2px solid #ffd54f;border-radius:16px;padding:8px 10px;color:#fff;font-family:Arial,sans-serif'; document.body.appendChild(r); };
   S._uiUpd=function(force){ const now=Date.now(); if(!force&&now-(S._ut||0)<250) return; S._ut=now; const ib=document.getElementById('zs-in'), bar=document.getElementById('zs-bar'); if(!ib||!bar) return; const Z=ZG, pl=Z.pl; const near=Math.hypot(pl.x,pl.z)<24&&!S.inside&&pl.y<4&&!Z.carrying;
+    if(S.riding){ ib.style.display='none'; bar.style.display='none'; const rb0=document.getElementById('zs-ride'); if(rb0) rb0.style.display='none'; const rx=document.getElementById('zs-rx'); if(rx) rx.style.display='block'; return; } const rb=document.getElementById('zs-ride'), rx1=document.getElementById('zs-rx'); if(rx1) rx1.style.display='none'; if(rb) rb.style.display=S.inside?'block':'none';
     let tg=false; try{ const T=Tutorial; tg=T._active&&T._list()[T._stepIdx]&&['gondola','gluck','buy'].includes(T._list()[T._stepIdx].id); }catch(e){}
     ib.style.display=near&&!tg&&!(window.ZTread&&(ZTread.on||ZTread.tour))?'block':'none'; const wb=document.getElementById('wbar'); if(wb) wb.style.visibility=S.inside?'hidden':''; if(!S.inside){ bar.style.display='none'; bar.dataset.k=''; return; }
     const g=Z.gQ&&Z.gQ[0]; if(!g){ bar.style.display='none'; return; } bar.style.display='block'; const z=ZS.zoo, tm=(typeof ZS!=='undefined'&&ZS.dsMT||0);
@@ -177,7 +181,7 @@
   window.addEventListener('load',()=>{ try{ S._ui(); }catch(e){} });
 })();
 
-/* ═══ ZEncDecor (v763): Gehege-Details je nach Tierart ═══ */
+/* ═══ ZEncDecor (v764): Gehege-Details je nach Tierart ═══ */
 (function(){
   if(window.ZEncDecor) return;
   const D=window.ZEncDecor={};
@@ -230,7 +234,7 @@
   D.add=function(g,a,i){ try{ const d=D.make(a,i); g.add(d); g.userData.decor=d; }catch(e){ console.warn('ZEncDecor',e); } };
 })();
 
-/* ═══ ZCave (v763): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
+/* ═══ ZCave (v764): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
 (function(){
   if(window.ZCave) return;
   const C=window.ZCave={built:false,CX:-205,CZ:-60,open:0,doorT:0,inside:false};
@@ -297,4 +301,40 @@
     try{ ZP.toast('🎁 Schatz gefunden! '+out.join(' · '),6000); }catch(e){} };
   const boot=()=>{ try{ if(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer) C.build(); else setTimeout(boot,800); }catch(e){ setTimeout(boot,1500); } };
   window.addEventListener('load',()=>setTimeout(boot,1500));
+})();
+
+/* ═══ Gondel-Mitfahrt (v764) ═══ */
+(function(){
+  const S=window.ZStation; if(!S) return;
+  const SPD=5.5; let sc=null;
+  const emo=e=>{ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d'); g.font='96px serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(e,64,68); return new THREE.CanvasTexture(c); };
+  const chip=()=>{ let e=document.getElementById('zs-chip'); if(!e){ e=document.createElement('div'); e.id='zs-chip'; e.style.cssText='position:fixed;left:50%;top:150px;transform:translateX(-50%);z-index:131;display:none;background:rgba(8,12,26,.88);border:2px solid #ffd54f;border-radius:18px;padding:6px 14px;color:#fff;font:800 .85rem Arial;text-align:center;pointer-events:none'; document.body.appendChild(e); } return e; };
+  S._rideUI=function(){ if(document.getElementById('zs-ride')) return;
+    const mk=(id,t,css)=>{ const b=document.createElement('button'); b.id=id; b.textContent=t; b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);z-index:131;display:none;padding:10px 22px;border:none;border-radius:28px;font:900 .95rem Arial;box-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 16px rgba(0,0,0,.4);'+css; document.body.appendChild(b); return b; };
+    mk('zs-ride','🚡 Mitfahren (Aussicht)','bottom:310px;background:linear-gradient(135deg,#7df3ff,#3f9fd8);color:#032235').onclick=()=>S.rideStart();
+    mk('zs-rx','🛬 Aussteigen','bottom:120px;background:rgba(231,76,60,.92);color:#fff').onclick=()=>S.rideEnd(false); };
+  S.rideStart=function(){ if(S.riding||!S.built) return; try{ if(ZG.carrying){ ZP.toast('🐾 Erst das Tier ins Gehege tragen!',2000); return; } }catch(e){}
+    const z=ZS.zoo, G=S.group; const cab=S._mkCabin(99); cab.spr.visible=false; cab.lab.visible=false; G.add(cab.g); const L=S.L;
+    const stars=[], pts=[.1,.2,.33,.47,.6,.76,.9]; const g=new THREE.Group(); G.add(g);
+    pts.forEach((f,i)=>{ const p=S.pathAt(f*L), n={x:-p.dz,z:p.dx}; const sd=(i%2?1:-1)*(7+(i%3)*3); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:emo('⭐'),transparent:true,depthTest:true})); sp.scale.set(2.6,2.6,1); const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:emo('✨'),transparent:true,opacity:.6})); gl.scale.set(4,4,1); sp.position.set(p.x+n.x*sd,p.y+3.5+(i%2)*2,p.z+n.z*sd); gl.position.copy(sp.position); g.add(sp); g.add(gl); stars.push({sp,gl,got:false,dw:0}); });
+    const cd=(z&&z.rideCd)||0, reward=Date.now()>=cd; if(z) z.rideCd=Date.now()+15*60000;
+    S.ride={on:true,cab,stars,g,u:S.L-5.5,dist:0,got:0,reward,t0:performance.now()}; S.riding=true; S.inside=false; S._lp=null;
+    const wb=document.getElementById('wbar'); if(wb) wb.style.visibility='hidden'; chip().style.display='block'; S._rideChip();
+    try{ ZP.toast('🚡 Gondelfahrt! Schau dich um und finde die ⭐ (hinschauen).'+(reward?'':' (Keine Belohnung – Abklingzeit)'),4500); }catch(e){}
+    try{ if(!S._zpw){ S._zpw=1; const o=ZP.open; ZP.open=function(p){ if(S.riding&&p==='gond') return; return o.apply(this,arguments); }; } }catch(e){} };
+  S._rideChip=function(){ const r=S.ride; if(!r) return; chip().innerHTML='🚡 Gondelfahrt · ⭐ '+r.got+'/'+r.stars.length+(r.reward?'':' <span style="opacity:.6">(ohne Belohnung)</span>'); };
+  S._rideFrame=function(dt){ const r=S.ride; if(!r||!r.on) return; const adv=SPD*dt; r.u+=adv; r.dist+=adv; const p=S.pathAt(r.u), t=performance.now()/1000;
+    r.cab.g.position.set(p.x,p.y+2.6,p.z); r.cab.g.rotation.y=Math.atan2(-p.dx,-p.dz); r.cab.g.rotation.z=Math.sin(t*1.4)*.02; r.cab.g.rotation.x=Math.sin(t*1.1)*.012;
+    const pl=ZG.pl; pl.x=p.x; pl.z=p.z; pl.y=p.y+1.3; try{ ZG.cam.position.set(p.x+p.dx*.8,p.y+1.35,p.z+p.dz*.8); }catch(e){}
+    r.stars.forEach((s,i)=>{ if(s.got) return; s.sp.position.y+=Math.sin(t*2+i)*.004; s.gl.material.opacity=.45+.25*Math.sin(t*3+i);
+      const dx=s.sp.position.x-p.x, dy=s.sp.position.y-(p.y+1.35), dz=s.sp.position.z-p.z, d=Math.hypot(dx,dy,dz); const fw={x:-Math.sin(ZG.yaw)*Math.cos(ZG.pitch||0),y:Math.sin(ZG.pitch||0),z:-Math.cos(ZG.yaw)*Math.cos(ZG.pitch||0)}; const dot=(dx*fw.x+dy*fw.y+dz*fw.z)/(d||1);
+      if(d<45&&dot>.985){ s.dw+=dt; s.sp.scale.setScalar(2.6+s.dw*2); if(s.dw>.7){ s.got=true; s.sp.visible=false; s.gl.visible=false; r.got++; S._rideChip(); try{ ZFx&&ZFx.shake(.06,.2); }catch(e){}
+          if(r.reward){ try{ ZS.zoo.mt+=150; ZG._updHUD&&ZG._updHUD(); ZP.toast('⭐ Entdeckt! +150 MT',1800); }catch(e){} } else { try{ ZP.toast('⭐ Entdeckt!',1200); }catch(e){} }
+          if(r.got===r.stars.length&&r.reward){ try{ ZTread.tBoost('luck',1.5,10); ZP.toast('🌟 Alle Sterne! Glück ×1,5 · 10 Min',4500); ZGfx.confetti(120); ZS.save&&ZS.save(); }catch(e){} } } } else { s.dw=Math.max(0,s.dw-dt); s.sp.scale.setScalar(2.6+s.dw*2); } });
+    if(r.dist>=S.L-.5) S.rideEnd(false); };
+  S.rideEnd=function(silent){ const r=S.ride; if(!r) return; const p=S.pathAt(r.u), pl=ZG.pl; try{ r.cab.g.parent.remove(r.cab.g); r.g.parent.remove(r.g); }catch(e){}
+    S.riding=false; S.ride=null; const c=document.getElementById('zs-chip'); if(c) c.style.display='none';
+    if(p.x<16){ pl.x=-3; pl.z=3.5; S._lp={x:pl.x,z:pl.z}; S.inside=true; ZG.yaw=Math.atan2(11,-3.5); ZG.pitch=-.02; } else { pl.x=Math.min(p.x,34); pl.z=p.x>35?12.5:p.z+(p.z>0?1:-1)*4; ZG.yaw=0; }
+    pl.y=1.7; try{ ZS.save&&ZS.save(); }catch(e){} if(!silent){ try{ ZP.toast('🛬 Fahrt beendet!',1800); }catch(e){} } };
+  window.addEventListener('load',()=>setTimeout(()=>{ try{ S._rideUI(); }catch(e){} },2000));
 })();
