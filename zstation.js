@@ -1,4 +1,4 @@
-/* ═══ ZStation (v758): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
+/* ═══ ZStation (v759): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
 (function(){
   if(window.ZStation) return;
   const S=window.ZStation={inside:false,cabins:[],built:false,owner:new WeakMap(),pylonX:[24,33]};
@@ -160,4 +160,57 @@
   S.hold=function(){ try{ ZP._buyInFlight=true; clearTimeout(S._ht); S._ht=setTimeout(()=>{ ZP._buyInFlight=false; },2500); }catch(e){} };
   S.buy=function(id){ try{ const g=ZG.gQ[0]; if(!g||g.isCloverOnly) return; ZP._buyG(id||g.a.id); ZP._buyInFlight=false; S._uiUpd(true); setTimeout(()=>{ if(ZG.carrying) S.exit(); },250); }catch(e){} };
   window.addEventListener('load',()=>{ try{ S._ui(); }catch(e){} });
+})();
+
+/* ═══ ZEncDecor (v759): Gehege-Details je nach Tierart ═══ */
+(function(){
+  if(window.ZEncDecor) return;
+  const D=window.ZEncDecor={};
+  const MC={}; const mb=c=>MC[c]||(MC[c]=new THREE.MeshBasicMaterial({color:c}));
+  const bx=(w,h,d,c,x,y,z,g)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mb(c)); m.position.set(x,y,z); g.add(m); return m; };
+  const cyl=(r1,r2,h,c,x,y,z,g,s)=>{ const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,s||10),mb(c)); m.position.set(x,y,z); g.add(m); return m; };
+  const sph=(r,c,x,y,z,g,sy)=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),mb(c)); m.position.set(x,y,z); if(sy) m.scale.y=sy; g.add(m); return m; };
+  const RC={normal:'#95a5a6',rare:'#3498DB',epic:'#9B59B6',legendary:'#F39C12',ultralegendary:'#FFD700',god:'#E74C3C',mythic:'#00FF88',secret:'#FF1493',eternal:'#FFFFFF'};
+  const RN={normal:'Normal',rare:'Selten',epic:'Episch',legendary:'Legendär',god:'Gott',mythic:'Mythisch',ultralegendary:'Ultra Legendär',secret:'Geheim',eternal:'Ewig'};
+  const sets={
+    water:'🐟🐠🐡🐬🐳🐋🦈🐙🦑🦀🦞🦐🐚🦭🐊🐢🐸🦆🦢🦩🦦🪼',
+    arctic:'🐧🐻‍❄️❄️🦌🦣',
+    desert:'🐪🐫🦂🦎🐍🌵🦅🦔',
+    savanna:'🦁🐘🦒🦓🦏🦛🐆🐃🦬🦘🐅',
+    jungle:'🐒🦍🦧🦜🦥🐦🦚🐜🐝🦋🐛',
+    farm:'🐄🐖🐑🐴🐔🐓🐐🦃🐷🐮🐏🐎🦆🐇🐰🐕🐈🐶🐱🐹🐭',
+    fantasy:'🦄🐉🐲🔥👻👽🤖🦖🦕😈⚡'
+  };
+  const kindOf=a=>{ const e=a.e||''; for(const k in sets){ for(const ch of Array.from(sets[k])) if(ch!=='‍'&&e.indexOf(ch)>=0) return k; }
+    let h=0; const s=a.id||a.n||''; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return ['forest','forest','farm','jungle'][Math.abs(h)%4]; };
+  const FLOOR={water:0x6fae6a,arctic:0xe9f2f7,desert:0xd9bd7a,savanna:0xc9b45a,jungle:0x2f7a35,farm:0x6fae45,fantasy:0x8c6fd0,forest:0x4f8f3a};
+  const tree=(g,x,z,s,kind)=>{ cyl(.18*s,.25*s,1.8*s,0x6b4423,x,.9*s,z,g,6); if(kind==='arctic'){ [[1,.9],[1.4,.6],[1.9,.4]].forEach((q,i)=>{ const c=new THREE.Mesh(new THREE.ConeGeometry(q[1]*s,1.1*s,7),mb(i%2?0xf2f6f8:0x2e6b4a)); c.position.set(x,(1.5+i*.8)*s,z); g.add(c); }); }
+    else if(kind==='jungle'){ [0,1,2,3,4].forEach(i=>{ const a=i*1.26; const l=bx(1.5*s,.06,.4*s,0x1f8a3a,x+Math.cos(a)*.7*s,2.0*s,z+Math.sin(a)*.7*s,g); l.rotation.y=-a; l.rotation.z=.4; }); }
+    else sph(1.0*s,kind==='fantasy'?0xff8bd1:0x2e8b3d,x,2.3*s,z,g,.85); };
+  const cactus=(g,x,z)=>{ cyl(.22,.22,1.8,0x3f8f4a,x,.9,z,g,8); cyl(.14,.14,.7,0x3f8f4a,x-.4,1.1,z,g,6); cyl(.14,.14,.6,0x3f8f4a,x+.4,1.3,z,g,6); };
+  const rocks=(g,x,z,c)=>{ [[0,0,.55],[.6,.2,.38],[-.4,.5,.32]].forEach(q=>{ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(q[2],0),mb(c)); r.position.set(x+q[0],q[2]*.6,z+q[1]); r.scale.y=.7; g.add(r); }); };
+  const trough=(g,x,z,ry)=>{ const t=new THREE.Group(); bx(1.5,.35,.6,0x8d6e63,0,.3,0,t); bx(1.3,.08,.4,0xd9a441,0,.5,0,t); t.position.set(x,0,z); t.rotation.y=ry||0; g.add(t); };
+  const bowl=(g,x,z,col)=>{ cyl(.55,.45,.2,0x9aa3ab,x,.2,z,g,14); cyl(.46,.46,.05,col||0x4fc3f7,x,.31,z,g,14); };
+  const textTex=(a)=>{ const c=document.createElement('canvas'); c.width=256; c.height=128; const g=c.getContext('2d'); const col=RC[a.r]||'#95a5a6';
+    g.fillStyle='#6b4423'; g.fillRect(0,0,256,128); g.fillStyle='#f5e6c4'; g.fillRect(8,8,240,112); g.strokeStyle=col; g.lineWidth=7; g.strokeRect(8,8,240,112);
+    g.font='38px serif'; g.textAlign='left'; g.textBaseline='middle'; g.fillText(a.e||'',18,40); g.fillStyle='#2a1a0a'; g.font='900 25px Arial'; const n=a.n||''; g.fillText(n.length>12?n.slice(0,11)+'…':n,66,40);
+    g.fillStyle=col; g.fillRect(18,70,220,30); g.fillStyle=(a.r==='eternal'||a.r==='ultralegendary'||a.r==='mythic')?'#222':'#fff'; g.font='900 20px Arial'; g.textAlign='center'; g.fillText((RN[a.r]||a.r||'').toUpperCase(),128,86);
+    const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t; };
+  D.make=function(a,i){ const g=new THREE.Group(); if(!a) return g; const k=kindOf(a);
+    // Bodenbelag je Lebensraum
+    const fl=new THREE.Mesh(new THREE.BoxGeometry(6.6,.06,6.6),mb(FLOOR[k]||0x4f8f3a)); fl.position.y=.23; g.add(fl);
+    if(k==='water'){ const p=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.1,.05,20),mb(0x3fa7e8)); p.position.set(0,.27,0); p.scale.z=.8; g.add(p); const ring=new THREE.Mesh(new THREE.TorusGeometry(2.1,.12,6,24),mb(0xb0a48a)); ring.rotation.x=Math.PI/2; ring.position.set(0,.27,0); ring.scale.y=.8; g.add(ring); rocks(g,-2.4,-2.3,0x9aa0a6); [[2.3,-2.2],[2.6,-1.8]].forEach(q=>cyl(.04,.04,1.1,0x3f7f2f,q[0],.8,q[1],g,4)); trough(g,2.2,2.0,.4); }
+    else if(k==='arctic'){ [[-2.2,-2.2,.9],[2.0,2.1,.7]].forEach(q=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(q[2],10,6),mb(0xffffff)); m.position.set(q[0],.2,q[1]); m.scale.y=.45; g.add(m); }); tree(g,2.3,-2.3,1.0,'arctic'); bowl(g,-2.2,2.0,0x9fdcff); trough(g,2.0,1.4,0); rocks(g,-2.3,-1.3,0xcfd8dc); }
+    else if(k==='desert'){ cactus(g,-2.3,-2.2); cactus(g,2.4,-2.1); rocks(g,2.2,2.2,0xb08a5a); bowl(g,-2.2,1.8,0x4fc3f7); trough(g,2.0,1.0,.3); }
+    else if(k==='savanna'){ tree(g,-2.3,-2.2,1.1,'savanna'); const t=g.children[g.children.length-1]; t.scale.set(1.6,.5,1.6); t.position.y=2.6; rocks(g,2.3,-2.2,0xa89878); bowl(g,-2.2,1.9); trough(g,2.0,1.4,.2); [[2.0,2.2],[1.5,2.4],[2.5,2.4]].forEach(q=>cyl(.03,.03,.7,0xd4b84a,q[0],.55,q[1],g,3)); }
+    else if(k==='jungle'){ tree(g,-2.3,-2.2,1.1,'jungle'); tree(g,2.3,-2.3,.9,'jungle'); bowl(g,-2.0,2.0); trough(g,2.1,1.5,.2); [[-2.6,0.5],[2.7,.3]].forEach(q=>{ sph(.35,0xff4f8b,q[0],.5,q[1],g); sph(.25,0xffd54f,q[0]+.3,.4,q[1]+.2,g); }); }
+    else if(k==='farm'){ bx(1.8,.9,1.1,0xd9a441,-2.1,.6,-2.1,g); bx(1.8,.2,1.2,0xb87a2a,-2.1,1.15,-2.1,g); bx(1.8,.1,.1,0x8d6e63,-2.1,.35,2.2,g); trough(g,2.1,1.7,0); bowl(g,-2.2,1.8); tree(g,2.4,-2.3,.8,'farm'); }
+    else if(k==='fantasy'){ [[-2.3,-2.2],[2.3,-2.2],[-2.3,2.0]].forEach((q,j)=>{ const c=new THREE.Mesh(new THREE.OctahedronGeometry(.45+j*.08,0),mb([0xc77dff,0x7df3ff,0xff7dc9][j])); c.position.set(q[0],.7+j*.1,q[1]); g.add(c); }); bowl(g,2.1,2.0,0xc77dff); tree(g,2.3,-2.3,.9,'fantasy'); }
+    else { tree(g,-2.3,-2.2,1.1,'forest'); tree(g,2.4,-2.3,.9,'forest'); rocks(g,2.3,2.1,0x8d9399); bowl(g,-2.1,1.9); trough(g,1.9,1.2,.2); [[-1.2,2.4],[1.0,2.5]].forEach(q=>{ sph(.12,0xff5c7a,q[0],.3,q[1],g); cyl(.02,.02,.3,0x3f7f2f,q[0],.28,q[1],g,3); }); }
+    // Schild mit Name + Seltenheit (steht vor dem Gehege)
+    const sp=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.95),new THREE.MeshBasicMaterial({map:textTex(a),side:THREE.DoubleSide})); sp.position.set(0,.95,3.55); g.add(sp);
+    cyl(.06,.06,.7,0x6b4423,-.8,.35,3.5,g,5); cyl(.06,.06,.7,0x6b4423,.8,.35,3.5,g,5);
+    const sb=sp.clone(); sb.position.z=-3.55; g.add(sb);
+    return g; };
+  D.add=function(g,a,i){ try{ const d=D.make(a,i); g.add(d); g.userData.decor=d; }catch(e){ console.warn('ZEncDecor',e); } };
 })();
