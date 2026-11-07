@@ -1,4 +1,4 @@
-/* ═══ ZStation (v759): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
+/* ═══ ZStation (v761): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
 (function(){
   if(window.ZStation) return;
   const S=window.ZStation={inside:false,cabins:[],built:false,owner:new WeakMap(),pylonX:[24,33]};
@@ -147,7 +147,8 @@
     const b=document.createElement('button'); b.id='zs-in'; b.textContent='🚪 Drinnen'; b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:196px;z-index:130;display:none;padding:12px 26px;border:none;border-radius:30px;background:linear-gradient(135deg,#ffd54f,#ff9800);color:#2a1700;font:900 1rem Arial;box-shadow:0 4px 0 #b35c00,0 8px 16px rgba(0,0,0,.4)'; b.onclick=()=>S.enter(); document.body.appendChild(b);
     const r=document.createElement('div'); r.id='zs-bar'; r.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:186px;z-index:130;display:none;width:min(94vw,430px);background:rgba(8,12,26,.92);border:2px solid #ffd54f;border-radius:16px;padding:8px 10px;color:#fff;font-family:Arial,sans-serif'; document.body.appendChild(r); };
   S._uiUpd=function(force){ const now=Date.now(); if(!force&&now-(S._ut||0)<250) return; S._ut=now; const ib=document.getElementById('zs-in'), bar=document.getElementById('zs-bar'); if(!ib||!bar) return; const Z=ZG, pl=Z.pl; const near=Math.hypot(pl.x,pl.z)<24&&!S.inside&&pl.y<4&&!Z.carrying;
-    ib.style.display=near&&!(window.ZTread&&(ZTread.on||ZTread.tour))?'block':'none'; const wb=document.getElementById('wbar'); if(wb) wb.style.visibility=S.inside?'hidden':''; if(!S.inside){ bar.style.display='none'; bar.dataset.k=''; return; }
+    let tg=false; try{ const T=Tutorial; tg=T._active&&T._list()[T._stepIdx]&&['gondola','gluck','buy'].includes(T._list()[T._stepIdx].id); }catch(e){}
+    ib.style.display=near&&!tg&&!(window.ZTread&&(ZTread.on||ZTread.tour))?'block':'none'; const wb=document.getElementById('wbar'); if(wb) wb.style.visibility=S.inside?'hidden':''; if(!S.inside){ bar.style.display='none'; bar.dataset.k=''; return; }
     const g=Z.gQ&&Z.gQ[0]; if(!g){ bar.style.display='none'; return; } bar.style.display='block'; const z=ZS.zoo, tm=(typeof ZS!=='undefined'&&ZS.dsMT||0);
     if(g.isCloverOnly){ bar.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="font-size:2.2rem">🍀</div><div style="flex:1"><div style="font-weight:900;color:'+g.cloverStage.color+'">'+g.cloverStage.name+'-Glück</div><div style="font-size:.74rem;opacity:.75">Kleeblatt-Kette – kein Tier zum Kaufen</div></div>'+S._btns()+'</div>'; return; }
     const a=g.a, can=(tm+z.mt)>=a.p, slot=z.enc.some(e=>!e), col=hex(RC[a.r]||0x95a5a6);
@@ -162,7 +163,7 @@
   window.addEventListener('load',()=>{ try{ S._ui(); }catch(e){} });
 })();
 
-/* ═══ ZEncDecor (v759): Gehege-Details je nach Tierart ═══ */
+/* ═══ ZEncDecor (v761): Gehege-Details je nach Tierart ═══ */
 (function(){
   if(window.ZEncDecor) return;
   const D=window.ZEncDecor={};
@@ -213,4 +214,73 @@
     const sb=sp.clone(); sb.position.z=-3.55; g.add(sb);
     return g; };
   D.add=function(g,a,i){ try{ const d=D.make(a,i); g.add(d); g.userData.decor=d; }catch(e){ console.warn('ZEncDecor',e); } };
+})();
+
+/* ═══ ZCave (v761): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
+(function(){
+  if(window.ZCave) return;
+  const C=window.ZCave={built:false,CX:-205,CZ:-60,open:0,doorT:0,inside:false};
+  const RID=[
+    {q:'Ich habe Städte, aber keine Häuser. Ich habe Berge, aber keine Bäume. Ich habe Wasser, aber keine Fische. Was bin ich?',a:['karte','landkarte','weltkarte'],h:'K…'},
+    {q:'Je mehr du davon nimmst, desto mehr lässt du zurück. Was ist es?',a:['schritt','schritte','spuren','spur','fussspuren','fussabdruecke','fussabdruck'],h:'S…'},
+    {q:'Ich habe Hände, aber kann nicht klatschen. Was bin ich?',a:['uhr','armbanduhr','wanduhr'],h:'U…'},
+    {q:'Was gehört dir, wird aber öfter von anderen benutzt als von dir?',a:['name','dein name','namen'],h:'N…'},
+    {q:'Was wird nass, während es dich trocknet?',a:['handtuch','tuch','badetuch'],h:'H…'}];
+  const norm=s=>String(s||'').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z ]/g,'').replace(/^(der|die|das|ein|eine|es ist|ein|ne) /,'').trim();
+  const rid=()=>{ let h=0; const s=(typeof ZS!=='undefined'&&ZS.player)||'x'; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return RID[Math.abs(h)%RID.length]; };
+  const st=()=>{ const z=ZS.zoo; if(!z) return {}; return z.cave||(z.cave={}); };
+  const MC={}; const mb=(c,o)=>{ const k=c+(o?JSON.stringify(o):''); return MC[k]||(MC[k]=new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}))); };
+  const bx=(w,h,d,c,x,y,z,g)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mb(c)); m.position.set(x,y,z); g.add(m); return m; };
+  const spr=(txt,col,sx,sy,x,y,z,g)=>{ const s=ZG._txt(txt,.5,col); s.scale.set(sx,sy,1); s.position.set(x,y,z); g.add(s); return s; };
+  C.build=function(){ if(C.built||typeof ZG==='undefined'||!ZG.scene) return; C.built=true;
+    const G=new THREE.Group(); G.position.set(C.CX,0,C.CZ); ZG.scene.add(G); C.g=G;
+    const ROCK=0x6f6a62, MOSS=0x4a6b3a, DK=0x1d1b1a;
+    // Boden + Wände (Innenraum 14×14, Türlücke auf +x)
+    bx(16.4,.12,16.4,0x3a3733,0,.06,0,G);
+    bx(.8,6.4,16.4,ROCK,-7.6,3.2,0,G); bx(16.4,6.4,.8,ROCK,0,3.2,-7.6,G); bx(16.4,6.4,.8,ROCK,0,3.2,7.6,G);
+    bx(.8,6.4,5.8,ROCK,7.6,3.2,-5.3,G); bx(.8,6.4,5.8,ROCK,7.6,3.2,5.3,G); bx(.8,2.4,4.8,ROCK,7.6,5.2,0,G);
+    bx(16.4,.6,16.4,0x2b2926,0,6.5,0,G);
+    // Hügel aussen (Tarnung)
+    const dome=new THREE.Mesh(new THREE.SphereGeometry(11.5,18,10,0,6.283,0,1.5708),mb(MOSS)); dome.scale.y=.62; dome.position.y=6.4; G.add(dome);
+    [[-3,2],[4,-4],[-6,-5],[6,5],[0,-7]].forEach((q,i)=>{ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(1.4+i*.2,0),mb(ROCK)); r.position.set(q[0],7.2+(i%2)*.6,q[1]); r.scale.y=.7; G.add(r); });
+    // Eingang: Steintür + Runenplatte
+    const door=bx(.7,5,4.6,0x5b5750,7.7,2.5,0,G); C.door=door; const rune=spr('ᚱ ✦ ᛟ','#7df3ff',3,1.2,8.4,2.6,0,G); C.rune=rune;
+    bx(.5,.1,2.2,0x3d3a36,9.2,.1,0,G); [-1,1].forEach(s=>{ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(.9,0),mb(ROCK)); r.position.set(8.6,.6,s*3.4); G.add(r); });
+    // Innenleben
+    [[-6.4,-6.4],[-6.4,6.4],[6.4,-6.4],[6.4,6.4]].forEach(q=>{ bx(.35,2.2,.35,0x5a3d22,q[0],1.2,q[1],G); const f=new THREE.Mesh(new THREE.SphereGeometry(.35,8,6),mb(0xffa726)); f.position.set(q[0],2.5,q[1]); G.add(f); });
+    [[-5,-5,0x7df3ff],[5,-5,0xc77dff],[-5,5,0xff7dc9],[0,-6,0x7dffb0]].forEach(q=>{ const c=new THREE.Mesh(new THREE.OctahedronGeometry(.9,0),mb(q[2])); c.scale.y=1.8; c.position.set(q[0],1.4,q[1]); G.add(c); });
+    // Truhe
+    const ch=new THREE.Group(); ch.position.set(-4.5,0,0); G.add(ch); bx(2.2,1,1.4,0x8b5a2b,0,.6,0,ch); bx(2.3,.2,1.5,0xffc107,0,1.15,0,ch); bx(.3,.5,.1,0xffe082,1.0,.8,.75,ch); const lid=bx(2.2,.5,1.4,0x8b5a2b,0,1.35,0,ch); C.lid=lid; C.chest=ch;
+    const glow=new THREE.Mesh(new THREE.SphereGeometry(1.7,12,8),mb(0xffe082,{transparent:true,opacity:.22,depthWrite:false})); glow.position.set(0,1.1,0); ch.add(glow); C.glow=glow;
+    spr('💰 SCHATZKAMMER','#ffd54f',7,1.6,0,4.6,0,G);
+    // UI
+    const mk=(id,txt,css)=>{ const b=document.createElement('button'); b.id=id; b.textContent=txt; b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:200px;z-index:130;display:none;padding:12px 24px;border:none;border-radius:30px;font:900 1rem Arial;box-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 16px rgba(0,0,0,.4);'+css; document.body.appendChild(b); return b; };
+    mk('zc-riddle','🗝️ Rätsel lösen','background:linear-gradient(135deg,#7df3ff,#3f9fd8);color:#032235').onclick=C.ask;
+    mk('zc-chest','🎁 Truhe öffnen','background:linear-gradient(135deg,#ffd54f,#ff9800);color:#2a1700').onclick=C.claim;
+    mk('zc-out','🚪 Raus','bottom:150px;background:rgba(231,76,60,.9);color:#fff;padding:8px 18px;font-size:.85rem').onclick=()=>{ ZG.pl.x=C.CX+11.5; ZG.pl.z=C.CZ; ZG.yaw=-Math.PI/2; };
+    const hook=()=>{ if(C._h) return; C._h=1; const r=ZG.renderer, o=r.render.bind(r); r.render=function(s,c){ try{ if(s===ZG.scene) C.frame(); }catch(e){} return o(s,c); }; }; hook(); setTimeout(hook,1000);
+  };
+  C.frame=function(){ const now=performance.now(), dt=Math.min(.1,(now-(C._t||now))/1000); C._t=now; const s=st(), pl=ZG.pl; if(!pl||!C.built) return;
+    const t=now/1000; if(C.glow) C.glow.scale.setScalar(1+Math.sin(t*2)*.08); if(C.rune) C.rune.material.opacity=.55+Math.sin(t*2.4)*.45;
+    const tgt=s.s?1:0; C.open+=Math.sign(tgt-C.open)*Math.min(Math.abs(tgt-C.open),dt*.35); if(C.door){ C.door.position.y=2.5-C.open*5; C.door.visible=C.open<.99; }
+    if(C.lid) C.lid.position.y=1.35+(s.c?.5:0), C.lid.rotation.z=s.c?.5:0;
+    const dx=pl.x-C.CX, dz=pl.z-C.CZ, passable=C.open>.9;
+    if(pl.y<4){ const inO=Math.abs(dx)<8.6&&Math.abs(dz)<8.6, inI=Math.abs(dx)<7.2&&Math.abs(dz)<7.2, gap=dx>6.6&&Math.abs(dz)<2.2&&passable;
+      if(inO&&!inI&&!gap&&C._lp){ pl.x=C._lp.x; pl.z=C._lp.z; } else if(!inO||inI||gap) C._lp={x:pl.x,z:pl.z}; }
+    const ins=Math.abs(dx)<7.2&&Math.abs(dz)<7.2; C.inside=ins; const near=Math.hypot(dx-10,dz)<9&&!ins&&pl.y<4;
+    const $=id=>document.getElementById(id); const r=$('zc-riddle'),c=$('zc-chest'),o=$('zc-out'); if(!r) return;
+    r.style.display=(near&&!s.s&&!document.getElementById('zc-modal'))?'block':'none';
+    c.style.display=(ins&&!s.c&&Math.hypot(dx+4.5,dz)<4.5)?'block':'none'; o.style.display=ins?'block':'none';
+  };
+  C.ask=function(){ if(document.getElementById('zc-modal')) return; const q=rid(); const m=document.createElement('div'); m.id='zc-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif';
+    m.innerHTML='<div style="width:min(92vw,400px);background:#14202e;border:3px solid #7df3ff;border-radius:18px;padding:18px;color:#fff;text-align:center"><div style="font-size:2.2rem">🗿</div><div style="font-weight:900;color:#7df3ff;margin:4px 0">Das Rätsel der Höhle</div><div style="font-size:.9rem;line-height:1.35;margin:8px 0 12px">'+q.q+'</div><input id="zc-in" autocomplete="off" placeholder="Deine Antwort …" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:2px solid #3f9fd8;background:#0c141e;color:#fff;font-size:1rem;text-align:center"><div id="zc-msg" style="min-height:20px;font-size:.8rem;margin:6px 0;color:#ff8a80"></div><div style="display:flex;gap:8px"><button id="zc-hint" style="flex:1;padding:9px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-weight:700">💡 Tipp</button><button id="zc-ok" style="flex:2;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#43a047,#2e7d32);color:#fff;font-weight:900">✔ Antworten</button><button id="zc-x" style="flex:1;padding:9px;border:none;border-radius:10px;background:rgba(231,76,60,.5);color:#fff;font-weight:700">✖</button></div></div>';
+    document.body.appendChild(m); const inp=document.getElementById('zc-in'), msg=document.getElementById('zc-msg'); setTimeout(()=>inp.focus(),50);
+    const ok=()=>{ const a=norm(inp.value); if(q.a.indexOf(a)>=0){ st().s=1; try{ ZS.save&&ZS.save(); }catch(e){} m.remove(); try{ ZP.toast('🗿 Richtig! Die Steintür öffnet sich …',3500); }catch(e){} try{ ZTread&&ZTread.confetti; ZGfx&&ZGfx.confetti&&ZGfx.confetti(80); }catch(e){} } else { msg.textContent='❌ Nicht ganz … versuch es nochmal!'; inp.select(); } };
+    document.getElementById('zc-ok').onclick=ok; inp.onkeydown=e=>{ if(e.key==='Enter') ok(); e.stopPropagation(); }; document.getElementById('zc-x').onclick=()=>m.remove(); document.getElementById('zc-hint').onclick=()=>{ msg.style.color='#ffd54f'; msg.textContent='💡 Beginnt mit: '+q.h; };
+  };
+  C.claim=function(){ const s=st(); if(s.c||!s.s) return; s.c=1; let out=[]; try{ const a=ZTread.tAnimal('legendary'); if(a) out.push('🐾 '+a); ZTread.tBoost('luck',2,15); out.push('🍀 Glück ×2 · 15 Min'); }catch(e){} try{ ZS.save&&ZS.save(); }catch(e){} try{ ZGfx.confetti(160); }catch(e){}
+    try{ ZP.toast('🎁 Schatz gefunden! '+out.join(' · '),6000); }catch(e){} };
+  const boot=()=>{ try{ if(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer) C.build(); else setTimeout(boot,800); }catch(e){ setTimeout(boot,1500); } };
+  window.addEventListener('load',()=>setTimeout(boot,1500));
 })();
