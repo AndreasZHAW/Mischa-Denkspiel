@@ -1,9 +1,9 @@
-/* ═══ ZStation (v756): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
+/* ═══ ZStation (v758): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
 (function(){
   if(window.ZStation) return;
   const S=window.ZStation={inside:false,cabins:[],built:false,owner:new WeakMap(),pylonX:[24,33]};
   // ── Strecke (geschlossene Schleife): Halle (Wende bei x=-9) → Seil → Gegenstation (Wende bei x=45) → zurück ──
-  const R=5, AX=-9, CX=45, SL=54, ARC=Math.PI*R, L=2*SL+2*ARC, SP=L/6, YH=1.3, YO=6.8;
+  const R=5, AX=-9, CX=45, SL=54, ARC=Math.PI*R, L=2*SL+2*ARC, SP=11,VD=4.4, YH=1.3, YO=6.8;
   const hgt=x=>{ const t=Math.min(1,Math.max(0,(x-12)/16)); return YH+(YO-YH)*t*t*(3-2*t); };
   S.pathAt=function(u){ u=((u%L)+L)%L; let x,z,dx,dz,th;
     if(u<ARC/2){ th=Math.PI+u/R; x=AX+R*Math.cos(th); z=R*Math.sin(th); dx=-Math.sin(th); dz=Math.cos(th); }
@@ -107,7 +107,7 @@
     // Seil (Röhre entlang der Schleife)
     const pts=[]; for(let u=0;u<L;u+=1.2){ const p=S.pathAt(u); pts.push(new THREE.Vector3(p.x,p.y+2.6,p.z)); } const cur=new THREE.CatmullRomCurve3(pts,true); const cab=new THREE.Mesh(new THREE.TubeGeometry(cur,360,.07,5,true),MB(0x2b2d31)); G.add(cab);
     // Gondeln
-    for(let i=0;i<6;i++){ const c=mkCabin(i); S.cabins.push(c); G.add(c.g); }
+    for(let i=0;i<8;i++){ const c=mkCabin(i); c.u=0; c.g.visible=false; S.cabins.push(c); G.add(c.g); }
     // Eingangs-Knopf & Kaufleiste (HTML)
     S._ui();
     // Render-Hook
@@ -117,19 +117,21 @@
   S._t=performance.now();
   const wrapD=d=>{ d%=L; if(d>L/2) d-=L; if(d<-L/2) d+=L; return d; };
   S.frame=function(){ const now=performance.now(), dt=Math.min(.1,(now-S._t)/1000); S._t=now; const Z=ZG; if(!S.built||!Z.gQ) return;
-    // Zuordnung Warteschlange → Gondeln
-    const q=Z.gQ.slice(0,6), used=new Set(); q.forEach(o=>{ const c=S.owner.get(o); if(c&&c.obj===o) used.add(c); });
-    q.forEach((o,j)=>{ let c=S.owner.get(o); if(!c||c.obj!==o){ const free=S.cabins.filter(k=>!used.has(k)); const tu=-j*SP; free.sort((a,b)=>Math.abs(wrapD(tu-a.u))-Math.abs(wrapD(tu-b.u))); c=free[0]||S.cabins[j]; used.add(c); c.obj=o; c.fresh=true; c.key=''; S.owner.set(o,c); } c.slot=j; });
-    S.cabins.forEach(c=>{ if(!q.includes(c.obj)){ c.obj=null; c.slot=-1; } });
-    S.cabins.forEach(c=>{ const tu=(c.slot>=0?-c.slot*SP:c.u+SP); let d=wrapD(tu-c.u); if(d<-.5) d+=L; if(d>.03){ const v=Math.min(24,Math.max(2.5,d*4)); c.u+=Math.min(d,v*dt); } else c.u=tu;
+    // Zuordnung Warteschlange → Gondeln (nur Gondeln mit Tier sind sichtbar)
+    const q=Z.gQ.slice(0,6);
+    S.cabins.forEach(c=>{ if(c.obj&&!c.dep&&!q.includes(c.obj)){ c.dep=true; c.slot=-1; } });
+    q.forEach((o,j)=>{ let c=S.owner.get(o); if(!c||c.obj!==o){ c=S.cabins.find(k=>!k.obj); if(!c) return; c.obj=o; c.dep=false; c.key=''; c.u=-j*SP; c.sc=0; c.door=0; S.owner.set(o,c); } c.slot=j; });
+    S.cabins.forEach(c=>{ c.g.visible=!!c.obj; if(!c.obj) return;
+      let d=0; if(c.dep){ c.u+=VD*dt; if(c.u>44){ c.obj=null; c.dep=false; c.g.visible=false; return; } }
+      else { const tu=-c.slot*SP; d=wrapD(tu-c.u); if(d<-.5) d+=L; if(d>.02){ c.u+=Math.min(d,Math.min(VD*1.8,Math.max(.8,d*1.6))*dt); } else c.u=tu; }
       const p=S.pathAt(c.u); c.g.position.set(p.x,p.y+2.6,p.z); c.g.rotation.y=Math.atan2(-p.dx,-p.dz);
-      const mov=d>.05; c.sway+=dt*(mov?3:1.4); c.g.rotation.z=Math.sin(c.sway)*(p.x>16?.045:.012)*(mov?1.4:1); c.g.rotation.x=Math.sin(c.sway*.7)*.015;
-      const open=(c.slot===0&&d<.2)?1:0; c.door+=Math.sign(open-c.door)*Math.min(Math.abs(open-c.door),dt*1.6);
+      c.sc=Math.min(1,(c.sc||0)+dt*.8); c.g.scale.setScalar(.4+.6*c.sc);
+      const mov=d>.05||c.dep; c.sway+=dt*(mov?3:1.4); c.g.rotation.z=Math.sin(c.sway)*(p.x>16?.045:.012)*(mov?1.4:1); c.g.rotation.x=Math.sin(c.sway*.7)*.015;
+      const open=(!c.dep&&c.slot===0&&d<.2)?1:0; c.door+=Math.sign(open-c.door)*Math.min(Math.abs(open-c.door),dt*.7);
       const o=c.door, ss=1-.6*o; c.dL.scale.z=ss; c.dR.scale.z=ss; c.dL.position.z=-(.55+.46*o); c.dR.position.z=.55+.46*o;
-      if(p.x>16.5||p.x<-9&&false) c.fresh=false; if(c.obj&&c.slot>=0&&p.x>16.5) c.fresh=false;
-      const ob=c.obj, show=!!ob&&!c.fresh; c.spr.visible=show; c.lab.visible=false;
-      if(show){ const key=ob.isCloverOnly?'clover':ob.a.id+(ob.a.e||''); if(c.key!==key){ c.key=key; const e=ob.isCloverOnly?'🍀':ob.a.e; c.spr.material.map=emojiTex(e); c.spr.material.needsUpdate=true; const col=ob.isCloverOnly?0x4caf50:(RC[ob.a.r]||0x95a5a6); c.bar.material.color.setHex(col); c.lab.material.map=ob.isCloverOnly?labTex({e:'🍀',n:'Kleeblatt',r:'normal'},'Glück'):labTex(ob.a,price(ob.a.p)); c.lab.material.needsUpdate=true; }
-        c.spr.position.y=.2+Math.sin(c.sway*1.3)*.04; c.lab.visible=S.inside&&p.x<15.6&&c.slot<=1; } });
+      const ob=c.obj; c.spr.visible=true; c.lab.visible=false;
+      if(c.key!==(ob.isCloverOnly?'clover':ob.a.id)){ c.key=ob.isCloverOnly?'clover':ob.a.id; const e=ob.isCloverOnly?'🍀':ob.a.e; c.spr.material.map=emojiTex(e); c.spr.material.needsUpdate=true; const col=ob.isCloverOnly?0x4caf50:(RC[ob.a.r]||0x95a5a6); c.bar.material.color.setHex(col); c.lab.material.map=ob.isCloverOnly?labTex({e:'🍀',n:'Kleeblatt',r:'normal'},'Glück'):labTex(ob.a,price(ob.a.p)); c.lab.material.needsUpdate=true; }
+      c.spr.position.y=.2+Math.sin(c.sway*1.3)*.04; c.lab.visible=S.inside&&p.x<15.6&&!c.dep&&c.slot<=1; });
     if(S.wheel) S.wheel.rotation.y+=dt*.55; if(S.wheel2) S.wheel2.rotation.y+=dt*.55;
     // Kollision + Innen-Erkennung
     try{ const pl=Z.pl; if(pl&&pl.y<4){ const x=pl.x,zz=pl.z, inO=Math.abs(x)<16.6&&Math.abs(zz)<10.8, inI=Math.abs(x)<14.4&&Math.abs(zz)<8.6, gap=zz>8.6&&Math.abs(x)<2.6;
@@ -145,13 +147,17 @@
     const b=document.createElement('button'); b.id='zs-in'; b.textContent='🚪 Drinnen'; b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:196px;z-index:130;display:none;padding:12px 26px;border:none;border-radius:30px;background:linear-gradient(135deg,#ffd54f,#ff9800);color:#2a1700;font:900 1rem Arial;box-shadow:0 4px 0 #b35c00,0 8px 16px rgba(0,0,0,.4)'; b.onclick=()=>S.enter(); document.body.appendChild(b);
     const r=document.createElement('div'); r.id='zs-bar'; r.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:186px;z-index:130;display:none;width:min(94vw,430px);background:rgba(8,12,26,.92);border:2px solid #ffd54f;border-radius:16px;padding:8px 10px;color:#fff;font-family:Arial,sans-serif'; document.body.appendChild(r); };
   S._uiUpd=function(force){ const now=Date.now(); if(!force&&now-(S._ut||0)<250) return; S._ut=now; const ib=document.getElementById('zs-in'), bar=document.getElementById('zs-bar'); if(!ib||!bar) return; const Z=ZG, pl=Z.pl; const near=Math.hypot(pl.x,pl.z)<24&&!S.inside&&pl.y<4&&!Z.carrying;
-    ib.style.display=near&&!(window.ZTread&&(ZTread.on||ZTread.tour))?'block':'none'; const wb=document.getElementById('wbar'); if(wb) wb.style.visibility=S.inside?'hidden':''; if(!S.inside){ bar.style.display='none'; return; }
+    ib.style.display=near&&!(window.ZTread&&(ZTread.on||ZTread.tour))?'block':'none'; const wb=document.getElementById('wbar'); if(wb) wb.style.visibility=S.inside?'hidden':''; if(!S.inside){ bar.style.display='none'; bar.dataset.k=''; return; }
     const g=Z.gQ&&Z.gQ[0]; if(!g){ bar.style.display='none'; return; } bar.style.display='block'; const z=ZS.zoo, tm=(typeof ZS!=='undefined'&&ZS.dsMT||0);
     if(g.isCloverOnly){ bar.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="font-size:2.2rem">🍀</div><div style="flex:1"><div style="font-weight:900;color:'+g.cloverStage.color+'">'+g.cloverStage.name+'-Glück</div><div style="font-size:.74rem;opacity:.75">Kleeblatt-Kette – kein Tier zum Kaufen</div></div>'+S._btns()+'</div>'; return; }
     const a=g.a, can=(tm+z.mt)>=a.p, slot=z.enc.some(e=>!e), col=hex(RC[a.r]||0x95a5a6);
+    const gt=document.getElementById('gtimer'), key=a.id+'|'+can+'|'+slot;
+    if(bar.dataset.k===key&&!force){ const t=document.getElementById('zs-tm'); if(t&&gt) t.textContent=gt.textContent; return; }
+    bar.dataset.k=key;
     bar.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="font-size:2.4rem;filter:drop-shadow(0 0 8px '+col+')">'+a.e+'</div><div style="flex:1;min-width:0"><div style="font-weight:900;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+a.n+'</div><div style="font-size:.72rem"><span style="background:'+col+';color:#111;font-weight:900;border-radius:8px;padding:1px 8px">'+(RN[a.r]||a.r)+'</span> <span style="color:#ffd54f;font-weight:900;font-size:.9rem">'+price(a.p)+'</span> <span style="opacity:.6" id="zs-tm">'+(document.getElementById('gtimer')?document.getElementById('gtimer').textContent:'')+'</span></div>'+(!can?'<div style="font-size:.68rem;color:#ff8a80">Zu wenig Mischataler</div>':(!slot?'<div style="font-size:.68rem;color:#ff8a80">Kein freies Gehege</div>':''))+'</div>'
-      +'<button onclick="ZStation.buy()" style="padding:11px 16px;border:none;border-radius:12px;background:'+(can&&slot?'linear-gradient(135deg,#43a047,#2e7d32)':'#555')+';color:#fff;font:900 .95rem Arial">🛒 Kaufen</button></div>'+'<div style="display:flex;gap:6px;margin-top:6px">'+S._btns(1)+'</div>'; };
+      +'<button onpointerdown="ZStation.hold()" onclick="ZStation.buy(\''+a.id+'\')" style="padding:11px 16px;border:none;border-radius:12px;background:'+(can&&slot?'linear-gradient(135deg,#43a047,#2e7d32)':'#555')+';color:#fff;font:900 .95rem Arial">🛒 Kaufen</button></div>'+'<div style="display:flex;gap:6px;margin-top:6px">'+S._btns(1)+'</div>'; };
   S._btns=function(only){ const m='<button onclick="ZP.open(\'gond\')" style="flex:1;padding:7px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font:700 .72rem Arial">🍀 Glück &amp; mehr</button><button onclick="ZStation.exit()" style="flex:1;padding:7px;border:none;border-radius:10px;background:rgba(231,76,60,.35);color:#fff;font:700 .72rem Arial">🚪 Raus</button>'; return only?m:'<div style="display:flex;flex-direction:column;gap:4px">'+m+'</div>'; };
-  S.buy=function(){ try{ const g=ZG.gQ[0]; if(!g||g.isCloverOnly) return; ZP._buyG(g.a.id); setTimeout(()=>{ if(ZG.carrying) S.exit(); },250); }catch(e){} };
+  S.hold=function(){ try{ ZP._buyInFlight=true; clearTimeout(S._ht); S._ht=setTimeout(()=>{ ZP._buyInFlight=false; },2500); }catch(e){} };
+  S.buy=function(id){ try{ const g=ZG.gQ[0]; if(!g||g.isCloverOnly) return; ZP._buyG(id||g.a.id); ZP._buyInFlight=false; S._uiUpd(true); setTimeout(()=>{ if(ZG.carrying) S.exit(); },250); }catch(e){} };
   window.addEventListener('load',()=>{ try{ S._ui(); }catch(e){} });
 })();
