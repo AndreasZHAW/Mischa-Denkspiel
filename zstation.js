@@ -1,4 +1,4 @@
-/* ═══ ZStation (v761): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
+/* ═══ ZStation (v762): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
 (function(){
   if(window.ZStation) return;
   const S=window.ZStation={inside:false,cabins:[],built:false,owner:new WeakMap(),pylonX:[24,33]};
@@ -139,6 +139,20 @@
         const ins=Math.abs(pl.x)<14.4&&Math.abs(pl.z)<8.6&&pl.y<4; if(ins!==S.inside){ S.inside=ins; S._uiUpd(true); } } }catch(e){}
     S._uiUpd();
   };
+
+  // Pfeil-Navigation: um die Gondelstation herumleiten (v762)
+  (function(){ const HX=19,HZ=13;
+    const inR=(x,z)=>Math.abs(x)<HX&&Math.abs(z)<HZ;
+    const hit=(a,b)=>{ for(let i=0;i<=24;i++){ const t=i/24; if(inR(a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t)) return true; } return false; };
+    const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+    S.nav=function(p,t){ if(!S.built) return t; let tt=t; if(inR(t.x,t.z)) tt={x:0,z:HZ+3};
+      if(inR(p.x,p.z)||!hit(p,tt)) return tt;
+      let best=null,bl=1e9; [[-HX,-HZ],[HX,-HZ],[-HX,HZ],[HX,HZ]].forEach(c=>{ const w={x:c[0]*1.02,z:c[1]*1.02}; if(hit(p,w)||hit(w,tt)) return; const l=dist(p,w)+dist(w,tt); if(l<bl){ bl=l; best=w; } });
+      if(best) return best;
+      // zwei Ecken (gegenüberliegende Seite)
+      [[-HX,-HZ],[HX,-HZ],[HX,HZ],[-HX,HZ]].forEach((c,i,a)=>{ const n=a[(i+1)%4], w1={x:c[0]*1.02,z:c[1]*1.02}, w2={x:n[0]*1.02,z:n[1]*1.02}; if(hit(p,w1)||hit(w1,w2)||hit(w2,tt)) return; const l=dist(p,w1)+dist(w1,w2)+dist(w2,tt); if(l<bl){ bl=l; best=w1; } });
+      return best||tt; };
+  })();
   // ── Rein/Raus ──
   S.enter=function(){ const pl=ZG.pl; pl.x=-3; pl.z=3.5; S._lp={x:pl.x,z:pl.z}; const dx=-14+3, dz=0-3.5; ZG.yaw=Math.atan2(-dx,-dz); ZG.pitch=-.02; };
   S.exit=function(){ const pl=ZG.pl; pl.x=0; pl.z=14.5; S._lp={x:pl.x,z:pl.z}; ZG.yaw=Math.PI; ZG.pitch=0; };
@@ -163,7 +177,7 @@
   window.addEventListener('load',()=>{ try{ S._ui(); }catch(e){} });
 })();
 
-/* ═══ ZEncDecor (v761): Gehege-Details je nach Tierart ═══ */
+/* ═══ ZEncDecor (v762): Gehege-Details je nach Tierart ═══ */
 (function(){
   if(window.ZEncDecor) return;
   const D=window.ZEncDecor={};
@@ -216,7 +230,7 @@
   D.add=function(g,a,i){ try{ const d=D.make(a,i); g.add(d); g.userData.decor=d; }catch(e){ console.warn('ZEncDecor',e); } };
 })();
 
-/* ═══ ZCave (v761): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
+/* ═══ ZCave (v762): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
 (function(){
   if(window.ZCave) return;
   const C=window.ZCave={built:false,CX:-205,CZ:-60,open:0,doorT:0,inside:false};
