@@ -1,4 +1,4 @@
-/* ═══ ZStation (v769): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
+/* ═══ ZStation (v772): realistische Gondelstation, Seilbahn mit Masten, Gondeln mit Türen, begehbare Halle ═══ */
 (function(){
   if(window.ZStation) return;
   const S=window.ZStation={inside:false,cabins:[],built:false,owner:new WeakMap(),pylonX:[24,33]};
@@ -143,7 +143,7 @@
     S._uiUpd();
   };
 
-  // Pfeil-Navigation: um die Gondelstation herumleiten (v769)
+  // Pfeil-Navigation: um die Gondelstation herumleiten (v772)
   (function(){ const HX=19,HZ=13;
     const inR=(x,z)=>Math.abs(x)<HX&&Math.abs(z)<HZ;
     const hit=(a,b)=>{ for(let i=0;i<=24;i++){ const t=i/24; if(inR(a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t)) return true; } return false; };
@@ -181,7 +181,7 @@
   window.addEventListener('load',()=>{ try{ S._ui(); }catch(e){} });
 })();
 
-/* ═══ ZEncDecor (v769): Gehege-Details je nach Tierart ═══ */
+/* ═══ ZEncDecor (v772): Gehege-Details je nach Tierart ═══ */
 (function(){
   if(window.ZEncDecor) return;
   const D=window.ZEncDecor={};
@@ -234,7 +234,7 @@
   D.add=function(g,a,i){ try{ const d=D.make(a,i); g.add(d); g.userData.decor=d; }catch(e){ console.warn('ZEncDecor',e); } };
 })();
 
-/* ═══ ZCave (v769): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
+/* ═══ ZCave (v772): Geheime Höhle mit Rätsel und Schatzkammer ═══ */
 (function(){
   if(window.ZCave) return;
   const C=window.ZCave={built:false,CX:-205,CZ:-60,open:0,doorT:0,inside:false};
@@ -303,7 +303,7 @@
   window.addEventListener('load',()=>setTimeout(boot,1500));
 })();
 
-/* ═══ Gondel-Mitfahrt (v769) ═══ */
+/* ═══ Gondel-Mitfahrt (v772) ═══ */
 (function(){
   const S=window.ZStation; if(!S) return;
   const SPD=5.5; let sc=null;
