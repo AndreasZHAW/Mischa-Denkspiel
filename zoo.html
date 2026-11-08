@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=775"></script>
-<script src="rewardchests.js?v=775"></script>
-<script src="personality.js?v=775"></script>
+<script src="lang.js?v=777"></script>
+<script src="rewardchests.js?v=777"></script>
+<script src="personality.js?v=777"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v773','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,23 +535,26 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=775"></script>
-<script src="sanction.js?v=775"></script>
-<script src="zevents.js?v=775"></script>
-<script src="znet.js?v=775"></script>
-<script src="zbases.js?v=775"></script>
-<script src="charheads.js?v=775"></script>
-<script src="zworld.js?v=775"></script>
-<script src="zstation.js?v=775"></script>
-<script src="zfx.js?v=775"></script>
-<script src="zextra.js?v=775"></script>
-<script src="zreb6.js?v=775"></script>
-<script src="zlegend.js?v=775"></script>
-<script src="ztutplus.js?v=775"></script>
-<script src="zlift.js?v=775"></script>
-<script src="zfun.js?v=775"></script>
-<script src="zguide.js?v=775"></script>
-<script src="worlds.js?v=775"></script>
+<script src="firebase-state.js?v=777"></script>
+<script src="sanction.js?v=777"></script>
+<script src="zevents.js?v=777"></script>
+<script src="znet.js?v=777"></script>
+<script src="zbases.js?v=777"></script>
+<script src="charheads.js?v=777"></script>
+<script src="zworld.js?v=777"></script>
+<script src="zstation.js?v=777"></script>
+<script src="zfx.js?v=777"></script>
+<script src="zextra.js?v=777"></script>
+<script src="zreb6.js?v=777"></script>
+<script src="zlegend.js?v=777"></script>
+<script src="ztutplus.js?v=777"></script>
+<script src="zlift.js?v=777"></script>
+<script src="zfun.js?v=777"></script>
+<script src="zguide.js?v=777"></script>
+<script src="zsafe.js?v=777"></script>
+<script src="zrebguard.js?v=777"></script>
+<script src="znotify.js?v=777"></script>
+<script src="worlds.js?v=777"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -11671,7 +11674,8 @@ const ZP={
     const req=rebReq(z.reb||0);
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
     if((z.rebLockUntil||0)>Date.now()){ const h=Math.ceil((z.rebLockUntil-Date.now())/3600000); ZP.toast('⏳ Rebirth gesperrt: Du hast Tiere aus dem Tausch zurückgeholt. Noch ca. '+h+' Std. warten (24-Std.-Sperre).',6000); return; }
-    try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&ZS.player){ const snap=await _rtdb.ref('zoo_trades').once('value'); const val=snap.val()||{}; const n=Object.keys(val).filter(id=>val[id]&&val[id].sellerKey===ZS.player.toLowerCase()).length; if(n>0){ ZP.toast('⚠️ Du hast noch '+n+' Tier(e) im Tausch! Nimm sie zuerst zu dir (Shop → Tauschen → Meine Angebote). Danach gilt 24 Std. Rebirth-Sperre.',8000); return; } } }catch(e){}
+    let _viol=null;
+    try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&ZS.player){ const snap=await _rtdb.ref('zoo_trades').once('value'); const val=snap.val()||{}; const mine=Object.keys(val).filter(id=>val[id]&&val[id].sellerKey===ZS.player.toLowerCase()); const n=mine.length; if(n>0){ const names=mine.map(id=>(val[id].e||'')+' '+(val[id].n||'?')); if(window.ZRebGuard){ const act=await ZRebGuard.warn(n,names); if(act!=='ignore') return; _viol={n,names}; } else { ZP.toast('⚠️ Du hast noch '+n+' Tier(e) im Tausch! Nimm sie zuerst zu dir (Shop → Tauschen → Meine Angebote). Danach gilt 24 Std. Rebirth-Sperre.',8000); return; } } } }catch(e){}
     if(!(await showConfirm('Wirklich? Fast alle Tiere und MT gehen verloren!')))return;
     try{ ZBases.backup(true); }catch(e){}
     const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];
@@ -11683,6 +11687,7 @@ const ZP={
     try{ZG._rebGates&&ZG._rebGates();}catch(e){}
     try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}
     ZS.save&&ZS.save(true);
+    try{ if(_viol&&window.ZRebGuard) ZRebGuard.report(_viol); }catch(e){}
   },
 
   // ENCLOSURE
@@ -20691,6 +20696,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="lblock" onclick="ZAdmin.switchTab('lblock')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📦 Glücksblöcke</div>
           <div class="padmin-tab-btn" data-tab="lband" onclick="ZAdmin.switchTab('lband')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏃 Laufband-Admin</div>
           <div class="padmin-tab-btn" data-tab="reb6" onclick="ZAdmin.switchTab('reb6')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔄 Rebirth 6 (Veröffentlichen)</div>
+          <div class="padmin-tab-btn" data-tab="safe" onclick="ZAdmin.switchTab('safe')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">💾 Sicherung &amp; Fehler</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">💀 Admin Abuse</div>
           <div class="padmin-tab-btn" data-tab="evcenter" onclick="ZAdmin.switchTab('evcenter')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎪 Event-Zentrale</div>
           <div class="padmin-tab-btn" data-tab="battle" onclick="ZAdmin.switchTab('battle')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚔️ Kampf-Event</div>
@@ -20747,6 +20753,7 @@ window.ZooEvents = ZooEvents;
 
         <!-- TAB: SICHERHEIT -->
         <div class="padmin-tab" id="padmin-tab-reb6" style="display:none"><div class="padmin-section-title">🔄 Rebirth 6</div><div id="padmin-reb6-body"></div></div>
+        <div class="padmin-tab" id="padmin-tab-safe" style="display:none"><div class="padmin-section-title">💾 Sicherung, Verlauf &amp; Fehler</div><div id="padmin-safe-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-wjagd" style="display:none"><div class="padmin-section-title">🔤 Buchstaben-Suche (Wort-Jagd)</div><div id="padmin-wjagd-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-lblock" style="display:none"><div class="padmin-section-title">📦 Glücksblöcke spawnen</div>
           <div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.4">Lässt einen Glücksblock im Zoo erscheinen. Wähle die Seltenheit:</div>
