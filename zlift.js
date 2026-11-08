@@ -94,8 +94,8 @@
       plane(14,3.5,signT('RAUM '+(ri+1),'Belohnung: '+(rew?rew.e+' '+rew.n:'?')+' ('+RN[R.rew[1]]+')',RC[R.rew[1]]),x0+15,8.2,-HW+.2,0,g);
       R.req.forEach((rq,i)=>{ const a=find(rq[0],rq[1])||{n:rq[0],e:'❓',r:rq[1]}; const x=x0+i*6; const col=RC[a.r]||'#fff';
         const fr=plane(4.2,5.4,frameTex(a,col),x,5.0,-HW+.25,0,g); const slot={x,z:-HW+6.5,a,i,room};
-        cy(1.7,1.9,1.3,0x455a64,x,.65,-HW+6.5,g,14); const jar=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.35,3.2,16,1,true),mb(0x9fe8ff,{transparent:true,opacity:.28,side:THREE.DoubleSide})); jar.position.set(x,2.9,-HW+6.5); g.add(jar); cy(1.45,1.45,.25,0xb0bec5,x,4.55,-HW+6.5,g,14);
-        slot.ghost=spr(a.e,1.8,x,2.7,-HW+6.5,g,.28); slot.fill=spr(a.e,2.2,x,2.8,-HW+6.5,g,1); slot.fill.visible=false; slot.glowRing=new THREE.Mesh(new THREE.RingGeometry(1.5,1.9,20),mb(gl,{transparent:true,opacity:.0,side:THREE.DoubleSide})); slot.glowRing.rotation.x=-Math.PI/2; slot.glowRing.position.set(x,1.35,-HW+6.5); g.add(slot.glowRing);
+        cy(1.7,1.9,1.3,0x455a64,x,.65,-HW+6.5,g,14); const jar=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.35,3.2,16,1,true),mb(0x9fe8ff,{transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false})); jar.position.set(x,2.9,-HW+6.5); jar.renderOrder=2; g.add(jar); cy(1.45,1.45,.25,0xb0bec5,x,4.55,-HW+6.5,g,14);
+        slot.ghost=spr(a.e,1.8,x,2.7,-HW+6.5,g,.28); slot.fill=spr(a.e,2.2,x,2.8,-HW+6.5,g,1); slot.ghost.renderOrder=3; slot.fill.renderOrder=4; slot.ghost.material.depthWrite=false; slot.fill.material.depthWrite=false; slot.fill.visible=false; slot.glowRing=new THREE.Mesh(new THREE.RingGeometry(1.5,1.9,20),mb(gl,{transparent:true,opacity:.0,side:THREE.DoubleSide,depthWrite:false})); slot.glowRing.rotation.x=-Math.PI/2; slot.glowRing.position.set(x,1.35,-HW+6.5); g.add(slot.glowRing);
         room.frames.push(slot); L.frames.push(slot); });
       // Hebel
       const lx=x0+37, lg=new THREE.Group(); lg.position.set(lx,0,2); bx(1.6,1.6,1.6,0x37474f,0,.8,0,lg); bx(.5,1,.5,0x263238,0,1.9,0,lg); const arm=new THREE.Group(); arm.position.set(0,2.4,0); arm.rotation.z=.9; cy(.13,.13,3.2,0xb0bec5,0,1.6,0,arm,8); sp(0xd32f2f,.42,0,3.3,0,arm); lg.add(arm); g.add(lg); room.lever={x:lx,z:2,arm,g:lg}; L.levers.push(room); plane(4,1,signT('🔧 HEBEL','',RC[R.rew[1]]),lx,4.3,2,Math.PI,g);
@@ -162,7 +162,7 @@
       if(L.mode==='hall'&&L.hall){ let x=pl.x-HX, z=pl.z-HZ; x=Math.max(2.2,Math.min(HL-2,x)); z=Math.max(-HW+1.2,Math.min(HW-1.2,z)); if(x>66.6&&x<71.4&&Math.abs(z)>3){ x=x<69?66.6:71.4; } pl.x=HX+x; pl.z=HZ+z; pl.y=1.7; ZG.cam.position.set(pl.x,1.7,pl.z);
         if(L.shake&&now<L.shake.until){ const a=L.shake.amp; ZG.cam.position.x+=(Math.random()-.5)*a; ZG.cam.position.y+=(Math.random()-.5)*a; ZG.cam.position.z+=(Math.random()-.5)*a; }
         (L.frames||[]).forEach(s=>{ if(s.fill.visible&&!L.pulling) s.fill.position.y=2.8+Math.sin(now/600+s.i)*.12; }); } }catch(e){}
-    upT+=dt; if(upT<.25) return; upT=0; try{ const z=zoo(); const on=!!z&&has3(); if(L.sg) L.sg.visible=on&&!ZG._liftActive; const rd=window.ZStation&&ZStation.riding;
+    upT+=dt; if(upT<.25) return; upT=0; L._rf=(L._rf||0)+1; if(L.mode==='hall'&&!L.pulling&&L._rf%4===0) try{ L.refresh(); }catch(e){} try{ const z=zoo(); const on=!!z&&has3(); if(L.sg) L.sg.visible=on&&!ZG._liftActive; const rd=window.ZStation&&ZStation.riding;
       const nearDoor=on&&L.mode==='surface'&&dist(pl,{x:SPOT.x,z:SPOT.z+4})<8&&!rd&&!ZG._jumpActive&&!ZG._arcadeActive; const inHall=L.mode==='hall'&&!L.busy;
       const nearLift=inHall&&(pl.x-HX)<9;
       show('zl-use',nearDoor||nearLift);

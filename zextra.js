@@ -1,4 +1,4 @@
-/* ═══ ZExtra (v772): Zoo-Kiosk, Streichel-Zoo, Ambiente-Sound, Geheimnis-Karte mit Schatzpunkten ═══ */
+/* ═══ ZExtra (v773): Zoo-Kiosk, Streichel-Zoo, Ambiente-Sound, Geheimnis-Karte mit Schatzpunkten ═══ */
 (function(){
   'use strict';
   if(window.ZShop) return;

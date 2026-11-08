@@ -1,4 +1,4 @@
-/* ═══ ZFx (v772): Wetter-Pfützen, Treffer-Effekte, Münzregen, Seltenheits-Auftritt, Zoo-Wahrzeichen ═══ */
+/* ═══ ZFx (v773): Wetter-Pfützen, Treffer-Effekte, Münzregen, Seltenheits-Auftritt, Zoo-Wahrzeichen ═══ */
 (function(){
   'use strict';
   if(window.ZFx) return;
@@ -82,7 +82,7 @@
     W.pud.forEach(m=>{ const dx=m.position.x-pl.x, dz=m.position.z-pl.z; if(!m._i||dx*dx+dz*dz>1500){ place(m,pl,ZG.yaw,!!m._i); m._i=1; m.position.y=.09; m.scale.set(m.userData.s[0],m.userData.s[1],1); } m.material.opacity=F.wet*.38; });
     W.spl.forEach(m=>{ m.userData.t+=dt*(1.6+F.wet); if(m.userData.t>=1){ m.userData.t=0; place(m,pl,ZG.yaw,false); m.position.y=.12; } const k=m.userData.t; m.scale.setScalar(.4+k*2.2); m.material.opacity=F.wet*(rn>0?.75:0)*(1-k); }); };
 
-  // ── Zoo-Besucher (v772): kleine Figuren schauen Tiere an und werfen Münzen ──
+  // ── Zoo-Besucher (v773): kleine Figuren schauen Tiere an und werfen Münzen ──
   const VG={leg:new THREE.BoxGeometry(.22,.7,.24),torso:new THREE.BoxGeometry(.6,.75,.34),head:new THREE.SphereGeometry(.27,10,8),arm:new THREE.BoxGeometry(.18,.62,.2),hat:new THREE.CylinderGeometry(.3,.3,.14,10),coin:new THREE.CircleGeometry(.14,10)};
   const SKIN=[0xf1c9a5,0xd9a47c,0xa9744f,0x7a4b2e,0xffe0bd], SHIRT=[0xe53935,0x1e88e5,0x43a047,0xfdd835,0x8e24aa,0xfb8c00,0x00acc1,0xec407a], PANT=[0x37474f,0x283593,0x4e342e,0x455a64];
   const pick=a=>a[Math.floor(Math.random()*a.length)];
