@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v767 -->
+<!-- ZOO v769 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -236,12 +236,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=767"></script>
-<script src="rewardchests.js?v=767"></script>
-<script src="personality.js?v=767"></script>
+<script src="lang.js?v=769"></script>
+<script src="rewardchests.js?v=769"></script>
+<script src="personality.js?v=769"></script>
 </head>
 <body>
-<script>console.log('%c🦁 Mischa Zoo v767','color:#FFD700;font-size:16px;font-weight:bold');</script>
+<script>console.log('%c🦁 Mischa Zoo v769','color:#FFD700;font-size:16px;font-weight:bold');</script>
 <script>
 (function(){try{var dpr=window.devicePixelRatio||1,dKey=screen.width+'x'+screen.height+'x'+dpr.toFixed(1),keys=Object.keys(localStorage).filter(function(k){return k.indexOf('fontscale')>-1&&k.indexOf(dKey)>-1;});if(keys.length){var sz=parseInt(localStorage.getItem(keys[0]));if(sz>=8&&sz<=120)document.documentElement.style.fontSize=sz+'px';}}catch(e){}})();
 </script>
@@ -535,17 +535,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=767"></script>
-<script src="sanction.js?v=767"></script>
-<script src="zevents.js?v=767"></script>
-<script src="znet.js?v=767"></script>
-<script src="zbases.js?v=767"></script>
-<script src="charheads.js?v=767"></script>
-<script src="zworld.js?v=767"></script>
-<script src="zstation.js?v=767"></script>
-<script src="zfx.js?v=767"></script>
-<script src="zextra.js?v=767"></script>
-<script src="worlds.js?v=767"></script>
+<script src="firebase-state.js?v=769"></script>
+<script src="sanction.js?v=769"></script>
+<script src="zevents.js?v=769"></script>
+<script src="znet.js?v=769"></script>
+<script src="zbases.js?v=769"></script>
+<script src="charheads.js?v=769"></script>
+<script src="zworld.js?v=769"></script>
+<script src="zstation.js?v=769"></script>
+<script src="zfx.js?v=769"></script>
+<script src="zextra.js?v=769"></script>
+<script src="zreb6.js?v=769"></script>
+<script src="zlegend.js?v=769"></script>
+<script src="worlds.js?v=769"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1566,18 +1568,19 @@ const TOOLS=[
   {id:'net', n:'FANGNETZ', e:'🥅', col:'#8B5A2B', cd:1500, isTool:true},
 ];
 
-// ── REBIRTH-SYSTEM (v767) ──
+// ── REBIRTH-SYSTEM (v769) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
-const REB_COST=[100000,1000000,2500000,10000000,100000000];
-const REB_MULT=[1.5,3,5,10,50];
-const REBIRTH_MAX=5;
+const REB_COST=[100000,1000000,2500000,10000000,100000000,100000000000];
+const REB_MULT=[1.5,3,5,10,50,100];
+function rebMax(){ try{ return (window.ZReb6&&ZReb6.on())?6:5; }catch(e){ return 5; } }
 function rebReq(n){return {e:0,l:0,u:0,g:0,m:0,s:0,mt:REB_COST[Math.min(n,REB_COST.length-1)]};}
 function rebMultOf(n){ n=n|0; return n<=0?1:REB_MULT[Math.min(n,REB_MULT.length)-1]; }
 // Slaps, die jede Stufe dauerhaft freischaltet (Basic hat man immer). Sie kosten beim Benutzen weiterhin MT.
-const REB_SLAPS=[['ice','golden'],['shadow','swap'],['fire','bubble'],['rainbow','snail'],['void']];
+const REB_SLAPS=[['ice','golden'],['shadow','swap'],['fire','bubble'],['rainbow','snail'],['void'],[]];
 // Ab welcher Rebirth-Stufe ein Feature sichtbar/nutzbar ist
 const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:1, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5, wish:3, treadmill:1};
 const REB_FEAT_TXT={
+  6:['💰 Einkommen ×100','🌦️ Wetter-Meister: du bestimmst für 10 Minuten das Wetter in deinem Zoo – jedes Wetter gibt einen anderen Geld-Bonus','🤖 Pfleger-Roboter: füttert deine Tiere und hat 3 Module (Tempo, Glück, Sammler)','⚔️ Tier-Arena: kämpfe mit deinen Tieren und sammle Ruhm','🏝️ Schatz-Insel: mit dem Boot hinüber, Schätze ausgraben und die Boss-Truhe mit Rätsel öffnen','🗼 Legenden-Turm: 50 Stockwerke, 1 Versuch pro Tag, grosse Belohnungen','🗺️ Alle neuen Orte stehen in der Geheimnis-Karte'],
   1:['🏃 Laufbänder & 🌱 Pflanzen im Shop (Training = schneller beim Tragen)','✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🍀 Glücks-Stufen ×5, ×7 und ×10 in der Gondel','🌦️ Wetter im Zoo: Sonne, Regen & Sturm (im Sturm ist es dunkel und Blitze schlagen ein: Treffer = −3 ❤)','🎉 Admin-Events machen dich zum Teil des Spiels (Sturm, Magnet, Mystery-Box, Mini-Wahl …)','💦 Pfützen-Springen im Regen & 👋 Freunde-Winken'],
   2:['💜 Shadow Slap dauerhaft','💰 Einkommen ×3','🍀 Glück-Häufigkeit im Shop und Kleeblatt-Kette (Grün-Glück) in der Gondel','🔊 Schritt-Ton-Knopf','🔍 Sammlungs-Terminal'],
   3:['🔥 Fire Slap dauerhaft','🕊️ Tiere freilassen','💰 Einkommen ×5','🎫 MT-Pass','🧬 Zucht-Maschine','📖 Sammelalbum & 🎯 Deko-Quests','🌟 ×100 Glücks-Bonus (Gondel)','🧑 Besucher-Wünsche: Besucher wünschen sich ein Tier – erfülle es für Trinkgeld, Glücks- oder Geld-Boost'],
@@ -1596,7 +1599,7 @@ function $mt(n){if(!n||isNaN(n)||!isFinite(n))return'🌀0';if(n>=1e6)return'�
 function G(id){return document.getElementById(id);}
 function show(id){G(id)?.classList.remove('off');}
 function hide(id){G(id)?.classList.add('off');}
-const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v767: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
+const LUCK_EXP={rare:.4,epic:.45,legendary:.5,ultralegendary:.55,god:.65,mythic:.75,secret:.85,eternal:.95}; // v769: höheres Glück verschiebt jetzt wirklich Richtung seltener (vorher nur 'weniger Normale')
 function rA(luck,night,minRarity){const RB={normal:1,rare:1.6,epic:1.8,legendary:2.0,ultralegendary:2.2,god:2.4,mythic:2.6,secret:2.8,eternal:3.0};let candidates=ANIMALS;if(minRarity){const minIdx=RARITY_ORDER.indexOf(minRarity);if(minIdx>=0){const filtered=ANIMALS.filter(a=>RARITY_ORDER.indexOf(a.r)>=minIdx);if(filtered.length)candidates=filtered;}}const pool=candidates.map(a=>{let w=a.w;if(a.r!=='normal')w*=Math.pow(Math.min(luck,1e6),LUCK_EXP[a.r]||.55)*(RB[a.r]||1.5);if(night&&!['normal','rare'].includes(a.r))w*=1.4;return{...a,_w:w};});const t=pool.reduce((s,a)=>s+a._w,0);let r=Math.random()*t;for(const a of pool){r-=a._w;if(r<=0)return a;}return pool[0];}
 function rSh(){for(const[k,s]of Object.entries(SHINY)){if(Math.random()*100<s.p)return{id:k,...s};}return null;}
 function rTr(ev){
@@ -1914,7 +1917,7 @@ const ZS={
     return l;
   },
   async save(force){if(!this.player||!this.zoo)return;const k='zoo_'+this.player.toLowerCase();this.zoo.sv=Date.now();try{this.zoo.deviceId=window.getDeviceId&&window.getDeviceId();}catch(e){}try{if(State._useCloud()){
-      // v767: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
+      // v769: Firestore-Schreibzugriffe drosseln (Spark-Limit 20'000/Tag). Lokal wird sofort gespeichert,
       // in die Cloud höchstens alle 10 s; Änderungen dazwischen werden gesammelt und nachgeschrieben.
       const _n=Date.now();
       if(force||!this._lastCloudSave||_n-this._lastCloudSave>=10000){
@@ -2374,7 +2377,7 @@ const ZG={
       const off=(i-2)*8; // -16,-8,0,8,16 — a 32-unit-wide row
       positions.push({x:cx+tx*off, z:cz+tz*off, zone:0, slot});
     }
-    // v767: eigene Base mit frei platzierten Gehegen (Base-Editor)
+    // v769: eigene Base mit frei platzierten Gehegen (Base-Editor)
     try{ const _ce=(typeof ZBases!=='undefined'&&ZBases.slotEncs)?ZBases.slotEncs[slot]:null;
       if(_ce&&_ce.length){ positions.length=0; const rx=Math.cos(angle), rz=Math.sin(angle); _ce.forEach(e=>positions.push({x:cx+tx*e.u-rx*e.v, z:cz+tz*e.u-rz*e.v, zone:0, slot, s:e.s||1, col:e.col||null})); } }catch(e){}
     // Sign position: just in front of the row, facing the ring center
@@ -3619,7 +3622,7 @@ const ZG={
         const d=snap.data();
         if(!d||!d.at||d.at<=_lastSeenLuckChainAt) return;
         _lastSeenLuckChainAt=d.at;
-        // v767: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
+        // v769: alte Meldung beim Einloggen nicht nochmal zeigen — nur frische (<20 s) Ankündigungen
         if(Math.abs(Date.now()-d.at)>20000) return;
         if(d.player===ZS.player) return; // eigene Anzeige läuft schon lokal
         const stage=LUCK_CHAIN.find(s=>s.name===d.stageName);
@@ -4198,7 +4201,7 @@ const ZG={
       const layout = this._slotEncPos(slot);
       const encData = Array.isArray(op.enc) ? op.enc : [];
       try{ if(window.ZFx) ZFx.landmark(op.name,layout,encData,op.color); }catch(e){}
-      // v767: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
+      // v769: Base mit anderen Gehege-Positionen → Plattformen neu aufbauen
       this._otherPsig=this._otherPsig||{};
       const _psig=layout.positions.map(q=>Math.round(q.x)+','+Math.round(q.z)).join(';');
       if(this.otherEnc[op.name] && this._otherPsig[op.name]!==_psig){ (this.otherEnc[op.name]||[]).forEach(m=>this.scene.remove(m)); delete this.otherEnc[op.name]; }
@@ -4832,11 +4835,11 @@ const ZG={
       +'<div style="font-weight:900;color:#FFD700;font-size:1.1rem;margin-bottom:6px">🔄 Rebirth '+rebNum+' geschafft!</div>'
       +'<div style="font-size:.82rem;color:rgba(255,255,255,.75);margin-bottom:8px">Ein Rebirth setzt alles zurück, aber du behältst einen permanenten Boost, deine Slaps und bekommst neue Features. <b style="color:#FFD700">Das ist jetzt neu für dich:</b></div>'
       +lines
-      +(rebNum>=REBIRTH_MAX?'<div style="margin-top:8px;font-size:.8rem;color:#27AE60">🎬 Du hast alle Rebirths geschafft — gleich kommt der Abspann!</div>':'')
+      +(rebNum>=rebMax()?'<div style="margin-top:8px;font-size:.8rem;color:#27AE60">🎬 Du hast alle Rebirths geschafft — gleich kommt der Abspann!</div>':'')
       +'<button id="reb-explain-ok" style="margin-top:14px;width:100%;background:linear-gradient(135deg,#FFD700,#E0A800);border:none;color:#000;font-weight:900;padding:11px;border-radius:50px;font-size:.95rem;cursor:pointer">Verstanden ➜</button>'
       +'<div style="margin-top:8px;font-size:.66rem;color:rgba(255,255,255,.4)">💡 Tipp: schreib jederzeit /tipps in den Chat.</div></div>';
     document.body.appendChild(ov);
-    let done=false; const ok=ev=>{ if(done) return; done=true; try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} ov.remove(); try{ZG._rebGates();}catch(e){} const _tut=()=>{ try{ const zz=ZS.zoo; if(zz&&(zz.rebTutSeen||0)<rebNum){ zz.rebTutSeen=rebNum; ZS.save&&ZS.save(); Tutorial.startReb(rebNum); } }catch(e){} }; if(rebNum>=REBIRTH_MAX){ setTimeout(()=>ZG._showCredits(false,_tut),400); } else setTimeout(_tut,500); };
+    let done=false; const ok=ev=>{ if(done) return; done=true; try{ev&&ev.preventDefault&&ev.preventDefault();}catch(e){} ov.remove(); try{ZG._rebGates();}catch(e){} const _tut=()=>{ try{ const zz=ZS.zoo; if(zz&&(zz.rebTutSeen||0)<rebNum){ zz.rebTutSeen=rebNum; ZS.save&&ZS.save(); Tutorial.startReb(rebNum); } }catch(e){} }; if(rebNum>=rebMax()){ setTimeout(()=>ZG._showCredits(false,_tut),400); } else setTimeout(_tut,500); };
     const b=ov.querySelector('#reb-explain-ok'); ['pointerup','touchend','click'].forEach(n=>b.addEventListener(n,ok,{passive:false}));
   },
   // Schwarzer Bildschirm: man kann jetzt einen Rebirth machen
@@ -8388,6 +8391,15 @@ const TUTORIAL_STEPS=[
 // ══ REBIRTH-TUTORIALS: pro Rebirth wird nur erklärt, was NEU ist ══
 const _RT=(id,title,text,extra)=>Object.assign({id,title,text,target:null,action:'button'},extra||{});
 const REB_TUT={
+  6:[ _RT('r6a','🔄 Neu durch Rebirth 6','Nur das, was jetzt neu ist – alles findest du im neuen <b>👑-Knopf</b> rechts (Rebirth-6-Hub).'),
+      _RT('r6mult','💰 Einkommen ×100','Dein Einkommen ist jetzt dauerhaft <b>×100</b> – doppelt so viel wie nach Rebirth 5.'),
+      _RT('r6hub','👑 Der Rebirth-6-Hub','Hier siehst du alle neuen Dinge. Mit <b>📍 Hin</b> gehst du direkt zum jeweiligen Ort.',{target:'#zr6-hub'}),
+      _RT('r6wx','🌦️ Wetter-Meister','Du bestimmst für <b>10 Minuten</b> das Wetter in deinem Zoo: Sonne, Klar, Regen oder Sturm – jedes Wetter gibt einen anderen <b>Geld-Bonus</b>. Danach 30 Minuten Pause.'),
+      _RT('r6rob','🤖 Pfleger-Roboter','Der Roboter läuft durch deinen Zoo und füttert die Tiere. Er hat 3 Module zum Ausbauen: <b>Tempo</b> (mehr Geld), <b>Glück</b> (Glücks-Boost) und <b>Sammler</b> (sammelt Münzen).'),
+      _RT('r6arena','⚔️ Tier-Arena','Wähle ein Tier aus deinem Zoo und kämpfe gegen einen Gegner: Angriff, Block oder Spezial. Siege geben <b>Ruhm</b> und MT. Täglich bis zu 10 Kämpfe.'),
+      _RT('r6isl','🏝️ Schatz-Insel','Fahre mit dem Boot hinüber, grabe an den ❌ nach Schätzen und löse das Rätsel der <b>Boss-Truhe</b> (1× pro Tag).'),
+      _RT('r6tower','🗼 Legenden-Turm','50 Stockwerke mit kleinen Aufgaben (Reaktion, Rechnen, Merken, Tippen). <b>1 Versuch pro Tag</b> – ab Stock 10, 20, 30, 40 und 50 gibt es Belohnungen.'),
+      _RT('r6map','🗺️ Geheimnis-Karte','Alle neuen Orte stehen auch in der Karte (🗺️-Knopf) – mit Hinweisen, bis du sie gefunden hast.') ],
   1:[ _RT('r1a','🔄 Neu durch Rebirth 1','Ich zeige dir kurz nur das, was jetzt neu für dich ist.'),
       _RT('r1slap','✨❄️ Golden Slap &amp; Ice Slap','Unten in deiner <b>Waffen-Leiste</b> sind jetzt <b>Golden</b> und <b>Ice</b> dauerhaft freigeschaltet. Sie kosten beim Benutzen weiterhin MT. Tippe sie an, um sie auszurüsten.',{target:'#wbar',boxTop:true}),
       _RT('r1w','🌦️ Wetter','Ab jetzt gibt es Wetter: ☀️ Sonne, 🌧️ Regen und ⛈️ Sturm. Im Sturm wird es dunkel wie in der Nacht und überall schlagen Blitze ein. Achte auf die gelben Warnkreise am Boden: Ein Treffer kostet 3 ❤. Das Kästchen oben links zeigt das Wetter.'),
@@ -8448,6 +8460,11 @@ const REB_ADDONS=[
     _RT('t2c','🏁 Wettrennen','Fordere einen Spieler heraus, der online ist: 20 Sekunden lang so schnell wie möglich auf <b>TEMPO!</b> tippen. Wer öfter tippt, gewinnt den Einsatz (oder nur die Ehre).'),
     _RT('t2d','🏆 Bestenliste &amp; Abzeichen','Im Shop-Tab „Laufbänder“ siehst du die Bestenliste. Dein Rang (🏃 Läufer, 💨 Sprinter, 🏎️ Rennfahrer, 👑 Läufer-Legende) steht über deinem Kopf.')
   ]},
+  {id:'paper',reb:1,steps:[
+    _RT('np0','🔄 Neu für dich (Rebirth 1)','Nur das hier ist neu:'),
+    _RT('np1','📰 Zoo-Zeitung','Rechts unten ist jetzt eine <b>Zeitung</b> (📰). Darin stehen Nachrichten (Wetter, deine Sterne-Bewertung, die schnellsten Läufer) und jeden Tag <b>3 Tages-Aufgaben</b> mit Belohnung.',{target:'#zp-btn'}),
+    _RT('np2','🎁 Aufgaben abschliessen','Erfüllst du eine Aufgabe, tippe in der Zeitung auf <b>„Abholen“</b>. Wenn du alle 3 geschafft hast, gibt es noch einen <b>Geld-Boost</b> obendrauf. Jeden Tag neue Aufgaben!')
+  ]},
   {id:'wish',reb:3,steps:[
     _RT('aw0','🔄 Neu für dich (Rebirth 3)','Nur das hier ist neu:'),
     _RT('aw1','🧑 Besucher-Wünsche','Ab jetzt kommen Besucher in deinen Zoo und <b>wünschen sich ein Tier</b>. Über ihrem Kopf schwebt eine Sprechblase. Oben links siehst du den Wunsch, die Zeit und wie weit der Besucher weg ist.'),
@@ -8457,10 +8474,10 @@ setInterval(()=>{ try{
   const z=(typeof ZS!=='undefined')&&ZS.zoo; if(!z||typeof Tutorial==='undefined'||Tutorial._active||!(typeof ZG!=='undefined'&&ZG.scene)||ZG._arcadeActive) return;
   for(const a of REB_ADDONS){ if((z.reb||0)<a.reb) continue; z.addonSeen=z.addonSeen||{}; if(z.addonSeen[a.id]) continue; if(!z.tutorialSeen&&!(z.reb>0)) continue; z.addonSeen[a.id]=1; ZS.save&&ZS.save(); Tutorial.startReb(null,a.steps); break; }
 }catch(e){} },4000);
-// ══ REBIRTH-ANLEITUNG (v767): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
+// ══ REBIRTH-ANLEITUNG (v769): wie man rebirtht & was es bringt — startet automatisch, sobald man rebirthen kann, und per Chat /rebirth ══
 function _rebHowSteps(){
   const z=ZS.zoo||{}, rb=z.reb||0, N=rb+1;
-  if(rb>=REBIRTH_MAX) return [ _RT('rbm0','🏆 Alle Rebirths geschafft','Du hast alle '+REBIRTH_MAX+' Wiedergeburten gemacht. Dein Einkommen ist dauerhaft <b>×'+rebMultOf(rb)+'</b> — mehr geht nicht. Im Rebirth-Fenster kannst du dir den Abspann ansehen.') ];
+  if(rb>=rebMax()) return [ _RT('rbm0','🏆 Alle Rebirths geschafft','Du hast alle '+rebMax()+' Wiedergeburten gemacht. Dein Einkommen ist dauerhaft <b>×'+rebMultOf(rb)+'</b> — mehr geht nicht. Im Rebirth-Fenster kannst du dir den Abspann ansehen.') ];
   const req=rebReq(rb), have=z.mt||0, can=have>=req.mt;
   const feats=(REB_FEAT_TXT[N]||[]).map(t=>'• '+t).join('<br>');
   return [
@@ -8476,7 +8493,7 @@ function _rebHowSteps(){
 }
 setInterval(()=>{ try{
   const z=(typeof ZS!=='undefined')&&ZS.zoo; if(!z||typeof Tutorial==='undefined'||Tutorial._active||!(typeof ZG!=='undefined'&&ZG.scene)||ZG._arcadeActive) return;
-  const rb=z.reb||0; if(rb>=REBIRTH_MAX||!z.tutorialSeen) return;
+  const rb=z.reb||0; if(rb>=rebMax()||!z.tutorialSeen) return;
   if(document.getElementById('reb-ready')||document.getElementById('reb-explain')||document.getElementById('zoo-credits')) return;
   if((z.mt||0)<rebReq(rb).mt) return; if((z.rebHowFor||0)>=rb+1) return;
   z.rebHowFor=rb+1; ZS.save&&ZS.save(); Tutorial.startReb(null,_rebHowSteps());
@@ -8501,6 +8518,7 @@ const Tutorial={
   _cleanupStep(){
     if(this._moveCheckIv){ clearInterval(this._moveCheckIv); this._moveCheckIv=null; }
     if(this._arrowIv){ clearInterval(this._arrowIv); this._arrowIv=null; }
+    if(this._tgtIv){ clearInterval(this._tgtIv); this._tgtIv=null; }
     document.getElementById('tut-overlay')?.remove();
     if(this._clickAwayFn){ document.removeEventListener('pointerdown',this._clickAwayFn,true); this._clickAwayFn=null; }
     if(this._evtForced){
@@ -8541,7 +8559,7 @@ const Tutorial={
     let s=this._list()[i];
     this._closeStray(s);
     this._menuHelp=false;
-    if(s.id==='menu'){ s=Object.assign({},s,{target:null,noDim:true,text:'Hier findest du Einstellungen, deinen Rang und mehr.<br><b>📜 Scrolle zuerst links in der Leiste ganz nach unten</b> – der Menü-Knopf ist ganz unten – und tippe dann auf <b>☰ Menü</b>.'}); this._menuHelp=true; }
+    if(s.id==='menu'){ s=Object.assign({},s,{target:'#hb-menu',noDim:true,text:'Hier findest du Einstellungen, deinen Rang und mehr.<br><b>📜 Scrolle links in der Leiste</b> – der Pfeil zeigt dir, in welche Richtung der Menü-Knopf ist – und tippe dann auf <b>☰ Menü</b>.'}); }
     // Events-Schritt: ist gerade kein Event aktiv, ist #evt unsichtbar — dann kurz ein Beispiel zeigen
     if(s.id==='events'){
       const ev=document.getElementById('evt');
@@ -8562,23 +8580,33 @@ const Tutorial={
     const dim=document.createElement('div');
     dim.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,'+(s.blackout?1:(s.noDim?.35:.7))+');pointer-events:'+(s.action==='button'?'auto':'none');
     if(s.target){
-      const el=document.querySelector(s.target);
-      if(el){
-        const r=el.getBoundingClientRect();
-        const pad=8;
-        dim.style.clipPath='polygon(0% 0%,0% 100%,'+(r.left-pad)+'px 100%,'+(r.left-pad)+'px '+(r.top-pad)+'px,'+(r.right+pad)+'px '+(r.top-pad)+'px,'+(r.right+pad)+'px '+(r.bottom+pad)+'px,'+(r.left-pad)+'px '+(r.bottom+pad)+'px,'+(r.left-pad)+'px 100%,100% 100%,100% 0%)';
-        const ring=document.createElement('div');
-        ring.style.cssText='position:fixed;left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;border:3px solid #FFD700;border-radius:12px;box-shadow:0 0 20px rgba(255,215,0,.7);pointer-events:none;animation:tutPulse 1.4s ease-in-out infinite';
-        overlay.appendChild(ring);
-      }
+      // Live-Verfolgung: Loch + Rahmen folgen dem Ziel (auch wenn die linke Leiste scrollt).
+      // Liegt das Ziel in der linken Leiste ausserhalb des sichtbaren Bereichs, zeigt ein Pfeil ⬆️/⬇️ in die richtige Richtung.
+      const ring=document.createElement('div');
+      ring.style.cssText='position:fixed;border:3px solid #FFD700;border-radius:12px;box-shadow:0 0 20px rgba(255,215,0,.7);pointer-events:none;animation:tutPulse 1.4s ease-in-out infinite;display:none';
+      overlay.appendChild(ring);
+      const ar=document.createElement('div');
+      ar.style.cssText='position:fixed;left:62px;font-size:2.8rem;pointer-events:none;filter:drop-shadow(0 0 6px #000);animation:tutPulse 1s infinite;display:none;z-index:9701';
+      overlay.appendChild(ar);
+      const baseA=s.blackout?1:(s.noDim?.35:.7);
+      const track=()=>{
+        const el=document.querySelector(s.target); if(!el) return;
+        const r=el.getBoundingClientRect(), side=el.closest('#hleft'), pad=8;
+        let vis=r.width>0&&r.height>0&&r.top>=0&&r.bottom<=innerHeight, sr=null;
+        if(side){ sr=side.getBoundingClientRect(); vis=vis&&r.top>=sr.top-1&&r.bottom<=sr.bottom+1; }
+        if(vis||!side){
+          dim.style.background='rgba(0,0,0,'+baseA+')';
+          dim.style.clipPath='polygon(0% 0%,0% 100%,'+(r.left-pad)+'px 100%,'+(r.left-pad)+'px '+(r.top-pad)+'px,'+(r.right+pad)+'px '+(r.top-pad)+'px,'+(r.right+pad)+'px '+(r.bottom+pad)+'px,'+(r.left-pad)+'px '+(r.bottom+pad)+'px,'+(r.left-pad)+'px 100%,100% 100%,100% 0%)';
+          ring.style.display='block'; ring.style.left=(r.left-pad)+'px'; ring.style.top=(r.top-pad)+'px'; ring.style.width=(r.width+pad*2)+'px'; ring.style.height=(r.height+pad*2)+'px'; ar.style.display='none';
+        } else {
+          dim.style.clipPath='none'; dim.style.background='rgba(0,0,0,.2)'; ring.style.display='none';
+          const up=r.bottom<=(sr?sr.top+2:0)||r.top<0; ar.textContent=up?'⬆️':'⬇️'; ar.style.display='block';
+          if(up){ ar.style.top='90px'; ar.style.bottom='auto'; } else { ar.style.bottom='120px'; ar.style.top='auto'; }
+        }
+      };
+      track(); if(this._tgtIv) clearInterval(this._tgtIv); this._tgtIv=setInterval(track,150);
     }
     overlay.appendChild(dim);
-    if(this._menuHelp){
-      const ring=document.createElement('div'); ring.style.cssText='position:fixed;border:3px solid #FFD700;border-radius:12px;box-shadow:0 0 20px rgba(255,215,0,.8);pointer-events:none;display:none'; overlay.appendChild(ring);
-      const ar=document.createElement('div'); ar.innerHTML='⬇️'; ar.style.cssText='position:fixed;left:70px;bottom:120px;font-size:2.6rem;pointer-events:none;filter:drop-shadow(0 0 6px #000);animation:tutPulse 1s infinite'; overlay.appendChild(ar);
-      const upd=()=>{ const el=document.getElementById('hb-menu'); if(!el){ return; } const r=el.getBoundingClientRect(); const vis=r.top>=0&&r.bottom<=innerHeight&&r.height>0; ring.style.display=vis?'block':'none'; ar.style.display=vis?'none':'block'; if(vis){ ring.style.left=(r.left-6)+'px'; ring.style.top=(r.top-6)+'px'; ring.style.width=(r.width+12)+'px'; ring.style.height=(r.height+12)+'px'; } };
-      upd(); if(this._arrowIv) clearInterval(this._arrowIv); this._arrowIv=setInterval(upd,200);
-    }
     if(!document.getElementById('tut-pulse-style')){
       const st=document.createElement('style'); st.id='tut-pulse-style';
       st.textContent='@keyframes tutPulse{0%,100%{box-shadow:0 0 20px rgba(255,215,0,.7)}50%{box-shadow:0 0 35px rgba(255,215,0,1)}}';
@@ -10735,10 +10763,10 @@ const ZP={
     IT.push({id:'rebirth',n:'🔄 Rebirth',d:'Setzt fast alles zurück, für einen dauerhaften Bonus — tippen für Details',p:0,rebirth:true});
     el.innerHTML=IT.map(item=>{
       if(item.rebirth){
-        const atMax=(z.reb||0)>=REBIRTH_MAX;
+        const atMax=(z.reb||0)>=rebMax();
         const req=(!atMax && typeof rebReq==='function')?rebReq(z.reb||0):null;
         const canReb=req && (z.mt||0)>=req.mt;
-        return '<div class="ac" style="border:1px solid '+(atMax?'#FFD700':canReb?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')">🔄</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')"><div style="font-weight:900;font-size:.84rem">'+item.n+' (Stufe '+(z.reb||0)+'/'+REBIRTH_MAX+')</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+(atMax?'🏆 Maximum erreicht':req?('Benötigt: '+$mt(req.mt)):item.d)+'</div></div><div style="text-align:right"><button class="ab" onclick="event.stopPropagation();ZP.open(\'reb\')">Öffnen</button></div></div>';
+        return '<div class="ac" style="border:1px solid '+(atMax?'#FFD700':canReb?'#27AE60':'rgba(255,255,255,.1)')+'"><div style="cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')">🔄</div><div style="flex:1;cursor:pointer" onclick="ZP._showShopItemInfo(\'rebirth\')"><div style="font-weight:900;font-size:.84rem">'+item.n+' (Stufe '+(z.reb||0)+'/'+rebMax()+')</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">'+(atMax?'🏆 Maximum erreicht':req?('Benötigt: '+$mt(req.mt)):item.d)+'</div></div><div style="text-align:right"><button class="ab" onclick="event.stopPropagation();ZP.open(\'reb\')">Öffnen</button></div></div>';
       }
       if(item.insurance){
         const active=z.insuranceActive;
@@ -11562,7 +11590,7 @@ const ZP={
   _checkRebirthReady(){
     const z=ZS.zoo; if(!z) return;
     const rb=z.reb||0;
-    if(rb>=REBIRTH_MAX) return;
+    if(rb>=rebMax()) return;
     const can=(z.mt||0)>=rebReq(rb).mt;
     // Schwarzer Hinweis-Bildschirm: einmal pro Stufe, sobald man sich den Rebirth leisten kann
     if(can && (z._rebBlackFor===undefined || z._rebBlackFor<rb+1)){
@@ -11583,20 +11611,20 @@ const ZP={
   _rebBarTick(){
     try{
       const p=G('p-reb'); if(!p||p.classList.contains('off')){ clearInterval(this._rebIv); this._rebIv=null; return; }
-      const z=ZS.zoo, rb=z.reb||0; if(rb>=REBIRTH_MAX) return; const req=rebReq(rb), can=(z.mt||0)>=req.mt;
+      const z=ZS.zoo, rb=z.reb||0; if(rb>=rebMax()) return; const req=rebReq(rb), can=(z.mt||0)>=req.mt;
       if(this._rebCan!==can){ this._rReb(); return; }
       const bar=G('reb-bar'); if(bar) bar.outerHTML=this._rebBarHTML(z.mt||0,req.mt);
     }catch(e){}
   },
   _rReb(){
     const z=ZS.zoo,rb=z.reb||0;
-    try{ if(rb<REBIRTH_MAX){ this._rebCan=(z.mt||0)>=rebReq(rb).mt; } clearInterval(this._rebIv); this._rebIv=setInterval(()=>this._rebBarTick(),1000); }catch(e){}
+    try{ if(rb<rebMax()){ this._rebCan=(z.mt||0)>=rebReq(rb).mt; } clearInterval(this._rebIv); this._rebIv=setInterval(()=>this._rebBarTick(),1000); }catch(e){}
     const BASE='Ein Rebirth setzt <b>alles zurück</b> (nur 1 zufälliges Tier bleibt), gibt dir aber einen <b>permanenten Boost</b>, eine <b>neue Slap</b> (Slaps kosten beim Benutzen weiterhin MT) und <b>neue Features</b>.';
-    if(rb>=REBIRTH_MAX){
+    if(rb>=rebMax()){
       G('prc').innerHTML=`<div style="text-align:center">
         <div style="font-size:2.4rem;margin-bottom:6px">🏆</div>
         <div style="font-weight:900;font-size:1rem;margin-bottom:8px">Maximum erreicht!</div>
-        <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6">Du hast alle ${REBIRTH_MAX} Wiedergeburten geschafft. Dein Permanent-Multiplikator (×${rebMultOf(rb)}) bleibt für immer aktiv.</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.6">Du hast alle ${rebMax()} Wiedergeburten geschafft. Dein Permanent-Multiplikator (×${rebMultOf(rb)}) bleibt für immer aktiv.</div>
         <button class="btn btng" style="margin-top:12px" onclick="ZP.close('reb');ZG._showCredits(true)">🎬 Abspann ansehen</button>
       </div>`;
       return;
@@ -11625,7 +11653,7 @@ const ZP={
   },
   async _doReb(){
     const z=ZS.zoo;
-    if((z.reb||0)>=REBIRTH_MAX){ ZP.toast('🏆 Maximum von '+REBIRTH_MAX+' Wiedergeburten bereits erreicht!',3000); return; }
+    if((z.reb||0)>=rebMax()){ ZP.toast('🏆 Maximum von '+rebMax()+' Wiedergeburten bereits erreicht!',3000); return; }
     const req=rebReq(z.reb||0);
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
     if(!(await showConfirm('Wirklich? Fast alle Tiere und MT gehen verloren!')))return;
@@ -12020,7 +12048,7 @@ const ZP={
       '</div>';
   },
 
-  // ── v767: Admin-Gondel (nur Bu:) / Bu:3) ──
+  // ── v769: Admin-Gondel (nur Bu:) / Bu:3) ──
   _gAdm(){
     const n=(ZS.player||'').toLowerCase(); if(n!=='bu:)'&&n!=='bu:3') return;
     let o=document.getElementById('gadm-ov'); if(o) o.remove();
@@ -13994,6 +14022,7 @@ const ZAdmin = {
     if(tab==='einst')this._populateEvents();
     if(tab==='battle')this._battleStatus();
     if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); ZEvt.adminTeamLoad(); }
+    if(tab==='reb6'){ const b=document.getElementById('padmin-reb6-body'); if(b&&window.ZReb6) b.innerHTML=ZReb6.adminHTML(); }
     if(tab==='wjagd'){ const b=document.getElementById('padmin-wjagd-body'); if(b&&window.ZLetters) b.innerHTML=ZLetters.adminHTML(); }
     if(tab==='gucker')this._guckerList(false);
     if(tab==='ministat')this._miniStat();
@@ -14144,7 +14173,7 @@ const ZAdmin = {
       +row('📦 Slap-Pakete',packs||'–')
       +row('🎽 Ausgerüstet',$esc(z.eq||'–'))
       +row('🎂 Alter / Gruppe',age!=null?(age+' J. ('+(p.ageRange||'–')+')'):(p.ageRange||'–'))
-      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v767 beim Spielen erfasst)</span>')
+      +row('⚙️ Menü-Einstellungen',Object.keys(st).length?$esc(Object.entries(st).map(([k,v])=>k+': '+v).join(' · ')):'<span style="color:rgba(255,255,255,.4)">noch nicht gespeichert (wird ab v769 beim Spielen erfasst)</span>')
       +row('🕓 Letzter Login',z.lastLogin||p.lastLogin?new Date(Math.max(z.lastLogin||0,p.lastLogin||0)).toLocaleString('de-CH',{timeZone:'Europe/Zurich'}):'–')
       +'<div class="padmin-section-title" style="margin-top:14px">✉️ Nachricht (schwarzer Bildschirm beim Spieler)</div>'
       +'<textarea id="padmin-gk-msg" rows="3" maxlength="400" placeholder="Nachricht an '+$esc(name)+'…" style="width:100%;background:#1a1a2e;color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px;border-radius:8px;font-size:.82rem;box-sizing:border-box"></textarea>'
@@ -19025,7 +19054,7 @@ const SpeedTemple = {
     } else if(idx===6){ // Boss "Der Rasende": noch riesigere Arena als Raum 4
       raw=[[0,25,70,12,10],[0,26,-145.2,90,90],[0,27,-340.4,14,10]];
     } else if(idx===7){ // 🌀 Wirbel-Pfad: doppelt so lange Sprünge, etwas länger
-      raw=[[0,25,100,12,8],[0,26,-116.8,12,8],[0,27,-333.5,12,8],[0,25,-550.3,12,8],[0,26,-767.0,12,8],[0,27,-983.8,12,8]];
+      raw=[[0,25,100,12,8],[0,26,-116.8,12,8],[0,27,-333.5,12,8],[0,25,-550.3,12,8],[0,26,-769.0,12,8],[0,27,-983.8,12,8]];
     } else if(idx===8){ // 🧊 Eis-Parcours: feste Geschwindigkeit (rote Turnschuhe), Sprünge entsprechend klein gehalten
       raw=[[0,25,50,10,8],[3,26,26,7,6],[-3,27,2,7,6],[3,28,-22,7,6],[-3,28,-46,7,6],[3,27,-70,7,6],[0,26,-94,12,8]];
     } else if(idx===9){ // Raum 10: Standard-Sprünge auf Basis von 100'000 Speed
@@ -20643,6 +20672,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="wjagd" onclick="ZAdmin.switchTab('wjagd')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔤 Buchstaben-Suche</div>
           <div class="padmin-tab-btn" data-tab="lblock" onclick="ZAdmin.switchTab('lblock')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📦 Glücksblöcke</div>
           <div class="padmin-tab-btn" data-tab="lband" onclick="ZAdmin.switchTab('lband')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏃 Laufband-Admin</div>
+          <div class="padmin-tab-btn" data-tab="reb6" onclick="ZAdmin.switchTab('reb6')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔄 Rebirth 6 (Veröffentlichen)</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">💀 Admin Abuse</div>
           <div class="padmin-tab-btn" data-tab="evcenter" onclick="ZAdmin.switchTab('evcenter')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎪 Event-Zentrale</div>
           <div class="padmin-tab-btn" data-tab="battle" onclick="ZAdmin.switchTab('battle')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚔️ Kampf-Event</div>
@@ -20698,6 +20728,7 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: SICHERHEIT -->
+        <div class="padmin-tab" id="padmin-tab-reb6" style="display:none"><div class="padmin-section-title">🔄 Rebirth 6</div><div id="padmin-reb6-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-wjagd" style="display:none"><div class="padmin-section-title">🔤 Buchstaben-Suche (Wort-Jagd)</div><div id="padmin-wjagd-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-lblock" style="display:none"><div class="padmin-section-title">📦 Glücksblöcke spawnen</div>
           <div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.4">Lässt einen Glücksblock im Zoo erscheinen. Wähle die Seltenheit:</div>
