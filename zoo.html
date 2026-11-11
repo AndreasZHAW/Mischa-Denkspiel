@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=779"></script>
-<script src="rewardchests.js?v=779"></script>
-<script src="personality.js?v=779"></script>
+<script src="lang.js?v=780"></script>
+<script src="rewardchests.js?v=780"></script>
+<script src="personality.js?v=780"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v773','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,27 +535,28 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=779"></script>
-<script src="sanction.js?v=779"></script>
-<script src="zevents.js?v=779"></script>
-<script src="znet.js?v=779"></script>
-<script src="zbases.js?v=779"></script>
-<script src="charheads.js?v=779"></script>
-<script src="zworld.js?v=779"></script>
-<script src="zstation.js?v=779"></script>
-<script src="zfx.js?v=779"></script>
-<script src="zextra.js?v=779"></script>
-<script src="zreb6.js?v=779"></script>
-<script src="zlegend.js?v=779"></script>
-<script src="ztutplus.js?v=779"></script>
-<script src="zlift.js?v=779"></script>
-<script src="zfun.js?v=779"></script>
-<script src="zguide.js?v=779"></script>
-<script src="zrules.js?v=779"></script>
-<script src="zsafe.js?v=779"></script>
-<script src="zrebguard.js?v=779"></script>
-<script src="znotify.js?v=779"></script>
-<script src="worlds.js?v=779"></script>
+<script src="firebase-state.js?v=780"></script>
+<script src="sanction.js?v=780"></script>
+<script src="zevents.js?v=780"></script>
+<script src="znet.js?v=780"></script>
+<script src="zbases.js?v=780"></script>
+<script src="charheads.js?v=780"></script>
+<script src="zworld.js?v=780"></script>
+<script src="zstation.js?v=780"></script>
+<script src="zfx.js?v=780"></script>
+<script src="zextra.js?v=780"></script>
+<script src="zreb6.js?v=780"></script>
+<script src="zlegend.js?v=780"></script>
+<script src="ztutplus.js?v=780"></script>
+<script src="zlift.js?v=780"></script>
+<script src="zfun.js?v=780"></script>
+<script src="zguide.js?v=780"></script>
+<script src="zrules.js?v=780"></script>
+<script src="zsafe.js?v=780"></script>
+<script src="zrebguard.js?v=780"></script>
+<script src="zpass.js?v=780"></script>
+<script src="znotify.js?v=780"></script>
+<script src="worlds.js?v=780"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -20698,6 +20699,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="lband" onclick="ZAdmin.switchTab('lband')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏃 Laufband-Admin</div>
           <div class="padmin-tab-btn" data-tab="reb6" onclick="ZAdmin.switchTab('reb6')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔄 Rebirth 6 (Veröffentlichen)</div>
           <div class="padmin-tab-btn" data-tab="safe" onclick="ZAdmin.switchTab('safe')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">💾 Sicherung &amp; Fehler</div>
+          <div class="padmin-tab-btn" data-tab="mtpass" onclick="ZAdmin.switchTab('mtpass')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎫 MT-Pass-Editor</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">💀 Admin Abuse</div>
           <div class="padmin-tab-btn" data-tab="evcenter" onclick="ZAdmin.switchTab('evcenter')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎪 Event-Zentrale</div>
           <div class="padmin-tab-btn" data-tab="battle" onclick="ZAdmin.switchTab('battle')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⚔️ Kampf-Event</div>
@@ -20755,6 +20757,7 @@ window.ZooEvents = ZooEvents;
         <!-- TAB: SICHERHEIT -->
         <div class="padmin-tab" id="padmin-tab-reb6" style="display:none"><div class="padmin-section-title">🔄 Rebirth 6</div><div id="padmin-reb6-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-safe" style="display:none"><div class="padmin-section-title">💾 Sicherung, Verlauf &amp; Fehler</div><div id="padmin-safe-body"></div></div>
+        <div class="padmin-tab" id="padmin-tab-mtpass" style="display:none"><div class="padmin-section-title">🎫 MT-Pass-Editor</div><div id="padmin-mtpass-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-wjagd" style="display:none"><div class="padmin-section-title">🔤 Buchstaben-Suche (Wort-Jagd)</div><div id="padmin-wjagd-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-lblock" style="display:none"><div class="padmin-section-title">📦 Glücksblöcke spawnen</div>
           <div style="font-size:.74rem;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.4">Lässt einen Glücksblock im Zoo erscheinen. Wähle die Seltenheit:</div>
