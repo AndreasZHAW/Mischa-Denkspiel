@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=777"></script>
-<script src="rewardchests.js?v=777"></script>
-<script src="personality.js?v=777"></script>
+<script src="lang.js?v=779"></script>
+<script src="rewardchests.js?v=779"></script>
+<script src="personality.js?v=779"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v773','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,26 +535,27 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=777"></script>
-<script src="sanction.js?v=777"></script>
-<script src="zevents.js?v=777"></script>
-<script src="znet.js?v=777"></script>
-<script src="zbases.js?v=777"></script>
-<script src="charheads.js?v=777"></script>
-<script src="zworld.js?v=777"></script>
-<script src="zstation.js?v=777"></script>
-<script src="zfx.js?v=777"></script>
-<script src="zextra.js?v=777"></script>
-<script src="zreb6.js?v=777"></script>
-<script src="zlegend.js?v=777"></script>
-<script src="ztutplus.js?v=777"></script>
-<script src="zlift.js?v=777"></script>
-<script src="zfun.js?v=777"></script>
-<script src="zguide.js?v=777"></script>
-<script src="zsafe.js?v=777"></script>
-<script src="zrebguard.js?v=777"></script>
-<script src="znotify.js?v=777"></script>
-<script src="worlds.js?v=777"></script>
+<script src="firebase-state.js?v=779"></script>
+<script src="sanction.js?v=779"></script>
+<script src="zevents.js?v=779"></script>
+<script src="znet.js?v=779"></script>
+<script src="zbases.js?v=779"></script>
+<script src="charheads.js?v=779"></script>
+<script src="zworld.js?v=779"></script>
+<script src="zstation.js?v=779"></script>
+<script src="zfx.js?v=779"></script>
+<script src="zextra.js?v=779"></script>
+<script src="zreb6.js?v=779"></script>
+<script src="zlegend.js?v=779"></script>
+<script src="ztutplus.js?v=779"></script>
+<script src="zlift.js?v=779"></script>
+<script src="zfun.js?v=779"></script>
+<script src="zguide.js?v=779"></script>
+<script src="zrules.js?v=779"></script>
+<script src="zsafe.js?v=779"></script>
+<script src="zrebguard.js?v=779"></script>
+<script src="znotify.js?v=779"></script>
+<script src="worlds.js?v=779"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -11675,7 +11676,7 @@ const ZP={
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
     if((z.rebLockUntil||0)>Date.now()){ const h=Math.ceil((z.rebLockUntil-Date.now())/3600000); ZP.toast('⏳ Rebirth gesperrt: Du hast Tiere aus dem Tausch zurückgeholt. Noch ca. '+h+' Std. warten (24-Std.-Sperre).',6000); return; }
     let _viol=null;
-    try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&ZS.player){ const snap=await _rtdb.ref('zoo_trades').once('value'); const val=snap.val()||{}; const mine=Object.keys(val).filter(id=>val[id]&&val[id].sellerKey===ZS.player.toLowerCase()); const n=mine.length; if(n>0){ const names=mine.map(id=>(val[id].e||'')+' '+(val[id].n||'?')); if(window.ZRebGuard){ const act=await ZRebGuard.warn(n,names); if(act!=='ignore') return; _viol={n,names}; } else { ZP.toast('⚠️ Du hast noch '+n+' Tier(e) im Tausch! Nimm sie zuerst zu dir (Shop → Tauschen → Meine Angebote). Danach gilt 24 Std. Rebirth-Sperre.',8000); return; } } } }catch(e){}
+    try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&ZS.player){ const snap=await _rtdb.ref('zoo_trades').once('value'); const val=snap.val()||{}; const mine=Object.keys(val).filter(id=>val[id]&&val[id].sellerKey===ZS.player.toLowerCase()); const n=mine.length; if(n>0){ const names=mine.map(id=>(val[id].e||'')+' '+(val[id].n||'?')); if(window.ZRebGuard){ if(z.rebWarned!==(z.reb||0)){ z.rebWarned=(z.reb||0); ZS.save&&ZS.save(true); await ZRebGuard.warn(n,names); return; } _viol={n,names}; } else { ZP.toast('⚠️ Du hast noch '+n+' Tier(e) im Tausch! Nimm sie zuerst zu dir (Shop → Tauschen → Meine Angebote). Danach gilt 24 Std. Rebirth-Sperre.',8000); return; } } } }catch(e){}
     if(!(await showConfirm('Wirklich? Fast alle Tiere und MT gehen verloren!')))return;
     try{ ZBases.backup(true); }catch(e){}
     const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];
