@@ -101,6 +101,17 @@
     const load=()=>{ const r=RTD(); if(!r||P._on) return; P._on=1; r.ref('zoo_mtpass/pub').on('value',sn=>{ const v=sn.val(); if(v) P.apply(v); }); };
     setTimeout(load,3000); setInterval(load,30000); P.apply(null);
 
+
+    // ═══════ 🎁 Admin gibt XP ═══════
+    const keyN=n=>String(n||'').toLowerCase().replace(/[.#$\[\]\/]/g,'_');
+    const applyGift=(id,g)=>{ const z=ZS.zoo; if(!z||!g||typeof g.amt!=='number') return false; const seen=z.xpGiftSeen||(z.xpGiftSeen=[]); if(seen.includes(id)) return false; seen.push(id); if(seen.length>40) seen.shift(); MTPass._ensureFresh(z); z.mtPassXP=Math.max(0,(z.mtPassXP||0)+Math.round(g.amt)); ZS.save&&ZS.save(); toast((g.amt>=0?'🎁 Der Admin hat dir ':'⚠️ Der Admin hat dir ')+Math.abs(Math.round(g.amt))+' XP '+(g.amt>=0?'gegeben!':'abgezogen.'),5000); try{ ZGfx.confetti(60); }catch(e){} try{ if($('mtpass-body')) MTPass._render(); }catch(e){} return true; };
+    const gl=()=>{ const r=RTD(); if(!r||P._gl||!ZS.player) return; P._gl=1; const me=keyN(ZS.player);
+      r.ref('zoo_xpgift/'+me).on('child_added',sn=>{ const g=sn.val(); applyGift('p'+sn.key,g); try{ sn.ref.remove(); }catch(e){} });
+      r.ref('zoo_xpgift_all').on('child_added',sn=>{ const g=sn.val(); if(g&&Date.now()-(g.t||0)<3*864e5) applyGift('a'+sn.key,g); }); };
+    setTimeout(gl,4000); setInterval(gl,30000);
+    P.giveXP=async function(name,amt,all){ const r=RTD(); if(!r) return 'Offline'; amt=Math.round(+amt); if(!isFinite(amt)||amt===0) return 'Bitte eine XP-Zahl eingeben (auch negativ möglich)'; const g={amt,by:String(ZS.player),t:Date.now()};
+      if(all){ await r.ref('zoo_xpgift_all').push(g); return '🎁 '+amt+' XP an ALLE Spieler gesendet (gilt für Online-Spieler sofort, für andere beim nächsten Login, 3 Tage lang)'; }
+      const k=keyN(name); if(!k) return 'Bitte einen Spielernamen eingeben'; if(k===keyN(ZS.player)){ applyGift('self'+Date.now(),g); return '🎁 Dir selbst '+amt+' XP gegeben'; } await r.ref('zoo_xpgift/'+k).push(g); return '🎁 '+amt+' XP an '+name+' gesendet (kommt an, sobald die Person online ist)'; };
     // ═══════ Admin-Editor ═══════
     const E=P.E={d:null};
     const inp=(path,val,type,extra)=>'<input data-p="'+path+'" data-t="'+(type||'text')+'" type="'+(type==='color'?'color':type==='number'?'number':'text')+'" value="'+esc(val)+'" '+(extra||'')+' style="'+(type==='color'?'width:42px;height:30px;padding:0;border:none;background:none':'width:100%;box-sizing:border-box;padding:6px;border-radius:6px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);font-size:.8rem')+'">';
@@ -120,6 +131,7 @@
       +'<div style="margin:8px 0"><button style="'+bstyle(b)+';width:100%">'+esc(b.emoji)+' '+esc(b.text)+'<br><span style="font-size:.7rem">'+(b.pm==='pct'?b.pct+'% deines Geldes':nf(b.price)+' MT')+'</span></button></div>'; };
     E.html=function(){ const d=E.d, L=d.look; const c=(k,t)=>'<div style="text-align:center;font-size:.65rem"><div>'+t+'</div>'+inp('look.'+k,L[k],'color')+'</div>';
       return '<style>.zpb{border:none;border-radius:8px;background:#34495e;color:#fff;padding:7px 9px;font-size:.8rem;cursor:pointer}.zpbig{border:none;border-radius:10px;padding:10px 14px;font:900 .85rem Arial;color:#fff;cursor:pointer;margin:3px}</style><div style="font-size:.8rem;color:#fff;padding:6px">'
+        +'<div style="background:rgba(255,213,79,.08);border:1px solid rgba(255,213,79,.4);border-radius:10px;padding:8px;margin-bottom:12px"><div style="font-weight:900;color:#ffd54f">🎁 XP vergeben</div><div style="display:flex;gap:8px"><div style="flex:2">'+lbl('Spielername','<input id="zp-gn" placeholder="Name" style="width:100%;box-sizing:border-box;padding:6px;border-radius:6px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);font-size:.8rem">')+'</div><div style="flex:1">'+lbl('XP','<input id="zp-ga" type="number" value="500" style="width:100%;box-sizing:border-box;padding:6px;border-radius:6px;background:#0d1f3c;color:#fff;border:1px solid rgba(255,255,255,.2);font-size:.8rem">')+'</div></div><label style="display:flex;gap:6px;align-items:center;margin:4px 0;font-size:.78rem"><input type="checkbox" id="zp-gall"> An ALLE Spieler (Event-Geschenk)</label><button class="zpbig" data-a="gift" style="background:#27ae60">🎁 XP geben</button><div style="font-size:.68rem;opacity:.7">Negative Zahl = XP abziehen. XP wird genau so vergeben, ohne XP-Faktor.</div></div>'
         +'<div style="font-weight:900;color:#ffd54f">🎨 Aussehen</div><div style="display:flex;gap:8px"><div style="flex:3">'+lbl('Name',inp('name',d.name))+'</div><div style="flex:1">'+lbl('Icon',inp('icon',d.icon))+'</div></div>'
         +'<div style="display:flex;gap:8px;justify-content:space-between;margin-top:6px;flex-wrap:wrap">'+c('bg1','Hinten 1')+c('bg2','Hinten 2')+c('border','Rand')+c('accent','Akzent')+c('text','Text')+c('done','Fertig')+c('sup','Super')+'</div>'
         +buyEd('buy','👑 VIP-Pass (Mitte) &amp; Kaufknopf')+buyEd('buy2','💎 VIP+-Pass (unten) &amp; Kaufknopf')
@@ -135,6 +147,7 @@
       if(/\.type$/.test(p)){ const base=p.slice(0,-5); const old=getp(E.d,base); const nr=copy(defR[v]||{type:v}); if(!old||/\.(prem|vip2)$/.test(base)){ if(old&&old.ic) nr.ic=old.ic; setp(E.d,base,nr); } else { Object.keys(old).forEach(k=>{ if(['mult','dur','amount','pct','rar','k','type'].includes(k)) delete old[k]; }); Object.assign(old,nr); } E.render(true); return; }
       setp(E.d,p,v); if(el.dataset.rr||/\.(gold|on|ic)$/.test(p)) E.render(true); };
     E.act=async function(a){ const d=E.d, r=RTD(); const [k,key,i]=a.split(':');
+      if(k==='gift'){ const m=await P.giveXP(($('zp-gn')||{}).value,($('zp-ga')||{}).value,($('zp-gall')||{}).checked); msg(m); return; }
       if(k==='ic'){ setp(E.d,key+'.ic',i); E.render(true); return; }
       if(k==='add'){ const arr=d[key], last=arr[arr.length-1]; arr.push({xp:Math.round((last?last.xp:0)*1.2+200),type:'money',mult:2,dur:5,prem:null,vip2:null,gold:false}); E.render(true); }
       else if(k==='del'){ d[key].splice(+i,1); E.render(true); } else if(k==='up'||k==='dn'){ const arr=d[key], j=+i+(k==='up'?-1:1); if(j<0||j>=arr.length) return; [arr[+i],arr[j]]=[arr[j],arr[+i]]; E.render(true); }
