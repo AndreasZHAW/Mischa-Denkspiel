@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=783"></script>
-<script src="rewardchests.js?v=783"></script>
-<script src="personality.js?v=783"></script>
+<script src="lang.js?v=785"></script>
+<script src="rewardchests.js?v=785"></script>
+<script src="personality.js?v=785"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v773','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,29 +535,30 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=783"></script>
-<script src="sanction.js?v=783"></script>
-<script src="zevents.js?v=783"></script>
-<script src="znet.js?v=783"></script>
-<script src="zbases.js?v=783"></script>
-<script src="charheads.js?v=783"></script>
-<script src="zworld.js?v=783"></script>
-<script src="zstation.js?v=783"></script>
-<script src="zfx.js?v=783"></script>
-<script src="zextra.js?v=783"></script>
-<script src="zreb6.js?v=783"></script>
-<script src="zlegend.js?v=783"></script>
-<script src="ztutplus.js?v=783"></script>
-<script src="zlift.js?v=783"></script>
-<script src="zfun.js?v=783"></script>
-<script src="zguide.js?v=783"></script>
-<script src="zrules.js?v=783"></script>
-<script src="zsafe.js?v=783"></script>
-<script src="zrebguard.js?v=783"></script>
-<script src="zpass.js?v=783"></script>
-<script src="znotify.js?v=783"></script>
-<script src="zdetective.js?v=783"></script>
-<script src="worlds.js?v=783"></script>
+<script src="firebase-state.js?v=785"></script>
+<script src="sanction.js?v=785"></script>
+<script src="zevents.js?v=785"></script>
+<script src="znet.js?v=785"></script>
+<script src="zbases.js?v=785"></script>
+<script src="charheads.js?v=785"></script>
+<script src="zworld.js?v=785"></script>
+<script src="zstation.js?v=785"></script>
+<script src="zfx.js?v=785"></script>
+<script src="zextra.js?v=785"></script>
+<script src="zreb6.js?v=785"></script>
+<script src="zlegend.js?v=785"></script>
+<script src="ztutplus.js?v=785"></script>
+<script src="zlift.js?v=785"></script>
+<script src="zfun.js?v=785"></script>
+<script src="zguide.js?v=785"></script>
+<script src="zrules.js?v=785"></script>
+<script src="zsafe.js?v=785"></script>
+<script src="zrebguard.js?v=785"></script>
+<script src="zpass.js?v=785"></script>
+<script src="znotify.js?v=785"></script>
+<script src="zdetective.js?v=785"></script>
+<script src="zpirate.js?v=785"></script>
+<script src="worlds.js?v=785"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1580,16 +1581,17 @@ const TOOLS=[
 
 // ── REBIRTH-SYSTEM (v773) ──
 // Kosten nur noch in MT. Boost = Gesamt-Multiplikator nach der jeweiligen Stufe.
-const REB_COST=[100000,1000000,2500000,10000000,100000000,100000000000];
-const REB_MULT=[1.5,3,5,10,50,100];
-function rebMax(){ try{ return (window.ZReb6&&ZReb6.on())?6:5; }catch(e){ return 5; } }
+const REB_COST=[100000,1000000,2500000,10000000,100000000,100000000000,1000000000000];
+const REB_MULT=[1.5,3,5,10,50,100,250];
+function rebMax(){ try{ return (window.ZReb6&&ZReb6.on())?(window.ZPirate?7:6):5; }catch(e){ return 5; } }
 function rebReq(n){return {e:0,l:0,u:0,g:0,m:0,s:0,mt:REB_COST[Math.min(n,REB_COST.length-1)]};}
 function rebMultOf(n){ n=n|0; return n<=0?1:REB_MULT[Math.min(n,REB_MULT.length)-1]; }
 // Slaps, die jede Stufe dauerhaft freischaltet (Basic hat man immer). Sie kosten beim Benutzen weiterhin MT.
-const REB_SLAPS=[['ice','golden'],['shadow','swap'],['fire','bubble'],['rainbow','snail'],['void'],[]];
+const REB_SLAPS=[['ice','golden'],['shadow','swap'],['fire','bubble'],['rainbow','snail'],['void'],[],[]];
 // Ab welcher Rebirth-Stufe ein Feature sichtbar/nutzbar ist
 const REB_NEED={freilassen:3,schritt:2,terminal:2,luckhz:2,luckchain:2,luckups:1, mtpass:3,zucht:3,album:3,luckbonus:3, rang:4, basen:5, weather:1, steal:5, wish:3, treadmill:1};
 const REB_FEAT_TXT={
+  7:['💰 Einkommen ×250','🏴‍☠️ Neue Welt: die Piraten-Welt! Segle mit deinem Schiff über das gemeinsame Meer, finde Schätze, kämpfe gegen Seeschlangen und den Kraken, heuere Tiere als Crew an','🍾 Flaschenpost, Händler-Insel (Gold gegen Zoo-Boosts) und Rangliste','↔️ Du kannst jederzeit zwischen Zoo und Piraten-Welt wechseln (🏴‍☠️-Knopf)'],
   6:['💰 Einkommen ×100','🚂 Zoo-Bahn: Zug mit 4 ausbaubaren Bahnhöfen, jeder Halt gibt Münzen – du kannst mitfahren','🥚 Ei-Brüterei: Eier ausbrüten (1–24 Std.), heraus kommen seltene Tiere','🌦️ Wetter-Meister: du bestimmst für 10 Minuten das Wetter in deinem Zoo – jedes Wetter gibt einen anderen Geld-Bonus','🤖 Pfleger-Roboter: füttert deine Tiere und hat 3 Module (Tempo, Glück, Sammler)','⚔️ Tier-Arena: kämpfe mit deinen Tieren und sammle Ruhm','🏝️ Schatz-Insel: mit dem Boot hinüber, Schätze ausgraben und die Boss-Truhe mit Rätsel öffnen','🗼 Legenden-Turm: 50 Stockwerke, 1 Versuch pro Tag, grosse Belohnungen','🗺️ Alle neuen Orte stehen in der Geheimnis-Karte'],
   1:['🏃 Laufbänder & 🌱 Pflanzen im Shop (Training = schneller beim Tragen)','✨ Golden Slap & ❄️ Ice Slap dauerhaft (kosten beim Benutzen weiterhin MT)','💰 Einkommen ×1,5','🍀 Glücks-Stufen ×5, ×7 und ×10 in der Gondel','🌦️ Wetter im Zoo: Sonne, Regen & Sturm (im Sturm ist es dunkel und Blitze schlagen ein: Treffer = −3 ❤)','🎉 Admin-Events machen dich zum Teil des Spiels (Sturm, Magnet, Mystery-Box, Mini-Wahl …)','💦 Pfützen-Springen im Regen & 👋 Freunde-Winken'],
   2:['💜 Shadow Slap dauerhaft','💰 Einkommen ×3','🍀 Glück-Häufigkeit im Shop und Kleeblatt-Kette (Grün-Glück) in der Gondel','🔊 Schritt-Ton-Knopf','🔍 Sammlungs-Terminal'],
