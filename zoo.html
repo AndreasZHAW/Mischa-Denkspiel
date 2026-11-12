@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=787"></script>
-<script src="rewardchests.js?v=787"></script>
-<script src="personality.js?v=787"></script>
+<script src="lang.js?v=788"></script>
+<script src="rewardchests.js?v=788"></script>
+<script src="personality.js?v=788"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v773','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,30 +535,31 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=787"></script>
-<script src="sanction.js?v=787"></script>
-<script src="zevents.js?v=787"></script>
-<script src="znet.js?v=787"></script>
-<script src="zbases.js?v=787"></script>
-<script src="charheads.js?v=787"></script>
-<script src="zworld.js?v=787"></script>
-<script src="zstation.js?v=787"></script>
-<script src="zfx.js?v=787"></script>
-<script src="zextra.js?v=787"></script>
-<script src="zreb6.js?v=787"></script>
-<script src="zlegend.js?v=787"></script>
-<script src="ztutplus.js?v=787"></script>
-<script src="zlift.js?v=787"></script>
-<script src="zfun.js?v=787"></script>
-<script src="zguide.js?v=787"></script>
-<script src="zrules.js?v=787"></script>
-<script src="zsafe.js?v=787"></script>
-<script src="zrebguard.js?v=787"></script>
-<script src="zpass.js?v=787"></script>
-<script src="znotify.js?v=787"></script>
-<script src="zdetective.js?v=787"></script>
-<script src="zpirate.js?v=787"></script>
-<script src="worlds.js?v=787"></script>
+<script src="firebase-state.js?v=788"></script>
+<script src="sanction.js?v=788"></script>
+<script src="zevents.js?v=788"></script>
+<script src="znet.js?v=788"></script>
+<script src="zbases.js?v=788"></script>
+<script src="charheads.js?v=788"></script>
+<script src="zworld.js?v=788"></script>
+<script src="zstation.js?v=788"></script>
+<script src="zfx.js?v=788"></script>
+<script src="zextra.js?v=788"></script>
+<script src="zreb6.js?v=788"></script>
+<script src="zlegend.js?v=788"></script>
+<script src="ztutplus.js?v=788"></script>
+<script src="zlift.js?v=788"></script>
+<script src="zfun.js?v=788"></script>
+<script src="zguide.js?v=788"></script>
+<script src="zrules.js?v=788"></script>
+<script src="zsafe.js?v=788"></script>
+<script src="zrebguard.js?v=788"></script>
+<script src="zpass.js?v=788"></script>
+<script src="znotify.js?v=788"></script>
+<script src="zdetective.js?v=788"></script>
+<script src="zpirate.js?v=788"></script>
+<script src="zmenu.js?v=788"></script>
+<script src="worlds.js?v=788"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8406,7 +8407,7 @@ const _RT=(id,title,text,extra)=>Object.assign({id,title,text,target:null,action
 const REB_TUT={
   6:[ _RT('r6a','🔄 Neu durch Rebirth 6','Nur das, was jetzt neu ist – alles findest du im neuen <b>👑-Knopf</b> rechts (Rebirth-6-Hub).'),
       _RT('r6mult','💰 Einkommen ×100','Dein Einkommen ist jetzt dauerhaft <b>×100</b> – doppelt so viel wie nach Rebirth 5.'),
-      _RT('r6hub','👑 Der Rebirth-6-Hub','Hier siehst du alle neuen Dinge. Mit <b>📍 Hin</b> gehst du direkt zum jeweiligen Ort.',{target:'#zr6-hub'}),
+      _RT('r6hub','👑 Der Rebirth-6-Hub','Hier siehst du alle neuen Dinge. Mit <b>📍 Hin</b> gehst du direkt zum jeweiligen Ort.',{target:'#zm-fab'}),
       _RT('r6wx','🌦️ Wetter-Meister','Du bestimmst für <b>10 Minuten</b> das Wetter in deinem Zoo: Sonne, Klar, Regen oder Sturm – jedes Wetter gibt einen anderen <b>Geld-Bonus</b>. Danach 30 Minuten Pause.'),
       _RT('r6rob','🤖 Pfleger-Roboter','Der Roboter läuft durch deinen Zoo und füttert die Tiere. Er hat 3 Module zum Ausbauen: <b>Tempo</b> (mehr Geld), <b>Glück</b> (Glücks-Boost) und <b>Sammler</b> (sammelt Münzen).'),
       _RT('r6arena','⚔️ Tier-Arena','Wähle ein Tier aus deinem Zoo und kämpfe gegen einen Gegner: Angriff, Block oder Spezial. Siege geben <b>Ruhm</b> und MT. Täglich bis zu 10 Kämpfe.'),
