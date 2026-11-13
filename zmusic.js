@@ -6,23 +6,29 @@
   const ls=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } };
   const lsw=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
   const M=window.ZMusic={on:ls('zmusic_on',true),vol:ls('zmusic_vol',.35),i:ls('zmusic_i',-1),playing:false};
+  const BASE=(()=>{ try{ const c=document.currentScript&&document.currentScript.src; return c?c.replace(/[^\/]*$/,''):''; }catch(e){ return ''; } })();
+  M.status='Wartet auf deine erste Berührung …';
   const au=new Audio(); au.preload='none'; au.loop=false; M.au=au;
   const night=()=>{ try{ if(window.ZDevice&&!ZDevice.s.night) return 1; const h=new Date().getHours(); return (h>=22||h<7)?.6:1; }catch(e){ return 1; } };
   const muted=()=>{ try{ return typeof ZSound!=='undefined'&&ZSound.style==='off'; }catch(e){ return false; } };
   const apply=()=>{ au.volume=Math.max(0,Math.min(1,M.vol*night())); };
-  const src=i=>'music/'+TR[i][0];
+  const src=i=>BASE+'music/'+TR[i][0];
   M.next=function(userSkip){ M.i=(M.i+1+TR.length)%TR.length; lsw('zmusic_i',M.i); load(true); };
-  function load(play){ try{ au.src=src(M.i); apply(); if(play&&M.on&&!muted()&&!document.hidden){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; fade(); }).catch(()=>{ M.playing=false; }); } }catch(e){} }
+  function load(play){ try{ au.src=src(M.i); apply(); if(play&&M.on&&!muted()&&!document.hidden){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); }).catch(e=>{ M.playing=false; M.status='Wartet auf deine erste Berührung …'; }); } }catch(e){} }
   function fade(){ const t=M.vol*night(); au.volume=0; let k=0; const iv=setInterval(()=>{ k++; au.volume=Math.min(1,t*k/15); if(k>=15){ clearInterval(iv); apply(); } },100); }
-  M.start=function(){ if(!M.on||muted()) return; if(M.i<0){ M.i=Math.floor(Math.random()*TR.length); lsw('zmusic_i',M.i); } if(!au.src||au.src.indexOf(TR[M.i][0])<0) load(false); apply(); if(au.paused){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; fade(); stopSynth(); }).catch(()=>{ M.playing=false; }); } };
+  M.start=function(){ if(!M.on||muted()) return; if(M.i<0){ M.i=Math.floor(Math.random()*TR.length); lsw('zmusic_i',M.i); } if(!au.src||au.src.indexOf(TR[M.i][0])<0) load(false); apply(); if(au.paused){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); stopSynth(); done(); }).catch(e=>{ M.playing=false; M.status=(e&&e.name==='NotAllowedError')?'Wartet auf deine erste Berührung …':'Fehler: '+(e&&e.name||'?'); }); } };
   M.stop=function(){ try{ au.pause(); }catch(e){} M.playing=false; };
   M.setOn=function(v){ M.on=!!v; lsw('zmusic_on',M.on); if(M.on) M.start(); else M.stop(); };
   M.setVol=function(v){ M.vol=Math.max(0,Math.min(1,+v)); lsw('zmusic_vol',M.vol); apply(); if(M.vol>0&&M.on&&au.paused) M.start(); };
+  M.test=function(){ M.setOn(true); M.start(); };
   au.addEventListener('ended',()=>M.next());
-  au.addEventListener('error',()=>{ setTimeout(()=>{ if(M.on) M.next(); },3000); });
+  let errN=0; au.addEventListener('error',()=>{ errN++; M.playing=false; M.status='Fehler: Datei nicht gefunden ('+TR[M.i][0]+'). Ist der Ordner „music“ mit hochgeladen?'; if(errN===1){ try{ ZP.toast('🎵 Musik-Datei nicht gefunden – Ordner „music“ hochladen!',6000); }catch(e){} } if(errN<8) setTimeout(()=>{ if(M.on) M.next(); },3000); });
+  au.addEventListener('playing',()=>{ errN=0; M.playing=true; M.status='Läuft'; });
   // Start nach erster Berührung (Browser erlauben sonst keinen Ton)
-  const unlock=()=>{ M.start(); if(!au.paused){ ['pointerdown','keydown','touchstart'].forEach(e=>removeEventListener(e,unlock,true)); } };
-  ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,unlock,true));
+  const EV=['pointerdown','pointerup','click','keydown','touchstart','touchend'];
+  const unlock=()=>{ if(M.playing) return; M.start(); };
+  const done=()=>{ EV.forEach(e=>removeEventListener(e,unlock,true)); };
+  EV.forEach(e=>addEventListener(e,unlock,true));
   // Im Hintergrund pausieren
   document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(!au.paused){ au.pause(); M._wasP=true; } } else if(M._wasP){ M._wasP=false; M.start(); } });
   // Stumm-Stellung des Sound-Menüs gilt auch für die Musik
@@ -31,7 +37,7 @@
   // ═══ Oberfläche ═══
   M.card=function(){ const d=document.createElement('div'); d.id='zmusic-card'; d.style.cssText='margin:10px 4px 4px;padding:12px;border:2px solid #9b59b6;border-radius:12px;background:rgba(155,89,182,.18);color:#fff';
     const cur=M.i>=0?TR[M.i]:null; const pct=Math.round(M.vol*100);
-    d.innerHTML='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.6rem">🎵</span><div style="flex:1"><div style="font-weight:900;font-size:.95rem">Hintergrundmusik</div><div id="zmusic-now" style="font-size:.75rem;color:rgba(255,255,255,.65)">'+(cur&&M.on?'♪ '+cur[1]+' · '+cur[2]:(M.on?'Startet gleich …':'Aus'))+'</div></div><button id="zmusic-t" style="border:none;border-radius:20px;padding:7px 13px;font-weight:900;color:#fff;background:'+(M.on?'#43a047':'#757575')+'">'+(M.on?'AN':'AUS')+'</button></div>'
+    d.innerHTML='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.6rem">🎵</span><div style="flex:1"><div style="font-weight:900;font-size:.95rem">Hintergrundmusik</div><div id="zmusic-now" style="font-size:.75rem;color:rgba(255,255,255,.65)">'+(M.on?(M.playing&&cur?'♪ '+cur[1]+' · '+cur[2]:M.status):'Aus')+'</div></div><button id="zmusic-t" style="border:none;border-radius:20px;padding:7px 13px;font-weight:900;color:#fff;background:'+(M.on?'#43a047':'#757575')+'">'+(M.on?'AN':'AUS')+'</button></div>'
       +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px"><span>🔈</span><input id="zmusic-v" type="range" min="0" max="100" value="'+pct+'" style="flex:1"><span>🔊</span><b id="zmusic-p" style="width:38px;text-align:right;font-size:.8rem">'+pct+'%</b></div>'
       +'<button id="zmusic-n" style="width:100%;margin-top:8px;padding:8px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-weight:900">⏭ Nächstes Lied</button><div style="font-size:.65rem;opacity:.55;margin-top:6px">Lieder: Leberch, Sub_Clair</div>';
     setTimeout(()=>{ const t=document.getElementById('zmusic-t'), v=document.getElementById('zmusic-v'), n=document.getElementById('zmusic-n'); if(!t) return;
