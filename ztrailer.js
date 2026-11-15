@@ -3,8 +3,7 @@
   if(window.ZTrailer) return;
   const W=1280,H=720,DUR=160;
   const TEAM=[
-    {n:'Bu:)',r:'ADMIN · ERFINDER',d:'Hat das Spiel erfunden und baut jeden Tag neue Sachen ein – Zoo, Piraten, Freizeitpark und mehr.',c:'#e53935'},
-    {n:'Schwamm',r:'ADMIN',d:'Saugt jeden Streit auf wie ein Schwamm und sorgt dafür, dass alle wieder Freunde sind.',c:'#fdd835'},
+    {n:'Bu:)',r:'ADMIN · ERFINDER · „SCHWAMM“',d:'Hat das Spiel erfunden, baut jeden Tag Neues ein und saugt jeden Streit auf wie ein Schwamm – damit alle wieder Freunde sind.',c:'#e53935'},
     {n:'Andi5',r:'ADMIN',d:'Wacht über die Regeln und greift sofort ein, wenn jemand unfair ist.',c:'#1e88e5'},
     {n:'j.t',r:'SPIELER · FREUND',d:'Spielt von Anfang an mit, testet alles und hilft den Neuen beim Start.',c:'#43a047'}
   ];
@@ -66,23 +65,23 @@
     if(u<8){ sky('#1a0033','#6a1b9a'); stars(t,80); ctx.save(); ctx.translate(W/2,350); ctx.rotate(t*.8); emo('🔄',0,0,230,1); ctx.restore(); txt('REBIRTH',W/2,110,80,'#ffd54f',fade(u,.3,8,.5,.5)); txt('Neu anfangen – und viel stärker werden',W/2,590,40,'#fff',fade(u,1,8,.5,.5)); txt('💰 Einkommen ×500',W/2,660,40,'#69f0ae',fade(u,2.5,8,.5,.5)); }
     else if(u<16){ const v=u-8; sky('#7fd6ff','#005f99'); ctx.fillStyle='#0277bd'; ctx.fillRect(0,420,W,300); ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=4; for(let r=0;r<5;r++){ ctx.beginPath(); for(let x=0;x<=W;x+=20){ const y=440+r*55+Math.sin(x/60+t*2+r)*10; x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); }
       const sx=200+v*100; ctx.save(); ctx.translate(sx,420+Math.sin(t*2)*10); ctx.rotate(Math.sin(t*2)*.06); emo('⛵',0,0,200,1); ctx.restore(); emo('🐙',1050+Math.sin(t)*10,500,130,seg(v,3,5)); emo('🍾',640,520+Math.sin(t*3)*8,60,1);
-      txt('PIRATEN-WELT',W/2,110,80,'#fff',fade(v,.3,8,.5,.5)); txt('Segle über das gemeinsame Meer',W/2,200,40,'#ffd54f',fade(v,1,8,.5,.5)); txt('Seeschlangen · Kraken · Schätze',W/2,640,40,'#fff',fade(v,2.5,8,.5,.5)); }
+      txt('PIRATEN-WELT',W/2,110,80,'#fff',fade(v,.3,8,.5,.5)); txt('ab Rebirth 7',W/2,270,44,'#ffd54f',fade(v,.8,8,.5,.5)); txt('Segle über das gemeinsame Meer',W/2,200,40,'#ffd54f',fade(v,1,8,.5,.5)); txt('Seeschlangen · Kraken · Schätze',W/2,640,40,'#fff',fade(v,2.5,8,.5,.5)); }
     else { const v=u-16; sky('#ff8a65','#ffe0b2'); ground('#7cb342',560); ctx.strokeStyle='#d32f2f'; ctx.lineWidth=12; ctx.beginPath(); for(let x=60;x<=1220;x+=10){ const y=450-Math.abs(Math.sin(x/170))*260; x===60?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke(); ctx.lineWidth=3; for(let x=80;x<1220;x+=80){ const y=450-Math.abs(Math.sin(x/170))*260; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,560); ctx.stroke(); }
       const cx=60+((v*160)%1160), cy=450-Math.abs(Math.sin(cx/170))*260; emo('🚃',cx,cy-22,70,1); emo('🎡',1100,430,200,1); emo('🎪',160,500,120,1); emo('🌭',420,590,60,1); emo('🎈',700+Math.sin(t)*20,210,70,1);
-      txt('FREIZEITPARK',W/2,100,80,'#fff',fade(v,.3,9,.5,.5)); txt('Baue Achterbahnen im eigenen Editor',W/2,190,40,'#fff',fade(v,1.5,9,.5,.5)); } }
+      txt('FREIZEITPARK',W/2,100,80,'#fff',fade(v,.3,9,.5,.5)); txt('ab Rebirth 8',W/2,260,44,'#fff',fade(v,.8,9,.5,.5)); txt('Baue Achterbahnen im eigenen Editor',W/2,190,40,'#fff',fade(v,1.5,9,.5,.5)); } }
   function scene6(t){ const u=t-105; sky('#ffe082','#fff8e1'); ground('#8bc34a',540); for(let i=0;i<30;i++){ ctx.fillStyle='rgba(255,215,0,'+(.3+.3*Math.sin(t*3+i))+')'; ctx.fillRect(rnd(i)*W,(rnd(i+7)*H+t*60)%H,6,6); }
     ['🐘','🦁','🐼','🦊','🐶','🐱'].forEach((a,i)=>emo(a,120+i*200,520+Math.sin(t*3+i)*6,90,1)); fig(640,600,1.6,{col:'#ff9800',mood:'happy',t:t,up:true,hat:'#fdd835'}); emo('👑',640,360+Math.sin(t*3)*6,70,1);
     const e=ease(seg(u,3,6)); [{x:180,c:'#e53935',s:'Wow! Das ist riesig!'},{x:1090,c:'#8e24aa',s:'Tut uns leid …'}].forEach((b,i)=>{ fig(b.x+(i?1:-1)*(1-e)*400,600,1.35,{col:b.c,mood:'happy',t:t+i}); bubble(b.s,b.x,400,e>.95?fade(u,6+i*2,10+i*2,.3,.4):0); });
     txt('Er hat alles geschafft.',W/2,110,64,'#4e342e',fade(u,.3,5,.6,.6),{st:'rgba(255,255,255,.8)'}); txt('Und die anderen? Sie staunen.',W/2,110,56,'#4e342e',fade(u,6,12,.6,.4),{st:'rgba(255,255,255,.8)'}); }
   function scene7(t){ const u=t-117; sky('#0d1b2a','#1b263b'); stars(t,60);
     if(u<4){ ctx.save(); ctx.translate(W/2,H/2); const s=1+.1*Math.sin(t*2); ctx.scale(s,s); emo('🛡️',0,-40,200,fade(u,0,4,.6,.6)); ctx.restore(); txt('DAS TEAM',W/2,520,90,'#ffd54f',fade(u,.4,4,.6,.6)); return; }
-    const i=Math.min(3,Math.floor((u-4)/6.5)), m=TEAM[i], v=(u-4)-i*6.5, a=fade(v,0,6.5,.6,.5), e=ease(seg(v,0,.8));
+    const i=Math.min(2,Math.floor((u-4)/8.6)), m=TEAM[i], v=(u-4)-i*8.6, a=fade(v,0,8.6,.6,.5), e=ease(seg(v,0,.8));
     ctx.save(); ctx.globalAlpha=a; const g=ctx.createLinearGradient(0,0,W,0); g.addColorStop(0,'#0b2e33'); g.addColorStop(.55,'#12454d'); g.addColorStop(1,'#cfd8dc'); ctx.fillStyle=g; ctx.fillRect(80,130,1120,460); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.strokeRect(80,130,1120,460);
     ctx.fillStyle='rgba(255,255,255,.07)'; for(let k=0;k<7;k++) ctx.fillRect(700+k*70,130,3,460); ctx.restore();
-    ctx.save(); ctx.translate((1-e)*-120,0); txt('M E E T',150,200,30,'#9ad',a,{al:'left',sh:0}); txt(m.n,150,290,m.n.length>6?100:130,'#fff',a,{al:'left'}); txt(m.r,150,380,36,m.c,a,{al:'left'});
+    ctx.save(); ctx.translate((1-e)*-120,0); txt('M E E T',150,200,30,'#9ad',a,{al:'left',sh:0}); txt(m.n,150,290,m.n.length>6?100:130,'#fff',a,{al:'left'}); txt(m.r,150,380,m.r.length>20?27:36,m.c,a,{al:'left'});
     ctx.globalAlpha=a; ctx.font='500 28px Arial'; ctx.fillStyle='#e0f2f1'; ctx.textAlign='left'; ctx.textBaseline='top'; const words=m.d.split(' '); let line='',yy=425; words.forEach(w=>{ if(ctx.measureText(line+w).width>520){ ctx.fillText(line,150,yy); yy+=38; line=''; } line+=w+' '; }); ctx.fillText(line,150,yy); ctx.restore();
     ctx.save(); ctx.globalAlpha=a; ctx.translate((1-e)*160,0); ctx.beginPath(); ctx.rect(700,131,499,458); ctx.clip(); fig(950,572,2.1,{col:'#263238',suit:'#263238',dots:true,t:t,mood:'happy',up:i===0&&Math.sin(t*3)>0}); txt('12',1170,160,26,'#fff',1,{sh:0}); ctx.restore();
-    ctx.globalAlpha=a; ctx.fillStyle=m.c; ctx.fillRect(80,590,1120*seg(v,0,6.5),8); ctx.globalAlpha=1; }
+    ctx.globalAlpha=a; ctx.fillStyle=m.c; ctx.fillRect(80,590,1120*seg(v,0,8.6),8); ctx.globalAlpha=1; }
   function scene8(t){ const u=t-147; sky('#0d1b2a','#2e4a7d'); stars(t,100); snow(t,60,.7);
     txt('Bei uns wird niemand gemobbt.',W/2,200,66,'#fff',fade(u,.5,5.5,.8,.6)); emo('🛡️',W/2,380,170,fade(u,1.5,5.5,.8,.6)); txt('Dafür sorgt das wachsame Admin-Team.',W/2,560,46,'#ffd54f',fade(u,2,5.5,.8,.6));
     const v=u-5.5; if(v>0){ emo('🍀',W/2,200,150,fade(v,0,8,.8,0)); txt('VIEL GLÜCK!',W/2,360,130,'#69f0ae',fade(v,.5,8,.8,0)); txt('Mischa Denkspiel',W/2,500,56,'#ffd54f',fade(v,1.5,8,.8,0)); txt('Baue deinen eigenen Zoo.',W/2,580,40,'#fff',fade(v,2.2,8,.8,0)); } }

@@ -312,13 +312,13 @@
       const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); const col=new THREE.Color().setHSL(Math.random(),1,.6); const pts=new THREE.Points(geo,new THREE.PointsMaterial({color:col,size:1.8,transparent:true,sizeAttenuation:true})); S.add(pts); FW.push({pts,vel,t:0,n}); }
     function fwTick(dt){ for(let i=FW.length-1;i>=0;i--){ const f=FW[i]; f.t+=dt; const a=f.pts.geometry.attributes.position.array; for(let j=0;j<f.n;j++){ f.vel[j][1]-=9*dt; a[j*3]+=f.vel[j][0]*dt; a[j*3+1]+=f.vel[j][1]*dt; a[j*3+2]+=f.vel[j][2]*dt; } f.pts.geometry.attributes.position.needsUpdate=true; f.pts.material.opacity=Math.max(0,1-f.t/2.4); if(f.t>2.4){ S.remove(f.pts); f.pts.geometry.dispose(); FW.splice(i,1); } } }
     function fireworks(){ const pk=park(); if(Date.now()<(pk.fwCd||0)) return toast('🎆 Nächstes Feuerwerk in '+Math.ceil((pk.fwCd-Date.now())/1000)+' s',2000); if(!spend(20*U)) return; pk.fwCd=Date.now()+300000; fwUntil=Date.now()+90000; for(let i=0;i<9;i++) setTimeout(()=>{ if(P.open&&S) burst(); },i*900); toast('🎆 Feuerwerk! Einnahmen ×1.5 für 90 s',3500); save(true); }
-    // ═══════ Achterbahn-Editor (nur Bu:) – Teil für Teil bauen ═══════
+    // ═══════ Achterbahn-Editor (für alle; Veröffentlichen kostet 10 % der Mischtaler, Bu:) gratis) – Teil für Teil bauen ═══════
     const EW=40, ED=32, MAXP=170, MAXLV=16;
     const COL=[0xe53935,0x1e88e5,0x43a047,0xfb8c00,0x8e24aa,0xffd54f];
     const PCS=[['S','➡️','Gerade'],['L','↰','Links'],['R','↱','Rechts'],['U','⬆️','Hoch'],['D','⬇️','Runter'],['X','⤵️','Steil ab'],['C','⛓️','Kettenlift'],['V','⚡','Speed'],['B','🛑','Bremse'],['O','🔄','Looping']];
     let ED_={on:false,pc:'',st:{x:5,z:16,d:0},name:'Meine Achterbahn',col:COL[0],track:null,ride:false,marks:null,sim:null,gen:null};
     const edCx=(EW-1)/2, edCz=(ED-1)/2;
-    function edOpen(){ if(!isBu()) return toast('Der Editor ist nur für Bu:).'); ED_={on:true,pc:'',st:{x:5,z:16,d:0},name:'Meine Achterbahn',col:COL[0],track:null,ride:false,marks:new THREE.Group(),sim:null,gen:null}; parkG.visible=false; gridH.visible=false; ghostClear(); edG.add(ED_.marks);
+    function edOpen(){ ED_={on:true,pc:'',st:{x:5,z:16,d:0},name:'Meine Achterbahn',col:COL[0],track:null,ride:false,marks:new THREE.Group(),sim:null,gen:null}; parkG.visible=false; gridH.visible=false; ghostClear(); edG.add(ED_.marks);
       edG.add(box(EW*T,.25,ED*T,0xdcc9a0,0,.02,0)); const pts=[]; for(let x=0;x<=EW;x++){ pts.push(new THREE.Vector3((x-EW/2-.5)*T,.2,(-ED/2-.5)*T),new THREE.Vector3((x-EW/2-.5)*T,.2,(ED/2-.5)*T)); } for(let z=0;z<=ED;z++){ pts.push(new THREE.Vector3((-EW/2-.5)*T,.2,(z-ED/2-.5)*T),new THREE.Vector3((EW/2-.5)*T,.2,(z-ED/2-.5)*T)); } edG.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.25})));
       tgt={x:(ED_.st.x-edCx)*T+30,z:0}; dist=95; mode={k:'edit'}; edPanel(); edRedraw(); }
     function edClose(){ ED_.on=false; while(edG.children.length) edG.remove(edG.children[0]); parkG.visible=true; mode={k:'view',t:null,r:0}; const e=$('zpk-ed'); if(e) e.style.display='none'; $('zpk-bar').style.display='block'; centerCam(); }
@@ -332,7 +332,7 @@
       edInfo(); }
     function edInfo(){ const E=ED_, el=$('zpk-edi'); if(!el||!E.gen) return; const g=E.gen, e=g.end, s=g.st, n=E.pc.length; const closed=isClosed(g); const dx=s.x-e.x, dz=s.z-e.z, dy=-e.y;
       let t='Teile: <b>'+n+'/'+MAXP+'</b> · Höhe jetzt: <b>'+e.y+'</b>';
-      if(!n) t+='<br>Der grüne Punkt ist die Station (Start). Baue die Bahn Teil für Teil – am Ende muss sie wieder am Start ankommen. Aufs Raster tippen = Start verschieben, ↻ = Start drehen.';
+      if(!n) t+='<br>Der grüne Punkt ist die Station (Start). 💰 Veröffentlichen kostet 10 % deiner Mischtaler (Bu:) gratis). Baue die Bahn Teil für Teil – am Ende muss sie wieder am Start ankommen. Aufs Raster tippen = Start verschieben, ↻ = Start drehen.';
       else if(closed&&E.sim&&E.sim.ok){ const st=stats(E.sim); t+='<br>✅ <b>Geschlossen &amp; fahrbar!</b> Länge '+E.sim.L+' · Tempo '+E.sim.maxV+' · Looping '+E.sim.loops+'<br>⭐ Spass <b>'+st.exc+'/10</b> · Preis <b>'+fmt(st.c*U)+'</b> · '+fmt(st.fee*U*.6)+' pro Fahrgast'; }
       else if(closed) t+='<br>'+((E.sim&&E.sim.msg)||'');
       else { t+='<br>🎯 Bis zum Start noch: '+(dx?Math.abs(dx)+' Kacheln in x ':'')+(dz?Math.abs(dz)+' Kacheln in z ':'')+(dy?(dy>0?'· '+dy+' Stufen hoch':'· '+(-dy)+' Stufen runter'):'')+((e.d!==s.d)?' · Richtung stimmt noch nicht':''); if(E.sim&&!E.sim.ok) t+='<br>'+E.sim.msg; }
@@ -348,7 +348,8 @@
     function edRide(){ const E=ED_; if(!(E.gen&&isClosed(E.gen)&&E.sim&&E.sim.ok)) return toast('Probefahrt geht erst, wenn die Bahn geschlossen und fahrbar ist.'); E.ride=!E.ride; if(!E.ride){ tgt={x:0,z:0}; dist=95; } toast(E.ride?'🎥 Probefahrt (nochmal tippen = zurück)':'Editor',1800); }
     function edSave(){ const E=ED_; if(!(E.gen&&isClosed(E.gen))) return toast('Die Bahn muss erst am Start ankommen (geschlossen sein).'); if(!E.sim||!E.sim.ok) return toast((E.sim&&E.sim.msg)||'Die Bahn ist nicht fahrbar.',4000); const r=RTD(); if(!r) return toast('Keine Cloud-Verbindung.');
       const st=stats(E.sim), id='k'+Date.now().toString(36), nm=(E.name||'Achterbahn').slice(0,24);
-      r.ref('zoo_park/coasters/'+id).set({n:nm,pc:E.pc,sd:E.st.d,c:st.c,fee:st.fee,by:me(),at:Date.now(),col:E.col,v:2}).then(()=>{ toast('🎢 „'+nm+'“ ist jetzt für alle im Bau-Menü!',3500); }).catch(()=>toast('Speichern fehlgeschlagen.')); edClose(); }
+      const fee=isBu()?0:Math.floor((zoo().mt||0)*.1); if(fee>0&&!confirm('Veröffentlichen kostet 10 % deiner Mischtaler ('+fmt(fee)+'). Fortfahren?')) return; if(fee>0&&!spend(fee)) return;
+      r.ref('zoo_park/coasters/'+id).set({n:nm,pc:E.pc,sd:E.st.d,c:st.c,fee:st.fee,by:me(),at:Date.now(),col:E.col,v:2}).then(()=>{ toast('🎢 „'+nm+'“ ist jetzt für alle im Bau-Menü!',3500); }).catch(()=>{ if(fee>0){ zoo().mt+=fee; hudMT(); } toast('Speichern fehlgeschlagen – Mischtaler zurück.'); }); edClose(); }
     P.edOpen=edOpen;
 
 
@@ -377,7 +378,7 @@
       if(mode.k==='bulldoze'){ remove(t[0],t[1]); return; }
       if(mode.k==='build'&&mode.t&&!STAFF[mode.t]){ const c=getCat(mode.t); if(!c) return; const [w,d]=dims(mode.t,mode.r); const x0=c.k==='path'?t[0]:t[0]-((w-1)>>1), z0=c.k==='path'?t[1]:t[1]-((d-1)>>1); if(!canPlace(mode.t,x0,z0,mode.r)){ if(!inOwned(t[0],t[1])) toast('🏞️ Das Land gehört dir noch nicht – oben „Land kaufen“.',2200); else toast('Hier ist kein Platz.',1500); return; } place(mode.t,x0,z0,mode.r); ghost(t); return; }
       info(t[0],t[1]); }
-    function mkTabs(){ const el=$('zpk-tabs'); el.innerHTML=TABS.map(a=>'<button class="zpk-tab'+(tab===a[0]&&mode.k==='build'?' on':'')+'" data-t="'+a[0]+'">'+a[1]+' '+a[2]+'</button>').join('')+'<button class="zpk-tab'+(mode.k==='bulldoze'?' on':'')+'" data-t="_bd">🗑️ Abriss</button><button class="zpk-tab" data-t="_v">👁️ Ansehen</button>'+(isBu()?'<button class="zpk-tab" data-t="_ed" style="border-color:#ff8a80">🛠️ Editor</button>':'');
+    function mkTabs(){ const el=$('zpk-tabs'); el.innerHTML=TABS.map(a=>'<button class="zpk-tab'+(tab===a[0]&&mode.k==='build'?' on':'')+'" data-t="'+a[0]+'">'+a[1]+' '+a[2]+'</button>').join('')+'<button class="zpk-tab'+(mode.k==='bulldoze'?' on':'')+'" data-t="_bd">🗑️ Abriss</button><button class="zpk-tab" data-t="_v">👁️ Ansehen</button>'+('<button class="zpk-tab" data-t="_ed" style="border-color:#ff8a80">🛠️ Editor</button>');
       el.onclick=e=>{ const b=e.target.closest('button'); if(!b) return; const t=b.dataset.t; if(t==='_bd'){ mode={k:'bulldoze'}; ghostClear(); gridH.visible=true; } else if(t==='_v'){ mode={k:'view'}; ghostClear(); gridH.visible=false; } else if(t==='_ed'){ edOpen(); return; } else if(t==='staff'){ tab=t; mode={k:'staff'}; ghostClear(); gridH.visible=false; } else { tab=t; mode={k:'build',t:allOfKind(t)[0],r:0}; gridH.visible=true; } mkTabs(); mkChips(); $('zpk-rot').style.display=mode.k==='build'?'block':'none'; };
       mkChips(); }
     function mkChips(){ const el=$('zpk-chips');
