@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=807"></script>
-<script src="rewardchests.js?v=807"></script>
-<script src="personality.js?v=807"></script>
+<script src="lang.js?v=809"></script>
+<script src="rewardchests.js?v=809"></script>
+<script src="personality.js?v=809"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,35 +535,35 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=807"></script>
-<script src="sanction.js?v=807"></script>
-<script src="zevents.js?v=807"></script>
-<script src="znet.js?v=807"></script>
-<script src="zbases.js?v=807"></script>
-<script src="charheads.js?v=807"></script>
-<script src="zworld.js?v=807"></script>
-<script src="zstation.js?v=807"></script>
-<script src="zfx.js?v=807"></script>
-<script src="zextra.js?v=807"></script>
-<script src="zreb6.js?v=807"></script>
-<script src="zlegend.js?v=807"></script>
-<script src="ztutplus.js?v=807"></script>
-<script src="zlift.js?v=807"></script>
-<script src="zfun.js?v=807"></script>
-<script src="zguide.js?v=807"></script>
-<script src="zrules.js?v=807"></script>
-<script src="zsafe.js?v=807"></script>
-<script src="zrebguard.js?v=807"></script>
-<script src="zpass.js?v=807"></script>
-<script src="znotify.js?v=807"></script>
-<script src="zdetective.js?v=807"></script>
-<script src="zpirate.js?v=807"></script>
-<script src="zpark.js?v=807"></script>
-<script src="zmenu.js?v=807"></script>
-<script src="zdevice.js?v=807"></script>
-<script src="zmusic.js?v=807"></script>
-<script src="zskill.js?v=807"></script>
-<script src="worlds.js?v=807"></script>
+<script src="firebase-state.js?v=809"></script>
+<script src="sanction.js?v=809"></script>
+<script src="zevents.js?v=809"></script>
+<script src="znet.js?v=809"></script>
+<script src="zbases.js?v=809"></script>
+<script src="charheads.js?v=809"></script>
+<script src="zworld.js?v=809"></script>
+<script src="zstation.js?v=809"></script>
+<script src="zfx.js?v=809"></script>
+<script src="zextra.js?v=809"></script>
+<script src="zreb6.js?v=809"></script>
+<script src="zlegend.js?v=809"></script>
+<script src="ztutplus.js?v=809"></script>
+<script src="zlift.js?v=809"></script>
+<script src="zfun.js?v=809"></script>
+<script src="zguide.js?v=809"></script>
+<script src="zrules.js?v=809"></script>
+<script src="zsafe.js?v=809"></script>
+<script src="zrebguard.js?v=809"></script>
+<script src="zpass.js?v=809"></script>
+<script src="znotify.js?v=809"></script>
+<script src="zdetective.js?v=809"></script>
+<script src="zpirate.js?v=809"></script>
+<script src="zpark.js?v=809"></script>
+<script src="zmenu.js?v=809"></script>
+<script src="zdevice.js?v=809"></script>
+<script src="zmusic.js?v=809"></script>
+<script src="zskill.js?v=809"></script>
+<script src="worlds.js?v=809"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8421,6 +8421,23 @@ const REB_TUT={
       _RT('r6train','🚂 Zoo-Bahn','Im Süden fährt ein Zug im Kreis. Baue <b>Bahnhöfe</b> aus: bei jedem Halt bekommst du Münzen. Mit „Einsteigen“ fährst du eine Runde mit.'),
       _RT('r6egg','🥚 Ei-Brüterei','Kaufe oder finde Eier (Arena, Insel, Turm), lege sie in die Brut-Kuppeln. Nach 1–24 Stunden schlüpft ein <b>seltenes Tier</b>.'),
       _RT('r6map','🗺️ Geheimnis-Karte','Alle neuen Orte stehen auch in der Karte (🗺️-Knopf) – mit Hinweisen, bis du sie gefunden hast.') ],
+  7:[ _RT('r7a','🔄 Neu durch Rebirth 7','Nur das, was jetzt neu ist – eine ganze neue Welt: die <b>🏴‍☠️ Piraten-Welt</b>!'),
+      _RT('r7mult','💰 Einkommen ×250','Dein Einkommen ist jetzt dauerhaft <b>×250</b>.'),
+      _RT('r7btn','🏴‍☠️ Der Piraten-Knopf','Mit diesem Knopf (oder über das ☰-Menü → Piraten-Welt) wechselst du <b>jederzeit</b> zwischen Zoo und Piraten-Welt hin und her.',{target:'#zpi-fab'}),
+      _RT('r7sea','⛵ Das gemeinsame Meer','Du segelst mit deinem Schiff über ein Meer, das du mit <b>allen anderen Spielern</b> teilst. Du siehst sie fahren!'),
+      _RT('r7fight','🐍 Seeschlangen &amp; Kraken','Auf dem Meer lauern <b>Seeschlangen</b> und der <b>Kraken</b>. Besiegst du sie, gibt es Schätze und Gold.'),
+      _RT('r7crew','🐾 Tiere als Crew','Du kannst Tiere aus deinem Zoo als <b>Crew anheuern</b>. Sie machen dein Schiff stärker.'),
+      _RT('r7bottle','🍾 Flaschenpost &amp; 🏝️ Händler-Insel','Such die <b>Flaschenpost</b> im Wasser. Auf der <b>Händler-Insel</b> tauschst du Gold gegen <b>Zoo-Boosts</b>.'),
+      _RT('r7rank','🏆 Rangliste','Die Rangliste zeigt, wer die erfolgreichsten Piraten sind. Viel Spass auf See!') ],
+  8:[ _RT('r8a','🔄 Neu durch Rebirth 8','Nur das, was jetzt neu ist – dein eigener <b>🎡 Freizeitpark</b>!'),
+      _RT('r8mult','💰 Einkommen ×500','Dein Einkommen ist jetzt dauerhaft <b>×500</b>.'),
+      _RT('r8open','🎡 Freizeitpark öffnen','Öffne das <b>☰-Menü</b> unten links und tippe auf <b>🎡 Freizeitpark</b>. Mit dem Knopf dort wechselst du auch wieder zurück.',{target:'#zm-fab'}),
+      _RT('r8money','🪙 Gleiche Währung','Im Park verdienst du <b>Mischtaler</b> – dieselben wie im Zoo. Was du im Zoo verdienst, kannst du im Park ausgeben und umgekehrt.'),
+      _RT('r8build','🏗️ Bauen','Im Bau-Menü platzierst du <b>Wege</b>, <b>Dekos</b>, <b>Essenstände</b> und <b>Fahrgeschäfte</b>. Ohne Weg zum Eingang kommen keine Besucher!'),
+      _RT('r8queue','🚧 Warteschlange','Jedes Fahrgeschäft braucht eine <b>Warteschlange</b>. Baue sie an die Bahn – dann stehen die Besucher an und fahren richtig mit.'),
+      _RT('r8staff','🧹 Mitarbeiter &amp; 🗑️ Mülleimer','Stelle <b>Mitarbeiter</b> ein und platziere <b>Mülleimer</b> – sonst liegt Müll herum und die Gäste werden unglücklich.'),
+      _RT('r8land','📐 Mehr Platz','Du kannst <b>Land dazukaufen</b> und so deinen Park erweitern.'),
+      _RT('r8coaster','🎢 Achterbahnen','Achterbahnen von <b>Bu:)</b> aus dem Editor findest du im Bau-Menü. Baue sie in deinen Park und schau den Besuchern beim Fahren zu!') ],
   1:[ _RT('r1a','🔄 Neu durch Rebirth 1','Ich zeige dir kurz nur das, was jetzt neu für dich ist.'),
       _RT('r1slap','✨❄️ Golden Slap &amp; Ice Slap','Unten in deiner <b>Waffen-Leiste</b> sind jetzt <b>Golden</b> und <b>Ice</b> dauerhaft freigeschaltet. Sie kosten beim Benutzen weiterhin MT. Tippe sie an, um sie auszurüsten.',{target:'#wbar',boxTop:true}),
       _RT('r1w','🌦️ Wetter','Ab jetzt gibt es Wetter: ☀️ Sonne, 🌧️ Regen und ⛈️ Sturm. Im Sturm wird es dunkel wie in der Nacht und überall schlagen Blitze ein. Achte auf die gelben Warnkreise am Boden: Ein Treffer kostet 3 ❤. Das Kästchen oben links zeigt das Wetter.'),
@@ -8496,7 +8513,12 @@ const REB_ADDONS=[
   {id:'wish',reb:3,steps:[
     _RT('aw0','🔄 Neu für dich (Rebirth 3)','Nur das hier ist neu:'),
     _RT('aw1','🧑 Besucher-Wünsche','Ab jetzt kommen Besucher in deinen Zoo und <b>wünschen sich ein Tier</b>. Über ihrem Kopf schwebt eine Sprechblase. Oben links siehst du den Wunsch, die Zeit und wie weit der Besucher weg ist.'),
-    _RT('aw2','🎁 Wunsch erfüllen','Hast du das Tier, lauf zum Besucher und tippe unten auf <b>„zeigen“</b>. Als Trinkgeld gibt es meistens MT, manchmal einen Glücks- oder Geld-Boost. <b>Seltene Wünsche</b> (orangefarbene Blase) geben mehr — dafür musst du das Tier erst holen!') ]}
+    _RT('aw2','🎁 Wunsch erfüllen','Hast du das Tier, lauf zum Besucher und tippe unten auf <b>„zeigen“</b>. Als Trinkgeld gibt es meistens MT, manchmal einen Glücks- oder Geld-Boost. <b>Seltene Wünsche</b> (orangefarbene Blase) geben mehr — dafür musst du das Tier erst holen!') ]},
+  {id:'skilltree',reb:1,steps:[
+    _RT('sk0','🌳 Neu: Fähigkeitsbaum','Mit jedem Rebirth bekommst du <b>5 Fähigkeitspunkte</b>. Die verteilst du im <b>Fähigkeitsbaum</b>.'),
+    _RT('sk1','☰ Wo finde ich ihn?','Öffne das <b>☰-Menü-Knöpfchen</b> unten links und tippe auf <b>🌳 Fähigkeitsbaum</b>.',{target:'#zm-fab'}),
+    _RT('sk2','🌿 Vier Äste','Es gibt vier Äste: 🏪 <b>Zoo-Chef</b> (mehr Geld), 🍀 <b>Glück &amp; Boosts</b>, 🧭 <b>Abenteuer</b> und ⏰ <b>Fleiss</b>. Tippe auf eine Fähigkeit und gib einen Punkt aus – alle Effekte wirken wirklich im Spiel.'),
+    _RT('sk3','💡 Tipp','Die Punkte bleiben für immer. Überlege dir, was dir am meisten hilft – ein roter Punkt am Knopf zeigt dir, dass du noch Punkte übrig hast.') ]}
 ];
 setInterval(()=>{ try{
   const z=(typeof ZS!=='undefined')&&ZS.zoo; if(!z||typeof Tutorial==='undefined'||Tutorial._active||!(typeof ZG!=='undefined'&&ZG.scene)||ZG._arcadeActive) return;

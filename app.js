@@ -231,7 +231,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v807';
+const APP_VERSION = 'v809';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -641,7 +641,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v807 · 2026-11-15</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v809 · 2026-11-15</p>
           
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">
@@ -658,6 +658,7 @@ const App = {
               const reg=`<button class="btn ${kd?'btn-secondary':'btn-primary btn-big'} btn-full" onclick="App.showCharSelect()">${typeof t!=='undefined'?t('btn.register'):'🆕 Neu registrieren'}</button>`;
               const log=`<button class="btn ${kd?'btn-primary btn-big':'btn-secondary'} btn-full" onclick="App.showLogin()">${typeof t!=='undefined'?t('btn.login_short'):'🔑 Anmelden'}</button>`;
               return '<div style="text-align:center;font-size:.8rem;color:rgba(255,255,255,.7);margin-bottom:2px">'+(kd?'Schön, dass du wieder da bist! Melde dich an – oder registriere einen neuen Spieler.':'Neu hier? Registriere dich. Schon ein Konto? Melde dich an.')+'</div>'+(kd?log+reg:reg+log); })()}
+            <button onclick="window.ZTrailer?ZTrailer.open():alert('Trailer lädt noch …')" style="margin-top:4px;background:linear-gradient(135deg,#ff6f00,#d500f9);border:2px solid rgba(255,255,255,.6);color:#fff;padding:10px;border-radius:14px;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 0 18px rgba(213,0,249,.5)">🎬 Trailer ansehen</button>
             <div style="display:flex;gap:6px;margin-top:6px;opacity:.8">
               <button class="btn" style="flex:1;background:rgba(255,255,255,0.35);color:var(--text-dark);padding:5px 10px;font-size:.72rem;border-radius:8px" onclick="App.showGlobalLeaderboard()">${typeof t!=='undefined'?t('wm.leaderboard'):'🌍 Rangliste'}</button>
               <button onclick="App.showQR()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:5px 10px;border-radius:8px;font-size:.72rem;cursor:pointer" title="QR Code">📱 QR</button>
