@@ -2208,7 +2208,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v773) — 👽 Alien-Event: alle 3 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v773) — 👽 Alien-Event: alle 4 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2221,7 +2221,7 @@
   const isTouch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){ return false; } };
   const vib=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZSweeper&&ZSweeper.on)||(typeof Tutorial!=='undefined'&&Tutorial._active)||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
-  const AUTO=3*3600000, AUTO_LEN=10*60000, T=22, NU=3, FLY=180000, CLICKS=30, CLICK_MS=10000;
+  const AUTO=4*3600000, AUTO_LEN=10*60000, T=22, NU=3, FLY=180000, CLICKS=30, CLICK_MS=10000;
   const ease=t=>{ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };
   const A=window.ZAlien={ moving:false, ph:null, admin:null, local:0, _inited:false, ufo:[], immune:0, v:0, vy:0, gas:false, brk:false, up:false, dn:false, clicks:0,
     init(){
