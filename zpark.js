@@ -349,7 +349,7 @@
     function edSave(){ const E=ED_; if(!(E.gen&&isClosed(E.gen))) return toast('Die Bahn muss erst am Start ankommen (geschlossen sein).'); if(!E.sim||!E.sim.ok) return toast((E.sim&&E.sim.msg)||'Die Bahn ist nicht fahrbar.',4000); const r=RTD(); if(!r) return toast('Keine Cloud-Verbindung.');
       const st=stats(E.sim), id='k'+Date.now().toString(36), nm=(E.name||'Achterbahn').slice(0,24);
       const fee=isBu()?0:Math.floor((zoo().mt||0)*.1); if(fee>0&&!confirm('Veröffentlichen kostet 10 % deiner Mischtaler ('+fmt(fee)+'). Fortfahren?')) return; if(fee>0&&!spend(fee)) return;
-      r.ref('zoo_park/coasters/'+id).set({n:nm,pc:E.pc,sd:E.st.d,c:st.c,fee:st.fee,by:me(),at:Date.now(),col:E.col,v:2}).then(()=>{ toast('🎢 „'+nm+'“ ist jetzt für alle im Bau-Menü!',3500); }).catch(()=>{ if(fee>0){ zoo().mt+=fee; hudMT(); } toast('Speichern fehlgeschlagen – Mischtaler zurück.'); }); edClose(); }
+      r.ref('zoo_park/coasters/'+id).set({n:nm,pc:E.pc,sd:E.st.d,c:st.c,fee:st.fee,by:me(),at:Date.now(),col:E.col,v:2}).then(()=>{ toast('🎢 „'+nm+'“ ist jetzt für alle im Bau-Menü!',3500); try{ r.ref('zoo_park/premiere').set({id:id,n:nm,by:me(),at:Date.now()}); }catch(e){} }).catch(()=>{ if(fee>0){ zoo().mt+=fee; hudMT(); } toast('Speichern fehlgeschlagen – Mischtaler zurück.'); }); edClose(); }
     P.edOpen=edOpen;
 
 

@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=813"></script>
-<script src="rewardchests.js?v=813"></script>
-<script src="personality.js?v=813"></script>
+<script src="lang.js?v=814"></script>
+<script src="rewardchests.js?v=814"></script>
+<script src="personality.js?v=814"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,36 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=813"></script>
-<script src="sanction.js?v=813"></script>
-<script src="zevents.js?v=813"></script>
-<script src="znet.js?v=813"></script>
-<script src="zbases.js?v=813"></script>
-<script src="charheads.js?v=813"></script>
-<script src="zmensch.js?v=813"></script>
-<script src="zworld.js?v=813"></script>
-<script src="zstation.js?v=813"></script>
-<script src="zfx.js?v=813"></script>
-<script src="zextra.js?v=813"></script>
-<script src="zreb6.js?v=813"></script>
-<script src="zlegend.js?v=813"></script>
-<script src="ztutplus.js?v=813"></script>
-<script src="zlift.js?v=813"></script>
-<script src="zfun.js?v=813"></script>
-<script src="zguide.js?v=813"></script>
-<script src="zrules.js?v=813"></script>
-<script src="zsafe.js?v=813"></script>
-<script src="zrebguard.js?v=813"></script>
-<script src="zpass.js?v=813"></script>
-<script src="znotify.js?v=813"></script>
-<script src="zdetective.js?v=813"></script>
-<script src="zpirate.js?v=813"></script>
-<script src="zpark.js?v=813"></script>
-<script src="zmenu.js?v=813"></script>
-<script src="zdevice.js?v=813"></script>
-<script src="zmusic.js?v=813"></script>
-<script src="zskill.js?v=813"></script>
-<script src="worlds.js?v=813"></script>
+<script src="firebase-state.js?v=814"></script>
+<script src="sanction.js?v=814"></script>
+<script src="zevents.js?v=814"></script>
+<script src="znet.js?v=814"></script>
+<script src="zbases.js?v=814"></script>
+<script src="charheads.js?v=814"></script>
+<script src="zmensch.js?v=814"></script>
+<script src="zcine.js?v=814"></script>
+<script src="zworld.js?v=814"></script>
+<script src="zstation.js?v=814"></script>
+<script src="zfx.js?v=814"></script>
+<script src="zextra.js?v=814"></script>
+<script src="zreb6.js?v=814"></script>
+<script src="zlegend.js?v=814"></script>
+<script src="ztutplus.js?v=814"></script>
+<script src="zlift.js?v=814"></script>
+<script src="zfun.js?v=814"></script>
+<script src="zguide.js?v=814"></script>
+<script src="zrules.js?v=814"></script>
+<script src="zsafe.js?v=814"></script>
+<script src="zrebguard.js?v=814"></script>
+<script src="zpass.js?v=814"></script>
+<script src="znotify.js?v=814"></script>
+<script src="zdetective.js?v=814"></script>
+<script src="zpirate.js?v=814"></script>
+<script src="zpark.js?v=814"></script>
+<script src="zmenu.js?v=814"></script>
+<script src="zdevice.js?v=814"></script>
+<script src="zmusic.js?v=814"></script>
+<script src="zskill.js?v=814"></script>
+<script src="worlds.js?v=814"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8392,7 +8393,7 @@ const TUTORIAL_STEPS=[
   {id:'menu', title:'☰ Das Menü', text:'Hier findest du Einstellungen, deinen Rang und mehr. Öffne es mal!', target:'#hb-menu', action:'panel:menu'},
   {id:'menuinfo', title:'⚙️ Einstellungen & Rang', text:'Hier findest du Einstellungen, deinen Rang und mehr — schau dich in Ruhe um! Schliess das Menü, wenn du fertig bist.', target:'#p-menu .zpi', action:'close:menu'},
   {id:'events', title:'🎉 Events', text:'Hier unten rechts siehst du, wenn gerade ein zeitlich begrenztes Event läuft (z.B. Familien-Hütte oder Weihnachtszauber) — die geben oft dicke Boni!', target:'#evt', action:'button', boxTop:true},
-  {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity'},
+  {id:'goldmachine', title:'⚗️ Gold-Maschine', text:'Die Gold-Maschine wertet deine Tiere auf! Folge dem Pfeil und lauf hin!', target:null, arrow:true, arrowTarget:'gold', action:'proximity', clip:'gold'},
   {id:'goldopen', title:'⚗️ Gold-Maschine öffnen', text:'Tippe jetzt die Maschine an (oder drück [E]), um sie zu öffnen!', target:null, action:'open:gm-panel'},
   {id:'goldinfo', title:'⚗️ So funktioniert die Gold-Maschine', text:'Hier wählst du eines deiner Tiere aus und wertest es gegen MT zu einem <b>vergoldeten Tier</b> auf — das verdient mehr Geld. Schau dich in Ruhe um. Schliess die Maschine mit dem ✕, dann geht’s weiter.', target:null, action:'closeel:gm-panel'},
   {id:'slap', title:'✋ Slappen — deine Waffen', text:'Unten siehst du deine <b>Waffen-Leiste</b>. Jeder Slap kann andere Spieler treffen, sie lassen dabei ein getragenes Tier fallen und verlieren Herzen:<br>'
@@ -8420,7 +8421,7 @@ const REB_TUT={
       _RT('r6isl','🏝️ Schatz-Insel','Fahre mit dem Boot hinüber, grabe an den ❌ nach Schätzen und löse das Rätsel der <b>Boss-Truhe</b> (1× pro Tag).'),
       _RT('r6tower','🗼 Legenden-Turm','50 Stockwerke mit kleinen Aufgaben (Reaktion, Rechnen, Merken, Tippen). <b>1 Versuch pro Tag</b> – ab Stock 10, 20, 30, 40 und 50 gibt es Belohnungen.'),
       _RT('r6train','🚂 Zoo-Bahn','Im Süden fährt ein Zug im Kreis. Baue <b>Bahnhöfe</b> aus: bei jedem Halt bekommst du Münzen. Mit „Einsteigen“ fährst du eine Runde mit.'),
-      _RT('r6egg','🥚 Ei-Brüterei','Kaufe oder finde Eier (Arena, Insel, Turm), lege sie in die Brut-Kuppeln. Nach 1–24 Stunden schlüpft ein <b>seltenes Tier</b>.'),
+      _RT('r6egg','🥚 Ei-Brüterei','Kaufe oder finde Eier (Arena, Insel, Turm), lege sie in die Brut-Kuppeln. Nach 1–24 Stunden schlüpft ein <b>seltenes Tier</b>.',{clip:'egg'}),
       _RT('r6map','🗺️ Geheimnis-Karte','Alle neuen Orte stehen auch in der Karte (🗺️-Knopf) – mit Hinweisen, bis du sie gefunden hast.') ],
   7:[ _RT('r7a','🔄 Neu durch Rebirth 7','Nur das, was jetzt neu ist – eine ganze neue Welt: die <b>🏴‍☠️ Piraten-Welt</b>!'),
       _RT('r7mult','💰 Einkommen ×250','Dein Einkommen ist jetzt dauerhaft <b>×250</b>.'),
@@ -8438,7 +8439,7 @@ const REB_TUT={
       _RT('r8queue','🚧 Warteschlange','Jedes Fahrgeschäft braucht eine <b>Warteschlange</b>. Baue sie an die Bahn – dann stehen die Besucher an und fahren richtig mit.'),
       _RT('r8staff','🧹 Mitarbeiter &amp; 🗑️ Mülleimer','Stelle <b>Mitarbeiter</b> ein und platziere <b>Mülleimer</b> – sonst liegt Müll herum und die Gäste werden unglücklich.'),
       _RT('r8land','📐 Mehr Platz','Du kannst <b>Land dazukaufen</b> und so deinen Park erweitern.'),
-      _RT('r8coaster','🎢 Achterbahnen','Achterbahnen von <b>Bu:)</b> aus dem Editor findest du im Bau-Menü. Baue sie in deinen Park und schau den Besuchern beim Fahren zu!') ],
+      _RT('r8coaster','🎢 Achterbahnen','Im <b>Editor</b> baust du eigene Achterbahnen (Veröffentlichen kostet 10 % deiner Mischtaler), alle Bahnen findest du im Bau-Menü. Baue sie in deinen Park und schau den Besuchern beim Fahren zu!',{clip:'coaster'}) ],
   1:[ _RT('r1a','🔄 Neu durch Rebirth 1','Ich zeige dir kurz nur das, was jetzt neu für dich ist.'),
       _RT('r1slap','✨❄️ Golden Slap &amp; Ice Slap','Unten in deiner <b>Waffen-Leiste</b> sind jetzt <b>Golden</b> und <b>Ice</b> dauerhaft freigeschaltet. Sie kosten beim Benutzen weiterhin MT. Tippe sie an, um sie auszurüsten.',{target:'#wbar',boxTop:true}),
       _RT('r1w','🌦️ Wetter','Ab jetzt gibt es Wetter: ☀️ Sonne, 🌧️ Regen und ⛈️ Sturm. Im Sturm wird es dunkel wie in der Nacht und überall schlagen Blitze ein. Achte auf die gelben Warnkreise am Boden: Ein Treffer kostet 3 ❤. Das Kästchen oben links zeigt das Wetter.'),
@@ -8464,7 +8465,7 @@ const REB_TUT={
       _RT('r3slap','🔥 Fire Slap &amp; ×5','Der <b>Fire Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×5.',{target:'#wbar',boxTop:true}),
       _RT('r3free','🕊️ Tiere freilassen','Tippe ein Tier in deinem Gehege an — jetzt kannst du es <b>freilassen</b>.'),
       _RT('r3pass','🎫 MT-Pass','Hier öffnest du den <b>MT-Pass</b> mit Belohnungen für deinen Fortschritt.',{target:'#hb-mtpass'}),
-      {id:'r3b1',title:'🧬 Zucht-Maschine',text:'Die <b>Zucht-Maschine</b> kreuzt Tiere zu neuen. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'breed',arrowTop:'34%',action:'proximity'},
+      {id:'r3b1',title:'🧬 Zucht-Maschine',text:'Die <b>Zucht-Maschine</b> kreuzt Tiere zu neuen. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'breed',arrowTop:'34%',action:'proximity',clip:'breed'},
       _RT('r3b2','🧬 So benutzt du sie','Tippe die Maschine an (oder drück [E]), wähle zwei Tiere und lass sie züchten.'),
       _RT('r3menu','📖 Sammelalbum &amp; 🎯 Deko-Quests','Beides findest du im <b>Menü</b>. Dort kannst du das Album ansehen und Deko-Quests erledigen.',{target:'#hb-menu'}),
       {id:'r3g1',title:'🌟 ×100 Glücks-Bonus',text:'Neu in der Gondel: der <b>×100 Glücks-Bonus</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},arrowTop:'34%',action:'panel:gond'},
@@ -8516,7 +8517,7 @@ const REB_ADDONS=[
     _RT('aw1','🧑 Besucher-Wünsche','Ab jetzt kommen Besucher in deinen Zoo und <b>wünschen sich ein Tier</b>. Über ihrem Kopf schwebt eine Sprechblase. Oben links siehst du den Wunsch, die Zeit und wie weit der Besucher weg ist.'),
     _RT('aw2','🎁 Wunsch erfüllen','Hast du das Tier, lauf zum Besucher und tippe unten auf <b>„zeigen“</b>. Als Trinkgeld gibt es meistens MT, manchmal einen Glücks- oder Geld-Boost. <b>Seltene Wünsche</b> (orangefarbene Blase) geben mehr — dafür musst du das Tier erst holen!') ]},
   {id:'skilltree',reb:1,steps:[
-    _RT('sk0','🌳 Neu: Fähigkeitsbaum','Mit jedem Rebirth bekommst du <b>5 Fähigkeitspunkte</b>. Die verteilst du im <b>Fähigkeitsbaum</b>.'),
+    _RT('sk0','🌳 Neu: Fähigkeitsbaum','Mit jedem Rebirth bekommst du <b>5 Fähigkeitspunkte</b>. Die verteilst du im <b>Fähigkeitsbaum</b>.',{clip:'skill'}),
     _RT('sk1','☰ Wo finde ich ihn?','Öffne das <b>☰-Menü-Knöpfchen</b> unten links und tippe auf <b>🌳 Fähigkeitsbaum</b>.',{target:'#zm-fab'}),
     _RT('sk2','🌿 Vier Äste','Es gibt vier Äste: 🏪 <b>Zoo-Chef</b> (mehr Geld), 🍀 <b>Glück &amp; Boosts</b>, 🧭 <b>Abenteuer</b> und ⏰ <b>Fleiss</b>. Tippe auf eine Fähigkeit und gib einen Punkt aus – alle Effekte wirken wirklich im Spiel.'),
     _RT('sk3','💡 Tipp','Die Punkte bleiben für immer. Überlege dir, was dir am meisten hilft – ein roter Punkt am Knopf zeigt dir, dass du noch Punkte übrig hast.') ]}
@@ -8554,6 +8555,7 @@ const Tutorial={
   _list(){ return this._custom||TUTORIAL_STEPS; },
   // Rebirth-Tutorial: zeigt nur das Neue dieser Stufe (mit Pfeil, Abdunkeln, echten Aktionen)
   startReb(n,list){
+    this._clipFor=null;
     if(this._active) return false; const L=list||REB_TUT[n]; if(!L||!L.length) return false;
     try{ ZG._rebGates&&ZG._rebGates(); }catch(e){}
     this._custom=L; this._active=true; this._stepIdx=0;
@@ -8562,7 +8564,7 @@ const Tutorial={
   },
   start(){
     if(this._active) return;
-    this._custom=null; this._active=true; this._stepIdx=0;
+    this._clipFor=null; this._custom=null; this._active=true; this._stepIdx=0;
     try{ if(typeof ZChat!=='undefined' && ZChat.open) ZChat.close(); }catch(e){}
     this._showStep(0);
   },
@@ -8608,6 +8610,7 @@ const Tutorial={
   },
   _showStep(i){
     let s=this._list()[i];
+    if(s&&s.clip&&window.ZCine&&this._clipFor!==s.id+':'+i){ this._clipFor=s.id+':'+i; const _self=this; ZCine.play('clip',{key:s.clip,done:()=>{ if(_self._active&&_self._stepIdx===i) _self._showStep(i); }}); return; }
     this._closeStray(s);
     this._menuHelp=false;
     if(s.id==='menu'){ s=Object.assign({},s,{target:'#hb-menu',noDim:true,text:'Hier findest du Einstellungen, deinen Rang und mehr.<br><b>📜 Scrolle links in der Leiste</b> – der Pfeil zeigt dir, in welche Richtung der Menü-Knopf ist – und tippe dann auf <b>☰ Menü</b>.'}); }
