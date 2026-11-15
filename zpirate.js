@@ -20,10 +20,11 @@
     const CREW={parrot:['🦜','Papagei','+10 % Gold pro Stufe',250],monkey:['🐒','Affe','+20 % Gold beim Graben',300],kraken:['🐙','Kraken-Freund','+12 % Kanonen-Schaden',400],turtle:['🐢','Schildkröte','+15 % Rumpf-Leben',300]};
     const upCost=(k,l)=>Math.round(UP[k][3]*Math.pow(1.7,l)), crCost=(k,l)=>Math.round(CREW[k][3]*Math.pow(2,l));
     const MAXU=10, MAXC=5;
-    const maxHull=()=>Math.round((100+30*pir().u.hull)*(1+.15*pir().crew.turtle));
+    const maxHull=()=>Math.round((100+30*pir().u.hull)*(1+.15*pir().crew.turtle)*skm('phull'));
     const speed=()=>16+1.8*pir().u.spd;
-    const dmgMul=()=>(1+.35*pir().u.can)*(1+.12*pir().crew.kraken);
-    const goldMul=()=>(1+.2*pir().u.cargo)*(1+.1*pir().crew.parrot);
+    const dmgMul=()=>(1+.35*pir().u.can)*(1+.12*pir().crew.kraken)*skm('pdmg');
+    const skm=t=>{ try{ return window.ZSkill?ZSkill.m(t):1; }catch(e){ return 1; } };
+    const goldMul=()=>(1+.2*pir().u.cargo)*(1+.1*pir().crew.parrot)*skm('pgold');
     let CFG={maxM:3,mdmg:1,gmul:1}, EV={t:'',until:0};
     const evOn=t=>EV.t===t&&EV.until>Date.now();
     const gl=()=>(CFG.gmul||1)*(evOn('gold')?2:1)*(evOn('nebel')?1.3:1);

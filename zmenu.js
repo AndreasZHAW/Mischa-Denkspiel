@@ -40,8 +40,9 @@
       $('zm-x').onclick=close; o.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{ const e=E.find(x=>x.id===b.dataset.e); let locked=false; try{ locked=e.show&&!e.show(); }catch(er){} if(locked) return toast('🔒 '+e.lock); seen()[e.id]=1; save(); close(); try{ e.go(); }catch(er){ console.warn(er); } fab(); }); };
     function openPlaces(){ let pl=[]; try{ pl=ZGuide.places(); }catch(e){} const o=ov('<div style="display:flex"><div style="flex:1;font:900 1.1rem Arial">🧭 Wegweiser</div><button id="zm-x" style="border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;width:32px;height:32px">✕</button></div><div style="font-size:.74rem;opacity:.8;margin:2px 0 8px">Tippe auf „Hin“, dann zeigt dir ein Pfeil den Weg.</div>'+(pl.length?pl.map((p,i)=>'<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.25);border-radius:10px;padding:8px;margin-bottom:6px"><span style="font-size:1.4rem">'+(p.ic||'📍')+'</span><b style="flex:1;font-size:.85rem">'+esc(p.n||p.name||'Ort')+'</b><button data-p="'+i+'" style="border:none;border-radius:8px;padding:7px 10px;background:#ffb300;font-weight:900">📍 Hin</button></div>').join(''):'<div style="opacity:.8">Noch keine Orte bekannt.</div>')); $('zm-x').onclick=close; o.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{ close(); try{ ZGuide.go(pl[+b.dataset.p]); }catch(e){} }); }
     // ═══ „Neu im Zoo“ ═══
-    const NEWS_ID='n790';
-    const NEWS=[['🏴‍☠️','Piraten-Welt (ab Rebirth 7)','Segle im gemeinsamen Meer, kämpfe gegen 4 Bosse (täglich ein anderer), baue deine eigene Insel.','piraten'],
+    const NEWS_ID='n792';
+    const NEWS=[['🌳','Fähigkeitsbaum','5 Punkte pro Rebirth. Schalte Fähigkeiten frei: mehr Besucher, Einkommen, Glück, schnellere Eier und mehr.','skill'],
+      ['🏴‍☠️','Piraten-Welt (ab Rebirth 7)','Segle im gemeinsamen Meer, kämpfe gegen 4 Bosse (täglich ein anderer), baue deine eigene Insel.','piraten'],
       ['🕵️','Detektiv-Fälle','5 Fälle zum Alleinlösen: Orte erkunden, Rätsel lösen, Täter anklagen. Belohnung: Boosts und Geld.','detektiv'],
       ['🎫','MT-Pass neu','Neuer Pass zum Seitwärts-Wischen mit Gratis-, VIP- und VIP+-Reihe.','pass'],
       ['🧭','Ein Menü für alles','Alle kleinen Knöpfe sind jetzt im ☰-Menü. Neue Dinge sind rot markiert.','news'],
