@@ -1,11 +1,11 @@
-/* ═══ ZMusic (v790): 🎵 Hintergrundmusik – 4 Lieder im Wechsel, startet von selbst, Lautstärke/Aus im Sound-Menü ═══ */
+/* ═══ ZBgm (v790): 🎵 Hintergrundmusik – 4 Lieder im Wechsel, startet von selbst, Lautstärke/Aus im Sound-Menü ═══ */
 (function(){
   'use strict';
-  if(window.ZMusic) return;
+  if(window.ZBgm) return;
   const TR=[['m1.mp3','Piano','Leberch'],['m2.mp3','Travel Piano','Leberch'],['m3.mp3','Sad','Leberch'],['m4.mp3','Background Music','Sub_Clair']];
   const ls=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } };
   const lsw=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
-  const M=window.ZMusic={on:ls('zmusic_on',true),vol:ls('zmusic_vol',.35),i:ls('zmusic_i',-1),playing:false};
+  const M=window.ZBgm={on:ls('zmusic_on',true),vol:ls('zmusic_vol',.35),i:ls('zmusic_i',-1),playing:false};
   const BASE=(()=>{ try{ const c=document.currentScript&&document.currentScript.src; return c?c.replace(/[^\/]*$/,''):''; }catch(e){ return ''; } })();
   M.status='Wartet auf deine erste Berührung …';
   const au=new Audio(); au.preload='none'; au.loop=false; M.au=au;
