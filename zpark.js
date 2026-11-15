@@ -47,7 +47,7 @@
     const TABS=[['path','🟫','Wege'],['deko','🌳','Deko'],['food','🍔','Essen'],['ride','🎠','Fahrgeschäfte'],['coaster','🎢','Achterbahnen'],['staff','👷','Personal']];
     let TPL={};
     const getCat=t=>{ if(CAT[t]) return CAT[t]; if(String(t).indexOf('x:')===0){ const id=t.slice(2), o=TPL[id]||park().tpl[id]; if(o&&o.pc){ const g=genTrack(o.pc,{x:0,z:0,d:o.sd||0}), bb=bboxOf(g.S); return {k:'coaster',n:o.n,ic:'🎢',c:o.c,w:bb.w,d:bb.d,fee:o.fee,cap:8,run:Math.min(46,Math.max(22,Math.round(8+o.fee*.4))),pc:o.pc,sd:o.sd||0,col:o.col||0x8e24aa,custom:1}; } } return null; };
-    const allOfKind=k=>{ const a=Object.keys(CAT).filter(t=>CAT[t].k===k); if(k==='coaster') Object.keys(TPL).forEach(id=>a.push('x:'+id)); return a; };
+    const allOfKind=k=>{ const a=Object.keys(CAT).filter(t=>CAT[t].k===k); if(k==='coaster') Object.keys(TPL).forEach(id=>a.push('x:'+id)); return a.filter(x=>getCat(x)); };
     const price=t=>Math.max(1,Math.round(getCat(t).c*U*(P.CFG.price||1)));
 
     // ═══════ 3D-Bausteine ═══════
@@ -384,7 +384,7 @@
       if(mode.k==='staff'){ const st=park().staff; el.innerHTML=Object.keys(STAFF).map(t=>{ const s=STAFF[t]; return '<div class="zpk-chip" data-h="'+t+'" data-d="1"><div style="font-size:1.3rem">'+s.ic+'</div>'+s.n+' '+(st[t]||0)+'/'+MAXS+'<br><span style="opacity:.85">＋ '+fmt(s.hire*U)+'</span></div><div class="zpk-chip" data-h="'+t+'" data-d="-1" style="min-width:46px"><div style="font-size:1.1rem">➖</div>weg</div>'; }).join('')+'<div style="font-size:.72rem;opacity:.85;padding:4px 8px;min-width:170px">Lohn: '+fmt(wageMin())+' MT / Minute<br>🧹 räumt Müll · 🔧 repariert · 🎭 Stimmung</div>';
         el.onclick=e=>{ const c=e.target.closest('.zpk-chip'); if(c) hire(c.dataset.h,+c.dataset.d); }; return; }
       if(mode.k!=='build'){ el.innerHTML='<div style="font-size:.78rem;opacity:.9;padding:6px">'+(mode.k==='bulldoze'?'🗑️ Tippe auf Wege oder Gebäude – du bekommst 50 % zurück.':'Wähle oben einen Bereich zum Bauen. Ziehen = Karte bewegen, Zwei Finger / Mausrad = Zoom. Müll antippen = aufräumen, defekte Bahn antippen = reparieren.')+'</div>'; return; }
-      const list=allOfKind(tab); el.innerHTML=list.map(t=>{ const c=getCat(t); return '<div class="zpk-chip'+(mode.t===t?' on':'')+'" data-t="'+esc(t)+'"><div style="font-size:1.3rem">'+c.ic+'</div>'+esc(c.n)+'<br><span style="opacity:.85">'+fmt(price(t))+'</span></div>'; }).join('')||'<div style="padding:8px;font-size:.8rem">Noch nichts da.</div>';
+      const list=allOfKind(tab); el.innerHTML=list.map(t=>{ const c=getCat(t); if(!c) return ''; return '<div class="zpk-chip'+(mode.t===t?' on':'')+'" data-t="'+esc(t)+'"><div style="font-size:1.3rem">'+c.ic+'</div>'+esc(c.n)+'<br><span style="opacity:.85">'+fmt(price(t))+'</span></div>'; }).join('')||'<div style="padding:8px;font-size:.8rem">Noch nichts da.</div>';
       el.onclick=e=>{ const c=e.target.closest('.zpk-chip'); if(!c) return; mode.t=c.dataset.t; mode.r=0; mkChips(); }; }
     function hudRefresh(){ if(!hudEl) return; const z=zoo(); const sc=Math.min(5,1+(stat.att||0)*.35+(stat.deco||0)*.05); const ql=RIDES.reduce((s,r)=>s+r.rs.q.length,0);
       hudEl.innerHTML='🪙 <b>'+fmt(z.mt||0)+'</b> MT<br>👥 '+stat.g+' · ⭐ '+sc.toFixed(1)+' · 😊 '+Math.round(stat.hap*100)+' %<br>📈 '+fmt(stat.rate)+' / Min'+(litN()?'<br>🗑️ Müll: '+litN():'')+(ql?'<br>⏳ In Schlangen: '+ql:'')+(staffN()?'<br>👷 '+staffN()+' · Lohn '+fmt(wageMin())+'/Min':'')+(Date.now()<fwUntil?'<br>🎆 ×1.5':'')+(!reach.size?'<br><span style="color:#ffab91">Baue Wege ab dem Eingang!</span>':'');

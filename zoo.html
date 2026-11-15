@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=805"></script>
-<script src="rewardchests.js?v=805"></script>
-<script src="personality.js?v=805"></script>
+<script src="lang.js?v=807"></script>
+<script src="rewardchests.js?v=807"></script>
+<script src="personality.js?v=807"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,35 +535,35 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=805"></script>
-<script src="sanction.js?v=805"></script>
-<script src="zevents.js?v=805"></script>
-<script src="znet.js?v=805"></script>
-<script src="zbases.js?v=805"></script>
-<script src="charheads.js?v=805"></script>
-<script src="zworld.js?v=805"></script>
-<script src="zstation.js?v=805"></script>
-<script src="zfx.js?v=805"></script>
-<script src="zextra.js?v=805"></script>
-<script src="zreb6.js?v=805"></script>
-<script src="zlegend.js?v=805"></script>
-<script src="ztutplus.js?v=805"></script>
-<script src="zlift.js?v=805"></script>
-<script src="zfun.js?v=805"></script>
-<script src="zguide.js?v=805"></script>
-<script src="zrules.js?v=805"></script>
-<script src="zsafe.js?v=805"></script>
-<script src="zrebguard.js?v=805"></script>
-<script src="zpass.js?v=805"></script>
-<script src="znotify.js?v=805"></script>
-<script src="zdetective.js?v=805"></script>
-<script src="zpirate.js?v=805"></script>
-<script src="zpark.js?v=805"></script>
-<script src="zmenu.js?v=805"></script>
-<script src="zdevice.js?v=805"></script>
-<script src="zmusic.js?v=805"></script>
-<script src="zskill.js?v=805"></script>
-<script src="worlds.js?v=805"></script>
+<script src="firebase-state.js?v=807"></script>
+<script src="sanction.js?v=807"></script>
+<script src="zevents.js?v=807"></script>
+<script src="znet.js?v=807"></script>
+<script src="zbases.js?v=807"></script>
+<script src="charheads.js?v=807"></script>
+<script src="zworld.js?v=807"></script>
+<script src="zstation.js?v=807"></script>
+<script src="zfx.js?v=807"></script>
+<script src="zextra.js?v=807"></script>
+<script src="zreb6.js?v=807"></script>
+<script src="zlegend.js?v=807"></script>
+<script src="ztutplus.js?v=807"></script>
+<script src="zlift.js?v=807"></script>
+<script src="zfun.js?v=807"></script>
+<script src="zguide.js?v=807"></script>
+<script src="zrules.js?v=807"></script>
+<script src="zsafe.js?v=807"></script>
+<script src="zrebguard.js?v=807"></script>
+<script src="zpass.js?v=807"></script>
+<script src="znotify.js?v=807"></script>
+<script src="zdetective.js?v=807"></script>
+<script src="zpirate.js?v=807"></script>
+<script src="zpark.js?v=807"></script>
+<script src="zmenu.js?v=807"></script>
+<script src="zdevice.js?v=807"></script>
+<script src="zmusic.js?v=807"></script>
+<script src="zskill.js?v=807"></script>
+<script src="worlds.js?v=807"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8446,10 +8446,10 @@ const REB_TUT={
       _RT('r3slap','🔥 Fire Slap &amp; ×5','Der <b>Fire Slap</b> ist jetzt dauerhaft in deiner Waffen-Leiste, und dein Einkommen ist ×5.',{target:'#wbar',boxTop:true}),
       _RT('r3free','🕊️ Tiere freilassen','Tippe ein Tier in deinem Gehege an — jetzt kannst du es <b>freilassen</b>.'),
       _RT('r3pass','🎫 MT-Pass','Hier öffnest du den <b>MT-Pass</b> mit Belohnungen für deinen Fortschritt.',{target:'#hb-mtpass'}),
-      {id:'r3b1',title:'🧬 Zucht-Maschine',text:'Die <b>Zucht-Maschine</b> kreuzt Tiere zu neuen. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'breed',action:'proximity'},
+      {id:'r3b1',title:'🧬 Zucht-Maschine',text:'Die <b>Zucht-Maschine</b> kreuzt Tiere zu neuen. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:'breed',arrowTop:'34%',action:'proximity'},
       _RT('r3b2','🧬 So benutzt du sie','Tippe die Maschine an (oder drück [E]), wähle zwei Tiere und lass sie züchten.'),
       _RT('r3menu','📖 Sammelalbum &amp; 🎯 Deko-Quests','Beides findest du im <b>Menü</b>. Dort kannst du das Album ansehen und Deko-Quests erledigen.',{target:'#hb-menu'}),
-      {id:'r3g1',title:'🌟 ×100 Glücks-Bonus',text:'Neu in der Gondel: der <b>×100 Glücks-Bonus</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},action:'panel:gond'},
+      {id:'r3g1',title:'🌟 ×100 Glücks-Bonus',text:'Neu in der Gondel: der <b>×100 Glücks-Bonus</b>. Folge dem Pfeil und lauf hin!',target:null,arrow:true,arrowTarget:{x:0,z:0},arrowTop:'34%',action:'panel:gond'},
       _RT('r3g2','🌟 ×100 Glücks-Bonus','Hier kaufst du den neuen ×100 Glücks-Bonus.',{target:'#gluck50'}),
       {id:'r3g3',title:'🚡 Gondel schliessen',text:'Schliess die Gondel mit dem ✕ — das war alles Neue von Rebirth 3!',target:null,action:'close:gond'} ],
   4:[ _RT('r4a','🔄 Neu durch Rebirth 4','Nur das, was jetzt neu ist:'),
@@ -8577,7 +8577,7 @@ const Tutorial={
     // Beim Tutorial darf kein anderes Fenster offen sein, das stören könnte
     try{
       const keep={gluck:['gond'],buy:['gond'],shopcont:['shop'],menuinfo:['menu'],rbshopinfo:['shop'],rbpanel:['reb'],tmtab:['shop'],tmshop:['shop']}[s.id]||[];
-      if(/^(open|closeel):/.test(s.action||'')||s.id==='goldinfo'||s.id==='goldopen') return;
+      if(/^(open|closeel|tab|seesec):/.test(s.action||'')||/^(r5s[2-4]|rbtab|rbshopinfo)/.test(s.id)||s.id==='goldinfo'||s.id==='goldopen') return;
       ['gond','index','shop','reb','enc','menu','adm','sound','report','rank','trade'].forEach(pp=>{ if(!keep.includes(pp)){ try{ ZP.close(pp); }catch(e){} } });
       ['zguest','zsk-pv','zsk-admov','zse-admov','zsfx-panel','zmap'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); });
       try{ if(typeof ZChat!=='undefined'&&ZChat.close) ZChat.close(); }catch(e){}
@@ -8697,7 +8697,7 @@ const Tutorial={
     if(s.arrow){
       const arrow=document.createElement('div');
       arrow.id='tut-arrow';
-      arrow.style.cssText='position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);z-index:9701;pointer-events:none;width:92px;height:92px';
+      arrow.style.cssText='position:fixed;top:'+(s.arrowTop||'44%')+';left:50%;transform:translate(-50%,-50%);z-index:9701;pointer-events:none;width:92px;height:92px';
       arrow.innerHTML='<svg viewBox="0 0 100 100" style="width:100%;height:100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))"><polygon points="6,36 56,36 56,12 96,50 56,88 56,64 6,64" fill="#6E9BD1" stroke="#1b2030" stroke-width="5" stroke-linejoin="round"/><path d="M14 45 H50 M14 55 H44" stroke="#1b2030" stroke-width="2.4" stroke-dasharray="7 5" stroke-linecap="round" fill="none"/></svg>';
       overlay.appendChild(arrow);
       const updateArrow=()=>{
