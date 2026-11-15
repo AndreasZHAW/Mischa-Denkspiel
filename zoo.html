@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=804"></script>
-<script src="rewardchests.js?v=804"></script>
-<script src="personality.js?v=804"></script>
+<script src="lang.js?v=805"></script>
+<script src="rewardchests.js?v=805"></script>
+<script src="personality.js?v=805"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,35 +535,35 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=804"></script>
-<script src="sanction.js?v=804"></script>
-<script src="zevents.js?v=804"></script>
-<script src="znet.js?v=804"></script>
-<script src="zbases.js?v=804"></script>
-<script src="charheads.js?v=804"></script>
-<script src="zworld.js?v=804"></script>
-<script src="zstation.js?v=804"></script>
-<script src="zfx.js?v=804"></script>
-<script src="zextra.js?v=804"></script>
-<script src="zreb6.js?v=804"></script>
-<script src="zlegend.js?v=804"></script>
-<script src="ztutplus.js?v=804"></script>
-<script src="zlift.js?v=804"></script>
-<script src="zfun.js?v=804"></script>
-<script src="zguide.js?v=804"></script>
-<script src="zrules.js?v=804"></script>
-<script src="zsafe.js?v=804"></script>
-<script src="zrebguard.js?v=804"></script>
-<script src="zpass.js?v=804"></script>
-<script src="znotify.js?v=804"></script>
-<script src="zdetective.js?v=804"></script>
-<script src="zpirate.js?v=804"></script>
-<script src="zpark.js?v=804"></script>
-<script src="zmenu.js?v=804"></script>
-<script src="zdevice.js?v=804"></script>
-<script src="zmusic.js?v=804"></script>
-<script src="zskill.js?v=804"></script>
-<script src="worlds.js?v=804"></script>
+<script src="firebase-state.js?v=805"></script>
+<script src="sanction.js?v=805"></script>
+<script src="zevents.js?v=805"></script>
+<script src="znet.js?v=805"></script>
+<script src="zbases.js?v=805"></script>
+<script src="charheads.js?v=805"></script>
+<script src="zworld.js?v=805"></script>
+<script src="zstation.js?v=805"></script>
+<script src="zfx.js?v=805"></script>
+<script src="zextra.js?v=805"></script>
+<script src="zreb6.js?v=805"></script>
+<script src="zlegend.js?v=805"></script>
+<script src="ztutplus.js?v=805"></script>
+<script src="zlift.js?v=805"></script>
+<script src="zfun.js?v=805"></script>
+<script src="zguide.js?v=805"></script>
+<script src="zrules.js?v=805"></script>
+<script src="zsafe.js?v=805"></script>
+<script src="zrebguard.js?v=805"></script>
+<script src="zpass.js?v=805"></script>
+<script src="znotify.js?v=805"></script>
+<script src="zdetective.js?v=805"></script>
+<script src="zpirate.js?v=805"></script>
+<script src="zpark.js?v=805"></script>
+<script src="zmenu.js?v=805"></script>
+<script src="zdevice.js?v=805"></script>
+<script src="zmusic.js?v=805"></script>
+<script src="zskill.js?v=805"></script>
+<script src="worlds.js?v=805"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -11487,7 +11487,7 @@ const ZP={
     }catch(e){ this._availTrades=[]; el.innerHTML='<div style="color:#ff6b6b;text-align:center;padding:14px">❌ '+e.message+'</div>'; return; }
     if(!this._availTrades.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Angebote.</div>';return;}
     const total=(ZS.dsMT||0)+(ZS.zoo?.mt||0);
-    el.innerHTML=this._availTrades.map((o,i)=>{const rar=o.r||o.d?.animal?.r;return`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div class="${RAR[rar]?.c||'rn'}" style="font-size:.68rem">${RAR[rar]?.n||''}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">Von: ${o.seller}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" ${total<o.p?'disabled':''} onclick="ZP._bT(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');
+    el.innerHTML=this._availTrades.map((o,i)=>{const rar=o.r||o.d?.animal?.r;return`<div class="ac"><div style="font-size:1.8rem">${o.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${o.n}</div><div class="${RAR[rar]?.c||'rn'}" style="font-size:.68rem">${RAR[rar]?.n||''}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4)">Von: ${o.seller}</div><div style="font-size:.7rem;color:#00CFFF">${$mt(o.p)}</div></div><button class="ab" style="min-width:104px;padding:14px 16px;font-size:1rem;margin-right:4px" ${total<o.p?'disabled':''} onclick="ZP._bT(${i})">${typeof t!=='undefined'?t('zoo.buy'):'Kaufen'}</button></div>`;}).join('');
   },
   _tN(el){const z=ZS.zoo;const enc=z.enc.filter(e=>e);if(!enc.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:14px">Keine Tiere.</div>';return;}el.innerHTML=enc.map(e=>{const i=z.enc.indexOf(e);return`<div class="ac" style="cursor:pointer" onclick="ZP._oT(${i})"><div style="font-size:1.8rem">${e.animal.e}</div><div style="flex:1"><div style="font-weight:900;font-size:.85rem">${sB(e.shiny)} ${e.animal.n}</div><div class="${RAR[e.animal.r]?.c||'rn'}" style="font-size:.7rem">${RAR[e.animal.r]?.n||''}</div></div><div style="font-size:.7rem;color:#FFD700">Anbieten →</div></div>`;}).join('');},
   _oT(i){
@@ -21698,6 +21698,8 @@ window.ZooEvents = ZooEvents;
 </style>
 
 
+<style>/* v805: Sprung-Knopf verschwindet, solange ein Fenster (z. B. Trading) offen ist */
+body:has(.zp:not(.off)) #jump-fixed-btn{display:none !important}</style>
 <button id="jump-fixed-btn" 
   ontouchstart="ZG.keys['Space']=true" 
   ontouchend="ZG.keys['Space']=false"
