@@ -26,7 +26,7 @@
   // Startseite (Zoo-Login): Regeln direkt auflisten
   const start=function(){ const sl=document.getElementById('s-login'); if(!sl||document.getElementById('zrules-start')) return; const d=document.createElement('div'); d.id='zrules-start'; d.style.cssText='max-width:420px;margin:12px auto 20px;padding:12px 14px;background:rgba(255,255,255,.08);border:2px solid rgba(255,213,79,.5);border-radius:16px;color:#fff;font-family:Arial,sans-serif;font-size:.85rem';
     d.innerHTML='<div style="text-align:center;font:900 1.05rem Arial;color:#ffd54f;margin-bottom:4px">📜 Spielregeln</div>'+R.html(true)+'<div style="text-align:center;font-size:.72rem;opacity:.75;margin-top:6px">Mit dem Anmelden stimmst du den Regeln zu.</div>'; sl.appendChild(d); };
-  setInterval(start,1000); start();
+  /* Regeln jetzt auf der Denkspiel-Startseite (rules-list.js) */
   // ── Meldung an den Admin ──
   const RTD=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud())?_rtdb:null; }catch(e){ return null; } };
   const lastRep={};

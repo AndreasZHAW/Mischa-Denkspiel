@@ -645,6 +645,7 @@ const App = {
             </div>
             <button onclick="window.location.href='zoo.html?openadmin=1'" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#FFD700;padding:5px 10px;border-radius:8px;font-weight:600;cursor:pointer;font-size:.72rem;margin-top:2px;opacity:.8">🔧 Admin-Login</button>
           </div>
+          ${typeof window.rulesStartHTML==='function'?window.rulesStartHTML():''}
         </div>
       </div>`);
     // Draw stars on the black welcome background (canvas now exists in DOM)
