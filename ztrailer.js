@@ -1,7 +1,7 @@
 /* ═══ ZTrailer (v809): 🎬 Mischa-Trailer – Canvas-Film (~2:40), abspielbar + als Video herunterladbar ═══ */
 (function(){
   if(window.ZTrailer) return;
-  const W=1280,H=720,DUR=160;
+  const W=1280,H=720,DUR=162;
   const TEAM=[
     {n:'Bu:)',r:'ADMIN · ERFINDER · „SCHWAMM“',d:'Hat das Spiel erfunden, baut jeden Tag Neues ein und saugt jeden Streit auf wie ein Schwamm – damit alle wieder Freunde sind.',c:'#e53935'},
     {n:'Andi5',r:'ADMIN',d:'Wacht über die Regeln und greift sofort ein, wenn jemand unfair ist.',c:'#1e88e5'},
@@ -84,21 +84,22 @@
     ctx.globalAlpha=a; ctx.fillStyle=m.c; ctx.fillRect(80,590,1120*seg(v,0,8.6),8); ctx.globalAlpha=1; }
   function scene8(t){ const u=t-147; sky('#0d1b2a','#2e4a7d'); stars(t,100); snow(t,60,.7);
     txt('Bei uns wird niemand gemobbt.',W/2,200,66,'#fff',fade(u,.5,5.5,.8,.6)); emo('🛡️',W/2,380,170,fade(u,1.5,5.5,.8,.6)); txt('Dafür sorgt das wachsame Admin-Team.',W/2,560,46,'#ffd54f',fade(u,2,5.5,.8,.6));
-    const v=u-5.5; if(v>0){ emo('🍀',W/2,200,150,fade(v,0,8,.8,0)); txt('VIEL GLÜCK!',W/2,360,130,'#69f0ae',fade(v,.5,8,.8,0)); txt('Mischa Denkspiel',W/2,500,56,'#ffd54f',fade(v,1.5,8,.8,0)); txt('Baue deinen eigenen Zoo.',W/2,580,40,'#fff',fade(v,2.2,8,.8,0)); } }
-  const SC=[[0,12,scene1],[12,28,scene2],[28,55,scene3],[55,80,scene4],[80,105,scene5],[105,117,scene6],[117,147,scene7],[147,160,scene8]];
+    const v=u-5.5; if(v>0){ emo('🍀',W/2,200,150,fade(v,0,10,.8,1.8)); txt('VIEL GLÜCK!',W/2,360,130,'#69f0ae',fade(v,.5,10,.8,1.8)); txt('Mischa Denkspiel',W/2,500,56,'#ffd54f',fade(v,1.5,10,.8,1.8)); txt('Baue deinen eigenen Zoo.',W/2,580,40,'#fff',fade(v,2.2,10,.8,1.8)); } }
+  const SC=[[0,12,scene1],[12,28,scene2],[28,55,scene3],[55,80,scene4],[80,105,scene5],[105,117,scene6],[117,147,scene7],[147,162,scene8]];
   function draw(t){ t=clamp(t,0,DUR-.001); ctx.clearRect(0,0,W,H); for(const s of SC){ if(t>=s[0]&&t<s[1]){ ctx.save(); s[2](t); ctx.restore(); const dt=t-s[0]; if(dt<.7){ ctx.fillStyle='rgba(0,0,0,'+(1-dt/.7)+')'; ctx.fillRect(0,0,W,H); } if(s[1]-t<.5&&s[1]<DUR){ ctx.fillStyle='rgba(0,0,0,'+(1-(s[1]-t)/.5)+')'; ctx.fillRect(0,0,W,H); } break; } }
-    vig(.35); bars(.7); }
+    vig(.35); bars(.7); if(t>DUR-2){ ctx.fillStyle='rgba(0,0,0,'+clamp((t-(DUR-2))/1.8,0,1)+')'; ctx.fillRect(0,0,W,H); } }
 
   const T=window.ZTrailer={ draw:t=>{ if(!ctx){ const c=document.createElement('canvas'); c.width=W; c.height=H; ctx=c.getContext('2d'); T._c=c; } draw(t); return T._c; }, DUR:DUR };
   function open(){ if(document.getElementById('ztr-ov')) return; const o=document.createElement('div'); o.id='ztr-ov'; o.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif';
     o.innerHTML='<canvas id="ztr-cv" width="'+W+'" height="'+H+'" style="max-width:100vw;max-height:calc(100vh - 70px);aspect-ratio:16/9;background:#000"></canvas><div style="display:flex;gap:8px;align-items:center;padding:8px;width:min(100vw,900px);box-sizing:border-box"><button id="ztr-pl" style="padding:8px 14px;border-radius:10px;border:none;font:900 15px Arial;background:#2e7d32;color:#fff">⏸</button><div id="ztr-bar" style="flex:1;height:14px;background:#333;border-radius:7px;cursor:pointer;position:relative"><div id="ztr-fill" style="height:100%;width:0;background:#ffd54f;border-radius:7px"></div></div><span id="ztr-tm" style="color:#fff;font-size:13px;min-width:80px;text-align:center">0:00</span><button id="ztr-dl" style="padding:8px 12px;border-radius:10px;border:none;font:900 14px Arial;background:#1565c0;color:#fff">⬇️ Video</button><button id="ztr-x" style="padding:8px 12px;border-radius:10px;border:none;font:900 14px Arial;background:#b71c1c;color:#fff">✕</button></div><div id="ztr-msg" style="color:#ffd54f;font-size:13px;min-height:18px"></div>';
     document.body.appendChild(o); const cv=o.querySelector('#ztr-cv'); ctx=cv.getContext('2d'); T._c=cv; const $=s=>o.querySelector(s);
-    let t=0,last=performance.now(),playing=true,rec=null,raf=0,au=null,ac=null,dest=null;
+    let t=0,last=performance.now(),playing=true,rec=null,raf=0,au=null,ac=null,dest=null,gn=null;
     try{ au=new Audio('music/m1.mp3'); au.loop=true; au.volume=.8; }catch(e){}
     const pa=()=>{ try{ au&&au.play().catch(()=>{}); }catch(e){} };
     const msg=s=>{ $('#ztr-msg').textContent=s||''; };
     const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
     function loop(now){ const dt=(now-last)/1000; last=now; if(playing) t+=dt; if(t>=DUR){ if(rec){ rec.stop(); } else { t=DUR-.001; playing=false; $('#ztr-pl').textContent='↺'; try{ au&&au.pause(); }catch(e){} } }
+      const vol=clamp((DUR-t)/5,0,1); try{ if(au) au.volume=.8*vol; if(gn) gn.gain.value=vol; }catch(e){}
       draw(t); $('#ztr-fill').style.width=(t/DUR*100)+'%'; $('#ztr-tm').textContent=fmt(t)+' / '+fmt(DUR); raf=requestAnimationFrame(loop); }
     pa(); raf=requestAnimationFrame(loop);
     $('#ztr-pl').onclick=()=>{ if(rec) return; if(t>=DUR-.01){ t=0; try{ au.currentTime=0; }catch(e){} } playing=!playing; $('#ztr-pl').textContent=playing?'⏸':'▶'; try{ playing?pa():au.pause(); }catch(e){} };
@@ -107,10 +108,10 @@
     $('#ztr-x').onclick=close;
     $('#ztr-dl').onclick=()=>{ if(rec) return; if(!cv.captureStream||typeof MediaRecorder==='undefined') return msg('Dieser Browser kann kein Video aufnehmen – bitte Chrome oder Edge am Computer benutzen.');
       const mt=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m)); if(!mt) return msg('Video-Aufnahme wird hier nicht unterstützt.');
-      const ms=cv.captureStream(30); try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); const src=ac.createMediaElementSource(au); src.connect(dest); src.connect(ac.destination); dest.stream.getAudioTracks().forEach(tr=>ms.addTrack(tr)); }catch(e){ console.warn('[trailer] audio',e); }
+      const ms=cv.captureStream(30); try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); const src=ac.createMediaElementSource(au); gn=ac.createGain(); src.connect(gn); gn.connect(dest); gn.connect(ac.destination); dest.stream.getAudioTracks().forEach(tr=>ms.addTrack(tr)); }catch(e){ console.warn('[trailer] audio',e); }
       const chunks=[]; rec=new MediaRecorder(ms,{mimeType:mt,videoBitsPerSecond:5e6}); rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
       rec.onstop=()=>{ const ext=mt.indexOf('mp4')>=0?'mp4':'webm'; const b=new Blob(chunks,{type:mt.split(';')[0]}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='Mischa-Trailer.'+ext; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(a.href); },4000); rec=null; msg('✅ Fertig – das Video wurde heruntergeladen.'); t=DUR-.001; playing=false; $('#ztr-pl').textContent='↺'; try{ au.pause(); }catch(e){} $('#ztr-dl').disabled=false; };
-      t=0; playing=true; try{ au.currentTime=0; }catch(e){} pa(); rec.start(1000); $('#ztr-dl').disabled=true; msg('🔴 Nimmt auf … bitte warten, dauert so lange wie der Trailer (2:40). Fenster offen lassen!'); };
+      t=0; playing=true; try{ au.currentTime=0; }catch(e){} pa(); rec.start(1000); $('#ztr-dl').disabled=true; msg('🔴 Nimmt auf … bitte warten, dauert so lange wie der Trailer (2:42). Fenster offen lassen!'); };
   }
   T.open=open;
 })();
