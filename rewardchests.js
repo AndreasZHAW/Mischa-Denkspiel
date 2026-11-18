@@ -261,6 +261,50 @@ const RewardChests = {
     }
   },
 
+
+  // ═══ ANIMATIONS-EFFEKTE (v819): dunkler Zierrahmen, Strahlen, Glut, Schockwellen, Licht-Explosion ═══
+  _fxStyle(){ if(document.getElementById('cr-style')) return; const st=document.createElement('style'); st.id='cr-style';
+    st.textContent='@keyframes crFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}'+
+    '@keyframes crShake{0%{transform:translate(0,0) rotate(0)}15%{transform:translate(-9px,3px) rotate(-5deg)}30%{transform:translate(9px,-3px) rotate(5deg)}45%{transform:translate(-7px,2px) rotate(-3deg)}60%{transform:translate(6px,-2px) rotate(3deg)}80%{transform:translate(-3px,1px) rotate(-1deg)}100%{transform:translate(0,0) rotate(0)}}'+
+    '@keyframes crPlate{0%{transform:translateY(-60px);opacity:0}100%{transform:translateY(0);opacity:1}}'+
+    '@keyframes crCard{0%{transform:perspective(700px) rotateY(95deg) scale(.4);opacity:0}60%{transform:perspective(700px) rotateY(-12deg) scale(1.12);opacity:1}100%{transform:perspective(700px) rotateY(0) scale(1)}}'+
+    '@keyframes crPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}'+
+    '@keyframes crFlash{0%{opacity:.9}100%{opacity:0}}'+
+    '#cr-frame{position:absolute;inset:10px;border:9px solid #7a5230;border-image:linear-gradient(135deg,#4a2f18,#d9a55c 30%,#5a3a1d 55%,#e0b36b 80%,#4a2f18) 1;box-shadow:inset 0 0 90px 30px rgba(0,0,0,.85),inset 0 0 0 3px rgba(0,0,0,.6),0 0 0 3px rgba(0,0,0,.7);pointer-events:none;z-index:1;border-radius:4px}'+
+    '.cr-stud{position:absolute;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9b0,#a8742f 60%,#3a2410);box-shadow:0 0 6px rgba(0,0,0,.8);z-index:2;pointer-events:none}'+
+    '#cr-plate{position:absolute;top:22px;left:50%;transform:translateX(-50%);z-index:3;padding:8px 34px;background:linear-gradient(#2a1d12,#150e08);border:3px solid #c89b5a;border-radius:10px;box-shadow:0 4px 14px #000,inset 0 0 12px rgba(0,0,0,.8);font:900 clamp(.9rem,3.6vw,1.2rem) Georgia,serif;letter-spacing:.14em;color:#f3d79a;text-shadow:0 0 10px rgba(255,200,120,.5);animation:crPlate .6s ease-out;pointer-events:none;white-space:nowrap}'+
+    '#cr-card{width:min(62vw,250px);padding:26px 14px 20px;border-radius:18px;background:linear-gradient(160deg,rgba(40,28,60,.96),rgba(14,10,26,.97));border:4px solid var(--cc,#fff);box-shadow:0 0 38px var(--cc,#fff),inset 0 0 28px rgba(255,255,255,.12);animation:crCard .9s cubic-bezier(.2,1.2,.3,1) both;position:relative;z-index:3}'+
+    '#cr-flash{position:absolute;inset:0;z-index:6;pointer-events:none;animation:crFlash .7s ease-out forwards}';
+    document.head.appendChild(st); },
+  _fxCol(t){ const s=this._animState; if(!s) return this._fxLast||'#ffd54f'; const r=this.RARITIES[s.rarityIdx]||this.RARITIES[0]; let c; if(s.isHell) c='#ff3030'; else if(s.rarityIdx===4) c='#b57bff'; else if(r.id==='superepic') c='hsl('+Math.floor(t*140%360)+',100%,62%)'; else c=r.bg; this._fxLast=c; return c; },
+  _fxStart(ov){ try{ this._fxStyle(); }catch(e){}
+    const old=ov.querySelector('#cr-fx'); if(old) old.remove(); const cv=document.createElement('canvas'); cv.id='cr-fx'; cv.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none'; ov.insertBefore(cv,ov.firstChild);
+    const fx={cv,parts:[],rings:[],t0:performance.now(),w:0,h:0}; this._fx=fx; const self=this;
+    const loop=()=>{ if(self._fx!==fx||!cv.isConnected) return; const t=(performance.now()-fx.t0)/1000, W=cv.clientWidth, H=cv.clientHeight; if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; } const g=cv.getContext('2d'); g.clearRect(0,0,W,H);
+      const ch=ov.querySelector('#cr-chest')||ov.querySelector('#cr-card'); let cx=W/2, cy=H*.45; if(ch){ const b=ch.getBoundingClientRect(), o=cv.getBoundingClientRect(); cx=b.left+b.width/2-o.left; cy=b.top+b.height/2-o.top; }
+      const col=self._fxCol(t), cl=(self._animState?self._animState.clicks:5), inten=.5+cl*.18;
+      // Strahlen
+      g.save(); g.translate(cx,cy); g.rotate(t*.18); for(let i=0;i<14;i++){ g.rotate(Math.PI*2/14); const gr=g.createLinearGradient(0,0,0,-Math.max(W,H)); gr.addColorStop(0,col); gr.addColorStop(1,'rgba(0,0,0,0)'); g.globalAlpha=(.10+.05*Math.sin(t*2+i))*inten; g.fillStyle=gr; g.beginPath(); g.moveTo(0,0); g.lineTo(-38,-Math.max(W,H)); g.lineTo(38,-Math.max(W,H)); g.closePath(); g.fill(); } g.restore();
+      // Leuchten
+      const rg=g.createRadialGradient(cx,cy,10,cx,cy,Math.min(W,H)*.55); rg.addColorStop(0,col); rg.addColorStop(1,'rgba(0,0,0,0)'); g.globalAlpha=(.28+.1*Math.sin(t*3))*inten; g.fillStyle=rg; g.fillRect(0,0,W,H); g.globalAlpha=1;
+      // Glut steigt auf
+      if(Math.random()<.35*inten+.1) fx.parts.push({x:cx+(Math.random()-.5)*W*.7,y:H+10,vx:(Math.random()-.5)*20,vy:-(40+Math.random()*80),r:1+Math.random()*2.5,life:1,d:.18+Math.random()*.2,c:col});
+      for(let i=fx.parts.length-1;i>=0;i--){ const p=fx.parts[i]; p.x+=p.vx*.016; p.y+=p.vy*.016; if(p.g) p.vy+=p.g*.016; p.life-=p.d*.016*(p.fast?4:1); if(p.life<=0){ fx.parts.splice(i,1); continue; } g.globalAlpha=Math.max(0,p.life); g.fillStyle=p.c; g.beginPath(); g.arc(p.x,p.y,p.r,0,7); g.fill(); } g.globalAlpha=1;
+      // Schockwellen
+      for(let i=fx.rings.length-1;i>=0;i--){ const r=fx.rings[i]; r.r+=r.v*.016; r.a-=.016*1.3; if(r.a<=0){ fx.rings.splice(i,1); continue; } g.globalAlpha=r.a; g.strokeStyle=r.c; g.lineWidth=r.w; g.beginPath(); g.arc(r.x,r.y,r.r,0,7); g.stroke(); } g.globalAlpha=1;
+      fx.cx=cx; fx.cy=cy; requestAnimationFrame(loop); };
+    requestAnimationFrame(loop); },
+  _fxFlash(ov,col,solid){ const f=document.createElement('div'); f.id='cr-flash'; f.style.background=solid?'#fff':'radial-gradient(circle at 50% 45%,'+col+',rgba(255,255,255,0) 70%)'; ov.appendChild(f); setTimeout(()=>f.remove(),800); },
+  _fxClick(upgraded){ const fx=this._fx, ov=document.getElementById('chest-anim'); if(!fx||!ov) return; const col=this._fxCol(performance.now()/1000), cx=fx.cx||innerWidth/2, cy=fx.cy||innerHeight*.45;
+    fx.rings.push({x:cx,y:cy,r:40,v:380,a:.9,w:4,c:col}); if(upgraded){ fx.rings.push({x:cx,y:cy,r:30,v:620,a:1,w:8,c:'#fff'}); fx.rings.push({x:cx,y:cy,r:20,v:480,a:1,w:6,c:col}); }
+    const n=upgraded?46:16; for(let i=0;i<n;i++){ const a=Math.random()*6.283, v=120+Math.random()*(upgraded?420:220); fx.parts.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:260,r:1.5+Math.random()*3,life:1,d:.5,c:Math.random()<.4?'#fff':col,fast:false}); }
+    if(upgraded){ this._fxFlash(ov,col,false); const lb=document.getElementById('cr-label'); if(lb){ lb.style.animation='none'; void lb.offsetWidth; lb.style.animation='crPop .5s ease-out'; } }
+    try{ if(navigator.vibrate) navigator.vibrate(upgraded?[40,30,60]:25); }catch(e){} },
+  _fxBurst(ov,big){ const fx=this._fx; if(!fx||!ov) return; const col=this._fxCol(performance.now()/1000), cx=fx.cx||innerWidth/2, cy=fx.cy||innerHeight*.45;
+    for(let k=0;k<4;k++) fx.rings.push({x:cx,y:cy,r:20+k*14,v:500+k*260,a:1,w:10-k*2,c:k%2?col:'#fff'});
+    const n=big?140:60; for(let i=0;i<n;i++){ const a=Math.random()*6.283, v=160+Math.random()*620; fx.parts.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-80,g:300,r:2+Math.random()*4,life:1,d:.35,c:['#fff','#ffd54f',col][i%3]}); }
+    this._fxFlash(ov,col,true); try{ if(navigator.vibrate) navigator.vibrate([60,40,120]); }catch(e){} },
+
   // ── ANIMATION ──
   _renderOpenAnim(){
     const s=this._animState; if(!s)return;
@@ -274,19 +318,20 @@ const RewardChests = {
     const label=s.isHell?'🔥 HÖLLEN-TRUHE 🔥':(s.rarityIdx===4?'🌌 ÜBERDIMENSIONAL 🌌':r.name.toUpperCase());
     const remaining=5-s.clicks;
     ov.innerHTML=
-      '<div id="cr-label" style="font-size:clamp(1.3rem,5.5vw,2.1rem);font-weight:900;margin-bottom:12px;color:'+labelCol+';text-shadow:0 0 18px '+labelCol+'">'+label+'</div>'+
-      '<div id="cr-chest" style="transition:transform .3s cubic-bezier(.15,1.6,.4,1);filter:drop-shadow(0 0 36px '+labelCol+')">'+this._chestSVG(chestCol,260,false,s.rarityIdx===4)+'</div>'+
-      '<div id="cr-hint" style="margin-top:18px;font-size:clamp(1.1rem,4.5vw,1.4rem);font-weight:900;color:#fff">👆 Tippe '+remaining+'× zum Öffnen!</div>'+
-      '<div id="cr-dots" style="margin-top:10px;font-size:1.4rem;letter-spacing:6px;color:'+labelCol+'">'+'●'.repeat(s.clicks)+'○'.repeat(remaining)+'</div>';
+      '<div id="cr-frame"></div><div class="cr-stud" style="left:6px;top:6px"></div><div class="cr-stud" style="right:6px;top:6px"></div><div class="cr-stud" style="left:6px;bottom:6px"></div><div class="cr-stud" style="right:6px;bottom:6px"></div><div id="cr-plate">TRUHE ÖFFNEN</div>'+
+      '<div id="cr-label" style="position:relative;z-index:3;font-size:clamp(1.3rem,5.5vw,2.1rem);font-weight:900;margin-bottom:12px;color:'+labelCol+';text-shadow:0 0 18px '+labelCol+',0 2px 4px #000">'+label+'</div>'+
+      '<div id="cr-chest" style="position:relative;z-index:3;animation:crFloat 3s ease-in-out infinite;transition:scale .3s cubic-bezier(.15,1.6,.4,1);filter:drop-shadow(0 0 36px '+labelCol+')">'+this._chestSVG(chestCol,260,false,s.rarityIdx===4)+'</div>'+
+      '<div id="cr-hint" style="position:relative;z-index:3;margin-top:18px;font-size:clamp(1.1rem,4.5vw,1.4rem);font-weight:900;color:#fff;text-shadow:0 2px 6px #000">👆 Tippe '+remaining+'× zum Öffnen!</div>'+
+      '<div id="cr-dots" style="position:relative;z-index:3;margin-top:10px;font-size:1.4rem;letter-spacing:6px;color:'+labelCol+'">'+'●'.repeat(s.clicks)+'○'.repeat(remaining)+'</div>';
     ov.onclick=()=>this._chestClick();
     ov.ontouchstart=(e)=>{ e.preventDefault(); this._chestClick(); };
-    document.body.appendChild(ov);
+    document.body.appendChild(ov); this._fxStart(ov);
   },
   _bgFor(isHell,r,isOverdim){
-    if(isHell) return 'radial-gradient(circle at 50% 40%,#5a0000,#1a0000)';
+    if(isHell) return 'radial-gradient(circle at 50% 40%,#3a0000,#0a0000)';
     if(isOverdim) return 'radial-gradient(circle at 50% 40%,#3a1a6e,#05010f)';
     if(r.id==='superepic') return 'linear-gradient(135deg,#ff0000,#ff8c00,#ffee00,#00ff00,#0088ff,#8800ff)';
-    return 'radial-gradient(circle at 50% 40%,'+r.bg+',#0a0a14)';
+    return 'radial-gradient(circle at 50% 42%,#1c1830,#07060d)';
   },
   _colFor(isHell,r,overdim){ if(isHell)return '#ff3030'; if(overdim)return '#c89bff'; if(r&&r.id==='superepic')return '#fff'; return (r&&r.bg)||'#fff'; },
 
@@ -294,7 +339,7 @@ const RewardChests = {
     const s=this._animState; if(!s)return;
     const now=Date.now(); if(this._lastClick&&now-this._lastClick<220)return; this._lastClick=now;
     if(s.clicks>=5)return;
-    s.clicks++;
+    s.clicks++; const _prev=s.rarityIdx;
     // Brawl-Stars upgrade: each click has a chance to upgrade (can't go down)
     if(!s.isHell && s.rarityIdx<4){
       const p=s.tier.upChance;
@@ -304,12 +349,12 @@ const RewardChests = {
     // Update visuals
     const chest=document.getElementById('cr-chest');
     if(chest){
-      chest.style.transform='rotateY('+(s.clicks*360)+'deg) scale('+(1+s.clicks*0.05)+')';
+      chest.style.scale=String(1+s.clicks*0.07); chest.style.animation='none'; void chest.offsetWidth; chest.style.animation='crShake .5s ease-out, crFloat 3s ease-in-out .5s infinite';
       const r=this.RARITIES[s.rarityIdx]||this.RARITIES[0];
       const col=s.isHell?'#8b0000':(s.rarityIdx===4?'#7b2fff':r.bg);
       chest.innerHTML=this._chestSVG(col,260,false,s.rarityIdx===4);
     }
-    this._updateAnimVisual();
+    this._updateAnimVisual(); try{ this._fxClick(s.rarityIdx>_prev); }catch(e){}
     if(s.clicks>=5){
       // play final sound
       if(!s.isHell){
@@ -318,7 +363,7 @@ const RewardChests = {
       } else { this._sndHell(); }
       // Overdim → star crash animation before reveal
       if(!s.isHell&&s.rarityIdx===4){ setTimeout(()=>this._starCrashIntro(),300); }
-      else { setTimeout(()=>this._revealReward(),450); }
+      else { setTimeout(()=>{ try{ this._fxBurst(document.getElementById('chest-anim'),true); }catch(e){} },300); setTimeout(()=>this._revealReward(),650); }
     }
   },
   _updateAnimVisual(){
@@ -398,12 +443,13 @@ const RewardChests = {
     const title=s.isHell?'🔥 HÖLLEN-TRUHE 🔥':(overdim?'🌌 ÜBERDIMENSIONAL 🌌':r.name.toUpperCase()+' TRUHE');
     ov.style.background=this._bgFor(s.isHell,r,overdim);
     ov.innerHTML=
-      '<div style="font-size:clamp(1.1rem,4.5vw,1.6rem);font-weight:900;color:'+col+';text-shadow:0 0 14px '+col+';margin-bottom:10px">'+title+'</div>'+
-      '<div id="rv-icon" style="font-size:5.5rem;margin:10px 0;animation:bounce 1s infinite">'+reward.icon+'</div>'+
-      '<div style="font-size:clamp(1.2rem,5vw,1.7rem);font-weight:900;color:#fff;margin-bottom:6px">'+reward.label+'</div>'+
-      '<div style="font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:24px">'+(s.isHell?'Autsch! Pech gehabt...':'Belohnung erhalten!')+'</div>'+
-      '<button id="chest-claim-btn" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:14px 40px;border-radius:14px;font-weight:900;font-size:1.15rem;cursor:pointer;box-shadow:0 4px 18px rgba(255,140,0,.6)">Super! ➜</button>';
-    ov.onclick=null; ov.ontouchstart=null;
+      '<div style="position:relative;z-index:3;font-size:clamp(1.1rem,4.5vw,1.6rem);font-weight:900;color:'+col+';text-shadow:0 0 14px '+col+',0 2px 4px #000;margin-bottom:14px">'+title+'</div>'+
+      '<div id="cr-frame"></div><div class="cr-stud" style="left:6px;top:6px"></div><div class="cr-stud" style="right:6px;top:6px"></div><div class="cr-stud" style="left:6px;bottom:6px"></div><div class="cr-stud" style="right:6px;bottom:6px"></div>'+
+      '<div id="cr-card" style="--cc:'+col+';text-align:center"><div id="rv-icon" style="font-size:5.5rem;margin:6px 0;animation:crFloat 2.4s ease-in-out infinite">'+reward.icon+'</div>'+
+      '<div style="font-size:clamp(1.15rem,4.6vw,1.6rem);font-weight:900;color:#fff;margin-bottom:6px;text-shadow:0 2px 6px #000">'+reward.label+'</div>'+
+      '<div style="font-size:.85rem;color:rgba(255,255,255,.6)">'+(s.isHell?'Autsch! Pech gehabt...':'Belohnung erhalten!')+'</div></div><div style="height:22px"></div>'+
+      '<button id="chest-claim-btn" style="position:relative;z-index:4;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:none;padding:14px 40px;border-radius:14px;font-weight:900;font-size:1.15rem;cursor:pointer;box-shadow:0 4px 18px rgba(255,140,0,.6)">Super! ➜</button>';
+    ov.onclick=null; ov.ontouchstart=null; try{ this._fxStart(ov); setTimeout(()=>this._fxBurst(ov,true),150); }catch(e){}
     const btn=document.getElementById('chest-claim-btn');
     if(btn){ const claim=(e)=>{ if(e){e.preventDefault();e.stopPropagation();} this._closeAnim(); }; btn.onclick=claim; btn.addEventListener('touchend',claim,{passive:false}); }
     this.updateBadge();
