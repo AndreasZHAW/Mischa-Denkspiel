@@ -52,6 +52,7 @@ const RewardChests = {
   _shade(hex,f){ try{ hex=hex.replace('#',''); let r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16); if(f<0){r=Math.round(r*(1+f));g=Math.round(g*(1+f));b=Math.round(b*(1+f));}else{r=Math.round(r+(255-r)*f);g=Math.round(g+(255-g)*f);b=Math.round(b+(255-b)*f);} return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join(''); }catch(e){return hex;} },
 
   // ── SOUNDS (Web Audio — musical, not beepy) ──
+  _dst(a){ try{ if(!a._mg){ const g=a.createGain(); g.gain.value=1.9; const k=a.createDynamicsCompressor(); k.threshold.value=-8; k.ratio.value=6; g.connect(k); k.connect(a.destination); a._mg=g; } return a._mg; }catch(e){ return a.destination; } },
   _ac(){
     try{
       if(!this._actx) this._actx=new(window.AudioContext||window.webkitAudioContext)();
@@ -60,7 +61,7 @@ const RewardChests = {
     }catch(e){ return null; }
   },
   _unlockAudio(){
-    try{ const a=this._ac(); if(!a)return; if(a.state==='suspended')a.resume(); const o=a.createOscillator(),g=a.createGain(); g.gain.value=0.0001; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.02); this._audioUnlocked=true; }catch(e){}
+    try{ const a=this._ac(); if(!a)return; if(a.state==='suspended')a.resume(); const o=a.createOscillator(),g=a.createGain(); g.gain.value=0.0001; o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.02); this._audioUnlocked=true; }catch(e){}
   },
   _initAudioUnlock(){
     if(this._audioInit)return; this._audioInit=true;
@@ -76,7 +77,7 @@ const RewardChests = {
     o.type='triangle'; o.frequency.value=note;
     g.gain.setValueAtTime(0.18,a.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.25);
-    o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.25);
+    o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.25);
   },
   // Upgrade sound — ascending glimmer
   _sndUpgrade(rarityIdx){
@@ -88,7 +89,7 @@ const RewardChests = {
         const o=a.createOscillator(),g=a.createGain();
         o.type='sine'; o.frequency.value=f;
         g.gain.setValueAtTime(0.15,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.4);
-        o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.4);
+        o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.4);
       },i*55);
     });
   },
@@ -100,7 +101,7 @@ const RewardChests = {
       const o=a.createOscillator(),g=a.createGain();
       o.type='sawtooth'; o.frequency.value=f;
       g.gain.setValueAtTime(0.18,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.35);
-      o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.35);
+      o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.35);
     },i*80));
   },
   // Hell sound — dark descending rumble
@@ -110,7 +111,7 @@ const RewardChests = {
       const o=a.createOscillator(),g=a.createGain();
       o.type='sawtooth'; o.frequency.value=f;
       g.gain.setValueAtTime(0.22,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.45);
-      o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.5);
+      o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.5);
     },i*90));
   },
   // Overdim sound — cosmic shimmer
@@ -120,7 +121,7 @@ const RewardChests = {
       const o=a.createOscillator(),g=a.createGain();
       o.type='sine'; o.frequency.value=f;
       g.gain.setValueAtTime(0.14,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.5);
-      o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.5);
+      o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.5);
     },i*65));
   },
   // Star crash impact
@@ -130,7 +131,7 @@ const RewardChests = {
     o.type='sine'; o.frequency.setValueAtTime(1800,a.currentTime);
     o.frequency.exponentialRampToValueAtTime(150,a.currentTime+0.6);
     g.gain.setValueAtTime(0.28,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.7);
-    o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+0.7);
+    o.connect(g); g.connect(RewardChests._dst(a)); o.start(); o.stop(a.currentTime+0.7);
   },
 
   // ── TIMING ──

@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=822"></script>
-<script src="rewardchests.js?v=822"></script>
-<script src="personality.js?v=822"></script>
+<script src="lang.js?v=824"></script>
+<script src="rewardchests.js?v=824"></script>
+<script src="personality.js?v=824"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=822"></script>
-<script src="sanction.js?v=822"></script>
-<script src="zevents.js?v=822"></script>
-<script src="znet.js?v=822"></script>
-<script src="zbases.js?v=822"></script>
-<script src="charheads.js?v=822"></script>
-<script src="zmensch.js?v=822"></script>
-<script src="zcine.js?v=822"></script>
-<script src="zworld.js?v=822"></script>
-<script src="zstation.js?v=822"></script>
-<script src="zfx.js?v=822"></script>
-<script src="zextra.js?v=822"></script>
-<script src="zreb6.js?v=822"></script>
-<script src="zlegend.js?v=822"></script>
-<script src="ztutplus.js?v=822"></script>
-<script src="zlift.js?v=822"></script>
-<script src="zfun.js?v=822"></script>
-<script src="zguide.js?v=822"></script>
-<script src="zrules.js?v=822"></script>
-<script src="zsafe.js?v=822"></script>
-<script src="zrebguard.js?v=822"></script>
-<script src="zpass.js?v=822"></script>
-<script src="znotify.js?v=822"></script>
-<script src="zdetective.js?v=822"></script>
-<script src="zpirate.js?v=822"></script>
-<script src="zpark.js?v=822"></script>
-<script src="zmenu.js?v=822"></script>
-<script src="zdevice.js?v=822"></script>
-<script src="zmusic.js?v=822"></script>
-<script src="zskill.js?v=822"></script>
-<script src="worlds.js?v=822"></script>
+<script src="firebase-state.js?v=824"></script>
+<script src="sanction.js?v=824"></script>
+<script src="zevents.js?v=824"></script>
+<script src="znet.js?v=824"></script>
+<script src="zbases.js?v=824"></script>
+<script src="charheads.js?v=824"></script>
+<script src="zmensch.js?v=824"></script>
+<script src="zcine.js?v=824"></script>
+<script src="zworld.js?v=824"></script>
+<script src="zstation.js?v=824"></script>
+<script src="zfx.js?v=824"></script>
+<script src="zextra.js?v=824"></script>
+<script src="zreb6.js?v=824"></script>
+<script src="zlegend.js?v=824"></script>
+<script src="ztutplus.js?v=824"></script>
+<script src="zlift.js?v=824"></script>
+<script src="zfun.js?v=824"></script>
+<script src="zguide.js?v=824"></script>
+<script src="zrules.js?v=824"></script>
+<script src="zsafe.js?v=824"></script>
+<script src="zrebguard.js?v=824"></script>
+<script src="zpass.js?v=824"></script>
+<script src="znotify.js?v=824"></script>
+<script src="zdetective.js?v=824"></script>
+<script src="zpirate.js?v=824"></script>
+<script src="zpark.js?v=824"></script>
+<script src="zmenu.js?v=824"></script>
+<script src="zdevice.js?v=824"></script>
+<script src="zmusic.js?v=824"></script>
+<script src="zskill.js?v=824"></script>
+<script src="worlds.js?v=824"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -934,7 +934,7 @@ const Weather = {
     // nach 5 Min. wieder automatisch wechseln
     this._iv=setInterval(()=>this._cycle(),5*60*1000);
     try{ toast('Wetter: '+(type==='rain'?'Regen':type==='fog'?'Nebel':'Sonnig')); }catch(e){}
-    try{ ZP._rAdm(); }catch(e){}
+    try{ ZAdmin._wxMark(); }catch(e){}
   },
   _apply(){
     try{
@@ -12526,6 +12526,8 @@ const ZCreditsMusic = {
 };
 // ═══ SOUND SYSTEM ═══
 const ZSound = {
+  SFX_BOOST: 1.9,
+  _out(){ const c=this.ctx; if(!c) return null; if(!this._mg||this._mgc!==c){ try{ const g=c.createGain(); g.gain.value=this.SFX_BOOST; const k=c.createDynamicsCompressor(); k.threshold.value=-8; k.ratio.value=6; g.connect(k); k.connect(c.destination); this._mg=g; this._mgc=c; }catch(e){ return c.destination; } } return this._mg; },
   ctx: null,
   style: 'off', // v801: Spiel-Sounds sind für alle dauerhaft aus (nur Hintergrundmusik läuft)
   loadStyle(){
@@ -12558,7 +12560,7 @@ const ZSound = {
       // Play a silent buffer to unlock
       const buf=this.ctx.createBuffer(1,1,22050);
       const src=this.ctx.createBufferSource();
-      src.buffer=buf; src.connect(this.ctx.destination); src.start(0);
+      src.buffer=buf; src.connect(this._out()); src.start(0);
       this.ctx.resume().catch(()=>{});
     }
   },
@@ -12586,7 +12588,7 @@ const ZSound = {
     if (!this.ctx) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.connect(gain); gain.connect(this._out());
     osc.type = this._waveFor(type);
     const f = this._freqFor(freq);
     const d = this._durFor(dur);
@@ -12622,7 +12624,7 @@ const ZSound = {
     const src=this.ctx.createBufferSource(); src.buffer=buf;
     const filter=this.ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.setValueAtTime(crunchy?2600:900,this.ctx.currentTime);
     const gain=this.ctx.createGain(); gain.gain.setValueAtTime(crunchy?0.28:0.18,this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
-    src.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
+    src.connect(filter); filter.connect(gain); gain.connect(this._out());
     src.start(); src.stop(this.ctx.currentTime+dur);
     if(crunchy){
       // Zweiter, kürzerer heller "Biss"-Nachklang für den ASMR-Crunch-Effekt.
@@ -12636,7 +12638,7 @@ const ZSound = {
         const src2=this.ctx.createBufferSource(); src2.buffer=buf2;
         const filter2=this.ctx.createBiquadFilter(); filter2.type='highpass'; filter2.frequency.setValueAtTime(1800,this.ctx.currentTime);
         const gain2=this.ctx.createGain(); gain2.gain.setValueAtTime(0.15,this.ctx.currentTime); gain2.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur2);
-        src2.connect(filter2); filter2.connect(gain2); gain2.connect(this.ctx.destination);
+        src2.connect(filter2); filter2.connect(gain2); gain2.connect(this._out());
         src2.start(); src2.stop(this.ctx.currentTime+dur2);
       },25);
     }
@@ -12692,7 +12694,7 @@ const ZSound = {
         src.playbackRate.value = this.style==='satisfying' ? rate*0.94 : rate;
         const gain = this.ctx.createGain();
         gain.gain.value = Math.min(1, vol);
-        src.connect(gain); gain.connect(this.ctx.destination);
+        src.connect(gain); gain.connect(this._out());
         src.start(this.ctx.currentTime, seg.s, seg.d);
       }catch(e){}
     };
@@ -12738,7 +12740,7 @@ const ZSound = {
       o.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime+0.42);
       g.gain.setValueAtTime(0.22, this.ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.45);
-      o.connect(g); g.connect(this.ctx.destination);
+      o.connect(g); g.connect(this._out());
       o.start(); o.stop(this.ctx.currentTime+0.46);
     }catch(e){}
   },
@@ -12762,7 +12764,7 @@ const ZSound = {
         const src=this.ctx.createBufferSource(); src.buffer=buf;
         const filt=this.ctx.createBiquadFilter(); filt.type='bandpass'; filt.frequency.value=500; filt.Q.value=0.7;
         const g=this.ctx.createGain(); g.gain.value=0.06;
-        src.connect(filt); filt.connect(g); g.connect(this.ctx.destination);
+        src.connect(filt); filt.connect(g); g.connect(this._out());
         src.start();
         // Every 3rd huff, a tiny animal chirp on top
         if (beat % 3 === 0) this._tone(300+Math.random()*250, 0.08, 'sine', 0.05, 0.08);
@@ -12796,7 +12798,7 @@ const ZSound = {
       o.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime+0.18);
       g.gain.setValueAtTime(0.15, this.ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.2);
-      o.connect(g); g.connect(this.ctx.destination);
+      o.connect(g); g.connect(this._out());
       o.start(); o.stop(this.ctx.currentTime+0.2);
     }catch(e){}
     this._tone(700, 0.09, 'sine', 0.22, 0.16);
@@ -14078,6 +14080,7 @@ const ZAdmin = {
   cooldowns: {}, // action -> timestamp
   CD: 120000, // 120s cooldown
   
+  _wxMark(){ document.querySelectorAll('[data-wx]').forEach(b=>{ const on=b.dataset.wx===Weather.current; b.style.outline=on?'3px solid #FFA500':'none'; }); },
   switchTab(tab){
     document.querySelectorAll('.padmin-tab').forEach(t=>t.style.display='none');
     document.querySelectorAll('.padmin-tab-btn').forEach(b=>{
@@ -14086,6 +14089,7 @@ const ZAdmin = {
     });
     const el=document.getElementById('padmin-tab-'+tab);
     if(el)el.style.display='block';
+    if(tab==='wetterkisten')this._wxMark();
     if(tab==='tiere')this._populateAnimalGrid();
     if(tab==='bestand'){this._loadBestand();this._loadRoaming();}
     if(tab==='craft'){this._populateCraftIndex();this._updateCraftList();}
@@ -20739,6 +20743,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="shop" onclick="ZAdmin.switchTab('shop')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🛒 Shop / Rabatt</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">🍀 Glück &amp; Boosts</div>
           <div class="padmin-tab-btn" data-tab="spins" onclick="ZAdmin.switchTab('spins')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎡 Spins</div>
+          <div class="padmin-tab-btn" data-tab="wetterkisten" onclick="ZAdmin.switchTab('wetterkisten')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">⛅ Wetter &amp; 🎁 Truhen</div>
           <div class="padmin-tab-btn" data-tab="belohnungen" onclick="ZAdmin.switchTab('belohnungen')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏅 Rang / Glück / Speed</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.4);padding:10px 8px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">🔤 Spiel-Events</div>
           <div class="padmin-tab-btn" data-tab="wjagd" onclick="ZAdmin.switchTab('wjagd')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔤 Buchstaben-Suche</div>
@@ -21110,6 +21115,18 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: BELOHNUNGEN -->
+        <div class="padmin-tab" id="padmin-tab-wetterkisten" style="display:none">
+          <div style="color:#FFD700;font-weight:900;margin-bottom:8px">⛅ Wetter bestimmen</div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <button class="padmin-btn" data-wx="clear" onclick="Weather.adminSet('clear');ZAdmin._wxMark()" style="flex:1;padding:10px">☀️ Sonne</button>
+            <button class="padmin-btn" data-wx="rain" onclick="Weather.adminSet('rain');ZAdmin._wxMark()" style="flex:1;padding:10px">🌧️ Regen</button>
+            <button class="padmin-btn" data-wx="fog" onclick="Weather.adminSet('fog');ZAdmin._wxMark()" style="flex:1;padding:10px">🌫️ Nebel</button>
+          </div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:16px">Gilt auf deinem Gerät, nach 5 Min. wechselt es wieder automatisch.</div>
+          <div style="color:#FFD700;font-weight:900;margin-bottom:8px">🎁 Truhen</div>
+          <button class="padmin-btn" onclick="try{RewardChests.unlockAll()}catch(e){ZP.toast('Truhen nicht verfügbar',2000)}" style="width:100%;background:#8e24aa;padding:12px;font-size:.9rem">🎁 Alle Truhen freischalten</button>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Macht alle Truhen der aktuellen Runde sofort öffenbar.</div>
+        </div>
         <div class="padmin-tab" id="padmin-tab-belohnungen" style="display:none">
           <div class="padmin-section-title">🏅 Rang &amp; Admin-Rechte</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
