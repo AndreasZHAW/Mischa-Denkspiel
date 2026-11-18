@@ -1,7 +1,7 @@
 /* ═══ ZTrailer (v809): 🎬 Mischa-Trailer – Canvas-Film (~2:40), abspielbar + als Video herunterladbar ═══ */
 (function(){
   if(window.ZTrailer) return;
-  const W=1280,H=720,DUR=162;
+  const W=1280,H=720,DUR=104;
   const TEAM=[
     {n:'Bu:)',r:'ADMIN · ERFINDER · „SCHWAMM“',d:'Hat das Spiel erfunden, baut jeden Tag Neues ein und saugt jeden Streit auf wie ein Schwamm – damit alle wieder Freunde sind.',c:'#e53935'},
     {n:'Andi5',r:'ADMIN',d:'Wacht über die Regeln und greift sofort ein, wenn jemand unfair ist.',c:'#1e88e5'},
@@ -86,8 +86,11 @@
     txt('Bei uns wird niemand gemobbt.',W/2,200,66,'#fff',fade(u,.5,5.5,.8,.6)); emo('🛡️',W/2,380,170,fade(u,1.5,5.5,.8,.6)); txt('Dafür sorgt das wachsame Admin-Team.',W/2,560,46,'#ffd54f',fade(u,2,5.5,.8,.6));
     const v=u-5.5; if(v>0){ emo('🍀',W/2,200,150,fade(v,0,10,.8,1.8)); txt('VIEL GLÜCK!',W/2,360,130,'#69f0ae',fade(v,.5,10,.8,1.8)); txt('Mischa Denkspiel',W/2,500,56,'#ffd54f',fade(v,1.5,10,.8,1.8)); txt('Baue deinen eigenen Zoo.',W/2,580,40,'#fff',fade(v,2.2,10,.8,1.8)); } }
   const SC=[[0,12,scene1],[12,28,scene2],[28,55,scene3],[55,80,scene4],[80,105,scene5],[105,117,scene6],[117,147,scene7],[147,162,scene8]];
-  function draw(t){ t=clamp(t,0,DUR-.001); ctx.clearRect(0,0,W,H); for(const s of SC){ if(t>=s[0]&&t<s[1]){ ctx.save(); s[2](t); ctx.restore(); const dt=t-s[0]; if(dt<.7){ ctx.fillStyle='rgba(0,0,0,'+(1-dt/.7)+')'; ctx.fillRect(0,0,W,H); } if(s[1]-t<.5&&s[1]<DUR){ ctx.fillStyle='rgba(0,0,0,'+(1-(s[1]-t)/.5)+')'; ctx.fillRect(0,0,W,H); } break; } }
-    vig(.35); bars(.7); if(t>DUR-2){ ctx.fillStyle='rgba(0,0,0,'+clamp((t-(DUR-2))/1.8,0,1)+')'; ctx.fillRect(0,0,W,H); } }
+  // Zeitraffer-Tabelle: [echt von, echt bis, Szenenzeit von, Szenenzeit bis] – kürzt den Film auf 1:44
+  const MAP=[[0,8,0,12],[8,18,12,28],[18,36,28,55],[36,45,55,80],[45,62,80,105],[62,70,105,117],[70,92,117,147],[92,104,147,162]];
+  const tm=r=>{ for(const m of MAP){ if(r>=m[0]&&r<m[1]) return m[2]+(r-m[0])*(m[3]-m[2])/(m[1]-m[0]); } return 161.9; };
+  function draw(t){ t=clamp(t,0,DUR-.001); const rt=t; t=tm(t); ctx.clearRect(0,0,W,H); for(const s of SC){ if(t>=s[0]&&t<s[1]){ ctx.save(); s[2](t); ctx.restore(); const dt=t-s[0]; if(dt<.7){ ctx.fillStyle='rgba(0,0,0,'+(1-dt/.7)+')'; ctx.fillRect(0,0,W,H); } if(s[1]-t<.5&&s[1]<DUR){ ctx.fillStyle='rgba(0,0,0,'+(1-(s[1]-t)/.5)+')'; ctx.fillRect(0,0,W,H); } break; } }
+    vig(.35); bars(.7); if(rt>DUR-2){ ctx.fillStyle='rgba(0,0,0,'+clamp((rt-(DUR-2))/1.8,0,1)+')'; ctx.fillRect(0,0,W,H); } }
 
   const T=window.ZTrailer={ draw:t=>{ if(!ctx){ const c=document.createElement('canvas'); c.width=W; c.height=H; ctx=c.getContext('2d'); T._c=c; } draw(t); return T._c; }, DUR:DUR };
   function open(){ if(document.getElementById('ztr-ov')) return; const o=document.createElement('div'); o.id='ztr-ov'; o.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif';
@@ -111,7 +114,7 @@
       const ms=cv.captureStream(30); try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); const src=ac.createMediaElementSource(au); gn=ac.createGain(); src.connect(gn); gn.connect(dest); gn.connect(ac.destination); dest.stream.getAudioTracks().forEach(tr=>ms.addTrack(tr)); }catch(e){ console.warn('[trailer] audio',e); }
       const chunks=[]; rec=new MediaRecorder(ms,{mimeType:mt,videoBitsPerSecond:5e6}); rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
       rec.onstop=()=>{ const ext=mt.indexOf('mp4')>=0?'mp4':'webm'; const b=new Blob(chunks,{type:mt.split(';')[0]}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='Mischa-Trailer.'+ext; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(a.href); },4000); rec=null; msg('✅ Fertig – das Video wurde heruntergeladen.'); t=DUR-.001; playing=false; $('#ztr-pl').textContent='↺'; try{ au.pause(); }catch(e){} $('#ztr-dl').disabled=false; };
-      t=0; playing=true; try{ au.currentTime=0; }catch(e){} pa(); rec.start(1000); $('#ztr-dl').disabled=true; msg('🔴 Nimmt auf … bitte warten, dauert so lange wie der Trailer (2:42). Fenster offen lassen!'); };
+      t=0; playing=true; try{ au.currentTime=0; }catch(e){} pa(); rec.start(1000); $('#ztr-dl').disabled=true; msg('🔴 Nimmt auf … bitte warten, dauert so lange wie der Trailer (1:44). Fenster offen lassen!'); };
   }
   T.open=open;
 })();

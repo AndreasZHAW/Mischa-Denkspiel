@@ -231,7 +231,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v814';
+const APP_VERSION = 'v817';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -433,7 +433,6 @@ const MISCHA_TIPS = [
   'Tipp: Das Glücksrad dreht sich für kostenlose Belohnungen — schau öfter vorbei!',
   'Im MT-Pass warten viele Stufen mit Belohnungen auf dich.',
   'Tipp: Die Zucht-Maschine kombiniert zwei gleiche Tiere zu einem selteneren.',
-  'Im Sammlungs-Terminal siehst du, was andere Spieler schon gesammelt haben.',
   'Wusstest du? Manche Tiere sind unglaublich selten — hast du schon eins?',
   'Tipp: Bei der Würfel-Maschine kannst du dein Geld verdoppeln — oder verlieren!',
   'Im Zoo warten versteckte Gegenstände — halt die Augen offen!',
@@ -641,7 +640,7 @@ const App = {
           <span class="logo-emoji">🎮</span>
           <h1>Mischa<br>Denkspiel</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
-          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v814 · 2026-11-15</p>
+          <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 v817 · 2026-11-15</p>
           
         </div>
         <div class="card" style="background:linear-gradient(135deg,rgba(10,10,25,.95),rgba(20,20,40,.9));border:1px solid rgba(255,215,0,.25);box-shadow:0 0 30px rgba(255,165,0,.1)">

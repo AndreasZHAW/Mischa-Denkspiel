@@ -138,7 +138,7 @@
     if(S.riding){ try{ S._rideFrame(dt); }catch(e){ console.warn('ride',e); S.rideEnd(true); } }
     // Kollision + Innen-Erkennung
     if(!S.riding) try{ const pl=Z.pl; if(pl&&pl.y<4){ const x=pl.x,zz=pl.z, inO=Math.abs(x)<16.6&&Math.abs(zz)<10.8, inI=Math.abs(x)<14.4&&Math.abs(zz)<8.6, gap=zz>8.6&&Math.abs(x)<2.6;
-        if(inO&&!inI&&!gap&&S._lp){ pl.x=S._lp.x; pl.z=S._lp.z; } else S._lp={x:pl.x,z:pl.z};
+        S._lp={x:pl.x,z:pl.z}; /* v816: Wände nicht mehr fest – man kann durchlaufen */
         const ins=Math.abs(pl.x)<14.4&&Math.abs(pl.z)<8.6&&pl.y<4; if(ins!==S.inside){ S.inside=ins; S._uiUpd(true); } } }catch(e){}
     S._uiUpd();
   };
