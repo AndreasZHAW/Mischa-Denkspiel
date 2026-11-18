@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=828"></script>
-<script src="rewardchests.js?v=828"></script>
-<script src="personality.js?v=828"></script>
+<script src="lang.js?v=830"></script>
+<script src="rewardchests.js?v=830"></script>
+<script src="personality.js?v=830"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=828"></script>
-<script src="sanction.js?v=828"></script>
-<script src="zevents.js?v=828"></script>
-<script src="znet.js?v=828"></script>
-<script src="zbases.js?v=828"></script>
-<script src="charheads.js?v=828"></script>
-<script src="zmensch.js?v=828"></script>
-<script src="zcine.js?v=828"></script>
-<script src="zworld.js?v=828"></script>
-<script src="zstation.js?v=828"></script>
-<script src="zfx.js?v=828"></script>
-<script src="zextra.js?v=828"></script>
-<script src="zreb6.js?v=828"></script>
-<script src="zlegend.js?v=828"></script>
-<script src="ztutplus.js?v=828"></script>
-<script src="zlift.js?v=828"></script>
-<script src="zfun.js?v=828"></script>
-<script src="zguide.js?v=828"></script>
-<script src="zrules.js?v=828"></script>
-<script src="zsafe.js?v=828"></script>
-<script src="zrebguard.js?v=828"></script>
-<script src="zpass.js?v=828"></script>
-<script src="znotify.js?v=828"></script>
-<script src="zdetective.js?v=828"></script>
-<script src="zpirate.js?v=828"></script>
-<script src="zpark.js?v=828"></script>
-<script src="zmenu.js?v=828"></script>
-<script src="zdevice.js?v=828"></script>
-<script src="zmusic.js?v=828"></script>
-<script src="zskill.js?v=828"></script>
-<script src="worlds.js?v=828"></script>
+<script src="firebase-state.js?v=830"></script>
+<script src="sanction.js?v=830"></script>
+<script src="zevents.js?v=830"></script>
+<script src="znet.js?v=830"></script>
+<script src="zbases.js?v=830"></script>
+<script src="charheads.js?v=830"></script>
+<script src="zmensch.js?v=830"></script>
+<script src="zcine.js?v=830"></script>
+<script src="zworld.js?v=830"></script>
+<script src="zstation.js?v=830"></script>
+<script src="zfx.js?v=830"></script>
+<script src="zextra.js?v=830"></script>
+<script src="zreb6.js?v=830"></script>
+<script src="zlegend.js?v=830"></script>
+<script src="ztutplus.js?v=830"></script>
+<script src="zlift.js?v=830"></script>
+<script src="zfun.js?v=830"></script>
+<script src="zguide.js?v=830"></script>
+<script src="zrules.js?v=830"></script>
+<script src="zsafe.js?v=830"></script>
+<script src="zrebguard.js?v=830"></script>
+<script src="zpass.js?v=830"></script>
+<script src="znotify.js?v=830"></script>
+<script src="zdetective.js?v=830"></script>
+<script src="zpirate.js?v=830"></script>
+<script src="zpark.js?v=830"></script>
+<script src="zmenu.js?v=830"></script>
+<script src="zdevice.js?v=830"></script>
+<script src="zmusic.js?v=830"></script>
+<script src="zskill.js?v=830"></script>
+<script src="worlds.js?v=830"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4621,25 +4621,10 @@ const ZG={
     this._goldMachinePositions = [];
     this._goldMachineMeshes = [];
     this.ZONES.forEach((zone)=>{
-      const gx=zone.x+40, gz=zone.z+24; // clearly to the side of the enclosures
-      const gmBase=new THREE.Mesh(new THREE.BoxGeometry(4,0.6,4),new THREE.MeshBasicMaterial({color:0x4a3520}));
-      gmBase.position.set(gx,0.3,gz); sc.add(gmBase);
-      const gmBody=new THREE.Mesh(new THREE.BoxGeometry(3,4,2.5),new THREE.MeshBasicMaterial({color:0xFFD700}));
-      gmBody.position.set(gx,2.5,gz); sc.add(gmBody);
-      const gmPanel=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,0.2),new THREE.MeshBasicMaterial({color:0x2a2a3a}));
-      gmPanel.position.set(gx,2.8,gz+1.3); sc.add(gmPanel);
-      const gmSlot=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,0.1),new THREE.MeshBasicMaterial({color:0x00FFCC}));
-      gmSlot.position.set(gx,3.4,gz+1.45); sc.add(gmSlot);
-      [-0.7,0,0.7].forEach((dx,ci)=>{
-        const knob=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8),new THREE.MeshBasicMaterial({color:[0xE74C3C,0x27AE60,0x3498DB][ci]}));
-        knob.position.set(gx+dx,2.1,gz+1.45); sc.add(knob);
-      });
-      const gmCrown=new THREE.Mesh(new THREE.ConeGeometry(1,1.2,4),new THREE.MeshBasicMaterial({color:0x00CFFF}));
-      gmCrown.position.set(gx,5.2,gz); gmCrown.rotation.y=Math.PI/4; sc.add(gmCrown);
-      const gmLbl=this._txt('⚗️ GOLD-MASCHINE',0.7,'#FFD700'); gmLbl.position.set(gx,7.5,gz); gmLbl.scale.set(8,2,1); sc.add(gmLbl);
-      const gmLbl2=this._txt('Tiere aufwerten! Antippen ⚗️',0.5,'#00FFCC'); gmLbl2.position.set(gx,6.4,gz); gmLbl2.scale.set(7,1.4,1); sc.add(gmLbl2);
+      const gx=zone.x+40, gz=zone.z+24;
+      const gm=this._mkGoldMachine(gx,gz);
       this._goldMachinePositions.push({x:gx,z:gz});
-      this._goldMachineMeshes.push(gmBody);
+      this._goldMachineMeshes.push(gm);
     });
     this._goldMachineMesh = this._goldMachineMeshes[0]; // back-compat glow ref
 
@@ -4666,15 +4651,8 @@ const ZG={
     this._breedPositions = []; const _bm0=sc.children.length;
     {
       this.ZONES.forEach((zone)=>{
-        const bx=zone.x+40, bz=zone.z-24; // clear of the gold machine (z+8) and feeder (x-24,z+8)
-        const bBase=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,0.6,8),new THREE.MeshBasicMaterial({color:0x3a1a4a}));
-        bBase.position.set(bx,0.3,bz); sc.add(bBase);
-        const bBody=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,3,8),new THREE.MeshBasicMaterial({color:0xE056FD}));
-        bBody.position.set(bx,2,bz); sc.add(bBody);
-        const bGlass=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,10),new THREE.MeshBasicMaterial({color:0xF8C6FF,transparent:true,opacity:.6}));
-        bGlass.position.set(bx,4,bz); sc.add(bGlass);
-        const bLbl=this._txt('🧬 ZUCHT-MASCHINE',0.6,'#E056FD'); bLbl.position.set(bx,6.6,bz); bLbl.scale.set(8,2,1); sc.add(bLbl);
-        const bLbl2=this._txt('2 gleiche Tiere kombinieren! 🧬',0.5,'#fff'); bLbl2.position.set(bx,5.6,bz); bLbl2.scale.set(7,1.4,1); sc.add(bLbl2);
+        const bx=zone.x+40, bz=zone.z-24;
+        this._mkFuseMachine(bx,bz);
         this._breedPositions.push({x:bx,z:bz});
       });
     }
@@ -5174,6 +5152,65 @@ const ZG={
     return g;
   },
 
+  // ── Maschinen-Optik (v829): Goldmaschine & Fusions-Maschine ──
+  _mTex(w,h,fn){ const c=document.createElement('canvas'); c.width=w; c.height=h; const g=c.getContext('2d'); fn(g,w,h); const t=new THREE.CanvasTexture(c); try{ t.anisotropy=4; }catch(e){} return t; },
+  _mPlane(g,w,h,tex,x,y,z,blend){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:!blend,blending:blend?THREE.AdditiveBlending:THREE.NormalBlending})); m.position.set(x,y,z); g.add(m); return m; },
+  _mBox(g,w,h,d,col,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshBasicMaterial({color:col})); m.position.set(x,y,z); g.add(m); return m; },
+  _mWrap(g,text,x,y,maxW,lh){ const words=String(text).split(' '); let line=''; words.forEach(w=>{ const t=line?line+' '+w:w; if(g.measureText(t).width>maxW&&line){ g.fillText(line,x,y); y+=lh; line=w; } else line=t; }); if(line) g.fillText(line,x,y); return y; },
+  _mRR(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); },
+  _mFace(grp,x,z){ grp.position.set(x,0,z); grp.rotation.y=Math.atan2(0-x,42-z); this.scene.add(grp); },
+  _mkGoldMachine(x,z){
+    const G=new THREE.Group(), B=(w,h,d,c,px,py,pz)=>this._mBox(G,w,h,d,c,px,py,pz), GOLD=0xffb300, WHITE=0xf2f5f8;
+    // Boden-Glühen
+    this._mPlane(G,10,10,this._mTex(128,128,(g,w,h)=>{ const r=g.createRadialGradient(64,64,4,64,64,62); r.addColorStop(0,'rgba(255,230,120,.9)'); r.addColorStop(1,'rgba(255,200,60,0)'); g.fillStyle=r; g.fillRect(0,0,w,h); }),0,.08,1.4,true).rotation.x=-Math.PI/2;
+    B(9.6,.5,5.2,0xdde4ec,0.6,.25,0); B(9.6,.14,5.2,GOLD,0.6,.55,0);
+    // Hauptkörper
+    B(5.4,4.6,3,WHITE,-1.2,2.9,0);
+    [[-1.2,5.3],[-1.2,.7]].forEach(a=>B(5.6,.3,3.2,GOLD,a[0],a[1],0));
+    [-3.9,1.5].forEach(px=>B(.3,4.6,3.2,GOLD,px,2.9,0));
+    // Schornsteine
+    [-2.6,-.4].forEach((px,i)=>{ const c=new THREE.Mesh(new THREE.CylinderGeometry(.5,.6,2,12),new THREE.MeshBasicMaterial({color:0x1b1d22})); c.position.set(px,6.3,-.6); G.add(c); const s=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.3,12),new THREE.MeshBasicMaterial({color:0xffffff})); s.position.set(px,6.6,-.6); G.add(s); const p=new THREE.Mesh(new THREE.SphereGeometry(.55,8,8),new THREE.MeshBasicMaterial({color:0x55585f,transparent:true,opacity:.75})); p.position.set(px+.3,7.6+i*.3,-.6); G.add(p); });
+    // Titel
+    this._mPlane(G,5,.95,this._mTex(512,96,(g,w,h)=>{ g.fillStyle='#fff7d6'; g.fillRect(0,0,w,h); g.font='900 50px Arial'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#e08a00'; g.fillText('GOLDMASCHINE',w/2,h/2+3); }),-1.2,4.75,1.52);
+    // Leuchtende Öffnung
+    B(3.6,2.9,.2,0xc98a00,-1.2,2.4,1.5);
+    this._mPlane(G,3.2,2.5,this._mTex(256,200,(g,w,h)=>{ const r=g.createRadialGradient(w/2,h/2,5,w/2,h/2,w*.62); r.addColorStop(0,'#ffffff'); r.addColorStop(.5,'#fff4b0'); r.addColorStop(1,'#ffc83a'); g.fillStyle=r; g.fillRect(0,0,w,h); }),-1.2,2.4,1.62);
+    this._mPlane(G,6.4,5,this._mTex(128,128,(g,w,h)=>{ const r=g.createRadialGradient(64,64,2,64,64,64); r.addColorStop(0,'rgba(255,240,150,.8)'); r.addColorStop(1,'rgba(255,220,80,0)'); g.fillStyle=r; g.fillRect(0,0,w,h); }),-1.2,2.4,1.75,true);
+    // Nebeneinheit mit Zahnrad
+    B(3.1,3.4,2.5,WHITE,3.1,2.4,.1); B(3.3,.28,2.7,GOLD,3.1,4.15,.1); B(3.3,.28,2.7,GOLD,3.1,.72,.1);
+    const gear=new THREE.Group(); gear.position.set(3.1,2.5,1.45);
+    const tor=(r,t,c)=>{ const m=new THREE.Mesh(new THREE.TorusGeometry(r,t,8,18),new THREE.MeshBasicMaterial({color:c})); gear.add(m); return m; };
+    tor(.8,.2,0x1f3a5f); tor(.4,.12,GOLD); for(let k=0;k<8;k++){ const t=new THREE.Mesh(new THREE.BoxGeometry(.22,.3,.2),new THREE.MeshBasicMaterial({color:0x1f3a5f})); const a=k/8*Math.PI*2; t.position.set(Math.cos(a)*1.0,Math.sin(a)*1.0,0); t.rotation.z=a; gear.add(t); }
+    G.add(gear); this._goldGears=(this._goldGears||[]); this._goldGears.push(gear);
+    const chain=new THREE.Mesh(new THREE.TorusGeometry(.5,.07,6,14),new THREE.MeshBasicMaterial({color:0x222a38})); chain.position.set(2.3,3.5,1.45); chain.scale.set(1.5,1,1); G.add(chain);
+    // Schild mit Erklärung
+    const post=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,2.6,8),new THREE.MeshBasicMaterial({color:GOLD})); post.position.set(5.9,1.6,2.1); G.add(post);
+    B(3.2,2.5,.18,0xffb300,5.9,3.1,2.1);
+    this._mPlane(G,3.0,2.3,this._mTex(384,288,(g,w,h)=>{ g.fillStyle='#fffdf2'; g.fillRect(0,0,w,h); g.textAlign='center'; g.fillStyle='#e08a00'; g.font='900 36px Arial'; g.fillText('TIERE VERGOLDEN',w/2,50); g.fillStyle='#333'; g.font='bold 25px Arial'; this._mWrap(g,'Wähle ein Tier und werte es gegen MT zu einem vergoldeten Tier auf – das verdient mehr Geld!',w/2,92,w-36,31); g.fillStyle='#e08a00'; g.font='900 28px Arial'; g.fillText('Antippen ⚗️',w/2,w>0?262:0); }),5.9,3.1,2.21);
+    this._mFace(G,x,z); return G;
+  },
+  _mkFuseMachine(x,z){
+    const G=new THREE.Group(), B=(w,h,d,c,px,py,pz)=>this._mBox(G,w,h,d,c,px,py,pz), CY=0x19e6ff, MG=0xff3df2, DK=0x12122a;
+    this._mPlane(G,11,11,this._mTex(128,128,(g,w,h)=>{ const r=g.createRadialGradient(64,64,4,64,64,62); r.addColorStop(0,'rgba(255,61,242,.7)'); r.addColorStop(.6,'rgba(25,230,255,.25)'); r.addColorStop(1,'rgba(25,230,255,0)'); g.fillStyle=r; g.fillRect(0,0,w,h); }),0,.08,1,true).rotation.x=-Math.PI/2;
+    B(10,.4,4.6,0x1c1c3a,0,.2,0); B(10.2,.12,.18,CY,0,.46,2.2); B(10.2,.12,.18,MG,0,.46,-2.2);
+    // Kabinett
+    B(5.4,6.6,2.2,DK,0,3.7,0);
+    // Neon-Rahmen
+    const fr=(w,h,z,c,t)=>{ B(w,t,.2,c,0,3.7+h/2,z); B(w,t,.2,c,0,3.7-h/2,z); B(t,h,.2,c,-w/2,3.7,z); B(t,h,.2,c,w/2,3.7,z); };
+    fr(5.6,6.8,1.1,CY,.24); fr(4.9,6.0,1.15,MG,.12);
+    // Kopfschild
+    B(5.6,1.2,.7,DK,0,7.6,0);
+    this._mPlane(G,5.3,1.0,this._mTex(640,120,(g,w,h)=>{ g.fillStyle='#0c0c22'; g.fillRect(0,0,w,h); g.font='900 62px Arial'; g.textAlign='center'; g.textBaseline='middle'; g.shadowColor='#19e6ff'; g.shadowBlur=22; g.fillStyle='#bff6ff'; g.fillText('FUSIONS-MASCHINE',w/2,h/2+3); }),0,7.6,.37);
+    // Bildschirm (Aktuell)
+    this._mPlane(G,3.5,2.4,this._mTex(448,300,(g,w,h)=>{ g.fillStyle='#0a1630'; this._mRR(g,0,0,w,h,26); g.fill(); g.strokeStyle='#19e6ff'; g.lineWidth=6; g.stroke(); g.textAlign='center'; g.fillStyle='#bff6ff'; g.font='bold 34px Arial'; g.fillText('Aktuell',w/2,52); g.font='110px serif'; g.fillText('🧬',w/2,172); g.fillStyle='#ff9bf7'; g.font='900 36px Arial'; g.fillText('FUSION',w/2,250); }),0,5.4,1.22);
+    // Textfelder
+    this._mPlane(G,3.8,1.05,this._mTex(480,132,(g,w,h)=>{ g.fillStyle='#0b2a5a'; this._mRR(g,0,0,w,h,24); g.fill(); g.strokeStyle='#19e6ff'; g.lineWidth=5; g.stroke(); g.textAlign='center'; g.textBaseline='middle'; g.shadowColor='#19e6ff'; g.shadowBlur=14; g.fillStyle='#e8fdff'; g.font='900 58px Arial'; g.fillText('2 → 1 TIER',w/2,h/2+3); }),0,3.45,1.22);
+    this._mPlane(G,3.8,1.5,this._mTex(480,190,(g,w,h)=>{ g.fillStyle='#2a0b3a'; this._mRR(g,0,0,w,h,24); g.fill(); g.strokeStyle='#ff3df2'; g.lineWidth=5; g.stroke(); g.textAlign='center'; g.fillStyle='#ffd6fb'; g.font='bold 30px Arial'; this._mWrap(g,'Kombiniere 2 gleiche Tiere zu einem selteneren!',w/2,58,w-40,38); g.fillStyle='#ff9bf7'; g.font='900 32px Arial'; g.fillText('Antippen 🧬',w/2,168); }),0,1.95,1.22);
+    // Seiten-Einheiten
+    [-1,1].forEach(s=>{ B(1.5,3,1.5,DK,s*3.7,1.9,0); B(1.6,.16,1.6,MG,s*3.7,3.45,0); B(.16,3,1.6,CY,s*3.7+s*.78,1.9,0);
+      this._mPlane(G,1.1,1.1,this._mTex(128,128,(g,w,h)=>{ g.fillStyle='#0a1630'; this._mRR(g,2,2,w-4,h-4,16); g.fill(); g.strokeStyle='#19e6ff'; g.lineWidth=5; g.stroke(); g.font='64px serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('🐾',w/2,h/2+4); }),s*3.7,2.4,.77); });
+    this._mFace(G,x,z); return G;
+  },
   _txt(text,sz,col){
     const c=document.createElement('canvas');c.width=256;c.height=64;
     const ctx=c.getContext('2d');
@@ -5304,6 +5341,7 @@ const ZG={
     this._camUpdate();
     LuckyBlocks.tick(dt);
     this._carAngle+=dt*.45;
+    (this._goldGears||[]).forEach(g=>{ g.rotation.z+=0.02; });
     if(this._worldWheel){ this._worldWheel.rotation.z+=0.01; try{ this._worldWheel.rotation.y=Math.atan2(this.pl.x+42,this.pl.z-10); }catch(e){} }
     // Kehrmaschine — Zustandsmaschine: idle (Kreis) / mission (zum Zoo, Gehege abfahren, zurück)
     if(this._sweeperMesh && this._sweeperCenter){
@@ -13225,10 +13263,10 @@ const ZChat = {
   send(){
     const inp = document.getElementById('chat-in');
     if(!inp||!inp.value.trim()) return;
-    const msg = inp.value.trim().slice(0,200);
+    const msg = inp.value.trim().slice(0,500);
     const targetSel = document.getElementById('chat-target');
     const to = targetSel ? (targetSel.value||null) : null;
-    inp.value = '';
+    inp.value = ''; try{ inp.style.height='auto'; }catch(e){}
     // /tipps: startet das Tutorial nochmal von vorne — wird auch im
     // Tutorial selbst erwähnt, damit man's später wiederfindet.
     if(['/rebirth','/rebirf','/reirf','/reb','/rebirt'].includes(msg.toLowerCase())){
@@ -13360,6 +13398,19 @@ const ZChat = {
     }catch(e){ ZP.toast('❌ Fehler beim Senden: '+e.message,3000); }
   },
 
+  // Popup mit der ganzen Nachricht
+  _showFull(from,msg,at,to){
+    document.getElementById('chat-full')?.remove();
+    const o=document.createElement('div'); o.id='chat-full'; o.style.cssText='position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px';
+    const b=document.createElement('div'); b.style.cssText='background:#14222f;border:2px solid #FFD700;border-radius:14px;max-width:min(520px,94vw);max-height:80vh;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;box-shadow:0 10px 40px #000;animation:crPop .25s ease-out';
+    const hd=document.createElement('div'); hd.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.15)';
+    const nm=document.createElement('div'); nm.style.cssText='flex:1;font-weight:900;color:#FFD700'; nm.textContent='💬 '+from+(to?' 🔒':'')+(at?'  ·  '+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'');
+    const x=document.createElement('button'); x.textContent='✕'; x.style.cssText='background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;width:30px;height:30px;font-size:1rem;cursor:pointer';
+    hd.appendChild(nm); hd.appendChild(x);
+    const tx=document.createElement('div'); tx.style.cssText='padding:14px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-size:1rem;line-height:1.4'; tx.textContent=msg||'';
+    b.appendChild(hd); b.appendChild(tx); o.appendChild(b); document.body.appendChild(o);
+    const close=()=>o.remove(); x.onclick=close; o.onclick=ev=>{ if(ev.target===o) close(); };
+  },
   // Add message to UI
   _addMsg(from, msg, isMine, to, img, id, at){
     const el = document.getElementById('chat-msgs');
@@ -13369,15 +13420,18 @@ const ZChat = {
     d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
     const tsHtml = at ? '<span class="chat-ts" style="display:'+(this._fullscreen?'inline':'none')+';color:rgba(255,255,255,.4);font-size:.65rem;float:right;margin-left:8px">'+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>' : '';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+$esc(to):'')+'</span><br>' : '';
+    const bodyHtml = '<div class="chat-body" style="display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;word-break:break-word">'+$esc(msg||'')+'</div>';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
     if(isMine){
       d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)';d.style.alignSelf='flex-end';
-      d.innerHTML = tsHtml + privTag + '<span style="color:#4af;font-size:.75rem">Du</span><br>' + $esc(msg||'') + imgHtml;
+      d.innerHTML = tsHtml + privTag + '<span style="color:#4af;font-size:.75rem">Du</span>' + bodyHtml + imgHtml;
     } else {
       d.style.background=to?'rgba(230,126,34,.2)':'rgba(255,255,255,.07)';d.style.alignSelf='flex-start';
-      d.innerHTML = tsHtml + privTag + '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + (to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'') + '</span><br>' + $esc(msg||'') + imgHtml;
+      d.innerHTML = tsHtml + privTag + '<span style="color:#FFD700;font-size:.75rem">' + $esc(from) + (to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'') + '</span>' + bodyHtml + imgHtml;
     }
     el.appendChild(d);
+    // Lange Nachricht (mehr als 5 Zeilen): abgeschnitten, antippen zeigt alles
+    try{ const bd=d.querySelector('.chat-body'); if(bd&&bd.scrollHeight>bd.clientHeight+2){ d.style.cursor='pointer'; const more=document.createElement('div'); more.textContent='… antippen zum Lesen'; more.style.cssText='color:#7fd0ff;font-size:.7rem;margin-top:2px'; bd.after(more); d.onclick=ev=>{ if(ev.target.tagName==='IMG') return; ZChat._showFull(isMine?'Du':from,msg,at,to); }; } }catch(e){}
     el.scrollTop = el.scrollHeight;
     // Keep max 50 messages
     while(el.children.length > 50) el.removeChild(el.firstChild);
@@ -20708,9 +20762,10 @@ window.ZooEvents = ZooEvents;
   </div>
   <!-- Input -->
   <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:8px;display:flex;gap:6px">
-    <input id="chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off" 
-      style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
-      onkeydown="if(event.key==='Enter')ZChat.send()">
+    <textarea id="chat-in" rows="1" maxlength="500" placeholder="Nachricht..." autocomplete="off" 
+      style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none;resize:none;font-family:inherit;line-height:1.25;max-height:7.5em;overflow-y:auto"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ZChat.send();}"></textarea>
     <button onclick="ZChat.pickImage()" title="Screenshot machen" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
     <button onclick="ZChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
   </div>
