@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=821"></script>
-<script src="rewardchests.js?v=821"></script>
-<script src="personality.js?v=821"></script>
+<script src="lang.js?v=822"></script>
+<script src="rewardchests.js?v=822"></script>
+<script src="personality.js?v=822"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=821"></script>
-<script src="sanction.js?v=821"></script>
-<script src="zevents.js?v=821"></script>
-<script src="znet.js?v=821"></script>
-<script src="zbases.js?v=821"></script>
-<script src="charheads.js?v=821"></script>
-<script src="zmensch.js?v=821"></script>
-<script src="zcine.js?v=821"></script>
-<script src="zworld.js?v=821"></script>
-<script src="zstation.js?v=821"></script>
-<script src="zfx.js?v=821"></script>
-<script src="zextra.js?v=821"></script>
-<script src="zreb6.js?v=821"></script>
-<script src="zlegend.js?v=821"></script>
-<script src="ztutplus.js?v=821"></script>
-<script src="zlift.js?v=821"></script>
-<script src="zfun.js?v=821"></script>
-<script src="zguide.js?v=821"></script>
-<script src="zrules.js?v=821"></script>
-<script src="zsafe.js?v=821"></script>
-<script src="zrebguard.js?v=821"></script>
-<script src="zpass.js?v=821"></script>
-<script src="znotify.js?v=821"></script>
-<script src="zdetective.js?v=821"></script>
-<script src="zpirate.js?v=821"></script>
-<script src="zpark.js?v=821"></script>
-<script src="zmenu.js?v=821"></script>
-<script src="zdevice.js?v=821"></script>
-<script src="zmusic.js?v=821"></script>
-<script src="zskill.js?v=821"></script>
-<script src="worlds.js?v=821"></script>
+<script src="firebase-state.js?v=822"></script>
+<script src="sanction.js?v=822"></script>
+<script src="zevents.js?v=822"></script>
+<script src="znet.js?v=822"></script>
+<script src="zbases.js?v=822"></script>
+<script src="charheads.js?v=822"></script>
+<script src="zmensch.js?v=822"></script>
+<script src="zcine.js?v=822"></script>
+<script src="zworld.js?v=822"></script>
+<script src="zstation.js?v=822"></script>
+<script src="zfx.js?v=822"></script>
+<script src="zextra.js?v=822"></script>
+<script src="zreb6.js?v=822"></script>
+<script src="zlegend.js?v=822"></script>
+<script src="ztutplus.js?v=822"></script>
+<script src="zlift.js?v=822"></script>
+<script src="zfun.js?v=822"></script>
+<script src="zguide.js?v=822"></script>
+<script src="zrules.js?v=822"></script>
+<script src="zsafe.js?v=822"></script>
+<script src="zrebguard.js?v=822"></script>
+<script src="zpass.js?v=822"></script>
+<script src="znotify.js?v=822"></script>
+<script src="zdetective.js?v=822"></script>
+<script src="zpirate.js?v=822"></script>
+<script src="zpark.js?v=822"></script>
+<script src="zmenu.js?v=822"></script>
+<script src="zdevice.js?v=822"></script>
+<script src="zmusic.js?v=822"></script>
+<script src="zskill.js?v=822"></script>
+<script src="worlds.js?v=822"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -934,7 +934,7 @@ const Weather = {
     // nach 5 Min. wieder automatisch wechseln
     this._iv=setInterval(()=>this._cycle(),5*60*1000);
     try{ toast('Wetter: '+(type==='rain'?'Regen':type==='fog'?'Nebel':'Sonnig')); }catch(e){}
-    try{ ZP._rMenu(); }catch(e){}
+    try{ ZP._rAdm(); }catch(e){}
   },
   _apply(){
     try{
@@ -12049,15 +12049,6 @@ const ZP={
           <button id="weatherToggleBtn" onclick="Weather.setEnabled(!Weather.isEnabled())" style="background:${weatherOn?'#27AE60':'#555'};color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem;min-width:80px">${weatherOn?'✓ An':'✗ Aus'}</button>
         </div>
         <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">
-          <div style="color:rgba(255,255,255,.75);font-size:.78rem;margin-bottom:6px">⛅ Wetter bestimmen (Admin)</div>
-          <div style="display:flex;gap:6px">
-            ${[['clear','☀️ Sonne'],['rain','🌧️ Regen'],['fog','🌫️ Nebel']].map(w=>`<button onclick="Weather.adminSet('${w[0]}')" style="flex:1;background:${Weather.current===w[0]?'#FFA500':'rgba(255,255,255,.1)'};color:${Weather.current===w[0]?'#000':'#fff'};border:none;padding:7px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.74rem">${w[1]}</button>`).join('')}
-          </div>
-        </div>
-        <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">
-          <button onclick="try{RewardChests.unlockAll()}catch(e){toast('Truhen nicht verfügbar')}" style="width:100%;background:#8e24aa;color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.8rem">🎁 Alle Truhen freischalten</button>
-        </div>
-        <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">
           <div style="color:rgba(255,255,255,.75);font-size:.78rem;margin-bottom:6px">🎨 Grafik-Stufe</div>
           <div style="display:flex;gap:6px">
             ${[1,2,3].map(lvl=>`<button onclick="ZG.setGraphicsLevel(${lvl})" style="flex:1;background:${GraphicsSettings.level===lvl?'#FFA500':'rgba(255,255,255,.1)'};color:${GraphicsSettings.level===lvl?'#000':'#fff'};border:none;padding:7px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.78rem">${lvl}</button>`).join('')}
@@ -12079,6 +12070,7 @@ const ZP={
     const slap_opts=SLAPS.map(s=>'<option value="'+s.id+'">'+s.e+' '+s.n+'</option>').join('');
     const ev_opts=EVENTS.map(e=>'<option value="'+e.id+'">'+e.n+' — '+e.d+'</option>').join('');
     el.innerHTML=
+      '<div style="background:rgba(142,36,170,.18);border:1px solid rgba(190,120,255,.4);border-radius:10px;padding:9px;margin-bottom:10px"><div style="font-size:.78rem;color:#e6ccff;font-weight:900;margin-bottom:6px">⛅ Wetter bestimmen</div><div style="display:flex;gap:6px;margin-bottom:9px">'+[['clear','☀️ Sonne'],['rain','🌧️ Regen'],['fog','🌫️ Nebel']].map(function(w){ var on=Weather.current===w[0]; return '<button onclick="Weather.adminSet(\''+w[0]+'\')" style="flex:1;background:'+(on?'#FFA500':'rgba(255,255,255,.1)')+';color:'+(on?'#000':'#fff')+';border:none;padding:8px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.76rem">'+w[1]+'</button>'; }).join('')+'</div><button onclick="try{RewardChests.unlockAll()}catch(e){}" style="width:100%;background:#8e24aa;color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.82rem">🎁 Alle Truhen freischalten</button></div>'+
       '<div style="font-size:.74rem;color:rgba(255,255,255,.4);margin-bottom:4px">Admin-Befehle via Firebase</div>'+
       '<div style="font-size:.7rem;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:7px;padding:7px 10px;margin-bottom:10px;color:rgba(255,215,0,.7)">'+
       '🔐 <b>Codes:</b> KONAMI · LUCKY777 · FASTTRAIN · SUPERZOO · SNOWFALL · PARTY · RAINBOW · HALLOWEEN</div>'+
