@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=826"></script>
-<script src="rewardchests.js?v=826"></script>
-<script src="personality.js?v=826"></script>
+<script src="lang.js?v=827"></script>
+<script src="rewardchests.js?v=827"></script>
+<script src="personality.js?v=827"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=826"></script>
-<script src="sanction.js?v=826"></script>
-<script src="zevents.js?v=826"></script>
-<script src="znet.js?v=826"></script>
-<script src="zbases.js?v=826"></script>
-<script src="charheads.js?v=826"></script>
-<script src="zmensch.js?v=826"></script>
-<script src="zcine.js?v=826"></script>
-<script src="zworld.js?v=826"></script>
-<script src="zstation.js?v=826"></script>
-<script src="zfx.js?v=826"></script>
-<script src="zextra.js?v=826"></script>
-<script src="zreb6.js?v=826"></script>
-<script src="zlegend.js?v=826"></script>
-<script src="ztutplus.js?v=826"></script>
-<script src="zlift.js?v=826"></script>
-<script src="zfun.js?v=826"></script>
-<script src="zguide.js?v=826"></script>
-<script src="zrules.js?v=826"></script>
-<script src="zsafe.js?v=826"></script>
-<script src="zrebguard.js?v=826"></script>
-<script src="zpass.js?v=826"></script>
-<script src="znotify.js?v=826"></script>
-<script src="zdetective.js?v=826"></script>
-<script src="zpirate.js?v=826"></script>
-<script src="zpark.js?v=826"></script>
-<script src="zmenu.js?v=826"></script>
-<script src="zdevice.js?v=826"></script>
-<script src="zmusic.js?v=826"></script>
-<script src="zskill.js?v=826"></script>
-<script src="worlds.js?v=826"></script>
+<script src="firebase-state.js?v=827"></script>
+<script src="sanction.js?v=827"></script>
+<script src="zevents.js?v=827"></script>
+<script src="znet.js?v=827"></script>
+<script src="zbases.js?v=827"></script>
+<script src="charheads.js?v=827"></script>
+<script src="zmensch.js?v=827"></script>
+<script src="zcine.js?v=827"></script>
+<script src="zworld.js?v=827"></script>
+<script src="zstation.js?v=827"></script>
+<script src="zfx.js?v=827"></script>
+<script src="zextra.js?v=827"></script>
+<script src="zreb6.js?v=827"></script>
+<script src="zlegend.js?v=827"></script>
+<script src="ztutplus.js?v=827"></script>
+<script src="zlift.js?v=827"></script>
+<script src="zfun.js?v=827"></script>
+<script src="zguide.js?v=827"></script>
+<script src="zrules.js?v=827"></script>
+<script src="zsafe.js?v=827"></script>
+<script src="zrebguard.js?v=827"></script>
+<script src="zpass.js?v=827"></script>
+<script src="znotify.js?v=827"></script>
+<script src="zdetective.js?v=827"></script>
+<script src="zpirate.js?v=827"></script>
+<script src="zpark.js?v=827"></script>
+<script src="zmenu.js?v=827"></script>
+<script src="zdevice.js?v=827"></script>
+<script src="zmusic.js?v=827"></script>
+<script src="zskill.js?v=827"></script>
+<script src="worlds.js?v=827"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -5836,8 +5836,7 @@ const ZG={
   },
 
   _mapPois(){ let out=[]; try{ out=ZGuide.places().filter(p=>p.n!=='Mein Zoo'&&p.n!=='Gondelstation'&&p.n!=='Marktplatz').slice(); }catch(e){}
-    out.push({ic:'🍀',n:'Glücksrad',x:-42,z:10});
-    [['_goldMachinePositions','⚗️','Goldmaschine'],['_feederPositions','🍬','Leckerli-Automat'],['_breedPositions','🧬','Zucht-Maschine'],['_dicePositions','🎲','Würfel-Maschine'],['_terminalPositions','🔍','Sammlungs-Terminal']].forEach(a=>{ (this[a[0]]||[]).forEach(p=>out.push({ic:a[1],n:a[2],x:p.x,z:p.z})); });
+    if(!out.some(p=>p.n==='Goldmaschine')){ [['_goldMachinePositions','⚗️','Goldmaschine'],['_feederPositions','🍬','Leckerli-Automat'],['_breedPositions','🧬','Zucht-Maschine'],['_dicePositions','🎲','Würfel-Maschine'],['_terminalPositions','🔍','Sammlungs-Terminal']].forEach(a=>{ (this[a[0]]||[]).forEach(p=>out.push({ic:a[1],n:a[2],x:p.x,z:p.z})); }); out.push({ic:'🍀',n:'Glücksrad',x:-42,z:10}); }
     if(this._sweeperPos) out.push({ic:'🧹',n:'Kehrmaschine',x:this._sweeperPos.x,z:this._sweeperPos.z});
     out.push({ic:'🏪',n:'Marktplatz',x:0,z:30});
     return out; },

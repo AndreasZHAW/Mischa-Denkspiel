@@ -22,6 +22,10 @@
       if(s.isl) out.push({ic:'🏝️',n:'Schatz-Insel',x:-160,z:115});
       if(s.tower) out.push({ic:'🗼',n:'Legenden-Turm',x:170,z:110});
       try{ if(window.ZFun){ if(s.train) out.push({ic:'🚂',n:'Zoo-Bahn',x:ZFun.C.x,z:ZFun.C.z-26}); if(s.egg) out.push({ic:'🥚',n:'Ei-Brüterei',x:ZFun.HP.x,z:ZFun.HP.z+12}); } }catch(e){}
+      try{ out.push({ic:'🍀',n:'Glücksrad',x:-42,z:10});
+        const reb=f=>{ try{ return typeof rebHas!=='function'||rebHas(f); }catch(e){ return true; } };
+        [['_goldMachinePositions','⚗️','Goldmaschine',null],['_feederPositions','🍬','Leckerli-Automat',null],['_breedPositions','🧬','Zucht-Maschine','zucht'],['_dicePositions','🎲','Würfel-Maschine',null],['_terminalPositions','🔍','Sammlungs-Terminal','terminal']].forEach(m=>{ if(m[3]&&!reb(m[3])) return; (ZG[m[0]]||[]).slice(0,1).forEach(p=>out.push({ic:m[1],n:m[2],x:p.x,z:p.z})); });
+      }catch(e){}
       return out; };
     // ── 3D ──
     const root=new THREE.Group(); root.visible=false; ZG.scene.add(root);

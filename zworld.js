@@ -1565,7 +1565,7 @@
     _s2w(px,py){ const q=K._rect(), nx=(px-q.l)/q.w*2-1, ny=1-(py-q.t)/q.h*2; if(Math.abs(nx)>1||Math.abs(ny)>1) return null; const v=new THREE.Vector3(nx,ny,0).unproject(K.cam); return {x:v.x,z:v.z}; },
     _marks(){
       if(!K.el) return; const mk=K.mk; mk.innerHTML='';
-      const add=(x,z,html,css)=>{ const p=K._w2s(x,z); const d=document.createElement('div'); d.style.cssText='position:absolute;left:'+p.x+'px;top:'+p.y+'px;transform:translate(-50%,-50%);white-space:nowrap;font:800 '+(innerWidth<700?'.6':'.72')+'rem Arial;color:#fff;text-shadow:0 1px 4px #000,0 0 6px #000;'+(css||''); d.innerHTML=html; mk.appendChild(d); };
+      const add=(x,z,html,css)=>{ const p=K._w2s(x,z); const d=document.createElement('div'); d.style.cssText='position:absolute;left:'+p.x+'px;top:'+p.y+'px;transform:translate(-50%,-50%);white-space:nowrap;font:800 '+(innerWidth<700?'.72':'.85')+'rem Arial;color:#fff;text-shadow:0 1px 4px #000,0 0 6px #000;'+(css||''); d.innerHTML=html; mk.appendChild(d); };
       pois().forEach(p=>add(p[1],p[2],p[0])); try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach((e,i)=>add(e.x,e.z,'🏞️'+(i+1),'font-size:.62rem;opacity:.9')); }catch(e){}
       try{ Object.values(ZG.otherPl||{}).forEach(op=>add(op.x,op.z,'<span style="color:#ff6b6b">●</span> '+(op.name||''),'font-size:.62rem')); }catch(e){}
       add(ZG.pl.x,ZG.pl.z,'<div style="transform:rotate('+(-ZG.yaw*180/Math.PI+180)+'deg);font-size:1.5rem;color:#FFD700;filter:drop-shadow(0 0 4px #000)">⬆️</div><div style="color:#FFD700;text-align:center">Du</div>','z-index:2');
