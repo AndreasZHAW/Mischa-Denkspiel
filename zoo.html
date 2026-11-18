@@ -121,7 +121,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 #jbase{width:160px;height:160px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
 #jthumb{position:absolute;width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.6);border:2px solid rgba(255,255,255,.9);top:49px;left:49px;pointer-events:none;transition:none}
 /* Minimap TR */
-#mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:auto;cursor:pointer}
+#mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
 /* Event timer */
 #evt{position:absolute;bottom:14px;right:10px;background:rgba(0,0,0,.82);border-radius:10px;padding:7px 10px;border:2px solid rgba(255,255,255,.22);font-size:.72rem;text-align:left;display:none;pointer-events:none;font-weight:900;max-width:160px;min-width:110px}
 /* Crosshair */
@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=825"></script>
-<script src="rewardchests.js?v=825"></script>
-<script src="personality.js?v=825"></script>
+<script src="lang.js?v=826"></script>
+<script src="rewardchests.js?v=826"></script>
+<script src="personality.js?v=826"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -320,7 +320,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="stun-indicator" style="display:none;position:absolute;top:40%;left:50%;transform:translateX(-50%);background:rgba(200,0,0,.82);border:3px solid #fff;border-radius:50px;padding:14px 28px;font-size:1.4rem;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);z-index:400;pointer-events:none;white-space:nowrap;animation:stunPulse .5s ease-in-out infinite alternate"></div>
 <style>@keyframes stunPulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.08)}}</style>
 <div id="evb"></div><div id="evt"></div>
-<div id="mmap" onclick="event.stopPropagation();try{ZG._openBigMap()}catch(e){}"><canvas id="mmc" width="100" height="100"></canvas></div>
+<div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
 <div id="home-arrow-wrap" style="position:absolute;top:118px;right:10px;width:100px;display:flex;flex-direction:column;align-items:center;pointer-events:none">
   <div id="home-compass" style="width:58px;height:58px;background:rgba(0,0,0,.72);border:3px solid #FFD700;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 10px rgba(255,215,0,.5)">
     <span id="home-arrow" style="display:inline-block;font-size:2.3rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg);filter:drop-shadow(0 0 2px #000)">⬆️</span>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=825"></script>
-<script src="sanction.js?v=825"></script>
-<script src="zevents.js?v=825"></script>
-<script src="znet.js?v=825"></script>
-<script src="zbases.js?v=825"></script>
-<script src="charheads.js?v=825"></script>
-<script src="zmensch.js?v=825"></script>
-<script src="zcine.js?v=825"></script>
-<script src="zworld.js?v=825"></script>
-<script src="zstation.js?v=825"></script>
-<script src="zfx.js?v=825"></script>
-<script src="zextra.js?v=825"></script>
-<script src="zreb6.js?v=825"></script>
-<script src="zlegend.js?v=825"></script>
-<script src="ztutplus.js?v=825"></script>
-<script src="zlift.js?v=825"></script>
-<script src="zfun.js?v=825"></script>
-<script src="zguide.js?v=825"></script>
-<script src="zrules.js?v=825"></script>
-<script src="zsafe.js?v=825"></script>
-<script src="zrebguard.js?v=825"></script>
-<script src="zpass.js?v=825"></script>
-<script src="znotify.js?v=825"></script>
-<script src="zdetective.js?v=825"></script>
-<script src="zpirate.js?v=825"></script>
-<script src="zpark.js?v=825"></script>
-<script src="zmenu.js?v=825"></script>
-<script src="zdevice.js?v=825"></script>
-<script src="zmusic.js?v=825"></script>
-<script src="zskill.js?v=825"></script>
-<script src="worlds.js?v=825"></script>
+<script src="firebase-state.js?v=826"></script>
+<script src="sanction.js?v=826"></script>
+<script src="zevents.js?v=826"></script>
+<script src="znet.js?v=826"></script>
+<script src="zbases.js?v=826"></script>
+<script src="charheads.js?v=826"></script>
+<script src="zmensch.js?v=826"></script>
+<script src="zcine.js?v=826"></script>
+<script src="zworld.js?v=826"></script>
+<script src="zstation.js?v=826"></script>
+<script src="zfx.js?v=826"></script>
+<script src="zextra.js?v=826"></script>
+<script src="zreb6.js?v=826"></script>
+<script src="zlegend.js?v=826"></script>
+<script src="ztutplus.js?v=826"></script>
+<script src="zlift.js?v=826"></script>
+<script src="zfun.js?v=826"></script>
+<script src="zguide.js?v=826"></script>
+<script src="zrules.js?v=826"></script>
+<script src="zsafe.js?v=826"></script>
+<script src="zrebguard.js?v=826"></script>
+<script src="zpass.js?v=826"></script>
+<script src="znotify.js?v=826"></script>
+<script src="zdetective.js?v=826"></script>
+<script src="zpirate.js?v=826"></script>
+<script src="zpark.js?v=826"></script>
+<script src="zmenu.js?v=826"></script>
+<script src="zdevice.js?v=826"></script>
+<script src="zmusic.js?v=826"></script>
+<script src="zskill.js?v=826"></script>
+<script src="worlds.js?v=826"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4495,11 +4495,11 @@ const ZG={
 
     // Lucky Wheel 3D object - spinning wheel near station entrance Zone A
     const wheelBase=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.5,1,16),new THREE.MeshBasicMaterial({color:0x8B4513}));
-    wheelBase.position.set(8,0.5,16); sc.add(wheelBase);
+    wheelBase.position.set(-42,0.5,10); sc.add(wheelBase);
     const wheelPost=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,5,8),new THREE.MeshBasicMaterial({color:0x666666}));
-    wheelPost.position.set(8,3,16); sc.add(wheelPost);
+    wheelPost.position.set(-42,3,10); sc.add(wheelPost);
     // Lucky Wheel - proper circular wheel with colored pie segments
-    this._worldWheel=new THREE.Group(); this._worldWheel.position.set(8,6.4,16); this._worldWheel.scale.setScalar(1.5);
+    this._worldWheel=new THREE.Group(); this._worldWheel.position.set(-42,6.4,10); this._worldWheel.scale.setScalar(1.5);
     const wheelColors=[0x27AE60,0x2980B9,0x8E44AD,0xF39C12,0xE74C3C,0xFFD700];
     const numSeg=6;
     for(let i=0;i<numSeg;i++){
@@ -4541,7 +4541,7 @@ const ZG={
     { const bk=new THREE.Mesh(new THREE.CircleGeometry(2.3,24),new THREE.MeshBasicMaterial({color:0x2b1a0a,side:THREE.DoubleSide})); bk.position.z=-0.03; this._worldWheel.add(bk); const rm=new THREE.Mesh(new THREE.TorusGeometry(2.2,.12,6,32),new THREE.MeshBasicMaterial({color:0xFFD700})); this._worldWheel.add(rm); }
     sc.add(this._worldWheel);
     // Wheel label
-    const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(8,11.2,16); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
+    const wlbl=this._txt('🍀 GLÜCKSRAD',0.7,'#FFD700'); wlbl.position.set(-42,11.2,10); wlbl.scale.set(7,1.8,1); sc.add(wlbl);
     // ═══ KEHRMASCHINE — drives in a circle near the wheel ═══
     this._sweeperPos = null;
     this._sweeperMesh = null;
@@ -4608,13 +4608,13 @@ const ZG={
       // proximity uses the moving position, updated each tick
       this._sweeperPos={x:cx,z:cz};
     }
-    const wlbl2=this._txt('Näher kommen!',0.55,'#fff'); wlbl2.position.set(8,7.5,16); wlbl2.scale.set(6,1.5,1); sc.add(wlbl2);
+    const wlbl2=this._txt('Näher kommen!',0.55,'#fff'); wlbl2.position.set(-42,7.5,10); wlbl2.scale.set(6,1.5,1); sc.add(wlbl2);
 
     // ═══ GOLD MACHINE (one, shared by everyone) ═══
     this._goldMachinePositions = [];
     this._goldMachineMeshes = [];
     this.ZONES.forEach((zone)=>{
-      const gx=zone.x+24, gz=zone.z+8; // clearly to the side of the enclosures
+      const gx=zone.x+40, gz=zone.z+24; // clearly to the side of the enclosures
       const gmBase=new THREE.Mesh(new THREE.BoxGeometry(4,0.6,4),new THREE.MeshBasicMaterial({color:0x4a3520}));
       gmBase.position.set(gx,0.3,gz); sc.add(gmBase);
       const gmBody=new THREE.Mesh(new THREE.BoxGeometry(3,4,2.5),new THREE.MeshBasicMaterial({color:0xFFD700}));
@@ -4640,7 +4640,7 @@ const ZG={
     this._feederPositions = [];
     {
       this.ZONES.forEach((zone)=>{
-        const fx=zone.x-24, fz=zone.z+8; // clearly to the other side
+        const fx=zone.x-40, fz=zone.z+24; // clearly to the other side
         const fBase=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.6,3.5),new THREE.MeshBasicMaterial({color:0x2a3a1a}));
         fBase.position.set(fx,0.3,fz); sc.add(fBase);
         const fBody=new THREE.Mesh(new THREE.BoxGeometry(2.6,3.6,2.2),new THREE.MeshBasicMaterial({color:0x6ab04c}));
@@ -4659,7 +4659,7 @@ const ZG={
     this._breedPositions = []; const _bm0=sc.children.length;
     {
       this.ZONES.forEach((zone)=>{
-        const bx=zone.x+24, bz=zone.z-8; // clear of the gold machine (z+8) and feeder (x-24,z+8)
+        const bx=zone.x+40, bz=zone.z-24; // clear of the gold machine (z+8) and feeder (x-24,z+8)
         const bBase=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,0.6,8),new THREE.MeshBasicMaterial({color:0x3a1a4a}));
         bBase.position.set(bx,0.3,bz); sc.add(bBase);
         const bBody=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,3,8),new THREE.MeshBasicMaterial({color:0xE056FD}));
@@ -4677,7 +4677,7 @@ const ZG={
     this._dicePositions = [];
     {
       this.ZONES.forEach((zone)=>{
-        const dx=zone.x-24, dz=zone.z-8; // last free corner: opposite feeder (x-24,z+8) and breed (x+24,z-8)
+        const dx=zone.x-40, dz=zone.z-24; // last free corner: opposite feeder (x-24,z+8) and breed (x+24,z-8)
         const dBase=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,0.6,8),new THREE.MeshBasicMaterial({color:0x1a3a2a}));
         dBase.position.set(dx,0.3,dz); sc.add(dBase);
         const dBody=new THREE.Mesh(new THREE.BoxGeometry(2.6,3,2.6),new THREE.MeshBasicMaterial({color:0x27AE60}));
@@ -4694,7 +4694,7 @@ const ZG={
     this._terminalPositions = []; const _tm0=sc.children.length;
     {
       ([]).forEach((zone)=>{
-        const tx=zone.x+34, tz=zone.z; // clear of the 4 corner machines
+        const tx=zone.x+54, tz=zone.z; // clear of the 4 corner machines
         const tBase=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2,0.5,8),new THREE.MeshBasicMaterial({color:0x1a2a3a}));
         tBase.position.set(tx,0.25,tz); sc.add(tBase);
         const tBody=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.6,1),new THREE.MeshBasicMaterial({color:0x2C3E50}));
@@ -5085,7 +5085,7 @@ const ZG={
       const x=Math.cos(a)*r,z=Math.sin(a)*r;
       // Skip trees too close to Gold Machine (16,55), Lucky Wheel (8,16) or station (0,0)
       const nearGold=Math.sqrt((x-16)**2+(z-55)**2)<10;
-      const nearWheel=Math.sqrt((x-8)**2+(z-16)**2)<8;
+      const nearWheel=Math.sqrt((x+42)**2+(z-10)**2)<8;
       if(nearGold||nearWheel)continue;
       const tr=new THREE.Mesh(new THREE.CylinderGeometry(.45,.65,4,8),tM);tr.position.set(x,2,z);this.scene.add(tr);
       const le=new THREE.Mesh(new THREE.SphereGeometry(3.5+Math.random()*1.5,9,7),lM);le.position.set(x,7.5,z);this.scene.add(le);
@@ -5297,7 +5297,7 @@ const ZG={
     this._camUpdate();
     LuckyBlocks.tick(dt);
     this._carAngle+=dt*.45;
-    if(this._worldWheel){ this._worldWheel.rotation.z+=0.01; try{ this._worldWheel.rotation.y=Math.atan2(this.pl.x-8,this.pl.z-16); }catch(e){} }
+    if(this._worldWheel){ this._worldWheel.rotation.z+=0.01; try{ this._worldWheel.rotation.y=Math.atan2(this.pl.x+42,this.pl.z-10); }catch(e){} }
     // Kehrmaschine — Zustandsmaschine: idle (Kreis) / mission (zum Zoo, Gehege abfahren, zurück)
     if(this._sweeperMesh && this._sweeperCenter){
       const m=this._sweeperMesh;
@@ -5735,7 +5735,7 @@ const ZG={
       }
     }
     // Lucky wheel proximity
-    const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
+    const wdist=Math.sqrt((this.pl.x+42)**2+(this.pl.z-10)**2);
     const _wasNearWheel=this._nearWheel;
     this._nearWheel=(wdist<6);
     const _wheelJustEntered = this._nearWheel && !_wasNearWheel;
@@ -5835,16 +5835,12 @@ const ZG={
     if(this._mazeActive){ try{ SpeedTemple._checkMazeCollision(); }catch(e){} }
   },
 
-  _mapPois(){ let out=[]; try{ out=ZGuide.places().filter(p=>p.n!=='Mein Zoo').slice(); }catch(e){} try{ (this._goldMachinePositions||[{x:16,z:55}]).forEach(p=>out.push({ic:'⚗️',n:'Goldmaschine',x:p.x,z:p.z})); }catch(e){} return out; },
-  _openBigMap(){
-    if(document.getElementById('zbigmap')) return;
-    const o=document.createElement('div'); o.id='zbigmap'; o.style.cssText='position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px';
-    const sz=Math.min(innerWidth,innerHeight)-80, cv=document.createElement('canvas'); cv.width=cv.height=sz; cv.style.cssText='width:'+sz+'px;height:'+sz+'px;border-radius:50%;border:3px solid rgba(255,255,255,.5)';
-    o.innerHTML='<div style="color:#fff;font:900 1rem Arial">🗺️ Karte</div>'; o.appendChild(cv);
-    const x=document.createElement('div'); x.textContent='Tippen zum Schließen'; x.style.cssText='color:rgba(255,255,255,.7);font:700 .8rem Arial'; o.appendChild(x);
-    o.onclick=()=>{ clearInterval(o._iv); o.remove(); }; document.body.appendChild(o);
-    const draw=()=>this._minimap(cv,sz,true); draw(); o._iv=setInterval(()=>{ if(!o.isConnected) return clearInterval(o._iv); draw(); },500);
-  },
+  _mapPois(){ let out=[]; try{ out=ZGuide.places().filter(p=>p.n!=='Mein Zoo'&&p.n!=='Gondelstation'&&p.n!=='Marktplatz').slice(); }catch(e){}
+    out.push({ic:'🍀',n:'Glücksrad',x:-42,z:10});
+    [['_goldMachinePositions','⚗️','Goldmaschine'],['_feederPositions','🍬','Leckerli-Automat'],['_breedPositions','🧬','Zucht-Maschine'],['_dicePositions','🎲','Würfel-Maschine'],['_terminalPositions','🔍','Sammlungs-Terminal']].forEach(a=>{ (this[a[0]]||[]).forEach(p=>out.push({ic:a[1],n:a[2],x:p.x,z:p.z})); });
+    if(this._sweeperPos) out.push({ic:'🧹',n:'Kehrmaschine',x:this._sweeperPos.x,z:this._sweeperPos.z});
+    out.push({ic:'🏪',n:'Marktplatz',x:0,z:30});
+    return out; },
   _minimap(cv,size,big){
     const c=cv||G('mmc');if(!c)return;const ctx=c.getContext('2d');const W=100,S=big?235:this.WR;
     ctx.setTransform(1,0,0,1,0,0); ctx.scale((size||100)/100,(size||100)/100);
@@ -6728,7 +6724,7 @@ const ZG={
     }
     if(this.nearSt){
       // Check lucky wheel first (it's near the station)
-      const wdist=Math.sqrt((this.pl.x-8)**2+(this.pl.z-16)**2);
+      const wdist=Math.sqrt((this.pl.x+42)**2+(this.pl.z-10)**2);
       if(wdist<6){LW.open();return;}
       // Walking into the station ALWAYS opens the station panel
       // (no auto-buy — the player chooses inside the panel)

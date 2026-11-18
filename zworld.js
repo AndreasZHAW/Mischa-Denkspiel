@@ -1536,7 +1536,8 @@
 (function(){
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
-  const R=215, POI=[['⛩️ Gondel',0,0],['🚪 Eingang',0,62],['🎪 Zirkus',40,48],['🎢 Mega-Achterbahn',140,-35]];
+  const R=215, BASE=[['⛩️ Gondel',0,0],['🚪 Eingang',0,62],['🎪 Zirkus',40,48],['🎢 Mega-Achterbahn',140,-35]];
+  const pois=()=>{ const a=BASE.slice(); try{ ZG._mapPois().forEach(p=>a.push([p.ic+' '+p.n,p.x,p.z])); }catch(e){} return a; };
   const K=window.ZMap={ el:null, cam:null,
     open(){
       if(K.el||!ready()) return; if(busy()){ try{ ZP.toast('🗺️ Die Karte geht gerade nicht.',2000); }catch(e){} return; }
@@ -1565,14 +1566,14 @@
     _marks(){
       if(!K.el) return; const mk=K.mk; mk.innerHTML='';
       const add=(x,z,html,css)=>{ const p=K._w2s(x,z); const d=document.createElement('div'); d.style.cssText='position:absolute;left:'+p.x+'px;top:'+p.y+'px;transform:translate(-50%,-50%);white-space:nowrap;font:800 '+(innerWidth<700?'.6':'.72')+'rem Arial;color:#fff;text-shadow:0 1px 4px #000,0 0 6px #000;'+(css||''); d.innerHTML=html; mk.appendChild(d); };
-      POI.forEach(p=>add(p[1],p[2],p[0])); try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach((e,i)=>add(e.x,e.z,'🏞️'+(i+1),'font-size:.62rem;opacity:.9')); }catch(e){}
+      pois().forEach(p=>add(p[1],p[2],p[0])); try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach((e,i)=>add(e.x,e.z,'🏞️'+(i+1),'font-size:.62rem;opacity:.9')); }catch(e){}
       try{ Object.values(ZG.otherPl||{}).forEach(op=>add(op.x,op.z,'<span style="color:#ff6b6b">●</span> '+(op.name||''),'font-size:.62rem')); }catch(e){}
       add(ZG.pl.x,ZG.pl.z,'<div style="transform:rotate('+(-ZG.yaw*180/Math.PI+180)+'deg);font-size:1.5rem;color:#FFD700;filter:drop-shadow(0 0 4px #000)">⬆️</div><div style="color:#FFD700;text-align:center">Du</div>','z-index:2');
     },
     _click(ev){
       if(ZG.carrying){ try{ ZP.toast('🐾 Du trägst noch ein Tier!',2500); }catch(e){} return; }
       const w=K._s2w(ev.clientX,ev.clientY); if(!w) return; let tx=w.x,tz=w.z, best=14;
-      POI.forEach(p=>{ const d=Math.hypot(p[1]-w.x,p[2]-w.z); if(d<best){ best=d; tx=p[1]; tz=p[2]; } });
+      pois().forEach(p=>{ const d=Math.hypot(p[1]-w.x,p[2]-w.z); if(d<best){ best=d; tx=p[1]; tz=p[2]; } });
       try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach(e=>{ const d=Math.hypot(e.x-w.x,e.z-w.z); if(d<best){ best=d; tx=e.x; tz=e.z; } }); }catch(e){}
       const rr=Math.hypot(tx,tz), lim=(ZG.WR||210)-4; if(rr>lim){ tx*=lim/rr; tz*=lim/rr; }
       ZG.pl.x=tx; ZG.pl.z=tz+(best<14?3:0); try{ ZG.pl.y=1.7; ZG.vy=0; }catch(e){} try{ ZG._recentlyBeamedAt=Date.now(); }catch(e){}
