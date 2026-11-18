@@ -382,50 +382,79 @@ const RewardChests = {
     if(dEl){ dEl.textContent='●'.repeat(s.clicks)+'○'.repeat(remaining); dEl.style.color=labelCol; }
   },
 
-  // ── STAR CRASH INTRO (overdimensional) ──
+  // ── STAR CRASH INTRO (overdimensional) – kosmisches Portal ──
   _starCrashIntro(){
     document.getElementById('chest-anim')?.remove();
     const ov=document.createElement('div'); ov.id='chest-anim';
-    ov.style.cssText='position:fixed;inset:0;z-index:99975;background:radial-gradient(circle at 50% 45%,#3a1a6e,#05010f);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;font-family:Arial,sans-serif;color:#fff';
+    ov.style.cssText='position:fixed;inset:0;z-index:99975;background:#05010f;overflow:hidden;font-family:Arial,sans-serif;color:#fff';
     ov.innerHTML='<canvas id="star-cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>'+
-      '<div id="star-txt" style="position:absolute;bottom:14%;left:0;right:0;text-align:center;font-weight:900;font-size:clamp(1rem,4vw,1.3rem);color:#d8b4ff;text-shadow:0 0 14px #9b59ff;z-index:2">🌌 Eine überdimensionale Kraft naht...</div>';
+      '<div id="star-txt" style="position:absolute;bottom:12%;left:0;right:0;text-align:center;font-weight:900;font-size:clamp(1rem,4.4vw,1.4rem);color:#e6ccff;text-shadow:0 0 16px #b04dff,0 0 34px #ff4dc8;z-index:2;letter-spacing:.06em">🌌 Eine überdimensionale Kraft naht...</div>';
     document.body.appendChild(ov);
     this._unlockAudio(); this._sndOverdim();
-    const cv=document.getElementById('star-cv'),ctx=cv.getContext('2d');
-    let W,H; const rs=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;}; rs();
-    const stars=Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3}));
-    const self=this;
-    const drawChest=(cx,cy,scale,space,shake)=>{
-      ctx.save(); ctx.translate(cx+(shake||0),cy); ctx.scale(scale,scale);
-      let grad=ctx.createLinearGradient(-45,0,45,0);
-      if(space){ grad=ctx.createRadialGradient(0,-10,5,0,-10,60); grad.addColorStop(0,'#b388ff'); grad.addColorStop(1,'#2a0a5e'); }
-      else { ['#ff0000','#ff8c00','#ffee00','#00ff00','#0088ff','#8800ff'].forEach((c,i,a)=>grad.addColorStop(i/(a.length-1),c)); }
-      ctx.fillStyle=grad; ctx.strokeStyle='#c0c0c8'; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.moveTo(-45,-8); ctx.quadraticCurveTo(0,-44,45,-8); ctx.lineTo(45,0); ctx.lineTo(-45,0); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle=grad; ctx.fillRect(-45,0,90,34); ctx.strokeRect(-45,0,90,34);
-      ctx.fillStyle='#b8b8c0'; ctx.fillRect(-20,-10,7,44); ctx.fillRect(13,-10,7,44);
-      ctx.fillStyle='#d0d0d8'; ctx.fillRect(-6,6,12,14); ctx.fillStyle='#444'; ctx.beginPath(); ctx.arc(0,12,2.5,0,7); ctx.fill();
-      ctx.restore();
-    };
-    let f=0; const TOTAL=110, cx=()=>W/2, cy=()=>H*0.5;
+    const cv=document.getElementById('star-cv'),ctx=cv.getContext('2d'),self=this;
+    let W=1,H=1,D=1; const rs=()=>{ D=Math.min(2,window.devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*D; cv.height=H*D; ctx.setTransform(D,0,0,D,0,0); }; rs();
+    const R=Math.random, TAU=Math.PI*2;
+    const stars=Array.from({length:140},()=>({a:R()*TAU,d:R(),s:R()*1.8+.4,tw:R()*6}));
+    const planets=[{o:.34,sp:.7,r:.05,c1:'#ff9a7a',c2:'#7a2a6a',ph:0},{o:.46,sp:-.5,r:.075,c1:'#9ad0ff',c2:'#233a8a',ph:2},{o:.28,sp:.9,r:.035,c1:'#ffd0f0',c2:'#b02a90',ph:4}];
+    const sparks=Array.from({length:70},()=>({a:R()*TAU,v:80+R()*420,s:2+R()*4,h:R()<.5?45:(R()<.5?300:200)}));
+    const DUR=4.4, t0=performance.now(); let soundStar=false;
+    const ease=x=>x<0?0:x>1?1:1-Math.pow(1-x,3), seg=(t,a,b)=>Math.max(0,Math.min(1,(t-a)/(b-a)));
+    const drawChest=(sc,glow)=>{
+      ctx.save(); ctx.scale(sc,sc); ctx.shadowColor='#ffd54f'; ctx.shadowBlur=40*glow;
+      const g=ctx.createRadialGradient(0,-10,5,0,-10,70); g.addColorStop(0,'#e6c8ff'); g.addColorStop(.5,'#8a3dff'); g.addColorStop(1,'#2a0a5e');
+      ctx.fillStyle=g; ctx.strokeStyle='#ffe9a8'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(-45,-8); ctx.quadraticCurveTo(0,-48,45,-8); ctx.lineTo(45,0); ctx.lineTo(-45,0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillRect(-45,0,90,34); ctx.strokeRect(-45,0,90,34);
+      ctx.fillStyle='#ffd54f'; ctx.fillRect(-20,-12,7,46); ctx.fillRect(13,-12,7,46);
+      ctx.fillStyle='#fff3c4'; ctx.fillRect(-7,6,14,15); ctx.fillStyle='#6a3a00'; ctx.beginPath(); ctx.arc(0,13,2.8,0,TAU); ctx.fill();
+      ctx.restore(); };
     const loop=()=>{
-      ctx.clearRect(0,0,W,H); ctx.fillStyle='rgba(10,2,25,.45)'; ctx.fillRect(0,0,W,H);
-      stars.forEach(s=>{ctx.fillStyle='rgba(255,255,255,'+(0.3+Math.random()*.4)+')'; ctx.fillRect(s.x,s.y,s.r,s.r);});
-      const sc=Math.min(W,H)/300, isSpace=f>72, shake=(f>=66&&f<78)?(Math.random()*10-5):0;
-      drawChest(cx(),cy(),sc*(isSpace?1.25:1),isSpace,shake);
-      if(f<66){
-        const t=f/66, sx=cx()+(W*.55)*(1-t), sy=cy()-(H*.55)*(1-t);
-        ctx.save(); ctx.shadowColor='#ffe680'; ctx.shadowBlur=25;
-        ctx.font=(38+t*30)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('⭐',sx,sy); ctx.restore();
-        ctx.strokeStyle='rgba(255,230,120,.5)'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+50,sy-38); ctx.stroke();
-      } else if(f>=66&&f<82){
-        if(f===66)self._sndStar();
-        const a=Math.max(0,1-(f-66)/16); ctx.fillStyle='rgba(255,240,180,'+a+')'; ctx.fillRect(0,0,W,H);
-        for(let i=0;i<14;i++){const ang=i/14*Math.PI*2,rad=(f-66)*9; ctx.fillStyle='rgba(200,160,255,'+a+')'; ctx.beginPath(); ctx.arc(cx()+Math.cos(ang)*rad,cy()+Math.sin(ang)*rad,3,0,7); ctx.fill();}
+      if(!ov.isConnected) return;
+      const t=(performance.now()-t0)/1000, cx=W/2, cy=H*.46, m=Math.min(W,H);
+      // Phasen: 0-1.5 Portal öffnet, 1.5-2.7 Stern stürzt, 2.7-3.0 Blitz, 3.0+ Truhe + Strahlen
+      const open=ease(seg(t,.1,1.6)), fall=seg(t,1.5,2.7), boom=seg(t,2.7,4.4);
+      let sh=0; if(t>1.5&&t<3.1) sh=(R()-.5)*(t<2.7?6*fall:16*(1-seg(t,2.7,3.1)));
+      ctx.save(); ctx.clearRect(0,0,W,H); ctx.translate(sh,(R()-.5)*sh);
+      // Nebel-Hintergrund
+      let bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.75);
+      bg.addColorStop(0,'#3b0f7a'); bg.addColorStop(.35,'#1b0a4a'); bg.addColorStop(.7,'#0a0425'); bg.addColorStop(1,'#020010');
+      ctx.fillStyle=bg; ctx.fillRect(-20,-20,W+40,H+40);
+      for(let i=0;i<4;i++){ const a=t*.15+i*1.7, x=cx+Math.cos(a)*m*.35, y=cy+Math.sin(a*1.1)*m*.3; const n=ctx.createRadialGradient(x,y,0,x,y,m*.55); const c=['255,60,200','60,140,255','150,60,255','60,255,220'][i]; n.addColorStop(0,'rgba('+c+',.28)'); n.addColorStop(1,'rgba('+c+',0)'); ctx.fillStyle=n; ctx.fillRect(0,0,W,H); }
+      // Sterne wirbeln um das Portal
+      stars.forEach(s=>{ const ang=s.a+t*(.08+.25*(1-s.d))*open, dd=(.12+s.d*.9)*Math.max(W,H)*.6; const x=cx+Math.cos(ang)*dd, y=cy+Math.sin(ang)*dd*.85; ctx.fillStyle='rgba(255,255,255,'+(.35+.6*Math.abs(Math.sin(t*2+s.tw)))+')'; ctx.fillRect(x,y,s.s,s.s); });
+      // Planeten
+      planets.forEach(p=>{ const a=p.ph+t*p.sp, rr=m*p.o*(1.1-.1*open), x=cx+Math.cos(a)*rr*1.25, y=cy+Math.sin(a)*rr*.55, r=m*p.r*open; if(r<1)return; const g=ctx.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r); g.addColorStop(0,p.c1); g.addColorStop(1,p.c2); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); });
+      // Schwarzes Loch mit Neon-Ringen
+      const pr=m*.2*open*(1+.35*boom*Math.exp(-boom*3));
+      if(pr>1){
+        const halo=ctx.createRadialGradient(cx,cy,pr*.8,cx,cy,pr*2.4); halo.addColorStop(0,'rgba(255,80,220,.55)'); halo.addColorStop(.5,'rgba(90,120,255,.25)'); halo.addColorStop(1,'rgba(90,120,255,0)'); ctx.fillStyle=halo; ctx.beginPath(); ctx.arc(cx,cy,pr*2.4,0,TAU); ctx.fill();
+        for(let i=0;i<5;i++){ ctx.save(); ctx.translate(cx,cy); ctx.rotate(t*(.6+i*.25)*(i%2?-1:1)+i); ctx.scale(1,.42+.12*i); ctx.lineWidth=3+i*1.2; ctx.strokeStyle=['#ff4dd8','#4dc3ff','#b04dff','#ffe14d','#4dffd8'][i]; ctx.shadowColor=ctx.strokeStyle; ctx.shadowBlur=18; ctx.globalAlpha=.9; ctx.beginPath(); ctx.arc(0,0,pr*(1.15+i*.2),.2,TAU*.82); ctx.stroke(); ctx.restore(); }
+        ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(cx,cy,pr,0,TAU); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=2; ctx.stroke();
       }
-      f++;
-      if(f<=TOTAL) requestAnimationFrame(loop);
-      else { const tx=document.getElementById('star-txt'); if(tx)tx.textContent='💥 ÜBERDIMENSIONAL! Tippe zum Öffnen!'; this._revealReward(); }
+      // Stern stürzt hinein (mit Schweif)
+      if(t>=1.5&&t<2.75){ const e=fall*fall, sx=cx+(W*.6)*(1-e), sy=cy-(H*.6)*(1-e);
+        for(let i=0;i<14;i++){ const k=i/14, tx=sx+k*90*(1-fall*.3), ty=sy-k*70*(1-fall*.3); ctx.fillStyle='rgba(255,'+(220-i*8)+',120,'+(.7*(1-k))+')'; ctx.beginPath(); ctx.arc(tx,ty,(14-i)*(1+fall),0,TAU); ctx.fill(); }
+        ctx.save(); ctx.shadowColor='#ffe680'; ctx.shadowBlur=34; ctx.font=(40+fall*50)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('⭐',sx,sy); ctx.restore(); }
+      if(t>=2.65&&!soundStar){ soundStar=true; try{ self._sndStar(); }catch(e){} }
+      // Explosion: Schockwellen, Funken, goldene Strahlen
+      if(t>=2.7){
+        const bt=t-2.7;
+        for(let i=0;i<3;i++){ const k=bt-i*.18; if(k<0) continue; const rr=k*m*1.1; ctx.strokeStyle='rgba('+['255,230,130','255,120,220','120,200,255'][i]+','+Math.max(0,1-k*.9)+')'; ctx.lineWidth=10-i*2; ctx.beginPath(); ctx.arc(cx,cy,rr,0,TAU); ctx.stroke(); }
+        sparks.forEach(p=>{ const d=p.v*bt, x=cx+Math.cos(p.a)*d, y=cy+Math.sin(p.a)*d+bt*bt*60; ctx.fillStyle='hsla('+p.h+',100%,70%,'+Math.max(0,1-bt*.6)+')'; ctx.fillRect(x,y,p.s,p.s); });
+        const ra=Math.min(1,bt*2)*(.55+.1*Math.sin(t*4)); ctx.save(); ctx.translate(cx,cy); ctx.rotate(t*.25); ctx.globalCompositeOperation='lighter';
+        for(let i=0;i<16;i++){ ctx.rotate(TAU/16); const g=ctx.createLinearGradient(0,0,0,-Math.max(W,H)); g.addColorStop(0,'rgba(255,225,120,'+ra+')'); g.addColorStop(1,'rgba(255,225,120,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(8,0); ctx.lineTo(55,-Math.max(W,H)); ctx.lineTo(-55,-Math.max(W,H)); ctx.closePath(); ctx.fill(); }
+        ctx.restore();
+        // Truhe steigt aus dem Portal, schwebt, mit goldenen Ringen
+        const ce=ease(seg(bt,.25,1.1)); if(ce>0){ const cyy=cy+(1-ce)*m*.1-Math.sin(t*2)*6*ce; ctx.save(); ctx.translate(cx,cyy); ctx.globalAlpha=ce;
+          for(let i=0;i<3;i++){ ctx.save(); ctx.rotate(t*(.7+i*.3)*(i%2?-1:1)); ctx.scale(1,.35+.2*i); ctx.strokeStyle='rgba(255,225,120,.8)'; ctx.lineWidth=3; ctx.shadowColor='#ffd54f'; ctx.shadowBlur=14; ctx.beginPath(); ctx.arc(0,0,m*(.2+i*.05)*ce,0,TAU); ctx.stroke(); ctx.restore(); }
+          drawChest(m/300*1.5*(.6+.4*ce),1); ctx.restore();
+          for(let i=0;i<10;i++){ const a=t*1.5+i*TAU/10, rr=m*(.17+.05*Math.sin(t*3+i)), x=cx+Math.cos(a)*rr*1.4, y=cyy+Math.sin(a)*rr; ctx.fillStyle='rgba(255,245,200,'+(.5+.5*Math.sin(t*6+i))*ce+')'; ctx.font='bold '+(14+i%3*6)+'px serif'; ctx.textAlign='center'; ctx.fillText('✦',x,y); } }
+      }
+      ctx.restore();
+      // Blitz
+      if(t>=2.65){ const fa=t<2.8?seg(t,2.65,2.8):1-seg(t,2.8,3.5); if(fa>0){ ctx.fillStyle='rgba(255,250,225,'+fa+')'; ctx.fillRect(0,0,W,H); } }
+      if(t<DUR) requestAnimationFrame(loop);
+      else { const tx=document.getElementById('star-txt'); if(tx)tx.textContent='💥 ÜBERDIMENSIONAL! Tippe zum Öffnen!'; self._revealReward(); }
     };
     loop();
   },
