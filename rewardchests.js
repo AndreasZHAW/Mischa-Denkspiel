@@ -240,6 +240,7 @@ const RewardChests = {
       if(needsFullRerender) this.open();
     },1000);
   },
+  unlockAll(){ const mx=Math.max.apply(null,this._tiers().map(t=>t.min)); try{ sessionStorage.setItem('mischa_session_start',String(Date.now()-(mx+5)*60000)); }catch(e){} try{ if(typeof ZS!=='undefined'&&ZS.zoo&&ZS.zoo.st&&ZS.zoo.st>Date.now()-(mx+5)*60000) ZS.zoo.st=Date.now()-(mx+5)*60000; }catch(e){} this.updateBadge(); this.open(); },
   _ffTest(){ try{ sessionStorage.setItem('mischa_session_start',String(this._startTs()-130*60000)); }catch(e){} this.open(); this.updateBadge(); },
 
   // ── OPEN A CHEST (Brawl-Stars style: per-click upgrade chance) ──
