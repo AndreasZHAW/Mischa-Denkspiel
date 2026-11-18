@@ -121,7 +121,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 #jbase{width:160px;height:160px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
 #jthumb{position:absolute;width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.6);border:2px solid rgba(255,255,255,.9);top:49px;left:49px;pointer-events:none;transition:none}
 /* Minimap TR */
-#mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:none}
+#mmap{position:absolute;top:10px;right:10px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);overflow:hidden;pointer-events:auto;cursor:pointer}
 /* Event timer */
 #evt{position:absolute;bottom:14px;right:10px;background:rgba(0,0,0,.82);border-radius:10px;padding:7px 10px;border:2px solid rgba(255,255,255,.22);font-size:.72rem;text-align:left;display:none;pointer-events:none;font-weight:900;max-width:160px;min-width:110px}
 /* Crosshair */
@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=824"></script>
-<script src="rewardchests.js?v=824"></script>
-<script src="personality.js?v=824"></script>
+<script src="lang.js?v=825"></script>
+<script src="rewardchests.js?v=825"></script>
+<script src="personality.js?v=825"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -320,7 +320,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <div id="stun-indicator" style="display:none;position:absolute;top:40%;left:50%;transform:translateX(-50%);background:rgba(200,0,0,.82);border:3px solid #fff;border-radius:50px;padding:14px 28px;font-size:1.4rem;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);z-index:400;pointer-events:none;white-space:nowrap;animation:stunPulse .5s ease-in-out infinite alternate"></div>
 <style>@keyframes stunPulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.08)}}</style>
 <div id="evb"></div><div id="evt"></div>
-<div id="mmap"><canvas id="mmc" width="100" height="100"></canvas></div>
+<div id="mmap" onclick="event.stopPropagation();try{ZG._openBigMap()}catch(e){}"><canvas id="mmc" width="100" height="100"></canvas></div>
 <div id="home-arrow-wrap" style="position:absolute;top:118px;right:10px;width:100px;display:flex;flex-direction:column;align-items:center;pointer-events:none">
   <div id="home-compass" style="width:58px;height:58px;background:rgba(0,0,0,.72);border:3px solid #FFD700;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 10px rgba(255,215,0,.5)">
     <span id="home-arrow" style="display:inline-block;font-size:2.3rem;line-height:1;transition:transform .15s linear;transform:rotate(0deg);filter:drop-shadow(0 0 2px #000)">⬆️</span>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=824"></script>
-<script src="sanction.js?v=824"></script>
-<script src="zevents.js?v=824"></script>
-<script src="znet.js?v=824"></script>
-<script src="zbases.js?v=824"></script>
-<script src="charheads.js?v=824"></script>
-<script src="zmensch.js?v=824"></script>
-<script src="zcine.js?v=824"></script>
-<script src="zworld.js?v=824"></script>
-<script src="zstation.js?v=824"></script>
-<script src="zfx.js?v=824"></script>
-<script src="zextra.js?v=824"></script>
-<script src="zreb6.js?v=824"></script>
-<script src="zlegend.js?v=824"></script>
-<script src="ztutplus.js?v=824"></script>
-<script src="zlift.js?v=824"></script>
-<script src="zfun.js?v=824"></script>
-<script src="zguide.js?v=824"></script>
-<script src="zrules.js?v=824"></script>
-<script src="zsafe.js?v=824"></script>
-<script src="zrebguard.js?v=824"></script>
-<script src="zpass.js?v=824"></script>
-<script src="znotify.js?v=824"></script>
-<script src="zdetective.js?v=824"></script>
-<script src="zpirate.js?v=824"></script>
-<script src="zpark.js?v=824"></script>
-<script src="zmenu.js?v=824"></script>
-<script src="zdevice.js?v=824"></script>
-<script src="zmusic.js?v=824"></script>
-<script src="zskill.js?v=824"></script>
-<script src="worlds.js?v=824"></script>
+<script src="firebase-state.js?v=825"></script>
+<script src="sanction.js?v=825"></script>
+<script src="zevents.js?v=825"></script>
+<script src="znet.js?v=825"></script>
+<script src="zbases.js?v=825"></script>
+<script src="charheads.js?v=825"></script>
+<script src="zmensch.js?v=825"></script>
+<script src="zcine.js?v=825"></script>
+<script src="zworld.js?v=825"></script>
+<script src="zstation.js?v=825"></script>
+<script src="zfx.js?v=825"></script>
+<script src="zextra.js?v=825"></script>
+<script src="zreb6.js?v=825"></script>
+<script src="zlegend.js?v=825"></script>
+<script src="ztutplus.js?v=825"></script>
+<script src="zlift.js?v=825"></script>
+<script src="zfun.js?v=825"></script>
+<script src="zguide.js?v=825"></script>
+<script src="zrules.js?v=825"></script>
+<script src="zsafe.js?v=825"></script>
+<script src="zrebguard.js?v=825"></script>
+<script src="zpass.js?v=825"></script>
+<script src="znotify.js?v=825"></script>
+<script src="zdetective.js?v=825"></script>
+<script src="zpirate.js?v=825"></script>
+<script src="zpark.js?v=825"></script>
+<script src="zmenu.js?v=825"></script>
+<script src="zdevice.js?v=825"></script>
+<script src="zmusic.js?v=825"></script>
+<script src="zskill.js?v=825"></script>
+<script src="worlds.js?v=825"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -5835,8 +5835,19 @@ const ZG={
     if(this._mazeActive){ try{ SpeedTemple._checkMazeCollision(); }catch(e){} }
   },
 
-  _minimap(){
-    const c=G('mmc');if(!c)return;const ctx=c.getContext('2d');const W=100,S=this.WR;
+  _mapPois(){ let out=[]; try{ out=ZGuide.places().filter(p=>p.n!=='Mein Zoo').slice(); }catch(e){} try{ (this._goldMachinePositions||[{x:16,z:55}]).forEach(p=>out.push({ic:'⚗️',n:'Goldmaschine',x:p.x,z:p.z})); }catch(e){} return out; },
+  _openBigMap(){
+    if(document.getElementById('zbigmap')) return;
+    const o=document.createElement('div'); o.id='zbigmap'; o.style.cssText='position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px';
+    const sz=Math.min(innerWidth,innerHeight)-80, cv=document.createElement('canvas'); cv.width=cv.height=sz; cv.style.cssText='width:'+sz+'px;height:'+sz+'px;border-radius:50%;border:3px solid rgba(255,255,255,.5)';
+    o.innerHTML='<div style="color:#fff;font:900 1rem Arial">🗺️ Karte</div>'; o.appendChild(cv);
+    const x=document.createElement('div'); x.textContent='Tippen zum Schließen'; x.style.cssText='color:rgba(255,255,255,.7);font:700 .8rem Arial'; o.appendChild(x);
+    o.onclick=()=>{ clearInterval(o._iv); o.remove(); }; document.body.appendChild(o);
+    const draw=()=>this._minimap(cv,sz,true); draw(); o._iv=setInterval(()=>{ if(!o.isConnected) return clearInterval(o._iv); draw(); },500);
+  },
+  _minimap(cv,size,big){
+    const c=cv||G('mmc');if(!c)return;const ctx=c.getContext('2d');const W=100,S=big?235:this.WR;
+    ctx.setTransform(1,0,0,1,0,0); ctx.scale((size||100)/100,(size||100)/100);
     ctx.clearRect(0,0,W,W);
     ctx.fillStyle='rgba(0,100,0,.8)';ctx.beginPath();ctx.arc(W/2,W/2,W/2,0,Math.PI*2);ctx.fill();
     const sc2=W/(S*2);
@@ -5850,9 +5861,12 @@ const ZG={
     // Enclosures
     ctx.fillStyle='rgba(74,138,48,.8)';
     this.ENCPOS().slice(0,ZS.maxE()).forEach(ep=>{ctx.fillRect(W/2+ep.x*sc2-2,W/2+ep.z*sc2-2,4,4);});
+    // Orte mit Symbol (grosse Karte zusaetzlich mit Namen)
+    try{ this._mapPois().forEach(p=>{ const x=W/2+p.x*sc2, y=W/2+p.z*sc2; if(Math.hypot(x-W/2,y-W/2)>W/2-2) return; ctx.font=(big?7:8)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#fff'; ctx.fillText(p.ic,x,y);
+      if(big){ ctx.font='900 3.2px Arial'; ctx.lineWidth=1; ctx.strokeStyle='rgba(0,0,0,.85)'; ctx.strokeText(p.n,x,y+6); ctx.fillStyle='#fff'; ctx.fillText(p.n,x,y+6); } }); }catch(e){}
     // Player arrow
     ctx.fillStyle='#FFD700';const px=W/2+this.pl.x*sc2,pz=W/2+this.pl.z*sc2;
-    ctx.beginPath();ctx.arc(px,pz,4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(px,pz,big?2.2:4,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#FFD700';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,pz);ctx.lineTo(px-Math.sin(this.yaw)*8,pz-Math.cos(this.yaw)*8);ctx.stroke();
     // Others
     Object.values(this.otherPl).forEach(op=>{ctx.fillStyle='#ff6b6b';ctx.beginPath();ctx.arc(W/2+op.x*sc2,W/2+op.z*sc2,3,0,Math.PI*2);ctx.fill();});
@@ -21126,6 +21140,8 @@ window.ZooEvents = ZooEvents;
           <div style="color:#FFD700;font-weight:900;margin-bottom:8px">🎁 Truhen</div>
           <button class="padmin-btn" onclick="try{RewardChests.unlockAll()}catch(e){ZP.toast('Truhen nicht verfügbar',2000)}" style="width:100%;background:#8e24aa;padding:12px;font-size:.9rem">🎁 Alle Truhen freischalten</button>
           <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Macht alle Truhen der aktuellen Runde sofort öffenbar.</div>
+          <button class="padmin-btn" onclick="ZAdmin.close();try{RewardChests.giveUltra()}catch(e){ZP.toast('Truhen nicht verfügbar',2000)}" style="width:100%;background:linear-gradient(135deg,#7b2fff,#ff4dc8);padding:12px;font-size:.9rem;margin-top:14px">🌌 Ultralegendäre Truhe geben</button>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Die höchste Stufe (Überdimensional) mit Sternen-Absturz, sofort geöffnet.</div>
         </div>
         <div class="padmin-tab" id="padmin-tab-belohnungen" style="display:none">
           <div class="padmin-section-title">🏅 Rang &amp; Admin-Rechte</div>

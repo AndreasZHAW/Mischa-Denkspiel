@@ -241,6 +241,14 @@ const RewardChests = {
       if(needsFullRerender) this.open();
     },1000);
   },
+  // Admin: ultralegendäre (= überdimensionale, höchste Stufe) Truhe geben und sofort öffnen
+  giveUltra(){
+    this._unlockAudio();
+    const base=this._tiers()[this._tiers().length-1]||{};
+    const tier={min:-1,name:'ULTRA-TRUHE',color:'#7b2fff',glow:'rgba(155,89,255,.8)',hell:0,upChance:1,space:true,q:Math.max(base.q||9,9)};
+    this._animState={tier,isHell:false,rarityIdx:4,clicks:5,isOverdim:true,reward:null};
+    this._starCrashIntro();
+  },
   unlockAll(){ const mx=Math.max.apply(null,this._tiers().map(t=>t.min)); try{ sessionStorage.setItem('mischa_session_start',String(Date.now()-(mx+5)*60000)); }catch(e){} try{ if(typeof ZS!=='undefined'&&ZS.zoo&&ZS.zoo.st&&ZS.zoo.st>Date.now()-(mx+5)*60000) ZS.zoo.st=Date.now()-(mx+5)*60000; }catch(e){} this.updateBadge(); this.open(); },
   _ffTest(){ try{ sessionStorage.setItem('mischa_session_start',String(this._startTs()-130*60000)); }catch(e){} this.open(); this.updateBadge(); },
 
@@ -463,7 +471,7 @@ const RewardChests = {
   // ── REVEAL REWARD ──
   _revealReward(){
     const s=this._animState; if(!s)return;
-    this._markOpened(s.tier.min);
+    if(s.tier.min>=0) this._markOpened(s.tier.min);
     let reward=s.isHell ? this._pickHell() : this._pickReward(s.rarityIdx, s.tier.q||1);
     try{ if(reward.apply) reward.apply(); }catch(e){ console.warn('reward apply error',e); }
     try{ const z=ZS.zoo; if(z&&z.chestDouble&&!s.isHell&&reward.apply&&!/Doppelte Belohnung/.test(reward.label)){ z.chestDouble=false; const r2=this._pickReward(s.rarityIdx,s.tier.q||1); if(r2&&r2.apply&&!/Doppelte Belohnung/.test(r2.label)){ r2.apply(); reward={icon:reward.icon,label:reward.label+'  +  '+r2.icon+' '+r2.label+' (doppelt!)',needsSlot:reward.needsSlot}; } } }catch(e){ console.warn('double',e); }
