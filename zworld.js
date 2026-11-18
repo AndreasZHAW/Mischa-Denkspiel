@@ -2349,11 +2349,11 @@
   const list=()=>{ const k=KD(); return k?k.SKINS.slice(2):[]; };   // die 20 Admin-Skins (ohne Mädchen/Junge)
   const nm=id=>{ const k=KD(); const s=k&&k.SKINS.find(x=>x[0]===id); return s?s:[id,id,'🎭']; };
   const adm=()=>{ try{ return ['bu:)','bu:3'].includes(String(ZS.player||'').toLowerCase()); }catch(e){ return false; } };
-  const S=window.ZSkins={ offers:{}, _inited:false, _pv:null,
+  const S=window.ZSkins={ offers:{}, _inited:false, _pv:null, all:()=>list(),
     init(){ if(S._inited) return; const r=RT(); if(!r||typeof ZS==='undefined'||!ZS.player) return; S._inited=true;
       try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){}
       r.ref('zoo_skins/offers').on('value',s=>{ S.offers=s.val()||{}; }); },
-    cur(){ try{ const id=ZS.zoo&&ZS.zoo.skin; return id&&(ZS.zoo.skins||{})[id]?id:null; }catch(e){ return null; } },
+    cur(){ try{ const id=ZS.zoo&&ZS.zoo.skin; const v=id&&(ZS.zoo.skins||{})[id]; if(v&&v!==1&&v<Date.now()){ delete ZS.zoo.skins[id]; ZS.zoo.skin=null; return null; } return v?id:null; }catch(e){ return null; } },
     active(){ const n=tn(); return Object.keys(S.offers).map(id=>({id,...(S.offers[id]||{})})).filter(o=>!o.until||o.until>n); },
     fmt(ms){ if(ms<=0) return 'abgelaufen'; const s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), x=s%60; return (d?d+' T ':'')+(d||h?h+' Std ':'')+m+' Min'+(!d?' '+x+' s':''); },
     // ── Admin ──

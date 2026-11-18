@@ -72,7 +72,15 @@
       txt('5 Fähigkeitspunkte pro Rebirth',W/2,90,52,'#fff',fade(t,.2,9,.5,.5)); txt('Vier Äste – du entscheidest!',W/2,660,46,'#ffd54f',fade(t,5.5,9,.5,.5)); }
     else { sky('#222','#444'); txt('…',W/2,H/2,80,'#fff',1); } }
 
-  const SC={egg:[6.5,egg],world:[6,world],announce:[7,announce],coaster:[6.5,coaster],clip:[9,clip]};
+
+  // ── Dein Jahr im Zoo (10 s) ──
+  function year(t,o){ sky('#1a0033','#311b92'); stars(t,100); glow(W/2,330,460,'#7c4dff',.25); const nf=String(o.name||'Spieler');
+    txt('DEIN JAHR IM ZOO',W/2,110,78,'#ffd54f',fade(t,.2,10,.6,.8)); txt(nf,W/2,200,60,'#fff',fade(t,1,10,.6,.8));
+    const rows=[['🐾',(o.animals||0)+' Tiere im Zoo'],['🔄','Rebirth '+(o.reb||0)],['🪙','Mischtaler: '+fmtN(o.mt||0)],['⭐',o.best?('Bestes Tier: '+o.best):'Dein Zoo wächst!']];
+    rows.forEach((r,i)=>{ const a=fade(t,2+i*1.4,10,.5,.8), x=ease(seg(t,2+i*1.4,2.8+i*1.4)); ctx.save(); ctx.translate((1-x)*-200,0); emo(r[0],330,310+i*95,70,a); txt(r[1],400,310+i*95,46,'#fff',a,{al:'left'}); ctx.restore(); });
+    txt('Weiter so, Zoo-Profi! 🎉',W/2,690,44,'#69f0ae',fade(t,7.2,10,.5,.8)); if(t>7) confetti(t,40); }
+  const fmtN=v=>{ v=Number(v)||0; if(v<1e6) return Math.floor(v).toLocaleString('de-CH'); const e=Math.floor(Math.log10(v)); return (v/Math.pow(10,e)).toFixed(2)+'×10^'+e; };
+  const SC={year:[10,year],egg:[6.5,egg],world:[6,world],announce:[7,announce],coaster:[6.5,coaster],clip:[9,clip]};
   function play(name,o){ o=o||{}; const sc=SC[name]; if(!sc||document.getElementById('zcine-ov')){ try{ o.done&&o.done(); }catch(e){} return; }
     const ov=document.createElement('div'); ov.id='zcine-ov'; ov.style.cssText='position:fixed;inset:0;z-index:100001;background:#000;display:flex;align-items:center;justify-content:center';
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H; cv.style.cssText='max-width:100vw;max-height:100vh;aspect-ratio:16/9;width:100%;object-fit:contain'; ov.appendChild(cv);

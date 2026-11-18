@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=817"></script>
-<script src="rewardchests.js?v=817"></script>
-<script src="personality.js?v=817"></script>
+<script src="lang.js?v=818"></script>
+<script src="rewardchests.js?v=818"></script>
+<script src="personality.js?v=818"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=817"></script>
-<script src="sanction.js?v=817"></script>
-<script src="zevents.js?v=817"></script>
-<script src="znet.js?v=817"></script>
-<script src="zbases.js?v=817"></script>
-<script src="charheads.js?v=817"></script>
-<script src="zmensch.js?v=817"></script>
-<script src="zcine.js?v=817"></script>
-<script src="zworld.js?v=817"></script>
-<script src="zstation.js?v=817"></script>
-<script src="zfx.js?v=817"></script>
-<script src="zextra.js?v=817"></script>
-<script src="zreb6.js?v=817"></script>
-<script src="zlegend.js?v=817"></script>
-<script src="ztutplus.js?v=817"></script>
-<script src="zlift.js?v=817"></script>
-<script src="zfun.js?v=817"></script>
-<script src="zguide.js?v=817"></script>
-<script src="zrules.js?v=817"></script>
-<script src="zsafe.js?v=817"></script>
-<script src="zrebguard.js?v=817"></script>
-<script src="zpass.js?v=817"></script>
-<script src="znotify.js?v=817"></script>
-<script src="zdetective.js?v=817"></script>
-<script src="zpirate.js?v=817"></script>
-<script src="zpark.js?v=817"></script>
-<script src="zmenu.js?v=817"></script>
-<script src="zdevice.js?v=817"></script>
-<script src="zmusic.js?v=817"></script>
-<script src="zskill.js?v=817"></script>
-<script src="worlds.js?v=817"></script>
+<script src="firebase-state.js?v=818"></script>
+<script src="sanction.js?v=818"></script>
+<script src="zevents.js?v=818"></script>
+<script src="znet.js?v=818"></script>
+<script src="zbases.js?v=818"></script>
+<script src="charheads.js?v=818"></script>
+<script src="zmensch.js?v=818"></script>
+<script src="zcine.js?v=818"></script>
+<script src="zworld.js?v=818"></script>
+<script src="zstation.js?v=818"></script>
+<script src="zfx.js?v=818"></script>
+<script src="zextra.js?v=818"></script>
+<script src="zreb6.js?v=818"></script>
+<script src="zlegend.js?v=818"></script>
+<script src="ztutplus.js?v=818"></script>
+<script src="zlift.js?v=818"></script>
+<script src="zfun.js?v=818"></script>
+<script src="zguide.js?v=818"></script>
+<script src="zrules.js?v=818"></script>
+<script src="zsafe.js?v=818"></script>
+<script src="zrebguard.js?v=818"></script>
+<script src="zpass.js?v=818"></script>
+<script src="znotify.js?v=818"></script>
+<script src="zdetective.js?v=818"></script>
+<script src="zpirate.js?v=818"></script>
+<script src="zpark.js?v=818"></script>
+<script src="zmenu.js?v=818"></script>
+<script src="zdevice.js?v=818"></script>
+<script src="zmusic.js?v=818"></script>
+<script src="zskill.js?v=818"></script>
+<script src="worlds.js?v=818"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -11719,7 +11719,7 @@ const ZP={
     z.reb=(z.reb||0)+1;z.rebirthMult=rebMultOf(z.reb);z._rebMultFor=z.reb;
     // Gehege (z.xenc) bleiben unverändert — es gibt KEINE extra Gehege mehr als Rebirth-Belohnung.
     z.enc=[];z.mt=10;z.luck=1;z.luckLv=0;z._rebNotified=false;
-    ZS._fix();if(kept.length)z.enc[0]=kept[0];ZG._encs();ZG._updWBar();this.close('reb');
+    ZS._fix();if(kept.length)z.enc[0]=kept[0];if((z.rebBooster||0)>0){ z.rebBooster--; if(!z.tb)z.tb={}; const _u=Date.now()+3*3600000; z.tb.coin=Math.max(z.tb.coin||0,_u); z.tb.lucky=Math.max(z.tb.lucky||0,_u); try{ZP.toast('🔄 Rebirth-Booster aktiv: Geld ×2 & Glück ×2 für 3 Std.!',5000);}catch(e){} }ZG._encs();ZG._updWBar();this.close('reb');
     ZG._rebirthIntro(z.reb,z.rebirthMult,kept[0]?.animal);ZG._updHUD();
     try{ZG._rebGates&&ZG._rebGates();}catch(e){}
     try{if(typeof RankNotify!=='undefined')RankNotify.check(ZS.player);}catch(e){}try{ZNews.push('rebirth',{mult:z.rebirthMult});}catch(e){}
@@ -13227,7 +13227,8 @@ const ZChat = {
       this._addMsg('🤫','Geheimwort erkannt! +60 MT + Lucky Slap!',true);
       return;
     }
-    const data = { from: ZS.player||'?', msg, at: Date.now(), to: to||null };
+    const _ti=(!to&&ZS.zoo&&ZS.zoo.chestTitle)?'['+ZS.zoo.chestTitle+'] ':'';
+    const data = { from: ZS.player||'?', msg:_ti+msg, at: Date.now(), to: to||null };
       const el = this._addMsg(data.from, data.msg, true, to, undefined, undefined, data.at);
     // Save to Firebase
     try{
@@ -19936,7 +19937,7 @@ const GoldMachine = {
       const cardBg = isGold ? 'rgba(255,215,0,.22)' : 'rgba(255,215,0,.10)';
       const statusLabel = isGold
         ? `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🥇 Vergoldet</div>`
-        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">🌀 ${$mt(cost)} · 👆 Tippen</div>`;
+        : `<div style="font-size:.6rem;color:#FFD700;margin-top:3px;font-weight:700">${(ZS.zoo&&ZS.zoo.freeGold>0)?'🎁 GRATIS':'🌀 '+$mt(cost)} · 👆 Tippen</div>`;
       return `<div onclick="GoldMachine._select('${a.id}')" id="gm-card-${a.id}"
         onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"
         style="background:${cardBg};border:2px solid #FFD700;
@@ -20045,10 +20046,10 @@ const GoldMachine = {
     if(!enc) return;
     const a = enc.animal;
     if(this._tier(a) >= 1) { ZP.toast('🥇 Bereits vergoldet!',2000); return; }
-    const cost = this._costFor(a);
+    const _fg=(z.freeGold||0)>0; const cost = _fg?0:this._costFor(a);
     if(((ZS.dsMT||0)+(z.mt||0)) < cost) { ZP.toast('❌ Zu wenig MT! Brauchst '+$mt(cost),2500); return; }
     // Deduct MT directly and apply gold INSTANTLY (no wait time in this simple ×2 tier)
-    z.mt = (z.mt||0) - cost;
+    z.mt = (z.mt||0) - cost; if(_fg){ z.freeGold--; ZP.toast('🎁 Gratis-Vergoldung genutzt!',2500); }
     if(!z.upgrades) z.upgrades = {};
     z.upgrades[animalId] = {tier:1};
     // Boost earnings ×2

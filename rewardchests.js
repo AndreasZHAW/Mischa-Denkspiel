@@ -388,8 +388,9 @@ const RewardChests = {
   _revealReward(){
     const s=this._animState; if(!s)return;
     this._markOpened(s.tier.min);
-    const reward=s.isHell ? this._pickHell() : this._pickReward(s.rarityIdx, s.tier.q||1);
+    let reward=s.isHell ? this._pickHell() : this._pickReward(s.rarityIdx, s.tier.q||1);
     try{ if(reward.apply) reward.apply(); }catch(e){ console.warn('reward apply error',e); }
+    try{ const z=ZS.zoo; if(z&&z.chestDouble&&!s.isHell&&reward.apply&&!/Doppelte Belohnung/.test(reward.label)){ z.chestDouble=false; const r2=this._pickReward(s.rarityIdx,s.tier.q||1); if(r2&&r2.apply&&!/Doppelte Belohnung/.test(r2.label)){ r2.apply(); reward={icon:reward.icon,label:reward.label+'  +  '+r2.icon+' '+r2.label+' (doppelt!)',needsSlot:reward.needsSlot}; } } }catch(e){ console.warn('double',e); }
     const ov=document.getElementById('chest-anim'); if(!ov)return;
     const r=this.RARITIES[s.rarityIdx]||this.RARITIES[0];
     const overdim=s.rarityIdx===4&&!s.isHell;
@@ -442,19 +443,39 @@ const RewardChests = {
   _pickReward(rarityIdx, q){
     q = q || 1;
     const mtAmt=this._mtReward(q); // computed once — label and apply must show/give the exact same number
+    const small=Math.max(Math.round(10*q), Math.round(this._netWorth()*(0.02+Math.random()*0.03)*q)); // kleine Menge (2–5 %)
+    const jack=Math.max(Math.round(100*q), Math.round(this._netWorth()*(1+Math.random())*q));      // Jackpot (1–2× Vermögen)
+    const P=(k,n)=>()=>this._pending(k,n||1);
     const pools=[
-      [{icon:'🐾',label:'Seltenes Tier!',needsSlot:true,apply:()=>this._giveAnimal('rare')}],
+      /* 0 Normal */
+      [{icon:'🪙',label:'+'+small+' MT',apply:()=>this._giveMT(small)},
+       {icon:'🍀',label:'10 Min. Glück-Boost ×2',apply:P('boostLucky10')}],
+      /* 1 Selten */
+      [{icon:'🐾',label:'Seltenes Tier!',needsSlot:true,apply:()=>this._giveAnimal('rare')},
+       {icon:'🎡',label:'1 Glücksrad-Dreh!',apply:P('spins')},
+       {icon:'🥚',label:'Wiesen-Ei!',apply:P('eggMeadow')}],
+      /* 2 Episch */
       [{icon:'🦁',label:'Episches Tier!',needsSlot:true,apply:()=>this._giveAnimal('epic')},
-       {icon:'🌀',label:'+'+mtAmt+' MT',apply:()=>this._giveMT(mtAmt)},
-       {icon:'🧹',label:'1× Kehrmaschine gratis',apply:()=>this._pending('freeSweep',1)}],
-      [{icon:'🎡',label:(q>=5?Math.max(1,Math.round(q/5))+'× Glücksrad-Dreh!':'1 Glücksrad-Dreh!'),apply:()=>this._pending('spins',q>=5?Math.max(1,Math.round(q/5)):1)}],
-      [{icon:'🎡',label:(q>=5?Math.max(1,Math.round(q/3))+'× Glücksrad-Dreh!':'1 Glücksrad-Dreh!'),apply:()=>this._pending('spins',q>=5?Math.max(1,Math.round(q/3)):1)},
-       {icon:'🛡️',label:'Lebenslange Versicherung!',apply:()=>this._pending('lifeInsurance',1)}],
-      [  {icon:'🦕',label:'DINOSAURIER! 🦕',needsSlot:true,apply:()=>this._giveAnimal('dino')},
-         {icon:'🦄',label:'Ultra-Legendäres Tier!',needsSlot:true,apply:()=>this._giveAnimal('ultralegendary')}],
+       {icon:'🎡',label:'2 Glücksrad-Drehs!',apply:P('spins',2)},
+       {icon:'⚗️',label:'Gratis-Vergoldung (Gold-Maschine)',apply:P('freeGold')},
+       {icon:'🛡️',label:'Versicherung für 24 Stunden',apply:P('ins1d')},
+       {icon:'🎭',label:'Skin zum Ausprobieren (24 Std.)',apply:P('skinTrial')}],
+      /* 3 Super-Episch */
+      [{icon:'🦄',label:'Legendäres Tier!',needsSlot:true,apply:()=>this._giveAnimal('legendary')},
+       {icon:'🛡️',label:'Lebenslange Versicherung!',apply:P('lifeInsurance')},
+       {icon:'🥇',label:'Ein Tier wird vergoldet!',apply:P('goldAnimal')},
+       {icon:'💎',label:'Doppelte Belohnung bei der nächsten Kiste!',apply:P('chestDouble')}],
+      /* 4 Überdimensional */
+      [{icon:'🦄',label:'Ultra-Legendäres Tier!',needsSlot:true,apply:()=>this._giveAnimal('ultralegendary')},
+       {icon:'🧍',label:'Skin „Mensch“ – für immer!',apply:P('skinHuman')},
+       {icon:'💰',label:'MT-JACKPOT! +'+jack+' MT',apply:()=>this._giveMT(jack)},
+       {icon:'🔄',label:'Rebirth-Booster (nächstes Rebirth ×2 Einkommen, 3 Std.)',apply:P('rebBooster')},
+       {icon:'🏆',label:'Titel „Kisten-König 👑“ im Chat!',apply:P('chestTitle')},
+       {icon:'🎬',label:'Dein Jahr im Zoo – Mini-Film!',apply:()=>this._yearFilm()}],
     ];
+    const MYTHIC={icon:'🔱',label:'MYTHISCHES TIER!!! 🔱 (Super-Duper-Jackpot)',needsSlot:true,apply:()=>this._giveAnimal('mythic')};
     const pool=pools[Math.min(rarityIdx,4)]||pools[0];
-    if(rarityIdx===4) return Math.random()<0.10?pool[0]:pool[1];
+    if(rarityIdx===4&&Math.random()<0.02) return MYTHIC;
     return pool[Math.floor(Math.random()*pool.length)];
   },
   _pickHell(){
@@ -473,6 +494,7 @@ const RewardChests = {
     if(this._inZoo()){ const z=ZS.zoo; z.mt=Math.max(0,(z.mt||0)+amount); try{ZG._updHUD&&ZG._updHUD();}catch(e){} try{ZS.save&&ZS.save();}catch(e){} if(typeof ZP!=='undefined')ZP.toast((amount>=0?'🌀 +':'')+amount+' MT!',3000); return; }
     const p=State.currentPlayer; if(p){ p.totalScore=Math.max(0,(p.totalScore||0)+amount); State.savePlayer&&State.savePlayer(p); }
   },
+  _yearFilm(){ try{ const z=ZS.zoo||{}; const n=(z.enc||[]).filter(e=>e&&e.animal); const best=n.slice().sort((a,b)=>(b.animal.earn||0)-(a.animal.earn||0))[0]; const o={name:String(ZS.player||'Spieler'),animals:n.length,reb:z.reb||0,mt:z.mt||0,best:best?(best.animal.e+' '+best.animal.n):''}; if(window.ZCine) setTimeout(()=>ZCine.play('year',o),900); }catch(e){} },
   _giveAnimal(kind){
     if(!this._hasZoo()){ if(typeof ZP!=='undefined')ZP.toast('🦁 Kein Zoo — Tier wartet bis du einen hast.',3500); return; }
     this._pending('animal_'+kind,1);
@@ -496,6 +518,17 @@ const RewardChests = {
     if(pr.treats){ z.treats=(z.treats||0)+pr.treats; msg.push(pr.treats+'🍬'); delete pr.treats; }
     if(pr.freeSweep){ z.freeSweeps=(z.freeSweeps||0)+pr.freeSweep; msg.push(pr.freeSweep+'×🧹'); delete pr.freeSweep; }
     if(pr.lifeInsurance){ z.insuranceActive=true; z.lifeInsurance=true; z.insuranceUntil=Date.now()+9e12; msg.push('🛡️'); delete pr.lifeInsurance; }
+    const now=Date.now(); if(!z.tb) z.tb={};
+    if(pr.boostLucky10){ z.tb.lucky=Math.max(now,z.tb.lucky||0)+600000*pr.boostLucky10; msg.push('🍀 10 Min Glück'); delete pr.boostLucky10; }
+    if(pr.eggMeadow){ let ok=false; try{ const inv=()=>{ try{ return ((z.r6||{}).egg||{}).inv.meadow||0; }catch(e){ return 0; } }; const b0=inv(); if(window.ZHatch&&ZHatch.found){ ZHatch.found('meadow','Kiste'); } ok=inv()>b0; }catch(e){} if(!ok){ z.mt=(z.mt||0)+Math.round(Math.max(50,(z.mt||0)*0.05)); msg.push('🥚→🪙'); } else msg.push('🥚 Wiesen-Ei'); delete pr.eggMeadow; }
+    if(pr.freeGold){ z.freeGold=(z.freeGold||0)+pr.freeGold; msg.push('⚗️ Gratis-Vergoldung'); delete pr.freeGold; }
+    if(pr.ins1d){ z.insuranceActive=true; z.insuranceUntil=Math.max(now,z.insuranceUntil||0)+86400000; msg.push('🛡️ 24 Std.'); delete pr.ins1d; }
+    if(pr.skinTrial){ try{ z.skins=z.skins||{}; const all=(window.ZSkins&&ZSkins.all)?ZSkins.all():[]; const cand=all.map(s=>s[0]).filter(id=>!z.skins[id]); const id=cand.length?cand[Math.floor(Math.random()*cand.length)]:null; if(id){ z.skins[id]=now+86400000; z.skin=id; const nmx=all.find(s=>s[0]===id); msg.push('🎭 '+(nmx?nmx[1]:id)+' (24 Std.)'); } else { z.mt=(z.mt||0)+Math.round(Math.max(100,(z.mt||0)*0.05)); msg.push('🎭→🪙'); } }catch(e){} delete pr.skinTrial; }
+    if(pr.goldAnimal){ try{ const GM=window.GoldMachine; const cand=(z.enc||[]).filter(e=>e&&e.animal&&!((z.upgrades||{})[e.animal.id]&&z.upgrades[e.animal.id].tier>=1)); cand.sort((a,b)=>(b.animal.earn||0)-(a.animal.earn||0)); const e=cand[0]; if(e){ z.upgrades=z.upgrades||{}; z.upgrades[e.animal.id]={tier:1}; e.animal._baseEarn=e.animal._baseEarn||(e.animal.earn||1); e.animal.earn=Math.round(e.animal._baseEarn*2); msg.push('🥇 '+e.animal.n+' vergoldet'); } else { z.mt=(z.mt||0)+Math.round(Math.max(100,(z.mt||0)*0.1)); msg.push('🥇→🪙'); } }catch(er){} delete pr.goldAnimal; }
+    if(pr.chestDouble){ z.chestDouble=true; msg.push('💎 nächste Kiste doppelt'); delete pr.chestDouble; }
+    if(pr.skinHuman){ z.skins=z.skins||{}; z.skins.human=1; z.skin='human'; msg.push('🧍 Skin Mensch'); delete pr.skinHuman; }
+    if(pr.rebBooster){ z.rebBooster=(z.rebBooster||0)+pr.rebBooster; msg.push('🔄 Rebirth-Booster'); delete pr.rebBooster; }
+    if(pr.chestTitle){ z.chestTitle='Kisten-König 👑'; msg.push('🏆 Titel'); delete pr.chestTitle; }
     if(pr.event){ if(typeof EVENTS!=='undefined'&&ZG.startEv){ setTimeout(()=>{const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)]; ZG.startEv(ev,300000);},800);} delete pr.event; }
     // Animals
     const giveAnimal=(rarity)=>{
@@ -504,6 +537,7 @@ const RewardChests = {
       if(rarity==='dino') z.enc[slot]={animal:{id:'chest_dino',n:'Dinosaurier',e:'🦕',r:'mythic',p:0,earn:800,w:0},shiny:null,traits:[],xm:1,addedAt:Date.now(),sl:0};
       else {
         let pool=(window.ANIMALS||[]).filter(a=>a.r===rarity); if(!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='epic');
+        if(rarity==='mythic'&&!pool.length)pool=(window.ANIMALS||[]).filter(a=>a.r==='ultralegendary');
         // Prefer an animal not already in the enclosure — a chest reward
         // that just duplicates something already owned feels much less
         // exciting than a genuinely new addition. Only fall back to a
@@ -518,7 +552,7 @@ const RewardChests = {
       return true;
     };
     let gaveAnimal=false;
-    ['rare','epic','ultralegendary','dino'].forEach(rar=>{
+    ['rare','epic','legendary','ultralegendary','mythic','dino'].forEach(rar=>{
       let cnt=pr['animal_'+rar]||0; if(!cnt)return;
       let failed=0;
       for(let i=0;i<cnt;i++){ if(giveAnimal(rar)) gaveAnimal=true; else failed++; }
