@@ -236,9 +236,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=830"></script>
-<script src="rewardchests.js?v=830"></script>
-<script src="personality.js?v=830"></script>
+<script src="lang.js?v=831"></script>
+<script src="rewardchests.js?v=831"></script>
+<script src="personality.js?v=831"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +535,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=830"></script>
-<script src="sanction.js?v=830"></script>
-<script src="zevents.js?v=830"></script>
-<script src="znet.js?v=830"></script>
-<script src="zbases.js?v=830"></script>
-<script src="charheads.js?v=830"></script>
-<script src="zmensch.js?v=830"></script>
-<script src="zcine.js?v=830"></script>
-<script src="zworld.js?v=830"></script>
-<script src="zstation.js?v=830"></script>
-<script src="zfx.js?v=830"></script>
-<script src="zextra.js?v=830"></script>
-<script src="zreb6.js?v=830"></script>
-<script src="zlegend.js?v=830"></script>
-<script src="ztutplus.js?v=830"></script>
-<script src="zlift.js?v=830"></script>
-<script src="zfun.js?v=830"></script>
-<script src="zguide.js?v=830"></script>
-<script src="zrules.js?v=830"></script>
-<script src="zsafe.js?v=830"></script>
-<script src="zrebguard.js?v=830"></script>
-<script src="zpass.js?v=830"></script>
-<script src="znotify.js?v=830"></script>
-<script src="zdetective.js?v=830"></script>
-<script src="zpirate.js?v=830"></script>
-<script src="zpark.js?v=830"></script>
-<script src="zmenu.js?v=830"></script>
-<script src="zdevice.js?v=830"></script>
-<script src="zmusic.js?v=830"></script>
-<script src="zskill.js?v=830"></script>
-<script src="worlds.js?v=830"></script>
+<script src="firebase-state.js?v=831"></script>
+<script src="sanction.js?v=831"></script>
+<script src="zevents.js?v=831"></script>
+<script src="znet.js?v=831"></script>
+<script src="zbases.js?v=831"></script>
+<script src="charheads.js?v=831"></script>
+<script src="zmensch.js?v=831"></script>
+<script src="zcine.js?v=831"></script>
+<script src="zworld.js?v=831"></script>
+<script src="zstation.js?v=831"></script>
+<script src="zfx.js?v=831"></script>
+<script src="zextra.js?v=831"></script>
+<script src="zreb6.js?v=831"></script>
+<script src="zlegend.js?v=831"></script>
+<script src="ztutplus.js?v=831"></script>
+<script src="zlift.js?v=831"></script>
+<script src="zfun.js?v=831"></script>
+<script src="zguide.js?v=831"></script>
+<script src="zrules.js?v=831"></script>
+<script src="zsafe.js?v=831"></script>
+<script src="zrebguard.js?v=831"></script>
+<script src="zpass.js?v=831"></script>
+<script src="znotify.js?v=831"></script>
+<script src="zdetective.js?v=831"></script>
+<script src="zpirate.js?v=831"></script>
+<script src="zpark.js?v=831"></script>
+<script src="zmenu.js?v=831"></script>
+<script src="zdevice.js?v=831"></script>
+<script src="zmusic.js?v=831"></script>
+<script src="zskill.js?v=831"></script>
+<script src="worlds.js?v=831"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -13417,10 +13417,10 @@ const ZChat = {
     if(!el) return;
     const d = document.createElement('div');
     if(id) d.dataset.msgId = id;
-    d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
+    d.style.cssText = 'padding:4px 8px;border-radius:6px;max-width:95%;min-width:0;overflow-wrap:anywhere;word-break:break-word;color:#f0f0f0';
     const tsHtml = at ? '<span class="chat-ts" style="display:'+(this._fullscreen?'inline':'none')+';color:rgba(255,255,255,.4);font-size:.65rem;float:right;margin-left:8px">'+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>' : '';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+$esc(to):'')+'</span><br>' : '';
-    const bodyHtml = '<div class="chat-body" style="display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;word-break:break-word">'+$esc(msg||'')+'</div>';
+    const bodyHtml = '<div class="chat-body" style="display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;min-width:0">'+$esc(msg||'')+'</div>';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
     if(isMine){
       d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)';d.style.alignSelf='flex-end';
