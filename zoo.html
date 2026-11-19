@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=845"></script>
-<script src="rewardchests.js?v=845"></script>
-<script src="personality.js?v=845"></script>
+<script src="lang.js?v=846"></script>
+<script src="rewardchests.js?v=846"></script>
+<script src="personality.js?v=846"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -548,45 +548,45 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=845"></script>
+<script src="zgfx.js?v=846"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=845"></script>
-<script src="sanction.js?v=845"></script>
-<script src="zevents.js?v=845"></script>
-<script src="znet.js?v=845"></script>
-<script src="zbases.js?v=845"></script>
-<script src="charheads.js?v=845"></script>
-<script src="zmensch.js?v=845"></script>
-<script src="zfindchest.js?v=845"></script>
-<script src="zambience.js?v=845"></script>
-<script src="znight.js?v=845"></script>
-<script src="zstarter.js?v=845"></script>
-<script src="zcine.js?v=845"></script>
-<script src="zworld.js?v=845"></script>
-<script src="zstation.js?v=845"></script>
-<script src="zfx.js?v=845"></script>
-<script src="zextra.js?v=845"></script>
-<script src="zreb6.js?v=845"></script>
-<script src="zlegend.js?v=845"></script>
-<script src="ztutplus.js?v=845"></script>
-<script src="zlift.js?v=845"></script>
-<script src="zfun.js?v=845"></script>
-<script src="zguide.js?v=845"></script>
-<script src="zrules.js?v=845"></script>
-<script src="zsafe.js?v=845"></script>
-<script src="zrebguard.js?v=845"></script>
-<script src="zpass.js?v=845"></script>
-<script src="znotify.js?v=845"></script>
-<script src="zdetective.js?v=845"></script>
-<script src="zpirate.js?v=845"></script>
-<script src="zpark.js?v=845"></script>
-<script src="zmenu.js?v=845"></script>
-<script src="zdevice.js?v=845"></script>
-<script src="zmusic.js?v=845"></script>
-<script src="zskill.js?v=845"></script>
-<script src="worlds.js?v=845"></script>
+<script src="firebase-state.js?v=846"></script>
+<script src="sanction.js?v=846"></script>
+<script src="zevents.js?v=846"></script>
+<script src="znet.js?v=846"></script>
+<script src="zbases.js?v=846"></script>
+<script src="charheads.js?v=846"></script>
+<script src="zmensch.js?v=846"></script>
+<script src="zfindchest.js?v=846"></script>
+<script src="zambience.js?v=846"></script>
+<script src="znight.js?v=846"></script>
+<script src="zstarter.js?v=846"></script>
+<script src="zcine.js?v=846"></script>
+<script src="zworld.js?v=846"></script>
+<script src="zstation.js?v=846"></script>
+<script src="zfx.js?v=846"></script>
+<script src="zextra.js?v=846"></script>
+<script src="zreb6.js?v=846"></script>
+<script src="zlegend.js?v=846"></script>
+<script src="ztutplus.js?v=846"></script>
+<script src="zlift.js?v=846"></script>
+<script src="zfun.js?v=846"></script>
+<script src="zguide.js?v=846"></script>
+<script src="zrules.js?v=846"></script>
+<script src="zsafe.js?v=846"></script>
+<script src="zrebguard.js?v=846"></script>
+<script src="zpass.js?v=846"></script>
+<script src="znotify.js?v=846"></script>
+<script src="zdetective.js?v=846"></script>
+<script src="zpirate.js?v=846"></script>
+<script src="zpark.js?v=846"></script>
+<script src="zmenu.js?v=846"></script>
+<script src="zdevice.js?v=846"></script>
+<script src="zmusic.js?v=846"></script>
+<script src="zskill.js?v=846"></script>
+<script src="worlds.js?v=846"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4368,7 +4368,8 @@ const ZG={
     // Apply initial time-of-day after a moment
     setTimeout(()=>this._updateTimeOfDay(), 200);
     // CIRCULAR ground
-    const _gm=new THREE.MeshBasicMaterial({color:0x5DBB63,fog:false}); _gm.userData.flat=true; // Rasen bleibt exakt wie früher (kein Licht/Rauschen/Nebel)
+    const _gm=new THREE.MeshBasicMaterial({color:0x5DBB63}); // 🌱 neuer Rasen mit Gras-Textur (v846)
+    try{ if(window.ZGfx&&ZGfx.grassTex){ _gm.map=ZGfx.grassTex(Math.round(this.WR*2/14)); _gm.color.setHex(0xffffff); } }catch(e){ console.warn('Rasen-Textur',e); }
     const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),_gm);
     gnd.rotation.x=-Math.PI/2;  sc.add(gnd);
     // Boundary wall (torus)

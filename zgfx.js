@@ -44,6 +44,22 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
     };
     P.customProgramCacheKey=function(){ return skip(this)?'zf':'zs'; };
   }
+
+  /* 🌱 Neuer Rasen: gezeichnete Grashalme (kachelbar) – wie ein Foto von echtem Gras */
+  G.grassTex=function(rep){
+    const T=window.THREE; const S=1024, c=document.createElement('canvas'); c.width=c.height=S; const x=c.getContext('2d');
+    let seed=7; const R=()=>{ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; };
+    x.fillStyle='#2f7428'; x.fillRect(0,0,S,S);
+    // große weiche Flecken (hell/dunkel) gegen sichtbares Kacheln
+    for(let i=0;i<46;i++){ const px=R()*S, py=R()*S, r=70+R()*150, l=R()<.5; for(const ox of [-S,0,S]) for(const oy of [-S,0,S]){ const g=x.createRadialGradient(px+ox,py+oy,0,px+ox,py+oy,r); g.addColorStop(0,l?'rgba(130,190,70,.22)':'rgba(20,70,25,.25)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(px+ox-r,py+oy-r,r*2,r*2); } }
+    const PAL=['#1a521a','#245f21','#2d6e26','#357d2a','#3f8c2f','#4c9a34','#5aa83a','#6fb844','#8cc652','#a6cc5e'];
+    const blade=(px,py,col,len,w,ang)=>{ x.strokeStyle=col; x.lineWidth=w; x.lineCap='round'; x.beginPath(); x.moveTo(px,py); x.quadraticCurveTo(px+Math.cos(ang)*len*.5+(R()-.5)*5,py+Math.sin(ang)*len*.5,px+Math.cos(ang)*len,py+Math.sin(ang)*len); x.stroke(); };
+    for(let i=0;i<46000;i++){ const px=R()*S, py=R()*S, k=R(); const col=PAL[Math.min(PAL.length-1,Math.floor(Math.pow(k,1.6)*PAL.length))]; const len=6+R()*13, w=.7+R()*1.0, ang=-Math.PI/2+(R()-.5)*2.6;
+      for(const ox of (px<30?[0,S]:px>S-30?[-S,0]:[0])) for(const oy of (py<30?[0,S]:py>S-30?[-S,0]:[0])) blade(px+ox,py+oy,col,len,w,ang); }
+    // ein paar trockene Blätter / Halme
+    for(let i=0;i<46;i++){ const px=R()*S, py=R()*S; x.fillStyle=['#a5672e','#b98a4a','#8a5a2a'][i%3]; x.save(); x.translate(px,py); x.rotate(R()*6); x.beginPath(); x.ellipse(0,0,3+R()*4,1.4+R()*1.6,0,0,7); x.fill(); x.restore(); }
+    const t=new T.CanvasTexture(c); t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(rep,rep); t.anisotropy=8; t.encoding=T.sRGBEncoding===undefined?t.encoding:t.encoding; t.needsUpdate=true; return t;
+  };
   /* ── Himmel / Nebel / Sonnenstand ── */
   function busy(){ const g=window.ZG; if(!g) return true; return !!(g._steActive||g._jumpActive||g._iceRoomActive||g._mazeActive||g._windRoomActive||g._arcadeActive||g._trashActive||g._moonMode); }
   const hour=()=>{ if(G.hourOverride!=null) return G.hourOverride; const d=new Date(); return d.getHours()+d.getMinutes()/60; };
