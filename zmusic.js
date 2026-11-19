@@ -14,9 +14,9 @@
   const apply=()=>{ au.volume=Math.max(0,Math.min(1,M.vol*night())); };
   const src=i=>BASE+'music/'+TR[i][0];
   M.next=function(userSkip){ M.i=(M.i+1+TR.length)%TR.length; lsw('zmusic_i',M.i); load(true); };
-  function load(play){ try{ au.src=src(M.i); apply(); if(play&&M.on&&!muted()&&!document.hidden){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); }).catch(e=>{ M.playing=false; M.status='Wartet auf deine erste Berührung …'; }); } }catch(e){} }
+  function load(play){ try{ au.src=src(M.i); apply(); if(play&&M.on&&!muted()&&!document.hidden&&!M._ev&&!M._adm){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); }).catch(e=>{ M.playing=false; M.status='Wartet auf deine erste Berührung …'; }); } }catch(e){} }
   function fade(){ const t=M.vol*night(); au.volume=0; let k=0; const iv=setInterval(()=>{ k++; au.volume=Math.min(1,t*k/15); if(k>=15){ clearInterval(iv); apply(); } },100); }
-  M.start=function(){ if(M._ev) return; if(!M.on||muted()) return; if(M.i<0){ M.i=Math.floor(Math.random()*TR.length); lsw('zmusic_i',M.i); } if(!au.src||au.src.indexOf(TR[M.i][0])<0) load(false); apply(); if(au.paused){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); stopSynth(); done(); }).catch(e=>{ M.playing=false; M.status=(e&&e.name==='NotAllowedError')?'Wartet auf deine erste Berührung …':'Fehler: '+(e&&e.name||'?'); }); } };
+  M.start=function(){ if(M._ev||M._adm) return; if(!M.on||muted()) return; if(M.i<0){ M.i=Math.floor(Math.random()*TR.length); lsw('zmusic_i',M.i); } if(!au.src||au.src.indexOf(TR[M.i][0])<0) load(false); apply(); if(au.paused){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); stopSynth(); done(); }).catch(e=>{ M.playing=false; M.status=(e&&e.name==='NotAllowedError')?'Wartet auf deine erste Berührung …':'Fehler: '+(e&&e.name||'?'); }); } };
   M.stop=function(){ try{ au.pause(); }catch(e){} M.playing=false; };
   M.setOn=function(v){ M.on=!!v; lsw('zmusic_on',M.on); if(M.on) M.start(); else M.stop(); };
   M.setVol=function(v){ M.vol=Math.max(0,Math.min(1,+v)); lsw('zmusic_vol',M.vol); apply(); if(M.vol>0&&M.on&&au.paused) M.start(); };
@@ -68,6 +68,7 @@
   E.tick=function(){ try{
     if(!E.running()){ if(M._ev||!ev.paused) E.end(); hud(); return; }
     if(!allowed()){ if(!ev.paused) ev.pause(); if(M._ev){ M._ev=false; } hud(); return; }
+    if(M._adm){ if(!ev.paused) ev.pause(); hud(); return; }
     if(document.hidden){ hud(); return; }
     if(!M._ev){ M._ev=true; try{ au.pause(); }catch(e){} }
     evVol();
@@ -79,6 +80,15 @@
     if(!h){ h=document.createElement('div'); h.id='zbgm-hud'; h.style.cssText='position:fixed;left:50%;top:44px;transform:translateX(-50%);z-index:560;pointer-events:none;padding:5px 14px;border-radius:16px;background:linear-gradient(135deg,#8e24aa,#e91e63);border:2px solid #fff;color:#fff;font:900 .85rem Arial,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.5)'; document.body.appendChild(h); }
     const r=Math.max(0,Math.round((E.until-Date.now())/1000)); h.textContent='🎉 Party-Zeit · '+Math.floor(r/60)+':'+('0'+(r%60)).slice(-2)+(allowed()?'':' · 🔇'); }catch(e){} }
   setInterval(E.tick,1000);
+  // ═══ Vorrang (v841): Admin-Lieder (Synth) > Event-Lieder (Party/Timer) > normale Hintergrundmusik – nie mehr übereinander ═══
+  setInterval(()=>{ try{
+    const Z=window.ZMusic, adm=!!(Z&&Z.on&&!Z._viaBgm);
+    if(adm&&!M._adm){ M._adm=true; M.playing=false; }
+    else if(!adm&&M._adm){ M._adm=false; if(E.running()) E.tick(); else if(M.on&&!muted()&&!document.hidden) M.start(); }
+    if(adm){ if(!au.paused) au.pause(); if(!ev.paused) ev.pause(); }
+    else if(E.running()&&M._ev&&!au.paused) au.pause();
+    if((adm||E.running())&&window.ZSound&&ZSound._melodyIv){ try{ ZSound.stopMelody(); }catch(e){} }
+  }catch(e){} },300);
   ['pointerdown','touchend','keydown'].forEach(e=>addEventListener(e,()=>{ if(E.running()&&ev.paused) E.tick(); },true));
   // Admin-Timer (zevents: ZMusic mode "team") → Event-Lieder statt Synthesizer; bei ausgeschalteter Musik bleibt es still
   let hz=0; const hookT=()=>{ try{ const Z=window.ZMusic; if(Z&&Z.play&&!Z._bg){ Z._bg=1; const op=Z.play, os=Z.stop;
