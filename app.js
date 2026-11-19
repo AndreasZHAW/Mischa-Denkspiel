@@ -231,7 +231,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v835';
+const APP_VERSION = 'v836';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -3910,9 +3910,10 @@ const DSChat = {
       </div>
       <div id="ds-chat-msgs" style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-height:min(300px,40vh);max-height:min(440px,55vh)"></div>
       <div style="background:#1a2a3a;border-radius:0 0 10px 10px;padding:8px;display:flex;gap:6px">
-        <input id="ds-chat-in" type="text" maxlength="200" placeholder="Nachricht..." autocomplete="off"
-          style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none"
-          onkeydown="if(event.key==='Enter')DSChat.send()">
+        <textarea id="ds-chat-in" rows="1" maxlength="500" placeholder="Nachricht..." autocomplete="off"
+          style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:6px;font-size:.88rem;outline:none;resize:none;font-family:inherit;line-height:1.25;max-height:7.5em;overflow-y:auto"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+          onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();DSChat.send();}"></textarea>
         <button onclick="DSChat.pickImage()" title="Screenshot machen" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:white;padding:8px 10px;border-radius:6px;font-size:.88rem;cursor:pointer">📷</button>
         <button onclick="DSChat.send()" style="background:#2980B9;border:none;color:white;padding:8px 14px;border-radius:6px;font-size:.88rem;cursor:pointer">→</button>
       </div>`;
@@ -3932,14 +3933,14 @@ const DSChat = {
   send(){
     const inp = document.getElementById('ds-chat-in');
     if(!inp||!inp.value.trim()) return;
-    const msg = inp.value.trim().slice(0,200);
+    const msg = inp.value.trim().slice(0,500);
     const targetSel = document.getElementById('ds-chat-target');
     const to = targetSel ? (targetSel.value||null) : null;
-    inp.value = '';
+    inp.value = ''; try{ inp.style.height='auto'; }catch(e){}
     const me = State.currentPlayer?.name||'?';
     const data = { from: me, msg, at: Date.now(), to: to||null };
     const el = this._addMsg(data.from, data.msg, true, to, undefined, undefined, data.at);
-    try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{}); }catch(e){}
+    try{ if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch((e=>{ try{ console.warn('[Chat] Senden fehlgeschlagen:',e&&e.code,e&&e.message); const t=(typeof ZP!=='undefined'&&ZP.toast)?ZP.toast.bind(ZP):null; if(data.msg&&data.msg.length>180&&!data._retry){ if(t)t('⚠️ Lange Nachricht wird in Teilen gesendet…',2500); const parts=data.msg.match(/[\s\S]{1,170}/g)||[]; parts.forEach((p,i)=>setTimeout(()=>{ try{ _db.collection('zoo_chat').add(Object.assign({},data,{msg:p,at:Date.now()+i,_retry:1})).catch(er=>{ if(t&&i===0)t('❌ Nachricht nicht gesendet: '+((er&&(er.code||er.message))||'?'),4000); }); }catch(x){} },i*350)); } else if(t) t('❌ Nachricht nicht gesendet: '+((e&&(e.code||e.message))||'?'),4000); }catch(x){} })); }catch(e){}
   },
   async pickImage(){
     const hasScreenCapture = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function');
@@ -4005,26 +4006,41 @@ const DSChat = {
       const me=State.currentPlayer?.name||'?';
       const data={ from:me, msg:'', at:Date.now(), to:to||null, img:compressed, pending:true };
       const el = this._addMsg(data.from,'⏳ Bild wird geprüft, bevor es andere sehen können...',true,to,compressed,undefined,data.at);
-      if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{});
+      if(typeof _db!=='undefined'&&_db&&State._useCloud()) _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch((e=>{ try{ console.warn('[Chat] Senden fehlgeschlagen:',e&&e.code,e&&e.message); const t=(typeof ZP!=='undefined'&&ZP.toast)?ZP.toast.bind(ZP):null; if(data.msg&&data.msg.length>180&&!data._retry){ if(t)t('⚠️ Lange Nachricht wird in Teilen gesendet…',2500); const parts=data.msg.match(/[\s\S]{1,170}/g)||[]; parts.forEach((p,i)=>setTimeout(()=>{ try{ _db.collection('zoo_chat').add(Object.assign({},data,{msg:p,at:Date.now()+i,_retry:1})).catch(er=>{ if(t&&i===0)t('❌ Nachricht nicht gesendet: '+((er&&(er.code||er.message))||'?'),4000); }); }catch(x){} },i*350)); } else if(t) t('❌ Nachricht nicht gesendet: '+((e&&(e.code||e.message))||'?'),4000); }catch(x){} }));
     }catch(e){}
+  },
+  _showFull(from,msg,at,to){
+    document.getElementById('chat-full')?.remove();
+    const o=document.createElement('div'); o.id='chat-full'; o.style.cssText='position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px';
+    const b=document.createElement('div'); b.style.cssText='background:#14222f;border:2px solid #FFD700;border-radius:14px;max-width:min(520px,94vw);max-height:80vh;display:flex;flex-direction:column;color:#fff;font-family:Arial,sans-serif;box-shadow:0 10px 40px #000';
+    const hd=document.createElement('div'); hd.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.15)';
+    const nm=document.createElement('div'); nm.style.cssText='flex:1;font-weight:900;color:#FFD700'; nm.textContent='💬 '+from+(to?' 🔒':'')+(at?'  ·  '+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'');
+    const x=document.createElement('button'); x.textContent='✕'; x.style.cssText='background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;width:30px;height:30px;font-size:1rem;cursor:pointer';
+    hd.appendChild(nm); hd.appendChild(x);
+    const tx=document.createElement('div'); tx.style.cssText='padding:14px;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:1rem;line-height:1.4'; tx.textContent=msg||'';
+    b.appendChild(hd); b.appendChild(tx); o.appendChild(b); document.body.appendChild(o);
+    const close=()=>o.remove(); x.onclick=close; o.onclick=ev=>{ if(ev.target===o) close(); };
   },
   _addMsg(from, msg, isMine, to, img, id, at){
     const el=document.getElementById('ds-chat-msgs'); if(!el) return;
     const d=document.createElement('div');
     if(id) d.dataset.msgId = id;
-    d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;word-break:break-word;color:#f0f0f0';
+    d.style.cssText='padding:4px 8px;border-radius:6px;max-width:95%;min-width:0;overflow-wrap:anywhere;word-break:break-word;color:#f0f0f0';
     const escFn = typeof $esc==='function' ? $esc : (s)=>String(s||'').replace(/</g,'&lt;');
     const tsHtml = at ? '<span class="chat-ts" style="display:'+(this._fullscreen?'inline':'none')+';color:rgba(255,255,255,.4);font-size:.65rem;float:right;margin-left:8px">'+new Date(at).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span>' : '';
     const privTag = to ? '<span style="color:#e67e22;font-size:.68rem">🔒 privat'+(isMine?' an '+escFn(to):'')+'</span><br>' : '';
     const imgHtml = img ? '<br><img src="'+img+'" style="max-width:200px;max-height:200px;border-radius:8px;margin-top:4px;cursor:pointer" onclick="window.open(this.src)">' : '';
+    const bodyHtml='<div class="chat-body" style="display:-webkit-box;-webkit-line-clamp:5;line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;min-width:0">'+escFn(msg||'')+'</div>';
     if(isMine){
       d.style.background=to?'rgba(230,126,34,.25)':'rgba(41,128,185,.4)'; d.style.alignSelf='flex-end';
-      d.innerHTML=tsHtml+privTag+'<span style="color:#4af;font-size:.75rem">Du</span><br>'+escFn(msg||'')+imgHtml;
+      d.innerHTML=tsHtml+privTag+'<span style="color:#4af;font-size:.75rem">Du</span>'+bodyHtml+imgHtml;
     }else{
       d.style.background=to?'rgba(230,126,34,.2)':'rgba(255,255,255,.07)'; d.style.alignSelf='flex-start';
-      d.innerHTML=tsHtml+privTag+'<span style="color:#FFD700;font-size:.75rem">'+escFn(from)+(to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'')+'</span><br>'+escFn(msg||'')+imgHtml;
+      d.innerHTML=tsHtml+privTag+'<span style="color:#FFD700;font-size:.75rem">'+escFn(from)+(to?' <span style="color:#e67e22;font-size:.68rem">(privat an dich)</span>':'')+'</span>'+bodyHtml+imgHtml;
     }
-    el.appendChild(d); el.scrollTop=el.scrollHeight;
+    el.appendChild(d);
+    try{ const bd=d.querySelector('.chat-body'); if(bd&&bd.scrollHeight>bd.clientHeight+2){ d.style.cursor='pointer'; const more=document.createElement('div'); more.textContent='… antippen zum Lesen'; more.style.cssText='color:#7fd0ff;font-size:.7rem;margin-top:2px'; bd.after(more); d.onclick=ev=>{ if(ev.target.tagName==='IMG') return; DSChat._showFull(isMine?'Du':from,msg,at,to); }; } }catch(e){}
+    el.scrollTop=el.scrollHeight;
     while(el.children.length>50) el.removeChild(el.firstChild);
     return d;
   },

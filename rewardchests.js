@@ -472,7 +472,7 @@ const RewardChests = {
   _revealReward(){
     const s=this._animState; if(!s)return;
     if(s.tier.min>=0) this._markOpened(s.tier.min);
-    let reward=s.isHell ? this._pickHell() : this._pickReward(s.rarityIdx, s.tier.q||1);
+    let reward=s.isHell ? this._pickHell() : (s.tier.min<0 ? this._pickFind(s.rarityIdx, s.tier.q||1) : this._pickReward(s.rarityIdx, s.tier.q||1));
     try{ if(reward.apply) reward.apply(); }catch(e){ console.warn('reward apply error',e); }
     try{ const z=ZS.zoo; if(z&&z.chestDouble&&!s.isHell&&reward.apply&&!/Doppelte Belohnung/.test(reward.label)){ z.chestDouble=false; const r2=this._pickReward(s.rarityIdx,s.tier.q||1); if(r2&&r2.apply&&!/Doppelte Belohnung/.test(r2.label)){ r2.apply(); reward={icon:reward.icon,label:reward.label+'  +  '+r2.icon+' '+r2.label+' (doppelt!)',needsSlot:reward.needsSlot}; } } }catch(e){ console.warn('double',e); }
     const ov=document.getElementById('chest-anim'); if(!ov)return;
@@ -524,6 +524,36 @@ const RewardChests = {
     const cap=Math.round(Math.max(floor*2, nw*2*q));
     if(Math.random()<0.06) amt=cap; // rare jackpot
     return Math.min(amt, cap);
+  },
+  // Belohnungen der versteckten Schatzkisten (ZFindChest)
+  _pickFind(rarityIdx,q){
+    const P=(k,n)=>()=>this._pending(k,n||1);
+    const L=[
+      {w:10,icon:'⚗️',label:'Gold-Gutschein: 1 Tier gratis vergolden!',apply:P('freeGold')},
+      {w:12,icon:'👟',label:'Speed-Boost ×1.6 für 5 Min.',apply:P('boostSpeed5')},
+      {w:12,icon:'💰',label:'Einkommen ×3 für 10 Min.',apply:P('boostCoin3')},
+      {w:12,icon:'🧪',label:'Glücks-Trank: Glück ×2 für 15 Min.',apply:P('boostLucky15')},
+      {w:12,icon:'🎡',label:'Gratis-Drehung am Glücksrad!',apply:P('spins')},
+      {w:12,icon:'🍬',label:'Leckerli-Paket (+5 Leckerli)',apply:P('treats',5)},
+      {w:8,icon:'🎲',label:'Würfel-Schutz: nächster Verlust wird erstattet!',apply:P('diceShield')},
+      {w:12,icon:'📦',label:'Normale Truhe sofort bereit!',apply:()=>this._readyNext()}
+    ];
+    if(Math.random()<0.2) return this._pickReward(rarityIdx,q);
+    let t=L.reduce((a,b)=>a+b.w,0),r=Math.random()*t;
+    for(const x of L){ r-=x.w; if(r<=0) return x; }
+    return L[0];
+  },
+  // macht die nächste noch ungeöffnete Truhe sofort verfügbar
+  _readyNext(){
+    try{
+      const op=this._opened(), nx=this._tiers().filter(t=>!op.includes(t.min)).sort((a,b)=>a.min-b.min)[0];
+      if(!nx) return this._giveMT(Math.round(this._netWorth()*0.03)+50);
+      const st=Date.now()-(nx.min+1)*60000;
+      const cur=parseInt(sessionStorage.getItem('mischa_session_start')||String(Date.now()),10);
+      if(st<cur) sessionStorage.setItem('mischa_session_start',String(st));
+      if(typeof ZS!=='undefined'&&ZS.zoo&&ZS.zoo.st&&ZS.zoo.st>st) ZS.zoo.st=st;
+      this.updateBadge();
+    }catch(e){}
   },
   _pickReward(rarityIdx, q){
     q = q || 1;
@@ -606,6 +636,10 @@ const RewardChests = {
     const now=Date.now(); if(!z.tb) z.tb={};
     if(pr.boostLucky10){ z.tb.lucky=Math.max(now,z.tb.lucky||0)+600000*pr.boostLucky10; msg.push('🍀 10 Min Glück'); delete pr.boostLucky10; }
     if(pr.eggMeadow){ let ok=false; try{ const inv=()=>{ try{ return ((z.r6||{}).egg||{}).inv.meadow||0; }catch(e){ return 0; } }; const b0=inv(); if(window.ZHatch&&ZHatch.found){ ZHatch.found('meadow','Kiste'); } ok=inv()>b0; }catch(e){} if(!ok){ z.mt=(z.mt||0)+Math.round(Math.max(50,(z.mt||0)*0.05)); msg.push('🥚→🪙'); } else msg.push('🥚 Wiesen-Ei'); delete pr.eggMeadow; }
+    if(pr.boostSpeed5){ z.tb.speed=Math.max(now,z.tb.speed||0)+300000*pr.boostSpeed5; msg.push('👟 Speed'); delete pr.boostSpeed5; }
+    if(pr.boostCoin3){ z.tb.coin3=Math.max(now,z.tb.coin3||0)+600000*pr.boostCoin3; msg.push('💰 ×3'); delete pr.boostCoin3; }
+    if(pr.boostLucky15){ z.tb.lucky=Math.max(now,z.tb.lucky||0)+900000*pr.boostLucky15; msg.push('🍀 15 Min Glück'); delete pr.boostLucky15; }
+    if(pr.diceShield){ z.diceShield=(z.diceShield||0)+pr.diceShield; msg.push('🎲 Würfel-Schutz'); delete pr.diceShield; }
     if(pr.freeGold){ z.freeGold=(z.freeGold||0)+pr.freeGold; msg.push('⚗️ Gratis-Vergoldung'); delete pr.freeGold; }
     if(pr.ins1d){ z.insuranceActive=true; z.insuranceUntil=Math.max(now,z.insuranceUntil||0)+86400000; msg.push('🛡️ 24 Std.'); delete pr.ins1d; }
     if(pr.skinTrial){ try{ z.skins=z.skins||{}; const all=(window.ZSkins&&ZSkins.all)?ZSkins.all():[]; const cand=all.map(s=>s[0]).filter(id=>!z.skins[id]); const id=cand.length?cand[Math.floor(Math.random()*cand.length)]:null; if(id){ z.skins[id]=now+86400000; z.skin=id; const nmx=all.find(s=>s[0]===id); msg.push('🎭 '+(nmx?nmx[1]:id)+' (24 Std.)'); } else { z.mt=(z.mt||0)+Math.round(Math.max(100,(z.mt||0)*0.05)); msg.push('🎭→🪙'); } }catch(e){} delete pr.skinTrial; }

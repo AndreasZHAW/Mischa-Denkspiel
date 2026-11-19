@@ -190,7 +190,7 @@
         case 'dome': { const b=M('dmB',()=>new THREE.CylinderGeometry(2.6,2.8,.5,16),0x8a929a); b.position.y=.25; g.add(b); const d=M('dmD',()=>new THREE.SphereGeometry(2.5,16,10,0,Math.PI*2,0,Math.PI/2),0x7ad0ff); d.material=d.material; d.position.y=.5; g.add(d); } break;
         default: break;
       }
-      g.scale.setScalar(s*1.35); return g;
+      g.scale.setScalar(s*1.35*(t==='torii'?.62:1)); return g;
     },
     // Welt-Objekt aus Vorlage
     buildObj(o,owner,likes){
@@ -223,6 +223,7 @@
         const n=B.buildObj(o,owner,likes); if(!n) return; if(n.userData.isSign) hasSign=true;
         n.position.x=c.x+tx*o[1]-rx*o[2]; n.position.z=c.z+tz*o[1]-rz*o[2];
         if(ALL[o[0]]&&ALL[o[0]].k!=='e'&&ALL[o[0]].k!=='g') n.rotation.y=yaw+(o[3]||0)*Math.PI/180;
+        if(o[0]==='torii') n.rotation.y=Math.round(n.rotation.y/(Math.PI/2))*(Math.PI/2); // Tor immer gerade (an der Welt-Achse ausgerichtet)
         if(n.userData.zone){ grp.userData.zones.push({kind:n.userData.zone.kind,r:n.userData.zone.r,x:n.position.x,z:n.position.z,owner,key:owner+'|'+o[0]+'|'+o[1]+'|'+o[2]}); }
         if(n.userData.siren){ const lg=[]; n.traverse(m=>{ if(m.userData.sir) lg.push(m); }); grp.userData.sirens.push({x:n.position.x,z:n.position.z,owner,lg,key:owner+'|s|'+o[1]+'|'+o[2]}); }
         if(n.userData.solid){ const sd=n.userData.solid; const so={kind:sd.kind,hx:sd.hx,hz:sd.hz,r:sd.r,circ:sd.circ,x:n.position.x,z:n.position.z,th:n.rotation.y,owner,cx:c.x,cz:c.z}; grp.userData.solids.push(so); if(sd.kind==='laser'){ const bm=[],tp=[]; n.traverse(m=>{ if(m.userData.beam) bm.push(m); if(m.userData.tip) tp.push(m); }); grp.userData.lasers.push({so,bm,tp}); } }

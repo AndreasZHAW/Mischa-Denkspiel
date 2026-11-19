@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=835"></script>
-<script src="rewardchests.js?v=835"></script>
-<script src="personality.js?v=835"></script>
+<script src="lang.js?v=836"></script>
+<script src="rewardchests.js?v=836"></script>
+<script src="personality.js?v=836"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -551,38 +551,38 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=835"></script>
-<script src="sanction.js?v=835"></script>
-<script src="zevents.js?v=835"></script>
-<script src="znet.js?v=835"></script>
-<script src="zbases.js?v=835"></script>
-<script src="charheads.js?v=835"></script>
-<script src="zmensch.js?v=835"></script>
-<script src="zfindchest.js?v=835"></script>
-<script src="zcine.js?v=835"></script>
-<script src="zworld.js?v=835"></script>
-<script src="zstation.js?v=835"></script>
-<script src="zfx.js?v=835"></script>
-<script src="zextra.js?v=835"></script>
-<script src="zreb6.js?v=835"></script>
-<script src="zlegend.js?v=835"></script>
-<script src="ztutplus.js?v=835"></script>
-<script src="zlift.js?v=835"></script>
-<script src="zfun.js?v=835"></script>
-<script src="zguide.js?v=835"></script>
-<script src="zrules.js?v=835"></script>
-<script src="zsafe.js?v=835"></script>
-<script src="zrebguard.js?v=835"></script>
-<script src="zpass.js?v=835"></script>
-<script src="znotify.js?v=835"></script>
-<script src="zdetective.js?v=835"></script>
-<script src="zpirate.js?v=835"></script>
-<script src="zpark.js?v=835"></script>
-<script src="zmenu.js?v=835"></script>
-<script src="zdevice.js?v=835"></script>
-<script src="zmusic.js?v=835"></script>
-<script src="zskill.js?v=835"></script>
-<script src="worlds.js?v=835"></script>
+<script src="firebase-state.js?v=836"></script>
+<script src="sanction.js?v=836"></script>
+<script src="zevents.js?v=836"></script>
+<script src="znet.js?v=836"></script>
+<script src="zbases.js?v=836"></script>
+<script src="charheads.js?v=836"></script>
+<script src="zmensch.js?v=836"></script>
+<script src="zfindchest.js?v=836"></script>
+<script src="zcine.js?v=836"></script>
+<script src="zworld.js?v=836"></script>
+<script src="zstation.js?v=836"></script>
+<script src="zfx.js?v=836"></script>
+<script src="zextra.js?v=836"></script>
+<script src="zreb6.js?v=836"></script>
+<script src="zlegend.js?v=836"></script>
+<script src="ztutplus.js?v=836"></script>
+<script src="zlift.js?v=836"></script>
+<script src="zfun.js?v=836"></script>
+<script src="zguide.js?v=836"></script>
+<script src="zrules.js?v=836"></script>
+<script src="zsafe.js?v=836"></script>
+<script src="zrebguard.js?v=836"></script>
+<script src="zpass.js?v=836"></script>
+<script src="znotify.js?v=836"></script>
+<script src="zdetective.js?v=836"></script>
+<script src="zpirate.js?v=836"></script>
+<script src="zpark.js?v=836"></script>
+<script src="zmenu.js?v=836"></script>
+<script src="zdevice.js?v=836"></script>
+<script src="zmusic.js?v=836"></script>
+<script src="zskill.js?v=836"></script>
+<script src="worlds.js?v=836"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -1918,7 +1918,7 @@ const DailyCalendar = {
 };
 
 function _rmult(z){ const r=z.reb||0; if(z._rebMultFor!==r||!z.rebirthMult){ z.rebirthMult=rebMultOf(r); z._rebMultFor=r; } return z.rebirthMult||1; }
-function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*_rmult(z)*(typeof ZBases!=='undefined'?ZBases.multOf(z):1)*Math.pow(1.05,enc.sl||0)*(window.ZTread?ZTread.fitMul(enc):1);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;if(typeof ZCodes!=='undefined'&&ZCodes.gm)e*=ZCodes.gm();
+function earn(enc,z,ev){if(!enc||!enc.animal)return 0;if(typeof ScreenTime!=='undefined'&&ScreenTime.isBlocked())return 0;const _earn=parseFloat(enc.animal.earn)||0;if(isNaN(_earn)||!isFinite(_earn))return 0;let e=_earn*tMul(enc.shiny,enc.traits)*(enc.xm||1)*_rmult(z)*(typeof ZBases!=='undefined'?ZBases.multOf(z):1)*Math.pow(1.05,enc.sl||0)*(window.ZTread?ZTread.fitMul(enc):1);if(z.upg?.earn)e*=2;if(z.upg?.earn2)e*=2;if((z.tb?.coin||0)>Date.now())e*=2;if((z.tb?.coin3||0)>Date.now())e*=3;if(ev?.id==='golden')e*=2.5;if(ev?.id==='mega')e*=3;if(ev?.id==='storm')e*=4;if(enc.treatUntil&&enc.treatUntil>Date.now())e*=2;if((z.earnDebuffUntil||0)>Date.now())e*=0.5;if(typeof ZP!=='undefined'&&ZP.decoMult)e*=ZP.decoMult();if(typeof Weather!=='undefined')e*=Weather.mult();if((z.chaosUntil||0)>Date.now()&&z.chaosMult)e*=z.chaosMult;if((z.mtPassBoosts?.money?.until||0)>Date.now())e*=z.mtPassBoosts.money.mult;if(typeof ZCodes!=='undefined'&&ZCodes.gm)e*=ZCodes.gm();
   // EARLY GAME PACING: with just the first animal and no rebirth yet, income
   // was way too fast (avg ~53s to afford a 2nd animal). Throttle to stretch
   // that to roughly 7 minutes so the very beginning isn't instantly rushed —
@@ -5645,7 +5645,7 @@ const ZG={
       shoe_mod*=1+Math.min(49, (escSpeed/60000)*14);
     }
     if(this._arcadeActive) shoe_mod=1; // im Automaten-Raum normales Tempo, keine Schuh-Boosts
-    const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod*(Date.now()<(this._slowUntil||0)?0.5:1);
+    const baseSp=(this._sprintActive?24:14)*0.8*shoe_mod*steal_mod*carry_mod*trash_mod*(Date.now()<(this._slowUntil||0)?0.5:1)*(((ZS.zoo&&ZS.zoo.tb&&ZS.zoo.tb.speed)||0)>Date.now()&&!this._arcadeActive?1.6:1);
     if(this._seniorTurn) this.yaw+=this._seniorTurn*1.7*dt;
     const fwd={x:-Math.sin(this.yaw),z:-Math.cos(this.yaw)};
     const rgt={x:Math.cos(this.yaw),z:-Math.sin(this.yaw)};
@@ -6776,7 +6776,7 @@ const ZG={
     // reruns every game tick (~10×/sec, see the main loop above), so once
     // `until` passes, the entry just stops being included here — no
     // separate cleanup needed, it disappears on its own.
-    const BOOST_META={lucky:{e:'🍀',n:'Glück ×2'},coin:{e:'💰',n:'Geld ×2'},storm:{e:'🌊',n:'Besucher ×8'},vis2x:{e:'👥',n:'Besucher ×2'}};
+    const BOOST_META={speed:{e:'👟',n:'Speed ×1.6'},coin3:{e:'💰',n:'Geld ×3'},lucky:{e:'🍀',n:'Glück ×2'},coin:{e:'💰',n:'Geld ×2'},storm:{e:'🌊',n:'Besucher ×8'},vis2x:{e:'👥',n:'Besucher ×2'}};
     const z=ZS.zoo;
     const activeBoosts=(z&&z.tb)?Object.entries(z.tb).filter(([id,until])=>until>now && BOOST_META[id]):[];
     // Admin-activated global luck (z.adminLuckMult/z.adminLuckExp) is a
@@ -13358,7 +13358,7 @@ const ZChat = {
     // Save to Firebase
     try{
       if(typeof _db!=='undefined'&&_db&&State._useCloud()){
-        _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch(()=>{});
+        _db.collection('zoo_chat').add(data).then(ref=>{ if(el) el.dataset.msgId=ref.id; this._shownIds.add(ref.id); }).catch((e=>{ try{ console.warn('[Chat] Senden fehlgeschlagen:',e&&e.code,e&&e.message); const t=(typeof ZP!=='undefined'&&ZP.toast)?ZP.toast.bind(ZP):null; if(data.msg&&data.msg.length>180&&!data._retry){ if(t)t('⚠️ Lange Nachricht wird in Teilen gesendet…',2500); const parts=data.msg.match(/[\s\S]{1,170}/g)||[]; parts.forEach((p,i)=>setTimeout(()=>{ try{ _db.collection('zoo_chat').add(Object.assign({},data,{msg:p,at:Date.now()+i,_retry:1})).catch(er=>{ if(t&&i===0)t('❌ Nachricht nicht gesendet: '+((er&&(er.code||er.message))||'?'),4000); }); }catch(x){} },i*350)); } else if(t) t('❌ Nachricht nicht gesendet: '+((e&&(e.code||e.message))||'?'),4000); }catch(x){} }));
       }
     }catch(e){}
   },
@@ -18126,6 +18126,10 @@ const DiceMachine = {
       z.mt+=amount;
       if(resultEl){ resultEl.style.color='#27AE60'; resultEl.textContent='🎉 Gewonnen! +'+$mt(amount); }
       ZP.toast('🎉 Gewonnen! +'+$mt(amount),2500);
+    } else if((z.diceShield||0)>0){
+      z.diceShield--;
+      if(resultEl){ resultEl.style.color='#00CFFF'; resultEl.textContent='🛡️ Verloren – aber Würfel-Schutz hat dein Geld gerettet!'; }
+      ZP.toast('🛡️ Würfel-Schutz: nichts verloren!',2500);
     } else {
       z.mt-=amount;
       if(resultEl){ resultEl.style.color='#E74C3C'; resultEl.textContent='💥 Verloren! -'+$mt(amount); }
