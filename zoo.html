@@ -173,6 +173,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .zpi{background:linear-gradient(160deg,#0a1628,#0d1f3c);width:100%;max-width:450px;border-radius:22px 22px 0 0;padding:16px 14px 30px;max-height:88vh;overflow-y:auto;position:relative}
 .pcls{position:sticky;top:0;float:right;background:rgba(255,255,255,.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:.9rem;cursor:pointer;z-index:5;margin-bottom:-28px}
 .pt{font-weight:900;color:#FFD700;font-size:1.2rem;text-align:center;margin-bottom:10px;clear:both}
+/* ── v833: einheitlicher, ruhigerer Look für Panels (Shop, Tausch, Rangliste, Menüs …) ── */
+.zp{backdrop-filter:blur(8px) saturate(1.1)}
+.zpi{background:linear-gradient(165deg,#0c1a30 0%,#0a1426 55%,#0b1220 100%);border:1px solid rgba(255,255,255,.09);border-bottom:none;box-shadow:0 -12px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07);animation:zpiUp .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes zpiUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.pt,.pmenu-title{letter-spacing:.02em;text-shadow:0 2px 12px rgba(255,215,0,.25);padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid rgba(255,215,0,.22)}
+.pcls{width:32px;height:32px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);transition:background .15s,transform .15s}
+.pcls:hover{background:rgba(231,76,60,.55)}.pcls:active{transform:scale(.92)}
+.zpi button{transition:transform .12s,filter .15s,box-shadow .15s}
+.zpi button:not(:disabled):hover{filter:brightness(1.12)}
+.zpi button:not(:disabled):active{transform:scale(.96)}
+.zpi input,.zpi select,.zpi textarea{border-radius:10px;transition:border-color .15s,box-shadow .15s}
+.zpi input:focus,.zpi select:focus,.zpi textarea:focus{outline:none;border-color:rgba(255,215,0,.6)!important;box-shadow:0 0 0 3px rgba(255,215,0,.15)}
+.zpi ::-webkit-scrollbar{width:6px}.zpi ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:6px}.zpi ::-webkit-scrollbar-track{background:transparent}
+.zpi{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+#p-shop .zpi>div[style*="border-radius"],#p-trade .zpi>div[style*="border-radius"],#p-rank .zpi>div[style*="border-radius"]{box-shadow:0 2px 10px rgba(0,0,0,.25)}
+
 .ac{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:9px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .ab{padding:4px 10px;border-radius:50px;border:none;cursor:pointer;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0800;font-size:.7rem;font-weight:900;margin-top:2px}
 .ab:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.3);cursor:not-allowed}
@@ -236,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=831"></script>
-<script src="rewardchests.js?v=831"></script>
-<script src="personality.js?v=831"></script>
+<script src="lang.js?v=833"></script>
+<script src="rewardchests.js?v=833"></script>
+<script src="personality.js?v=833"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -535,37 +551,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=831"></script>
-<script src="sanction.js?v=831"></script>
-<script src="zevents.js?v=831"></script>
-<script src="znet.js?v=831"></script>
-<script src="zbases.js?v=831"></script>
-<script src="charheads.js?v=831"></script>
-<script src="zmensch.js?v=831"></script>
-<script src="zcine.js?v=831"></script>
-<script src="zworld.js?v=831"></script>
-<script src="zstation.js?v=831"></script>
-<script src="zfx.js?v=831"></script>
-<script src="zextra.js?v=831"></script>
-<script src="zreb6.js?v=831"></script>
-<script src="zlegend.js?v=831"></script>
-<script src="ztutplus.js?v=831"></script>
-<script src="zlift.js?v=831"></script>
-<script src="zfun.js?v=831"></script>
-<script src="zguide.js?v=831"></script>
-<script src="zrules.js?v=831"></script>
-<script src="zsafe.js?v=831"></script>
-<script src="zrebguard.js?v=831"></script>
-<script src="zpass.js?v=831"></script>
-<script src="znotify.js?v=831"></script>
-<script src="zdetective.js?v=831"></script>
-<script src="zpirate.js?v=831"></script>
-<script src="zpark.js?v=831"></script>
-<script src="zmenu.js?v=831"></script>
-<script src="zdevice.js?v=831"></script>
-<script src="zmusic.js?v=831"></script>
-<script src="zskill.js?v=831"></script>
-<script src="worlds.js?v=831"></script>
+<script src="firebase-state.js?v=833"></script>
+<script src="sanction.js?v=833"></script>
+<script src="zevents.js?v=833"></script>
+<script src="znet.js?v=833"></script>
+<script src="zbases.js?v=833"></script>
+<script src="charheads.js?v=833"></script>
+<script src="zmensch.js?v=833"></script>
+<script src="zcine.js?v=833"></script>
+<script src="zworld.js?v=833"></script>
+<script src="zstation.js?v=833"></script>
+<script src="zfx.js?v=833"></script>
+<script src="zextra.js?v=833"></script>
+<script src="zreb6.js?v=833"></script>
+<script src="zlegend.js?v=833"></script>
+<script src="ztutplus.js?v=833"></script>
+<script src="zlift.js?v=833"></script>
+<script src="zfun.js?v=833"></script>
+<script src="zguide.js?v=833"></script>
+<script src="zrules.js?v=833"></script>
+<script src="zsafe.js?v=833"></script>
+<script src="zrebguard.js?v=833"></script>
+<script src="zpass.js?v=833"></script>
+<script src="znotify.js?v=833"></script>
+<script src="zdetective.js?v=833"></script>
+<script src="zpirate.js?v=833"></script>
+<script src="zpark.js?v=833"></script>
+<script src="zmenu.js?v=833"></script>
+<script src="zdevice.js?v=833"></script>
+<script src="zmusic.js?v=833"></script>
+<script src="zskill.js?v=833"></script>
+<script src="worlds.js?v=833"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4632,17 +4648,8 @@ const ZG={
     this._feederPositions = [];
     {
       this.ZONES.forEach((zone)=>{
-        const fx=zone.x-40, fz=zone.z+24; // clearly to the other side
-        const fBase=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.6,3.5),new THREE.MeshBasicMaterial({color:0x2a3a1a}));
-        fBase.position.set(fx,0.3,fz); sc.add(fBase);
-        const fBody=new THREE.Mesh(new THREE.BoxGeometry(2.6,3.6,2.2),new THREE.MeshBasicMaterial({color:0x6ab04c}));
-        fBody.position.set(fx,2.3,fz); sc.add(fBody);
-        const fGlass=new THREE.Mesh(new THREE.BoxGeometry(2,1.6,0.2),new THREE.MeshBasicMaterial({color:0xaee6ff}));
-        fGlass.position.set(fx,3,fz+1.1); sc.add(fGlass);
-        const fTray=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.4,0.3),new THREE.MeshBasicMaterial({color:0x222831}));
-        fTray.position.set(fx,1,fz+1.1); sc.add(fTray);
-        const fLbl=this._txt('🍬 LECKERLI-AUTOMAT',0.6,'#a8e063'); fLbl.position.set(fx,6.8,fz); fLbl.scale.set(8,2,1); sc.add(fLbl);
-        const fLbl2=this._txt('Tier füttern! Antippen 🍬',0.5,'#fff'); fLbl2.position.set(fx,5.8,fz); fLbl2.scale.set(7,1.4,1); sc.add(fLbl2);
+        const fx=zone.x-40, fz=zone.z+24;
+        this._mkFeederMachine(fx,fz);
         this._feederPositions.push({x:fx,z:fz});
       });
     }
@@ -4662,15 +4669,8 @@ const ZG={
     this._dicePositions = [];
     {
       this.ZONES.forEach((zone)=>{
-        const dx=zone.x-40, dz=zone.z-24; // last free corner: opposite feeder (x-24,z+8) and breed (x+24,z-8)
-        const dBase=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,0.6,8),new THREE.MeshBasicMaterial({color:0x1a3a2a}));
-        dBase.position.set(dx,0.3,dz); sc.add(dBase);
-        const dBody=new THREE.Mesh(new THREE.BoxGeometry(2.6,3,2.6),new THREE.MeshBasicMaterial({color:0x27AE60}));
-        dBody.position.set(dx,2,dz); sc.add(dBody);
-        const dDie=new THREE.Mesh(new THREE.BoxGeometry(1.3,1.3,1.3),new THREE.MeshBasicMaterial({color:0xffffff}));
-        dDie.position.set(dx,4.1,dz); dDie.rotation.set(0.4,0.4,0); sc.add(dDie);
-        const dLbl=this._txt('🎲 WÜRFEL-MASCHINE',0.6,'#27AE60'); dLbl.position.set(dx,6.6,dz); dLbl.scale.set(8,2,1); sc.add(dLbl);
-        const dLbl2=this._txt('Betrag setzen — 50/50! 🎲',0.5,'#fff'); dLbl2.position.set(dx,5.6,dz); dLbl2.scale.set(7,1.4,1); sc.add(dLbl2);
+        const dx=zone.x-40, dz=zone.z-24;
+        this._mkDiceMachine(dx,dz);
         this._dicePositions.push({x:dx,z:dz});
       });
     }
@@ -5189,6 +5189,61 @@ const ZG={
     this._mPlane(G,3.0,2.3,this._mTex(384,288,(g,w,h)=>{ g.fillStyle='#fffdf2'; g.fillRect(0,0,w,h); g.textAlign='center'; g.fillStyle='#e08a00'; g.font='900 36px Arial'; g.fillText('TIERE VERGOLDEN',w/2,50); g.fillStyle='#333'; g.font='bold 25px Arial'; this._mWrap(g,'Wähle ein Tier und werte es gegen MT zu einem vergoldeten Tier auf – das verdient mehr Geld!',w/2,92,w-36,31); g.fillStyle='#e08a00'; g.font='900 28px Arial'; g.fillText('Antippen ⚗️',w/2,w>0?262:0); }),5.9,3.1,2.21);
     this._mFace(G,x,z); return G;
   },
+  _mkFeederMachine(x,z){
+    const G=new THREE.Group(), B=(w,h,d,c,px,py,pz)=>this._mBox(G,w,h,d,c,px,py,pz), RED=0xd7263d, DRED=0x8f1b2a, CR=0xfff3d6;
+    this._mPlane(G,9,9,this._mTex(128,128,(g,w,h)=>{ const r=g.createRadialGradient(64,64,4,64,64,62); r.addColorStop(0,'rgba(255,120,150,.55)'); r.addColorStop(1,'rgba(255,120,150,0)'); g.fillStyle=r; g.fillRect(0,0,w,h); }),0,.08,1,true).rotation.x=-Math.PI/2;
+    B(6.2,.4,3.6,0x3a3a44,0,.2,0);
+    B(5,6.4,2.6,RED,0,3.6,0); B(5.2,.3,2.8,DRED,0,6.9,0); B(5.2,.3,2.8,DRED,0,.55,0);
+    [-2.55,2.55].forEach(px=>B(.2,6.4,2.8,DRED,px,3.6,0));
+    // Kopfschild
+    B(5.2,1.05,.5,0xfff3d6,0,7.6,0);
+    this._mPlane(G,5,.95,this._mTex(640,120,(g,w,h)=>{ g.fillStyle='#fff3d6'; g.fillRect(0,0,w,h); g.font='900 56px Arial'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#d7263d'; g.fillText('LECKERLI-AUTOMAT',w/2,h/2+3); }),0,7.6,.27);
+    // Glasfront mit Leckerli-Regalen
+    B(3.4,4.6,.15,0x1b1b22,-.45,4.2,1.31);
+    this._mPlane(G,3.2,4.4,this._mTex(320,440,(g,w,h)=>{ g.fillStyle='#e9f6ff'; g.fillRect(0,0,w,h); const em=['🍬','🍭','🍩','🍪','🧁','🍫'];
+      for(let r=0;r<4;r++){ g.fillStyle='#b9c6d2'; g.fillRect(0,r*110+98,w,10); g.font='54px serif'; g.textAlign='center'; g.textBaseline='alphabetic'; for(let c=0;c<4;c++) g.fillText(em[(r*2+c)%6],40+c*80,r*110+88); }
+      const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'rgba(255,255,255,.55)'); gr.addColorStop(.4,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h); }),-.45,4.2,1.4);
+    // Bedienfeld rechts
+    B(1.2,4.6,.15,0x2b2b34,1.7,4.2,1.31);
+    this._mPlane(G,.9,.8,this._mTex(128,112,(g,w,h)=>{ g.fillStyle='#10202a'; g.fillRect(0,0,w,h); g.fillStyle='#7CFC8A'; g.font='900 40px Arial'; g.textAlign='center'; g.fillText('🍬',w/2,52); g.font='bold 22px Arial'; g.fillText('FÜTTERN',w/2,92); }),1.7,5.7,1.4);
+    [0,1,2].forEach(i=>[0,1].forEach(j=>B(.32,.28,.1,[0xffd54f,0x7cfc8a,0x4fc3f7][i],1.45+j*.5,4.7-i*.5,1.4)));
+    B(.5,.5,.1,0xbdbdbd,1.7,2.9,1.4); B(.1,.3,.1,0x222222,1.7,2.9,1.46);
+    // Ausgabefach
+    B(3.4,1,.4,0x1b1b22,-.45,1.35,1.2); B(3.0,.7,.1,0x050508,-.45,1.35,1.42);
+    // Schild
+    this._mPlane(G,4.4,.7,this._mTex(560,88,(g,w,h)=>{ g.fillStyle='#8f1b2a'; this._mRR(g,0,0,w,h,20); g.fill(); g.fillStyle='#fff'; g.font='900 36px Arial'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('Tier füttern – Antippen 🍬',w/2,h/2+2); }),0,.55+.0,1.45).position.y=.75;
+    this._mFace(G,x,z); return G;
+  },
+  _mkDiceMachine(x,z){
+    const G=new THREE.Group(), B=(w,h,d,c,px,py,pz)=>this._mBox(G,w,h,d,c,px,py,pz), PU=0x2a0f4a, GOLD=0xffc107;
+    this._mPlane(G,9,9,this._mTex(128,128,(g,w,h)=>{ const r=g.createRadialGradient(64,64,4,64,64,62); r.addColorStop(0,'rgba(255,200,60,.55)'); r.addColorStop(1,'rgba(255,200,60,0)'); g.fillStyle=r; g.fillRect(0,0,w,h); }),0,.08,1,true).rotation.x=-Math.PI/2;
+    B(6.2,.4,3.8,0x1a1030,0,.2,0); B(6.3,.12,3.9,GOLD,0,.46,0);
+    B(4.6,6,2.4,PU,0,3.5,0);
+    [-2.4,2.4].forEach(px=>B(.25,6,2.6,GOLD,px,3.5,0)); B(5,.3,2.6,GOLD,0,6.6,0);
+    // Kopf mit Glühbirnen
+    B(5,1.3,.7,0x14082a,0,7.3,0);
+    this._mPlane(G,4.6,1.05,this._mTex(576,132,(g,w,h)=>{ g.fillStyle='#14082a'; g.fillRect(0,0,w,h); g.font='900 58px Arial'; g.textAlign='center'; g.textBaseline='middle'; g.shadowColor='#ffc107'; g.shadowBlur=18; g.fillStyle='#ffe082'; g.fillText('WÜRFEL-MASCHINE',w/2,h/2+3); }),0,7.3,.37);
+    this._dBulbs=this._dBulbs||[]; const bulbs=[];
+    for(let i=0;i<12;i++){ const m=new THREE.Mesh(new THREE.SphereGeometry(.14,8,8),new THREE.MeshBasicMaterial({color:i%2?0xffeb3b:0xff5252})); const t=i/11; m.position.set(-2.3+t*4.6,7.98,.4); G.add(m); bulbs.push(m); }
+    this._dBulbs.push(bulbs);
+    // Bildschirm
+    B(3.6,2.6,.15,0x090412,0,5.0,1.25);
+    this._mPlane(G,3.4,2.4,this._mTex(340,240,(g,w,h)=>{ const r=g.createLinearGradient(0,0,0,h); r.addColorStop(0,'#3a1a6e'); r.addColorStop(1,'#12062a'); g.fillStyle=r; g.fillRect(0,0,w,h); g.textAlign='center'; g.font='86px serif'; g.fillText('🎲🎲',w/2,112); g.fillStyle='#ffe082'; g.font='900 56px Arial'; g.fillText('50 / 50',w/2,184); g.fillStyle='#b39ddb'; g.font='bold 24px Arial'; g.fillText('Doppelt oder nichts',w/2,222); }),0,5.0,1.34);
+    // Bedienfeld
+    this._mPlane(G,3.6,1.6,this._mTex(360,160,(g,w,h)=>{ g.fillStyle='#14082a'; this._mRR(g,0,0,w,h,22); g.fill(); g.strokeStyle='#ffc107'; g.lineWidth=5; g.stroke(); g.textAlign='center'; g.fillStyle='#fff'; g.font='bold 27px Arial'; this._mWrap(g,'Setze MT – 50 % Chance auf das Doppelte!',w/2,52,w-40,34); g.fillStyle='#ffe082'; g.font='900 30px Arial'; g.fillText('Antippen 🎲',w/2,134); }),0,2.9,1.26);
+    B(3.6,.9,.3,0x12062a,0,1.4,1.2); B(1.2,.18,.1,GOLD,0,1.5,1.37);
+    // Hebel
+    const st=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,2.2,8),new THREE.MeshBasicMaterial({color:0xbdbdbd})); st.position.set(2.85,3.6,0); st.rotation.z=-.25; G.add(st);
+    const kn=new THREE.Mesh(new THREE.SphereGeometry(.38,12,12),new THREE.MeshBasicMaterial({color:0xe53935})); kn.position.set(3.15,4.7,0); G.add(kn);
+    B(.5,.9,.5,GOLD,2.7,2.3,0);
+    // Grosser Würfel oben
+    const die=new THREE.Group(); die.position.set(0,9.1,0); G.add(die);
+    const cube=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,1.4),new THREE.MeshBasicMaterial({color:0xffffff})); die.add(cube);
+    const dot=(px,py,pz,ry)=>{ const d=new THREE.Mesh(new THREE.CircleGeometry(.15,10),new THREE.MeshBasicMaterial({color:0x14082a})); d.position.set(px,py,pz); d.rotation.y=ry; die.add(d); };
+    [[-.3,.3],[.3,-.3],[0,0],[-.3,-.3],[.3,.3]].forEach(a=>dot(a[0],a[1],.71,0)); [[-.3,.3],[.3,-.3]].forEach(a=>dot(.71,a[0],a[1],Math.PI/2));
+    this._diceDice=this._diceDice||[]; this._diceDice.push(die);
+    this._mFace(G,x,z); return G;
+  },
   _mkFuseMachine(x,z){
     const G=new THREE.Group(), B=(w,h,d,c,px,py,pz)=>this._mBox(G,w,h,d,c,px,py,pz), CY=0x19e6ff, MG=0xff3df2, DK=0x12122a;
     this._mPlane(G,11,11,this._mTex(128,128,(g,w,h)=>{ const r=g.createRadialGradient(64,64,4,64,64,62); r.addColorStop(0,'rgba(255,61,242,.7)'); r.addColorStop(.6,'rgba(25,230,255,.25)'); r.addColorStop(1,'rgba(25,230,255,0)'); g.fillStyle=r; g.fillRect(0,0,w,h); }),0,.08,1,true).rotation.x=-Math.PI/2;
@@ -5342,6 +5397,8 @@ const ZG={
     LuckyBlocks.tick(dt);
     this._carAngle+=dt*.45;
     (this._goldGears||[]).forEach(g=>{ g.rotation.z+=0.02; });
+    (this._diceDice||[]).forEach(d=>{ d.rotation.y+=0.015; d.rotation.x+=0.007; });
+    try{ const _tb=Math.floor(Date.now()/350); (this._dBulbs||[]).forEach(arr=>arr.forEach((b,i)=>b.material.color.setHex(((i+_tb)%2)?0xffeb3b:0xff5252))); }catch(e){}
     if(this._worldWheel){ this._worldWheel.rotation.z+=0.01; try{ this._worldWheel.rotation.y=Math.atan2(this.pl.x+42,this.pl.z-10); }catch(e){} }
     // Kehrmaschine — Zustandsmaschine: idle (Kreis) / mission (zum Zoo, Gehege abfahren, zurück)
     if(this._sweeperMesh && this._sweeperCenter){
@@ -11618,7 +11675,7 @@ const ZP={
     z.enc[slot]={...o.d,addedAt:Date.now()};
     ZG._encs(); ZS.save(); ZG._updHUD();
     _rtdb.ref('zoo_trades/'+o.id).remove().then(()=>{
-      z.rebLockUntil=Date.now()+24*3600000; ZS.save&&ZS.save(); this.toast('↩️ Zurückgezogen – Rebirth ist jetzt 24 Std. gesperrt',4000);
+      ZS.save&&ZS.save(); this.toast('↩️ Tier zurückgezogen',3000);
       this._rTrade('m');
     }).catch(e=>{ this.toast('❌ '+e.message,3000); });
   },
@@ -11774,7 +11831,7 @@ const ZP={
     if((z.reb||0)>=rebMax()){ ZP.toast('🏆 Maximum von '+rebMax()+' Wiedergeburten bereits erreicht!',3000); return; }
     const req=rebReq(z.reb||0);
     if((z.mt||0)<req.mt){ ZP.toast('❌ Du brauchst mindestens '+$mt(req.mt)+' MT für diese Wiedergeburt!',3000); return; }
-    if((z.rebLockUntil||0)>Date.now()){ const h=Math.ceil((z.rebLockUntil-Date.now())/3600000); ZP.toast('⏳ Rebirth gesperrt: Du hast Tiere aus dem Tausch zurückgeholt. Noch ca. '+h+' Std. warten (24-Std.-Sperre).',6000); return; }
+    if(z.rebLockUntil){ delete z.rebLockUntil; } // 24-Std.-Rebirth-Sperre entfernt
     let _viol=null;
     try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&ZS.player){ const snap=await _rtdb.ref('zoo_trades').once('value'); const val=snap.val()||{}; const mine=Object.keys(val).filter(id=>val[id]&&val[id].sellerKey===ZS.player.toLowerCase()); const n=mine.length; if(n>0){ const names=mine.map(id=>(val[id].e||'')+' '+(val[id].n||'?')); if(window.ZRebGuard){ if(z.rebWarned!==(z.reb||0)){ z.rebWarned=(z.reb||0); ZS.save&&ZS.save(true); await ZRebGuard.warn(n,names); return; } _viol={n,names}; } else { ZP.toast('⚠️ Du hast noch '+n+' Tier(e) im Tausch! Nimm sie zuerst zu dir (Shop → Tauschen → Meine Angebote). Danach gilt 24 Std. Rebirth-Sperre.',8000); return; } } } }catch(e){}
     if(!(await showConfirm('Wirklich? Fast alle Tiere und MT gehen verloren!')))return;
