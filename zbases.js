@@ -16,7 +16,7 @@
     {g:'🏠 Bauen',items:[
       {t:'sign',n:'Schild „Base gehört …"',ic:'🪧',k:'s'},{t:'fence',n:'Zaun',ic:'🚧',k:'p'},{t:'path',n:'Weg',ic:'🟫',k:'p'},{t:'lamp',n:'Laterne',ic:'💡',k:'p'},
       {t:'bench',n:'Bank',ic:'🪑',k:'p'},{t:'tent',n:'Zelt',ic:'⛺',k:'p'},{t:'hut',n:'Hütte',ic:'🛖',k:'e'},{t:'house',n:'Haus',ic:'🏠',k:'e'},
-      {t:'castle',n:'Schloss',ic:'🏰',k:'e'},{t:'torii',n:'Tor',ic:'⛩️',k:'e'},{t:'tower',n:'Turm',ic:'🗼',k:'e'},{t:'bridge',n:'Brücke',ic:'🌉',k:'e'},{t:'windmill',n:'Windmühle',ic:'🌀',k:'p'},{t:'well',n:'Brunnen (Wasser holen)',ic:'🪣',k:'p'},{t:'arch',n:'Stein-Bogen',ic:'🏛️',k:'p'},{t:'roof',n:'Dach-Platte (8×8)',ic:'⬛',k:'p'}]},
+      {t:'castle',n:'Schloss',ic:'🏰',k:'e'},{t:'torii',n:'Tor',ic:'⛩️',k:'p'},{t:'tower',n:'Turm',ic:'🗼',k:'e'},{t:'bridge',n:'Brücke',ic:'🌉',k:'e'},{t:'windmill',n:'Windmühle',ic:'🌀',k:'p'},{t:'well',n:'Brunnen (Wasser holen)',ic:'🪣',k:'p'},{t:'arch',n:'Stein-Bogen',ic:'🏛️',k:'p'},{t:'roof',n:'Dach-Platte (8×8)',ic:'⬛',k:'p'}]},
     {g:'✨ Deko',items:[
       {t:'fountain',n:'Brunnen',ic:'⛲',k:'p'},{t:'campfire',n:'Lagerfeuer',ic:'🔥',k:'p'},{t:'lantern',n:'Laterne rot',ic:'🏮',k:'e'},{t:'statue',n:'Statue',ic:'🗿',k:'e'},
       {t:'crystal',n:'Kristall',ic:'💎',k:'e'},{t:'star',n:'Stern',ic:'⭐',k:'e'},{t:'flag',n:'Flagge',ic:'🚩',k:'e'},{t:'carousel',n:'Karussell',ic:'🎠',k:'e'},
@@ -162,6 +162,17 @@
         case 'windmill': { const t=M('wmT',()=>new THREE.CylinderGeometry(.9,1.5,5,8),0xe8dcc8); t.position.y=2.5; g.add(t); const c=M('wmC',()=>new THREE.ConeGeometry(1.4,1.4,8),0xb5532f); c.position.y=5.7; g.add(c); for(let i=0;i<4;i++){ const b=M('wmB',()=>new THREE.BoxGeometry(.3,3.4,.08),0xf5f0e6); const a=i*Math.PI/2; b.position.set(0,4.6,1.1); b.geometry.translate(0,1.4,0); b.rotation.z=a; g.add(b); } } break;
         case 'well': { const m=M('wl',()=>new THREE.CylinderGeometry(1,1.1,1.1,12),0x9aa0a6); m.position.y=.55; g.add(m); const w=M('wlW',()=>new THREE.CylinderGeometry(.8,.8,.05,12),0x3aa0ff); w.position.y=1.1; g.add(w); [-.9,.9].forEach(x=>{ const p=M('wlP',()=>new THREE.BoxGeometry(.12,1.8,.12),0x7a5230); p.userData.w=1; p.position.set(x,1.9,0); g.add(p); }); const r=M('wlR',()=>new THREE.ConeGeometry(1.4,.8,4),0xb5532f); r.position.y=3; r.rotation.y=Math.PI/4; g.add(r); } break;
         case 'arch': { [-1.5,1.5].forEach(x=>{ const p=M('arP',()=>new THREE.BoxGeometry(.8,3.6,.8),0xb9b4a8); p.position.set(x,1.8,0); g.add(p); }); const t=M('arT',()=>new THREE.BoxGeometry(3.8,.8,.9),0xcfcabd); t.position.y=3.9; g.add(t); } break;
+        case 'torii': { // v834: echtes 3D-Tor (Torii) statt Emoji
+          [-1.7,1.7].forEach(x=>{ const p=M('toP',()=>new THREE.CylinderGeometry(.22,.27,4.3,12),0xd0352b); p.userData.w=1; p.position.set(x,2.15+.2,0); g.add(p);
+            const bs=M('toB',()=>new THREE.CylinderGeometry(.4,.46,.4,12),0x24201f); bs.position.set(x,.2,0); g.add(bs);
+            const st=M('toS',()=>new THREE.BoxGeometry(1.1,.18,1.1),0x9aa0a6); st.position.set(x,.09,0); g.add(st); });
+          const nuki=M('toN',()=>new THREE.BoxGeometry(4.7,.28,.22),0xd0352b); nuki.userData.w=1; nuki.position.set(0,3.35,0); g.add(nuki);
+          const shi=M('toH',()=>new THREE.BoxGeometry(5.0,.3,.5),0xd0352b); shi.userData.w=1; shi.position.set(0,4.5,0); g.add(shi);
+          const ka=M('toK',()=>new THREE.BoxGeometry(5.0,.32,.78),0x1b1716); ka.position.set(0,4.82,0); g.add(ka);
+          [-1,1].forEach(s=>{ const e=M('toE',()=>new THREE.BoxGeometry(1.25,.32,.78),0x1b1716); e.position.set(s*2.95,4.98,0); e.rotation.z=s*.28; g.add(e); });
+          const pl=M('toL',()=>new THREE.BoxGeometry(.7,.95,.14),0xffc83a); pl.position.set(0,3.95,0); g.add(pl);
+          const pl2=M('toL2',()=>new THREE.BoxGeometry(.5,.75,.16),0x7a1f18); pl2.position.set(0,3.95,0); g.add(pl2);
+        } break;
         case 'crater': { const m=M('cr',()=>new THREE.CylinderGeometry(3,3,.1,16),0x4a4f57); m.position.y=.06; g.add(m); const r=M('crR',()=>new THREE.TorusGeometry(3,.4,6,18),0x9aa0a8); r.rotation.x=Math.PI/2; r.position.y=.18; g.add(r); const i=M('crI',()=>new THREE.CylinderGeometry(1.6,1.6,.12,12),0x2f3238); i.position.y=.12; g.add(i); } break;
         case 'moonrock': { const m=M('mr',()=>new THREE.DodecahedronGeometry(1.3),0xb7bcc4); m.position.y=.8; m.scale.set(1.1,.9,1); g.add(m); const m2=M('mr2',()=>new THREE.DodecahedronGeometry(.6),0x9aa0a8); m2.position.set(1.4,.35,.5); g.add(m2); } break;
         case 'spacecrystal': [[0,2.6,0],[.9,1.8,.3],[-.8,1.5,-.2],[.2,1.2,-.9]].forEach(([x,h,z],i)=>{ const c=M('sc'+i,()=>new THREE.ConeGeometry(.45,h,5),[0xb26bff,0x6bd0ff,0xff6bd6,0x7dffb0][i]); c.position.set(x,h/2,z); g.add(c); }); break;
