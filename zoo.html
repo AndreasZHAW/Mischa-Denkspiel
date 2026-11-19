@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=834"></script>
-<script src="rewardchests.js?v=834"></script>
-<script src="personality.js?v=834"></script>
+<script src="lang.js?v=835"></script>
+<script src="rewardchests.js?v=835"></script>
+<script src="personality.js?v=835"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -551,38 +551,38 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=834"></script>
-<script src="sanction.js?v=834"></script>
-<script src="zevents.js?v=834"></script>
-<script src="znet.js?v=834"></script>
-<script src="zbases.js?v=834"></script>
-<script src="charheads.js?v=834"></script>
-<script src="zmensch.js?v=834"></script>
-<script src="zfindchest.js?v=834"></script>
-<script src="zcine.js?v=834"></script>
-<script src="zworld.js?v=834"></script>
-<script src="zstation.js?v=834"></script>
-<script src="zfx.js?v=834"></script>
-<script src="zextra.js?v=834"></script>
-<script src="zreb6.js?v=834"></script>
-<script src="zlegend.js?v=834"></script>
-<script src="ztutplus.js?v=834"></script>
-<script src="zlift.js?v=834"></script>
-<script src="zfun.js?v=834"></script>
-<script src="zguide.js?v=834"></script>
-<script src="zrules.js?v=834"></script>
-<script src="zsafe.js?v=834"></script>
-<script src="zrebguard.js?v=834"></script>
-<script src="zpass.js?v=834"></script>
-<script src="znotify.js?v=834"></script>
-<script src="zdetective.js?v=834"></script>
-<script src="zpirate.js?v=834"></script>
-<script src="zpark.js?v=834"></script>
-<script src="zmenu.js?v=834"></script>
-<script src="zdevice.js?v=834"></script>
-<script src="zmusic.js?v=834"></script>
-<script src="zskill.js?v=834"></script>
-<script src="worlds.js?v=834"></script>
+<script src="firebase-state.js?v=835"></script>
+<script src="sanction.js?v=835"></script>
+<script src="zevents.js?v=835"></script>
+<script src="znet.js?v=835"></script>
+<script src="zbases.js?v=835"></script>
+<script src="charheads.js?v=835"></script>
+<script src="zmensch.js?v=835"></script>
+<script src="zfindchest.js?v=835"></script>
+<script src="zcine.js?v=835"></script>
+<script src="zworld.js?v=835"></script>
+<script src="zstation.js?v=835"></script>
+<script src="zfx.js?v=835"></script>
+<script src="zextra.js?v=835"></script>
+<script src="zreb6.js?v=835"></script>
+<script src="zlegend.js?v=835"></script>
+<script src="ztutplus.js?v=835"></script>
+<script src="zlift.js?v=835"></script>
+<script src="zfun.js?v=835"></script>
+<script src="zguide.js?v=835"></script>
+<script src="zrules.js?v=835"></script>
+<script src="zsafe.js?v=835"></script>
+<script src="zrebguard.js?v=835"></script>
+<script src="zpass.js?v=835"></script>
+<script src="znotify.js?v=835"></script>
+<script src="zdetective.js?v=835"></script>
+<script src="zpirate.js?v=835"></script>
+<script src="zpark.js?v=835"></script>
+<script src="zmenu.js?v=835"></script>
+<script src="zdevice.js?v=835"></script>
+<script src="zmusic.js?v=835"></script>
+<script src="zskill.js?v=835"></script>
+<script src="worlds.js?v=835"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -21258,8 +21258,14 @@ window.ZooEvents = ZooEvents;
           <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Macht alle Truhen der aktuellen Runde sofort öffenbar.</div>
           <button class="padmin-btn" onclick="ZAdmin.close();try{RewardChests.giveUltra()}catch(e){ZP.toast('Truhen nicht verfügbar',2000)}" style="width:100%;background:linear-gradient(135deg,#7b2fff,#ff4dc8);padding:12px;font-size:.9rem;margin-top:14px">🌌 Ultralegendäre Truhe geben</button>
           <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Die höchste Stufe (Überdimensional) mit Sternen-Absturz, sofort geöffnet.</div>
-          <button class="padmin-btn" onclick="ZAdmin.close();try{ZFindChest.spawn({x:ZG.pl.x+Math.sin(ZG.yaw||0)*-9,z:ZG.pl.z+Math.cos(ZG.yaw||0)*-9}).then(ok=>{if(!ok)ZP.toast('Schatzkiste existiert schon oder lädt nicht',2500)})}catch(e){}" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;padding:12px;font-size:.9rem;margin-top:14px">🗝️ Schatzkiste vor mir erscheinen lassen</button>
-          <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Zum Testen. Normal erscheint sie selten (alle ~25–60 Min.) an einem zufälligen Ort.</div>
+          <div style="color:#FFD700;font-weight:900;margin:14px 0 6px">🗝️ Schatzkisten spawnen</div>
+          <div style="display:flex;gap:6px">
+            <button class="padmin-btn" onclick="ZAdmin.close();try{ZFindChest.spawnMany(1)}catch(e){}" style="flex:1;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;padding:11px 4px;font-size:.82rem">1 Kiste</button>
+            <button class="padmin-btn" onclick="ZAdmin.close();try{ZFindChest.spawnMany(5)}catch(e){}" style="flex:1;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;padding:11px 4px;font-size:.82rem">5 Kisten</button>
+            <button class="padmin-btn" onclick="ZAdmin.close();try{ZFindChest.spawnMany(10)}catch(e){}" style="flex:1;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;padding:11px 4px;font-size:.82rem">10 Kisten</button>
+          </div>
+          <button class="padmin-btn" onclick="try{ZFindChest.clearAll();ZP.toast('Alle Schatzkisten entfernt',1800)}catch(e){}" style="width:100%;background:rgba(231,76,60,.5);padding:9px;font-size:.78rem;margin-top:6px">🧹 Alle Schatzkisten entfernen</button>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-top:6px">Die Kisten erscheinen um dich herum (nur auf deinem Gerät, bleiben bis zum Öffnen). Normal erscheint sie selten (alle ~25–60 Min.) an einem zufälligen Ort.</div>
         </div>
         <div class="padmin-tab" id="padmin-tab-belohnungen" style="display:none">
           <div class="padmin-section-title">🏅 Rang &amp; Admin-Rechte</div>

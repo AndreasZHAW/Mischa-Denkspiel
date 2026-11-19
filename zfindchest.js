@@ -2,7 +2,8 @@
 (function(){
   'use strict';
   if(window.ZFindChest) return;
-  const FC=window.ZFindChest={obj:null,busy:false,near:false};
+  const FC=window.ZFindChest={objs:[],busy:false,near:null};
+  Object.defineProperty(FC,'obj',{get(){ return FC.objs[0]||null; }});
   const MIN=60*1000;
   const SEAM=-0.06, HX=0, HZ=-0.55, SC=1.7;
   const b64=(s,T)=>{ const bin=atob(s), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new T(u.buffer); };
@@ -42,17 +43,18 @@
     return {x:70,z:100};
   }
   FC.spawn=async function(force){
-    if(FC.obj||FC.busy||typeof ZG==='undefined'||!ZG.scene||typeof THREE==='undefined') return false;
+    if((!force&&FC.objs.length)||FC.objs.length>=12||FC.busy||typeof ZG==='undefined'||!ZG.scene||typeof THREE==='undefined') return false;
     FC.busy=true;
-    try{ const o=await build(); if(!o){ FC.busy=false; return false; } const sp=force&&force.x!=null?force:pickSpot(); o.root.position.set(sp.x,0,sp.z); o.root.rotation.y=Math.random()*6.28; ZG.scene.add(o.root); o.x=sp.x; o.z=sp.z; o.born=Date.now(); o.state='idle'; FC.obj=o;
-      try{ ZP.toast('✨ Irgendwo im Zoo ist eine Schatzkiste aufgetaucht! Such das Licht…',5000); }catch(e){}
+    try{ const o=await build(); if(!o){ FC.busy=false; return false; } const sp=force&&force.x!=null?force:pickSpot(); o.root.position.set(sp.x,0,sp.z); o.root.rotation.y=Math.random()*6.28; ZG.scene.add(o.root); o.x=sp.x; o.z=sp.z; o.born=Date.now(); o.state='idle'; FC.objs.push(o);
+      if(!force){ try{ ZP.toast('✨ Irgendwo im Zoo ist eine Schatzkiste aufgetaucht! Such das Licht…',5000); }catch(e){} }
     }catch(e){ console.warn('ZFindChest',e); }
-    FC.busy=false; return !!FC.obj; };
-  FC.remove=function(){ const o=FC.obj; if(!o) return; try{ ZG.scene.remove(o.root); o.root.traverse(m=>{ if(m.geometry) m.geometry.dispose(); }); }catch(e){} FC.obj=null; FC._hidePrompt(); };
+    FC.busy=false; return true; };
+  FC.remove=function(o){ o=o||FC.obj; if(!o) return; try{ ZG.scene.remove(o.root); o.root.traverse(m=>{ if(m.geometry) m.geometry.dispose(); }); }catch(e){} FC.objs=FC.objs.filter(x=>x!==o); if(FC.near===o){ FC.near=null; FC._hidePrompt(); } };
+  FC.clearAll=function(){ FC.objs.slice().forEach(o=>FC.remove(o)); };
   // ── Animation pro Frame ──
   function ease(x){ return x<0?0:x>1?1:1-Math.pow(1-x,3); }
-  function tick(){
-    const o=FC.obj; if(!o) return;
+  function tick(){ FC.objs.slice().forEach(tickOne); }
+  function tickOne(o){
     const t=performance.now()/1000;
     o.halo.material.opacity=(o.state==='open'?.3:.55)+.2*Math.sin(t*3); o.model.position.y=0.612*SC+(o.state==='idle'?Math.sin(t*2)*.05:0);
     if(o.state==='idle'){ o.sparks.forEach(p=>{ const a=p.a+t*.6; p.s.position.set(Math.cos(a)*p.r,((p.y+t*p.v*.5)%3.2)+.3,Math.sin(a)*p.r); p.s.material.opacity=.5+.4*Math.sin(t*4+p.a); }); }
@@ -65,8 +67,8 @@
       o.sparks.forEach(p=>{ const a=p.a+t*3; const k=Math.max(0,e-.9); p.s.position.set(Math.cos(a)*p.r*(.4+k*.6),.3+k*p.v*3.2,Math.sin(a)*p.r*(.4+k*.6)); p.s.material.opacity=Math.min(1,k*2)*(.7+.3*Math.sin(t*9+p.a)); p.s.scale.setScalar(.5+.4*Math.sin(t*6+p.a)); });
       o.halo.scale.setScalar(9+lit*2);
       if(e>2.0&&!o.revealed){ o.revealed=true; FC._reveal(); }
-      if(e>3.2){ FC.remove(); }
-    } else if(Date.now()-o.born>7*MIN){ FC.remove(); }
+      if(e>3.2){ FC.remove(o); }
+    } else if(!o.keep&&Date.now()-o.born>7*MIN){ FC.remove(o); }
   }
   FC._reveal=function(){
     try{
@@ -79,18 +81,17 @@
       const ttl=ov.firstElementChild; try{ const t=ov.querySelector('div[style*="margin-bottom:14px"]'); if(t) t.textContent='🗝️ SCHATZKISTE GEFUNDEN! 🗝️'; }catch(e){}
     }catch(e){ console.warn('ZFindChest reveal',e); try{ ZP.toast('🎁 Schatzkiste geöffnet!',3000); }catch(_){} }
   };
-  FC.open=function(){ const o=FC.obj; if(!o||o.state!=='idle') return; o.state='open'; o.t0=performance.now(); o.pil.material.opacity=.0; FC._hidePrompt(); FC._store(); try{ ZSound&&ZSound.play&&ZSound.play('chest'); }catch(e){} };
+  FC.open=function(o){ o=(o&&o.root)?o:FC.near; if(!o||o.state!=='idle') return; o.state='open'; o.t0=performance.now(); o.pil.material.opacity=.0; FC._hidePrompt(); if(!o.admin) FC._store(); try{ ZSound&&ZSound.play&&ZSound.play('chest'); }catch(e){} };
   FC._store=function(){ try{ localStorage.setItem('zfc_next',String(Date.now()+(25+Math.random()*35)*MIN)); }catch(e){} };
   // ── Nähe-Prompt (eigenes Element, unabhängig von der Haupt-Anzeige) ──
   FC._prompt=function(){ let p=document.getElementById('fc-prompt'); if(!p){ p=document.createElement('div'); p.id='fc-prompt'; p.style.cssText='position:fixed;bottom:30%;left:50%;transform:translateX(-50%);z-index:900;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e;border:2px solid #fff;border-radius:50px;padding:10px 22px;font:900 1rem Arial;box-shadow:0 0 22px rgba(255,200,60,.8);cursor:pointer;display:none;animation:fcPulse 1.1s ease-in-out infinite';
     p.textContent=('ontouchstart' in window?'👆':'[E]')+' Schatzkiste öffnen!'; p.onclick=ev=>{ ev.stopPropagation(); FC.open(); }; p.addEventListener('touchend',ev=>{ ev.preventDefault(); ev.stopPropagation(); FC.open(); },{passive:false}); document.body.appendChild(p);
     const st=document.createElement('style'); st.textContent='@keyframes fcPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.08)}}'; document.head.appendChild(st); } return p; };
   FC._showPrompt=function(){ FC._prompt().style.display='block'; }; FC._hidePrompt=function(){ const p=document.getElementById('fc-prompt'); if(p) p.style.display='none'; };
-  function checkNear(){ const o=FC.obj; if(!o||o.state!=='idle'||typeof ZG==='undefined'||!ZG.pl){ FC.near=false; FC._hidePrompt(); return; }
-    const d=Math.hypot(ZG.pl.x-o.x,ZG.pl.z-o.z); FC.near=d<7; if(FC.near) FC._showPrompt(); else FC._hidePrompt(); }
+  function checkNear(){ let best=null,bd=7; if(typeof ZG!=='undefined'&&ZG.pl) FC.objs.forEach(o=>{ if(o.state!=='idle') return; const d=Math.hypot(ZG.pl.x-o.x,ZG.pl.z-o.z); if(d<bd){ bd=d; best=o; } }); FC.near=best; if(best) FC._showPrompt(); else FC._hidePrompt(); }
   // Spawn-Plan: selten – alle ~25–60 Min, erste frühestens nach ~6 Min
   function plan(){
-    if(FC.obj||FC.busy) return;
+    if(FC.objs.length||FC.busy) return;
     if(typeof ZG==='undefined'||!ZG.scene||!ZG.pl||!window.ZS||!ZS.zoo) return;
     let next=0; try{ next=parseInt(localStorage.getItem('zfc_next')||'0')||0; }catch(e){}
     if(!next){ next=Date.now()+(6+Math.random()*10)*MIN; try{ localStorage.setItem('zfc_next',String(next)); }catch(e){} }
@@ -101,6 +102,7 @@
     loop(); setInterval(checkNear,250); setInterval(plan,15000);
     document.addEventListener('keydown',e=>{ if(e.code==='KeyE'&&FC.near) FC.open(); });
     document.addEventListener('click',e=>{ if(FC.near&&e.target&&e.target.id==='zc') FC.open(); });
+  FC.spawnMany=async function(n,around){ const c=around||{x:ZG.pl.x,z:ZG.pl.z}; for(let i=0;i<n;i++){ const a=(i/n)*Math.PI*2, r=n>1?9+(i%2)*4:9; const o=await FC.spawn({x:c.x+Math.cos(a)*r,z:c.z+Math.sin(a)*r}); if(FC.objs.length) { const x=FC.objs[FC.objs.length-1]; x.admin=true; x.keep=true; } } return FC.objs.length; };
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
