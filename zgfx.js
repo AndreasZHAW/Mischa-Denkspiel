@@ -12,14 +12,14 @@
   const weak=!mobile&&(navigator.hardwareConcurrency||8)<=4;
   // Standard: Computer = Schön (mit Auto-Rückfall), Handy/Tablet/schwacher PC = Normal
   try{ if(localStorage.getItem('zgfx_mig')!=='2'){ localStorage.removeItem('zgfx_q'); localStorage.setItem('zgfx_mig','2'); } }catch(e){}
-  G.q=lsg()||((mobile||weak)?'normal':'auto');
+  G.q=lsg()||(weak?'normal':'auto'); // Handy/iPad/Tablet: ebenfalls Schoen, mit Auto-Rueckfall bei Ruckeln
   // Sichtweite (in Welt-Einheiten): Computer 200, Handy/iPad/Tablet 75 – alles dahinter wird nicht mehr gezeichnet
   G.cull=mobile?75:200;
   const level=()=>G.q==='classic'?0:(G.q==='normal'?1:2);
   const BASE=(()=>{ try{ const c=document.currentScript&&document.currentScript.src; return c?c.replace(/[^\/]*$/,''):''; }catch(e){ return ''; } })();
   function patch(){
     const T=window.THREE; if(!T||G.ready) return; G.ready=true;
-    const U=G.U={ uZOn:{value:1}, uSunDir:{value:new T.Vector3(.4,.8,.3).normalize()}, uSunCol:{value:new T.Color(1,.97,.9)}, uAmb:{value:1}, uTint:{value:new T.Color(1,1,1)}, uDet:{value:G.mobile?0:1} };
+    const U=G.U={ uZOn:{value:1}, uSunDir:{value:new T.Vector3(.4,.8,.3).normalize()}, uSunCol:{value:new T.Color(1,.97,.9)}, uAmb:{value:1}, uTint:{value:new T.Color(1,1,1)}, uDet:{value:1} };
     const skip=m=>(m.userData&&m.userData.flat)||m.transparent||m.side===T.BackSide||m.blending!==T.NormalBlending||m.depthWrite===false;
     const P=T.MeshBasicMaterial.prototype;
     P.onBeforeCompile=function(sh){
@@ -42,12 +42,12 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   float g1=0.5, g2=0.5; vec3 bn=n;
   vec3 vd=normalize(cameraPosition-vZW);
   if(uDet>0.01){ g1=zn3(vZW*1.7); g2=zn3(vZW*7.3);
-    bn=normalize(n+(vec3(g2,zn3(vZW*7.3+5.0),zn3(vZW*7.3+9.0))-0.5)*0.5*uDet); }
+    bn=normalize(n+(vec3(g2,zn3(vZW*7.3+5.0),zn3(vZW*7.3+9.0))-0.5)*0.4*uDet); }
   float ndl=max(dot(bn,uSunDir),0.0); float hemi=n.y*0.5+0.5;
   vec3 kd=normalize(vec3(0.4,0.8,0.3));
   float rel=max(dot(bn,kd),0.0)-max(dot(n,kd),0.0); // Relief-Kontrast: immer gleich stark, egal welche Tageszeit
-  vec3 s=vec3(uAmb)*(0.60+0.16*hemi)+uSunCol*0.46*ndl+vec3(0.60*rel*uDet);
-  float det=1.0+((g1-0.5)*0.14+(g2-0.5)*0.12)*uDet;
+  vec3 s=vec3(uAmb)*(0.60+0.16*hemi)+uSunCol*0.46*ndl+vec3(0.5*rel*uDet);
+  float det=1.0+((g1-0.5)*0.095+(g2-0.5)*0.08)*uDet;
   vec3 hv=normalize(kd+vd); float sp=pow(max(dot(bn,hv),0.0),22.0)*0.12*(0.4+g1)*step(0.0,dot(n,kd));
   outgoingLight=outgoingLight*s*uTint*det+max(uSunCol,vec3(0.7))*sp*uZOn*uDet;
 } }`);
@@ -153,7 +153,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      try{ await loadScript(BASE+'zpp.js?v=853'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+      try{ await loadScript(BASE+'zpp.js?v=855'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
         for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
       loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
@@ -189,6 +189,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   function perfStep(){
     step++; const g=ZGet(), r=g&&g.renderer; const say=m=>{ try{ ZP.toast(m,3500); }catch(e){} };
     if(step===1&&G.pp){ G.q='normal'; G.autoDown=true; G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
+    if(G.U&&G.U.uDet.value>0){ G.U.uDet.value=0; say('⚙️ Läuft nicht flüssig → Oberflächen-Körnung ausgeschaltet.'); return; }
     if(r&&r.getPixelRatio()>.8){ const pr=Math.max(.75,r.getPixelRatio()-.25); r.setPixelRatio(pr); try{ composer&&composer.setPixelRatio(pr); r.setSize(window.innerWidth,window.innerHeight,true); }catch(e){} say('⚙️ Auflösung etwas gesenkt für flüssigeres Spiel.'); return; }
     if(G.cull>45){ G.cull=Math.max(45,Math.round(G.cull*.8)); say('⚙️ Sichtweite verkürzt: '+G.cull+' m.'); return; }
   }
