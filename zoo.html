@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=846"></script>
-<script src="rewardchests.js?v=846"></script>
-<script src="personality.js?v=846"></script>
+<script src="lang.js?v=849"></script>
+<script src="rewardchests.js?v=849"></script>
+<script src="personality.js?v=849"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -548,45 +548,45 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=846"></script>
+<script src="zgfx.js?v=849"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=846"></script>
-<script src="sanction.js?v=846"></script>
-<script src="zevents.js?v=846"></script>
-<script src="znet.js?v=846"></script>
-<script src="zbases.js?v=846"></script>
-<script src="charheads.js?v=846"></script>
-<script src="zmensch.js?v=846"></script>
-<script src="zfindchest.js?v=846"></script>
-<script src="zambience.js?v=846"></script>
-<script src="znight.js?v=846"></script>
-<script src="zstarter.js?v=846"></script>
-<script src="zcine.js?v=846"></script>
-<script src="zworld.js?v=846"></script>
-<script src="zstation.js?v=846"></script>
-<script src="zfx.js?v=846"></script>
-<script src="zextra.js?v=846"></script>
-<script src="zreb6.js?v=846"></script>
-<script src="zlegend.js?v=846"></script>
-<script src="ztutplus.js?v=846"></script>
-<script src="zlift.js?v=846"></script>
-<script src="zfun.js?v=846"></script>
-<script src="zguide.js?v=846"></script>
-<script src="zrules.js?v=846"></script>
-<script src="zsafe.js?v=846"></script>
-<script src="zrebguard.js?v=846"></script>
-<script src="zpass.js?v=846"></script>
-<script src="znotify.js?v=846"></script>
-<script src="zdetective.js?v=846"></script>
-<script src="zpirate.js?v=846"></script>
-<script src="zpark.js?v=846"></script>
-<script src="zmenu.js?v=846"></script>
-<script src="zdevice.js?v=846"></script>
-<script src="zmusic.js?v=846"></script>
-<script src="zskill.js?v=846"></script>
-<script src="worlds.js?v=846"></script>
+<script src="firebase-state.js?v=849"></script>
+<script src="sanction.js?v=849"></script>
+<script src="zevents.js?v=849"></script>
+<script src="znet.js?v=849"></script>
+<script src="zbases.js?v=849"></script>
+<script src="charheads.js?v=849"></script>
+<script src="zmensch.js?v=849"></script>
+<script src="zfindchest.js?v=849"></script>
+<script src="zambience.js?v=849"></script>
+<script src="znight.js?v=849"></script>
+<script src="zstarter.js?v=849"></script>
+<script src="zcine.js?v=849"></script>
+<script src="zworld.js?v=849"></script>
+<script src="zstation.js?v=849"></script>
+<script src="zfx.js?v=849"></script>
+<script src="zextra.js?v=849"></script>
+<script src="zreb6.js?v=849"></script>
+<script src="zlegend.js?v=849"></script>
+<script src="ztutplus.js?v=849"></script>
+<script src="zlift.js?v=849"></script>
+<script src="zfun.js?v=849"></script>
+<script src="zguide.js?v=849"></script>
+<script src="zrules.js?v=849"></script>
+<script src="zsafe.js?v=849"></script>
+<script src="zrebguard.js?v=849"></script>
+<script src="zpass.js?v=849"></script>
+<script src="znotify.js?v=849"></script>
+<script src="zdetective.js?v=849"></script>
+<script src="zpirate.js?v=849"></script>
+<script src="zpark.js?v=849"></script>
+<script src="zmenu.js?v=849"></script>
+<script src="zdevice.js?v=849"></script>
+<script src="zmusic.js?v=849"></script>
+<script src="zskill.js?v=849"></script>
+<script src="worlds.js?v=849"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4369,7 +4369,7 @@ const ZG={
     setTimeout(()=>this._updateTimeOfDay(), 200);
     // CIRCULAR ground
     const _gm=new THREE.MeshBasicMaterial({color:0x5DBB63}); // 🌱 neuer Rasen mit Gras-Textur (v846)
-    try{ if(window.ZGfx&&ZGfx.grassTex){ _gm.map=ZGfx.grassTex(Math.round(this.WR*2/14)); _gm.color.setHex(0xffffff); } }catch(e){ console.warn('Rasen-Textur',e); }
+    try{ if(window.ZLook&&ZLook.grassTex){ _gm.map=ZLook.grassTex(Math.round(this.WR*2/14)); _gm.color.setHex(0xffffff); } }catch(e){ console.warn('Rasen-Textur',e); }
     const gnd=new THREE.Mesh(new THREE.CircleGeometry(this.WR,64),_gm);
     gnd.rotation.x=-Math.PI/2;  sc.add(gnd);
     // Boundary wall (torus)
@@ -8660,7 +8660,7 @@ function _rebHowSteps(){
   const feats=(REB_FEAT_TXT[N]||[]).map(t=>'• '+t).join('<br>');
   return [
     _RT('rbw0','🔄 Was ist ein Rebirth?','Ein Rebirth ist eine <b>Wiedergeburt</b>: Du fängst deinen Zoo neu an — dafür bekommst du <b>dauerhafte Belohnungen</b>, die für immer bleiben. Ich zeige dir Schritt für Schritt, wie es geht.'),
-    _RT('rbw1','⚠️ Was wird zurückgesetzt?','<b>Zurückgesetzt</b> werden deine Tiere (nur <b>1 zufälliges Tier</b> bleibt), dein Guthaben (MT) und deine gekauften Upgrades. Danach startest du wieder klein — aber viel stärker.'),
+    _RT('rbw1','⚠️ Was wird zurückgesetzt?','<b>Zurückgesetzt</b> werden <b>alle deine Tiere</b> (es bleibt kein Tier), dein Guthaben (MT) und deine gekauften Upgrades. Danach startest du wieder klein — aber viel stärker.'),
     _RT('rbw2','🎁 Was bringt dir Rebirth '+N+'?','💰 Dauerhafter Einkommens-Boost <b>×'+rebMultOf(N)+'</b><br>🥊 Eine neue Slap, dauerhaft (kostet beim Benutzen weiterhin MT)<br>'+feats,{boxTop:true}),
     _RT('rbw3','💰 Was brauchst du dafür?','Für Rebirth '+N+' brauchst du <b>'+$mt(req.mt)+'</b>. Du hast gerade <b>'+$mt(have)+'</b> — '+(can?'<b style="color:#27AE60">das reicht, du kannst sofort loslegen!</b>':'es fehlt noch etwas. Der Balken im Rebirth-Fenster zeigt dir den Fortschritt (grün = gespart, golden = bereit).')),
     {id:'rbshop',title:'🛒 Zuerst: der Shop',text:'Den Rebirth findest du im Shop. Öffne ihn!',target:'#hb-shop',action:'panel:shop'},
@@ -11804,7 +11804,7 @@ const ZP={
   _rReb(){
     const z=ZS.zoo,rb=z.reb||0;
     try{ if(rb<rebMax()){ this._rebCan=(z.mt||0)>=rebReq(rb).mt; } clearInterval(this._rebIv); this._rebIv=setInterval(()=>this._rebBarTick(),1000); }catch(e){}
-    const BASE='Ein Rebirth setzt <b>alles zurück</b> (nur 1 zufälliges Tier bleibt), gibt dir aber einen <b>permanenten Boost</b>, eine <b>neue Slap</b> (Slaps kosten beim Benutzen weiterhin MT) und <b>neue Features</b>.';
+    const BASE='Ein Rebirth setzt <b>alles zurück</b> (alle Tiere, es bleibt keins), gibt dir aber einen <b>permanenten Boost</b>, eine <b>neue Slap</b> (Slaps kosten beim Benutzen weiterhin MT) und <b>neue Features</b>.';
     if(rb>=rebMax()){
       G('prc').innerHTML=`<div style="text-align:center">
         <div style="font-size:2.4rem;margin-bottom:6px">🏆</div>
@@ -11845,9 +11845,9 @@ const ZP={
     if(z.rebLockUntil){ delete z.rebLockUntil; } // 24-Std.-Rebirth-Sperre entfernt
     let _viol=null;
     try{ if(typeof _rtdb!=='undefined'&&_rtdb&&State._useCloud()&&ZS.player){ const snap=await _rtdb.ref('zoo_trades').once('value'); const val=snap.val()||{}; const mine=Object.keys(val).filter(id=>val[id]&&val[id].sellerKey===ZS.player.toLowerCase()); const n=mine.length; if(n>0){ const names=mine.map(id=>(val[id].e||'')+' '+(val[id].n||'?')); if(window.ZRebGuard){ if(z.rebWarned!==(z.reb||0)){ z.rebWarned=(z.reb||0); ZS.save&&ZS.save(true); await ZRebGuard.warn(n,names); return; } _viol={n,names}; } else { ZP.toast('⚠️ Du hast noch '+n+' Tier(e) im Tausch! Nimm sie zuerst zu dir (Shop → Tauschen → Meine Angebote). Danach gilt 24 Std. Rebirth-Sperre.',8000); return; } } } }catch(e){}
-    if(!(await showConfirm('Wirklich? Fast alle Tiere und MT gehen verloren!')))return;
+    if(!(await showConfirm('Wirklich? Alle Tiere und MT gehen verloren!')))return;
     try{ ZBases.backup(true); }catch(e){}
-    const an=z.enc.filter(e=>e);const kept=an.length>0?[an[Math.floor(Math.random()*an.length)]]:[];
+    const kept=[]; // ab v847: bei einem Rebirth bleibt KEIN Tier mehr
     z.reb=(z.reb||0)+1;z.rebirthMult=rebMultOf(z.reb);z._rebMultFor=z.reb;
     // Gehege (z.xenc) bleiben unverändert — es gibt KEINE extra Gehege mehr als Rebirth-Belohnung.
     z.enc=[];z.mt=10;z.luck=1;z.luckLv=0;z._rebNotified=false;
@@ -12174,7 +12174,7 @@ const ZP={
         <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">
           <div style="color:rgba(255,255,255,.75);font-size:.78rem;margin-bottom:6px">🎬 Grafik-Look (Licht, Nebel, Bloom …)</div>
           <div style="display:flex;gap:6px">
-            ${[['classic','Klassisch'],['normal','Normal'],['high','Schön']].map(([k,l])=>{ const cur=(window.ZGfx?(ZGfx.q==='auto'?'high':ZGfx.q):'high'); return `<button onclick="window.ZGfx&&ZGfx.set('${k}')" style="flex:1;background:${cur===k?'#FFA500':'rgba(255,255,255,.1)'};color:${cur===k?'#000':'#fff'};border:none;padding:7px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.76rem">${l}</button>`; }).join('')}
+            ${[['classic','Klassisch'],['normal','Normal'],['high','Schön']].map(([k,l])=>{ const cur=(window.ZLook?(ZLook.q==='auto'?'high':ZLook.q):'high'); return `<button onclick="window.ZLook&&ZLook.set('${k}')" style="flex:1;background:${cur===k?'#FFA500':'rgba(255,255,255,.1)'};color:${cur===k?'#000':'#fff'};border:none;padding:7px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.76rem">${l}</button>`; }).join('')}
           </div>
         </div>
         <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">

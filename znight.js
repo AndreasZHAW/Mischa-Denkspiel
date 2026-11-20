@@ -19,7 +19,7 @@
     if(!pl.length) return false;
     tex=tex||mkTex(); placesKey=key;
     pl.forEach(p=>{ const m=new THREE.SpriteMaterial({map:tex,color:COL[p.n]||0xffe0a0,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:0}); const s=new THREE.Sprite(m); s.position.set(p.x,7.5,p.z); s.scale.set(13,13,1); s.renderOrder=5; g.scene.add(s); halos.push({s,ph:Math.random()*6}); });
-    for(let i=0;i<40;i++){ const m=new THREE.SpriteMaterial({map:tex,color:0xd8ff7a,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:0}); const s=new THREE.Sprite(m); s.scale.set(.9,.9,1); s.userData={a:Math.random()*6,r:6+Math.random()*26,sp:.2+Math.random()*.5,y:.8+Math.random()*3.2,ph:Math.random()*6}; g.scene.add(s); flies.push(s); }
+    for(let i=0;i<((window.ZLook&&ZLook.mobile)?16:40);i++){ const m=new THREE.SpriteMaterial({map:tex,color:0xd8ff7a,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:0}); const s=new THREE.Sprite(m); s.scale.set(.9,.9,1); s.userData={a:Math.random()*6,r:6+Math.random()*26,sp:.2+Math.random()*.5,y:.8+Math.random()*3.2,ph:Math.random()*6}; g.scene.add(s); flies.push(s); }
     return true;
   }
   function tick(t){

@@ -1,17 +1,23 @@
-/* ZGfx (v840): 🎨 Realistischere Grafik – Licht & Schattierung (Sonnenstand nach Uhrzeit), Himmelsverlauf, Distanz-Nebel, Oberflächen-Details,
+/* ZLook (v840): 🎨 Realistischere Grafik – Licht & Schattierung (Sonnenstand nach Uhrzeit), Himmelsverlauf, Distanz-Nebel, Oberflächen-Details,
    dazu "Schön"-Stufe mit Bloom, Farbkorrektur, Randunschärfe und Kantenglättung. Stufen: klassisch / normal / schön (Menü → Grafik-Look). */
 (function(){
   'use strict';
-  if(window.ZGfx) return;
-  const G=window.ZGfx={q:'auto',U:null,ready:false,pp:false,fps:0};
+  if(window.ZLook) return;
+  const G=window.ZLook={q:'auto',U:null,ready:false,pp:false,fps:0};
   const lsg=()=>{ try{ return localStorage.getItem('zgfx_q'); }catch(e){ return null; } };
   const lss=v=>{ try{ localStorage.setItem('zgfx_q',v); }catch(e){} };
-  G.q=lsg()||'auto'; // auto = Schön, fällt bei schwacher Leistung auf Normal zurück
+  const ua=navigator.userAgent||'';
+  const mobile=G.mobile=/Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches);
+  const weak=!mobile&&(navigator.hardwareConcurrency||8)<=4;
+  // Standard: Computer = Schön (mit Auto-Rückfall), Handy/Tablet/schwacher PC = Normal
+  G.q=lsg()||((mobile||weak)?'normal':'auto');
+  // Sichtweite (in Welt-Einheiten): Computer 200, Handy/iPad/Tablet 75 – alles dahinter wird nicht mehr gezeichnet
+  G.cull=mobile?75:200;
   const level=()=>G.q==='classic'?0:(G.q==='normal'?1:2);
   const CDN='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/';
   function patch(){
     const T=window.THREE; if(!T||G.ready) return; G.ready=true;
-    const U=G.U={ uZOn:{value:1}, uSunDir:{value:new T.Vector3(.4,.8,.3).normalize()}, uSunCol:{value:new T.Color(1,.97,.9)}, uAmb:{value:1}, uTint:{value:new T.Color(1,1,1)}, uDet:{value:1} };
+    const U=G.U={ uZOn:{value:1}, uSunDir:{value:new T.Vector3(.4,.8,.3).normalize()}, uSunCol:{value:new T.Color(1,.97,.9)}, uAmb:{value:1}, uTint:{value:new T.Color(1,1,1)}, uDet:{value:G.mobile?0:1} };
     const skip=m=>(m.userData&&m.userData.flat)||m.transparent||m.side===T.BackSide||m.blending!==T.NormalBlending||m.depthWrite===false;
     const P=T.MeshBasicMaterial.prototype;
     P.onBeforeCompile=function(sh){
@@ -31,10 +37,10 @@ float zn3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.0-2.0*f);
         .replace('#include <envmap_fragment>',`#include <envmap_fragment>
 if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   vec3 n=vZN/zl; if(!gl_FrontFacing) n=-n;
-  float g1=zn3(vZW*1.7), g2=zn3(vZW*7.3);
+  float g1=0.5, g2=0.5; vec3 bn=n;
   vec3 vd=normalize(cameraPosition-vZW);
-  // Mikro-Relief: Normale leicht durch Rauschen kippen (Stein/Holz/Putz bekommen Körnung)
-  vec3 bn=normalize(n+(vec3(g2,zn3(vZW*7.3+5.0),zn3(vZW*7.3+9.0))-0.5)*0.34*uDet);
+  if(uDet>0.01){ g1=zn3(vZW*1.7); g2=zn3(vZW*7.3);
+    bn=normalize(n+(vec3(g2,zn3(vZW*7.3+5.0),zn3(vZW*7.3+9.0))-0.5)*0.34*uDet); }
   float ndl=max(dot(bn,uSunDir),0.0); float hemi=n.y*0.5+0.5;
   vec3 s=vec3(uAmb)*(0.60+0.16*hemi)+uSunCol*0.46*ndl;
   float det=1.0+((g1-0.5)*0.10+(g2-0.5)*0.08)*uDet;
@@ -111,10 +117,30 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
       if(!g.scene.fog) g.scene.fog=new T.Fog(0xcfe6ff,70,300);
       g.scene.fog.color.copy(G._hor);
       let near=80,far=330; if(wx==='rain'){ near=40; far=210; } else if(wx==='fog'){ near=8; far=110; } else if(day<.5){ near=60; far=260; }
+      far=Math.min(far,G.cull*1.02); near=Math.min(near,G.cull*.5);
       g.scene.fog.near+=(near-g.scene.fog.near)*.05; g.scene.fog.far+=(far-g.scene.fog.far)*.05;
     } else if(g.scene.fog){ g.scene.fog=null; }
     // Sonnenkugel folgt Richtung
     if(g._sunMesh&&lv>0&&!g._moonMode&&day>.02&&tod){ g._sunMesh.position.copy(U.uSunDir.value).multiplyScalar(170); }
+  }
+  /* ── Sichtweite: Objekte weit weg werden nicht mehr gezeichnet (mit Nebel zusammen unauffällig) ── */
+  let _b=null;
+  let cullIdx=0, hiddenSet=new Set();
+  function cullTick(){
+    const T=window.THREE, g=window.ZG; if(!T||!g||!g.scene||!g.cam) return;
+    const kids=g.scene.children, cp=g.cam.position, lim=G.cull, now=performance.now();
+    const off=busy()||!(G.cull>0)||G.cullOff;
+    if(off){ if(hiddenSet.size){ hiddenSet.forEach(o=>{ o.visible=true; o.userData._zc=0; }); hiddenSet.clear(); } return; }
+    const sky=g._skyDome, stars=g._starsGroup;
+    // Bounds reihum neu berechnen (max. 6 pro Tick, damit es nie ruckelt)
+    let budget=6;
+    for(let k=0;k<kids.length&&budget>0;k++){ const o=kids[(cullIdx+k)%kids.length]; const u=o.userData; if(u._zb&&now-u._zb.t<3500) continue; if(o.isLight||o===sky||o===stars||u.noCull||o.isSprite&&false) { u._zb={t:now,never:1}; continue; }
+      budget--; try{ const wasVis=o.visible; _b=_b||new T.Box3(); _b.makeEmpty(); _b.setFromObject(o); if(_b.isEmpty()){ u._zb={t:now,never:1}; continue; } const c=new T.Vector3(); _b.getCenter(c); const r=_b.getSize(new T.Vector3()).length()*.5; u._zb={t:now,c,r,never:r>110||c.y>35||o===g._sunMesh||o===g._moonMesh}; }catch(e){ u._zb={t:now,never:1}; } }
+    cullIdx=(cullIdx+6)%Math.max(1,kids.length);
+    for(let i=0;i<kids.length;i++){ const o=kids[i], z=o.userData&&o.userData._zb; if(!z||z.never||!z.c) continue;
+      const d=Math.hypot(z.c.x-cp.x,z.c.z-cp.z)-z.r-6;
+      if(d>lim){ if(o.visible){ o.visible=false; o.userData._zc=1; hiddenSet.add(o); } }
+      else if(o.userData._zc){ o.visible=true; o.userData._zc=0; hiddenSet.delete(o); } }
   }
   /* ── Nachbearbeitung (Bloom + Farbkorrektur + Randunschärfe + FXAA) ── */
   let composer=null, loading=false, loadedPP=false, origRender=null, inC=false, gradeP=null, fxaaP=null, bloomP=null;
@@ -125,7 +151,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
       const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
       for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f);
       loadedPP=true;
-    }catch(e){ console.warn('ZGfx: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
+    }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
     loading=false;
   }
   function build(){
@@ -151,24 +177,33 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
     composer.setSize(w,h);
     window.addEventListener('resize',()=>{ try{ const W=window.innerWidth,H=window.innerHeight; composer.setSize(W,H); gradeP.uniforms.res.value.set(W,H); fxaaP.uniforms.resolution.value.set(1/(W*r.getPixelRatio()),1/(H*r.getPixelRatio())); bloomP.setSize(W/2,H/2); }catch(e){} });
     origRender=r.render.bind(r);
-    r.render=function(s,c){ if(inC||!composer||!G.pp||s!==g.scene||c!==g.cam) return origRender(s,c); inC=true; try{ composer.render(); }catch(e){ console.warn('ZGfx composer',e); G.pp=false; origRender(s,c); } inC=false; };
+    r.render=function(s,c){ if(inC||!composer||!G.pp||s!==g.scene||c!==g.cam) return origRender(s,c); inC=true; try{ composer.render(); }catch(e){ console.warn('ZLook composer',e); G.pp=false; origRender(s,c); } inC=false; };
   }
   /* Leistungswächter: bei dauerhaft niedriger FPS automatisch auf Normal */
-  let frames=0, t0=0, slow=0;
+  let frames=0, t0=0, slow=0, step=0;
+  function perfStep(){
+    step++; const g=window.ZG, r=g&&g.renderer; const say=m=>{ try{ ZP.toast(m,3500); }catch(e){} };
+    if(step===1&&G.pp){ G.q='normal'; lss('normal'); G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
+    if(r&&r.getPixelRatio()>.8){ const pr=Math.max(.75,r.getPixelRatio()-.25); r.setPixelRatio(pr); try{ composer&&composer.setPixelRatio(pr); r.setSize(window.innerWidth,window.innerHeight,true); }catch(e){} say('⚙️ Auflösung etwas gesenkt für flüssigeres Spiel.'); return; }
+    if(G.cull>45){ G.cull=Math.max(45,Math.round(G.cull*.8)); say('⚙️ Sichtweite verkürzt: '+G.cull+' m.'); return; }
+  }
   function loop(now){
     try{
       if(!G.U) patch();
-      env();
+      env(); if((frames&7)===0) cullTick();
+      if(G.mobile&&!G._pr&&window.ZG&&ZG.renderer){ G._pr=1; try{ const r=ZG.renderer; if(r.getPixelRatio()>1.5){ r.setPixelRatio(1.5); r.setSize(window.innerWidth,window.innerHeight,true); } }catch(e){} }
       const want=level()===2&&!busy();
       if(want&&!loadedPP&&!loading) loadPP().then(()=>{ if(loadedPP) try{ build(); }catch(e){ console.warn(e); } });
       G.pp=want&&loadedPP&&!!composer;
       if(!G.pp&&loadedPP&&!composer&&level()===2) try{ build(); }catch(e){}
       frames++; if(!t0) t0=now; if(now-t0>3000){ G.fps=frames*1000/(now-t0); frames=0; t0=now;
-        if(G.pp&&G.q==='auto'){ if(G.fps<24){ slow++; if(slow>=2){ G.q='normal'; lss('normal'); G.pp=false; try{ ZP.toast('🎨 Grafik auf „Normal" gestellt (flüssiger).',3500); }catch(e){} } } else slow=0; } }
+        const vis=!document.hidden&&G.fps>0;
+        if(vis&&G.fps<(G.mobile?24:30)){ slow++; if(slow>=2){ slow=0; perfStep(); } } else if(vis) slow=0; }
     }catch(e){}
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
+  G.setCull=function(m){ G.cull=m; };
   G.set=function(q){ G.q=q; lss(q); slow=0; try{ ZP._rMenu&&ZP._rMenu(); }catch(e){} try{ ZP.toast('🎨 Grafik-Look: '+({classic:'Klassisch',normal:'Normal',high:'Schön',auto:'Schön'}[q]||q),2200); }catch(e){} };
   G.label=()=>({classic:'Klassisch',normal:'Normal',high:'Schön',auto:'Schön'}[G.q]||'Schön');
 })();
