@@ -10,11 +10,12 @@
   const mobile=G.mobile=/Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches);
   const weak=!mobile&&(navigator.hardwareConcurrency||8)<=4;
   // Standard: Computer = Schön (mit Auto-Rückfall), Handy/Tablet/schwacher PC = Normal
+  try{ if(localStorage.getItem('zgfx_mig')!=='2'){ localStorage.removeItem('zgfx_q'); localStorage.setItem('zgfx_mig','2'); } }catch(e){}
   G.q=lsg()||((mobile||weak)?'normal':'auto');
   // Sichtweite (in Welt-Einheiten): Computer 200, Handy/iPad/Tablet 75 – alles dahinter wird nicht mehr gezeichnet
   G.cull=mobile?75:200;
   const level=()=>G.q==='classic'?0:(G.q==='normal'?1:2);
-  const CDN='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/';
+  const BASE=(()=>{ try{ const c=document.currentScript&&document.currentScript.src; return c?c.replace(/[^\/]*$/,''):''; }catch(e){ return ''; } })();
   function patch(){
     const T=window.THREE; if(!T||G.ready) return; G.ready=true;
     const U=G.U={ uZOn:{value:1}, uSunDir:{value:new T.Vector3(.4,.8,.3).normalize()}, uSunCol:{value:new T.Color(1,.97,.9)}, uAmb:{value:1}, uTint:{value:new T.Color(1,1,1)}, uDet:{value:G.mobile?0:1} };
@@ -148,9 +149,9 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
-      for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f);
-      loadedPP=true;
+      try{ await loadScript(BASE+'zpp.js?v=850'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+        for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
+      loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
     loading=false;
   }
@@ -183,7 +184,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   let frames=0, t0=0, slow=0, step=0;
   function perfStep(){
     step++; const g=window.ZG, r=g&&g.renderer; const say=m=>{ try{ ZP.toast(m,3500); }catch(e){} };
-    if(step===1&&G.pp){ G.q='normal'; lss('normal'); G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
+    if(step===1&&G.pp){ G.q='normal'; G.autoDown=true; G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
     if(r&&r.getPixelRatio()>.8){ const pr=Math.max(.75,r.getPixelRatio()-.25); r.setPixelRatio(pr); try{ composer&&composer.setPixelRatio(pr); r.setSize(window.innerWidth,window.innerHeight,true); }catch(e){} say('⚙️ Auflösung etwas gesenkt für flüssigeres Spiel.'); return; }
     if(G.cull>45){ G.cull=Math.max(45,Math.round(G.cull*.8)); say('⚙️ Sichtweite verkürzt: '+G.cull+' m.'); return; }
   }
@@ -198,10 +199,14 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
       if(!G.pp&&loadedPP&&!composer&&level()===2) try{ build(); }catch(e){}
       frames++; if(!t0) t0=now; if(now-t0>3000){ G.fps=frames*1000/(now-t0); frames=0; t0=now;
         const vis=!document.hidden&&G.fps>0;
-        if(vis&&G.fps<(G.mobile?24:30)){ slow++; if(slow>=2){ slow=0; perfStep(); } } else if(vis) slow=0; }
+        const zs=document.getElementById('s-zoo'), inZ=zs&&getComputedStyle(zs).display!=='none'&&window.ZG&&ZG.scene; if(inZ&&!G._since) G._since=now; if(!inZ) G._since=0;
+        const grace=inZ&&G._since&&now-G._since>30000; // 30 s Schonfrist nach dem Laden (da ruckelt jeder kurz)
+        if(vis&&grace&&G.fps<(G.mobile?22:27)){ slow++; if(slow>=3){ slow=0; perfStep(); } } else slow=0; }
     }catch(e){}
-    requestAnimationFrame(loop);
+    try{ patch(); }catch(e){}
+  requestAnimationFrame(loop);
   }
+  try{ patch(); }catch(e){}
   requestAnimationFrame(loop);
   G.setCull=function(m){ G.cull=m; };
   G.set=function(q){ G.q=q; lss(q); slow=0; try{ ZP._rMenu&&ZP._rMenu(); }catch(e){} try{ ZP.toast('🎨 Grafik-Look: '+({classic:'Klassisch',normal:'Normal',high:'Schön',auto:'Schön'}[q]||q),2200); }catch(e){} };
