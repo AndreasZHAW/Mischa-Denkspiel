@@ -1,6 +1,7 @@
 /* ZLook (v840): 🎨 Realistischere Grafik – Licht & Schattierung (Sonnenstand nach Uhrzeit), Himmelsverlauf, Distanz-Nebel, Oberflächen-Details,
    dazu "Schön"-Stufe mit Bloom, Farbkorrektur, Randunschärfe und Kantenglättung. Stufen: klassisch / normal / schön (Menü → Grafik-Look). */
 (function(){
+  const ZGet=()=>{ try{ return (typeof ZG!=='undefined')?ZG:null; }catch(e){ return null; } }; // ZG ist ein const im Spiel (nicht window.ZG!)
   'use strict';
   if(window.ZLook) return;
   const G=window.ZLook={q:'auto',U:null,ready:false,pp:false,fps:0};
@@ -68,14 +69,14 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
     const t=new T.CanvasTexture(c); t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(rep,rep); t.anisotropy=8; t.encoding=T.sRGBEncoding===undefined?t.encoding:t.encoding; t.needsUpdate=true; return t;
   };
   /* ── Himmel / Nebel / Sonnenstand ── */
-  function busy(){ const g=window.ZG; if(!g) return true; return !!(g._steActive||g._jumpActive||g._iceRoomActive||g._mazeActive||g._windRoomActive||g._arcadeActive||g._trashActive||g._moonMode); }
+  function busy(){ const g=ZGet(); if(!g) return true; return !!(g._steActive||g._jumpActive||g._iceRoomActive||g._mazeActive||g._windRoomActive||g._arcadeActive||g._trashActive||g._moonMode); }
   const hour=()=>{ if(G.hourOverride!=null) return G.hourOverride; const d=new Date(); return d.getHours()+d.getMinutes()/60; };
   let skyMat=null, lastDome=null;
   function skyShader(){ const T=THREE; return new T.ShaderMaterial({ side:T.BackSide, depthWrite:false, fog:false, uniforms:{top:{value:new T.Color(0x3a78c8)},hor:{value:new T.Color(0xcfe6ff)},sun:{value:new T.Vector3(0,1,0)},glow:{value:new T.Color(1,.8,.5)},gi:{value:.5}},
     vertexShader:'varying vec3 vP; void main(){ vP=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
     fragmentShader:'uniform vec3 top; uniform vec3 hor; uniform vec3 sun; uniform vec3 glow; uniform float gi; varying vec3 vP; void main(){ float h=clamp(vP.y,0.0,1.0); vec3 c=mix(hor,top,pow(h,0.55)); c=mix(c,hor*0.85,smoothstep(0.0,-0.35,vP.y)); float d=max(dot(normalize(vP),normalize(sun)),0.0); c+=glow*(pow(d,7.0)*0.28+pow(d,90.0)*0.5)*gi; gl_FragColor=vec4(c,1.0); }' }); }
   function env(){
-    const T=window.THREE, g=window.ZG; if(!T||!G.U||!g||!g.scene) return;
+    const T=window.THREE, g=ZGet(); if(!T||!G.U||!g||!g.scene) return;
     const U=G.U, lv=level(), on=lv>0&&!busy();
     U.uZOn.value=lv>0?1:0;
     // Sonnenstand nach Uhrzeit (wie im Himmel-System), Nacht = Mond
@@ -128,7 +129,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   let _b=null;
   let cullIdx=0, hiddenSet=new Set();
   function cullTick(){
-    const T=window.THREE, g=window.ZG; if(!T||!g||!g.scene||!g.cam) return;
+    const T=window.THREE, g=ZGet(); if(!T||!g||!g.scene||!g.cam) return;
     const kids=g.scene.children, cp=g.cam.position, lim=G.cull, now=performance.now();
     const off=busy()||!(G.cull>0)||G.cullOff;
     if(off){ if(hiddenSet.size){ hiddenSet.forEach(o=>{ o.visible=true; o.userData._zc=0; }); hiddenSet.clear(); } return; }
@@ -149,14 +150,14 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      try{ await loadScript(BASE+'zpp.js?v=850'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+      try{ await loadScript(BASE+'zpp.js?v=851'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
         for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
       loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
     loading=false;
   }
   function build(){
-    const g=window.ZG, T=THREE; if(composer||!g||!g.renderer||!g.scene||!g.cam||!T.EffectComposer) return;
+    const g=ZGet(), T=THREE; if(composer||!g||!g.renderer||!g.scene||!g.cam||!T.EffectComposer) return;
     const r=g.renderer, w=window.innerWidth, h=window.innerHeight;
     composer=new T.EffectComposer(r);
     composer.addPass(new T.RenderPass(g.scene,g.cam));
@@ -183,7 +184,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   /* Leistungswächter: bei dauerhaft niedriger FPS automatisch auf Normal */
   let frames=0, t0=0, slow=0, step=0;
   function perfStep(){
-    step++; const g=window.ZG, r=g&&g.renderer; const say=m=>{ try{ ZP.toast(m,3500); }catch(e){} };
+    step++; const g=ZGet(), r=g&&g.renderer; const say=m=>{ try{ ZP.toast(m,3500); }catch(e){} };
     if(step===1&&G.pp){ G.q='normal'; G.autoDown=true; G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
     if(r&&r.getPixelRatio()>.8){ const pr=Math.max(.75,r.getPixelRatio()-.25); r.setPixelRatio(pr); try{ composer&&composer.setPixelRatio(pr); r.setSize(window.innerWidth,window.innerHeight,true); }catch(e){} say('⚙️ Auflösung etwas gesenkt für flüssigeres Spiel.'); return; }
     if(G.cull>45){ G.cull=Math.max(45,Math.round(G.cull*.8)); say('⚙️ Sichtweite verkürzt: '+G.cull+' m.'); return; }
@@ -192,14 +193,14 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
     try{
       if(!G.U) patch();
       env(); if((frames&7)===0) cullTick();
-      if(G.mobile&&!G._pr&&window.ZG&&ZG.renderer){ G._pr=1; try{ const r=ZG.renderer; if(r.getPixelRatio()>1.5){ r.setPixelRatio(1.5); r.setSize(window.innerWidth,window.innerHeight,true); } }catch(e){} }
+      if(G.mobile&&!G._pr&&ZGet()&&ZG.renderer){ G._pr=1; try{ const r=ZG.renderer; if(r.getPixelRatio()>1.5){ r.setPixelRatio(1.5); r.setSize(window.innerWidth,window.innerHeight,true); } }catch(e){} }
       const want=level()===2&&!busy();
       if(want&&!loadedPP&&!loading) loadPP().then(()=>{ if(loadedPP) try{ build(); }catch(e){ console.warn(e); } });
       G.pp=want&&loadedPP&&!!composer;
       if(!G.pp&&loadedPP&&!composer&&level()===2) try{ build(); }catch(e){}
       frames++; if(!t0) t0=now; if(now-t0>3000){ G.fps=frames*1000/(now-t0); frames=0; t0=now;
         const vis=!document.hidden&&G.fps>0;
-        const zs=document.getElementById('s-zoo'), inZ=zs&&getComputedStyle(zs).display!=='none'&&window.ZG&&ZG.scene; if(inZ&&!G._since) G._since=now; if(!inZ) G._since=0;
+        const zs=document.getElementById('s-zoo'), inZ=zs&&getComputedStyle(zs).display!=='none'&&ZGet()&&ZG.scene; if(inZ&&!G._since) G._since=now; if(!inZ) G._since=0;
         const grace=inZ&&G._since&&now-G._since>30000; // 30 s Schonfrist nach dem Laden (da ruckelt jeder kurz)
         if(vis&&grace&&G.fps<(G.mobile?22:27)){ slow++; if(slow>=3){ slow=0; perfStep(); } } else slow=0; }
     }catch(e){}
