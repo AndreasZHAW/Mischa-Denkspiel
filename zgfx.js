@@ -42,12 +42,14 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   float g1=0.5, g2=0.5; vec3 bn=n;
   vec3 vd=normalize(cameraPosition-vZW);
   if(uDet>0.01){ g1=zn3(vZW*1.7); g2=zn3(vZW*7.3);
-    bn=normalize(n+(vec3(g2,zn3(vZW*7.3+5.0),zn3(vZW*7.3+9.0))-0.5)*0.34*uDet); }
+    bn=normalize(n+(vec3(g2,zn3(vZW*7.3+5.0),zn3(vZW*7.3+9.0))-0.5)*0.5*uDet); }
   float ndl=max(dot(bn,uSunDir),0.0); float hemi=n.y*0.5+0.5;
-  vec3 s=vec3(uAmb)*(0.60+0.16*hemi)+uSunCol*0.46*ndl;
-  float det=1.0+((g1-0.5)*0.10+(g2-0.5)*0.08)*uDet;
-  vec3 hv=normalize(uSunDir+vd); float sp=pow(max(dot(bn,hv),0.0),26.0)*0.10*(0.4+g1)*step(0.0,ndl-0.001);
-  outgoingLight=outgoingLight*s*uTint*det+uSunCol*sp*uZOn;
+  vec3 kd=normalize(vec3(0.4,0.8,0.3));
+  float rel=max(dot(bn,kd),0.0)-max(dot(n,kd),0.0); // Relief-Kontrast: immer gleich stark, egal welche Tageszeit
+  vec3 s=vec3(uAmb)*(0.60+0.16*hemi)+uSunCol*0.46*ndl+vec3(0.60*rel*uDet);
+  float det=1.0+((g1-0.5)*0.14+(g2-0.5)*0.12)*uDet;
+  vec3 hv=normalize(kd+vd); float sp=pow(max(dot(bn,hv),0.0),22.0)*0.12*(0.4+g1)*step(0.0,dot(n,kd));
+  outgoingLight=outgoingLight*s*uTint*det+max(uSunCol,vec3(0.7))*sp*uZOn*uDet;
 } }`);
     };
     P.customProgramCacheKey=function(){ return skip(this)?'zf':'zs'; };
@@ -123,7 +125,8 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
       g.scene.fog.near+=(near-g.scene.fog.near)*.05; g.scene.fog.far+=(far-g.scene.fog.far)*.05;
     } else if(g.scene.fog){ g.scene.fog=null; }
     // Sonnenkugel folgt Richtung
-    if(g._sunMesh&&lv>0&&!g._moonMode&&day>.02&&tod){ g._sunMesh.position.copy(U.uSunDir.value).multiplyScalar(170); }
+    // Nur EINE Sonne: die weiche Himmels-Sonne (Shader). Die alte Kugel-Sonne samt Leuchten wird bei Normal/Schön versteckt.
+    if(g._sunMesh){ if(lv>0&&!g._moonMode){ if(g._sunMesh.visible){ g._sunMesh.visible=false; g._sunMesh.userData._zhid=1; } } else if(g._sunMesh.userData._zhid){ g._sunMesh.userData._zhid=0; g._sunMesh.visible=true; } }
   }
   /* ── Sichtweite: Objekte weit weg werden nicht mehr gezeichnet (mit Nebel zusammen unauffällig) ── */
   let _b=null;
@@ -150,7 +153,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      try{ await loadScript(BASE+'zpp.js?v=851'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+      try{ await loadScript(BASE+'zpp.js?v=853'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
         for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
       loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
