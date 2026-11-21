@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=857"></script>
-<script src="rewardchests.js?v=857"></script>
-<script src="personality.js?v=857"></script>
+<script src="lang.js?v=859"></script>
+<script src="rewardchests.js?v=859"></script>
+<script src="personality.js?v=859"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -548,46 +548,47 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=857"></script>
+<script src="zgfx.js?v=859"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=857"></script>
-<script src="sanction.js?v=857"></script>
-<script src="zevents.js?v=857"></script>
-<script src="znet.js?v=857"></script>
-<script src="zbases.js?v=857"></script>
-<script src="charheads.js?v=857"></script>
-<script src="zmensch.js?v=857"></script>
-<script src="zfindchest.js?v=857"></script>
-<script src="zambience.js?v=857"></script>
-<script src="znight.js?v=857"></script>
-<script src="zstarter.js?v=857"></script>
-<script src="zcine.js?v=857"></script>
-<script src="zworld.js?v=857"></script>
-<script src="zstation.js?v=857"></script>
-<script src="zfx.js?v=857"></script>
-<script src="zextra.js?v=857"></script>
-<script src="zreb6.js?v=857"></script>
-<script src="zloadtest.js?v=857"></script>
-<script src="zlegend.js?v=857"></script>
-<script src="ztutplus.js?v=857"></script>
-<script src="zlift.js?v=857"></script>
-<script src="zfun.js?v=857"></script>
-<script src="zguide.js?v=857"></script>
-<script src="zrules.js?v=857"></script>
-<script src="zsafe.js?v=857"></script>
-<script src="zrebguard.js?v=857"></script>
-<script src="zpass.js?v=857"></script>
-<script src="znotify.js?v=857"></script>
-<script src="zdetective.js?v=857"></script>
-<script src="zpirate.js?v=857"></script>
-<script src="zpark.js?v=857"></script>
-<script src="zmenu.js?v=857"></script>
-<script src="zdevice.js?v=857"></script>
-<script src="zmusic.js?v=857"></script>
-<script src="zskill.js?v=857"></script>
-<script src="worlds.js?v=857"></script>
+<script src="firebase-state.js?v=859"></script>
+<script src="sanction.js?v=859"></script>
+<script src="zevents.js?v=859"></script>
+<script src="znet.js?v=859"></script>
+<script src="zbases.js?v=859"></script>
+<script src="charheads.js?v=859"></script>
+<script src="zmensch.js?v=859"></script>
+<script src="zfindchest.js?v=859"></script>
+<script src="zambience.js?v=859"></script>
+<script src="znight.js?v=859"></script>
+<script src="zstarter.js?v=859"></script>
+<script src="zcine.js?v=859"></script>
+<script src="zworld.js?v=859"></script>
+<script src="zstation.js?v=859"></script>
+<script src="zfx.js?v=859"></script>
+<script src="zextra.js?v=859"></script>
+<script src="zreb6.js?v=859"></script>
+<script src="zloadtest.js?v=859"></script>
+<script src="zbots.js?v=859"></script>
+<script src="zlegend.js?v=859"></script>
+<script src="ztutplus.js?v=859"></script>
+<script src="zlift.js?v=859"></script>
+<script src="zfun.js?v=859"></script>
+<script src="zguide.js?v=859"></script>
+<script src="zrules.js?v=859"></script>
+<script src="zsafe.js?v=859"></script>
+<script src="zrebguard.js?v=859"></script>
+<script src="zpass.js?v=859"></script>
+<script src="znotify.js?v=859"></script>
+<script src="zdetective.js?v=859"></script>
+<script src="zpirate.js?v=859"></script>
+<script src="zpark.js?v=859"></script>
+<script src="zmenu.js?v=859"></script>
+<script src="zdevice.js?v=859"></script>
+<script src="zmusic.js?v=859"></script>
+<script src="zskill.js?v=859"></script>
+<script src="worlds.js?v=859"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2212,6 +2213,7 @@ const ZS={
     }
     try{
       const cutoff = Date.now() - 20000; // only count players active in the last 20s
+      let _botN=0; try{ const _bs=(await _rtdb.ref('zoo_cfg/bots').once('value')).val(); _botN=Math.max(0,Math.min(20,(_bs&&_bs.n)|0)); }catch(e){}
       const _activeSlots = async (instId) => {
         const snap = await _rtdb.ref('zoo_hot/'+instId).once('value');
         const all = snap.val() || {};
@@ -2225,6 +2227,7 @@ const ZS={
           if((d.t||0) < cutoff) return;
           count++;
         });
+        if(instId==='main'&&_botN>0){ for(let s=20-_botN;s<20;s++) taken.add(s); count+=_botN; }
         return {taken, count};
       };
       let {taken, count} = await _activeSlots('main');
@@ -4015,7 +4018,7 @@ const ZG={
   _updOthers(others){
     const colors=[0xff6b6b,0x4fc3f7,0xffe082,0xa5d6a7,0xce93d8];
     Object.keys(this.otherM).forEach(n=>{
-      if(!others[n]){this.scene.remove(this.otherM[n]);delete this.otherM[n];}
+      if(!others[n] && !(this.otherM[n]&&this.otherM[n].userData&&this.otherM[n].userData.isBot)){this.scene.remove(this.otherM[n]);delete this.otherM[n];}
     });
     let ci=0;
     Object.values(others).forEach(op=>{
@@ -8201,8 +8204,9 @@ const ZG={
         else if(prev && prev._heading!==undefined) others[name]._heading=prev._heading;
       });
       this.otherPl=others;
+      try{ if(window.ZBots&&ZBots.setReal){ const _rs=new Set(); Object.keys(hotAll).forEach(k=>{ const h=hotAll[k]; if(h&&now-(h.t||0)<60000&&typeof h.slotIdx==='number') _rs.add(h.slotIdx); }); if(typeof ZS.mySlot==='number') _rs.add(ZS.mySlot); ZBots.setReal(_rs); } }catch(e){}
       this._updOthers(others);
-      try{ this._renderOtherEnclosures(others); }catch(e){}
+      try{ this._renderOtherEnclosures(Object.assign({},others,(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{})); }catch(e){}
       this._updSyncBadge();
       // ── TRAFFIC-DIAGNOSE: alle paar Sekunden einen Schnappschuss der
       // eigenen Sync-Metriken nach Firebase schreiben, damit diagnose.html
@@ -14243,6 +14247,7 @@ const ZAdmin = {
     if(tab==='einst')this._populateEvents();
     if(tab==='battle')this._battleStatus();
     if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); ZEvt.adminTeamLoad(); }
+    if(tab==='bots'){ const b=document.getElementById('padmin-bots-body'); if(b&&window.ZBots) b.innerHTML=ZBots.adminHTML(); }
     if(tab==='loadtest'){ const b=document.getElementById('padmin-loadtest-body'); if(b&&window.ZLoad) b.innerHTML=ZLoad.adminHTML(); }
     if(tab==='reb6'){ const b=document.getElementById('padmin-reb6-body'); if(b&&window.ZReb6) b.innerHTML=ZReb6.adminHTML(); }
     if(tab==='wjagd'){ const b=document.getElementById('padmin-wjagd-body'); if(b&&window.ZLetters) b.innerHTML=ZLetters.adminHTML(); }
@@ -20902,6 +20907,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="wjagd" onclick="ZAdmin.switchTab('wjagd')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔤 Buchstaben-Suche</div>
           <div class="padmin-tab-btn" data-tab="lblock" onclick="ZAdmin.switchTab('lblock')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📦 Glücksblöcke</div>
           <div class="padmin-tab-btn" data-tab="lband" onclick="ZAdmin.switchTab('lband')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏃 Laufband-Admin</div>
+          <div class="padmin-tab-btn" data-tab="bots" onclick="ZAdmin.switchTab('bots')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🤖 Computerspieler</div>
           <div class="padmin-tab-btn" data-tab="loadtest" onclick="ZAdmin.switchTab('loadtest')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🧪 Traffic-Test</div>
           <div class="padmin-tab-btn" data-tab="reb6" onclick="ZAdmin.switchTab('reb6')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔄 Rebirth 6 (Veröffentlichen)</div>
           <div class="padmin-tab-btn" data-tab="safe" onclick="ZAdmin.switchTab('safe')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">💾 Sicherung &amp; Fehler</div>
@@ -20961,6 +20967,7 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: SICHERHEIT -->
+        <div class="padmin-tab" id="padmin-tab-bots" style="display:none"><div class="padmin-section-title">🤖 Computerspieler</div><div id="padmin-bots-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-loadtest" style="display:none"><div class="padmin-section-title">🧪 Traffic-Test</div><div id="padmin-loadtest-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-reb6" style="display:none"><div class="padmin-section-title">🔄 Rebirth 6</div><div id="padmin-reb6-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-safe" style="display:none"><div class="padmin-section-title">💾 Sicherung, Verlauf &amp; Fehler</div><div id="padmin-safe-body"></div></div>
