@@ -121,7 +121,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
       if(!g.scene.fog) g.scene.fog=new T.Fog(0xcfe6ff,70,300);
       g.scene.fog.color.copy(G._hor);
       let near=80,far=330; if(wx==='rain'){ near=40; far=210; } else if(wx==='fog'){ near=8; far=110; } else if(day<.5){ near=60; far=260; }
-      far=Math.min(far,G.cull*1.02); near=Math.min(near,G.cull*.5);
+      if(g._mtnView){ near=1500; far=7000; } else { far=Math.min(far,G.cull*1.02); near=Math.min(near,G.cull*.5); } // Bergfahrt/Gipfel: weite Sicht
       g.scene.fog.near+=(near-g.scene.fog.near)*.05; g.scene.fog.far+=(far-g.scene.fog.far)*.05;
     } else if(g.scene.fog){ g.scene.fog=null; }
     // Sonnenkugel folgt Richtung
@@ -153,7 +153,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      try{ await loadScript(BASE+'zpp.js?v=874'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+      try{ await loadScript(BASE+'zpp.js?v=875'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
         for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
       loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
@@ -191,7 +191,8 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
     if(step===1&&G.pp){ G.q='normal'; G.autoDown=true; G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
     if(r&&r.getPixelRatio()>.8){ const pr=Math.max(.75,r.getPixelRatio()-.25); r.setPixelRatio(pr); try{ composer&&composer.setPixelRatio(pr); r.setSize(window.innerWidth,window.innerHeight,true); }catch(e){} say('⚙️ Auflösung etwas gesenkt für flüssigeres Spiel.'); return; }
     if(G.cull>45){ G.cull=Math.max(45,Math.round(G.cull*.8)); say('⚙️ Sichtweite verkürzt: '+G.cull+' m.'); return; }
-    if(G.U&&G.U.uDet.value>0){ G.U.uDet.value=0; say('⚙️ Läuft nicht flüssig → Oberflächen-Körnung ausgeschaltet.'); return; }
+    // Körnung ist das Letzte, was wegfällt – und nur bei wirklich schlechten FPS (sonst ging sie schon bei kleinen Rucklern verloren)
+    if(G.U&&G.U.uDet.value>0&&G.fps<(G.mobile?14:17)){ G.U.uDet.value=0; G._grainOff=1; G._okWin=0; say('⚙️ Sehr niedrige FPS → Oberflächen-Körnung vorübergehend aus (kommt von selbst zurück).'); return; }
   }
   function loop(now){
     try{
@@ -206,6 +207,8 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
         const vis=!document.hidden&&G.fps>0;
         const zs=document.getElementById('s-zoo'), inZ=zs&&getComputedStyle(zs).display!=='none'&&ZGet()&&ZG.scene; if(inZ&&!G._since) G._since=now; if(!inZ) G._since=0;
         const grace=inZ&&G._since&&now-G._since>30000; // 30 s Schonfrist nach dem Laden (da ruckelt jeder kurz)
+        // Körnung automatisch wieder an, sobald es ~15 s lang flüssig läuft
+        if(G._grainOff&&G.U&&vis){ if(G.fps>=(G.mobile?26:30)){ if(++G._okWin>=5){ G.U.uDet.value=1; G._grainOff=0; try{ ZP.toast('✨ Läuft wieder flüssig → Oberflächen-Körnung wieder an.',3000); }catch(e){} } } else G._okWin=0; }
         if(vis&&grace&&G.fps<(G.mobile?22:27)){ slow++; if(slow>=(G.mobile?4:3)){ slow=0; perfStep(); } } else slow=0; }
     }catch(e){}
     try{ patch(); }catch(e){}

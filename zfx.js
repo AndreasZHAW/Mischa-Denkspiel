@@ -92,21 +92,45 @@
     const aL=new THREE.Group(), aR=new THREE.Group(); aL.position.set(-.39,1.38,0); aR.position.set(.39,1.38,0); [aL,aR].forEach(a=>{ const q=new THREE.Mesh(VG.arm,sk); q.position.y=-.28; a.add(q); g.add(a); });
     if(Math.random()<.5){ const hm=new THREE.Mesh(VG.hat,m(pick(SHIRT))); hm.position.y=1.94; g.add(hm); }
     g.userData={lL,lR,aL,aR}; g.scale.setScalar(1.15); return g; };
+  // Max. Zuschauer pro Gehege nach Seltenheit des Tiers (normal 2 · selten 5 · episch 7 · legendär 10 · ultra 20 · göttlich 30 · mystisch 40 · geheim 50 · eternel 60)
+  const VCAP={normal:2,rare:5,epic:7,legendary:10,ultralegendary:20,god:30,mythic:40,secret:50,eternal:60};
+  const capOf=a=>VCAP[a&&a.r]||2;
+  const VHARD=(()=>{ try{ return (/Mobi|Android|iPad|iPhone/.test(navigator.userAgent)||navigator.maxTouchPoints>1)?18:40; }catch(e){ return 18; } })(); // Obergrenze aller Besucher zusammen (Leistung)
+  F.visCaps=VCAP;
+  // Sprechblasen
+  const SAYS=['Aura! ✨','Banger! 🔥','Doch kein Ragebait 😤','Peak! 🏔️','Das ist crazy 🤯','Aura +1000 ✨','Das ist ein Banger','Absolut peak','Crazy, oder?','Banger-Tier! 🔥'];
+  const CATSAYS=['Miau miau 🐱','Miau miau!','Miau miau miau 🐾'];
+  const isCat=a=>!!a&&(/katze|cat/i.test((a.n||'')+' '+(a.id||''))||a.e==='🐱'||a.e==='🐈');
+  const _bt={};
+  const bubbleTex=txt=>{ if(_bt[txt]) return _bt[txt]; const c=cvs(320,110), g=c.getContext('2d'); g.fillStyle='rgba(255,255,255,.96)'; g.strokeStyle='#222'; g.lineWidth=5;
+    const x=6,y=6,w=308,h=80,r=26; g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(150,y+h-1); g.lineTo(166,106); g.lineTo(182,y+h-1); g.fill(); g.stroke();
+    g.fillStyle='#111'; g.textAlign='center'; g.textBaseline='middle'; let fs=40; g.font='900 '+fs+'px Arial'; while(g.measureText(txt).width>285&&fs>18){ fs-=2; g.font='900 '+fs+'px Arial'; } g.fillText(txt,160,46);
+    return (_bt[txt]=new THREE.CanvasTexture(c)); };
+  let _lastVoice=0;
+  const voice=(g,txt)=>{ try{ if(!('speechSynthesis' in window)||!ZG.pl) return; const d=Math.hypot(ZG.pl.x-g.position.x,ZG.pl.z-g.position.z); const now=Date.now(); if(d>14||now-_lastVoice<3500||speechSynthesis.speaking) return; _lastVoice=now;
+    const clean=txt.replace(/[^\p{L}\p{N}\s!?.,+]/gu,'').trim(); if(!clean) return; const u=new SpeechSynthesisUtterance(clean); u.lang='de-DE'; u.rate=1.05; u.pitch=/miau/i.test(clean)?1.8:(.8+Math.random()*.6); u.volume=Math.max(.15,1-d/16); speechSynthesis.speak(u); }catch(e){} };
+  const say=(g,txt)=>{ voice(g,txt); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:bubbleTex(txt),transparent:true,depthTest:false})); sp.renderOrder=999; sp.scale.set(3.4,1.17,1); const y0=3.0; sp.position.set(g.position.x,y0,g.position.z);
+    add(sp,2600,(o,k)=>{ o.position.x=g.position.x; o.position.z=g.position.z; o.position.y=y0+k*.5; o.material.opacity=k<.82?1:Math.max(0,(1-k)/.18); }); };
+  F.say=say;
   const V=F.vis={list:[],t:0};
   const gateInfo=()=>{ const slot=(typeof ZS.mySlot==='number')?ZS.mySlot:0, l=ZG._slotEncPos(slot), a=l.angle, rx=Math.cos(a), rz=Math.sin(a); return {c:l.center,rx,rz,gx:l.center.x-rx*13,gz:l.center.z-rz*13}; };
-  const targets=()=>{ try{ const z=ZS.zoo, eps=ZG.ENCPOS(), gi=gateInfo(), out=[]; eps.slice(0,Math.min(ZS.maxE(),eps.length)).forEach((ep,i)=>{ if(z.enc[i]&&z.enc[i].animal) out.push({ep,x:ep.x-gi.rx*5.4,z:ep.z-gi.rz*5.4}); }); try{ if(window.ZShop&&ZShop.pos&&ZShop.lvl>0) out.push({ep:{x:ZShop.pos.x,z:ZShop.pos.z},x:ZShop.pos.sx,z:ZShop.pos.sz,shop:true}); }catch(e){}
+  const targets=()=>{ try{ const z=ZS.zoo, eps=ZG.ENCPOS(), gi=gateInfo(), out=[]; eps.slice(0,Math.min(ZS.maxE(),eps.length)).forEach((ep,i)=>{ if(z.enc[i]&&z.enc[i].animal) out.push({ep,x:ep.x-gi.rx*5.4,z:ep.z-gi.rz*5.4,key:'e'+i,animal:z.enc[i].animal,cap:capOf(z.enc[i].animal)}); }); try{ if(window.ZShop&&ZShop.pos&&ZShop.lvl>0) out.push({ep:{x:ZShop.pos.x,z:ZShop.pos.z},x:ZShop.pos.sx,z:ZShop.pos.sz,shop:true,key:'shop',cap:3}); }catch(e){}
     return out; }catch(e){ return []; } };
   const toss=(from,to)=>{ const c=new THREE.Mesh(VG.coin,new THREE.MeshBasicMaterial({color:0xffd54f,side:THREE.DoubleSide,transparent:true})); c.position.copy(from); add(c,800,(o,k)=>{ o.position.x=from.x+(to.x-from.x)*k; o.position.z=from.z+(to.z-from.z)*k; o.position.y=from.y+(to.y-from.y)*k+Math.sin(k*Math.PI)*1.6; o.rotation.y=k*14; o.lookAt&&0; }); };
   F.visFrame=function(dt,now){ const z=ZS.zoo, pl=ZG.pl; if(!z||!pl||!z.enc) return; const tg=targets(); const gi=gateInfo(); const dFar=Math.hypot(pl.x-gi.gx,pl.z-gi.gz);
-    const want=(tg.length&&dFar<170&&!document.hidden)?Math.min(10,2+Math.floor(tg.length*1.6)):0;
-    V.t+=dt; if(V.list.length<want&&V.t>3.5){ V.t=0; const g=mkVis(); g.position.set(gi.gx+(Math.random()-.5)*8,0,gi.gz+(Math.random()-.5)*4); sc().add(g); V.list.push({g,st:'go',t:0,ph:Math.random()*6,tg:null,tosses:0}); }
+    const want=(tg.length&&dFar<170&&!document.hidden)?Math.min(VHARD,tg.reduce((s,t)=>s+t.cap,0)):0;
+    // aktuelle Zuschauer je Gehege zählen; zu viele (z. B. Tier getauscht) gehen wieder
+    const cnt={}; V.list.forEach(v=>{ if(v.tg&&v.st!=='leave'){ cnt[v.tg.key]=(cnt[v.tg.key]||0)+1; } });
+    V.list.forEach(v=>{ if(v.tg&&v.st!=='leave'){ const t=tg.find(q=>q.key===v.tg.key); if(!t||cnt[v.tg.key]>t.cap){ cnt[v.tg.key]--; v.tg=null; v.st='go'; } } });
+    V.t+=dt; if(V.list.length<want&&V.t>(want>12?1.6:3.5)){ V.t=0; const g=mkVis(); g.position.set(gi.gx+(Math.random()-.5)*8,0,gi.gz+(Math.random()-.5)*4); sc().add(g); V.list.push({g,st:'go',t:0,ph:Math.random()*6,tg:null,tosses:0}); }
     for(let i=V.list.length-1;i>=0;i--){ const v=V.list[i], g=v.g, u=g.userData;
-      if(v.st==='go'||v.st==='leave'){ if(v.st==='go'&&!v.tg){ if(!tg.length){ v.st='leave'; } else { const t=pick(tg); v.tg={x:t.x+(Math.random()-.5)*(t.shop?1:3),z:t.z+(Math.random()-.5)*(t.shop?1:1.2),ex:t.ep.x,ez:t.ep.z,shop:!!t.shop}; } }
+      if(v.st==='go'||v.st==='leave'){ if(v.st==='go'&&!v.tg){ const fr=tg.filter(q=>(cnt[q.key]||0)<q.cap); if(!fr.length){ v.st='leave'; } else { const t=pick(fr); cnt[t.key]=(cnt[t.key]||0)+1; const sx=t.shop?1:Math.min(9,2.5+t.cap*.4), sz=t.shop?1:Math.min(3.5,1.2+t.cap*.1); v.tg={key:t.key,animal:t.animal,x:t.x+(Math.random()-.5)*sx,z:t.z+(Math.random()-.5)*sz,ex:t.ep.x,ez:t.ep.z,shop:!!t.shop}; } }
         let tx,tz; if(v.st==='leave'){ tx=gi.gx; tz=gi.gz; } else { tx=v.tg.x; tz=v.tg.z; }
         const dx=tx-g.position.x, dz=tz-g.position.z, d=Math.hypot(dx,dz);
-        if(d<.6){ if(v.st==='leave'){ sc().remove(g); V.list.splice(i,1); continue; } v.st='look'; v.t=0; v.dur=3+Math.random()*3; }
+        if(d<.6){ if(v.st==='leave'){ sc().remove(g); V.list.splice(i,1); continue; } v.st='look'; v.t=0; v.dur=3+Math.random()*3; v.said=!(Math.random()<(isCat(v.tg.animal)?.7:.3)); v.sayAt=.6+Math.random()*1.4; }
         else { const sp=2.3*dt; g.position.x+=dx/d*sp; g.position.z+=dz/d*sp; g.rotation.y=Math.atan2(dx,dz); v.ph+=dt*9; const sw=Math.sin(v.ph)*.7; u.lL.rotation.x=sw; u.lR.rotation.x=-sw; u.aL.rotation.x=-sw*.8; u.aR.rotation.x=sw*.8; g.position.y=Math.abs(Math.sin(v.ph))*.05; } }
-      else if(v.st==='look'){ v.t+=dt; const dx=v.tg.ex-g.position.x, dz=v.tg.ez-g.position.z; g.rotation.y=Math.atan2(dx,dz); u.lL.rotation.x=u.lR.rotation.x=0; u.aL.rotation.x=0; u.aR.rotation.x=0;
+      else if(v.st==='look'){ v.t+=dt; if(!v.said&&v.t>v.sayAt){ v.said=true; try{ say(g,v.tg.shop?'Lecker! 🍦':pick(isCat(v.tg.animal)?CATSAYS:SAYS)); }catch(e){} } const dx=v.tg.ex-g.position.x, dz=v.tg.ez-g.position.z; g.rotation.y=Math.atan2(dx,dz); u.lL.rotation.x=u.lR.rotation.x=0; u.aL.rotation.x=0; u.aR.rotation.x=0;
         if(v.tosses===0&&v.t>v.dur*.5){ v.tosses=1; u.aR.rotation.x=-2.2; if(v.tg.shop){ const ic=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex('🍦'),transparent:true})); ic.scale.set(1.1,1.1,1); ic.position.set(g.position.x,2.4,g.position.z); const y0=2.4; add(ic,1600,(o,k)=>{ o.position.y=y0+k*.8; o.material.opacity=k<.8?1:(1-k)/.2; }); } else toss(new THREE.Vector3(g.position.x,1.7,g.position.z),new THREE.Vector3(v.tg.ex,1.8,v.tg.ez)); }
         if(v.tosses===1&&v.t>v.dur*.5+.35) u.aR.rotation.x=0; g.position.y=0;
         if(v.t>v.dur){ v.tosses=0; v.tg=null; v.st=(Math.random()<.3)?'leave':'go'; } }
