@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=855"></script>
-<script src="rewardchests.js?v=855"></script>
-<script src="personality.js?v=855"></script>
+<script src="lang.js?v=857"></script>
+<script src="rewardchests.js?v=857"></script>
+<script src="personality.js?v=857"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -548,45 +548,46 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=855"></script>
+<script src="zgfx.js?v=857"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=855"></script>
-<script src="sanction.js?v=855"></script>
-<script src="zevents.js?v=855"></script>
-<script src="znet.js?v=855"></script>
-<script src="zbases.js?v=855"></script>
-<script src="charheads.js?v=855"></script>
-<script src="zmensch.js?v=855"></script>
-<script src="zfindchest.js?v=855"></script>
-<script src="zambience.js?v=855"></script>
-<script src="znight.js?v=855"></script>
-<script src="zstarter.js?v=855"></script>
-<script src="zcine.js?v=855"></script>
-<script src="zworld.js?v=855"></script>
-<script src="zstation.js?v=855"></script>
-<script src="zfx.js?v=855"></script>
-<script src="zextra.js?v=855"></script>
-<script src="zreb6.js?v=855"></script>
-<script src="zlegend.js?v=855"></script>
-<script src="ztutplus.js?v=855"></script>
-<script src="zlift.js?v=855"></script>
-<script src="zfun.js?v=855"></script>
-<script src="zguide.js?v=855"></script>
-<script src="zrules.js?v=855"></script>
-<script src="zsafe.js?v=855"></script>
-<script src="zrebguard.js?v=855"></script>
-<script src="zpass.js?v=855"></script>
-<script src="znotify.js?v=855"></script>
-<script src="zdetective.js?v=855"></script>
-<script src="zpirate.js?v=855"></script>
-<script src="zpark.js?v=855"></script>
-<script src="zmenu.js?v=855"></script>
-<script src="zdevice.js?v=855"></script>
-<script src="zmusic.js?v=855"></script>
-<script src="zskill.js?v=855"></script>
-<script src="worlds.js?v=855"></script>
+<script src="firebase-state.js?v=857"></script>
+<script src="sanction.js?v=857"></script>
+<script src="zevents.js?v=857"></script>
+<script src="znet.js?v=857"></script>
+<script src="zbases.js?v=857"></script>
+<script src="charheads.js?v=857"></script>
+<script src="zmensch.js?v=857"></script>
+<script src="zfindchest.js?v=857"></script>
+<script src="zambience.js?v=857"></script>
+<script src="znight.js?v=857"></script>
+<script src="zstarter.js?v=857"></script>
+<script src="zcine.js?v=857"></script>
+<script src="zworld.js?v=857"></script>
+<script src="zstation.js?v=857"></script>
+<script src="zfx.js?v=857"></script>
+<script src="zextra.js?v=857"></script>
+<script src="zreb6.js?v=857"></script>
+<script src="zloadtest.js?v=857"></script>
+<script src="zlegend.js?v=857"></script>
+<script src="ztutplus.js?v=857"></script>
+<script src="zlift.js?v=857"></script>
+<script src="zfun.js?v=857"></script>
+<script src="zguide.js?v=857"></script>
+<script src="zrules.js?v=857"></script>
+<script src="zsafe.js?v=857"></script>
+<script src="zrebguard.js?v=857"></script>
+<script src="zpass.js?v=857"></script>
+<script src="znotify.js?v=857"></script>
+<script src="zdetective.js?v=857"></script>
+<script src="zpirate.js?v=857"></script>
+<script src="zpark.js?v=857"></script>
+<script src="zmenu.js?v=857"></script>
+<script src="zdevice.js?v=857"></script>
+<script src="zmusic.js?v=857"></script>
+<script src="zskill.js?v=857"></script>
+<script src="worlds.js?v=857"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -12173,6 +12174,7 @@ const ZP={
         </div>
         <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)">
           <div style="color:rgba(255,255,255,.75);font-size:.78rem;margin-bottom:6px">🎬 Grafik-Look (Licht, Nebel, Bloom …)</div>
+          <div style="color:rgba(255,255,255,.5);font-size:.68rem;margin:-3px 0 6px">${window.ZLook&&ZLook.info?ZLook.info():''}</div>
           <div style="display:flex;gap:6px">
             ${[['classic','Klassisch'],['normal','Normal'],['high','Schön']].map(([k,l])=>{ const cur=(window.ZLook?(ZLook.q==='auto'?'high':ZLook.q):'high'); return `<button onclick="window.ZLook&&ZLook.set('${k}')" style="flex:1;background:${cur===k?'#FFA500':'rgba(255,255,255,.1)'};color:${cur===k?'#000':'#fff'};border:none;padding:7px 4px;border-radius:8px;cursor:pointer;font-weight:900;font-size:.76rem">${l}</button>`; }).join('')}
           </div>
@@ -14241,6 +14243,7 @@ const ZAdmin = {
     if(tab==='einst')this._populateEvents();
     if(tab==='battle')this._battleStatus();
     if(tab==='evcenter'){ ZEvt.adminSchedOn(); ZEvt.adminStatus(); ZEvt.adminSchedRender(); ZEvt.adminTeamLoad(); }
+    if(tab==='loadtest'){ const b=document.getElementById('padmin-loadtest-body'); if(b&&window.ZLoad) b.innerHTML=ZLoad.adminHTML(); }
     if(tab==='reb6'){ const b=document.getElementById('padmin-reb6-body'); if(b&&window.ZReb6) b.innerHTML=ZReb6.adminHTML(); }
     if(tab==='wjagd'){ const b=document.getElementById('padmin-wjagd-body'); if(b&&window.ZLetters) b.innerHTML=ZLetters.adminHTML(); }
     if(tab==='gucker')this._guckerList(false);
@@ -20899,6 +20902,7 @@ window.ZooEvents = ZooEvents;
           <div class="padmin-tab-btn" data-tab="wjagd" onclick="ZAdmin.switchTab('wjagd')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔤 Buchstaben-Suche</div>
           <div class="padmin-tab-btn" data-tab="lblock" onclick="ZAdmin.switchTab('lblock')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">📦 Glücksblöcke</div>
           <div class="padmin-tab-btn" data-tab="lband" onclick="ZAdmin.switchTab('lband')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🏃 Laufband-Admin</div>
+          <div class="padmin-tab-btn" data-tab="loadtest" onclick="ZAdmin.switchTab('loadtest')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🧪 Traffic-Test</div>
           <div class="padmin-tab-btn" data-tab="reb6" onclick="ZAdmin.switchTab('reb6')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🔄 Rebirth 6 (Veröffentlichen)</div>
           <div class="padmin-tab-btn" data-tab="safe" onclick="ZAdmin.switchTab('safe')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">💾 Sicherung &amp; Fehler</div>
           <div class="padmin-tab-btn" data-tab="mtpass" onclick="ZAdmin.switchTab('mtpass')" style="padding:7px 10px;cursor:pointer;font-size:.74rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px">🎫 MT-Pass-Editor</div>
@@ -20957,6 +20961,7 @@ window.ZooEvents = ZooEvents;
         </div>
 
         <!-- TAB: SICHERHEIT -->
+        <div class="padmin-tab" id="padmin-tab-loadtest" style="display:none"><div class="padmin-section-title">🧪 Traffic-Test</div><div id="padmin-loadtest-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-reb6" style="display:none"><div class="padmin-section-title">🔄 Rebirth 6</div><div id="padmin-reb6-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-safe" style="display:none"><div class="padmin-section-title">💾 Sicherung, Verlauf &amp; Fehler</div><div id="padmin-safe-body"></div></div>
         <div class="padmin-tab" id="padmin-tab-mtpass" style="display:none"><div class="padmin-section-title">🎫 MT-Pass-Editor</div><div id="padmin-mtpass-body"></div></div>

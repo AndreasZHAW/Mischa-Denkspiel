@@ -153,7 +153,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      try{ await loadScript(BASE+'zpp.js?v=855'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+      try{ await loadScript(BASE+'zpp.js?v=857'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
         for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
       loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }
@@ -189,9 +189,9 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   function perfStep(){
     step++; const g=ZGet(), r=g&&g.renderer; const say=m=>{ try{ ZP.toast(m,3500); }catch(e){} };
     if(step===1&&G.pp){ G.q='normal'; G.autoDown=true; G.pp=false; say('⚙️ Läuft nicht flüssig → Grafik auf „Normal" gestellt.'); return; }
-    if(G.U&&G.U.uDet.value>0){ G.U.uDet.value=0; say('⚙️ Läuft nicht flüssig → Oberflächen-Körnung ausgeschaltet.'); return; }
     if(r&&r.getPixelRatio()>.8){ const pr=Math.max(.75,r.getPixelRatio()-.25); r.setPixelRatio(pr); try{ composer&&composer.setPixelRatio(pr); r.setSize(window.innerWidth,window.innerHeight,true); }catch(e){} say('⚙️ Auflösung etwas gesenkt für flüssigeres Spiel.'); return; }
     if(G.cull>45){ G.cull=Math.max(45,Math.round(G.cull*.8)); say('⚙️ Sichtweite verkürzt: '+G.cull+' m.'); return; }
+    if(G.U&&G.U.uDet.value>0){ G.U.uDet.value=0; say('⚙️ Läuft nicht flüssig → Oberflächen-Körnung ausgeschaltet.'); return; }
   }
   function loop(now){
     try{
@@ -206,7 +206,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
         const vis=!document.hidden&&G.fps>0;
         const zs=document.getElementById('s-zoo'), inZ=zs&&getComputedStyle(zs).display!=='none'&&ZGet()&&ZG.scene; if(inZ&&!G._since) G._since=now; if(!inZ) G._since=0;
         const grace=inZ&&G._since&&now-G._since>30000; // 30 s Schonfrist nach dem Laden (da ruckelt jeder kurz)
-        if(vis&&grace&&G.fps<(G.mobile?22:27)){ slow++; if(slow>=3){ slow=0; perfStep(); } } else slow=0; }
+        if(vis&&grace&&G.fps<(G.mobile?22:27)){ slow++; if(slow>=(G.mobile?4:3)){ slow=0; perfStep(); } } else slow=0; }
     }catch(e){}
     try{ patch(); }catch(e){}
   requestAnimationFrame(loop);
@@ -215,5 +215,6 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   requestAnimationFrame(loop);
   G.setCull=function(m){ G.cull=m; };
   G.set=function(q){ G.q=q; lss(q); slow=0; try{ ZP._rMenu&&ZP._rMenu(); }catch(e){} try{ ZP.toast('🎨 Grafik-Look: '+({classic:'Klassisch',normal:'Normal',high:'Schön',auto:'Schön'}[q]||q),2200); }catch(e){} };
+  G.info=()=>{ try{ return (G.mobile?'Touch-Gerät':'Computer')+' · '+G.label()+(G.pp?' (Effekte an)':'')+' · Körnung '+((G.U&&G.U.uDet.value>0)?'an':'aus')+' · Sicht '+G.cull+' m · '+Math.round(G.fps||0)+' FPS'; }catch(e){ return ''; } };
   G.label=()=>({classic:'Klassisch',normal:'Normal',high:'Schön',auto:'Schön'}[G.q]||'Schön');
 })();
