@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v869';
+const APP_VERSION = 'v870';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -744,7 +744,7 @@ const App = {
   // Kein Freischalt-Check, keine Kosten, keine Weltkarte mehr.
   _goToZooAnimated() {
     const p = State.currentPlayer;
-    if (!p || !p.name) { this.showWorldMap(); return; }
+    if (!p || !p.name) { console.log('[Boarding-debug] _goToZooAnimated: kein Spieler gesetzt (State.currentPlayer leer) → Weltkarte statt Animation'); this.showWorldMap(); return; }
     try {
       sessionStorage.setItem('mischa_current', p.name.toLowerCase());
       if(window.MISCHA_TESTMODE){try{sessionStorage.setItem('mischa_testmode','1');}catch(e){}}
@@ -768,6 +768,7 @@ const App = {
 
   _showBoardingScene(playerName, charEmoji, mtLeft) {
     const PLAYER_NAME=playerName||'', PLAYER_EMOJI=charEmoji||'🧭';
+    console.log('[Boarding-debug] Boarding-Szene wird aufgebaut (Fenster '+innerWidth+'x'+innerHeight+')');
     const ov=document.createElement('div'); ov.id='boarding-scene';
     document.body.style.background='#000';
     ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;overflow:hidden;font-family:Arial,sans-serif';
@@ -1474,6 +1475,7 @@ const App = {
       setTimeout(()=>{ const e=document.getElementById('l-err'); if(e){e.textContent=res.error;e.style.display='block';}},50);
       return;
     }
+    console.log('[Boarding-debug] doLogin: Anmeldung ok für '+(res.player&&res.player.name)+' → Sperr-Prüfung');
     State.setCurrentPlayer(res.player);
     // Check if player is banned
     try {
@@ -1493,6 +1495,7 @@ const App = {
             State.currentPlayer = null;
             sessionStorage.removeItem('mischa_current');
             const until = ban.permanent ? 'permanent' : new Date(ban.expiresAt).toLocaleString('de-CH',{timeZone:'Europe/Zurich'});
+            console.log('[Boarding-debug] doLogin: Konto gesperrt → keine Animation');
             if(window.Sanction){ try{ Sanction.name=res.player.name; Sanction.showLock(Object.assign({kind:ban.permanent?'ban':'timeout'},ban)); return; }catch(e){} }
             this.showLogin();
             setTimeout(()=>{
@@ -1515,6 +1518,7 @@ const App = {
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('device ban check timeout')),5000))
       ]);
       if(devBan) {
+        console.log('[Boarding-debug] doLogin: Gerät gesperrt → keine Animation');
         State.currentPlayer = null;
         sessionStorage.removeItem('mischa_current');
         this.showLogin();
@@ -1540,6 +1544,7 @@ const App = {
         try{ if(State.currentPlayer?.name && typeof RankNotify!=='undefined') RankNotify.check(State.currentPlayer.name); }catch(e){}
       }, 8*60000);
     }
+    console.log('[Boarding-debug] doLogin: alle Prüfungen durch → starte Einstiegs-Animation');
     this._goToZooAnimated();
   },
 
