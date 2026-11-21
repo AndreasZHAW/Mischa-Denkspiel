@@ -22,7 +22,16 @@
   },250);
   /* ── Intro-Szene (Kino-Stil: Erde, Sonnenflare, Metall-Logo, Flammen) ── */
   function splash(){
-    try{ if(sessionStorage.getItem('zsplash')) return; sessionStorage.setItem('zsplash','1'); }catch(e){}
+    // Früher: nur 1× pro Browser-Sitzung → bei jedem weiteren Login im selben Tab kam der Einstieg nie wieder.
+    // Jetzt: immer, wenn man frisch vom Login/Kino kommt (autostart=1) oder zum ersten Mal in dieser Sitzung.
+    // Kein erneutes Abspielen bei F5/Neuladen (dort würde er nerven).
+    try{
+      let nav='navigate'; try{ const e=performance.getEntriesByType('navigation')[0]; if(e&&e.type) nav=e.type; }catch(_){}
+      const fresh=/[?&]autostart=1\b/.test(location.search) && nav!=='reload' && nav!=='back_forward';
+      const seen=!!sessionStorage.getItem('zsplash');
+      if(seen && !fresh){ console.log('[Intro-debug] Kino-Intro übersprungen (Neuladen oder schon gesehen, autostart='+/[?&]autostart=1/.test(location.search)+', nav='+nav+')'); return; }
+      sessionStorage.setItem('zsplash','1'); console.log('[Intro-debug] Kino-Intro startet (autostart='+/[?&]autostart=1/.test(location.search)+', nav='+nav+')');
+    }catch(e){}
     const DUR=10.4;
     const css=document.createElement('style');
     css.textContent=
