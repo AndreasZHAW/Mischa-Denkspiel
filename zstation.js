@@ -94,7 +94,7 @@
       const pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,6,6),MB(0x555a60)); pole.position.set(s*9.5,3,12.5); G.add(pole); const lp=new THREE.Mesh(new THREE.SphereGeometry(.35,8,6),MB(0xfff0b0)); lp.position.set(s*9.5,6.1,12.5); G.add(lp);
       const fp=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,9,6),MB(0xcccccc)); fp.position.set(s*17.2,4.5,10.8); G.add(fp); const fl=box(2.2,1.3,.05,s>0?0xd32f2f:0xffffff,s*17.2+s*1.1,8.2,10.8,G); });
     // Mast-Gegenstation
-    const CS=new THREE.Group(); G.add(CS); box(17,5,19,0xb7bbc1,45,2.5,0,CB); box(17.4,.4,19.4,0x8f939a,45,5.2,0,CB);
+    const CS=new THREE.Group(); G.add(CS); const CB=new THREE.Group(); /* v876: Gegenstation-Gebäude nicht eingehängt */ box(17,5,19,0xb7bbc1,45,2.5,0,CB); box(17.4,.4,19.4,0x8f939a,45,5.2,0,CB);
     [-9.3,9.3].forEach(z=>box(17,6.8+EX,.3,glassM,45,8.6+EX/2,z,CB)); box(.3,6.8+EX,19,glassM,53.7,8.6+EX/2,0,CB);
     [[36.7,-9.3],[36.7,9.3],[53.4,-9.3],[53.4,9.3]].forEach(q=>box(.6,7.2+EX,.6,RED,q[0],8.6+EX/2,q[1],CB)); box(18,.5,20,0x3a4a6a,45,12.4+EX,0,CB); box(17.4,.14,19.4,new THREE.MeshBasicMaterial({map:solarTex()}),45,12.7+EX,0,CB);
     [-5,5].forEach(z=>box(17,.5,.4,RED,45,11.2+EX,z,CB)); sign('GEGENSTATION',480,110,6,1.4,'#0d47a1','#fff',45,3.6,9.7,0,CB);
