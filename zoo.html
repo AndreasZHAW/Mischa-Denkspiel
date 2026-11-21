@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v864 -->
+<!-- ZOO v865 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -252,9 +252,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=864"></script>
-<script src="rewardchests.js?v=864"></script>
-<script src="personality.js?v=864"></script>
+<script src="lang.js?v=865"></script>
+<script src="rewardchests.js?v=865"></script>
+<script src="personality.js?v=865"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -548,46 +548,46 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=864"></script>
+<script src="zgfx.js?v=865"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=864"></script>
-<script src="sanction.js?v=864"></script>
-<script src="zevents.js?v=864"></script>
-<script src="znet.js?v=864"></script>
-<script src="zbases.js?v=864"></script>
-<script src="charheads.js?v=864"></script>
-<script src="zmensch.js?v=864"></script>
-<script src="zfindchest.js?v=864"></script>
-<script src="zambience.js?v=864"></script>
-<script src="znight.js?v=864"></script>
-<script src="zstarter.js?v=864"></script>
-<script src="zcine.js?v=864"></script>
-<script src="zworld.js?v=864"></script>
-<script src="zstation.js?v=864"></script>
-<script src="zfx.js?v=864"></script>
-<script src="zextra.js?v=864"></script>
-<script src="zreb6.js?v=864"></script>
-<script src="zbots.js?v=864"></script>
-<script src="zlegend.js?v=864"></script>
-<script src="ztutplus.js?v=864"></script>
-<script src="zlift.js?v=864"></script>
-<script src="zfun.js?v=864"></script>
-<script src="zguide.js?v=864"></script>
-<script src="zrules.js?v=864"></script>
-<script src="zsafe.js?v=864"></script>
-<script src="zrebguard.js?v=864"></script>
-<script src="zpass.js?v=864"></script>
-<script src="znotify.js?v=864"></script>
-<script src="zdetective.js?v=864"></script>
-<script src="zpirate.js?v=864"></script>
-<script src="zpark.js?v=864"></script>
-<script src="zmenu.js?v=864"></script>
-<script src="zdevice.js?v=864"></script>
-<script src="zmusic.js?v=864"></script>
-<script src="zskill.js?v=864"></script>
-<script src="worlds.js?v=864"></script>
+<script src="firebase-state.js?v=865"></script>
+<script src="sanction.js?v=865"></script>
+<script src="zevents.js?v=865"></script>
+<script src="znet.js?v=865"></script>
+<script src="zbases.js?v=865"></script>
+<script src="charheads.js?v=865"></script>
+<script src="zmensch.js?v=865"></script>
+<script src="zfindchest.js?v=865"></script>
+<script src="zambience.js?v=865"></script>
+<script src="znight.js?v=865"></script>
+<script src="zstarter.js?v=865"></script>
+<script src="zcine.js?v=865"></script>
+<script src="zworld.js?v=865"></script>
+<script src="zstation.js?v=865"></script>
+<script src="zfx.js?v=865"></script>
+<script src="zextra.js?v=865"></script>
+<script src="zreb6.js?v=865"></script>
+<script src="zbots.js?v=865"></script>
+<script src="zlegend.js?v=865"></script>
+<script src="ztutplus.js?v=865"></script>
+<script src="zlift.js?v=865"></script>
+<script src="zfun.js?v=865"></script>
+<script src="zguide.js?v=865"></script>
+<script src="zrules.js?v=865"></script>
+<script src="zsafe.js?v=865"></script>
+<script src="zrebguard.js?v=865"></script>
+<script src="zpass.js?v=865"></script>
+<script src="znotify.js?v=865"></script>
+<script src="zdetective.js?v=865"></script>
+<script src="zpirate.js?v=865"></script>
+<script src="zpark.js?v=865"></script>
+<script src="zmenu.js?v=865"></script>
+<script src="zdevice.js?v=865"></script>
+<script src="zmusic.js?v=865"></script>
+<script src="zskill.js?v=865"></script>
+<script src="worlds.js?v=865"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -4246,7 +4246,7 @@ const ZG={
   otherEnc:{},
   _renderOtherEnclosures(others){
     // Remove clusters for players who are no longer around
-    // BUGFIX (v864): Der Schlüssel „<name>_animalMeshes" ist nie in `others` — er wurde deshalb bei JEDEM Sync-Zyklus gelöscht,
+    // BUGFIX (v865): Der Schlüssel „<name>_animalMeshes" ist nie in `others` — er wurde deshalb bei JEDEM Sync-Zyklus gelöscht,
     // und alle Tier-Sprites (+ Dekor) anderer Spieler wurden alle 0,5 s neu gebaut. Das Dekor blieb dabei in der Szene hängen
     // → Objekte häuften sich an, die FPS sanken Minute für Minute. Jetzt: Tier-Meshes bleiben, solange der Spieler da ist.
     Object.keys(this.otherEnc).forEach(n=>{
@@ -17988,11 +17988,11 @@ document.addEventListener('DOMContentLoaded',async()=>{
         } else if(tries > 0) {
           setTimeout(() => waitForThree(tries-1), 200);
         } else {
-          console.log('[Teleport-debug] THREE.js nie geladen nach 5s — Fallback zu _showMode()');
+          console.log('[Teleport-debug] THREE.js nie geladen nach 15s — Fallback zu _showMode()');
           ZA._showMode();
         }
       };
-      waitForThree(25); // wait up to 5 seconds
+      waitForThree(75); // bis zu 15 s warten (langsames Netz: früher nach 5 s Moduswahl statt Zoo)
     } else {
       ZA._showMode();
     }

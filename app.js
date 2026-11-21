@@ -1,3 +1,7 @@
+// ═══ Kino-Einstieg robust: roundRect fehlt auf älteren iPads/Safari (<16) → Animation brach ab, Bildschirm blieb schwarz/sprang direkt in den Zoo
+try{ if(typeof CanvasRenderingContext2D!=='undefined' && !CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){ if(Array.isArray(r))r=r[0]||0; r=Math.max(0,Math.min(r||0,Math.abs(w)/2,Math.abs(h)/2)); this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r); this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath(); };
+}}catch(e){}
 // Spielregeln (Startseite Denkspiel)
 window.RULES_LIST=[
     {n:1,ic:'🔁',t:'Kein Tier-Trick beim Rebirth',d:'Tiere nicht kurz in den Tausch legen, um sie nach dem Rebirth zurückzuholen.'},
@@ -231,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v864';
+const APP_VERSION = 'v865';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -781,17 +785,18 @@ const App = {
     const titleEl=document.getElementById('bd-title'),speechEl=document.getElementById('bd-speech'),msgEl=document.getElementById('bd-msg');
     let stars=Array.from({length:160},()=>({x:Math.random()*W,y:Math.random()*H*0.7,r:Math.random()*1.6+0.3,tw:Math.random()*7}));
     let frame=0,animId=null,_spoke={},done=false;
-    const TOTAL=210;
+    const TOTAL=210, _t0=performance.now();
     try{ music.volume=0; music.play().then(()=>{let v=0;const fd=setInterval(()=>{v=Math.min(0.75,v+0.05);music.volume=v;if(v>=0.75)clearInterval(fd);},60);}).catch(()=>{}); }catch(e){}
     const speak=(t)=>{try{if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.92;u.pitch=1.05;u.volume=1;const vs=speechSynthesis.getVoices();const en=vs.find(v=>/^en/i.test(v.lang));if(en)u.voice=en;speechSynthesis.speak(u);}catch(e){}};
     const setSpeech=(msg,show)=>{msgEl.textContent=msg;speechEl.style.opacity=show?'1':'0';};
-    const finish=()=>{ if(done)return; done=true; try{music.pause();}catch(e){} try{window.removeEventListener('resize',rs);}catch(e){} if(animId)cancelAnimationFrame(animId); ov.remove(); this._showTeleportCinema(playerName,charEmoji,mtLeft); };
+    const finish=()=>{ if(done)return; done=true; try{clearTimeout(_wdB);}catch(e){} try{music.pause();}catch(e){} try{window.removeEventListener('resize',rs);}catch(e){} if(animId)cancelAnimationFrame(animId); ov.remove(); try{ this._showTeleportCinema(playerName,charEmoji,mtLeft); }catch(e){ console.log('[Boarding-debug] Kino-Aufbau Fehler: '+(e&&e.message)+' → direkt in den Zoo'); try{ window.location.href='zoo.html?autostart=1'; }catch(e2){} } };
     document.getElementById('bd-skip').onclick=finish;
     const drawSleighGround=(cx,cy,s,flip)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s*(flip?-1:1),s);ctx.fillStyle='#C0392B';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(10,-8,60,-6);ctx.quadraticCurveTo(95,-4,100,14);ctx.quadraticCurveTo(100,34,70,38);ctx.lineTo(-10,38);ctx.quadraticCurveTo(-24,36,-22,20);ctx.quadraticCurveTo(-20,4,0,0);ctx.closePath();ctx.fill();ctx.strokeStyle='#7A2418';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,20);ctx.quadraticCurveTo(-24,36,-10,38);ctx.lineTo(70,38);ctx.quadraticCurveTo(100,34,100,14);ctx.stroke();ctx.fillStyle='#7A2418';ctx.beginPath();ctx.roundRect(-14,36,128,7,3.5);ctx.fill();ctx.strokeStyle='#7A2418';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-20,43);ctx.quadraticCurveTo(-30,43,-30,50);ctx.stroke();ctx.beginPath();ctx.moveTo(104,43);ctx.quadraticCurveTo(118,43,112,55);ctx.stroke();ctx.fillStyle='#2E86DE';ctx.fillRect(20,20,40,16);ctx.restore();};
     const drawReindeerGround=(cx,cy,s,flip,legWobble)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s*(flip?-1:1),s);ctx.fillStyle='#8B5A2B';ctx.beginPath();ctx.ellipse(0,0,22,11,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(25,-9,10,8,-0.3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#5A3A1E';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(29,-16);ctx.lineTo(35,-29);ctx.lineTo(40,-25);ctx.moveTo(35,-29);ctx.lineTo(33,-34);ctx.moveTo(22,-15);ctx.lineTo(17,-30);ctx.lineTo(23,-28);ctx.stroke();ctx.fillStyle='#FF3B30';ctx.beginPath();ctx.arc(34,-6,3.2,0,Math.PI*2);ctx.fill();const w=Math.sin(legWobble)*1.5;ctx.strokeStyle='#5A3A1E';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(-14,9);ctx.lineTo(-15+w,26);ctx.moveTo(-3,10);ctx.lineTo(-2-w,27);ctx.moveTo(8,10);ctx.lineTo(9+w,26);ctx.moveTo(16,8);ctx.lineTo(18-w,24);ctx.stroke();ctx.restore();};
     const drawJanosch=(cx,cy,s,wave)=>{ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);ctx.fillStyle='#e8edf6';ctx.beginPath();ctx.roundRect(-20,-14,40,34,12);ctx.fill();ctx.fillStyle='#1b2230';ctx.beginPath();ctx.roundRect(-11,-6,22,14,3);ctx.fill();ctx.fillStyle='#27e070';ctx.fillRect(-8,-3,4,3);ctx.fillStyle='#4af0ff';ctx.fillRect(-8,3,16,2);const wa=Math.sin(wave*6)*0.5;ctx.strokeStyle='#e8edf6';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(16,-6);ctx.lineTo(28+wa*5,-26-wa*7);ctx.stroke();ctx.beginPath();ctx.moveTo(-16,-6);ctx.lineTo(-26,10);ctx.stroke();ctx.fillStyle='#eef2fa';ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.fill();const vg=ctx.createLinearGradient(-12,-38,12,-22);vg.addColorStop(0,'#0a2a4a');vg.addColorStop(.45,'#1d6fff');vg.addColorStop(.55,'#5fd0ff');vg.addColorStop(1,'#0a2a4a');ctx.fillStyle=vg;ctx.beginPath();ctx.ellipse(0,-30,12,11,0,0,7);ctx.fill();ctx.strokeStyle='#aab4c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,-30,17,0,7);ctx.stroke();ctx.fillStyle='#4af0ff';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('🦌 JANOSCH',0,62);ctx.restore();};
     const drawPlayer=(x,y,s,bob)=>{ctx.save();ctx.translate(x,y+Math.sin(bob)*3);ctx.scale(s,s);ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,30,20,6,0,0,7);ctx.fill();ctx.font='44px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(PLAYER_EMOJI,0,0);ctx.fillStyle='#fff';ctx.font='bold 13px Arial';ctx.fillText(PLAYER_NAME,0,34);ctx.restore();};
-    const loop=()=>{
+    const loop=()=>{ try{ _loopB2(); }catch(e){ console.log('[Boarding-debug] Boarding-Animationsfehler: '+(e&&e.message)+' → weiter zum Kino'); finish(); } };
+    const _loopB2=()=>{
       const f=frame; ctx.clearRect(0,0,W,H);
       const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#03040c');bg.addColorStop(.6,'#080c1e');bg.addColorStop(1,'#0e1228');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
       stars.forEach(st=>{const a=0.4+Math.sin(f*0.05+st.tw)*0.4;ctx.globalAlpha=a;ctx.fillStyle='#cfe5ff';ctx.beginPath();ctx.arc(st.x,st.y,st.r,0,7);ctx.fill();});ctx.globalAlpha=1;
@@ -824,12 +829,13 @@ const App = {
       else if(f>=170)setSpeech(_bt('boarding.countdown'),f<200);
       else setSpeech('',false);
       if(f>195){ctx.fillStyle='rgba(120,200,255,'+((f-195)/12*0.6)+')';ctx.fillRect(0,0,W,H);}
-      frame++;
+      frame=Math.max(frame+1, Math.floor((performance.now()-_t0)/16.667)); // zeitbasiert: gleich lang auf 60/120 Hz
       if(frame<=TOTAL && !done)animId=requestAnimationFrame(loop);
       else finish();
     };
+    const _wdB=setTimeout(()=>{ if(!done){ console.log('[Boarding-debug] Watchdog: Boarding hat nach 11 s nicht geendet → weiter'); finish(); } },11000);
     if('speechSynthesis'in window)speechSynthesis.getVoices();
-    loop();
+    try{ loop(); }catch(e){ console.log('[Boarding-debug] Boarding-Animationsfehler: '+(e&&e.message)+' → weiter zum Kino'); finish(); }
   },
 
   _showTeleportCinema(playerName, charEmoji, mtLeft) {
@@ -1042,7 +1048,29 @@ const App = {
       ctx.restore();
     };
 
+    let _navDone=false; const _t0=performance.now();
+    const _goZoo = (why) => {
+      if(_navDone) return; _navDone=true;
+      try{ clearTimeout(_wd); }catch(e){}
+      try{ if(animId) cancelAnimationFrame(animId); }catch(e){}
+      console.log('[Boarding-debug] Kino-Ende ('+why+', frame='+frame+'/'+TOTAL+') — entferne Overlay, wechsle zu zoo.html?autostart=1');
+      try{ ov.remove(); }catch(e){}
+      const fallbackTimer = setTimeout(()=>{
+        console.log('[Boarding-debug] 1.5s nach dem Overlay-Entfernen immer noch auf derselben Seite — zeige manuellen Link.');
+        const fb=document.createElement('div');
+        fb.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999999;background:#900;color:#fff;padding:10px 20px;border-radius:10px;font-weight:700;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+        fb.innerHTML='⚠️ Automatischer Wechsel hat nicht geklappt. <a href="zoo.html?autostart=1" style="color:#FFD700;text-decoration:underline">Hier klicken, um in den Zoo zu kommen →</a>';
+        document.body.appendChild(fb);
+      }, 1500);
+      try{ window.location.href='zoo.html?autostart=1'; }catch(e){ console.log('[Boarding-debug] ❌ location.href Fehler: '+e.message); }
+    };
+    // Notbremse: egal was mit der Animation passiert (Fehler, Tab im Hintergrund, eingefrorenes Bild) — nach 12 s geht es in den Zoo
+    const _wd = setTimeout(()=>{ console.log('[Boarding-debug] Watchdog: Kino hat nach 12 s nicht geendet'); _goZoo('watchdog'); }, 12000);
     const loop = () => {
+      try{ _loopInner(); }
+      catch(e){ console.log('[Boarding-debug] Kino-Animationsfehler: '+(e&&e.message)+' → gehe direkt in den Zoo'); _goZoo('fehler'); }
+    };
+    const _loopInner = () => {
       const t = frame / TOTAL;
       ctx.clearRect(0, 0, W, H);
 
@@ -1125,34 +1153,8 @@ const App = {
           ${charEmoji} ${playerName} · 🌀 ${typeof mtLeft==='number'?mtLeft.toFixed(1):mtLeft} MT
         </div>`;
 
-      frame++;
-      if(frame >= TOTAL) {
-        cancelAnimationFrame(animId);
-        console.log('[Boarding-debug] Animation fertig (frame='+frame+'/'+TOTAL+') — entferne Overlay und leite weiter zu zoo.html?autostart=1');
-        ov.remove();
-        // SICHERHEITSNETZ: die Übergangs-Animation ist nur eine
-        // Überlagerung ÜBER der schon vorhandenen Denkspiel-Seite — kein
-        // eigener Seitenwechsel. Sollte window.location.href aus
-        // irgendeinem Grund NICHT feuern (z.B. durch eine Erweiterung
-        // blockiert, oder ein stiller Fehler), bliebe sonst einfach die
-        // Denkspiel-Seite sichtbar, die die ganze Zeit darunter lag —
-        // ohne jede Erklärung. Jetzt: nach 1.5s sichtbar ein manueller
-        // Link, falls der automatische Wechsel nicht geklappt hat.
-        const fallbackTimer = setTimeout(()=>{
-          console.log('[Boarding-debug] 1.5s nach dem Overlay-Entfernen immer noch auf derselben Seite — automatischer Wechsel hat nicht funktioniert. Zeige manuellen Link.');
-          const fb=document.createElement('div');
-          fb.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999999;background:#900;color:#fff;padding:10px 20px;border-radius:10px;font-weight:700;font-size:.9rem;box-shadow:0 4px 12px rgba(0,0,0,.4)';
-          fb.innerHTML='⚠️ Automatischer Wechsel hat nicht geklappt. <a href="zoo.html?autostart=1" style="color:#FFD700;text-decoration:underline">Hier klicken, um in den Zoo zu kommen →</a>';
-          document.body.appendChild(fb);
-        }, 1500);
-        try{
-          window.location.href='zoo.html?autostart=1';
-          console.log('[Boarding-debug] window.location.href wurde gesetzt — falls diese Zeile im Log steht, aber kein Zoo-Log folgt, hat die Navigation selbst nicht funktioniert.');
-        }catch(e){
-          console.log('[Boarding-debug] ❌ window.location.href warf einen Fehler: '+e.message);
-        }
-        return;
-      }
+      frame = Math.max(frame+1, Math.floor((performance.now()-_t0)/16.667)); // zeitbasiert: gleich lang auf 60/120 Hz
+      if(frame >= TOTAL) { _goZoo('fertig'); return; }
       animId = requestAnimationFrame(loop);
     };
     loop();
