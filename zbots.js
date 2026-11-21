@@ -117,6 +117,93 @@
     }catch(e){}
     requestAnimationFrame(frame);
   }
+  // ── Tragen: fester Zeitplan (70-s-Takt je Bot), alle sehen dasselbe. Slap = Tier fällt (zoo_dropped) + gemeinsamer Cooldown
+  function animals(){ try{ return (typeof ANIMALS!=='undefined')?ANIMALS:null; }catch(e){ return null; } }
+  var fx={};  // Bot-Nr. → Takt-Nummer, in der ihm das Tier schon abgenommen wurde
+  function slotOfT(i,t){ return Math.floor((t+i*9000)/70000); }
+  B.carryAt=function(i,t){
+    var s=slotOfT(i,t), ph=(t+i*9000)-s*70000; if(ph>60000) return null;
+    if(rnd(hash('c'+i+'_'+s))>=0.5) return null; if(fx[i]===s) return null;
+    var A=animals(); if(!A||!A.length) return null; var lv=B.profile(i).level, hi=Math.min(A.length-1,Math.round(5+lv*0.8));
+    return A[Math.floor(rnd(hash('ca'+i+'_'+s))*(hi+1))]||null;
+  };
+  function idxOf(name){ for(var i=0;i<B.meshes.length;i++){ if(B.meshes[i].userData.botName===name) return i; } return -1; }
+  B.opOf=function(name){ var i=idxOf(name); if(i<0) return null; var t=Date.now(), p=B.posAt(i,t), a=B.carryAt(i,t);
+    return {name:name,x:p.x,z:p.z,_heading:p.hd,carrying:a?{e:a.e,n:a.n}:null,isBot:true}; };
+  B.carryMap=function(){ var m={}; if(!active()) return m; for(var i=0;i<B.meshes.length;i++){ var n=B.meshes[i].userData.botName, o=B.opOf(n); if(o&&o.carrying) m[n]=o; } return m; };
+  B.onSlap=function(name){
+    var i=idxOf(name); if(i<0) return; var t=Date.now(), a=B.carryAt(i,t); if(!a) return;
+    var s=slotOfT(i,t), db=RT(), g=ZGet(); if(!db) return; var pos=B.posAt(i,t);
+    db.ref('zoo_cfg/botfx/'+i).transaction(function(cur){ if(cur&&cur.s===s) return; return {s:s,at:t}; },function(err,ok){
+      if(err||!ok) return; fx[i]=s;
+      try{
+        var ref=db.ref('zoo_dropped').push(); var d={animal:Object.assign({},a),shiny:null,traits:[],x:pos.x+1.5,z:pos.z+1.5,droppedBy:name,slappedBy:(ZS&&ZS.player)||null,createdAt:t};
+        ref.set(d).catch(function(){});
+        try{ if(g&&g._toastBot) g._toastBot(); else if(window.ZP&&ZP.toast) ZP.toast('🎁 '+name+' hat '+a.e+' '+a.n+' fallen gelassen – schnell fangen!',3500); }catch(e){}
+      }catch(e){}
+    },false);
+  };
+  var carryTick=0;
+  function carryUpdate(t){
+    var g=ZGet(); if(!g) return;
+    for(var i=0;i<B.meshes.length;i++){ var G=B.meshes[i], a=B.carryAt(i,t), e=a?a.e:null;
+      if(G.userData.carryEmoji!==e){ if(G.userData.carrySprite){ G.remove(G.userData.carrySprite); G.userData.carrySprite=null; }
+        if(e){ var cs=g._txt(e,1,'#fff'); cs.position.set(0,3.1,0); cs.scale.set(1.8,1.8,1); G.add(cs); G.userData.carrySprite=cs; }
+        G.userData.carryEmoji=e; } }
+  }
+  // ── Marktplatz: ein Bot-Angebot alle 6 min (echte zoo_trades-Einträge → Kauf/Panel/Ablauf funktionieren wie bei Spielern); max. 3 gleichzeitig
+  function postOffer(db,cur){
+    var A=animals(); if(!A||!A.length||B.n<=0) return;
+    var i=hash('tp'+cur.slot)%Math.max(1,B.n), p=B.profile(i), hi=Math.min(A.length-1,Math.round(5+p.level*0.8));
+    var a=A[Math.floor(rnd(hash('ta'+cur.slot))*(hi+1))]; if(!a) return;
+    var price=Math.max(1,Math.round((a.p||10)*(1.1+rnd(hash('tpr'+cur.slot))*0.3)*100)/100);
+    var ref=db.ref('zoo_trades').push();
+    var doc={seller:p.name,sellerKey:'bot_'+i,n:a.n,e:a.e,r:a.r,p:price,sh:null,tr:[],d:{animal:Object.assign({},a),shiny:null,traits:[],xm:1,sl:0},createdAt:Date.now(),bot:1};
+    ref.set(doc).then(function(){
+      var keys=(cur.keys||[]).concat([ref.key]); while(keys.length>3){ var old=keys.shift(); db.ref('zoo_trades/'+old).remove().catch(function(){}); }
+      db.ref('zoo_cfg/botTrade/keys').set(keys).catch(function(){});
+    }).catch(function(){});
+  }
+  function tradeTick(){
+    if(!active()||B.n<=0) return; var db=RT(); if(!db) return;
+    var slot=Math.floor(Date.now()/360000); if(B._tradeSlot===slot) return; B._tradeSlot=slot;
+    setTimeout(function(){ try{ db.ref('zoo_cfg/botTrade').transaction(function(cur){ if(cur&&cur.slot>=slot) return; return {slot:slot,keys:(cur&&cur.keys)||[],at:Date.now()}; },
+      function(err,ok,snap){ if(err||!ok) return; postOffer(db,snap.val()); },false); }catch(e){} }, Math.random()*15000);
+  }
+  // ── Chat: seltene, feste Sätze (für alle gleich, nur lokal angezeigt → kein Traffic, nicht gespeichert)
+  var LINES={
+    all:['Hallo zusammen! 👋','Schöner Tag im Zoo 🌞','Wer tauscht ein Tier? 🔄','Schaut mal am Marktplatz vorbei 🛒','Ich suche noch ein seltenes Tier 🦄','Nicht slappen, ich bin nur ein Bot 😅','Wie viele Tiere habt ihr schon?','Mein Zoo wächst langsam 🐾'],
+    0:['Ich bin noch neu hier, habt ihr Tipps?','Wie bekomme ich schneller MT?','Mein erstes Tier ist so süss 🥰'],
+    1:['Gerade ein neues Tier gekauft ✅','Hat jemand ein Glücksrad-Tipp?','Mein Gehege füllt sich 😄'],
+    2:['Rebirth lohnt sich, glaubt mir 🔄','Kleiner Tipp: Tiere vergolden bringt viel 💰','Ich hab fast alle Tiere 😎']
+  };
+  var REPL=['Gute Frage! 🤔','Ich bin ein Bot, aber ich drücke die Daumen 🤞','Klingt gut 👍','Viel Spass im Zoo! 🐾','Schau mal am Marktplatz 🛒','Haha 😄'];
+  var chatShown={};
+  B.chatLog=[];
+  function say(i,text,t){ var p=B.profile(i); B.chatLog.push({from:p.name,msg:text,at:t}); if(B.chatLog.length>12) B.chatLog.shift();
+    try{ if(typeof ZChat!=='undefined'&&ZChat._addMsg) ZChat._addMsg(p.name,text,false,null,null,'bot'+t,t); }catch(e){} }
+  function chatTick(){
+    if(!active()||B.n<=0) return; var now=Date.now();
+    for(var s=Math.floor(now/75000)-1;s<=Math.floor(now/75000);s++){
+      var tt=s*75000+Math.floor(rnd(hash('ct'+s))*70000); if(tt>now||now-tt>20000||chatShown[s]) continue; chatShown[s]=1;
+      if(rnd(hash('cp'+s))>0.4) continue; // selten
+      var i=hash('cb'+s)%Math.max(1,B.n), p=B.profile(i), pool=LINES.all.concat(LINES[p.tier]||[]);
+      say(i,pool[hash('cl'+s)%pool.length],tt);
+    }
+  }
+  B.reply=function(msg){
+    try{ var m=String(msg||'').toLowerCase(); if(B.n<=0||!active()) return; if(!/\?|hallo|hi\b|hey|bot|tausch|tipp|moin/.test(m)) return;
+      var now=Date.now(); if(B._lastReply&&now-B._lastReply<20000) return; B._lastReply=now;
+      var i=Math.floor(Math.random()*B.n); setTimeout(function(){ say(i,REPL[Math.floor(Math.random()*REPL.length)],Date.now()); },3000+Math.random()*3000);
+    }catch(e){}
+  };
+  setInterval(function(){ try{ var t=Date.now(); carryUpdate(t); chatTick(); tradeTick(); }catch(e){} },1000);
+  // Chat-Verlauf lädt neu (leert die Liste) → letzte Bot-Zeilen wieder anhängen; Fragen an Bots beantworten
+  setInterval(function(){ try{ if(typeof ZChat==='undefined'||B._wrapped||!ZChat.send||!ZChat._loadHistory) return; B._wrapped=true;
+    var os=ZChat.send, oh=ZChat._loadHistory;
+    ZChat.send=function(){ var inp=document.getElementById('chat-in'), v=inp?inp.value:''; var r=os.apply(this,arguments); B.reply(v); return r; };
+    ZChat._loadHistory=function(){ var r=oh.apply(this,arguments); setTimeout(function(){ var n=Date.now(); B.chatLog.forEach(function(l){ if(n-l.at<600000&&typeof ZChat._addMsg==='function') ZChat._addMsg(l.from,l.msg,false,null,null,'bot'+l.at,l.at); }); },1500); return r; };
+  }catch(e){} },2000);
   // ── Konfiguration: zoo_cfg/bots {n} (Listener, winzig) + lokaler Cache
   function setN(n){ B.n=Math.max(0,Math.min(MAXN,parseInt(n,10)||0)); try{ localStorage.setItem('zbots_n',String(B.n)); }catch(e){} try{ var e=document.getElementById('zbots-cur'); if(e) e.textContent=B.n; }catch(_){} }
   try{ setN(localStorage.getItem('zbots_n')||0); }catch(e){}
@@ -124,6 +211,7 @@
     var db=RT(); if(!db){ if(++tries>120) clearInterval(iv); return; }
     clearInterval(iv);
     try{ db.ref('zoo_cfg/bots').on('value',function(s){ var v=s&&s.val(); setN(v&&v.n!=null?v.n:0); },function(){}); }catch(e){}
+    try{ db.ref('zoo_cfg/botfx').on('value',function(s){ var v=s&&s.val()||{}; var m={}; Object.keys(v).forEach(function(k){ m[k]=v[k]&&v[k].s; }); fx=m; },function(){}); }catch(e){}
   },1000);
   requestAnimationFrame(frame);
   // ── Admin
