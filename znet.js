@@ -101,11 +101,12 @@
       var s=Z.snapshot();
       var line='[Net-debug] '+s.secs+'s · FPS Ø'+s.fps+' (p95-Frame '+s.frameP95+'ms, max '+s.frameMax+'ms, >100ms: '+s.long+'×, >250ms: '+s.vlong+'×) · '
         +'↓'+s.inKB+'KB ('+s.inKBmin+'/min) ↑'+s.outKB+'KB ('+s.outKBmin+'/min) · Top↓ '+s.topIn+' · Top↑ '+s.topOut
-        +' · Spieler live '+s.live+' (min '+s.minLive+'/max '+s.maxLive+') stale '+s.stale+(s.mem!=null?' · Heap '+s.mem+'MB':'')+' · Firestore-Writes: '+Z.fsW+' · Ruckler-Ursachen: '+(s.spk||'–');
+        +' · Spieler live '+s.live+' (min '+s.minLive+'/max '+s.maxLive+') stale '+s.stale+(s.mem!=null?' · Heap '+s.mem+'MB':'')+' · Firestore-Writes: '+Z.fsW+' · Ruckler-Ursachen: '+(s.spk||'–')
+        +' · Bots: '+(function(){ try{ return window.ZBots&&ZBots.status?ZBots.status():'–'; }catch(e){ return '–'; } })()+' · Grafik: '+(function(){ try{ return window.ZLook&&ZLook.info?ZLook.info():'–'; }catch(e){ return '–'; } })();
       if(s.long>0||s.vlong>0||s.inKBmin>400) console.warn(line); else console.log(line);
       if(typeof _rtdb!=='undefined'&&_rtdb&&typeof State!=='undefined'&&State._useCloud&&State._useCloud()){
         var id=(window.getDeviceId&&window.getDeviceId())||'dev';
-        _rtdb.ref('zoo_net_diag/'+id).set(Object.assign({ts:Date.now(),events:Z.evt.slice(-8)},s)).catch(function(){});
+        _rtdb.ref('zoo_net_diag/'+id).set(Object.assign({ts:Date.now(),events:Z.evt.slice(-8),bots:(function(){ try{ return window.ZBots&&ZBots.status?ZBots.status():''; }catch(e){ return ''; } })(),look:(function(){ try{ return window.ZLook&&ZLook.info?ZLook.info():''; }catch(e){ return ''; } })(),player:(typeof ZS!=='undefined'&&ZS.player)||''},s)).catch(function(){});
       }
       Z.fr.win=[]; // p95 pro 30-s-Fenster
     }catch(e){}

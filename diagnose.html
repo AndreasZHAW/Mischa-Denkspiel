@@ -46,8 +46,8 @@ try {
 <body>
 <h1>🔍 Mischa Denkspiel — Diagnose</h1>
 <div style="background:#1a3a1a;border:2px solid #2ecc71;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-  <span style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 v795</span>
-  <span style="color:#888;font-size:.78rem">Wenn hier NICHT v795 steht → Browser-Cache leeren (Strg+Shift+R)</span>
+  <span id="ver-banner" style="font-size:1.3rem;font-weight:900;color:#2ecc71">📦 …</span>
+  <span style="color:#888;font-size:.78rem">Live-Version vom Server. Entspricht das nicht der neuesten Version → Browser-Cache leeren (Strg+Shift+R)</span>
 </div>
 <div style="color:#666;font-size:.78rem;margin-bottom:8px">
   ✅ <b>Einzige Diagnose-Seite</b> — Welt 1 (Spiele) + Zoo (Welt 2) kombiniert.
@@ -62,6 +62,7 @@ try {
   <div class="tab" onclick="switchTab('mp')">👥 Multiplayer-Diagnose</div>
   <div class="tab" onclick="switchTab('devicediag')">📡 Geräte-Diagnose</div>
   <div class="tab" onclick="switchTab('traffic')">📶 Traffic-Diagnose</div>
+  <div class="tab" onclick="switchTab('tests')">🧪 Tests & Bots</div>
   <div class="tab" onclick="switchTab('roam')">🐾 Roaming-Diagnose</div>
   <div class="tab" onclick="switchTab('special')">🎁 Spezial-Gegenstände</div>
   <div class="tab" onclick="switchTab('font')">📱 Schrift</div>
@@ -347,6 +348,34 @@ try {
   </div>
 </div>
 
+<!-- ══ TAB: TESTS & BOTS ══ -->
+<div id="tab-tests" class="tab-content">
+  <div class="box blue">
+    <h2>🤖 Computerspieler — Status</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">Einstellung (Anzahl, Diebstahl an/aus) bleibt im Admin-Panel. Hier steht nur, was gerade eingestellt ist und was die Geräte melden. Bot-Ereignisse stehen zusätzlich automatisch im Crash-Log (<code>[Bots]</code>, <code>[Bots-debug]</code>).</div>
+    <button onclick="runTests()" class="info">🔄 Neu laden</button>
+    <pre id="bots-status-out" style="white-space:pre-wrap;font-size:11px;background:#050505;border:1px solid #1a1a1a;border-radius:4px;padding:8px;margin-top:6px">⏳</pre>
+  </div>
+  <div class="box orange">
+    <h2>🧪 Traffic-Test (Simulation, Realtime Database)</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">Simuliert Spieler nur im Pfad <code>zoo_loadtest</code> (echte Daten bleiben unberührt, danach wird alles gelöscht), misst echte Grössen und Zeiten und rechnet auf Stunden hoch. Kostet ca. 1–2 MB.</div>
+    Bots: <input id="tt-n" type="number" min="2" max="20" value="20" style="width:56px"> &nbsp; Sekunden: <input id="tt-t" type="number" min="5" max="15" value="10" style="width:56px"> &nbsp; Gehege gefüllt (0–5): <input id="tt-e" type="number" min="0" max="5" value="5" style="width:56px"><br>
+    <button id="tt-go" onclick="runTrafficTest()" class="info" style="margin-top:6px">▶️ Test starten</button>
+    <button onclick="copyEl('tt-out')" class="ok" style="margin-top:6px">📋 Bericht kopieren</button>
+    <div id="tt-st" style="color:#fc6;margin-top:6px;font-size:.8rem"></div>
+    <textarea id="tt-out" readonly style="width:100%;height:240px;margin-top:6px;background:#050505;color:#9fe;font:11px monospace;border:1px solid #345;border-radius:6px"></textarea>
+  </div>
+  <div class="box green">
+    <h2>📊 Leistungs-Test (Zoo, Fernstart)</h2>
+    <div style="font-size:.75rem;color:#999;margin-bottom:8px">Startet auf jedem Admin-Gerät, das gerade im Zoo offen ist und im Vordergrund läuft, eine ~25-s-Messung: FPS so wie jetzt / ohne Bots / Grafik „Normal“ / „Klassisch“. Das Gerät schickt den Bericht hierher (und ins Crash-Log, Zeile <code>[Perf-test]</code>). Während des Tests nicht bewegen.</div>
+    <button onclick="startPerfTest()" class="info">▶️ Test im Zoo starten</button>
+    <button onclick="loadPerfReports()" class="sec">🔄 Berichte laden</button>
+    <button onclick="copyEl('perf-out')" class="ok">📋 Berichte kopieren</button>
+    <div id="perf-st" style="color:#fc6;margin-top:6px;font-size:.8rem"></div>
+    <textarea id="perf-out" readonly style="width:100%;height:260px;margin-top:6px;background:#050505;color:#9fe;font:11px monospace;border:1px solid #345;border-radius:6px"></textarea>
+  </div>
+</div>
+
 <!-- ══ TAB: ALLES ZUSAMMEN ══ -->
 <div id="tab-all" class="tab-content">
   <div class="box orange">
@@ -396,6 +425,73 @@ function _layoutText(){
 function runLayout(){document.getElementById('layout-out').textContent=_layoutText();}
 function copyLayout(){navigator.clipboard.writeText(_layoutText()).then(()=>alert('✅ Layout-Bericht kopiert!'));}
 function clearLayout(){localStorage.removeItem('mischa_layout_diag');runLayout();}
+
+// ══ TESTS & BOTS (aus dem Admin-Panel hierher verschoben) ══
+function copyEl(id){ const e=document.getElementById(id); if(!e) return; const t=e.value!==undefined?e.value:e.textContent; try{ navigator.clipboard.writeText(t).then(()=>alert('✅ Kopiert')); }catch(x){ e.select&&e.select(); document.execCommand('copy'); } }
+async function runTests(){
+  const out=document.getElementById('bots-status-out'); out.textContent='⏳ Lade …';
+  try{
+    const db=firebase.database(); const L2=[]; const now=Date.now();
+    const [cfg,atk,enc,trd,nd]=await Promise.all(['zoo_cfg/bots','zoo_cfg/botatk','zoo_cfg/botenc','zoo_cfg/botTrade','zoo_net_diag'].map(p=>db.ref(p).once('value').then(s=>s.val()).catch(()=>null)));
+    L2.push('Eingestellt: '+(cfg?('Anzahl '+(cfg.n||0)+' · Diebstahl '+(cfg.steal===false?'aus':'an')+' · gesetzt vor '+Math.round((now-(cfg.ts||0))/60000)+' min'):'noch nie eingestellt (0 Bots)'));
+    const ak=Object.keys(atk||{}); L2.push('Diebstahl-Einträge: '+ak.length); ak.forEach(k=>{ const e=atk[k]; L2.push('  Bot '+k+': '+e.st+' → '+e.target+(e.animal?' · '+(e.animal.n||''):'')+' · vor '+Math.round((now-(e.t0||0))/1000)+' s'); });
+    const ek=Object.keys(enc||{}); L2.push('Gestohlene Tiere in Bot-Gehegen: '+ek.reduce((a,k)=>a+(((enc[k]||{}).l||[]).length),0)+' (Bots: '+ek.join(', ')+')');
+    L2.push('Letztes Bot-Angebot am Marktplatz: '+(trd?('vor '+Math.round((now-(trd.at||0))/60000)+' min, '+((trd.keys||[]).length)+' aktiv'):'noch keins'));
+    L2.push('');
+    L2.push('Gemeldet von Geräten (zoo_net_diag):');
+    Object.keys(nd||{}).map(k=>({k,...nd[k]})).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,6).forEach(x=>{ L2.push('  '+(x.player||x.k)+' · vor '+Math.round((now-(x.ts||0))/60000)+' min · FPS '+(x.fps||'?')+' · '+(x.bots||'–')+' · '+(x.look||'–')); });
+    out.textContent=L2.join('\n');
+  }catch(e){ out.textContent='❌ '+e.message; }
+}
+async function runTrafficTest(){
+  const st=document.getElementById('tt-st'), go=document.getElementById('tt-go'), ta=document.getElementById('tt-out');
+  const N=Math.max(2,Math.min(20,parseInt(document.getElementById('tt-n').value,10)||20)), T=Math.max(5,Math.min(15,parseInt(document.getElementById('tt-t').value,10)||10)), E=Math.max(0,Math.min(5,parseInt(document.getElementById('tt-e').value,10)||0));
+  const OVH=60, sleep=ms=>new Promise(r=>setTimeout(r,ms)), jl=v=>{ try{ return JSON.stringify(v).length; }catch(e){ return 0; } };
+  const kb=b=>(b/1024).toFixed(1)+' KB', mb=b=>(b/1048576).toFixed(b>1e8?0:1)+' MB', gb=b=>(b/1073741824).toFixed(2)+' GB';
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0, med=a=>{ if(!a.length) return 0; const s=a.slice().sort((x,y)=>x-y); return s[s.length>>1]; };
+  go.disabled=true; const db=firebase.database(), root=db.ref('zoo_loadtest'), inst='t'+Date.now().toString(36);
+  const R={N,T,E,cycles:0,wB:[],rB:[],wMs:[],rMs:[],errs:0,hot:0,cold:0,coldR:0,coldRMs:0,coldW:0,sent:0,recv:0,ops:0};
+  const sample=[{id:'cat',n:'Katze',e:'🐱',r:'normal',p:8,earn:.5,w:80},{id:'dog',n:'Hund',e:'🐶',r:'normal',p:30,earn:.7,w:30},{id:'lion',n:'Löwe',e:'🦁',r:'rare',p:900,earn:6,w:5},{id:'unicorn',n:'Einhorn',e:'🦄',r:'epic',p:50000,earn:90,w:1},{id:'dragon',n:'Drache',e:'🐉',r:'legendary',p:900000,earn:700,w:1}];
+  try{
+    st.textContent='Räume alte Testdaten auf …'; await root.remove().catch(()=>{});
+    const cold={}, hot={}, now=Date.now();
+    for(let i=0;i<N;i++){
+      hot['b'+i]=JSON.parse(JSON.stringify({x:Math.round(Math.random()*300-150),z:Math.round(Math.random()*300-150),t:now,carrying:(i%5===0)?{e:'🦒',n:'Giraffe'}:null,slotIdx:i,aim:0,dead:0,tb:'',sk:(i%3===0)?'gold':'',...(i%4===0?{be:'base'+i}:{})}));
+      cold['b'+i]=JSON.parse(JSON.stringify({name:'TESTBOT'+i,char:'🐼',color:'#'+(Math.random()*16777215|0).toString(16).padStart(6,'0'),charId:'explorer',locked:false,lockedUntil:0,rank:{name:'Bot',color:'#9fb4c7'},baseEq:null,enc:[0,1,2,3,4].map(k=>k<E?{animal:sample[k]}:null)}));
+    }
+    R.hot=jl(hot.b0); R.cold=Math.round(jl(cold)/N);
+    st.textContent='Kalt-Daten …'; let t0=performance.now(); await db.ref('zoo_loadtest/cold/'+inst).set(cold); R.coldW=performance.now()-t0; R.sent+=jl(cold)+OVH; R.ops++;
+    t0=performance.now(); const cs=await db.ref('zoo_loadtest/cold/'+inst).once('value'); R.coldRMs=performance.now()-t0; R.coldR=jl(cs.val()); R.recv+=R.coldR+OVH; R.ops++;
+    const end=Date.now()+T*1000;
+    while(Date.now()<end){
+      const c0=Date.now(); st.textContent='Test läuft … '+Math.max(0,Math.round((end-c0)/1000))+' s';
+      const up={}; for(const k in hot){ hot[k].t=c0; hot[k].x+=Math.round(Math.random()*4-2); hot[k].z+=Math.round(Math.random()*4-2); up[k]=hot[k]; }
+      try{ let a=performance.now(); await db.ref('zoo_loadtest/hot/'+inst).update(up); R.wMs.push(performance.now()-a); const wb=jl(up); R.wB.push(wb); R.sent+=wb+OVH; R.ops++;
+        a=performance.now(); const hs=await db.ref('zoo_loadtest/hot/'+inst).once('value'); R.rMs.push(performance.now()-a); const rb=jl(hs.val()); R.rB.push(rb); R.recv+=rb+OVH; R.ops++; R.cycles++; }catch(e){ R.errs++; }
+      const left=500-(Date.now()-c0); if(left>0) await sleep(left);
+    }
+    st.textContent='Räume auf …'; await root.remove().catch(()=>{});
+  }catch(e){ R.errs++; R.fatal=String(e.message||e); try{ await root.remove(); }catch(_){} }
+  go.disabled=false;
+  const model=n=>{ const hW=R.hot+OVH, hR=R.hot*n+OVH, cR=R.cold*n+OVH; return [500,1000,1500,2500].map(g=>{ const c=3600000/g; return {up:c*hW,down:c*hR+180*cR}; }); };
+  const l=[]; l.push('=== MISCHA TRAFFIC-TEST (Diagnose-Seite) ===','Zeit: '+new Date().toISOString(),'Gerät: '+(navigator.userAgent||'').slice(0,80),'Bots: '+N+' · Dauer: '+T+' s · Zyklen: '+R.cycles+' · Fehler: '+R.errs+(R.fatal?' ('+R.fatal+')':'')+' · Gehege gefüllt: '+E+'/5','',
+    '-- Gemessen --','Hot pro Spieler: '+R.hot+' B','Hot-Schreiben ('+N+' Bots/Zyklus): Median '+med(R.wB)+' B, Latenz Ø '+avg(R.wMs).toFixed(0)+' ms','Hot-Lesen ganz: Median '+med(R.rB)+' B, Latenz Ø '+avg(R.rMs).toFixed(0)+' ms (max '+Math.max(0,...R.rMs).toFixed(0)+' ms)','Cold pro Spieler: '+R.cold+' B · Cold-Lesen ganz: '+R.coldR+' B in '+R.coldRMs.toFixed(0)+' ms','Echt verbraucht: gesendet '+kb(R.sent)+', empfangen '+kb(R.recv)+' ('+R.ops+' Aufrufe)','',
+    '-- Hochrechnung pro Spieler und Stunde (Raten wie im Spiel, Overhead '+OVH+' B/Aufruf geschätzt) --');
+  const m=model(N); ['Std 1 (500 ms)','Std 2–3 (1 s)','Std 4 (1,5 s)','ab Std 5 (2,5 s)'].forEach((nm,i)=>l.push(nm+': Upload '+mb(m[i].up)+' | Download '+mb(m[i].down)));
+  l.push('','-- Alle zusammen, erste Stunde --'); [5,10,15,20].forEach(k=>{ const mk=model(k); l.push(k+' Spieler: Download '+mb(mk[0].down*k)+', Upload '+mb(mk[0].up*k)); });
+  l.push('','-- 3 Tage à 4 h (alle '+N+' durchgehend online): Download ≈ '+gb(3*(model(N)[0].down+model(N)[1].down*2+model(N)[2].down)*N)+' (Spark-Limit 10 GB/Monat) --','=== ENDE ===');
+  ta.value=l.join('\n'); st.textContent=R.errs?'⚠️ Fertig mit '+R.errs+' Fehler(n).':'✅ Fertig — Bericht kopieren und an Claude schicken.';
+  L('🧪 Traffic-Test: '+N+' Bots, '+R.cycles+' Zyklen, Hot-Lesen '+med(R.rB)+' B, Cold-Lesen '+R.coldR+' B');
+}
+async function startPerfTest(){
+  const st=document.getElementById('perf-st');
+  try{ await firebase.database().ref('zoo_cfg/perftest').set({at:Date.now()}); st.textContent='✅ Start gesendet. Ein Admin-Gerät im Zoo (Tab sichtbar!) misst jetzt ~25 s. Danach „Berichte laden“.'; }catch(e){ st.textContent='❌ '+e.message; }
+}
+async function loadPerfReports(){
+  const st=document.getElementById('perf-st'), ta=document.getElementById('perf-out');
+  try{ const v=(await firebase.database().ref('zoo_perf').once('value')).val()||{}; const ks=Object.keys(v).sort((a,b)=>(v[b].ts||0)-(v[a].ts||0));
+    ta.value=ks.length?ks.map(k=>'##### '+(v[k].player||k)+' · '+new Date(v[k].ts).toLocaleString('de-CH')+'\n'+v[k].text).join('\n\n'):'(noch keine Berichte)'; st.textContent=ks.length+' Bericht(e) geladen.'; }catch(e){ st.textContent='❌ '+e.message; }
+}
 function switchTab(id){
   document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',t.onclick.toString().includes("'"+id+"'"));});
   document.querySelectorAll('.tab-content').forEach(c=>{c.classList.remove('active');});
@@ -407,6 +503,7 @@ function switchTab(id){
   if(id==='mp'&&!_ran.mp){_ran.mp=true;runMP();}
   if(id==='devicediag'&&!_ran.devicediag){_ran.devicediag=true;runDeviceDiag();}
   if(id==='traffic'&&!_ran.traffic){_ran.traffic=true;runTrafficDiag();}
+  if(id==='tests'){runTests();}
   if(id==='roam'&&!_ran.roam){_ran.roam=true;runRoam();}
   if(id==='font'&&!_ran.font){_ran.font=true;runFont();}
   if(id==='layout'){runLayout();}
@@ -573,7 +670,7 @@ async function runWelt1(){
     const r=await fetch('app.js',{cache:'no-store'});
     const txt=await r.text();
     const m=txt.match(/const APP_VERSION\s*=\s*'([^']+)'/);
-    window._liveAppVersion=m?m[1]:'❓ nicht gefunden';
+    window._liveAppVersion=m?m[1]:'❓ nicht gefunden'; try{ document.getElementById('ver-banner').textContent='📦 '+window._liveAppVersion; }catch(_){}
     L('🔢 LIVE app.js Version (frisch vom Server, kein Cache): '+window._liveAppVersion);
   }catch(e){ window._liveAppVersion='❌ Fehler: '+e.message; L('🔢 LIVE app.js Version: Fehler beim Abrufen — '+e.message); }
 
@@ -1469,6 +1566,8 @@ async function runAllTabsReport(){
     ['Multiplayer-Diagnose', async()=>{await runMP();}],
     ['Geräte-Diagnose', async()=>{await runDeviceDiag();}],
     ['Traffic-Diagnose', async()=>{await runTrafficDiag();}],
+    ['Computerspieler-Status', async()=>{await runTests();}],
+    ['Leistungs-Test-Berichte', async()=>{await loadPerfReports();}],
     ['Roaming-Diagnose', async()=>{await runRoam();}],
     ['Spezial-Gegenstände', async()=>{await runSpecials();}],
     ['Schrift', async()=>{runFont();}],
@@ -1538,6 +1637,12 @@ async function runAllTabsReport(){
   sections.push(_grabText('mp-summary'));
   sections.push('── MULTIPLAYER-DIAGNOSE — Tabelle ──');
   sections.push(_grabText('mp-out'));
+  sections.push('');
+  sections.push('── COMPUTERSPIELER — Status ──');
+  sections.push(_grabText('bots-status-out'));
+  sections.push('');
+  sections.push('── LEISTUNGS-TEST-BERICHTE ──');
+  sections.push((document.getElementById('perf-out')||{}).value||'(noch nicht geladen)');
   sections.push('');
   sections.push('── ROAMING-DIAGNOSE — Zusammenfassung ──');
   sections.push(_grabText('roam-summary'));

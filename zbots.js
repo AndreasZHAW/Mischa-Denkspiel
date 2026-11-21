@@ -180,6 +180,9 @@
       if(!err&&ok){ try{ if(window.ZP&&ZP.toast) ZP.toast('⚠️ '+B.meshes[bi].userData.botName+' hat es auf dein Tier abgesehen!',3000); }catch(x){} } },false);
   }
   B._victimTick=victimTick; setInterval(function(){ try{ victimTick(); }catch(e){} },250);
+  B.status=function(){ try{ var act=0, t=Date.now(); Object.keys(ep).forEach(function(k){ if(epLive(ep[k],t)) act++; }); var enc=0; try{ enc=Object.keys(B.encMap()).length; }catch(e){}
+    return 'n='+B.n+' Figuren='+B.meshes.length+' Gehege='+enc+' Diebstahl='+(steal?'an':'aus')+' Angriffe-aktiv='+act+' im-Zoo='+(active()?'ja':'nein'); }catch(e){ return 'n='+B.n; } };
+  setInterval(function(){ try{ if(B.n>0||B.meshes.length) console.log('[Bots-debug] '+B.status()+' · '+((window.ZLook&&ZLook.info)?ZLook.info():'')); }catch(e){} },60000);
   // ── Tragen: fester Zeitplan (70-s-Takt je Bot), alle sehen dasselbe. Slap = Tier fällt (zoo_dropped) + gemeinsamer Cooldown
   function animals(){ try{ return (typeof ANIMALS!=='undefined')?ANIMALS:null; }catch(e){ return null; } }
   var fx={};  // Bot-Nr. → Takt-Nummer, in der ihm das Tier schon abgenommen wurde
@@ -199,7 +202,7 @@
     var i=idxOf(name); if(i<0) return; var t=Date.now(), a=B.carryAt(i,t); if(!a) return;
     var s=slotOfT(i,t), db=RT(), g=ZGet(); if(!db) return; var pos=B.posAt(i,t);
     db.ref('zoo_cfg/botfx/'+i).transaction(function(cur){ if(cur&&cur.s===s) return; return {s:s,at:t}; },function(err,ok){
-      if(err||!ok) return; fx[i]=s;
+      if(err||!ok) return; fx[i]=s; try{ console.log('[Bots] Slap auf tragenden Bot '+name+': '+a.n+' fällt (Slapper '+((ZS&&ZS.player)||'?')+')'); }catch(_){}
       try{
         var ref=db.ref('zoo_dropped').push(); var d={animal:Object.assign({},a),shiny:null,traits:[],x:pos.x+1.5,z:pos.z+1.5,droppedBy:name,slappedBy:(ZS&&ZS.player)||null,createdAt:t};
         ref.set(d).catch(function(){});
@@ -224,6 +227,7 @@
     var ref=db.ref('zoo_trades').push();
     var doc={seller:p.name,sellerKey:'bot_'+i,n:a.n,e:a.e,r:a.r,p:price,sh:null,tr:[],d:{animal:Object.assign({},a),shiny:null,traits:[],xm:1,sl:0},createdAt:Date.now(),bot:1};
     ref.set(doc).then(function(){
+      try{ console.log('[Bots] Marktplatz-Angebot: '+p.name+' bietet '+a.n+' für '+price); }catch(_){}
       var keys=(cur.keys||[]).concat([ref.key]); while(keys.length>3){ var old=keys.shift(); db.ref('zoo_trades/'+old).remove().catch(function(){}); }
       db.ref('zoo_cfg/botTrade/keys').set(keys).catch(function(){});
     }).catch(function(){});
@@ -269,14 +273,15 @@
     ZChat._loadHistory=function(){ var r=oh.apply(this,arguments); setTimeout(function(){ var n=Date.now(); B.chatLog.forEach(function(l){ if(n-l.at<600000&&typeof ZChat._addMsg==='function') ZChat._addMsg(l.from,l.msg,false,null,null,'bot'+l.at,l.at); }); },1500); return r; };
   }catch(e){} },2000);
   // ── Konfiguration: zoo_cfg/bots {n} (Listener, winzig) + lokaler Cache
-  function setN(n){ B.n=Math.max(0,Math.min(MAXN,parseInt(n,10)||0)); try{ localStorage.setItem('zbots_n',String(B.n)); }catch(e){} try{ var e=document.getElementById('zbots-cur'); if(e) e.textContent=B.n; }catch(_){} }
+  function setN(n){ var _o=B.n; B.n=Math.max(0,Math.min(MAXN,parseInt(n,10)||0)); if(_o!==B.n){ try{ console.log('[Bots] Anzahl Computerspieler: '+_o+' → '+B.n); }catch(_){} } try{ localStorage.setItem('zbots_n',String(B.n)); }catch(e){} try{ var e=document.getElementById('zbots-cur'); if(e) e.textContent=B.n; }catch(_){} }
   try{ setN(localStorage.getItem('zbots_n')||0); }catch(e){}
   var tries=0, iv=setInterval(function(){
     var db=RT(); if(!db){ if(++tries>120) clearInterval(iv); return; }
     clearInterval(iv);
     try{ db.ref('zoo_cfg/bots').on('value',function(s){ var v=s&&s.val(); setN(v&&v.n!=null?v.n:0); steal=!(v&&v.steal===false); },function(){}); }catch(e){}
-    try{ db.ref('zoo_cfg/botatk').on('value',function(s){ ep=B.ep=s&&s.val()||{}; },function(){}); }catch(e){}
+    try{ db.ref('zoo_cfg/botatk').on('value',function(s){ var nv=s&&s.val()||{}; try{ Object.keys(nv).forEach(function(k){ var o=ep[k], n=nv[k]; if(n&&(!o||o.id!==n.id||o.st!==n.st)){ console.log('[Bots] Diebstahl Bot '+k+' ('+((B.meshes[k]&&B.meshes[k].userData.botName)||'?')+'): '+n.st+' → Ziel '+n.target+(n.animal?' · Tier '+(n.animal.n||'?'):'')); } }); }catch(_){} ep=B.ep=nv; },function(){}); }catch(e){}
     try{ db.ref('zoo_cfg/botenc').on('value',function(s){ var v=s&&s.val()||{}, m={}; Object.keys(v).forEach(function(k){ m[k]=(v[k]&&v[k].l)||[]; }); stolen=m; },function(){}); }catch(e){}
+    try{ var _t0=Date.now(); db.ref('zoo_cfg/perftest').on('value',function(s){ var v=s&&s.val(); if(!v||!v.at||v.at<_t0||B._ptAt===v.at) return; B._ptAt=v.at; var ad=false; try{ ad=!!(ZS.isAdmin||(window.ZAdmin&&ZAdmin._hasAccess)); }catch(e){} if(ad&&active()&&!document.hidden){ console.log('[Perf-test] Fernstart von der Diagnose-Seite'); B.perfTest(); } },function(){}); }catch(e){}
     try{ db.ref('zoo_cfg/botfx').on('value',function(s){ var v=s&&s.val()||{}; var m={}; Object.keys(v).forEach(function(k){ m[k]=v[k]&&v[k].s; }); fx=m; },function(){}); }catch(e){}
   },1000);
   requestAnimationFrame(frame);
@@ -287,6 +292,42 @@
     var n=Math.max(0,Math.min(MAXN,parseInt(inp&&inp.value,10)||0));
     db.ref('zoo_cfg/bots').set({n:n,steal:!!(document.getElementById('zbots-steal')||{checked:true}).checked,ts:Date.now()}).then(function(){ if(st) st.textContent='✅ Gespeichert: '+n+' Computerspieler (gilt sofort für alle).'; },function(e){ if(st) st.textContent='❌ '+(e&&e.message||e); });
   };
+  // ── Leistungs-Test (Admin): misst FPS mit Bots / ohne Bots / mit weniger Effekten, damit man sieht, was ruckelt
+  function sceneStats(){
+    var g=ZGet(), o={}; try{ var r=g&&g.renderer; if(r&&r.info){ o.calls=r.info.render.calls; o.tris=r.info.render.triangles; o.geo=r.info.memory.geometries; o.tex=r.info.memory.textures; } }catch(e){}
+    try{ var n=0,sp=0,mesh=0; g.scene.traverse(function(x){ n++; if(x.isSprite) sp++; else if(x.isMesh) mesh++; }); o.objs=n; o.sprites=sp; o.meshes=mesh; }catch(e){}
+    try{ o.otherM=Object.keys(g.otherM||{}).length; o.otherEnc=Object.keys(g.otherEnc||{}).filter(function(k){ return k.indexOf('_animalMeshes')<0; }).length; o.dropped=(g.droppedAnimals||[]).length; }catch(e){}
+    return o;
+  }
+  function measure(ms){
+    return new Promise(function(res){ var d=[],last=0,t0=performance.now();
+      function f(ts){ if(last) d.push(ts-last); last=ts; if(performance.now()-t0<ms) requestAnimationFrame(f); else { d.sort(function(a,b){return a-b;}); var sum=d.reduce(function(a,b){return a+b;},0); res({fps:d.length?1000*d.length/sum:0,p95:d.length?d[Math.floor(d.length*0.95)]:0,max:d.length?d[d.length-1]:0,n:d.length}); } }
+      requestAnimationFrame(f); });
+  }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+  B.perfTest=async function(){
+    var out=document.getElementById('zbots-out'), st=document.getElementById('zbots-st'); var L=[];
+    function say(t){ try{ console.log('[Perf-test] '+t); }catch(e){} }
+    if(document.hidden){ say('abgebrochen: Tab nicht sichtbar'); return; } if(B._pt) return; B._pt=true;
+    var g=ZGet(), LK=window.ZLook, n0=B.n, q0=LK&&LK.q;
+    try{
+      L.push('=== MISCHA LEISTUNGS-TEST (v862) ===','Zeit: '+new Date().toISOString(),'Gerät: '+(navigator.userAgent||'').slice(0,90),'Bots gesetzt: '+n0+' · Look: '+(LK&&LK.info?LK.info():'?'),'Fenster: '+innerWidth+'x'+innerHeight+' · DPR '+devicePixelRatio,'');
+      var steps=[['A) so wie jetzt',function(){}],
+        ['B) Bots lokal weg',function(){ B.n=0; }],
+        ['C) ohne Bots + Look „Normal"',function(){ if(LK&&LK.set) LK.set('normal'); }],
+        ['D) ohne Bots + Look „Klassisch"',function(){ if(LK&&LK.set) LK.set('classic'); }]];
+      for(var k=0;k<steps.length;k++){
+        say('Messe '+steps[k][0]+' … ('+(k+1)+'/4)'); steps[k][1](); await sleep(2500);
+        var m=await measure(5000), ss=sceneStats();
+        L.push(steps[k][0]+': '+m.fps.toFixed(1)+' FPS · p95-Frame '+m.p95.toFixed(0)+' ms · max '+m.max.toFixed(0)+' ms · Draw-Calls '+ss.calls+' · Dreiecke '+ss.tris+' · Geometrien '+ss.geo+' · Texturen '+ss.tex+' · Objekte '+ss.objs+' (Sprites '+ss.sprites+', Meshes '+ss.meshes+') · Spielerfiguren '+ss.otherM+' · Spieler-Gehege '+ss.otherEnc+' · fallende Tiere '+ss.dropped);
+      }
+    }catch(e){ L.push('Fehler: '+(e&&e.message||e)); }
+    B.n=n0; try{ if(LK&&LK.set&&q0) LK.set(q0); }catch(e){}
+    L.push('','Zurückgesetzt: Bots '+B.n+', Look '+(q0||'?'),'=== ENDE ===');
+    B._pt=false; var txt=L.join('\n'); try{ console.log('[Perf-test] '+txt.replace(/\n+/g,' | ')); }catch(e){}
+    try{ var db=RT(); if(db){ var id=(window.getDeviceId&&window.getDeviceId())||'dev'; db.ref('zoo_perf/'+id).set({ts:Date.now(),player:(ZS&&ZS.player)||'?',text:txt}).catch(function(){}); } }catch(e){}
+  };
+  B.copy=function(){ var ta=document.getElementById('zbots-out'); if(!ta) return; ta.select(); try{ navigator.clipboard.writeText(ta.value); }catch(e){ try{ document.execCommand('copy'); }catch(_){} } var st=document.getElementById('zbots-st'); if(st) st.textContent='📋 Kopiert.'; };
   B.adminHTML=function(){
     var rows=''; for(var i=0;i<MAXN;i++){ var p=B.profile(i); rows+='<div style="font-size:.7rem;opacity:.85">'+(i+1)+'. '+p.name+' · Lv '+p.level+' · '+p.rank+'</div>'; }
     return '<div style="font-size:.78rem;line-height:1.45;color:#fff;padding:6px">'
@@ -296,6 +337,7 @@
       +'<button class="padmin-btn" style="background:#C0392B" onclick="document.getElementById(\'zbots-n\').value=0;ZBots.save()">⏹ Alle weg</button>'
       +'<div style="margin-top:8px"><label><input id="zbots-steal" type="checkbox" '+(steal?'checked':'')+'> Bots dürfen Spielern gute Tiere abnehmen (anrennen, slappen, wegtragen)</label></div>'
       +'<div style="margin-top:6px">Aktuell aktiv: <b id="zbots-cur">'+B.n+'</b></div><div id="zbots-st" style="color:#ffd54f;margin-top:4px"></div>'
+      +'<div style="margin-top:8px;opacity:.7;font-size:.72rem">Tests (Traffic, Leistung) und Bot-Status stehen auf der Diagnose-Seite (Tab „🧪 Tests & Bots“). Bot-Ereignisse werden automatisch ins Log geschrieben.</div>'
       +'<details style="margin-top:8px"><summary>Alle möglichen Bots</summary>'+rows+'</details></div>';
   };
 })();
