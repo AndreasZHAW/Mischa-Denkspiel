@@ -189,25 +189,40 @@
   function slotOfT(i,t){ return Math.floor((t+i*9000)/70000); }
   B.carryAt=function(i,t){
     var e0=ep[i]; if(e0&&e0.id){ if(e0.st==='carry'&&t<e0.ta) return e0.animal||null; if((e0.st==='chase'||e0.st==='grab')&&epLive(e0,t)) return null; }
-    var s=slotOfT(i,t), ph=(t+i*9000)-s*70000; if(ph>60000) return null;
-    if(rnd(hash('c'+i+'_'+s))>=0.5) return null; if(fx[i]===s) return null;
+    var s=slotOfT(i,t), ph=(t+i*9000)-s*70000; if(ph>30000) return null;
+    if(rnd(hash('c'+i+'_'+s))>=0.12) return null; /* selten: ~12 % der 70-s-Takte, je 30 s */
+    if(fx[i]===s) return null;
     var A=animals(); if(!A||!A.length) return null; var lv=B.profile(i).level, hi=Math.min(A.length-1,Math.round(5+lv*0.8));
     return A[Math.floor(rnd(hash('ca'+i+'_'+s))*(hi+1))]||null;
   };
   function idxOf(name){ for(var i=0;i<B.meshes.length;i++){ if(B.meshes[i].userData.botName===name) return i; } return -1; }
   B.opOf=function(name){ var i=idxOf(name); if(i<0) return null; var t=Date.now(), p=B.posAt(i,t), a=B.carryAt(i,t);
     return {name:name,x:p.x,z:p.z,_heading:p.hd,carrying:a?{e:a.e,n:a.n}:null,isBot:true}; };
-  B.carryMap=function(){ var m={}; if(!active()) return m; for(var i=0;i<B.meshes.length;i++){ var n=B.meshes[i].userData.botName, o=B.opOf(n); if(o&&o.carrying) m[n]=o; } return m; };
+  B.carryMap=function(){ var m={}; if(!active()) return m; for(var i=0;i<B.meshes.length;i++){ var n=B.meshes[i].userData.botName, o=B.opOf(n); if(o&&o.carrying){ if(Object.keys(m).length>=2) break; m[n]=o; } } return m; }; // höchstens 2 Bot-Meldungen gleichzeitig
   B.onSlap=function(name){
     var i=idxOf(name); if(i<0) return; var t=Date.now(), a=B.carryAt(i,t); if(!a) return;
-    var s=slotOfT(i,t), db=RT(), g=ZGet(); if(!db) return; var pos=B.posAt(i,t);
+    var s=slotOfT(i,t), db=RT(), g=ZGet(); var pos=B.posAt(i,t);
+    // Sofort lokal: Bot lässt das Tier fallen (wie bei einem echten Spieler – kein Warten auf die Datenbank)
+    fx[i]=s;
+    var ang=Math.random()*Math.PI*2, dist=3+Math.random()*3, x=pos.x+Math.cos(ang)*dist, z=pos.z+Math.sin(ang)*dist;
+    var animal=Object.assign({},a), me_=(ZS&&ZS.player)||null, key=null, mine=null;
+    try{ console.log('[Bots] Slap auf tragenden Bot '+name+': '+a.n+' fällt (Slapper '+(me_||'?')+')'); }catch(_){}
+    try{
+      if(db) key=db.ref('zoo_dropped').push().key;
+      if(g&&g.droppedAnimals&&g._spawnDroppedMesh){
+        mine={id:key, createdAt:t, animal:animal, shiny:null, traits:[], slot:null, x:x, z:z, droppedBy:name, slappedBy:me_,
+          wanderCx:x, wanderCz:z, wanderTx:x, wanderTz:z, wanderOwner:true, _lastWanderPush:0};
+        g.droppedAnimals.push(mine); g._spawnDroppedMesh(mine);
+        if(window.ZP&&ZP.toast) ZP.toast('💥 '+a.e+' '+a.n+' von '+name+' fallen gelassen! Schnell aufheben!',3000);
+      }
+    }catch(e){ try{ console.log('[Bots] Drop-Fehler lokal: '+e.message); }catch(_){} }
+    if(!db||!key) return;
+    var cleanup=function(){ try{ if(mine&&g){ var k=g.droppedAnimals.indexOf(mine); if(k>=0){ g.droppedAnimals.splice(k,1); if(mine.mesh&&g.scene) g.scene.remove(mine.mesh); } } }catch(e){} };
+    // Gemeinsam: nur EIN Client darf das Tier in die Datenbank legen (sonst fällt es doppelt)
     db.ref('zoo_cfg/botfx/'+i).transaction(function(cur){ if(cur&&cur.s===s) return; return {s:s,at:t}; },function(err,ok){
-      if(err||!ok) return; fx[i]=s; try{ console.log('[Bots] Slap auf tragenden Bot '+name+': '+a.n+' fällt (Slapper '+((ZS&&ZS.player)||'?')+')'); }catch(_){}
-      try{
-        var ref=db.ref('zoo_dropped').push(); var d={animal:Object.assign({},a),shiny:null,traits:[],x:pos.x+1.5,z:pos.z+1.5,droppedBy:name,slappedBy:(ZS&&ZS.player)||null,createdAt:t};
-        ref.set(d).catch(function(){});
-        try{ if(g&&g._toastBot) g._toastBot(); else if(window.ZP&&ZP.toast) ZP.toast('🎁 '+name+' hat '+a.e+' '+a.n+' fallen gelassen – schnell fangen!',3500); }catch(e){}
-      }catch(e){}
+      if(err){ try{ console.log('[Bots] botfx-Fehler: '+(err.message||err)+' – Tier wird trotzdem abgelegt'); }catch(_){} }
+      else if(!ok){ cleanup(); return; } // ein anderer Spieler war schneller
+      db.ref('zoo_dropped/'+key).set({animal:animal,shiny:null,traits:[],x:x,z:z,droppedBy:name,slappedBy:me_,createdAt:t}).catch(function(e){ try{ console.log('[Bots] zoo_dropped-Fehler: '+(e&&e.message)); }catch(_){} });
     },false);
   };
   var carryTick=0;
