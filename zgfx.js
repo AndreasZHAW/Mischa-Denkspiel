@@ -153,7 +153,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
   async function loadPP(){
     if(loading||loadedPP) return; loading=true;
     try{
-      try{ await loadScript(BASE+'zpp.js?v=871'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
+      try{ await loadScript(BASE+'zpp.js?v=874'); }catch(e){ const L=['postprocessing/EffectComposer.js','shaders/CopyShader.js','shaders/LuminosityHighPassShader.js','postprocessing/Pass.js','postprocessing/ShaderPass.js','postprocessing/RenderPass.js','postprocessing/UnrealBloomPass.js','shaders/FXAAShader.js'];
         for(const f of L) await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/'+f); }
       loadedPP=!!(window.THREE&&THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.FXAAShader);
     }catch(e){ console.warn('ZLook: Nachbearbeitung nicht geladen',e); G.q=G.q==='auto'?'normal':G.q; }

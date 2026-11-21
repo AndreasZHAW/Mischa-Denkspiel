@@ -36,8 +36,20 @@
     var jx=(rnd(hash('jx'+i+'_'+k))-0.5)*12, jz=(rnd(hash('jz'+i+'_'+k))-0.5)*12;
     return {x:c.x+ax*Math.sin(th)+jx, z:c.z+az*Math.sin(th*1.37+1)+jz};
   }
-  var SPEED=3.4; // Einheiten/s (etwa wie ein gehender Spieler)
-  B.posAt=function(i,t){
+  var SPEED=7;      // Einheiten/s ohne Tier (ein Spieler läuft 11–13, hier etwas gemütlicher)
+  var CARRYSPD=2.4; // Einheiten/s MIT Tier: wie ein Mensch (Spieler: 11,2 × 0,21 ≈ 2,4 ohne Wanderschuhe)
+  // Zeitverzerrung: während ein Bot ein Tier trägt (30 s im Takt, siehe carryAt) läuft seine Bahn nur mit CARRYSPD/SPEED ab,
+  // danach etwas schneller – am Takt-Ende ist die Bahn-Zeit für alle Clients gleich → alle sehen weiter dieselbe Position.
+  var SLOTMS=70000, PROGMS=62000, CARMS=30000;
+  function carrySlot(i,s){ return rnd(hash('c'+i+'_'+s))<0.12; }
+  function warp(i,t){
+    var u=t+i*9000, s=Math.floor(u/SLOTMS), ph=u-s*SLOTMS, f=CARRYSPD/SPEED, loc;
+    if(carrySlot(i,s)){ loc=ph<=CARMS ? ph*f : CARMS*f+(ph-CARMS)*((PROGMS-CARMS*f)/(SLOTMS-CARMS)); }
+    else loc=ph*(PROGMS/SLOTMS);
+    return s*PROGMS+loc;
+  }
+  B.posAt=function(i,t){ return B.rawPos(i,warp(i,t)); };
+  B.rawPos=function(i,t){
     var dur=17000+(i%6)*1700, k=Math.floor((t+i*4321)/dur), ph=(t+i*4321)-k*dur;
     var A=wp(i,k-1), Bp=wp(i,k); var dx=Bp.x-A.x, dz=Bp.z-A.z, dist=Math.hypot(dx,dz);
     var walkMs=Math.min(dur-2500, dist/SPEED*1000);
@@ -158,7 +170,7 @@
     var a=d.animal||{}; db.ref('zoo_dropped/'+d.id).remove().catch(function(){});
     var sl=B.slotOf(i), lay=(sl>=0&&g._slotEncPos)?g._slotEncPos(sl):null, cnt=(stolen[i]||[]).length;
     var pos=lay?lay.positions[Math.max(0,4-(cnt%5))]||lay.center:{x:G.position.x,z:G.position.z};
-    var dist=Math.hypot(pos.x-G.position.x,pos.z-G.position.z), ta=t+dist/4.5*1000;
+    var dist=Math.hypot(pos.x-G.position.x,pos.z-G.position.z), ta=t+dist/CARRYSPD*1000; /* mit Tier so langsam wie ein Mensch */
     var an={id:a.id,n:a.n,e:a.e,r:a.r,p:a.p};
     upd(i,{st:'carry',tg:t,gx:G.position.x,gz:G.position.z,hx:pos.x,hz:pos.z,ta:ta,animal:an});
     var db2=db.ref('zoo_cfg/botenc/'+i); db2.transaction(function(cur){ var l=(cur&&cur.l)||[]; l=l.concat([{a:an,at:ta}]).slice(-5); return {l:l}; },function(){},false);
@@ -190,7 +202,7 @@
   B.carryAt=function(i,t){
     var e0=ep[i]; if(e0&&e0.id){ if(e0.st==='carry'&&t<e0.ta) return e0.animal||null; if((e0.st==='chase'||e0.st==='grab')&&epLive(e0,t)) return null; }
     var s=slotOfT(i,t), ph=(t+i*9000)-s*70000; if(ph>30000) return null;
-    if(rnd(hash('c'+i+'_'+s))>=0.12) return null; /* selten: ~12 % der 70-s-Takte, je 30 s */
+    if(!carrySlot(i,s)) return null; /* selten: ~12 % der 70-s-Takte, je 30 s */
     if(fx[i]===s) return null;
     var A=animals(); if(!A||!A.length) return null; var lv=B.profile(i).level, hi=Math.min(A.length-1,Math.round(5+lv*0.8));
     return A[Math.floor(rnd(hash('ca'+i+'_'+s))*(hi+1))]||null;
@@ -200,7 +212,9 @@
     return {name:name,x:p.x,z:p.z,_heading:p.hd,carrying:a?{e:a.e,n:a.n}:null,isBot:true}; };
   B.carryMap=function(){ var m={}; if(!active()) return m; for(var i=0;i<B.meshes.length;i++){ var n=B.meshes[i].userData.botName, o=B.opOf(n); if(o&&o.carrying){ if(Object.keys(m).length>=2) break; m[n]=o; } } return m; }; // höchstens 2 Bot-Meldungen gleichzeitig
   B.onSlap=function(name){
-    var i=idxOf(name); if(i<0) return; var t=Date.now(), a=B.carryAt(i,t); if(!a) return;
+    var i=idxOf(name); if(i<0) return; var t=Date.now(), a=B.carryAt(i,t);
+    try{ console.log('[Bots] Slap auf '+name+' · trägt '+(a?a.n:'nichts')); }catch(_){}
+    if(!a){ try{ if(window.ZP&&ZP.toast) ZP.toast('🤖 '+name+' trägt gerade kein Tier.',1500); }catch(_){} return; }
     var s=slotOfT(i,t), db=RT(), g=ZGet(); var pos=B.posAt(i,t);
     // Sofort lokal: Bot lässt das Tier fallen (wie bei einem echten Spieler – kein Warten auf die Datenbank)
     fx[i]=s;

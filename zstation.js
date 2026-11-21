@@ -51,7 +51,10 @@
     g.font='46px serif'; g.textAlign='left'; g.textBaseline='middle'; g.fillText(a.e,14,44); g.fillStyle='#fff'; g.font='900 25px Arial'; g.fillText(a.n.length>14?a.n.slice(0,13)+'…':a.n,70,34); g.fillStyle=col; g.font='900 21px Arial'; g.fillText((RN[a.r]||a.r).toUpperCase(),16,86); g.fillStyle='#ffd54f'; g.textAlign='right'; g.font='900 23px Arial'; g.fillText(sub,244,96); return new THREE.CanvasTexture(c); };
   // ── Bauen ──
   S.build=function(Z){
-    if(S.built) return; S.built=true; const sc=Z.scene; const G=new THREE.Group(); sc.add(G); S.group=G; Z._carMeshes=[];
+    // ZG.start() baut bei jedem Zoo-Start eine NEUE Szene. Früher blieb S.built=true → nach Abmelden/Neu-Anmelden fehlte die Station in der neuen Szene (unsichtbar, nicht betretbar).
+    if(S.built && S.scene===Z.scene) return;
+    if(S.built){ try{ console.log('[Station-debug] neue Szene erkannt → Station wird neu gebaut'); }catch(e){} S.cabins.length=0; S._hooked=0; S.inside=false; S.riding=false; }
+    S.built=true; S.scene=Z.scene; const sc=Z.scene; const G=new THREE.Group(); sc.add(G); S.group=G; Z._carMeshes=[];
     const CON=0xc9ccd1, CON2=0xb2b6bc, RED=0xd32f2f, glassM=new THREE.MeshBasicMaterial({color:0x7fb8d8,transparent:true,opacity:.30,side:THREE.DoubleSide,depthWrite:false});
     // Platz & Sockel
     box(46,.1,34,0xcfd2d6,0,.05,3,G); box(32.6,.12,20.6,0xb4b8bd,0,.06,0,G); box(30,.06,18.4,0x6d7075,0,.1,0,G); box(.25,.02,11,0xffcc00,-11.6,.14,0,G);
@@ -112,7 +115,7 @@
     // Eingangs-Knopf & Kaufleiste (HTML)
     S._ui();
     // Render-Hook
-    const hook=()=>{ try{ if(!Z.renderer||S._hooked) return; S._hooked=1; const r=Z.renderer, o=r.render.bind(r); r.render=function(s,c){ try{ if(s===Z.scene) S.frame(); }catch(e){} return o(s,c); }; }catch(e){} }; hook(); setTimeout(hook,1000);
+    const hook=()=>{ try{ if(!Z.renderer||Z.renderer._zsHook) return; Z.renderer._zsHook=1; S._hooked=1; const r=Z.renderer, o=r.render.bind(r); r.render=function(s,c){ try{ if(s===Z.scene) S.frame(); }catch(e){} return o(s,c); }; }catch(e){} }; hook(); setTimeout(hook,1000);
   };
   // ── Frame ──
   S._t=performance.now();
@@ -250,7 +253,7 @@
   const MC={}; const mb=(c,o)=>{ const k=c+(o?JSON.stringify(o):''); return MC[k]||(MC[k]=new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}))); };
   const bx=(w,h,d,c,x,y,z,g)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mb(c)); m.position.set(x,y,z); g.add(m); return m; };
   const spr=(txt,col,sx,sy,x,y,z,g)=>{ const s=ZG._txt(txt,.5,col); s.scale.set(sx,sy,1); s.position.set(x,y,z); g.add(s); return s; };
-  C.build=function(){ if(C.built||typeof ZG==='undefined'||!ZG.scene) return; C.built=true;
+  C.build=function(){ if(typeof ZG==='undefined'||!ZG.scene) return; if(C.built&&C.scene===ZG.scene) return; C.built=true; C.scene=ZG.scene; C.inside=false;
     const G=new THREE.Group(); G.position.set(C.CX,0,C.CZ); ZG.scene.add(G); C.g=G;
     const ROCK=0x6f6a62, MOSS=0x4a6b3a, DK=0x1d1b1a;
     // Boden + Wände (Innenraum 14×14, Türlücke auf +x)
@@ -301,6 +304,7 @@
     try{ ZP.toast('🎁 Schatz gefunden! '+out.join(' · '),6000); }catch(e){} };
   const boot=()=>{ try{ if(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer) C.build(); else setTimeout(boot,800); }catch(e){ setTimeout(boot,1500); } };
   window.addEventListener('load',()=>setTimeout(boot,1500));
+  setInterval(()=>{ try{ if(C.built&&typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&C.scene!==ZG.scene) C.build(); }catch(e){} },2000);
 })();
 
 /* ═══ Gondel-Mitfahrt (v773) ═══ */

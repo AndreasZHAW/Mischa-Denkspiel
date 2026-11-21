@@ -32,7 +32,8 @@
       if(seen && !fresh){ console.log('[Intro-debug] Kino-Intro übersprungen (Neuladen oder schon gesehen, autostart='+/[?&]autostart=1/.test(location.search)+', nav='+nav+')'); return; }
       sessionStorage.setItem('zsplash','1'); console.log('[Intro-debug] Kino-Intro startet (autostart='+/[?&]autostart=1/.test(location.search)+', nav='+nav+')');
     }catch(e){}
-    const DUR=10.4;
+    // Szene läuft jetzt so lange wie das ganze Lied (~18 s): alle Zeiten der ursprünglichen 10,4-s-Fassung werden mit K gestreckt
+    const K=1.74, DUR=10.4*K;
     const css=document.createElement('style');
     css.textContent=
      '#z-splash{position:fixed;inset:0;z-index:2147483000;background:#000;overflow:hidden;transition:opacity .9s;user-select:none;font-family:"Trajan Pro","Cinzel",Georgia,"Times New Roman",serif;perspective:900px}'
@@ -60,14 +61,15 @@
     +'#z-splash .zs-gon{position:absolute;top:20%;left:-14%;font-size:min(11vw,56px);z-index:2;opacity:0;margin-top:-.3em;transform:rotate(-2.2deg);filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}'
     +'#z-splash.go .zs-gon{animation:zsGon 3.2s linear 5.6s forwards}@keyframes zsGon{0%{left:-14%;opacity:1;top:21.6%}100%{left:106%;opacity:1;top:17.2%}}'
     +'#z-splash .zs-tap{position:absolute;left:0;right:0;bottom:16%;text-align:center;color:#ffd54f;font-weight:800;font-size:1.05rem;z-index:7;font-family:sans-serif;animation:zsPulse 1s infinite}@keyframes zsPulse{50%{opacity:.4}}';
+    css.textContent=css.textContent.replace(/animation:[^;}]*/g,m=>m.replace(/(\d*\.?\d+)s\b/g,(x,n)=>(+n*K).toFixed(2)+'s'));
     document.head.appendChild(css);
     const o=document.createElement('div'); o.id='z-splash';
     const words=['MISCHA','ZOO','3D']; let li=0, tot=words.join('').length, h='<canvas></canvas><div class="zs-cable"></div><div class="zs-gon">🚡</div><div class="zs-main"><div class="zs-title">';
     words.forEach(w=>{ h+='<div class="zs-w">'; w.split('').forEach(ch=>{ const k=li++; const r=(n)=>((Math.sin(k*12.9898+n*78.233)*43758.5453)%1+1)%1;
-      h+='<span class="zs-l" data-t="'+ch+'" style="--d:'+(3.15+k*.07).toFixed(2)+'s;--x:'+Math.round(30+r(1)*70)+'vw;--y:'+Math.round((r(2)-.5)*80)+'vh;--rx:'+Math.round((r(3)-.5)*540)+'deg;--ry:'+Math.round((r(4)-.5)*540)+'deg;--rz:'+Math.round((r(5)-.5)*360)+'deg">'+ch+'</span>'; }); h+='</div>'; });
+      h+='<span class="zs-l" data-t="'+ch+'" style="--d:'+((3.15+k*.07)*K).toFixed(2)+'s;--x:'+Math.round(30+r(1)*70)+'vw;--y:'+Math.round((r(2)-.5)*80)+'vh;--rx:'+Math.round((r(3)-.5)*540)+'deg;--ry:'+Math.round((r(4)-.5)*540)+'deg;--rz:'+Math.round((r(5)-.5)*360)+'deg">'+ch+'</span>'; }); h+='</div>'; });
     h+='</div><div class="zs-sub">EIN MISCHATALER-ABENTEUER</div>';
     const F=['🚡 GONDELSTATION','🎡 GLÜCKSRAD','⚗️ GOLDMASCHINE','🗝️ SCHATZKISTEN','🏴‍☠️ PIRATENWELT'];
-    h+='<div class="zs-feat">'; F.forEach((t,i)=>{ h+='<span style="--d:'+(6.0+i*.4).toFixed(2)+'s">'+t+'</span>'; }); h+='</div>';
+    h+='<div class="zs-feat">'; F.forEach((t,i)=>{ h+='<span style="--d:'+((6.0+i*.4)*K).toFixed(2)+'s">'+t+'</span>'; }); h+='</div>';
     h+='</div><div class="zs-bar t"></div><div class="zs-bar b"></div><div class="zs-fade"></div><div class="zs-tap" style="display:none">👆 Tippen zum Starten</div>';
     o.innerHTML=h; document.body.appendChild(o);
     const cv=o.querySelector('canvas'), cx=cv.getContext('2d');
@@ -111,8 +113,8 @@
     }
     let t0=0, raf=0, last=0;
     function frame(now){
-      if(done) return; const t=(now-t0)/1000, dt=Math.min(.05,(now-(last||now))/1000); last=now;
-      const w=cv.width, hh=cv.height, m=Math.min(w,hh), beat=Math.max(0,1-((t*2.4)%1)*3.2)*(t>4?1:0);
+      if(done) return; const rt=(now-t0)/1000, t=rt/K, dt=Math.min(.05,(now-(last||now))/1000); last=now;
+      const w=cv.width, hh=cv.height, m=Math.min(w,hh), beat=Math.max(0,1-(((rt-.75)%1.75+1.75)%1.75)*1.6)*(rt>4?1:0); /* Puls auf den Stomps des Lieds (alle 1,75 s ab 0,75 s) */
       cx.setTransform(1,0,0,1,0,0); cx.fillStyle='#02040c'; cx.fillRect(0,0,w,hh);
       const bg=cx.createRadialGradient(w*.55,hh*.4,0,w*.55,hh*.4,m*1.1); bg.addColorStop(0,'#0d1a35'); bg.addColorStop(1,'#02040c'); cx.fillStyle=bg; cx.fillRect(0,0,w,hh);
       stars.forEach(s=>{ const tw=.55+.45*Math.sin(t*2+s.a); cx.fillStyle='rgba(255,255,255,'+(.25+.6*s.z)*tw+')'; const sx=((s.x-t*.004*s.z)%1+1)%1*w; cx.fillRect(sx,s.y*hh,s.r*(w/600),s.r*(w/600)); });
@@ -143,10 +145,10 @@
           const gg=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,rad); const c=k<.15?'255,220,120':k<.5?'255,130,30':'190,40,10'; gg.addColorStop(0,'rgba('+c+','+a+')'); gg.addColorStop(1,'rgba('+c+',0)'); cx.fillStyle=gg; cx.beginPath(); cx.arc(p.x,p.y,rad,0,7); cx.fill(); }
         cx.globalCompositeOperation='source-over'; if(fl.length>1400) fl.splice(0,fl.length-1400); }
       // Aufprall-Blitze bei den Schlägen des Sounds
-      const hits=[.5,3.95,5.55]; let fx=0; hits.forEach(hv=>{ const d=t-hv; if(d>=0&&d<.5) fx=Math.max(fx,(1-d/.5)*(hv<1?.0:.55)); }); if(fx>0){ cx.fillStyle='rgba(255,245,225,'+fx*.7+')'; cx.fillRect(0,0,w,hh); }
+      let fx=0; for(let hi=1;hi<=8;hi++){ const d=rt-(.75+1.75*hi); if(d>=0&&d<.5) fx=Math.max(fx,(1-d/.5)*.45); } if(fx>0){ cx.fillStyle='rgba(255,245,225,'+fx*.7+')'; cx.fillRect(0,0,w,hh); }
       // Vignette
       const vg=cx.createRadialGradient(w/2,hh/2,m*.45,w/2,hh/2,Math.max(w,hh)*.75); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.7)'); cx.fillStyle=vg; cx.fillRect(0,0,w,hh);
-      if(t<DUR) raf=requestAnimationFrame(frame);
+      if(t<10.4) raf=requestAnimationFrame(frame);
     }
     const au=new Audio(BASE+'sounds/intro.mp3'); au.preload='auto'; au.volume=1;
     A.splash=true; let done=false, began=false;
