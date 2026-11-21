@@ -77,7 +77,8 @@
   B.encMap=function(){
     var m={}; if(!active()||B.n<=0) return m;
     for(var i=0;i<Math.min(B.n,MAXN);i++){ var p=B.profile(i), sl=B.slotOf(i); if(sl<0) continue;
-      m[p.name]={name:p.name,char:p.char,color:p.color,slotIdx:sl,enc:B.encFor(i),isBot:true,x:0,z:0,rank:{name:'Bot · Lv '+p.level,color:'#9fb4c7'}}; }
+      var en=B.encFor(i).slice(), nowT=Date.now(); (stolen[i]||[]).forEach(function(q,j){ if(q.at<=nowT&&q.a) en[4-(j%5)]={animal:Object.assign({},q.a)}; });
+      m[p.name]={name:p.name,char:p.char,color:p.color,slotIdx:sl,enc:en,isBot:true,x:0,z:0,rank:{name:'Bot · Lv '+p.level,color:'#9fb4c7'}}; }
     return m;
   };
   function active(){
@@ -100,7 +101,8 @@
           var t=Date.now();
           for(var i=0;i<B.meshes.length;i++){
             var G=B.meshes[i]; if(g&&G.parent!==g.scene) g.scene.add(G); if(g&&g.otherM&&g.otherM[G.userData.botName]!==G) g.otherM[G.userData.botName]=G;
-            var p=B.posAt(i,t);
+            var dts=Math.min(0.1,Math.max(0.001,(ts-(G._lts||ts))/1000)); G._lts=ts;
+            var p=B.botPos(i,t,G,dts);
             G.position.x=p.x; G.position.z=p.z;
             var want=p.hd; var cur=G.rotation.y; var dd=Math.atan2(Math.sin(want-cur),Math.cos(want-cur)); G.rotation.y=cur+dd*0.15;
             var w=p.walking, ph=t*0.008+G.userData.bob;
@@ -117,11 +119,73 @@
     }catch(e){}
     requestAnimationFrame(frame);
   }
+  // ── DIEBSTAHL: Bots greifen Spieler an, die ein gutes Tier tragen – wie ein Mensch:
+  //    anrennen → Slap (Tier fällt, normale Slap-Logik) → zum fallenden Tier rennen → aufheben → ins eigene Gehege tragen.
+  //    Autorität = Opfer-Client (er besitzt auch das Wander-Verhalten des fallenden Tiers). Gemeinsamer Zustand: zoo_cfg/botatk/<i> (winzig, nur bei Angriffen).
+  var ep={}, stolen={}, steal=true, SPD=5.5;
+  B.ep=ep;
+  function me(){ try{ return ZS.player; }catch(e){ return null; } }
+  function targetPos(name){ var g=ZGet(); if(!g) return null; if(name===me()) return {x:g.pl.x,z:g.pl.z}; var m=g.otherM&&g.otherM[name]; return m?{x:m.position.x,z:m.position.z}:null; }
+  function dropOf(id){ var g=ZGet(); if(!g||!g.droppedAnimals||!id) return null; for(var k=0;k<g.droppedAnimals.length;k++){ if(g.droppedAnimals[k].id===id) return g.droppedAnimals[k]; } return null; }
+  function stepTo(G,tp,dt){ var dx=tp.x-G._sx, dz=tp.z-G._sz, d=Math.hypot(dx,dz); if(d>0.05){ var st=Math.min(d,SPD*dt); G._sx+=dx/d*st; G._sz+=dz/d*st; } return {x:G._sx,z:G._sz}; }
+  function epPos(i,t,G,e,dt){
+    if(e.st==='chase'){ if(t>=e.t0+12000) return null; if(G._ep!==e.id){ G._ep=e.id; var q=B.posAt(i,e.t0); G._sx=q.x; G._sz=q.z; } var tp=targetPos(e.target); if(!tp) return null; return stepTo(G,tp,dt); }
+    if(e.st==='grab'){ if(t>=e.tc+15000) return null; if(G._ep!==e.id){ G._ep=e.id; G._sx=e.cx; G._sz=e.cz; } var d=dropOf(e.dropId); return stepTo(G,d?{x:d.x,z:d.z}:{x:G._sx,z:G._sz},dt); }
+    if(e.st==='carry'){ if(t>=e.ta+2500) return null; var f=Math.min(1,(t-e.tg)/Math.max(1,e.ta-e.tg)); return {x:e.gx+(e.hx-e.gx)*f, z:e.gz+(e.hz-e.gz)*f}; }
+    return null;
+  }
+  B.botPos=function(i,t,G,dt){
+    var det=B.posAt(i,t), e=ep[i], r=null;
+    if(e&&e.id) r=epPos(i,t,G,e,dt);
+    var inEp=!!r; if(G._inEp&&!inEp){ G._blF={x:G.position.x,z:G.position.z}; G._blT=t; } G._inEp=inEp;
+    if(!r&&G._blT&&t-G._blT<9000){ var k=(t-G._blT)/9000; k=k*k*(3-2*k); r={x:G._blF.x+(det.x-G._blF.x)*k, z:G._blF.z+(det.z-G._blF.z)*k}; }
+    if(!r) return det;
+    var dx=r.x-G.position.x, dz=r.z-G.position.z, mv=Math.hypot(dx,dz)>0.002; if(mv) G._hd=Math.atan2(dx,dz);
+    r.hd=G._hd||0; r.walking=mv; return r;
+  };
+  function epLive(e,t){ if(!e||!e.id) return false; if(e.st==='chase') return t<e.t0+12000; if(e.st==='grab') return t<e.tc+15000; if(e.st==='carry') return t<e.ta+2500; return false; }
+  function upd(i,o){ var db=RT(); if(db) db.ref('zoo_cfg/botatk/'+i).update(o).catch(function(){}); }
+  function good(a){ return !!a&&((a.r&&a.r!=='normal')||(a.p||0)>=500); }
+  function doSteal(i,e){
+    var g=ZGet(), db=RT(); if(!g||!db) return; var G=B.meshes[i], name=G.userData.botName, t=Date.now();
+    try{ g._applyReceivedSlap({type:'slap',from:name,target:me(),slapId:'basic',dur:1500,fx:1500,dmg:0.3,at:t}); }catch(x){}
+    var d=null; (g.droppedAnimals||[]).forEach(function(z){ if(z.droppedBy===me()&&z.slappedBy===name) d=z; });
+    if(!d||!d.id){ upd(i,{st:'done'}); return; }
+    upd(i,{st:'grab',tc:t,cx:G.position.x,cz:G.position.z,dropId:d.id});
+  }
+  function doGrab(i,e,d){
+    var g=ZGet(), db=RT(); if(!g||!db) return; var G=B.meshes[i], t=Date.now(), name=G.userData.botName;
+    var a=d.animal||{}; db.ref('zoo_dropped/'+d.id).remove().catch(function(){});
+    var sl=B.slotOf(i), lay=(sl>=0&&g._slotEncPos)?g._slotEncPos(sl):null, cnt=(stolen[i]||[]).length;
+    var pos=lay?lay.positions[Math.max(0,4-(cnt%5))]||lay.center:{x:G.position.x,z:G.position.z};
+    var dist=Math.hypot(pos.x-G.position.x,pos.z-G.position.z), ta=t+dist/4.5*1000;
+    var an={id:a.id,n:a.n,e:a.e,r:a.r,p:a.p};
+    upd(i,{st:'carry',tg:t,gx:G.position.x,gz:G.position.z,hx:pos.x,hz:pos.z,ta:ta,animal:an});
+    var db2=db.ref('zoo_cfg/botenc/'+i); db2.transaction(function(cur){ var l=(cur&&cur.l)||[]; l=l.concat([{a:an,at:ta}]).slice(-5); return {l:l}; },function(){},false);
+    try{ if(window.ZP&&ZP.toast) ZP.toast('😱 '+name+' hat '+(an.e||'')+' '+(an.n||'Tier')+' geschnappt und rennt damit weg!',3500); }catch(x){}
+  }
+  var nextAtk=0;
+  function victimTick(){
+    var g=ZGet(), db=RT(); if(!g||!db||!g.pl||!active()||!me()) return; var t=Date.now(), mine=me(), busy=false;
+    for(var i=0;i<B.meshes.length;i++){ var e=ep[i]; if(!e||e.target!==mine) continue; var G=B.meshes[i];
+      if(e.st==='chase'&&epLive(e,t)){ busy=true; if(!g.carrying){ upd(i,{st:'done'}); continue; } if(Math.hypot(G.position.x-g.pl.x,G.position.z-g.pl.z)<2.6) doSteal(i,e); }
+      else if(e.st==='grab'&&epLive(e,t)){ busy=true; var d=dropOf(e.dropId); if(!d){ if(t>e.tc+2500) upd(i,{st:'done'}); continue; } if(Math.hypot(G.position.x-d.x,G.position.z-d.z)<2.6) doGrab(i,e,d); }
+    }
+    if(busy||!steal||t<nextAtk||!g.carrying||!good(g.carrying.animal)) return;
+    try{ if(g.isPrivate||(window.ZHearts&&ZHearts.dead)||(window.ZBattle&&ZBattle.fighting&&ZBattle.fighting())) return; }catch(x){}
+    var best=-1,bd=35; for(var j=0;j<B.meshes.length;j++){ var ej=ep[j]; if(ej&&ej.t0&&t<ej.t0+120000) continue; var Gj=B.meshes[j]; var d2=Math.hypot(Gj.position.x-g.pl.x,Gj.position.z-g.pl.z); if(d2<bd){ bd=d2; best=j; } }
+    if(best<0||Math.random()>0.25) return;
+    nextAtk=t+60000; var bi=best;
+    db.ref('zoo_cfg/botatk/'+bi).transaction(function(cur){ if(cur&&epLive(cur,Date.now())) return; return {id:Date.now()+'_'+bi,st:'chase',t0:Date.now(),target:mine}; },function(err,ok){
+      if(!err&&ok){ try{ if(window.ZP&&ZP.toast) ZP.toast('⚠️ '+B.meshes[bi].userData.botName+' hat es auf dein Tier abgesehen!',3000); }catch(x){} } },false);
+  }
+  B._victimTick=victimTick; setInterval(function(){ try{ victimTick(); }catch(e){} },250);
   // ── Tragen: fester Zeitplan (70-s-Takt je Bot), alle sehen dasselbe. Slap = Tier fällt (zoo_dropped) + gemeinsamer Cooldown
   function animals(){ try{ return (typeof ANIMALS!=='undefined')?ANIMALS:null; }catch(e){ return null; } }
   var fx={};  // Bot-Nr. → Takt-Nummer, in der ihm das Tier schon abgenommen wurde
   function slotOfT(i,t){ return Math.floor((t+i*9000)/70000); }
   B.carryAt=function(i,t){
+    var e0=ep[i]; if(e0&&e0.id){ if(e0.st==='carry'&&t<e0.ta) return e0.animal||null; if((e0.st==='chase'||e0.st==='grab')&&epLive(e0,t)) return null; }
     var s=slotOfT(i,t), ph=(t+i*9000)-s*70000; if(ph>60000) return null;
     if(rnd(hash('c'+i+'_'+s))>=0.5) return null; if(fx[i]===s) return null;
     var A=animals(); if(!A||!A.length) return null; var lv=B.profile(i).level, hi=Math.min(A.length-1,Math.round(5+lv*0.8));
@@ -210,7 +274,9 @@
   var tries=0, iv=setInterval(function(){
     var db=RT(); if(!db){ if(++tries>120) clearInterval(iv); return; }
     clearInterval(iv);
-    try{ db.ref('zoo_cfg/bots').on('value',function(s){ var v=s&&s.val(); setN(v&&v.n!=null?v.n:0); },function(){}); }catch(e){}
+    try{ db.ref('zoo_cfg/bots').on('value',function(s){ var v=s&&s.val(); setN(v&&v.n!=null?v.n:0); steal=!(v&&v.steal===false); },function(){}); }catch(e){}
+    try{ db.ref('zoo_cfg/botatk').on('value',function(s){ ep=B.ep=s&&s.val()||{}; },function(){}); }catch(e){}
+    try{ db.ref('zoo_cfg/botenc').on('value',function(s){ var v=s&&s.val()||{}, m={}; Object.keys(v).forEach(function(k){ m[k]=(v[k]&&v[k].l)||[]; }); stolen=m; },function(){}); }catch(e){}
     try{ db.ref('zoo_cfg/botfx').on('value',function(s){ var v=s&&s.val()||{}; var m={}; Object.keys(v).forEach(function(k){ m[k]=v[k]&&v[k].s; }); fx=m; },function(){}); }catch(e){}
   },1000);
   requestAnimationFrame(frame);
@@ -219,7 +285,7 @@
     var db=RT(); var inp=document.getElementById('zbots-n'); var st=document.getElementById('zbots-st');
     if(!db){ if(st) st.textContent='❌ Keine Cloud-Verbindung.'; return; }
     var n=Math.max(0,Math.min(MAXN,parseInt(inp&&inp.value,10)||0));
-    db.ref('zoo_cfg/bots').set({n:n,ts:Date.now()}).then(function(){ if(st) st.textContent='✅ Gespeichert: '+n+' Computerspieler (gilt sofort für alle).'; },function(e){ if(st) st.textContent='❌ '+(e&&e.message||e); });
+    db.ref('zoo_cfg/bots').set({n:n,steal:!!(document.getElementById('zbots-steal')||{checked:true}).checked,ts:Date.now()}).then(function(){ if(st) st.textContent='✅ Gespeichert: '+n+' Computerspieler (gilt sofort für alle).'; },function(e){ if(st) st.textContent='❌ '+(e&&e.message||e); });
   };
   B.adminHTML=function(){
     var rows=''; for(var i=0;i<MAXN;i++){ var p=B.profile(i); rows+='<div style="font-size:.7rem;opacity:.85">'+(i+1)+'. '+p.name+' · Lv '+p.level+' · '+p.rank+'</div>'; }
@@ -228,6 +294,7 @@
       +'Anzahl (0–'+MAXN+'): <input id="zbots-n" type="number" min="0" max="'+MAXN+'" value="'+B.n+'" style="width:60px"> '
       +'<button class="padmin-btn" style="background:#2980B9" onclick="ZBots.save()">💾 Speichern</button> '
       +'<button class="padmin-btn" style="background:#C0392B" onclick="document.getElementById(\'zbots-n\').value=0;ZBots.save()">⏹ Alle weg</button>'
+      +'<div style="margin-top:8px"><label><input id="zbots-steal" type="checkbox" '+(steal?'checked':'')+'> Bots dürfen Spielern gute Tiere abnehmen (anrennen, slappen, wegtragen)</label></div>'
       +'<div style="margin-top:6px">Aktuell aktiv: <b id="zbots-cur">'+B.n+'</b></div><div id="zbots-st" style="color:#ffd54f;margin-top:4px"></div>'
       +'<details style="margin-top:8px"><summary>Alle möglichen Bots</summary>'+rows+'</details></div>';
   };
