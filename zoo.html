@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v883 -->
+<!-- ZOO v884 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -124,6 +124,12 @@ body.tutq #zs-ride,body.tutq #zs-rx,body.tutq #carry-release,body.tutq #carry-in
 body.tutq2 #wbar,body.tutq2 #zhearts{visibility:hidden !important}
 body.zmjoy #hud{z-index:2147483000 !important}
 body.zmjoy #jzone{opacity:1 !important;filter:none !important}
+/* v884: kleine Bildschirme – Banner nicht über Fenstern, Starterpaket klein */
+@media (orientation:landscape) and (max-height:520px){
+  #z-starter{font-size:.62rem !important;padding:3px 8px !important;top:2px !important;max-width:46vw !important;border-radius:10px !important;opacity:.9}
+  body:has(#p-gond:not(.off)) #z-starter,body:has(#p-shop:not(.off)) #z-starter,body:has(#p-menu:not(.off)) #z-starter,body:has(#p-index:not(.off)) #z-starter,body:has(#zmm-fab):has(.zm-open) #z-starter{display:none !important}
+}
+body.tutq #z-starter,body.tutq #zcirc-chip,body.tutq #zcirc-open,body.tutq [id$="-chip"]:not(#zm-chip){display:none !important}
 /* v883: Menü links – Handy quer: ein grosser ☰-Knopf, darunter ein Raster mit ALLEN Funktionen */
 #zmm-fab{display:none}
 @media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
@@ -295,9 +301,9 @@ body.zmjoy #jzone{opacity:1 !important;filter:none !important}
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=883"></script>
-<script src="rewardchests.js?v=883"></script>
-<script src="personality.js?v=883"></script>
+<script src="lang.js?v=884"></script>
+<script src="rewardchests.js?v=884"></script>
+<script src="personality.js?v=884"></script>
 </head>
 <body>
 <script>
@@ -617,49 +623,49 @@ body.zmjoy #jzone{opacity:1 !important;filter:none !important}
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=883"></script>
+<script src="zgfx.js?v=884"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=883"></script>
-<script src="sanction.js?v=883"></script>
-<script src="zevents.js?v=883"></script>
-<script src="znet.js?v=883"></script>
-<script src="zbases.js?v=883"></script>
-<script src="charheads.js?v=883"></script>
-<script src="zmensch.js?v=883"></script>
-<script src="zfindchest.js?v=883"></script>
-<script src="zambience.js?v=883"></script>
-<script src="znight.js?v=883"></script>
-<script src="zstarter.js?v=883"></script>
-<script src="zcine.js?v=883"></script>
-<script src="zworld.js?v=883"></script>
-<script src="zlang2.js?v=883"></script>
-<script src="ztutlang.js?v=883"></script>
-<script src="zstation.js?v=883"></script>
-<script src="zmountain.js?v=883"></script>
-<script src="zfx.js?v=883"></script>
-<script src="zextra.js?v=883"></script>
-<script src="zreb6.js?v=883"></script>
-<script src="zbots.js?v=883"></script>
-<script src="zlegend.js?v=883"></script>
-<script src="ztutplus.js?v=883"></script>
-<script src="zlift.js?v=883"></script>
-<script src="zfun.js?v=883"></script>
-<script src="zguide.js?v=883"></script>
-<script src="zrules.js?v=883"></script>
-<script src="zsafe.js?v=883"></script>
-<script src="zrebguard.js?v=883"></script>
-<script src="zpass.js?v=883"></script>
-<script src="znotify.js?v=883"></script>
-<script src="zdetective.js?v=883"></script>
-<script src="zpirate.js?v=883"></script>
-<script src="zpark.js?v=883"></script>
-<script src="zmenu.js?v=883"></script>
-<script src="zdevice.js?v=883"></script>
-<script src="zmusic.js?v=883"></script>
-<script src="zskill.js?v=883"></script>
-<script src="worlds.js?v=883"></script>
+<script src="firebase-state.js?v=884"></script>
+<script src="sanction.js?v=884"></script>
+<script src="zevents.js?v=884"></script>
+<script src="znet.js?v=884"></script>
+<script src="zbases.js?v=884"></script>
+<script src="charheads.js?v=884"></script>
+<script src="zmensch.js?v=884"></script>
+<script src="zfindchest.js?v=884"></script>
+<script src="zambience.js?v=884"></script>
+<script src="znight.js?v=884"></script>
+<script src="zstarter.js?v=884"></script>
+<script src="zcine.js?v=884"></script>
+<script src="zworld.js?v=884"></script>
+<script src="zlang2.js?v=884"></script>
+<script src="ztutlang.js?v=884"></script>
+<script src="zstation.js?v=884"></script>
+<script src="zmountain.js?v=884"></script>
+<script src="zfx.js?v=884"></script>
+<script src="zextra.js?v=884"></script>
+<script src="zreb6.js?v=884"></script>
+<script src="zbots.js?v=884"></script>
+<script src="zlegend.js?v=884"></script>
+<script src="ztutplus.js?v=884"></script>
+<script src="zlift.js?v=884"></script>
+<script src="zfun.js?v=884"></script>
+<script src="zguide.js?v=884"></script>
+<script src="zrules.js?v=884"></script>
+<script src="zsafe.js?v=884"></script>
+<script src="zrebguard.js?v=884"></script>
+<script src="zpass.js?v=884"></script>
+<script src="znotify.js?v=884"></script>
+<script src="zdetective.js?v=884"></script>
+<script src="zpirate.js?v=884"></script>
+<script src="zpark.js?v=884"></script>
+<script src="zmenu.js?v=884"></script>
+<script src="zdevice.js?v=884"></script>
+<script src="zmusic.js?v=884"></script>
+<script src="zskill.js?v=884"></script>
+<script src="worlds.js?v=884"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8836,6 +8842,8 @@ const Tutorial={
     if(s.id==='slap'){ try{ const zz=ZS.zoo; if(zz && (!zz.eq||zz.eq==='none')){ zz.eq='basic'; ZG._updWBar(); } }catch(e){} }
     /* v883: übersetzter Text + bei Handy-Quer das Menü-Raster aufklappen, wenn das Ziel ein Menü-Knopf ist */
     try{ if(window.ZTutL&&ZTutL.get){ const _ov=(s.id==='menu')?s.text:null; s=ZTutL.get(s); if(_ov&&window.ZTutL.menuOv){ const _m=ZTutL.menuOv(); if(_m) s=Object.assign({},s,{text:_m}); else s=Object.assign({},s,{text:_ov}); } } }catch(e){}
+    /* v884: Am Anfang darf kein Geld fehlen – für die erste Katze immer genug da */
+    try{ const _z=ZS.zoo, _c=ANIMALS.find(x=>x.id==='cat'); if(_z&&_c&&!(_z.enc||[]).some(Boolean)&&/^(gondola|gluck|buy)$/.test(s.id)&&((ZS.dsMT||0)+_z.mt)<_c.p){ _z.mt=_c.p-(ZS.dsMT||0); ZS.save&&ZS.save(); ZG._updHUD&&ZG._updHUD(); try{ if(!G('p-gond').classList.contains('off')){ ZP._rGond(); } }catch(e){} } }catch(e){}
     try{ document.body.classList.add('tutq'); document.body.classList.toggle('tutq2',!/^(slap|hearts|menu|menuinfo|shop|shopcont|events)$/.test(s.id)); }catch(e){}
     try{ const _ph=matchMedia('(orientation:landscape) and (max-height:500px) and (pointer:coarse)').matches; document.body.classList.toggle('zmm', !!(_ph&&s.target&&/^#hb-/.test(s.target))); }catch(e){}
     const overlay=document.createElement('div');
@@ -8912,7 +8920,8 @@ const Tutorial={
       box.appendChild(hint);
     }
     if(s.boxTop){ box.style.maxHeight='78vh'; box.style.overflowY='auto'; }
-    if(s.arrow){ // v880: Geh-zum-Ziel-Schritte: kleiner Hinweis oben, mit ✕ zum Wegmachen – freie Sicht auf Pfeil und Ziel
+    const _small=(innerHeight<520&&innerWidth>innerHeight);
+    if(s.arrow||(_small&&s.action!=='button'&&!s.blackout)){ // v880/v884: kleine Bildschirme: alle Aktions-Schritte kompakt, Geh-zum-Ziel-Schritte: kleiner Hinweis oben, mit ✕ zum Wegmachen – freie Sicht auf Pfeil und Ziel
       const sh=s.short||((s.text||'').replace(/<[^>]+>/g,'').split(/(?<=[.!])\s/)[0]);
       box.classList.add('tut-compact'); box.style.top='8px'; box.style.bottom='auto'; box.style.width='min(400px,70vw)'; box.style.padding='8px 36px 8px 12px'; box.style.maxHeight='none'; box.style.textAlign='left';
       box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:.9rem">'+s.title+'</div><div style="font-size:.78rem;color:rgba(255,255,255,.85);margin-top:2px;line-height:1.3">'+sh+'</div>';

@@ -1540,7 +1540,12 @@
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.renderer&&ZG.scene&&ZG.pl&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
   const R=215, BASE=[['⛩️ Gondel',0,0],['🚪 Eingang',0,62],['🎪 Zirkus',40,48],['🎢 Mega-Achterbahn',140,-35]];
-  const pois=()=>{ const a=BASE.slice(); try{ ZG._mapPois().forEach(p=>a.push([p.ic+' '+p.n,p.x,p.z])); }catch(e){} return a; };
+  const pois=()=>{ const a=[BASE[0],BASE[1]];
+    try{ if(window.ZCircus&&ZCircus.state&&ZCircus.state()) a.push(BASE[2]); }catch(e){}
+    try{ if(window.ZCoaster2&&ZCoaster2.state&&ZCoaster2.state()) a.push(BASE[3]); }catch(e){}
+    const gate={'Zucht-Maschine':'zucht','Sammlungs-Terminal':'terminal'};
+    try{ ZG._mapPois().forEach(p=>{ if(gate[p.n]&&typeof rebHas==='function'&&!rebHas(gate[p.n])) return; if(p.n==='Würfel-Maschine'&&!(ZS.zoo&&ZS.zoo.upg&&ZS.zoo.upg.dice_license)) return; if(p.n==='Kehrmaschine'&&!(window.ZSweeper&&ZSweeper.on)&&false) return; a.push([p.ic+' '+p.n,p.x,p.z]); }); }catch(e){}
+    return a; };
   const K=window.ZMap={ el:null, cam:null,
     open(){
       if(K.el||!ready()) return; if(busy()){ try{ ZP.toast('🗺️ Die Karte geht gerade nicht.',2000); }catch(e){} return; }
@@ -1551,7 +1556,8 @@
         if(o.isSprite) hide=true; /* v883: Schilder/Wolken-Sprites weg – die Karte beschriftet selbst */
         else if(o.isMesh&&o.material&&o.material.color){ const c=o.material.color, gt=o.geometry&&o.geometry.type, wp=new THREE.Vector3(); try{ o.getWorldPosition(wp); }catch(e){}
           if(gt==='SphereGeometry'&&wp.y>18&&c.r>.85&&c.g>.85&&c.b>.85) hide=true; /* Wolken (weisse Flächen) */
-          else if((gt==='CircleGeometry'||gt==='RingGeometry')&&wp.y<1.2&&c.b>c.r+.1&&c.b>.55) hide=true; /* Seen/Teiche */ }
+          else if((gt==='CircleGeometry'||gt==='RingGeometry')&&wp.y<1.2&&c.b>c.r+.1&&c.b>.55) hide=true; /* Seen/Teiche */
+          else if(gt==='CircleGeometry'&&wp.y<1.2){ try{ if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); if(o.geometry.boundingSphere.radius*o.scale.x<=16) hide=true; }catch(e){} } /* Teiche mit Textur */ }
         if(hide){ hid.push(o); o.visible=false; }
         else if(o.isMesh&&o.geometry&&o.material&&o.material.map&&o.geometry.type==='CircleGeometry'){ /* Boden: Seen sind in die Textur gemalt → Karte ohne Textur, einfarbig */
           try{ if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); if(o.geometry.boundingSphere.radius*o.scale.x>300){ const m=o.material, mp=m.map, cl=m.color.getHex(); m.map=null; m.color.setHex(0x3f8f3a); m.needsUpdate=true; restore.push(()=>{ m.map=mp; m.color.setHex(cl); m.needsUpdate=true; }); } }catch(e){} }
@@ -1577,7 +1583,10 @@
     _marks(){
       if(!K.el) return; const mk=K.mk; mk.innerHTML='';
       const add=(x,z,html,css)=>{ const p=K._w2s(x,z); const d=document.createElement('div'); d.style.cssText='position:absolute;left:'+p.x+'px;top:'+p.y+'px;transform:translate(-50%,-50%);white-space:nowrap;font:800 '+(innerWidth<700?'.72':'.85')+'rem Arial;color:#fff;text-shadow:0 1px 4px #000,0 0 6px #000;'+(css||''); d.innerHTML=html; mk.appendChild(d); };
-      pois().forEach(p=>add(p[1],p[2],p[0]));
+      /* v884: Orte als Symbol (antippbar) + Legende unten – keine überlappenden Texte */
+      const small=innerWidth<900||innerHeight<520; const ps=pois();
+      ps.forEach(p=>{ const ic=String(p[0]).split(' ')[0]; add(p[1],p[2],'<span style="font-size:'+(small?'1.35':'1.5')+'rem;filter:drop-shadow(0 1px 3px #000)">'+ic+'</span>'); });
+      try{ let lg=document.getElementById('zmap-legend'); if(lg) lg.remove(); lg=document.createElement('div'); lg.id='zmap-legend'; lg.style.cssText='position:absolute;left:8px;right:8px;bottom:6px;background:rgba(0,0,0,.6);border-radius:10px;padding:5px 9px;color:#fff;font:700 '+(small?'.62':'.72')+'rem Arial;line-height:1.5;text-align:center;pointer-events:none'; lg.textContent=ps.map(p=>p[0]).join('  ·  '); K.el.appendChild(lg); }catch(e){}
       /* v883: Zoos – meiner + die der Mitspieler (mit Namen), keine Einzel-Gehege/Punkte */
       try{ const me=ZG._slotEncPos(typeof ZS.mySlot==='number'?ZS.mySlot:0).center; add(me.x,me.z,'🏠 Mein Zoo','color:#9dff9d;font-size:.78rem'); }catch(e){}
       try{ const seen={}; const all=Object.assign({},ZG.otherPl||{},(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{});
