@@ -59,6 +59,7 @@
     document.body.classList.toggle('zstheme',on);
     if(on&&cv&&(cv.width!==innerWidth)) paint();
   }
+  window.ZStart={sync};
   const boot=()=>{ const app=document.getElementById('app'); if(!app) return setTimeout(boot,100); new MutationObserver(sync).observe(app,{childList:true}); sync(); };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
   // Altersknopf-Markierung (App._pickAgeRange setzt Inline-Stile → Klasse zusätzlich)

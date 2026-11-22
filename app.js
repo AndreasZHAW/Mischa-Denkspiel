@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v881';
+const APP_VERSION = 'v882';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -473,14 +473,13 @@ const App = {
   selectedColor: null,
 
   // ---- HELPERS ----
-  _html(html) { document.getElementById('app').innerHTML = html; },
+  _html(html) { document.getElementById('app').innerHTML = html; try{ window.ZStart&&ZStart.sync(); }catch(e){} },
   _char(player) { return CHARACTERS.find(c => c.id === player?.character); },
 
   // ---- LOADING ----
   _loading(msg = 'Laden...') {
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div>${mountainSVG()}</div>
-      <div class="page"><div style="text-align:center;color:white">
+      <div class="page" data-zs="1"><div style="text-align:center;color:white">
         <div style="font-size:3rem;animation:bounce 1s infinite">⏳</div>
         <div style="font-family:Arial,sans-serif;font-size:1.3rem;margin-top:10px">${msg}</div>
       </div></div>`);
@@ -1226,7 +1225,6 @@ const App = {
   showCharSelect() {
     this.selectedChar = null; this.selectedColor = null;
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
       <div class="page" data-zs="1">
         <div class="card" style="max-width:560px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -1277,7 +1275,6 @@ const App = {
     const ch = CHARACTERS.find(c => c.id === this.selectedChar);
 
     this._html(`
-      <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
       <div class="page" data-zs="1">
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">

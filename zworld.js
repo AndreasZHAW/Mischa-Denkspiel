@@ -3262,9 +3262,15 @@
       setTimeout(()=>{ if(!land()) O.hint(); else lg('jetzt Querformat'); },900);
     },
     lock(){
-      try{ const de=document.documentElement, rf=de.requestFullscreen||de.webkitRequestFullscreen; if(rf&&!document.fullscreenElement){ const p=rf.call(de); if(p&&p.catch) p.catch(e=>lg('Vollbild abgelehnt: '+(e&&e.message))); } }catch(e){ lg('Vollbild-Fehler '+e.message); }
-      try{ if(screen.orientation&&screen.orientation.lock){ screen.orientation.lock('landscape').then(()=>lg('Sperre auf Querformat OK')).catch(e=>lg('Sperre nicht möglich: '+(e&&e.name))); } else lg('orientation.lock nicht vorhanden'); }catch(e){ lg('Sperre-Fehler '+e.message); }
-    },
+      const doLock=()=>{ try{ if(screen.orientation&&screen.orientation.lock){ screen.orientation.lock('landscape').then(()=>lg('Sperre auf Querformat OK')).catch(e=>lg('Sperre nicht möglich: '+(e&&e.name))); } else lg('orientation.lock nicht vorhanden (iPhone?)'); }catch(e){ lg('Sperre-Fehler '+e.message); } };
+      try{ const de=document.documentElement, rf=de.requestFullscreen||de.webkitRequestFullscreen;
+        if(rf&&!document.fullscreenElement&&!document.webkitFullscreenElement){ const p=rf.call(de); if(p&&p.then) p.then(()=>{ lg('Vollbild an (Adressleiste weg)'); doLock(); }).catch(e=>{ lg('Vollbild abgelehnt: '+(e&&e.message)); doLock(); }); else doLock(); }
+        else doLock();
+      }catch(e){ lg('Vollbild-Fehler '+e.message); doLock(); } },
+    arm(){ // beim ersten Antippen: Vollbild (Adressleiste weg) + Querformat-Sperre – automatisch, ohne Extra-Knopf
+      if(O._armed||!touch()) return; O._armed=true;
+      const fn=()=>{ ['pointerup','touchend','click'].forEach(e=>document.removeEventListener(e,fn,true)); lg('erstes Antippen → Vollbild+Querformat'); O.lock(); };
+      ['pointerup','touchend','click'].forEach(e=>document.addEventListener(e,fn,true)); },
     auto(){ // Rückkehrer: Zoo im Hochformat gestartet → Aufforderung zum Drehen
       if(!touch()||land()||O.shown||O.tried) return; O.tried=true; lg('Zoo im Hochformat gestartet → Aufforderung'); O.hint(); },
     hint(){
@@ -3281,8 +3287,11 @@
       const chk=()=>{ setTimeout(()=>{ if(land()){ lg('Querformat erreicht'); close(); } },250); };
       window.addEventListener('resize',chk); window.addEventListener('orientationchange',chk);
       o.querySelector('#zor-go').onclick=()=>{ lg('Knopf „Querformat starten“'); O.lock(); };
+      o.addEventListener('pointerup',e=>{ if(e.target.id==='zor-no') return; O.lock(); });
       o.querySelector('#zor-no').onclick=()=>{ lg('bleibt im Hochformat'); close(); };
     }};
 })();
 
 (function(){ let n=0; const iv=setInterval(()=>{ try{ if(++n>60){ clearInterval(iv); return; } if(typeof ZS!=='undefined'&&ZS.zoo&&window.ZG&&ZG.pl===undefined&&false) return; if(typeof ZS!=='undefined'&&ZS.zoo&&ZS.zoo.tutorialSeen&&!(window.Tutorial&&Tutorial._active)&&!document.getElementById('z-entry-cover')){ clearInterval(iv); setTimeout(()=>{ try{ ZOrient.auto(); }catch(e){} },2500); } }catch(e){} },1500); })();
+
+try{ ZOrient.arm(); }catch(e){}
