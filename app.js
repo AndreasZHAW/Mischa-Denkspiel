@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v878';
+const APP_VERSION = 'v879';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -768,7 +768,10 @@ const App = {
 
   _showBoardingScene(playerName, charEmoji, mtLeft) {
     // v878: Boarding-/Schlitten-Szene (Janosch Reindeer Sleigh) vorerst deaktiviert – Code bleibt für später. Direkt in den Zoo.
-    if(!window.MISCHA_BOARDING_SCENE){ try{ window.location.href='zoo.html?autostart=1'; }catch(e){} return; }
+    if(!window.MISCHA_BOARDING_SCENE){
+      // v878: nach der Registrierung noch einmal das 4-s-Kurzintro, danach direkt in den Zoo
+      try{ if(this._afterReg){ this._afterReg=false; window.location.href='intro.html?short=1&next='+encodeURIComponent('zoo.html?autostart=1'); return; } }catch(e){}
+      try{ window.location.href='zoo.html?autostart=1'; }catch(e){} return; }
     const PLAYER_NAME=playerName||'', PLAYER_EMOJI=charEmoji||'🧭';
     console.log('[Boarding-debug] Boarding-Szene wird aufgebaut (Fenster '+innerWidth+'x'+innerHeight+')');
     const ov=document.createElement('div'); ov.id='boarding-scene';
@@ -1336,7 +1339,7 @@ const App = {
     FontScale.applyForPlayer(player?.name||'');
     try{ if(typeof PlayTime!=='undefined'&&player?.name){ PlayTime.recordLogin('ds',player.name); PlayTime.startTracking('ds',player.name); } }catch(e){}
     try{ if(typeof State!=='undefined'&&State._startPendingSaveFlusher) State._startPendingSaveFlusher(); }catch(e){}
-    this._goToZooAnimated();
+    this._afterReg=true; this._goToZooAnimated();
     // One-time language bonus popup (only right after registration)
     if (player.langBonusGranted) {
       const langKey = player.langBonusGranted; // 'en' or 'fr'

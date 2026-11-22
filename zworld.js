@@ -1419,14 +1419,14 @@
         else if(kind==='whoosh'){ const nb=c.createBuffer(1,c.sampleRate*6,c.sampleRate), d=nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; const src=c.createBufferSource(); src.buffer=nb; const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=2; bp.frequency.setValueAtTime(200,now); bp.frequency.exponentialRampToValueAtTime(3000,now+4.5); bp.frequency.exponentialRampToValueAtTime(400,now+6); const g=c.createGain(); g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(.35,now+2); g.gain.linearRampToValueAtTime(.05,now+5.4); g.gain.linearRampToValueAtTime(.3,now+5.6); g.gain.linearRampToValueAtTime(0,now+9); src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(now); src.stop(now+9); } }catch(e){} },
     begin(){
       if(M.on||!ready()){ if(!ready()&&typeof Tutorial!=='undefined') setTimeout(()=>Tutorial.advance(),200); return; }
-      M.on=true; M.stage='joy'; M._compact=false; M.prog={l:0,r:0,f:0,b:0}; M._build(); M.saved={x:ZG.pl.x,z:ZG.pl.z,yaw:ZG.yaw};
+      try{ einstiegLog('Wiese: ZMeadow.begin()'); }catch(e){} try{ ZOrient.enter(); }catch(e){} M.on=true; M.stage='joy'; M._compact=false; M.prog={l:0,r:0,f:0,b:0}; M._build(); M.saved={x:ZG.pl.x,z:ZG.pl.z,yaw:ZG.yaw};
       ZG._meadowActive=true; ZG.pl.x=MX; ZG.pl.z=MZ+2; ZG.pl.y=1.7; ZG.yaw=0; ZG.pitch=0; M._last={x:ZG.pl.x,z:ZG.pl.z};
       M._flash(); M._startLoop(); M._renderList();
       setTimeout(()=>{ try{ M._joyStage(); }catch(e){ M.stage='info'; } },60);
     },
     _flash(){ const f=document.createElement('div'); f.style.cssText='position:fixed;inset:0;z-index:9690;background:#fff;opacity:1;transition:opacity 1.1s;pointer-events:none'; document.body.appendChild(f); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.opacity='0'; })); setTimeout(()=>f.remove(),1400); },
     _ov(){ return document.getElementById('tut-overlay'); },
-    _box(){ const o=M._ov(); if(!o) return null; return Array.from(o.children).find(e=>e.style&&e.style.zIndex==='9701'&&e.tagName==='DIV'&&!e.id)||null; },
+    _box(){ const o=M._ov(); if(!o) return null; return Array.from(o.children).find(e=>e.style&&(e.style.zIndex==='9701'||e.style.zIndex==='2147483600')&&e.tagName==='DIV'&&!e.id)||null; },
     _killFx(){ ['zm-dim','zm-ring'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); try{ const jz=document.getElementById('jzone'); if(jz) jz.style.zIndex=''; document.body.classList.remove('zmjoy'); }catch(e){} },
     _joyVisible(){ let touch=false; try{ touch=matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){} if(!touch) return null; const j=document.getElementById('jzone'); if(!j) return null; const r=j.getBoundingClientRect(); return (r.width>20&&r.height>20&&getComputedStyle(j).display!=='none')?j:null; },
     // Stufe 1: alles schwarz ausser dem Joystick (nur wenn es einen Joystick gibt)
@@ -1450,6 +1450,9 @@
       const ok=box.querySelector('#tm-ok'); ok.onclick=()=>M._walkStage();
     },
     // Stufe 3: Kasten klein nach oben, freie Sicht
+    _portalBox(){ // v878: kleiner Hinweis oben, damit das Portal nicht vom Kasten verdeckt wird
+      const box=M._box(); if(!box||M.stage!=='portal') return; box.style.pointerEvents='none'; box.style.top='58px'; box.style.bottom='auto'; box.style.padding='9px 12px'; box.style.maxWidth='min(92vw,340px)';
+      box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:.95rem">🌀 Lauf ins Portal!</div><div style="font-size:.78rem;color:rgba(255,255,255,.8);margin-top:3px">Folge dem Pfeil – es bringt dich in deinen Zoo.</div>'; },
     _walkStage(){
       M._killFx(); const box=M._box(); M.stage='walk'; M._last={x:ZG.pl.x,z:ZG.pl.z}; if(!box) return;
       box.style.pointerEvents='none'; box.style.top='58px'; box.style.bottom='auto'; box.style.padding='9px 12px'; box.style.maxWidth='min(92vw,360px)';
@@ -1470,7 +1473,7 @@
       } else if(M.stage==='walk'){
         const dx=p.x-M._last.x, dz=p.z-M._last.z; M._last={x:p.x,z:p.z}; const d=Math.hypot(dx,dz);
         if(d>0&&d<3){ const y=ZG.yaw||0, fw=dx*(-Math.sin(y))+dz*(-Math.cos(y)), rt=dx*Math.cos(y)-dz*Math.sin(y); const P=M.prog; const th=.02; if(fw>th) P.f+=fw; else if(fw<-th) P.b-=fw; if(rt>th) P.r+=rt; else if(rt<-th) P.l-=rt; M._renderList(); }
-        if(['l','r','f','b'].every(k=>M.prog[k]>=NEED)){ M.stage='portal'; M._showPortal(); M._sfx('chime'); toast('🌀 Ein Portal ist aufgegangen!',3000); setTimeout(()=>{ try{ Tutorial.advance(); }catch(e){} },900); }
+        if(['l','r','f','b'].every(k=>M.prog[k]>=NEED)){ M.stage='portal'; M._showPortal(); M._sfx('chime'); toast('🌀 Ein Portal ist aufgegangen!',3000); setTimeout(()=>{ try{ Tutorial.advance(); }catch(e){} setTimeout(()=>{ try{ M._portalBox(); }catch(e){} },350); },900); }
       } else if(M.stage==='portal'){
         if(Math.hypot(p.x-PX,p.z-PZ)<2.5) M._startCut();
       }
@@ -3243,4 +3246,34 @@
     G.dust.forEach(d=>{ if(!d.s.visible) return; const u=(now-d.t)/d.life; if(u>=1){ d.s.visible=false; return; } d.s.scale.setScalar(.8+u*2.6); d.s.position.y=.35+u*.9; d.s.material.opacity=.5*(1-u); }); };
   setInterval(()=>{ try{ G.init(); G._hookToast(); if(G.done){ ZG.scene.children.forEach(o=>{ if(o.userData&&o.userData.animal&&!o.userData.aura) G.aura(o); }); } }catch(e){} },2500);
   setTimeout(()=>{ try{ G.init(); G._hookToast(); }catch(e){} },800);
+})();
+
+/* ZOrient (v878) — Einstieg im Hochformat, ab „Laufen lernen“ Querformat: erst Querformat-Sperre versuchen (Android, Vollbild), sonst animierte Dreh-Aufforderung. */
+(function(){
+  'use strict';
+  if(window.ZOrient) return;
+  const touch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches&&Math.min(screen.width,screen.height)<=820; }catch(e){ return false; } };
+  const land=()=>innerWidth>innerHeight;
+  const lg=m=>{ try{ einstiegLog('Querformat: '+m); }catch(e){} };
+  const O=window.ZOrient={shown:false,tried:false,
+    enter(){
+      if(!touch()||land()||O.tried) { lg('übersprungen (touch='+touch()+', quer='+land()+')'); return; } O.tried=true;
+      try{ const de=document.documentElement, rf=de.requestFullscreen||de.webkitRequestFullscreen; if(rf&&!document.fullscreenElement){ const p=rf.call(de); if(p&&p.catch) p.catch(e=>lg('Vollbild abgelehnt: '+(e&&e.message))); } }catch(e){ lg('Vollbild-Fehler '+e.message); }
+      try{ if(screen.orientation&&screen.orientation.lock){ screen.orientation.lock('landscape').then(()=>lg('Sperre auf Querformat OK')).catch(e=>lg('Sperre nicht möglich: '+(e&&e.name))); } else lg('orientation.lock nicht vorhanden'); }catch(e){ lg('Sperre-Fehler '+e.message); }
+      setTimeout(()=>{ if(!land()) O.hint(); else lg('jetzt Querformat'); },900);
+    },
+    hint(){
+      if(O.shown||land()) return; O.shown=true; lg('zeige Dreh-Aufforderung');
+      const st=document.createElement('style'); st.id='zor-css'; st.textContent='@keyframes zorRot{0%,15%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}@keyframes zorArr{0%,100%{opacity:.35;transform:translateX(0)}50%{opacity:1;transform:translateX(8px)}}';
+      document.head.appendChild(st);
+      const o=document.createElement('div'); o.id='zor'; o.style.cssText='position:fixed;inset:0;z-index:2147483100;background:rgba(2,4,12,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:24px;transition:opacity .5s';
+      o.innerHTML='<div style="display:flex;align-items:center;gap:18px"><div style="width:62px;height:108px;border:5px solid #e9c46a;border-radius:14px;position:relative;animation:zorRot 2.4s ease-in-out infinite;box-shadow:0 0 24px rgba(233,196,106,.45)"><div style="position:absolute;left:50%;bottom:6px;width:16px;height:4px;margin-left:-8px;border-radius:2px;background:#e9c46a"></div></div><div style="font-size:2.6rem;color:#e9c46a;animation:zorArr 1.2s ease-in-out infinite">↻</div></div>'
+        +'<div style="font:800 1.25rem Arial;margin-top:22px;color:#e9c46a">Dreh dein Handy</div><div style="margin-top:8px;font-size:.95rem;opacity:.85;max-width:300px;line-height:1.4">Ab hier spielt es sich im <b>Querformat</b> am besten.</div>'
+        +'<button id="zor-no" style="margin-top:24px;padding:9px 18px;border:1px solid rgba(255,255,255,.35);border-radius:20px;background:none;color:#fff;font-weight:700">Lieber Hochformat</button>';
+      document.body.appendChild(o);
+      const close=()=>{ if(!o.parentNode) return; o.style.opacity='0'; setTimeout(()=>{ o.remove(); st.remove(); },520); window.removeEventListener('resize',chk); window.removeEventListener('orientationchange',chk); };
+      const chk=()=>{ setTimeout(()=>{ if(land()){ lg('Querformat erreicht'); close(); } },250); };
+      window.addEventListener('resize',chk); window.addEventListener('orientationchange',chk);
+      o.querySelector('#zor-no').onclick=()=>{ lg('bleibt im Hochformat'); close(); };
+    }};
 })();

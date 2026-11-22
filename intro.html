@@ -6,17 +6,20 @@
 <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}</style>
 </head><body>
 <!-- v878: Kino-Intro (Erde, Logo, Flammen + Lied). Erstes Öffnen auf diesem Gerät: ganze Szene (~18 s). Danach: 4-Sekunden-Kurzfassung. -->
-<script src="zambience.js?v=878"></script>
+<script src="zambience.js?v=879"></script>
 <script>
 (function(){
-  var go=function(){ try{ localStorage.setItem('mischa_intro_seen','1'); sessionStorage.setItem('mischa_intro_done','1'); }catch(e){} window.location.replace('index.html?from_intro=1'); };
-  var seen=false; try{ seen=!!localStorage.getItem('mischa_intro_seen'); }catch(e){}
+  var q=new URLSearchParams(location.search), next=q.get('next')||'index.html?from_intro=1';
+  if(!/^(index|zoo)\.html/.test(next)) next='index.html?from_intro=1';
+  var go=function(){ try{ localStorage.setItem('mischa_intro_seen','1'); sessionStorage.setItem('mischa_intro_done','1'); }catch(e){} window.location.replace(next); };
+  var short=q.get('short')==='1';
+  var known=false; try{ known=!!(localStorage.getItem('mischa_intro_seen')||localStorage.getItem('mischa_known_device')||localStorage.getItem('mischa_current_backup')); }catch(e){}
   var tries=0;
   (function start(){
-    if(window.ZAmb&&ZAmb.playIntro){ try{ ZAmb.playIntro({short:seen,onDone:go}); }catch(e){ go(); } return; }
+    if(window.ZAmb&&ZAmb.playIntro){ try{ ZAmb.playIntro({short:short,skippable:short||known,onDone:go}); }catch(e){ go(); } return; }
     if(++tries>40) return go(); setTimeout(start,50);
   })();
-  setTimeout(go,seen?15000:40000); /* Sicherheitsnetz */
+  setTimeout(go,short?15000:40000); /* Sicherheitsnetz */
 })();
 </script>
 </body></html>
