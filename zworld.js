@@ -1568,7 +1568,7 @@
       try{ rd.render(sc,cam); c.getContext('2d').drawImage(cv,0,0,c.width,c.height); }catch(e){ ok=false; }
       sc.fog=fog; hid.forEach(h=>h.visible=true); restore.forEach(f=>{ try{ f(); }catch(e){} }); try{ rd.setRenderTarget(old); }catch(e){}
       if(!ok){ try{ ZP.toast('🗺️ Karte konnte nicht geladen werden.',2500); }catch(e){} return; }
-      const top=document.createElement('div'); top.style.cssText='position:absolute;top:12px;left:10px;right:130px;text-align:left;line-height:1.25;color:#fff;font:900 1rem Arial;text-shadow:0 2px 6px #000;pointer-events:none'; top.innerHTML='🗺️ Zoo-Karte <span style="font-weight:600;font-size:.78rem;opacity:.85">– tippe irgendwohin, um dich hinzubeamen</span>'; o.appendChild(top);
+      const top=document.createElement('div'); top.style.cssText='position:absolute;top:12px;left:10px;right:130px;text-align:left;line-height:1.25;color:#fff;font:900 1rem Arial;text-shadow:0 2px 6px #000;pointer-events:none'; top.innerHTML='🗺️ Zoo-Karte <span style="font-weight:600;font-size:.78rem;opacity:.85">– tippe einen Ort in der Liste unten (oder irgendwohin), um dich hinzubeamen</span>'; o.appendChild(top);
       const x=document.createElement('button'); x.textContent='✕ Schliessen'; x.style.cssText='position:absolute;top:10px;right:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:7px 14px;font-size:.8rem;cursor:pointer'; x.onclick=e=>{ e.stopPropagation(); K.close(); }; o.appendChild(x);
       const mk=document.createElement('div'); mk.style.cssText='position:absolute;inset:0;pointer-events:none'; o.appendChild(mk); K.mk=mk;
       document.body.appendChild(o); K.el=o; K.c=c; K._marks();
@@ -1586,7 +1586,7 @@
       /* v884: Orte als Symbol (antippbar) + Legende unten – keine überlappenden Texte */
       const small=innerWidth<900||innerHeight<520; const ps=pois();
       ps.forEach(p=>{ const ic=String(p[0]).split(' ')[0]; add(p[1],p[2],'<span style="font-size:'+(small?'1.35':'1.5')+'rem;filter:drop-shadow(0 1px 3px #000)">'+ic+'</span>'); });
-      try{ let lg=document.getElementById('zmap-legend'); if(lg) lg.remove(); lg=document.createElement('div'); lg.id='zmap-legend'; lg.style.cssText='position:absolute;left:8px;right:8px;bottom:6px;background:rgba(0,0,0,.6);border-radius:10px;padding:5px 9px;color:#fff;font:700 '+(small?'.62':'.72')+'rem Arial;line-height:1.5;text-align:center;pointer-events:none'; lg.textContent=ps.map(p=>p[0]).join('  ·  '); K.el.appendChild(lg); }catch(e){}
+      try{ let lg=document.getElementById('zmap-legend'); if(lg) lg.remove(); lg=document.createElement('div'); lg.id='zmap-legend'; lg.style.cssText='position:absolute;left:8px;right:8px;bottom:6px;background:rgba(0,0,0,.6);border-radius:10px;padding:5px 9px;color:#fff;font:700 '+(small?'.62':'.72')+'rem Arial;line-height:1.5;text-align:center;pointer-events:auto'; ps.forEach((p,i)=>{ const sp=document.createElement('span'); sp.textContent=p[0]; sp.style.cssText='cursor:pointer;display:inline-block;padding:3px 7px;margin:1px 2px;border-radius:8px;background:rgba(255,255,255,.1)'; sp.onclick=ev=>{ ev.stopPropagation(); K._tp(p[1],p[2],true); }; lg.appendChild(sp); }); lg.addEventListener('click',ev=>ev.stopPropagation()); K.el.appendChild(lg); }catch(e){}
       /* v883: Zoos – meiner + die der Mitspieler (mit Namen), keine Einzel-Gehege/Punkte */
       try{ const me=ZG._slotEncPos(typeof ZS.mySlot==='number'?ZS.mySlot:0).center; add(me.x,me.z,'🏠 Mein Zoo','color:#9dff9d;font-size:.78rem'); }catch(e){}
       try{ const seen={}; const all=Object.assign({},ZG.otherPl||{},(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{});
@@ -1595,14 +1595,19 @@
       try{ const rs=[]; [...mk.children].forEach(d=>{ let r=d.getBoundingClientRect(), dy=0, n=0; const hit=()=>rs.some(q=>!(r.right<q.left||r.left>q.right||r.bottom+dy<q.top||r.top+dy>q.bottom)); while(n<8&&hit()){ dy+=(n%2?-1:1)*Math.ceil((n+1)/2)*(r.height+1); n++; } if(dy) d.style.top=(parseFloat(d.style.top)+dy)+'px'; rs.push({left:r.left,right:r.right,top:r.top+dy,bottom:r.bottom+dy}); }); }catch(e){}
       add(ZG.pl.x,ZG.pl.z,'<div style="transform:rotate('+(-ZG.yaw*180/Math.PI+180)+'deg);font-size:1.5rem;color:#FFD700;filter:drop-shadow(0 0 4px #000)">⬆️</div><div style="color:#FFD700;text-align:center">Du</div>','z-index:2');
     },
+    _tp(tx,tz,near){
+      if(ZG.carrying){ try{ ZP.toast('🐾 Du trägst noch ein Tier!',2500); }catch(e){} return; }
+      const rr=Math.hypot(tx,tz), lim=(ZG.WR||210)-4; if(rr>lim){ tx*=lim/rr; tz*=lim/rr; }
+      ZG.pl.x=tx; ZG.pl.z=tz+(near?3:0); try{ ZG.pl.y=1.7; ZG.vy=0; }catch(e){} try{ ZG._recentlyBeamedAt=Date.now(); }catch(e){}
+      K.close(); try{ ZP.toast('✨ Hingebeamt!',1500); }catch(e){}
+    },
     _click(ev){
       if(ZG.carrying){ try{ ZP.toast('🐾 Du trägst noch ein Tier!',2500); }catch(e){} return; }
-      const w=K._s2w(ev.clientX,ev.clientY); if(!w) return; let tx=w.x,tz=w.z, best=14;
-      pois().forEach(p=>{ const d=Math.hypot(p[1]-w.x,p[2]-w.z); if(d<best){ best=d; tx=p[1]; tz=p[2]; } });
-      try{ const zs=[ZG._slotEncPos(typeof ZS.mySlot==='number'?ZS.mySlot:0).center]; Object.values(Object.assign({},ZG.otherPl||{},(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{})).forEach(o=>{ if(o&&typeof o.slotIdx==='number') zs.push(ZG._slotEncPos(o.slotIdx).center); }); zs.forEach(e=>{ const d=Math.hypot(e.x-w.x,e.z-w.z); if(d<best){ best=d; tx=e.x; tz=e.z; } }); }catch(e){}
-      const rr=Math.hypot(tx,tz), lim=(ZG.WR||210)-4; if(rr>lim){ tx*=lim/rr; tz*=lim/rr; }
-      ZG.pl.x=tx; ZG.pl.z=tz+(best<14?3:0); try{ ZG.pl.y=1.7; ZG.vy=0; }catch(e){} try{ ZG._recentlyBeamedAt=Date.now(); }catch(e){}
-      K.close(); try{ ZP.toast('✨ Hingebeamt!',1500); }catch(e){}
+      const w=K._s2w(ev.clientX,ev.clientY); if(!w) return; let tx=w.x,tz=w.z, bestPx=(innerWidth<900?44:34), hit=false;
+      const cand=[]; pois().forEach(p=>cand.push([p[1],p[2]]));
+      try{ cand.push([0,0]); const c0=ZG._slotEncPos(typeof ZS.mySlot==='number'?ZS.mySlot:0).center; cand.push([c0.x,c0.z]); Object.values(Object.assign({},ZG.otherPl||{},(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{})).forEach(o=>{ if(o&&typeof o.slotIdx==='number'){ const e=ZG._slotEncPos(o.slotIdx).center; cand.push([e.x,e.z]); } }); }catch(e){}
+      cand.forEach(c=>{ const q=K._w2s(c[0],c[1]), d=Math.hypot(q.x-ev.clientX,q.y-ev.clientY); if(d<bestPx){ bestPx=d; tx=c[0]; tz=c[1]; hit=true; } });
+      K._tp(tx,tz,hit);
     },
     close(){ if(!K.el) return; K.el.remove(); K.el=null; document.removeEventListener('keydown',K._key); window.removeEventListener('resize',K._marks); }
   };

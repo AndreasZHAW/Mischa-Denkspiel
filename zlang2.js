@@ -89,7 +89,7 @@
   ['Sound-Einstellungen','Sound settings','Réglages du son'],['Spiel-Sounds sind aus.','Game sounds are off.','Les sons du jeu sont coupés.'],['Spiel-Sounds sind an.','Game sounds are on.','Les sons du jeu sont activés.'],['Lieder:','Songs:','Morceaux :'],
   // Tauschen / Melden
   ['Meine Angebote','My offers','Mes offres'],['Anbieten','Offer','Proposer'],['Offline — Tauschen braucht Internet.','Offline — trading needs internet.','Hors ligne — l’échange nécessite internet.'],
-  ['Was möchtest du melden?','What do you want to report?','Que veux-tu signaler ?'],['Frage / Fehler melden','Report question / bug','Signaler une question / un bug'],['Spieler melden','Report player','Signaler un joueur'],['Melden','Report','Signaler'],
+  ['Was möchtest du melden?','What do you want to report?','Que veux-tu signaler ?'],['Frage / Fehler melden','Report question / bug','Signaler une question / un bug'],['Spieler melden','Report player','Signaler un joueur'],['Spieler / Fehler melden','Report player / bug','Signaler joueur / bug'],['Melden','Report','Signaler'],
   // Ziele
   ['Tagesziele','Daily goals','Objectifs du jour'],['Jeden Tag 3 neue Ziele. Schaffst du alle, gibt es einen Bonus: 3 % deines Guthabens + 10 Min Glück ×2 🍀','3 new goals every day. Complete them all and you get a bonus: 3% of your balance + 10 min luck ×2 🍀','3 nouveaux objectifs chaque jour. Si tu les réussis tous, tu obtiens un bonus : 3 % de ton solde + 10 min de chance ×2 🍀'],
   ['Schau in den MT-Pass','Check the MT pass','Regarde le pass MT'],['Spiele 10 Minuten','Play for 10 minutes','Joue 10 minutes'],['Kaufe 3 Tiere','Buy 3 animals','Achète 3 animaux'],['Laufe 1200 Meter','Walk 1200 metres','Marche 1200 mètres'],['Spiele 25 Minuten','Play for 25 minutes','Joue 25 minutes'],

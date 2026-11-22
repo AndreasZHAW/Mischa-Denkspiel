@@ -111,7 +111,7 @@
     if(S){ S.inside=false; S._lp=null; }
     const wb=document.getElementById('wbar'); if(wb) wb.style.visibility='hidden';
     M._chipShow(); try{ ZP.toast(dir>0?'🏔️ Bergfahrt! Schau dich um – es geht 400 m hoch.':'🚡 Talfahrt zurück zum Zoo …',3500); }catch(e){}
-    M._uiUpd(); };
+    M._cinStart('in'); M._uiUpd(); };
   M._view=function(on){ const Z=ZGg(); try{ Z._mtnView=on; if(window.ZLook) ZLook.cullOff=on; }catch(e){}
     try{ const far=on?7000:500; if(Z.cam&&Z.cam.far!==far){ Z.cam.far=far; Z.cam.updateProjectionMatrix(); } }catch(e){} };
   M._chipShow=function(){ const ch=document.getElementById('zm-chip'); if(ch) ch.style.display='block'; };
@@ -120,13 +120,14 @@
   M._frame=function(){
     const Z=ZGg(); if(!Z||!M.built||!Z.pl) return; const now=performance.now(), dt=Math.min(.1,(now-(M._t||now))/1000); M._t=now; const pl=Z.pl;
     if(M.wheel) M.wheel.rotation.y+=dt*.55;
-    if(M.riding&&M.poly){
+    if(M.riding&&M.poly&&M.cin){ M._cinFrame(dt); }
+    else if(M.riding&&M.poly){
       const len=M.poly.len, along=M.dir>0?M.s:len-M.s; M.s+=M.dir*speedAt(along,len)*dt; if(M.s<0) M.s=0; if(M.s>len) M.s=len;
       const p=M._pt(M.s), sgn=M.dir>0?1:-1, t=now/1000;
       if(M._cab){ const c=M._cab; c.g.position.set(p.x,p.y+2.6,p.z); c.g.rotation.y=Math.atan2(-p.dx*sgn,-p.dz*sgn); c.g.rotation.z=Math.sin(t*1.4)*.02; c.g.rotation.x=Math.sin(t*1.1)*.012; }
       pl.x=p.x; pl.z=p.z; pl.y=p.y+1.3; try{ Z.cam.position.set(p.x+p.dx*sgn*.8,p.y+1.35,p.z+p.dz*sgn*.8); }catch(e){}
       M._chipUpd(p.y);
-      if((M.dir>0&&M.s>=len-.1)||(M.dir<0&&M.s<=.1)) M.rideEnd();
+      if((M.dir>0&&M.s>=len-.1)||(M.dir<0&&M.s<=.1)) M._cinStart('out');
     } else if(M.on){
       // Gipfel: Kreis begrenzen, Höhe fest, Kamera-Höhe mitführen
       const dx=pl.x-MX, dz=pl.z-MZ, d=Math.hypot(dx,dz); if(d>M.PR){ pl.x=MX+dx/d*M.PR; pl.z=MZ+dz/d*M.PR; }
@@ -135,13 +136,52 @@
     M._view(M.on||M.riding);
     M._uiUpd();
   };
-  M.rideEnd=function(){ const Z=ZGg(), S=window.ZStation, pl=Z.pl; try{ if(M._cab&&M._cab.g.parent) M._cab.g.parent.remove(M._cab.g); }catch(e){} M._cab=null; M.riding=false;
+  M.rideEnd=function(){ M._cinUI(false); M.cin=null; try{ if(window.ZStation) ZStation.hideQ=false; }catch(e){} const Z=ZGg(), S=window.ZStation, pl=Z.pl; try{ if(M._cab&&M._cab.g.parent) M._cab.g.parent.remove(M._cab.g); }catch(e){} M._cab=null; M.riding=false;
     if(M.dir>0){ pl.x=MX-28; pl.z=MZ-8; pl.y=MH+1.7; Z.yaw=-Math.PI/2; Z.pitch=-.05; M.on=true; Z._mtnActive=true; try{ ZP.toast('🏔️ Oben! 400 m Höhe. Schau dich um – zurück mit dem 🚡-Knopf.',4500); }catch(e){}
       try{ const z=ZS.zoo; if(z&&!z.mtnSeen){ z.mtnSeen=1; z.mt+=250; ZG._updHUD&&ZG._updHUD(); ZP.toast('🎉 Erster Gipfelbesuch: +250 MT',3500); ZS.save&&ZS.save(); } }catch(e){} }
     else { M.on=false; Z._mtnActive=false; M._view(false); pl.x=-3; pl.z=3.5; pl.y=1.7; Z.yaw=Math.atan2(11,-3.5); Z.pitch=-.02; if(S){ S._lp={x:pl.x,z:pl.z}; S.inside=true; } const ch=document.getElementById('zm-chip'); if(ch) ch.style.display='none'; try{ ZP.toast('🛬 Zurück im Zoo!',2000); }catch(e){} }
     M._uiUpd(); try{ ZS.save&&ZS.save(); }catch(e){} };
+
+  // ═══ Einsteigen / Aussteigen als 3D-Kamerafahrt (v893) ═══
+  const ease=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+  const setDoor=(cab,o)=>{ if(!cab) return; const ss=1-.6*o; cab.dL.scale.z=ss; cab.dR.scale.z=ss; cab.dL.position.z=-(.55+.46*o); cab.dR.position.z=.55+.46*o; };
+  M._cinUI=function(on){ let top=document.getElementById('zm-lbt'); if(!top){ top=document.createElement('div'); top.id='zm-lbt'; top.style.cssText='position:fixed;left:0;right:0;top:0;height:0;background:#000;z-index:130;pointer-events:none;transition:height .5s'; document.body.appendChild(top);
+      const bt=document.createElement('div'); bt.id='zm-lbb'; bt.style.cssText='position:fixed;left:0;right:0;bottom:0;height:0;background:#000;z-index:130;pointer-events:none;transition:height .5s'; document.body.appendChild(bt);
+      const fd=document.createElement('div'); fd.id='zm-fade'; fd.style.cssText='position:fixed;inset:0;background:#000;z-index:132;pointer-events:none;opacity:0;transition:opacity .3s'; document.body.appendChild(fd);
+      const sk=document.createElement('button'); sk.id='zm-skip'; sk.textContent='⏭ Überspringen'; sk.style.cssText='position:fixed;right:10px;bottom:12px;z-index:133;display:none;padding:8px 14px;border:2px solid rgba(255,255,255,.7);border-radius:14px;background:rgba(0,0,0,.5);color:#fff;font:800 .8rem Arial'; sk.onclick=()=>M._cinSkip(); document.body.appendChild(sk); }
+    if(!document.getElementById('zm-css')){ const st=document.createElement('style'); st.id='zm-css'; st.textContent='body.zmcin #s-zoo>*:not(#zc){visibility:hidden!important}body.zmcin>*:not(#s-zoo):not([id^="zm-"]):not(#zt):not(script):not(style):not(link){visibility:hidden!important}'; document.head.appendChild(st); }
+    document.body.classList.toggle('zmcin',!!on); try{ if(window.ZStation) ZStation.hideQ=!!(on||M.riding); }catch(e){}
+    const h=on?'11vh':'0'; document.getElementById('zm-lbt').style.height=h; document.getElementById('zm-lbb').style.height=h; document.getElementById('zm-skip').style.display=on?'block':'none';
+    const ch=document.getElementById('zm-chip'); if(on&&ch) ch.style.display='none'; };
+  M._fade=function(v,ms){ M._cinUI(M.cin?true:false); const f=document.getElementById('zm-fade'); if(!f) return; f.style.transition='opacity '+(ms==null?300:ms)+'ms'; f.style.opacity=v?'1':'0'; };
+  M._cinStart=function(ph){ const cab=M._cab; if(!cab||!M.poly){ if(ph==='out') M.rideEnd(); return; }
+    const p=M._pt(M.s), sgn=M.dir>0?1:-1, ry=Math.atan2(-p.dx*sgn,-p.dz*sgn);
+    cab.g.position.set(p.x,p.y+2.6,p.z); cab.g.rotation.set(0,ry,0);
+    M.cin={ph:ph,t:0,p:p,sgn:sgn,n:{x:Math.cos(ry),z:-Math.sin(ry)},f:{x:p.dx*sgn,z:p.dz*sgn},fired:false}; setDoor(cab,ph==='out'?0:0);
+    M._cinUI(true); if(ph==='in'){ M._fade(1,0); setTimeout(()=>M._fade(0,500),60); } };
+  M._cinFinish=function(){ const Z=ZGg(), c=M.cin; if(!c) return; setDoor(M._cab,0); M.cin=null; M._cinUI(false); M._fade(0,200); const chp=document.getElementById('zm-chip'); if(chp) chp.style.display='block'; try{ Z.yaw=Math.atan2(-c.f.x,-c.f.z); Z.pitch=0; }catch(e){} };
+  M._cinSkip=function(){ const c=M.cin; if(!c) return; if(c.ph==='in') M._cinFinish(); else if(!c.fired){ c.fired=true; M._cinEndOut(); } };
+  M._cinEndOut=function(){ M._fade(1,300); setTimeout(()=>{ try{ M.rideEnd(); }catch(e){} M._fade(0,500); },340); };
+  M._cinFrame=function(dt){ const Z=ZGg(), c=M.cin, THREE=T(); if(!c||!Z||!Z.cam) return; c.t+=dt; const t=c.t, p=c.p, n=c.n, f=c.f, cab=M._cab, pl=Z.pl;
+    const seat={x:p.x+f.x*.8,y:p.y+1.35,z:p.z+f.z*.8}; const C={x:p.x,y:p.y,z:p.z};
+    const outP=(d)=>({x:C.x+n.x*d,y:p.y+1.55,z:C.z+n.z*d}); let cam, look;
+    pl.x=p.x; pl.z=p.z; pl.y=p.y+1.3; if(cab) cab.g.rotation.z=Math.sin(performance.now()/1000*1.3)*.012;
+    if(c.ph==='in'){
+      const dolly=ease(t/2.4); const a=outP(6.2-1.8*dolly); a.x-=f.x*1.2; a.z-=f.z*1.2; const lk0={x:C.x+n.x*.6,y:p.y+.7,z:C.z+n.z*.6};
+      const dO=Math.min(1,Math.max(0,(t-.6)/1.4)), dC=Math.min(1,Math.max(0,(t-4.6)/1.0)); setDoor(cab,t<4.6?dO:1-dC);
+      const u=ease((t-2.8)/1.8); const a2=outP(4.4); a2.x-=f.x*1.2; a2.z-=f.z*1.2;
+      if(t<2.8){ cam=a; look=lk0; } else { const bob=Math.sin(t*10)*.035*(u<1?1:0); cam={x:a2.x+(seat.x-a2.x)*u,y:a2.y+(seat.y-a2.y)*u+bob,z:a2.z+(seat.z-a2.z)*u}; const lk1={x:seat.x+f.x*12,y:seat.y,z:seat.z+f.z*12}; look={x:lk0.x+(lk1.x-lk0.x)*u,y:lk0.y+(lk1.y-lk0.y)*u,z:lk0.z+(lk1.z-lk0.z)*u}; }
+      if(t>=5.7){ M._cinFinish(); return; }
+    } else {
+      const dO=Math.min(1,t/1.2); setDoor(cab,dO);
+      const u=ease((t-1.3)/1.9); const e=outP(4.2); e.x+=f.x*.5; e.z+=f.z*.5; const bob=Math.sin(t*10)*.035*(u>0&&u<1?1:0);
+      cam={x:seat.x+(e.x-seat.x)*u,y:seat.y+(e.y-seat.y)*u+bob,z:seat.z+(e.z-seat.z)*u};
+      const lk0={x:seat.x+f.x*12,y:seat.y,z:seat.z+f.z*12}, k=ease(t/1.1), lk1={x:C.x+n.x*12,y:p.y+1.2,z:C.z+n.z*12}; look={x:lk0.x+(lk1.x-lk0.x)*k,y:lk0.y+(lk1.y-lk0.y)*k,z:lk0.z+(lk1.z-lk0.z)*k};
+      if(t>=3.4&&!c.fired){ c.fired=true; M._cinEndOut(); }
+    }
+    try{ Z.cam.position.set(cam.x,cam.y,cam.z); Z.cam.lookAt(look.x,look.y,look.z); }catch(e){} M._chipUpd(p.y); };
   // Notausgang (z. B. bei Fehlern): zurück ins Gondelhaus
-  M.abort=function(){ const Z=ZGg(); if(!Z) return; M.dir=-1; M.riding=false; try{ if(M._cab&&M._cab.g.parent) M._cab.g.parent.remove(M._cab.g); }catch(e){} M._cab=null; M.rideEnd(); };
+  M.abort=function(){ const Z=ZGg(); if(!Z) return; M.dir=-1; M.riding=false; M.cin=null; try{ if(M._cab&&M._cab.g.parent) M._cab.g.parent.remove(M._cab.g); }catch(e){} M._cab=null; M.rideEnd(); };
   // ── Einhängen ──
   const hook=()=>{ try{ const r=ZGg()&&ZG.renderer; if(!r||r._zmHook) return; r._zmHook=1; const o=r.render.bind(r); r.render=function(s,c){ try{ if(s===ZG.scene) M._frame(); }catch(e){ try{ console.log('[Berg-debug] Frame-Fehler: '+e.message); }catch(_){} } return o(s,c); }; }catch(e){} };
   const boot=()=>{ try{ if(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer){ M.build(); hook(); } }catch(e){ try{ console.log('[Berg-debug] Bau-Fehler: '+e.message); }catch(_){} } };

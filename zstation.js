@@ -125,7 +125,7 @@
     const q=Z.gQ.slice(0,6);
     S.cabins.forEach(c=>{ if(c.obj&&!c.dep&&!q.includes(c.obj)){ c.dep=true; c.slot=-1; } });
     q.forEach((o,j)=>{ let c=S.owner.get(o); if(!c||c.obj!==o){ c=S.cabins.find(k=>!k.obj); if(!c) return; c.obj=o; c.dep=false; c.key=''; c.u=-j*SP; c.sc=0; c.door=0; S.owner.set(o,c); } c.slot=j; });
-    S.cabins.forEach(c=>{ c.g.visible=!!c.obj; if(!c.obj) return;
+    S.cabins.forEach(c=>{ c.g.visible=!!c.obj&&!S.hideQ; if(!c.obj) return;
       let d=0; if(c.dep){ c.u+=VD*dt; if(c.u>44){ c.obj=null; c.dep=false; c.g.visible=false; return; } }
       else { const tu=-c.slot*SP; d=wrapD(tu-c.u); if(d<-.5) d+=L; if(d>.02){ c.u+=Math.min(d,Math.min(VD*1.8,Math.max(.8,d*1.6))*dt); } else c.u=tu; }
       const p=S.pathAt(c.u); c.g.position.set(p.x,p.y+2.6,p.z); c.g.rotation.y=Math.atan2(-p.dx,-p.dz);
