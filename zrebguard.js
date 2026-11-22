@@ -21,7 +21,7 @@
   G.report=function(v){ const r=RTD(); if(!r) return; try{ r.ref('zoo_viol').push({n:String(ZS.player),k:String(ZS.player).toLowerCase(),t:Date.now(),cnt:v.n,names:(v.names||[]).slice(0,10),reb:(ZS.zoo&&ZS.zoo.reb)||0}); }catch(e){} };
   // ── Admin: grosse Meldung beim Öffnen des Admin-Panels ──
   G.adminAlert=async function(){ const r=RTD(); if(!r) return; let v={}; try{ v=(await r.ref('zoo_viol').once('value')).val()||{}; }catch(e){ return; }
-    const ids=Object.keys(v); if(!ids.length) return; const old=document.getElementById('zrg-adm'); if(old) old.remove();
+    const ids=Object.keys(v).filter(k=>!(window.ZInbox&&ZInbox.TYPES[v[k].ty])); if(!ids.length) return; const old=document.getElementById('zrg-adm'); if(old) old.remove();
     const f=t=>new Date(t).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     const o=document.createElement('div'); o.id='zrg-adm'; o.style.cssText='position:fixed;inset:0;z-index:99995;background:#000;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;font-family:Arial,sans-serif';
     o.innerHTML='<div style="max-width:620px;width:100%;color:#fff;text-align:center"><div style="font-size:4rem">🚨</div><div style="font:900 1.8rem Arial;color:#ff5252">Regelverstoss!</div><div style="opacity:.8;margin:6px 0 14px;font-size:.95rem">Diese Spieler haben gegen die Regeln verstossen (oder die Rebirth-Warnung ignoriert):</div>'

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v884 -->
+<!-- ZOO v886 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -142,6 +142,8 @@ body.tutq #z-starter,body.tutq #zcirc-chip,body.tutq #zcirc-open,body.tutq [id$=
   body.zmm #hleft{z-index:2146 !important}
   #hleft{display:none !important;zoom:1 !important}
   body.zmm #hleft{display:grid !important;position:fixed !important;left:0 !important;top:0 !important;right:0 !important;bottom:0 !important;max-height:none !important;z-index:2146 !important;background:rgba(6,10,18,.9);padding:12px 12px 12px 76px !important;gap:10px 8px !important;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));align-content:start;overflow-y:auto !important}
+  body.zmm #zhearts,body.zmm #wbar{visibility:hidden !important}
+  body.zmm.tutq #hleft{padding-top:82px !important;padding-left:140px !important}
   body.zmm #hleft .hb{width:auto !important;min-width:0 !important;gap:3px}
   body.zmm #hleft .hbb{width:56px !important;height:56px !important;font-size:1.7rem !important;border-radius:15px}
   body.zmm #hleft .hbl{display:block !important;font-size:.7rem !important;text-align:center;line-height:1.1}
@@ -301,9 +303,9 @@ body.tutq #z-starter,body.tutq #zcirc-chip,body.tutq #zcirc-open,body.tutq [id$=
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=884"></script>
-<script src="rewardchests.js?v=884"></script>
-<script src="personality.js?v=884"></script>
+<script src="lang.js?v=886"></script>
+<script src="rewardchests.js?v=886"></script>
+<script src="personality.js?v=886"></script>
 </head>
 <body>
 <script>
@@ -623,49 +625,50 @@ body.tutq #z-starter,body.tutq #zcirc-chip,body.tutq #zcirc-open,body.tutq [id$=
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=884"></script>
+<script src="zgfx.js?v=886"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=884"></script>
-<script src="sanction.js?v=884"></script>
-<script src="zevents.js?v=884"></script>
-<script src="znet.js?v=884"></script>
-<script src="zbases.js?v=884"></script>
-<script src="charheads.js?v=884"></script>
-<script src="zmensch.js?v=884"></script>
-<script src="zfindchest.js?v=884"></script>
-<script src="zambience.js?v=884"></script>
-<script src="znight.js?v=884"></script>
-<script src="zstarter.js?v=884"></script>
-<script src="zcine.js?v=884"></script>
-<script src="zworld.js?v=884"></script>
-<script src="zlang2.js?v=884"></script>
-<script src="ztutlang.js?v=884"></script>
-<script src="zstation.js?v=884"></script>
-<script src="zmountain.js?v=884"></script>
-<script src="zfx.js?v=884"></script>
-<script src="zextra.js?v=884"></script>
-<script src="zreb6.js?v=884"></script>
-<script src="zbots.js?v=884"></script>
-<script src="zlegend.js?v=884"></script>
-<script src="ztutplus.js?v=884"></script>
-<script src="zlift.js?v=884"></script>
-<script src="zfun.js?v=884"></script>
-<script src="zguide.js?v=884"></script>
-<script src="zrules.js?v=884"></script>
-<script src="zsafe.js?v=884"></script>
-<script src="zrebguard.js?v=884"></script>
-<script src="zpass.js?v=884"></script>
-<script src="znotify.js?v=884"></script>
-<script src="zdetective.js?v=884"></script>
-<script src="zpirate.js?v=884"></script>
-<script src="zpark.js?v=884"></script>
-<script src="zmenu.js?v=884"></script>
-<script src="zdevice.js?v=884"></script>
-<script src="zmusic.js?v=884"></script>
-<script src="zskill.js?v=884"></script>
-<script src="worlds.js?v=884"></script>
+<script src="firebase-state.js?v=886"></script>
+<script src="sanction.js?v=886"></script>
+<script src="zevents.js?v=886"></script>
+<script src="znet.js?v=886"></script>
+<script src="zbases.js?v=886"></script>
+<script src="charheads.js?v=886"></script>
+<script src="zmensch.js?v=886"></script>
+<script src="zfindchest.js?v=886"></script>
+<script src="zambience.js?v=886"></script>
+<script src="znight.js?v=886"></script>
+<script src="zstarter.js?v=886"></script>
+<script src="zcine.js?v=886"></script>
+<script src="zworld.js?v=886"></script>
+<script src="zlang2.js?v=886"></script>
+<script src="ztutlang.js?v=886"></script>
+<script src="zstation.js?v=886"></script>
+<script src="zmountain.js?v=886"></script>
+<script src="zfx.js?v=886"></script>
+<script src="zextra.js?v=886"></script>
+<script src="zreb6.js?v=886"></script>
+<script src="zbots.js?v=886"></script>
+<script src="zlegend.js?v=886"></script>
+<script src="ztutplus.js?v=886"></script>
+<script src="zlift.js?v=886"></script>
+<script src="zfun.js?v=886"></script>
+<script src="zguide.js?v=886"></script>
+<script src="zrules.js?v=886"></script>
+<script src="zsafe.js?v=886"></script>
+<script src="zrebguard.js?v=886"></script>
+<script src="zinbox.js?v=886"></script>
+<script src="zpass.js?v=886"></script>
+<script src="znotify.js?v=886"></script>
+<script src="zdetective.js?v=886"></script>
+<script src="zpirate.js?v=886"></script>
+<script src="zpark.js?v=886"></script>
+<script src="zmenu.js?v=886"></script>
+<script src="zdevice.js?v=886"></script>
+<script src="zmusic.js?v=886"></script>
+<script src="zskill.js?v=886"></script>
+<script src="worlds.js?v=886"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
