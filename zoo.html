@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v877 -->
+<!-- ZOO v878 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -116,6 +116,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .si.lk{opacity:.3;filter:grayscale(1)}
 .scd{position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:900;color:#FFD700}
 .sn{font-size:.52rem;font-weight:900;color:rgba(255,255,255,.85);text-align:center;max-width:52px;line-height:1.1;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
+body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zhearts,body.zmjoy #zchatbtn{visibility:hidden !important} /* v878: Lauf-Tutorial: nur Joystick zeigen */
 /* Joystick BOTTOM LEFT */
 #jzone{position:absolute;bottom:14px;left:12px;width:160px;height:160px;pointer-events:auto;z-index:120}
 #jbase{width:160px;height:160px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
@@ -252,9 +253,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=877"></script>
-<script src="rewardchests.js?v=877"></script>
-<script src="personality.js?v=877"></script>
+<script src="lang.js?v=878"></script>
+<script src="rewardchests.js?v=878"></script>
+<script src="personality.js?v=878"></script>
 </head>
 <body>
 <script>console.log('%c🦁 Mischa Zoo v795','color:#FFD700;font-size:16px;font-weight:bold');</script>
@@ -548,47 +549,47 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=877"></script>
+<script src="zgfx.js?v=878"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=877"></script>
-<script src="sanction.js?v=877"></script>
-<script src="zevents.js?v=877"></script>
-<script src="znet.js?v=877"></script>
-<script src="zbases.js?v=877"></script>
-<script src="charheads.js?v=877"></script>
-<script src="zmensch.js?v=877"></script>
-<script src="zfindchest.js?v=877"></script>
-<script src="zambience.js?v=877"></script>
-<script src="znight.js?v=877"></script>
-<script src="zstarter.js?v=877"></script>
-<script src="zcine.js?v=877"></script>
-<script src="zworld.js?v=877"></script>
-<script src="zstation.js?v=877"></script>
-<script src="zmountain.js?v=877"></script>
-<script src="zfx.js?v=877"></script>
-<script src="zextra.js?v=877"></script>
-<script src="zreb6.js?v=877"></script>
-<script src="zbots.js?v=877"></script>
-<script src="zlegend.js?v=877"></script>
-<script src="ztutplus.js?v=877"></script>
-<script src="zlift.js?v=877"></script>
-<script src="zfun.js?v=877"></script>
-<script src="zguide.js?v=877"></script>
-<script src="zrules.js?v=877"></script>
-<script src="zsafe.js?v=877"></script>
-<script src="zrebguard.js?v=877"></script>
-<script src="zpass.js?v=877"></script>
-<script src="znotify.js?v=877"></script>
-<script src="zdetective.js?v=877"></script>
-<script src="zpirate.js?v=877"></script>
-<script src="zpark.js?v=877"></script>
-<script src="zmenu.js?v=877"></script>
-<script src="zdevice.js?v=877"></script>
-<script src="zmusic.js?v=877"></script>
-<script src="zskill.js?v=877"></script>
-<script src="worlds.js?v=877"></script>
+<script src="firebase-state.js?v=878"></script>
+<script src="sanction.js?v=878"></script>
+<script src="zevents.js?v=878"></script>
+<script src="znet.js?v=878"></script>
+<script src="zbases.js?v=878"></script>
+<script src="charheads.js?v=878"></script>
+<script src="zmensch.js?v=878"></script>
+<script src="zfindchest.js?v=878"></script>
+<script src="zambience.js?v=878"></script>
+<script src="znight.js?v=878"></script>
+<script src="zstarter.js?v=878"></script>
+<script src="zcine.js?v=878"></script>
+<script src="zworld.js?v=878"></script>
+<script src="zstation.js?v=878"></script>
+<script src="zmountain.js?v=878"></script>
+<script src="zfx.js?v=878"></script>
+<script src="zextra.js?v=878"></script>
+<script src="zreb6.js?v=878"></script>
+<script src="zbots.js?v=878"></script>
+<script src="zlegend.js?v=878"></script>
+<script src="ztutplus.js?v=878"></script>
+<script src="zlift.js?v=878"></script>
+<script src="zfun.js?v=878"></script>
+<script src="zguide.js?v=878"></script>
+<script src="zrules.js?v=878"></script>
+<script src="zsafe.js?v=878"></script>
+<script src="zrebguard.js?v=878"></script>
+<script src="zpass.js?v=878"></script>
+<script src="znotify.js?v=878"></script>
+<script src="zdetective.js?v=878"></script>
+<script src="zpirate.js?v=878"></script>
+<script src="zpark.js?v=878"></script>
+<script src="zmenu.js?v=878"></script>
+<script src="zdevice.js?v=878"></script>
+<script src="zmusic.js?v=878"></script>
+<script src="zskill.js?v=878"></script>
+<script src="worlds.js?v=878"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -2633,7 +2634,7 @@ const ZG={
     // Check for admin announcement
     setTimeout(()=>_listenAnnouncement(),1500);
     // Check for update news (shown once per news id)
-    setTimeout(()=>_checkNews(),2200);
+    setTimeout(()=>{ try{ if(ZS.zoo&&ZS.zoo.tutorialSeen) _checkNews(); }catch(e){} },2200); // v878: nicht beim allerersten Start
     ZChat.show(); ZChat._startListen(); _announceSecrets();
     // Restore admin button if previously unlocked
     if(ZAdmin._hasAccess||ZS.isAdmin||localStorage.getItem('zoo_secret_admin')===ZS.player){
@@ -8522,7 +8523,7 @@ const ZG={
 // Überspringen) — nur der allererste Willkommens-Schritt hat einen
 // echten Weiter-Knopf, weil da noch nichts zu tun ist.
 const TUTORIAL_STEPS=[
-  {id:'welcome', title:'🎄 Willkommen in deinem Weihnachts-Zoo!', text:'Baue deinen eigenen Zoo, sammle Tiere und verdiene Mischataler — und mit ein bisschen Glück bringt dir das Christkind die besten Tiere. Lass uns kurz die wichtigsten Sachen zeigen.', target:null, action:'button'},
+  {id:'welcome', title:'🎄 Willkommen in deinem Weihnachts-Zoo!', text:'Baue deinen eigenen Zoo, sammle Tiere und verdiene Mischataler — und mit ein bisschen Glück bringt dir das Christkind die besten Tiere. Lass uns kurz die wichtigsten Sachen zeigen.', target:null, action:'button', blackout:true},
   {id:'meadow', title:'🌿 Laufen lernen', text:'Hier üben wir das Laufen — mitten auf einer grünen Wiese! Benutze den <b>Joystick</b> (am Computer: W A S D) und lauf einmal nach <b>links</b>, nach <b>rechts</b>, nach <b>vorne</b> und nach <b>hinten</b>.<div id="tm-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px"></div>', target:null, action:'meadow'},
   {id:'portal', title:'🌀 Das Portal', text:'Super gemacht! 🎉 In der Ecke ist ein <b>Portal</b> aufgegangen. Folge dem Pfeil und lauf hinein — es bringt dich in deinen Zoo!', target:null, arrow:true, arrowTarget:{x:1215,z:1185}, action:'meadowportal'},
   {id:'gondola', title:'🚡 Zur Gondel', text:'Die Gondel ist dort, wo du Tiere bekommst. Folge dem Pfeil und lauf zur Gondelstation. Wenn du dort bist, tippe/klicke irgendwo auf den Bildschirm – dann öffnet sich die Gondel-Karte (dort kaufst du Tiere und Glück)!', target:null, arrow:true, arrowTarget:{x:0,z:0}, action:'panel:gond'},
@@ -17619,10 +17620,9 @@ function _announceSecrets(){
   // Check time-based secrets on load
   setTimeout(()=>{SECRETS.checkNightOwl();SECRETS.checkGoldenHour();},2000);
   if(localStorage.getItem('zoo_secrets_announced')) return;
-  localStorage.setItem('zoo_secrets_announced','1');
-  setTimeout(()=>{
-    ZP.toast('🔐 Psst... Es gibt Geheimnisse im Zoo. Finde sie!',5000);
-  },8000);
+  // v878: erst nach dem Tutorial (im „echten“ Zoo), nicht beim allerersten Start
+  const _try=(n)=>{ try{ if(!(ZS.zoo&&ZS.zoo.tutorialSeen)||(window.Tutorial&&Tutorial._active)){ if(n<200) setTimeout(()=>_try(n+1),15000); return; } localStorage.setItem('zoo_secrets_announced','1'); setTimeout(()=>ZP.toast('🔐 Psst... Es gibt Geheimnisse im Zoo. Finde sie!',5000),20000); }catch(e){} };
+  setTimeout(()=>_try(0),8000);
 }
 
 

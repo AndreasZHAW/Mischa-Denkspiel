@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v877';
+const APP_VERSION = 'v878';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -639,10 +639,10 @@ const App = {
         <canvas id="wm-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
       </div>
       ${window.MISCHA_TESTMODE ? `<button onclick="App._showBgDiagnostic()" style="position:fixed;bottom:16px;right:16px;z-index:99998;background:#000;color:#0f0;border:2px solid #0f0;padding:8px 12px;border-radius:8px;font-size:.7rem;font-family:monospace;cursor:pointer">🔍 BG-Diagnose</button>` : ''}
-      <div class="page">
+      <div class="page" data-zs="1">
         <div class="game-logo">
           <span class="logo-emoji">🎮</span>
-          <h1>Mischa<br>Denkspiel</h1>
+          <h1>Mischa Zoo 3D</h1>
           <p class="subtitle">${typeof t!=='undefined'?t('welcome.subtitle'):'Verdiene 🌀 MT · Baue deinen Weihnachts-Zoo!'}</p>
           <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.5px">📦 ${APP_VERSION}</p>
           
@@ -767,6 +767,8 @@ const App = {
   },
 
   _showBoardingScene(playerName, charEmoji, mtLeft) {
+    // v878: Boarding-/Schlitten-Szene (Janosch Reindeer Sleigh) vorerst deaktiviert – Code bleibt für später. Direkt in den Zoo.
+    if(!window.MISCHA_BOARDING_SCENE){ try{ window.location.href='zoo.html?autostart=1'; }catch(e){} return; }
     const PLAYER_NAME=playerName||'', PLAYER_EMOJI=charEmoji||'🧭';
     console.log('[Boarding-debug] Boarding-Szene wird aufgebaut (Fenster '+innerWidth+'x'+innerHeight+')');
     const ov=document.createElement('div'); ov.id='boarding-scene';
@@ -1222,7 +1224,7 @@ const App = {
     this.selectedChar = null; this.selectedColor = null;
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
-      <div class="page">
+      <div class="page" data-zs="1">
         <div class="card" style="max-width:560px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
             <button onclick="App.showWelcome()" style="background:none;border:none;font-size:1.3rem;cursor:pointer">◀</button>
@@ -1273,7 +1275,7 @@ const App = {
 
     this._html(`
       <div class="mountain-bg"><div class="sky-gradient"></div><div class="cloud cloud-1"></div>${mountainSVG()}</div>
-      <div class="page">
+      <div class="page" data-zs="1">
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
             <button onclick="App.showCharSelect()" style="background:none;border:none;font-size:1.3rem;cursor:pointer">◀</button>
@@ -1305,9 +1307,7 @@ const App = {
     this._selectedAgeRange = val;
     document.querySelectorAll('#p-agerange button').forEach(b=>{
       const on = b.dataset.val===val;
-      b.style.border = on ? '2px solid #29B6F6' : '2px solid #D0D7E2';
-      b.style.background = on ? 'rgba(41,182,246,.15)' : '#F4F7FB';
-      b.style.color = on ? '#1976A8' : 'var(--text-dark)';
+      b.classList.toggle('zs-on',on);
     });
   },
 
@@ -1378,7 +1378,7 @@ const App = {
         <div style="position:absolute;inset:0;background:#000"></div>
         <canvas id="login-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
       </div>
-      <div class="page">
+      <div class="page" data-zs="1">
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
             <button onclick="App.showWelcome()" style="background:none;border:none;font-size:1.3rem;cursor:pointer">◀</button>

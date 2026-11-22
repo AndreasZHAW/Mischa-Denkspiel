@@ -21,11 +21,11 @@
     A.rainOn=!rain.paused;
   },250);
   /* ── Intro-Szene (Kino-Stil: Erde, Sonnenflare, Metall-Logo, Flammen) ── */
-  function splash(){
+  function splash(opt){
     // Früher: nur 1× pro Browser-Sitzung → bei jedem weiteren Login im selben Tab kam der Einstieg nie wieder.
     // Jetzt: immer, wenn man frisch vom Login/Kino kommt (autostart=1) oder zum ersten Mal in dieser Sitzung.
     // Kein erneutes Abspielen bei F5/Neuladen (dort würde er nerven).
-    try{
+    if(!opt) try{
       let nav='navigate'; try{ const e=performance.getEntriesByType('navigation')[0]; if(e&&e.type) nav=e.type; }catch(_){}
       const fresh=/[?&]autostart=1\b/.test(location.search) && nav!=='reload' && nav!=='back_forward';
       const seen=!!sessionStorage.getItem('zsplash');
@@ -33,7 +33,7 @@
       sessionStorage.setItem('zsplash','1'); console.log('[Intro-debug] Kino-Intro startet (autostart='+/[?&]autostart=1/.test(location.search)+', nav='+nav+')');
     }catch(e){}
     // Szene läuft jetzt so lange wie das ganze Lied (~18 s): alle Zeiten der ursprünglichen 10,4-s-Fassung werden mit K gestreckt
-    const K=1.74, DUR=10.4*K;
+    const SH=!!(opt&&opt.short); const K=SH?.385:1.74, DUR=10.4*K;
     const css=document.createElement('style');
     css.textContent=
      '#z-splash{position:fixed;inset:0;z-index:2147483000;background:#000;overflow:hidden;transition:opacity .9s;user-select:none;font-family:"Trajan Pro","Cinzel",Georgia,"Times New Roman",serif;perspective:900px}'
@@ -114,7 +114,7 @@
     let t0=0, raf=0, last=0;
     function frame(now){
       if(done) return; const rt=(now-t0)/1000, t=rt/K, dt=Math.min(.05,(now-(last||now))/1000); last=now;
-      const w=cv.width, hh=cv.height, m=Math.min(w,hh), beat=Math.max(0,1-(((rt-.75)%1.75+1.75)%1.75)*1.6)*(rt>4?1:0); /* Puls auf den Stomps des Lieds (alle 1,75 s ab 0,75 s) */
+      const w=cv.width, hh=cv.height, m=Math.min(w,hh), beat=Math.max(0,1-(((rt-.75)%1.75+1.75)%1.75)*1.6)*(rt>4&&!SH?1:0); /* Puls auf den Stomps des Lieds (alle 1,75 s ab 0,75 s) */
       cx.setTransform(1,0,0,1,0,0); cx.fillStyle='#02040c'; cx.fillRect(0,0,w,hh);
       const bg=cx.createRadialGradient(w*.55,hh*.4,0,w*.55,hh*.4,m*1.1); bg.addColorStop(0,'#0d1a35'); bg.addColorStop(1,'#02040c'); cx.fillStyle=bg; cx.fillRect(0,0,w,hh);
       stars.forEach(s=>{ const tw=.55+.45*Math.sin(t*2+s.a); cx.fillStyle='rgba(255,255,255,'+(.25+.6*s.z)*tw+')'; const sx=((s.x-t*.004*s.z)%1+1)%1*w; cx.fillRect(sx,s.y*hh,s.r*(w/600),s.r*(w/600)); });
@@ -145,7 +145,7 @@
           const gg=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,rad); const c=k<.15?'255,220,120':k<.5?'255,130,30':'190,40,10'; gg.addColorStop(0,'rgba('+c+','+a+')'); gg.addColorStop(1,'rgba('+c+',0)'); cx.fillStyle=gg; cx.beginPath(); cx.arc(p.x,p.y,rad,0,7); cx.fill(); }
         cx.globalCompositeOperation='source-over'; if(fl.length>1400) fl.splice(0,fl.length-1400); }
       // Aufprall-Blitze bei den Schlägen des Sounds
-      let fx=0; for(let hi=1;hi<=8;hi++){ const d=rt-(.75+1.75*hi); if(d>=0&&d<.5) fx=Math.max(fx,(1-d/.5)*.45); } if(fx>0){ cx.fillStyle='rgba(255,245,225,'+fx*.7+')'; cx.fillRect(0,0,w,hh); }
+      let fx=0; for(let hi=1;hi<=(SH?0:8);hi++){ const d=rt-(.75+1.75*hi); if(d>=0&&d<.5) fx=Math.max(fx,(1-d/.5)*.45); } if(fx>0){ cx.fillStyle='rgba(255,245,225,'+fx*.7+')'; cx.fillRect(0,0,w,hh); }
       // Vignette
       const vg=cx.createRadialGradient(w/2,hh/2,m*.45,w/2,hh/2,Math.max(w,hh)*.75); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.7)'); cx.fillStyle=vg; cx.fillRect(0,0,w,hh);
       if(t<10.4) raf=requestAnimationFrame(frame);
@@ -154,11 +154,11 @@
     A.splash=true; let done=false, began=false;
     const B=()=>window.ZBgm&&ZBgm.au;
     const duck=on=>{ try{ if(B()) B().muted=on; }catch(e){} };
-    const finish=()=>{ if(done) return; done=true; cancelAnimationFrame(raf); o.classList.add('out'); try{ au.pause(); }catch(e){} duck(false); window.removeEventListener('resize',rs); setTimeout(()=>{ o.remove(); css.remove(); A.splash=false; },950); };
-    const begin=()=>{ if(began) return; began=true; o.classList.add('go'); const tp=o.querySelector('.zs-tap'); if(tp) tp.style.display='none'; duck(true); t0=performance.now(); raf=requestAnimationFrame(frame); setTimeout(finish,DUR*1000); setTimeout(()=>{ o.onclick=finish; },1800); };
+    const finish=()=>{ if(done) return; done=true; cancelAnimationFrame(raf); o.classList.add('out'); try{ au.pause(); }catch(e){} duck(false); window.removeEventListener('resize',rs); setTimeout(()=>{ o.remove(); css.remove(); A.splash=false; try{ opt&&opt.onDone&&opt.onDone(); }catch(e){} },950); };
+    const begin=()=>{ if(began) return; began=true; o.classList.add('go'); const tp=o.querySelector('.zs-tap'); if(tp) tp.style.display='none'; duck(true); t0=performance.now(); raf=requestAnimationFrame(frame); setTimeout(finish,DUR*1000); setTimeout(()=>{ try{ const iv=setInterval(()=>{ au.volume=Math.max(0,au.volume-.07); if(au.volume<=0) clearInterval(iv); },60); }catch(e){} },Math.max(0,(DUR-.9)*1000)); setTimeout(()=>{ o.onclick=finish; },1800); };
     let p; try{ p=au.play(); }catch(e){}
-    if(p&&p.then) p.then(begin).catch(()=>{ o.querySelector('.zs-tap').style.display='block'; const go=()=>{ if(began) return; try{ au.currentTime=0; au.play().catch(()=>{}); }catch(e){} begin(); }; o.addEventListener('pointerdown',go,{once:true}); setTimeout(()=>{ if(!began){ begin(); } },8000); });
+    if(p&&p.then) p.then(begin).catch(()=>{ if(SH){ begin(); return; } o.querySelector('.zs-tap').style.display='block'; const go=()=>{ if(began) return; try{ au.currentTime=0; au.play().catch(()=>{}); }catch(e){} begin(); }; o.addEventListener('pointerdown',go,{once:true}); setTimeout(()=>{ if(!began){ begin(); } },8000); });
     else begin();
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',splash); else splash();
+  A.playIntro=splash; /* v878: wird von intro.html gestartet (voll beim 1. Öffnen, 4 s danach) */
 })();

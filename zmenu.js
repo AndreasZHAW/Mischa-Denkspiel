@@ -53,7 +53,7 @@
       $('zm-ok').onclick=done; o.onclick=e=>{ if(e.target===o) done(); };
       o.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{ const id=NEWS[+b.dataset.n][3]; done(); if(id==='news'){ M.open(); return; } const e=E.find(x=>x.id===id); let lk=false; try{ lk=e.show&&!e.show(); }catch(er){} if(lk) return toast('🔒 '+e.lock); seen()[id]=1; save(); try{ e.go(); }catch(er){} }); };
     // beim Start einmal zeigen (erst wenn das Spiel läuft und nichts anderes offen ist)
-    let tries=0; const iv=setInterval(()=>{ tries++; try{ const z=zoo(); if(!z||tries>60){ clearInterval(iv); return; } if(z.newsSeen===NEWS_ID){ clearInterval(iv); return; } if(tries<4||$('s-login')&&$('s-login').offsetParent||document.querySelector('[id*="intro"]:not([style*="none"])')&&0) return; if(document.querySelector('#zm-ov,#zd-ov,#zpi-ov')) return; clearInterval(iv); M.news(); }catch(e){} },2500);
+    let tries=0; const iv=setInterval(()=>{ tries++; try{ const z=zoo(); if(!z||tries>60){ clearInterval(iv); return; } if(z.newsSeen===NEWS_ID){ clearInterval(iv); return; } if(!z.tutorialSeen||(window.Tutorial&&Tutorial._active)){ if(!z.tutorialSeen&&!(z.reb>0)&&!(z.te>0)){ z.newsSeen=NEWS_ID; save(); clearInterval(iv); } else tries--; return; } if(tries<4||$('s-login')&&$('s-login').offsetParent||document.querySelector('[id*="intro"]:not([style*="none"])')&&0) return; if(document.querySelector('#zm-ov,#zd-ov,#zpi-ov')) return; clearInterval(iv); M.news(); }catch(e){} },2500);
   }
   wait();
 })();

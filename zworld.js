@@ -1427,14 +1427,14 @@
     _flash(){ const f=document.createElement('div'); f.style.cssText='position:fixed;inset:0;z-index:9690;background:#fff;opacity:1;transition:opacity 1.1s;pointer-events:none'; document.body.appendChild(f); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.opacity='0'; })); setTimeout(()=>f.remove(),1400); },
     _ov(){ return document.getElementById('tut-overlay'); },
     _box(){ const o=M._ov(); if(!o) return null; return Array.from(o.children).find(e=>e.style&&e.style.zIndex==='9701'&&e.tagName==='DIV'&&!e.id)||null; },
-    _killFx(){ ['zm-dim','zm-ring'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); },
+    _killFx(){ ['zm-dim','zm-ring'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); try{ const jz=document.getElementById('jzone'); if(jz) jz.style.zIndex=''; document.body.classList.remove('zmjoy'); }catch(e){} },
     _joyVisible(){ let touch=false; try{ touch=matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){} if(!touch) return null; const j=document.getElementById('jzone'); if(!j) return null; const r=j.getBoundingClientRect(); return (r.width>20&&r.height>20&&getComputedStyle(j).display!=='none')?j:null; },
     // Stufe 1: alles schwarz ausser dem Joystick (nur wenn es einen Joystick gibt)
     _joyStage(){
       const j=M._joyVisible(), o=M._ov(), box=M._box(); if(!o) return;
       const td=o.firstElementChild; if(td&&td!==box) td.style.display='none';
       if(!j){ M._infoStage(); return; }
-      const r=j.getBoundingClientRect(), pad=14, L=Math.max(0,r.left-pad), T=Math.max(0,r.top-pad), R=r.right+pad, B=r.bottom+pad;
+      try{ j.style.zIndex='9700'; j.style.opacity='1'; j.style.visibility='visible'; document.body.classList.add('zmjoy'); }catch(e){} const r=j.getBoundingClientRect(), pad=14, L=Math.max(0,r.left-pad), T=Math.max(0,r.top-pad), R=r.right+pad, B=r.bottom+pad;
       const d=document.createElement('div'); d.id='zm-dim'; d.style.cssText='position:fixed;inset:0;z-index:9699;pointer-events:none;background:rgba(0,0,0,.95);clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,'+L+'px '+T+'px,'+R+'px '+T+'px,'+R+'px '+B+'px,'+L+'px '+B+'px,'+L+'px '+T+'px)'; document.body.appendChild(d);
       const ring=document.createElement('div'); ring.id='zm-ring'; ring.style.cssText='position:fixed;z-index:9699;pointer-events:none;left:'+L+'px;top:'+T+'px;width:'+(R-L)+'px;height:'+(B-T)+'px;border:3px solid #FFD700;border-radius:50%;box-shadow:0 0 24px rgba(255,215,0,.9);animation:tutPulse 1.1s infinite'; document.body.appendChild(ring);
       if(box){ box.style.top='14%'; box.style.bottom='auto'; box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:1.05rem;margin-bottom:6px">🕹️ Das ist dein Joystick</div><div style="font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.4">Er ist unten links. <b>Berühre ihn</b> und schiebe ihn in eine Richtung — dann läufst du los. Mit dem Finger auf dem restlichen Bildschirm schaust du dich um.</div><div style="margin-top:10px;font-size:.72rem;color:rgba(255,215,0,.8);font-weight:700">👉 Tippe auf den Joystick</div>'; }

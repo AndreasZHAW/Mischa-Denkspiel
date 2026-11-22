@@ -2,10 +2,14 @@
 (function(){
   'use strict';
   if(window.ZBgm) return;
-  const TR=[['m1.mp3','Piano','Leberch'],['m2.mp3','Travel Piano','Leberch'],['m3.mp3','Sad','Leberch'],['m4.mp3','Background Music','Sub_Clair']];
+  const TR=[['m1.mp3','Piano','Leberch'],['m2.mp3','Travel Piano','Leberch'],['m3.mp3','Sad','Leberch'],['m4.mp3','Background Music','Sub_Clair'],['zoo.mp3','Unser Zoo-Lied','Mischa Zoo'],['kino.mp3','Kino-Thema','Mischa Zoo'],['zimmer.mp3','Epische Weite (Filmmusik-Stil)','Mischa Zoo']];
   const ls=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } };
   const lsw=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
-  const M=window.ZBgm={on:ls('zmusic_on',true),vol:ls('zmusic_vol',.35),i:ls('zmusic_i',-1),playing:false};
+  const pk=k=>{ try{ return k+'_'+(((typeof ZS!=='undefined'&&ZS.player)||'')+'').toLowerCase(); }catch(e){ return k; } };
+  const M=window.ZBgm={on:ls('zmusic_on',true),vol:ls('zmusic_vol',.35),i:ls('zmusic_i',-1),loop:false,playing:false,_pp:null};
+  // v878: Lied-Wahl + Endlosschleife gelten je Spieler
+  M.prefs=function(){ const p=pk('zmusic_pref'); if(M._pp===p) return; M._pp=p; const v=ls(p,null); if(v){ M.loop=!!v.loop; if(typeof v.i==='number'&&v.i>=0&&v.i<TR.length) M.i=v.i; } else M.loop=false; try{ au.loop=M.loop; }catch(e){} };
+  M.savePrefs=function(){ lsw(pk('zmusic_pref'),{loop:M.loop,i:M.i}); };
   const BASE=(()=>{ try{ const c=document.currentScript&&document.currentScript.src; return c?c.replace(/[^\/]*$/,''):''; }catch(e){ return ''; } })();
   M.status='Wartet auf deine erste Berührung …';
   const au=new Audio(); au.preload='none'; au.loop=false; M.au=au;
@@ -13,15 +17,17 @@
   const muted=()=>false; // v801: Spiel-Sounds sind immer aus, die Musik hat ihren eigenen Schalter
   const apply=()=>{ au.volume=Math.max(0,Math.min(1,M.vol*night())); };
   const src=i=>BASE+'music/'+TR[i][0];
+  M.play=function(i){ M.prefs(); M.on=true; lsw('zmusic_on',true); M.i=i; lsw('zmusic_i',i); M.savePrefs(); au.loop=M.loop; load(true); };
+  M.setLoop=function(v){ M.loop=!!v; au.loop=M.loop; M.savePrefs(); };
   M.next=function(userSkip){ M.i=(M.i+1+TR.length)%TR.length; lsw('zmusic_i',M.i); load(true); };
-  function load(play){ try{ au.src=src(M.i); apply(); if(play&&M.on&&!muted()&&!document.hidden&&!M._ev&&!M._adm){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); }).catch(e=>{ M.playing=false; M.status='Wartet auf deine erste Berührung …'; }); } }catch(e){} }
+  function load(play){ try{ M.prefs(); au.loop=M.loop; au.src=src(M.i); apply(); if(play&&M.on&&!muted()&&!document.hidden&&!M._ev&&!M._adm){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); }).catch(e=>{ M.playing=false; M.status='Wartet auf deine erste Berührung …'; }); } }catch(e){} }
   function fade(){ const t=M.vol*night(); au.volume=0; let k=0; const iv=setInterval(()=>{ k++; au.volume=Math.min(1,t*k/15); if(k>=15){ clearInterval(iv); apply(); } },100); }
-  M.start=function(){ if(M._ev||M._adm) return; if(!M.on||muted()) return; if(M.i<0){ M.i=Math.floor(Math.random()*TR.length); lsw('zmusic_i',M.i); } if(!au.src||au.src.indexOf(TR[M.i][0])<0) load(false); apply(); if(au.paused){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); stopSynth(); done(); }).catch(e=>{ M.playing=false; M.status=(e&&e.name==='NotAllowedError')?'Wartet auf deine erste Berührung …':'Fehler: '+(e&&e.name||'?'); }); } };
+  M.start=function(){ M.prefs(); if(M._ev||M._adm) return; if(!M.on||muted()) return; if(M.i<0){ M.i=Math.floor(Math.random()*TR.length); lsw('zmusic_i',M.i); } if(!au.src||au.src.indexOf(TR[M.i][0])<0) load(false); apply(); if(au.paused){ const p=au.play(); if(p&&p.then) p.then(()=>{ M.playing=true; M.status='Läuft'; fade(); stopSynth(); done(); }).catch(e=>{ M.playing=false; M.status=(e&&e.name==='NotAllowedError')?'Wartet auf deine erste Berührung …':'Fehler: '+(e&&e.name||'?'); }); } };
   M.stop=function(){ try{ au.pause(); }catch(e){} M.playing=false; };
   M.setOn=function(v){ M.on=!!v; lsw('zmusic_on',M.on); if(M.on) M.start(); else M.stop(); };
   M.setVol=function(v){ M.vol=Math.max(0,Math.min(1,+v)); lsw('zmusic_vol',M.vol); apply(); if(M.vol>0&&M.on&&au.paused) M.start(); };
   M.test=function(){ M.setOn(true); M.start(); };
-  au.addEventListener('ended',()=>M.next());
+  au.addEventListener('ended',()=>{ if(M.loop){ try{ au.currentTime=0; au.play(); }catch(e){} } else M.next(); });
   let errN=0; au.addEventListener('error',()=>{ errN++; M.playing=false; M.status='Fehler: Datei nicht gefunden ('+TR[M.i][0]+'). Ist der Ordner „music“ mit hochgeladen?'; if(errN===1){ try{ ZP.toast('🎵 Musik-Datei nicht gefunden – Ordner „music“ hochladen!',6000); }catch(e){} } if(errN<8) setTimeout(()=>{ if(M.on) M.next(); },3000); });
   au.addEventListener('playing',()=>{ errN=0; M.playing=true; M.status='Läuft'; });
   // Start nach erster Berührung (Browser erlauben sonst keinen Ton)
@@ -39,10 +45,13 @@
     const cur=M.i>=0?TR[M.i]:null; const pct=Math.round(M.vol*100);
     d.innerHTML='<div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.6rem">🎵</span><div style="flex:1"><div style="font-weight:900;font-size:.95rem">Hintergrundmusik</div><div id="zmusic-now" style="font-size:.75rem;color:rgba(255,255,255,.65)">'+(M.on?(M.playing&&cur?'♪ '+cur[1]+' · '+cur[2]:M.status):'Aus')+'</div></div><button id="zmusic-t" style="border:none;border-radius:20px;padding:7px 13px;font-weight:900;color:#fff;background:'+(M.on?'#43a047':'#757575')+'">'+(M.on?'AN':'AUS')+'</button></div>'
       +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px"><span>🔈</span><input id="zmusic-v" type="range" min="0" max="100" value="'+pct+'" style="flex:1"><span>🔊</span><b id="zmusic-p" style="width:38px;text-align:right;font-size:.8rem">'+pct+'%</b></div>'
-      +'<button id="zmusic-n" style="width:100%;margin-top:8px;padding:8px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-weight:900">⏭ Nächstes Lied</button><div style="font-size:.65rem;opacity:.55;margin-top:6px">Lieder: Leberch, Sub_Clair</div>';
+      +'<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.85rem;font-weight:800"><input id="zmusic-l" type="checkbox" '+(M.loop?'checked':'')+' style="width:18px;height:18px"> 🔁 Endlosschleife (dieses Lied immer wieder)</label>'
+      +'<div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">'+TR.map((t,k)=>'<button data-s="'+k+'" style="text-align:left;padding:8px 10px;border:none;border-radius:10px;font-weight:800;font-size:.82rem;color:#fff;background:'+(k===M.i&&M.on?'rgba(255,213,79,.35)':'rgba(255,255,255,.12)')+'">'+(k===M.i&&M.on&&M.playing?'♪ ':'')+t[1]+' <span style="opacity:.55;font-weight:400">· '+t[2]+'</span></button>').join('')+'</div>'
+      +'<button id="zmusic-n" style="width:100%;margin-top:8px;padding:8px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-weight:900">⏭ Nächstes Lied</button><div style="font-size:.65rem;opacity:.55;margin-top:6px">Lieder: Leberch, Sub_Clair, Mischa Zoo</div>';
     setTimeout(()=>{ const t=document.getElementById('zmusic-t'), v=document.getElementById('zmusic-v'), n=document.getElementById('zmusic-n'); if(!t) return;
       t.onclick=()=>{ M.setOn(!M.on); const c=document.getElementById('zmusic-card'); if(c&&c.parentNode){ c.parentNode.replaceChild(M.card(),c); } };
       v.oninput=()=>{ M.setVol(v.value/100); document.getElementById('zmusic-p').textContent=v.value+'%'; };
+      const lc=document.getElementById('zmusic-l'); if(lc) lc.onchange=()=>M.setLoop(lc.checked); document.querySelectorAll('#zmusic-card [data-s]').forEach(b=>b.onclick=()=>{ M.play(+b.dataset.s); setTimeout(()=>{ const c=document.getElementById('zmusic-card'); if(c&&c.parentNode) c.parentNode.replaceChild(M.card(),c); },400); });
       n.onclick=()=>{ if(!M.on) M.setOn(true); M.next(); setTimeout(()=>{ const c=document.getElementById('zmusic-card'); if(c&&c.parentNode) c.parentNode.replaceChild(M.card(),c); },300); }; },0);
     return d; };
   M.panel=function(){ let o=document.getElementById('zmusic-ov'); if(o) o.remove(); o=document.createElement('div'); o.id='zmusic-ov'; o.style.cssText='position:fixed;inset:0;z-index:796;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:10px;font-family:Arial,sans-serif'; o.onclick=e=>{ if(e.target===o) o.remove(); }; const b=document.createElement('div'); b.style.cssText='background:linear-gradient(160deg,#4a148c,#1a237e);border:3px solid #fff;border-radius:18px;padding:12px;max-width:420px;width:100%;color:#fff'; b.innerHTML='<div style="display:flex"><div style="flex:1;font:900 1.15rem Arial">🎵 Musik</div><button id="zmusic-x" style="border:none;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;width:32px;height:32px">✕</button></div>'; b.appendChild(M.card()); o.appendChild(b); document.body.appendChild(o); document.getElementById('zmusic-x').onclick=()=>o.remove(); };
