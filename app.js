@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v879';
+const APP_VERSION = 'v881';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -1249,7 +1249,7 @@ const App = {
                   onclick="App.selectColor('${c.color}')"></div>`).join('')}
             </div>
           </div>
-          <button id="char-next-btn" class="btn btn-primary btn-full" style="margin-top:14px;display:none" onclick="App.showProfile()">Weiter ➜</button>
+          <button id="char-next-btn" class="btn btn-primary btn-full" style="margin-top:14px;position:sticky;bottom:10px;opacity:.45;z-index:5" onclick="App.showProfile()">Weiter ➜</button>
         </div>
       </div>`);
   },
@@ -1260,15 +1260,15 @@ const App = {
     document.getElementById(`char-${id}`)?.classList.add('selected');
     const ch = CHARACTERS.find(c => c.id === id);
     const cs = document.getElementById('color-section');
-    if (ch?.hasColors) { cs.style.display='block'; document.getElementById('char-next-btn').style.display='none'; }
-    else { cs.style.display='none'; this.selectedColor=null; document.getElementById('char-next-btn').style.display='flex'; }
+    if (ch?.hasColors) { cs.style.display='block'; document.getElementById('char-next-btn').style.opacity='.45'; }
+    else { cs.style.display='none'; this.selectedColor=null; document.getElementById('char-next-btn').style.opacity='1'; }
   },
 
   selectColor(color) {
     this.selectedColor = color;
     document.querySelectorAll('.color-dot').forEach(el => el.classList.remove('selected'));
     document.getElementById(`cdot-${color.replace('#','')}`)?.classList.add('selected');
-    document.getElementById('char-next-btn').style.display = 'flex';
+    document.getElementById('char-next-btn').style.opacity = '1';
   },
 
   // ---- PROFILE ----

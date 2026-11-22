@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v879 -->
+<!-- ZOO v881 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -117,7 +117,23 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .scd{position:absolute;inset:0;border-radius:10px;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:900;color:#FFD700}
 .sn{font-size:.52rem;font-weight:900;color:rgba(255,255,255,.85);text-align:center;max-width:52px;line-height:1.1;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
 body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zhearts,body.zmjoy #zchatbtn{visibility:hidden !important} /* v878: Lauf-Tutorial: nur Joystick zeigen */
-@media (orientation:landscape) and (max-height:520px){ #tut-overlay>div[style*="2147483600"]{top:6px !important;bottom:auto !important;max-height:calc(100vh - 12px);overflow-y:auto;width:min(470px,60vw) !important;padding:10px 14px !important;font-size:.92em} }
+@media (orientation:landscape) and (max-height:520px){ #tut-overlay>div[style*="2147483600"]{top:6px !important;bottom:auto !important;max-height:calc(100vh - 12px) !important;overflow-y:auto !important;width:min(470px,60vw) !important;padding:10px 14px !important;font-size:.92em} }
+/* v880: Handy im Querformat – Bedienelemente verkleinern (iPad/PC bleiben unverändert) */
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
+  #jzone,#hleft,#wbar,#zhearts,#zm-fab,#chat-toggle-btn,#iprompt{zoom:.72}
+  #wbar{zoom:.66}
+  #zhearts{zoom:.7;bottom:103px !important}
+  #mmap{width:62px !important;height:62px !important;top:6px !important;right:8px !important}
+  #home-arrow-wrap{zoom:.6;top:122px !important;right:13px !important}
+  #zh-btn{zoom:.7;top:11px !important;right:111px !important;bottom:auto !important}
+  #zx-map{zoom:.7;top:86px !important;right:111px !important;bottom:auto !important}
+  #zdrone-btn,#zdet-btn{zoom:.72;right:11px !important;top:auto !important}
+  #zdet-btn{bottom:92px !important}
+  #zdrone-btn{bottom:142px !important}
+  #jump-fixed-btn{zoom:.78;right:10px !important;bottom:8px !important;top:auto !important}
+  .zp .zpi,.pnl,.zpi{max-height:92vh !important;overflow-y:auto !important}
+  #tut-overlay>div[style*="2147483600"]{font-size:.85em}
+}
 /* Joystick BOTTOM LEFT */
 #jzone{position:absolute;bottom:14px;left:12px;width:160px;height:160px;pointer-events:auto;z-index:120}
 #jbase{width:160px;height:160px;border-radius:50%;background:rgba(0,0,0,.45);border:2.5px solid rgba(255,255,255,.3);position:relative}
@@ -254,9 +270,9 @@ body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zheart
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=879"></script>
-<script src="rewardchests.js?v=879"></script>
-<script src="personality.js?v=879"></script>
+<script src="lang.js?v=881"></script>
+<script src="rewardchests.js?v=881"></script>
+<script src="personality.js?v=881"></script>
 </head>
 <body>
 <script>
@@ -574,47 +590,47 @@ body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zheart
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=879"></script>
+<script src="zgfx.js?v=881"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=879"></script>
-<script src="sanction.js?v=879"></script>
-<script src="zevents.js?v=879"></script>
-<script src="znet.js?v=879"></script>
-<script src="zbases.js?v=879"></script>
-<script src="charheads.js?v=879"></script>
-<script src="zmensch.js?v=879"></script>
-<script src="zfindchest.js?v=879"></script>
-<script src="zambience.js?v=879"></script>
-<script src="znight.js?v=879"></script>
-<script src="zstarter.js?v=879"></script>
-<script src="zcine.js?v=879"></script>
-<script src="zworld.js?v=879"></script>
-<script src="zstation.js?v=879"></script>
-<script src="zmountain.js?v=879"></script>
-<script src="zfx.js?v=879"></script>
-<script src="zextra.js?v=879"></script>
-<script src="zreb6.js?v=879"></script>
-<script src="zbots.js?v=879"></script>
-<script src="zlegend.js?v=879"></script>
-<script src="ztutplus.js?v=879"></script>
-<script src="zlift.js?v=879"></script>
-<script src="zfun.js?v=879"></script>
-<script src="zguide.js?v=879"></script>
-<script src="zrules.js?v=879"></script>
-<script src="zsafe.js?v=879"></script>
-<script src="zrebguard.js?v=879"></script>
-<script src="zpass.js?v=879"></script>
-<script src="znotify.js?v=879"></script>
-<script src="zdetective.js?v=879"></script>
-<script src="zpirate.js?v=879"></script>
-<script src="zpark.js?v=879"></script>
-<script src="zmenu.js?v=879"></script>
-<script src="zdevice.js?v=879"></script>
-<script src="zmusic.js?v=879"></script>
-<script src="zskill.js?v=879"></script>
-<script src="worlds.js?v=879"></script>
+<script src="firebase-state.js?v=881"></script>
+<script src="sanction.js?v=881"></script>
+<script src="zevents.js?v=881"></script>
+<script src="znet.js?v=881"></script>
+<script src="zbases.js?v=881"></script>
+<script src="charheads.js?v=881"></script>
+<script src="zmensch.js?v=881"></script>
+<script src="zfindchest.js?v=881"></script>
+<script src="zambience.js?v=881"></script>
+<script src="znight.js?v=881"></script>
+<script src="zstarter.js?v=881"></script>
+<script src="zcine.js?v=881"></script>
+<script src="zworld.js?v=881"></script>
+<script src="zstation.js?v=881"></script>
+<script src="zmountain.js?v=881"></script>
+<script src="zfx.js?v=881"></script>
+<script src="zextra.js?v=881"></script>
+<script src="zreb6.js?v=881"></script>
+<script src="zbots.js?v=881"></script>
+<script src="zlegend.js?v=881"></script>
+<script src="ztutplus.js?v=881"></script>
+<script src="zlift.js?v=881"></script>
+<script src="zfun.js?v=881"></script>
+<script src="zguide.js?v=881"></script>
+<script src="zrules.js?v=881"></script>
+<script src="zsafe.js?v=881"></script>
+<script src="zrebguard.js?v=881"></script>
+<script src="zpass.js?v=881"></script>
+<script src="znotify.js?v=881"></script>
+<script src="zdetective.js?v=881"></script>
+<script src="zpirate.js?v=881"></script>
+<script src="zpark.js?v=881"></script>
+<script src="zmenu.js?v=881"></script>
+<script src="zdevice.js?v=881"></script>
+<script src="zmusic.js?v=881"></script>
+<script src="zskill.js?v=881"></script>
+<script src="worlds.js?v=881"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8551,7 +8567,7 @@ const TUTORIAL_STEPS=[
   {id:'welcome', title:'🎄 Willkommen in deinem Weihnachts-Zoo!', text:'Baue deinen eigenen Zoo, sammle Tiere und verdiene Mischataler — und mit ein bisschen Glück bringt dir das Christkind die besten Tiere. Lass uns kurz die wichtigsten Sachen zeigen.', target:null, action:'button', blackout:true},
   {id:'meadow', title:'🌿 Laufen lernen', text:'Hier üben wir das Laufen — mitten auf einer grünen Wiese! Benutze den <b>Joystick</b> (am Computer: W A S D) und lauf einmal nach <b>links</b>, nach <b>rechts</b>, nach <b>vorne</b> und nach <b>hinten</b>.<div id="tm-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px"></div>', target:null, action:'meadow'},
   {id:'portal', title:'🌀 Das Portal', text:'Super gemacht! 🎉 In der Ecke ist ein <b>Portal</b> aufgegangen. Folge dem Pfeil und lauf hinein — es bringt dich in deinen Zoo!', target:null, arrow:true, arrowTarget:{x:1215,z:1185}, action:'meadowportal', noDim:true, boxTop:true},
-  {id:'gondola', title:'🚡 Zur Gondel', text:'Die Gondel ist dort, wo du Tiere bekommst. Folge dem Pfeil und lauf zur Gondelstation. Wenn du dort bist, tippe/klicke irgendwo auf den Bildschirm – dann öffnet sich die Gondel-Karte (dort kaufst du Tiere und Glück)!', target:null, arrow:true, arrowTarget:{x:0,z:0}, action:'panel:gond'},
+  {id:'gondola', short:'Folge dem Pfeil zur Gondelstation – dort tippst du auf den Bildschirm.', title:'🚡 Zur Gondel', text:'Die Gondel ist dort, wo du Tiere bekommst. Folge dem Pfeil und lauf zur Gondelstation. Wenn du dort bist, tippe/klicke irgendwo auf den Bildschirm – dann öffnet sich die Gondel-Karte (dort kaufst du Tiere und Glück)!', target:null, arrow:true, arrowTarget:{x:0,z:0}, action:'panel:gond'},
   {id:'gluck', title:'🍀 Glück kaufen', text:'Hier in der Gondel kannst du dauerhaft Glück kaufen — mehr Glück heisst seltenere Tiere, fast wie ein besonders schönes Weihnachtsgeschenk!', target:'#gluck', action:'button', boxTop:true},
   {id:'buy', title:'🐱 Dein erstes Tier', text:'Du startest mit etwas Guthaben — kauf dir hier dein erstes Tier, dein erstes Weihnachtsgeschenk an den Zoo!', target:'#ganim', action:'buy', boxTop:true},
   {id:'carry', title:'🏠 Ins Gehege tragen', text:'Das Tier kommt nicht von allein — du trägst es! Lauf mit dem Pfeil zu deinem Gehege und tippe dort auf „ablegen“ (oder drück [E]).', target:null, arrow:true, arrowTarget:'enc', action:'placed'},
@@ -8863,6 +8879,12 @@ const Tutorial={
       box.appendChild(hint);
     }
     if(s.boxTop){ box.style.maxHeight='78vh'; box.style.overflowY='auto'; }
+    if(s.arrow){ // v880: Geh-zum-Ziel-Schritte: kleiner Hinweis oben, mit ✕ zum Wegmachen – freie Sicht auf Pfeil und Ziel
+      const sh=s.short||((s.text||'').replace(/<[^>]+>/g,'').split(/(?<=[.!])\s/)[0]);
+      box.classList.add('tut-compact'); box.style.top='8px'; box.style.bottom='auto'; box.style.width='min(400px,70vw)'; box.style.padding='8px 36px 8px 12px'; box.style.maxHeight='none'; box.style.textAlign='left';
+      box.innerHTML='<div style="font-weight:900;color:#FFD700;font-size:.9rem">'+s.title+'</div><div style="font-size:.78rem;color:rgba(255,255,255,.85);margin-top:2px;line-height:1.3">'+sh+'</div>';
+      const xb=document.createElement('button'); xb.textContent='✕'; xb.setAttribute('aria-label','Hinweis ausblenden'); xb.style.cssText='position:absolute;right:4px;top:4px;width:30px;height:30px;border:none;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:.9rem;pointer-events:auto;cursor:pointer'; xb.onclick=()=>box.remove(); box.appendChild(xb);
+    }
     if(s.action==='button'){ box.style.maxHeight=box.style.maxHeight||'calc(100vh - 230px)'; box.style.overflowY='auto'; box.style.touchAction='pan-y'; box.style.webkitOverflowScrolling='touch'; box.style.overscrollBehavior='contain'; }
     overlay.appendChild(box);
     if(s.action!=='button'){
@@ -17139,6 +17161,7 @@ const SECRETS = {
   // Check and trigger secrets
   check(type, data){
     if(this.unlocked[type]) return;
+    try{ if((window.Tutorial&&Tutorial._active)||(window.ZMeadow&&ZMeadow.on)||!(ZS.zoo&&ZS.zoo.tutorialSeen)) return; }catch(e){} // v880: keine Geheimnisse/Geisterstunde am Anfang
     
     // SECRET 1: France Slap admin (0.1% chance)
     if(type==='france_slap_win'){
@@ -20838,13 +20861,16 @@ const ZooEvents = {
   // this shared pool anymore. ───
   _allEmergencies:['policeRaid','assault','fire','health','thief','protest','storm','influencer'],
   randomEmergency(){
+    if(this._blocked()) return;
     const pick=this._allEmergencies[Math.floor(Math.random()*this._allEmergencies.length)];
     if(typeof this[pick]==='function') this[pick]();
   },
   // Escape needs a different cadence than the other emergencies: roughly
   // once an hour on average, but NEVER more than once per rolling 24h,
   // regardless of how many times the dice come up lucky in between.
+  _blocked(){ try{ return !!((window.Tutorial&&Tutorial._active)||(window.ZMeadow&&ZMeadow.on)||!(ZS.zoo&&ZS.zoo.tutorialSeen)); }catch(e){ return false; } },
   _tryTriggerEscape(){
+    if(this._blocked()) return; // v878: keine Notfälle im Tutorial / bei neuen Spielern
     const z=ZS.zoo; if(!z) return;
     if(Date.now()-(z.lastEscapeAt||0) < 24*3600*1000) return; // already had one today
     // Checked every 10 min at ~16.7% → averages one trigger per ~60 min

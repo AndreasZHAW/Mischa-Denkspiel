@@ -33,7 +33,7 @@
       sessionStorage.setItem('zsplash','1'); console.log('[Intro-debug] Kino-Intro startet (autostart='+/[?&]autostart=1/.test(location.search)+', nav='+nav+')');
     }catch(e){}
     // Szene läuft jetzt so lange wie das ganze Lied (~18 s): alle Zeiten der ursprünglichen 10,4-s-Fassung werden mit K gestreckt
-    const SH=!!(opt&&opt.short); const K=SH?.385:1.74, DUR=10.4*K;
+    const SH=!!(opt&&opt.short); const K=SH?.48:1.74, DUR=10.4*K;
     const css=document.createElement('style');
     css.textContent=
      '#z-splash{position:fixed;inset:0;z-index:2147483000;background:#000;overflow:hidden;transition:opacity .9s;user-select:none;font-family:"Trajan Pro","Cinzel",Georgia,"Times New Roman",serif;perspective:900px}'

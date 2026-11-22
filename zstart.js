@@ -11,7 +11,7 @@
   body.zstheme .game-logo h1{font-family:"Trajan Pro","Cinzel",Georgia,"Times New Roman",serif !important;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:2.1rem;text-shadow:none;background:linear-gradient(180deg,#fff 0%,#e9c46a 45%,#b8860b 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 8px rgba(233,196,106,.35))}
   body.zstheme .game-logo .subtitle{color:#e9c46a;letter-spacing:.28em;font-size:.72rem;text-transform:uppercase;font-weight:700}
   body.zstheme .game-logo p{color:rgba(233,196,106,.45) !important}
-  body.zstheme .card{background:linear-gradient(160deg,rgba(14,22,46,.82),rgba(6,10,24,.88)) !important;border:1px solid rgba(233,196,106,.38) !important;border-radius:20px !important;box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 30px rgba(233,196,106,.08) !important;backdrop-filter:blur(10px);color:#eef}
+  body.zstheme .card{background:linear-gradient(160deg,rgba(14,22,46,.82),rgba(6,10,24,.88)) !important;border:1px solid rgba(233,196,106,.38) !important;border-radius:20px !important;box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 30px rgba(233,196,106,.08) !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;transform:none !important;color:#eef}
   body.zstheme .card-title{font-family:"Trajan Pro","Cinzel",Georgia,serif !important;color:#e9c46a !important;background:none !important;-webkit-text-fill-color:#e9c46a !important;letter-spacing:.04em;font-size:1.5rem}
   body.zstheme .card-subtitle{color:#b4bdd8 !important}
   body.zstheme .input-group label{color:#e9c46a !important;letter-spacing:.14em}
@@ -33,6 +33,8 @@
   body.zstheme #p-err,body.zstheme #l-err{color:#ff8a80 !important}
   body.zstheme .card div[style*="border-left:4px solid #27AE60"]{display:none}
   body.zstheme .card button[onclick*="ZTrailer"]{background:rgba(255,255,255,.06) !important;border:1px solid rgba(233,196,106,.55) !important;color:#e9c46a !important;font-weight:700 !important}
+  body.zstheme .card>button.btn-primary.btn-full{position:fixed !important;bottom:12px;left:50%;transform:translateX(-50%);width:min(92vw,520px) !important;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.7),0 6px 22px rgba(233,196,106,.35) !important}
+  body.zstheme .page{padding-bottom:90px !important}
   body.zstheme .game-logo{margin-top:6px}
   body.zstheme .card{box-sizing:border-box;max-width:calc(100vw - 20px)}
   body.zstheme .char-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}

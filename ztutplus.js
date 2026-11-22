@@ -162,6 +162,8 @@
   // ───────── Tutorial-Einhängung ─────────
   let stuckT=null;
   const enhance=function(i){ const Tu=Tutorial; const s=Tu._list()[i]; const ov=$('tut-overlay'); if(!ov||!s) return; const box=[...ov.children].find(e=>/2147483600/.test(e.style.zIndex)); if(!box) return;
+    try{ if(s.id==='welcome') window.ZDrama&&ZDrama.start(); else window.ZDrama&&ZDrama.stop(); }catch(e){}
+    if(box.classList.contains('tut-compact')){ M.show(); M.say(''); return; }
     // Fortschritt
     const tot=Tu._list().length, pct=Math.round((i+1)/tot*100);
     const pb=document.createElement('div'); pb.style.cssText='margin:-4px 0 8px;pointer-events:none'; pb.innerHTML='<div style="font-size:.68rem;color:rgba(255,255,255,.65);margin-bottom:3px">Schritt '+(i+1)+' von '+tot+'</div><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.18)"><div style="height:100%;width:'+pct+'%;border-radius:4px;background:linear-gradient(90deg,#ffd54f,#7dffb0)"></div></div>'; box.insertBefore(pb,box.firstChild);
@@ -184,4 +186,29 @@
     if(!ZP._zh){ ZP._zh=1; const op=ZP.open; ZP.open=function(n){ const r=op.apply(this,arguments); setTimeout(()=>{ try{ H.decorate($('p-'+n)); }catch(e){} },350); return r; }; }
   }catch(e){ setTimeout(boot,1500); } };
   window.addEventListener('load',()=>setTimeout(boot,2000));
+})();
+
+/* ZDrama (v880): dramatische Filmmusik beim schwarzen Willkommens-Fenster; blendet aus, sobald es weitergeht. */
+(function(){
+  if(window.ZDrama) return;
+  const BASE=(()=>{ try{ const c=document.currentScript&&document.currentScript.src; return c?c.replace(/[^\/]*$/,''):''; }catch(e){ return ''; } })();
+  const lg=m=>{ try{ einstiegLog('Drama-Musik: '+m); }catch(e){} };
+  let au=null, on=false, vol=.6, iv=null, unl=null;
+  const fade=(to,ms,done)=>{ if(!au) return; const from=au.volume, t0=performance.now(); const st=setInterval(()=>{ const k=Math.min(1,(performance.now()-t0)/ms); try{ au.volume=Math.max(0,Math.min(1,from+(to-from)*k)); }catch(e){} if(k>=1){ clearInterval(st); done&&done(); } },50); };
+  const D=window.ZDrama={
+    start(){
+      if(on) return; on=true;
+      try{ if(window.ZBgm){ ZBgm._adm=true; try{ ZBgm.au.pause(); }catch(e){} } }catch(e){}
+      try{ if(window.ZBgm&&ZBgm.on===false){ lg('Musik ist aus → keine Drama-Musik'); on=false; ZBgm._adm=false; return; } }catch(e){}
+      au=new Audio(BASE+'music/zimmer.mp3'); au.loop=true; au.volume=0; vol=Math.max(.25,Math.min(.8,(window.ZBgm?ZBgm.vol:.35)*1.6));
+      const go=()=>{ const p=au.play(); if(p&&p.then) p.then(()=>{ lg('läuft'); fade(vol,2500); }).catch(e=>{ lg('Autoplay blockiert → warte auf Tippen'); if(!unl){ unl=()=>{ document.removeEventListener('pointerdown',unl,true); unl=null; if(on) go(); }; document.addEventListener('pointerdown',unl,true); } }); };
+      go();
+      iv=setInterval(()=>{ if(!document.getElementById('tut-overlay')) { D.stop(); } },1500);
+    },
+    stop(){
+      if(!on) return; on=false; clearInterval(iv); iv=null; if(unl){ document.removeEventListener('pointerdown',unl,true); unl=null; }
+      const a=au; lg('Ausblenden');
+      fade(0,1400,()=>{ try{ a.pause(); }catch(e){} try{ if(window.ZBgm){ ZBgm._adm=false; ZBgm.start&&ZBgm.start(); } }catch(e){} });
+    }
+  };
 })();
