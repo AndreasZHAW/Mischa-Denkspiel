@@ -30,7 +30,7 @@
   const GLOW=[0xffb74d,0x90caf9,0x80deea,0x69f0ae,0xce93d8];
   L.rooms=ROOMS;
   const find=(n,r)=>{ try{ return ANIMALS.find(a=>a.n===n&&a.r===r); }catch(e){ return null; } };
-  const has3=()=>{ const z=zoo(); return ZReb6.isBu()||!!(z&&(z.reb||0)>=3); };
+  const has3=()=>{ const z=zoo(); return !!(z&&(z.reb||0)>=3)||(window.ZReb6&&ZReb6.preview&&ZReb6.preview()); };
   L.has3=has3;
   const st=()=>{ const z=zoo(); if(!z) return {r:[]}; let s=z.lift; if(!s) s=z.lift={r:[]}; for(let i=0;i<10;i++){ if(!s.r[i]) s.r[i]={p:[0,0,0,0,0,0],d:0}; } return s; };
   L.st=st;

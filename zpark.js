@@ -13,7 +13,7 @@
     const isAdm=()=>{ try{ const n=String(me()||'').toLowerCase(); return n==='bu:)'||n==='bu:3'||!!ZS.isAdmin; }catch(e){ return false; } };
     const P=window.ZPark={open:false,pub:false,CFG:{inc:1,price:1}};
     P.on=()=>isBu()||!!P.pub;
-    P.has=()=>((zoo().reb||0)>=8)||isAdm();
+    P.has=()=>((zoo().reb||0)>=8)||!!(window.ZReb6&&ZReb6.preview&&ZReb6.preview());
     const U=100;                          // 1 Preis-Einheit = 100 Mischtaler (hier einstellbar)
     const T=4, GM=40, EX=20, EZ=39;       // Kachelgrösse, max. Raster, Eingang
     const fmt=n=>{ n=+n||0; if(n<1e6) return Math.round(n).toLocaleString('de-CH'); const e=Math.floor(Math.log10(n)); return (n/Math.pow(10,e)).toFixed(2)+'×10^'+e; };

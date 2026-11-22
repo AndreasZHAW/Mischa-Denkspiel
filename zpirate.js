@@ -12,7 +12,7 @@
     const me=()=>ZS.player, myK=()=>key(me());
     const P=window.ZPirate={open:false};
     const isAdm=()=>{ try{ return !!(ZS.isAdmin||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)); }catch(e){ return false; } };
-    P.has=()=>((zoo().reb||0)>=7)||isAdm();
+    P.has=()=>((zoo().reb||0)>=7)||!!(window.ZReb6&&ZReb6.preview&&ZReb6.preview());
     const pir=()=>{ const z=zoo(); return z.pir||(z.pir={gold:0,total:0,u:{spd:0,hull:0,can:0,cargo:0},crew:{parrot:0,monkey:0,kraken:0,turtle:0},dug:{},cd:{},bd:{id:0,dmg:0},bc:0,sent:{day:'',n:0},kills:0}); };
     let lastSave=0; const save=(f)=>{ const n=Date.now(); if(!f&&n-lastSave<4000) return; lastSave=n; try{ ZS.save&&ZS.save(); }catch(e){} };
     // ═══════ Werte ═══════

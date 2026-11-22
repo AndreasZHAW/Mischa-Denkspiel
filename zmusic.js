@@ -89,9 +89,17 @@
     if(!h){ h=document.createElement('div'); h.id='zbgm-hud'; h.style.cssText='position:fixed;left:50%;top:44px;transform:translateX(-50%);z-index:560;pointer-events:none;padding:5px 14px;border-radius:16px;background:linear-gradient(135deg,#8e24aa,#e91e63);border:2px solid #fff;color:#fff;font:900 .85rem Arial,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.5)'; document.body.appendChild(h); }
     const r=Math.max(0,Math.round((E.until-Date.now())/1000)); h.textContent='🎉 Party-Zeit · '+Math.floor(r/60)+':'+('0'+(r%60)).slice(-2)+(allowed()?'':' · 🔇'); }catch(e){} }
   setInterval(E.tick,1000);
+  // ═══ Vorrang-Halter (v897): Trailer, Event-Jingles & Zirkus haben immer Vorrang – die Hintergrundmusik schweigt, solange einer läuft ═══
+  const HOLD={};
+  M.holdFor=function(key,ms){ HOLD[key]=Date.now()+Math.max(0,ms||0); };
+  M.held=function(){ try{ if(window.ZRebCine&&ZRebCine.on) return true; if(window.ZTrailer&&ZTrailer._playing) return true; const n=Date.now(); for(const k in HOLD){ if(HOLD[k]>n) return true; } }catch(e){} return false; };
+  let hh=0; const hookH=()=>{ try{ if(typeof ZSound!=='undefined'&&ZSound._playEventMusic&&!ZSound._mh){ ZSound._mh=1;
+      const oe=ZSound._playEventMusic; ZSound._playEventMusic=function(id){ if(!(this.style==='off'||this.style==='important')) M.holdFor('jingle',5000); return oe.apply(this,arguments); };
+      const oc=ZSound.startCircusMelody; if(typeof oc==='function') ZSound.startCircusMelody=function(dur){ if(this.style!=='off') M.holdFor('circus',(dur||60000)+1500); return oc.apply(this,arguments); }; }
+    else if(!(typeof ZSound!=='undefined'&&ZSound._mh)&&++hh<80) setTimeout(hookH,1500); }catch(e){ if(++hh<80) setTimeout(hookH,1500); } }; hookH();
   // ═══ Vorrang (v841): Admin-Lieder (Synth) > Event-Lieder (Party/Timer) > normale Hintergrundmusik – nie mehr übereinander ═══
   setInterval(()=>{ try{
-    const Z=window.ZMusic, adm=!!(Z&&Z.on&&!Z._viaBgm);
+    const Z=window.ZMusic, adm=!!(Z&&Z.on&&!Z._viaBgm)||M.held();
     if(adm&&!M._adm){ M._adm=true; M.playing=false; }
     else if(!adm&&M._adm){ M._adm=false; if(E.running()) E.tick(); else if(M.on&&!muted()&&!document.hidden) M.start(); }
     if(adm){ if(!au.paused) au.pause(); if(!ev.paused) ev.pause(); }

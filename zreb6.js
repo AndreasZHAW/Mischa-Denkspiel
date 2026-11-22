@@ -33,7 +33,11 @@
   Core.isBu=function(){ try{ return String(ZS.player||'').toLowerCase()==='bu:)'; }catch(e){ return false; } };
   Core.isAdmin=function(){ try{ const n=String(ZS.player||'').toLowerCase(); return n==='bu:)'||n==='bu:3'; }catch(e){ return false; } };
   Core.on=function(){ return Core.isBu()||!!Core.pub; };
-  Core.has=function(){ const z=zoo(); return Core.isBu()||!!(z&&(z.reb||0)>=6); };
+  // v896: nur noch die Rebirth-Zahl zählt. Admins können zum Testen bewusst "alles zeigen" einschalten (Standard: AUS).
+  Core.isAdm=function(){ try{ return Core.isAdmin()||(typeof ZAdmin!=='undefined'&&!!ZAdmin._hasAccess)||!!ZS.isAdmin; }catch(e){ return false; } };
+  Core.preview=function(){ try{ return Core.isAdm()&&localStorage.getItem('zr_prev')==='1'; }catch(e){ return false; } };
+  Core.setPreview=function(v){ try{ localStorage.setItem('zr_prev',v?'1':'0'); }catch(e){} try{ if(typeof ZG!=='undefined'&&ZG._rebGates) ZG._rebGates(); }catch(e){} try{ Core.ui(); }catch(e){} try{ if($('padmin-reb6-body')) $('padmin-reb6-body').innerHTML=Core.adminHTML(); }catch(e){} toast(v?'👁 Vorschau AN: du siehst auch Dinge, für die dir Rebirths fehlen':'👁 Vorschau AUS: du siehst nur, was zu deinem Rebirth gehört',3500); };
+  Core.has=function(){ const z=zoo(); return !!(z&&(z.reb||0)>=6)||Core.preview(); };
   Core.r6=function(){ const z=zoo(); if(!z) return {}; return z.r6||(z.r6={}); };
   Core.tick=function(){ return Math.max((window.ZShop&&ZShop.tick)||0,0); };
   Core.addFeature=function(f){ if(!Core.feats.find(x=>x.id===f.id)) Core.feats.push(f); };
@@ -46,6 +50,7 @@
     if(r){ try{ if(on) r.ref('zoo_reb6/pub').set({t:Date.now(),by:ZS.player}); else r.ref('zoo_reb6/pub').remove(); }catch(e){} }
     toast(on?'✅ Rebirth 6 veröffentlicht – alle bekommen die Meldung!':'Rebirth 6 wieder nur für Bu:)',3500); Core._pubChanged(true); };
   Core.adminHTML=function(){ const on=Core.pub; return '<div style="font-size:.8rem;line-height:1.4;color:#fff;padding:6px">Status: <b style="color:'+(on?'#7dffb0':'#ffd54f')+'">'+(on?'VERÖFFENTLICHT – alle können Rebirth 6 machen':'Nur für Bu:)')+'</b><br>Kosten: 100\'000\'000\'000 MT · Einkommen ×100<br>Beim Veröffentlichen bekommen alle Spieler die Meldung „Rebirth 6 ist da“ (mit Tutorial beim Rebirth).</div>'
+    +'<div style="margin:8px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.07);font-size:.78rem">👁 <b>Vorschau für mich:</b> '+(Core.preview()?'AN – du siehst alles, auch ohne Rebirth 6':'AUS – du siehst nur, was zu deinem Rebirth gehört')+'<br><button onclick="ZReb6.setPreview('+(Core.preview()?'false':'true')+')" style="'+bs(Core.preview()?GREY:'#1565c0')+'">'+(Core.preview()?'Vorschau ausschalten':'Vorschau einschalten (nur zum Testen)')+'</button></div>'
     +'<button id="zr6-pubbtn" onclick="if(confirm(\'Rebirth 6 für ALLE veröffentlichen?\'))ZReb6.publish(true)" style="'+bs(on?GREY:GREEN)+'">🚀 Veröffentlichen</button>'
     +'<button onclick="ZReb6.publish(false)" style="'+bs('#b71c1c')+'">↩️ Zurückziehen (nur Bu:))</button>'; };
   Core._pubChanged=function(local){ try{ if($('padmin-reb6-body')) $('padmin-reb6-body').innerHTML=Core.adminHTML(); }catch(e){}
