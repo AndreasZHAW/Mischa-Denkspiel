@@ -1593,6 +1593,9 @@ async function runAllTabsReport(){
   sections.push('── LAYOUT-/SCHRIFT-DIAGNOSE (Spiele + Intro, dieses Gerät) ──');
   sections.push(_layoutText());
   sections.push('');
+  sections.push('── NICHT ÜBERSETZTE TEXTE (dieses Gerät, Englisch/Französisch gespielt) ──');
+  try{ sections.push((JSON.parse(localStorage.getItem('zlang_missing')||'[]')).join('\n')||'(keine)'); }catch(e){ sections.push('(keine)'); }
+  sections.push('');
   sections.push('── GERÄTE-DIAGNOSE (alle Geräte, via Firebase — auch ohne Zugriff darauf) ──');
   sections.push(_deviceDiagText||'(keine Geräte-Snapshots)');
   sections.push('');

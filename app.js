@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v882';
+const APP_VERSION = 'v883';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase

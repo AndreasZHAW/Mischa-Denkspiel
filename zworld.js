@@ -1547,12 +1547,20 @@
       const rd=ZG.renderer, cv=rd.domElement, W=cv.width, H=cv.height, asp=W/H;
       const hw=asp>=1?R*asp:R, hh=asp>=1?R:R/asp; const cam=new THREE.OrthographicCamera(-hw,hw,hh,-hh,1,2000); cam.position.set(0,700,0); cam.up.set(0,0,-1); cam.lookAt(0,0,0); cam.updateMatrixWorld(); cam.updateProjectionMatrix(); K.cam=cam;
       const sc=ZG.scene, fog=sc.fog, wtint=document.getElementById('zw-tint'); sc.fog=null;
-      const hid=[]; try{ sc.traverse(o=>{ if(o.isSprite&&o.visible&&o.scale.x>40){ hid.push(o); o.visible=false; } }); }catch(e){}
+      const hid=[], restore=[]; try{ sc.traverse(o=>{ if(!o.visible) return; let hide=false;
+        if(o.isSprite) hide=true; /* v883: Schilder/Wolken-Sprites weg – die Karte beschriftet selbst */
+        else if(o.isMesh&&o.material&&o.material.color){ const c=o.material.color, gt=o.geometry&&o.geometry.type, wp=new THREE.Vector3(); try{ o.getWorldPosition(wp); }catch(e){}
+          if(gt==='SphereGeometry'&&wp.y>18&&c.r>.85&&c.g>.85&&c.b>.85) hide=true; /* Wolken (weisse Flächen) */
+          else if((gt==='CircleGeometry'||gt==='RingGeometry')&&wp.y<1.2&&c.b>c.r+.1&&c.b>.55) hide=true; /* Seen/Teiche */ }
+        if(hide){ hid.push(o); o.visible=false; }
+        else if(o.isMesh&&o.geometry&&o.material&&o.material.map&&o.geometry.type==='CircleGeometry'){ /* Boden: Seen sind in die Textur gemalt → Karte ohne Textur, einfarbig */
+          try{ if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); if(o.geometry.boundingSphere.radius*o.scale.x>300){ const m=o.material, mp=m.map, cl=m.color.getHex(); m.map=null; m.color.setHex(0x3f8f3a); m.needsUpdate=true; restore.push(()=>{ m.map=mp; m.color.setHex(cl); m.needsUpdate=true; }); } }catch(e){} }
+        if(o.isMesh&&o.geometry&&o.geometry.type==='LatheGeometry'&&o.material&&o.material.color&&o.material.color.r>.9&&o.material.color.g>.9&&o.material.color.b>.9){ hid.push(o); o.visible=false; } }); }catch(e){}
       const old=rd.getRenderTarget(); let ok=true;
       const o=document.createElement('div'); o.id='zmap'; o.style.cssText='position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;z-index:10003;background:#0a1a0a;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none';
       const sc0=Math.min(1,1280/Math.max(W,H)); const c=document.createElement('canvas'); c.width=Math.round(W*sc0); c.height=Math.round(H*sc0); c.style.cssText='width:100%;height:100%;object-fit:contain;cursor:crosshair'; o.appendChild(c);
       try{ rd.render(sc,cam); c.getContext('2d').drawImage(cv,0,0,c.width,c.height); }catch(e){ ok=false; }
-      sc.fog=fog; hid.forEach(h=>h.visible=true); try{ rd.setRenderTarget(old); }catch(e){}
+      sc.fog=fog; hid.forEach(h=>h.visible=true); restore.forEach(f=>{ try{ f(); }catch(e){} }); try{ rd.setRenderTarget(old); }catch(e){}
       if(!ok){ try{ ZP.toast('🗺️ Karte konnte nicht geladen werden.',2500); }catch(e){} return; }
       const top=document.createElement('div'); top.style.cssText='position:absolute;top:12px;left:10px;right:130px;text-align:left;line-height:1.25;color:#fff;font:900 1rem Arial;text-shadow:0 2px 6px #000;pointer-events:none'; top.innerHTML='🗺️ Zoo-Karte <span style="font-weight:600;font-size:.78rem;opacity:.85">– tippe irgendwohin, um dich hinzubeamen</span>'; o.appendChild(top);
       const x=document.createElement('button'); x.textContent='✕ Schliessen'; x.style.cssText='position:absolute;top:10px;right:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:7px 14px;font-size:.8rem;cursor:pointer'; x.onclick=e=>{ e.stopPropagation(); K.close(); }; o.appendChild(x);
@@ -1569,15 +1577,20 @@
     _marks(){
       if(!K.el) return; const mk=K.mk; mk.innerHTML='';
       const add=(x,z,html,css)=>{ const p=K._w2s(x,z); const d=document.createElement('div'); d.style.cssText='position:absolute;left:'+p.x+'px;top:'+p.y+'px;transform:translate(-50%,-50%);white-space:nowrap;font:800 '+(innerWidth<700?'.72':'.85')+'rem Arial;color:#fff;text-shadow:0 1px 4px #000,0 0 6px #000;'+(css||''); d.innerHTML=html; mk.appendChild(d); };
-      pois().forEach(p=>add(p[1],p[2],p[0])); try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach((e,i)=>add(e.x,e.z,'🏞️'+(i+1),'font-size:.62rem;opacity:.9')); }catch(e){}
-      try{ Object.values(ZG.otherPl||{}).forEach(op=>add(op.x,op.z,'<span style="color:#ff6b6b">●</span> '+(op.name||''),'font-size:.62rem')); }catch(e){}
+      pois().forEach(p=>add(p[1],p[2],p[0]));
+      /* v883: Zoos – meiner + die der Mitspieler (mit Namen), keine Einzel-Gehege/Punkte */
+      try{ const me=ZG._slotEncPos(typeof ZS.mySlot==='number'?ZS.mySlot:0).center; add(me.x,me.z,'🏠 Mein Zoo','color:#9dff9d;font-size:.78rem'); }catch(e){}
+      try{ const seen={}; const all=Object.assign({},ZG.otherPl||{},(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{});
+        Object.keys(all).forEach(k=>{ const op=all[k]; if(!op||typeof op.slotIdx!=='number'||op.slotIdx===ZS.mySlot||seen[op.slotIdx]) return; seen[op.slotIdx]=1; const ce=ZG._slotEncPos(op.slotIdx).center; add(ce.x,ce.z,'🏠 '+(op.name||k),'color:'+((op.color&&/^#?[0-9a-fA-F]{6}$/.test(op.color))?(op.color[0]==='#'?op.color:'#'+op.color):'#ffd54f')+';font-size:.78rem'); }); }catch(e){}
+      /* Beschriftungen nicht übereinanderlegen */
+      try{ const rs=[]; [...mk.children].forEach(d=>{ let r=d.getBoundingClientRect(), dy=0, n=0; const hit=()=>rs.some(q=>!(r.right<q.left||r.left>q.right||r.bottom+dy<q.top||r.top+dy>q.bottom)); while(n<8&&hit()){ dy+=(n%2?-1:1)*Math.ceil((n+1)/2)*(r.height+1); n++; } if(dy) d.style.top=(parseFloat(d.style.top)+dy)+'px'; rs.push({left:r.left,right:r.right,top:r.top+dy,bottom:r.bottom+dy}); }); }catch(e){}
       add(ZG.pl.x,ZG.pl.z,'<div style="transform:rotate('+(-ZG.yaw*180/Math.PI+180)+'deg);font-size:1.5rem;color:#FFD700;filter:drop-shadow(0 0 4px #000)">⬆️</div><div style="color:#FFD700;text-align:center">Du</div>','z-index:2');
     },
     _click(ev){
       if(ZG.carrying){ try{ ZP.toast('🐾 Du trägst noch ein Tier!',2500); }catch(e){} return; }
       const w=K._s2w(ev.clientX,ev.clientY); if(!w) return; let tx=w.x,tz=w.z, best=14;
       pois().forEach(p=>{ const d=Math.hypot(p[1]-w.x,p[2]-w.z); if(d<best){ best=d; tx=p[1]; tz=p[2]; } });
-      try{ ZG.ENCPOS().slice(0,ZS.maxE()).forEach(e=>{ const d=Math.hypot(e.x-w.x,e.z-w.z); if(d<best){ best=d; tx=e.x; tz=e.z; } }); }catch(e){}
+      try{ const zs=[ZG._slotEncPos(typeof ZS.mySlot==='number'?ZS.mySlot:0).center]; Object.values(Object.assign({},ZG.otherPl||{},(window.ZBots&&ZBots.encMap&&ZBots.encMap())||{})).forEach(o=>{ if(o&&typeof o.slotIdx==='number') zs.push(ZG._slotEncPos(o.slotIdx).center); }); zs.forEach(e=>{ const d=Math.hypot(e.x-w.x,e.z-w.z); if(d<best){ best=d; tx=e.x; tz=e.z; } }); }catch(e){}
       const rr=Math.hypot(tx,tz), lim=(ZG.WR||210)-4; if(rr>lim){ tx*=lim/rr; tz*=lim/rr; }
       ZG.pl.x=tx; ZG.pl.z=tz+(best<14?3:0); try{ ZG.pl.y=1.7; ZG.vy=0; }catch(e){} try{ ZG._recentlyBeamedAt=Date.now(); }catch(e){}
       K.close(); try{ ZP.toast('✨ Hingebeamt!',1500); }catch(e){}

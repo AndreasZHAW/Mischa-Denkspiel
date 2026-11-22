@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- v36-FINAL-163532 -->
-<!-- ZOO v882 -->
+<!-- ZOO v883 -->
 <html lang="de">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -118,9 +118,34 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:sans-serif;backgrou
 .sn{font-size:.52rem;font-weight:900;color:rgba(255,255,255,.85);text-align:center;max-width:52px;line-height:1.1;text-shadow:-1px -1px 0 #000,1px 1px 0 #000}
 body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zhearts,body.zmjoy #zchatbtn{visibility:hidden !important} /* v878: Lauf-Tutorial: nur Joystick zeigen */
 @media (orientation:landscape) and (max-height:520px){ #tut-overlay>div[style*="2147483600"]{top:6px !important;bottom:auto !important;max-height:calc(100vh - 12px) !important;overflow-y:auto !important;width:min(470px,60vw) !important;padding:10px 14px !important;font-size:.92em} }
+
+/* v883: Tutorial: nur das Nötigste zeigen (keine Fahr-/Freilassen-/Trage-/Waffen-Infos) + Joystick beim Laufen-Lernen sichtbar */
+body.tutq #zs-ride,body.tutq #zs-rx,body.tutq #carry-release,body.tutq #carry-indicator,body.tutq #iprompt{display:none !important}
+body.tutq2 #wbar,body.tutq2 #zhearts{visibility:hidden !important}
+body.zmjoy #hud{z-index:2147483000 !important}
+body.zmjoy #jzone{opacity:1 !important;filter:none !important}
+/* v883: Menü links – Handy quer: ein grosser ☰-Knopf, darunter ein Raster mit ALLEN Funktionen */
+#zmm-fab{display:none}
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
+  #zmm-fab{display:flex;position:fixed;left:8px;top:8px;z-index:640;width:58px;height:58px;border-radius:16px;align-items:center;justify-content:center;flex-direction:column;gap:0;background:rgba(10,10,10,.78);border:2.5px solid rgba(255,255,255,.5);color:#fff;font:900 1.5rem/1 Arial;box-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:auto;-webkit-tap-highlight-color:transparent}
+  #zmm-fab small{font:800 .55rem Arial;opacity:.85;margin-top:2px}
+  #zmm-fab .zmm-dot{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;background:#e63946;color:#fff;font:900 .65rem/18px Arial;text-align:center;display:none}
+  body.zmm #zmm-fab{background:#c0392b;z-index:2147}
+  body.zmm #hud{z-index:1500 !important}
+  body.zmm #mmap,body.zmm #home-arrow-wrap,body.zmm #zh-btn,body.zmm #zx-map,body.zmm #zdrone-btn,body.zmm #zdet-btn,body.zmm #jump-fixed-btn,body.zmm #zm-fab,body.zmm #chat-toggle-btn{visibility:hidden !important}
+  body.zmm #hleft{z-index:2146 !important}
+  #hleft{display:none !important;zoom:1 !important}
+  body.zmm #hleft{display:grid !important;position:fixed !important;left:0 !important;top:0 !important;right:0 !important;bottom:0 !important;max-height:none !important;z-index:2146 !important;background:rgba(6,10,18,.9);padding:12px 12px 12px 76px !important;gap:10px 8px !important;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));align-content:start;overflow-y:auto !important}
+  body.zmm #hleft .hb{width:auto !important;min-width:0 !important;gap:3px}
+  body.zmm #hleft .hbb{width:56px !important;height:56px !important;font-size:1.7rem !important;border-radius:15px}
+  body.zmm #hleft .hbl{display:block !important;font-size:.7rem !important;text-align:center;line-height:1.1}
+  body.zmm #hleft .zb-grp{display:contents !important}
+  body.zmm #hleft .zb-grp.zb-c{display:contents !important}
+  body.zmm #hleft .zb-hd,body.zmm #hleft #hud-toggle{display:none !important}
+}
 /* v880: Handy im Querformat – Bedienelemente verkleinern (iPad/PC bleiben unverändert) */
 @media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
-  #jzone,#hleft,#wbar,#zhearts,#zm-fab,#chat-toggle-btn,#iprompt{zoom:.72}
+  #jzone,#wbar,#zhearts,#zm-fab,#chat-toggle-btn,#iprompt{zoom:.72}
   #wbar{zoom:.66}
   #zhearts{zoom:.7;bottom:103px !important}
   #mmap{width:62px !important;height:62px !important;top:6px !important;right:8px !important}
@@ -270,9 +295,9 @@ body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zheart
   document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTap<300)e.preventDefault();lastTap=n;},{passive:false});
   document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
   </script>
-<script src="lang.js?v=882"></script>
-<script src="rewardchests.js?v=882"></script>
-<script src="personality.js?v=882"></script>
+<script src="lang.js?v=883"></script>
+<script src="rewardchests.js?v=883"></script>
+<script src="personality.js?v=883"></script>
 </head>
 <body>
 <script>
@@ -341,6 +366,7 @@ body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zheart
 <div id="cl-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,#B8860B,#FFD700,#B8860B);color:#1a1a1a;text-align:center;padding:6px 10px;font-weight:900;font-size:.85rem;letter-spacing:1px;box-shadow:0 2px 10px rgba(0,0,0,.4)">🏆 CHAMPIONS LEAGUE ZOO 🏆</div>
 <div id="hm"><div class="mv" id="hmoney">🌀0</div><div class="ms" id="hvis">👥 0</div><div class="ms" id="hmult" style="color:#FFD700"></div><div class="ms" id="weatherBadge" style="display:none"></div></div>
 <!-- LEFT sidebar: Index, Gondola, Rebirth, Shop, Trading, Menu -->
+<div id="zmm-fab" onclick="document.body.classList.toggle('zmm')"><span>☰</span><small>Menü</small></div>
 <div id="hleft">
 <!-- HUD toggle button -->
 <button id="hud-toggle" onclick="ZG._toggleHUD()" 
@@ -367,6 +393,7 @@ body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zheart
 <div class="hb" id="hb-menu" onclick="ZP.open('menu')"><div class="hbb" style="background:rgba(60,60,60,.8)">☰</div><div class="hbl" data-i18n="zoo.menu">Menü</div></div>
 <div class="hb" onclick="location.reload()" title="Seite aktualisieren"><div class="hbb" style="background:rgba(52,152,219,.8)">🔄</div><div class="hbl" data-i18n="zoo.update">Update</div></div>
 </div>
+<script>/* v883 */(function(){ var h=document.getElementById('hleft'); if(h) h.addEventListener('click',function(e){ var hb=e.target.closest&&e.target.closest('.hb'); if(hb||e.target===h) setTimeout(function(){ document.body.classList.remove('zmm'); },60); }); })();</script>
 <!-- WEAPON BAR bottom center -->
 <div id="wbar"><div class="wbtitle">WAFFEN (SLAPS)</div><div class="wbrow" id="wbrow"></div></div>
 <div id="decobar"><div class="wbtitle">DEKOS</div><div class="wbrow" id="decobarRow"></div></div>
@@ -590,48 +617,49 @@ body.zmjoy #s-zoo>div:not(#hud),body.zmjoy #hud>*:not(#jzone),body.zmjoy #zheart
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="zgfx.js?v=882"></script>
+<script src="zgfx.js?v=883"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="firebase-state.js?v=882"></script>
-<script src="sanction.js?v=882"></script>
-<script src="zevents.js?v=882"></script>
-<script src="znet.js?v=882"></script>
-<script src="zbases.js?v=882"></script>
-<script src="charheads.js?v=882"></script>
-<script src="zmensch.js?v=882"></script>
-<script src="zfindchest.js?v=882"></script>
-<script src="zambience.js?v=882"></script>
-<script src="znight.js?v=882"></script>
-<script src="zstarter.js?v=882"></script>
-<script src="zcine.js?v=882"></script>
-<script src="zworld.js?v=882"></script>
-<script src="zlang2.js?v=882"></script>
-<script src="zstation.js?v=882"></script>
-<script src="zmountain.js?v=882"></script>
-<script src="zfx.js?v=882"></script>
-<script src="zextra.js?v=882"></script>
-<script src="zreb6.js?v=882"></script>
-<script src="zbots.js?v=882"></script>
-<script src="zlegend.js?v=882"></script>
-<script src="ztutplus.js?v=882"></script>
-<script src="zlift.js?v=882"></script>
-<script src="zfun.js?v=882"></script>
-<script src="zguide.js?v=882"></script>
-<script src="zrules.js?v=882"></script>
-<script src="zsafe.js?v=882"></script>
-<script src="zrebguard.js?v=882"></script>
-<script src="zpass.js?v=882"></script>
-<script src="znotify.js?v=882"></script>
-<script src="zdetective.js?v=882"></script>
-<script src="zpirate.js?v=882"></script>
-<script src="zpark.js?v=882"></script>
-<script src="zmenu.js?v=882"></script>
-<script src="zdevice.js?v=882"></script>
-<script src="zmusic.js?v=882"></script>
-<script src="zskill.js?v=882"></script>
-<script src="worlds.js?v=882"></script>
+<script src="firebase-state.js?v=883"></script>
+<script src="sanction.js?v=883"></script>
+<script src="zevents.js?v=883"></script>
+<script src="znet.js?v=883"></script>
+<script src="zbases.js?v=883"></script>
+<script src="charheads.js?v=883"></script>
+<script src="zmensch.js?v=883"></script>
+<script src="zfindchest.js?v=883"></script>
+<script src="zambience.js?v=883"></script>
+<script src="znight.js?v=883"></script>
+<script src="zstarter.js?v=883"></script>
+<script src="zcine.js?v=883"></script>
+<script src="zworld.js?v=883"></script>
+<script src="zlang2.js?v=883"></script>
+<script src="ztutlang.js?v=883"></script>
+<script src="zstation.js?v=883"></script>
+<script src="zmountain.js?v=883"></script>
+<script src="zfx.js?v=883"></script>
+<script src="zextra.js?v=883"></script>
+<script src="zreb6.js?v=883"></script>
+<script src="zbots.js?v=883"></script>
+<script src="zlegend.js?v=883"></script>
+<script src="ztutplus.js?v=883"></script>
+<script src="zlift.js?v=883"></script>
+<script src="zfun.js?v=883"></script>
+<script src="zguide.js?v=883"></script>
+<script src="zrules.js?v=883"></script>
+<script src="zsafe.js?v=883"></script>
+<script src="zrebguard.js?v=883"></script>
+<script src="zpass.js?v=883"></script>
+<script src="znotify.js?v=883"></script>
+<script src="zdetective.js?v=883"></script>
+<script src="zpirate.js?v=883"></script>
+<script src="zpark.js?v=883"></script>
+<script src="zmenu.js?v=883"></script>
+<script src="zdevice.js?v=883"></script>
+<script src="zmusic.js?v=883"></script>
+<script src="zskill.js?v=883"></script>
+<script src="worlds.js?v=883"></script>
 <script>
 // ═══ CONSOLE CAPTURE ═══
 (function(){
@@ -8765,7 +8793,7 @@ const Tutorial={
   _finish(){
     try{ if(window.ZMeadow&&ZMeadow.on) ZMeadow.abort(); }catch(e){}
     const wasReb=!!this._custom; this._custom=null;
-    this._active=false; this._holdCat=false;
+    this._active=false; this._holdCat=false; try{ document.body.classList.remove('tutq','tutq2'); }catch(e){}
     this._cleanupStep();
     if(wasReb){ try{ ZP.toast('✅ Fertig! Du kennst jetzt alles Neue.',3000); }catch(e){} return; }
     if(ZS.zoo){ const _first=!ZS.zoo.tutorialSeen; ZS.zoo.tutorialSeen=true; ZS.save&&ZS.save(); if(_first){ try{ setTimeout(()=>{ window.ZStarter&&ZStarter.start(); },1200); }catch(e){} } }
@@ -8806,6 +8834,10 @@ const Tutorial={
     }
     // Slap-Schritt: Basic automatisch ausrüsten, sonst passiert beim Tippen nichts
     if(s.id==='slap'){ try{ const zz=ZS.zoo; if(zz && (!zz.eq||zz.eq==='none')){ zz.eq='basic'; ZG._updWBar(); } }catch(e){} }
+    /* v883: übersetzter Text + bei Handy-Quer das Menü-Raster aufklappen, wenn das Ziel ein Menü-Knopf ist */
+    try{ if(window.ZTutL&&ZTutL.get){ const _ov=(s.id==='menu')?s.text:null; s=ZTutL.get(s); if(_ov&&window.ZTutL.menuOv){ const _m=ZTutL.menuOv(); if(_m) s=Object.assign({},s,{text:_m}); else s=Object.assign({},s,{text:_ov}); } } }catch(e){}
+    try{ document.body.classList.add('tutq'); document.body.classList.toggle('tutq2',!/^(slap|hearts|menu|menuinfo|shop|shopcont|events)$/.test(s.id)); }catch(e){}
+    try{ const _ph=matchMedia('(orientation:landscape) and (max-height:500px) and (pointer:coarse)').matches; document.body.classList.toggle('zmm', !!(_ph&&s.target&&/^#hb-/.test(s.target))); }catch(e){}
     const overlay=document.createElement('div');
     overlay.id='tut-overlay';
     overlay.style.cssText='position:fixed;inset:0;z-index:9700;pointer-events:none';
@@ -13319,11 +13351,16 @@ const ZChat = {
     const b = document.getElementById('chat-toggle-btn');
     if(p) p.style.display = this.open ? 'flex' : 'none';
     if(p) p.style.flexDirection = 'column';
-    if(this.open){ this._loadHistory(); this._startListen(); this._refreshTargets(); }
+    if(b) b.style.visibility=this.open?'hidden':'visible';
+    if(this.open){ this._fit(); this._unread=0; if(b){ b.textContent='💬 Chat'; b.style.background='#1a2a3a'; b.style.color='#FFD700'; } this._loadHistory(); this._startListen(); this._refreshTargets(); }
     else this._stopListen();
   },
   
-  close(){ this.open = false; const p=document.getElementById('chat-panel'); if(p)p.style.display='none'; },
+  close(){ this.open = false; const p=document.getElementById('chat-panel'); if(p)p.style.display='none'; try{ document.getElementById('chat-toggle-btn').style.visibility='visible'; }catch(e){} },
+  /* v883: Chatgrösse passend zum Bildschirm (Handy quer = niedrig) */
+  _fit(){ try{ if(this._fullscreen) return; const p=document.getElementById('chat-panel'), m=document.getElementById('chat-msgs'); if(!p||!m) return;
+    if(innerWidth>innerHeight&&innerHeight<520){ p.style.width='min(580px,66vw)'; p.style.maxHeight=(innerHeight-6)+'px'; m.style.height=Math.max(110,innerHeight-168)+'px'; }
+    else { p.style.width='min(420px,94vw)'; p.style.maxHeight='80vh'; m.style.height='min(440px,58vh)'; } }catch(e){} },
 
   // Toggle the chat panel between its normal small corner size and a
   // fullscreen layout — the panel is already display:flex/flex-direction
@@ -13345,9 +13382,8 @@ const ZChat = {
       document.querySelectorAll('#chat-msgs .chat-ts').forEach(s=>s.style.display='inline');
     } else {
       panel.style.top=''; panel.style.right=''; panel.style.left='0'; panel.style.bottom='0';
-      panel.style.width='min(420px,94vw)'; panel.style.maxHeight='80vh'; panel.style.height='';
-      panel.style.borderRadius='';
-      if(msgs){ msgs.style.height='min(440px,58vh)'; msgs.style.flex=''; }
+      panel.style.height=''; panel.style.borderRadius='';
+      if(msgs){ msgs.style.flex=''; } this._fit();
       if(btn){ btn.textContent='⛶'; btn.title='Vollbild'; }
       document.querySelectorAll('#chat-msgs .chat-ts').forEach(s=>s.style.display='none');
     }
@@ -13363,21 +13399,12 @@ const ZChat = {
   // quarter of the screen), never the fullscreen layout, so it's
   // impossible to miss a message without the panel taking over the
   // whole screen for people who didn't ask to chat right now.
+  _unread:0,
   _autoOpen(){
-    if(typeof Tutorial!=='undefined' && Tutorial._active) return; // Tutorial: Chat darf Joystick nicht verdecken
-    if(this.open) return; // already open — leave whatever size it's at alone
-    this.open = true;
-    const p = document.getElementById('chat-panel');
-    if(!p) return;
-    p.style.display = 'flex';
-    p.style.flexDirection = 'column';
-    if(!this._fullscreen){
-      p.style.top = '';
-      p.style.width = 'clamp(260px, 25vw, 420px)';
-      p.style.maxHeight = 'clamp(200px, 25vh, 400px)';
-    }
-    this._loadHistory();
-    this._startListen();
+    /* v883: Chat geht NICHT mehr von selbst auf – nur ein Zähler am 💬-Knopf */
+    if(this.open){ return; }
+    this._unread=(this._unread||0)+1;
+    try{ const b=document.getElementById('chat-toggle-btn'); if(b){ b.textContent='💬 Chat ('+this._unread+')'; b.style.background='#c0392b'; b.style.color='#fff'; } }catch(e){}
   },
   
   // Refresh the recipient dropdown with currently-online players — cheap
@@ -13846,6 +13873,7 @@ const ZChat = {
   },
 };
 window.ZChat=ZChat;
+addEventListener('resize',()=>{ try{ if(ZChat.open) ZChat._fit(); }catch(e){} });
 
 
 // ══════════════════════════════

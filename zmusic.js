@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   if(window.ZBgm) return;
-  const TR=[['m1.mp3','Piano','Leberch'],['m2.mp3','Travel Piano','Leberch'],['m3.mp3','Sad','Leberch'],['m4.mp3','Background Music','Sub_Clair'],['zoo.mp3','Unser Zoo-Lied','Mischa Zoo'],['kino.mp3','Kino-Thema','Mischa Zoo'],['zimmer.mp3','Epische Weite (Filmmusik-Stil)','Mischa Zoo']];
+  const TR=[['m1.mp3','Piano','Leberch'],['m2.mp3','Travel Piano','Leberch'],['m3.mp3','Sad','Leberch'],['m4.mp3','Background Music','Sub_Clair'],['mischa_intro.mp3','Unser Zoo-Lied','Mischa Zoo'],['sounds/intro.mp3','Kino-Thema','Mischa Zoo'],['zimmer.mp3','Epische Weite (Filmmusik-Stil)','Mischa Zoo']];
   const ls=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } };
   const lsw=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
   const pk=k=>{ try{ return k+'_'+(((typeof ZS!=='undefined'&&ZS.player)||'')+'').toLowerCase(); }catch(e){ return k; } };
@@ -16,7 +16,7 @@
   const night=()=>{ try{ if(window.ZDevice&&!ZDevice.s.night) return 1; const h=new Date().getHours(); return (h>=22||h<7)?.6:1; }catch(e){ return 1; } };
   const muted=()=>false; // v801: Spiel-Sounds sind immer aus, die Musik hat ihren eigenen Schalter
   const apply=()=>{ au.volume=Math.max(0,Math.min(1,M.vol*night())); };
-  const src=i=>BASE+'music/'+TR[i][0];
+  const src=i=>BASE+(TR[i][0].indexOf('/')>=0||TR[i][0]==='mischa_intro.mp3'?'':'music/')+TR[i][0];
   M.play=function(i){ M.prefs(); M.on=true; lsw('zmusic_on',true); M.i=i; lsw('zmusic_i',i); M.savePrefs(); au.loop=M.loop; load(true); };
   M.setLoop=function(v){ M.loop=!!v; au.loop=M.loop; M.savePrefs(); };
   M.next=function(userSkip){ M.i=(M.i+1+TR.length)%TR.length; lsw('zmusic_i',M.i); load(true); };
