@@ -15,6 +15,7 @@
     const click=id=>{ const b=$(id); if(b) b.click(); else toast('Gerade nicht verfügbar.'); };
     // ═══ Einträge ═══
     const E=M.entries=[
+      {id:'melden',ic:'🚩',n:'Spieler / Fehler melden',d:'Jemanden oder einen Fehler melden',go:()=>{ try{ ZP.open('report'); }catch(e){ toast('Noch nicht geladen.'); } }},
       {id:'detektiv',ic:'🕵️',n:'Detektiv-Fälle',d:'5 Fälle, alleine lösen',since:'n787',go:()=>window.ZDetective?ZDetective.list():toast('Noch nicht geladen.')},
       {id:'piraten',ic:'🏴‍☠️',n:'Piraten-Welt',d:'Meer, Bosse, eigene Insel',since:'n787',show:()=>window.ZPirate&&ZPirate.has(),lock:'Ab Rebirth 7',go:()=>ZPirate.openWorld()},
       {id:'pass',ic:'🎫',n:'MT-Pass',d:'Belohnungen für Fortschritt',show:()=>typeof rebHas!=='function'||rebHas('mtpass'),go:()=>MTPass.open()},

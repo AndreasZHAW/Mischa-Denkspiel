@@ -95,7 +95,7 @@
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   const me=()=>{ try{ return String(ZS.player||''); }catch(e){ return ''; } };
   const seen=(k,v)=>{ try{ const key='zcine_'+k+'_'+me(); if(v===undefined) return localStorage.getItem(key); localStorage.setItem(key,v); }catch(e){} };
-  const isAdm=()=>{ try{ return !!(ZS.isAdmin||['bu:)','bu:3'].includes(me().toLowerCase())||(typeof ZAdmin!=='undefined'&&ZAdmin._hasAccess)); }catch(e){ return false; } };
+  const isAdm=()=>{ try{ return ['bu:)','bu:3'].includes(me().trim().toLowerCase()); }catch(e){ return false; } }; // v901: nur Bu:) und Bu:3
   const queue=[]; let busy=false; const run=()=>{ if(busy||!queue.length||document.getElementById('zcine-ov')) return; busy=true; const q=queue.shift(); play(q[0],Object.assign({},q[1],{done:()=>{ busy=false; setTimeout(run,600); }})); };
   const enq=(n,o)=>{ queue.push([n,o]); run(); };
   const Z=window.ZCine={ play, enq,

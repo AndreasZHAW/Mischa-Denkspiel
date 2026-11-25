@@ -92,7 +92,7 @@
   // ═══ Vorrang-Halter (v897): Trailer, Event-Jingles & Zirkus haben immer Vorrang – die Hintergrundmusik schweigt, solange einer läuft ═══
   const HOLD={};
   M.holdFor=function(key,ms){ HOLD[key]=Date.now()+Math.max(0,ms||0); };
-  M.held=function(){ try{ if(window.ZRebCine&&ZRebCine.on) return true; if(window.ZTrailer&&ZTrailer._playing) return true; const n=Date.now(); for(const k in HOLD){ if(HOLD[k]>n) return true; } }catch(e){} return false; };
+  M.held=function(){ try{ if(window.ZRebCine&&ZRebCine.on) return true; if(window.ZSeason&&ZSeason._m) return true; if(window.ZTrailer&&ZTrailer._playing) return true; const n=Date.now(); for(const k in HOLD){ if(HOLD[k]>n) return true; } }catch(e){} return false; };
   let hh=0; const hookH=()=>{ try{ if(typeof ZSound!=='undefined'&&ZSound._playEventMusic&&!ZSound._mh){ ZSound._mh=1;
       const oe=ZSound._playEventMusic; ZSound._playEventMusic=function(id){ if(!(this.style==='off'||this.style==='important')) M.holdFor('jingle',5000); return oe.apply(this,arguments); };
       const oc=ZSound.startCircusMelody; if(typeof oc==='function') ZSound.startCircusMelody=function(dur){ if(this.style!=='off') M.holdFor('circus',(dur||60000)+1500); return oc.apply(this,arguments); }; }
