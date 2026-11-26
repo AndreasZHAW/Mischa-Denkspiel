@@ -1116,7 +1116,7 @@ const State = {
   // ---- SESSION (mit Auto-Logout) ----
   currentPlayer: null,
   _activityTimer: null,
-  TIMEOUT_MS: 15 * 60 * 1000, // 15 Minuten
+  TIMEOUT_MS: 2 * 60 * 60 * 1000, // v904: 2 Stunden ohne Aktivität (Handy weggelegt/aus) → neu anmelden; Neuladen alleine meldet NICHT ab
 
   setCurrentPlayer(player) {
     this.currentPlayer = player;
@@ -1185,7 +1185,7 @@ const State = {
     }
     this.currentPlayer = null;
     sessionStorage.removeItem('mischa_current');
-    localStorage.removeItem('mischa_current_backup');
+    localStorage.removeItem('mischa_current_backup'); try{ localStorage.removeItem('mischa_last_active'); }catch(e){}
     clearTimeout(this._activityTimer);
   },
 
@@ -1375,22 +1375,24 @@ const State = {
   }
 };
 
-// Auto-logout on page close / visibility change
+// v904: Anmeldung bleibt beim Neuladen/App-Wechsel erhalten. Abgemeldet wird nur, wenn sehr lange (2 h) nichts getan wurde
+// (Handy weggelegt/ausgeschaltet). Zeitstempel statt Timer, weil Timer auf gesperrten Handys nicht laufen.
+State.LAST_KEY = 'mischa_last_active';
+State.touchActive = function(force){ try{ const n=Date.now(); if(force||n-(State._lastTouch||0)>15000){ State._lastTouch=n; localStorage.setItem(State.LAST_KEY,String(n)); } }catch(e){} };
+State.sessionExpired = function(){ try{ if(!localStorage.getItem('mischa_current_backup')&&!sessionStorage.getItem('mischa_current')) return false; const t=+localStorage.getItem(State.LAST_KEY)||0; return !!t&&(Date.now()-t)>State.TIMEOUT_MS; }catch(e){ return false; } };
+try{ if(State.sessionExpired()){ localStorage.removeItem('mischa_current_backup'); sessionStorage.removeItem('mischa_current'); localStorage.removeItem(State.LAST_KEY); console.log('[Session] Abgelaufen (lange inaktiv) – Anmeldung nötig'); } else if(localStorage.getItem('mischa_current_backup')) State.touchActive(true); }catch(e){}
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    // Page hidden — start aggressive timer (2 min when hidden)
-    clearTimeout(State._activityTimer);
-    State._activityTimer = setTimeout(() => {
-      State.logout();
-    }, 2 * 60 * 1000);
-  } else {
-    if (State.currentPlayer) State._resetActivityTimer();
-  }
+  if (document.hidden) { State.touchActive(true); }
+  else if (State.sessionExpired()) { State.logout(); window.location.href = 'index.html'; }
+  else { State.touchActive(true); if (State.currentPlayer) State._resetActivityTimer(); }
 });
+window.addEventListener('pagehide', () => State.touchActive(true));
+setInterval(() => { try{ if(!document.hidden&&State.currentPlayer) State.touchActive(); }catch(e){} }, 30000);
 
 // Reset timer on any user interaction
 ['click','touchstart','keydown'].forEach(ev => {
   document.addEventListener(ev, () => {
+    State.touchActive();
     if (State.currentPlayer) State._resetActivityTimer();
   }, { passive: true });
 });
