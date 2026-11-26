@@ -237,4 +237,59 @@
       if(a==='test'){ o.remove(); C.play(TZI[k].kind,{test:true}); } };
     document.body.appendChild(o); };
   window.addEventListener('load',()=>{ setTimeout(tzListen,6000); setTimeout(tzMenu,3000); });
+  // ═══ ☠️ Todesstunde (v902): Admin stellt Ja/Nein + von/bis ein, für alle – dunkle Spannung mit Musik & Herzschlag ═══
+  const DH={cfg:{on:false,from:0,until:0},ph:'off',au:null,ac:null,hb:0,intro:0,test:0};
+  C.dh=DH;
+  const dhAdm=()=>{ try{ return ['bu:)','bu:3'].includes(String(ZS.player||'').trim().toLowerCase()); }catch(e){ return false; } };
+  const dhCss=document.createElement('style'); dhCss.textContent='@keyframes zdhP{0%,100%{opacity:.55}12%{opacity:1}24%{opacity:.6}36%{opacity:.95}60%{opacity:.55}}@keyframes zdhF{0%,92%,100%{opacity:0}94%{opacity:.5}96%{opacity:0}98%{opacity:.3}}@keyframes zdhT{0%{transform:scale(1.5);opacity:0}15%{opacity:1}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.96)}}body.zdh #s-zoo canvas{filter:saturate(.55) contrast(1.1) brightness(.82)}#zdh-v{position:fixed;inset:0;z-index:84;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 38%,rgba(90,0,0,.55) 78%,rgba(20,0,0,.9) 100%);animation:zdhP 1.2s ease-in-out infinite}#zdh-f{position:fixed;inset:0;z-index:85;pointer-events:none;background:#fff;opacity:0;animation:zdhF 7s linear infinite}#zdh-h{position:fixed;left:50%;top:86px;transform:translateX(-50%);z-index:9500;pointer-events:none;padding:6px 16px;border-radius:14px;background:rgba(40,0,0,.88);border:2px solid #d50000;color:#ff5252;font:900 .95rem Arial,sans-serif;letter-spacing:.06em;box-shadow:0 0 18px rgba(213,0,0,.7);white-space:nowrap}#zdh-t{position:fixed;inset:0;z-index:2147483000;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(60,0,0,.6),rgba(0,0,0,.92));color:#ff1744;font:900 2.2rem Arial,sans-serif;text-align:center;text-shadow:0 0 24px #d50000;animation:zdhT 4.2s ease-out forwards}';
+  document.head.appendChild(dhCss);
+  const dhTone=(f,d,v,type,delay)=>{ try{ const a=DH.ac||(DH.ac=new (window.AudioContext||window.webkitAudioContext)()); if(a.state==='suspended') a.resume().catch(()=>{}); const t=a.currentTime+(delay||0), o=a.createOscillator(), g=a.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(Math.max(20,f*.5),t+d); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.02); g.gain.exponentialRampToValueAtTime(.001,t+d); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d+.05); }catch(e){} };
+  const dhBeat=(vol)=>{ dhTone(62,.22,vol,'sine',0); dhTone(52,.28,vol*.8,'sine',.2); };
+  const dhAllowed=()=>{ try{ return !(window.ZBgm&&ZBgm.on===false); }catch(e){ return true; } };
+  const dhMusic=(on,vol)=>{ try{ if(on){ if(!DH.au){ if(window.ZSUSP){ DH.au=new Audio(window.ZSUSP); DH.au.loop=true; } else { if(!DH._ld){ DH._ld=1; const sc=document.createElement('script'); sc.src='zsuspense.js?v=902'; sc.onerror=()=>{ DH.au=new Audio('music/suspense.mp3'); DH.au.loop=true; }; document.head.appendChild(sc); } if(!window.ZSUSP&&!DH.au) return; } } DH.au.volume=Math.max(0,Math.min(1,vol)); if(DH.au.paused&&dhAllowed()){ const p=DH.au.play(); if(p&&p.catch) p.catch(()=>{}); } if(!dhAllowed()&&!DH.au.paused) DH.au.pause(); } else if(DH.au&&!DH.au.paused){ DH.au.pause(); DH.au.currentTime=0; } }catch(e){} };
+  ['pointerdown','keydown','touchstart'].forEach(t=>document.addEventListener(t,()=>{ if(DH.ph==='act'&&DH.au&&DH.au.paused&&dhAllowed()) dhMusic(true,DH.au.volume||.6); },{passive:true}));
+  const dhEl=(id,mk)=>{ let e=document.getElementById(id); if(!e){ e=document.createElement('div'); e.id=id; if(mk) mk(e); document.body.appendChild(e); } return e; };
+  const dhFmt=ms=>{ let s=Math.max(0,Math.ceil(ms/1000)); const h=Math.floor(s/3600); s%=3600; const m=Math.floor(s/60); s%=60; const p=n=>('0'+n).slice(-2); return (h?h+':':'')+p(m)+':'+p(s); };
+  const dhIntro=()=>{ const t=document.createElement('div'); t.id='zdh-t'; t.innerHTML='<div style="font-size:4.5rem">☠️</div><div>DIE TODESSTUNDE<br>BEGINNT</div><div style="font:700 .9rem Arial;color:#ffcdd2;margin-top:14px;text-shadow:none">Bleib wachsam …</div>'; document.body.appendChild(t); setTimeout(()=>t.remove(),4300); dhBeat(.5); setTimeout(()=>dhBeat(.5),900); setTimeout(()=>dhBeat(.6),1800); setTimeout(()=>dhBeat(.7),2600); };
+  const dhSet=(ph)=>{ const was=DH.ph; DH.ph=ph; if(ph===was) return;
+    document.body.classList.toggle('zdh',ph==='act');
+    if(ph==='act'){ dhEl('zdh-v'); dhEl('zdh-f'); if(was!=='act'&&!document.body.classList.contains('zrc')) dhIntro(); }
+    else{ ['zdh-v','zdh-f'].forEach(i=>{ const e=document.getElementById(i); if(e) e.remove(); }); dhMusic(false); if(was==='act'){ try{ ZP.toast('☠️ Die Todesstunde ist vorbei …',4000); }catch(e){} } }
+    if(ph==='off'){ const h=document.getElementById('zdh-h'); if(h) h.remove(); } };
+  const dhTick=()=>{ try{ const c=DH.cfg, now=Date.now(); let ph='off', left=0;
+    if(DH.test&&DH.test>now){ ph='act'; left=DH.test-now; }
+    else if(c.on&&c.until>now){ if(c.from<=now){ ph='act'; left=c.until-now; } else if(c.from-now<=5*60000){ ph='pre'; left=c.from-now; } }
+    const cin=!!(C.on||document.body.classList.contains('zrc')); // läuft gerade ein Trailer? Dann schweigt die Todesstunde (Trailer hat Vorrang)
+    dhSet(ph);
+    ['zdh-v','zdh-f','zdh-h'].forEach(i=>{ const e=document.getElementById(i); if(e) e.style.display=cin?'none':''; });
+    if(cin){ dhMusic(false); return; }
+    if(ph==='off') return;
+    const h=dhEl('zdh-h'); h.textContent=ph==='act'?'☠️ TODESSTUNDE · noch '+dhFmt(left):'⏳ Todesstunde in '+dhFmt(left)+' …'; h.style.background=ph==='act'?'rgba(40,0,0,.88)':'rgba(30,20,0,.88)'; h.style.borderColor=ph==='act'?'#d50000':'#ff9100'; h.style.color=ph==='act'?'#ff5252':'#ffab40';
+    if(ph==='act'){ const v=document.getElementById('zdh-v'); const urg=left<5*60000?1:0; if(v) v.style.animationDuration=(left<10000?.45:left<60000?.7:urg?.9:1.2)+'s';
+      dhMusic(true,.75); try{ if(window.ZBgm&&ZBgm.holdFor) ZBgm.holdFor('death',2500); }catch(e){}
+      const gap=left<10000?600:left<60000?800:1200; if(now-DH.hb>=gap){ DH.hb=now; dhBeat(left<60000?.55:.38); } }
+    else{ const gap=left<10000?700:2200; if(now-DH.hb>=gap){ DH.hb=now; dhBeat(left<10000?.45:.22); } if(left<=10000&&Math.floor(left/1000)!==DH._s){ DH._s=Math.floor(left/1000); dhTone(left<=3000?900:600,.12,.15,'square'); } }
+  }catch(e){} };
+  setInterval(dhTick,500);
+  let dhl=0; const dhListen=()=>{ const r=RTD(); if(!r){ if(++dhl<120) setTimeout(dhListen,3000); return; } if(DH._l) return; DH._l=1; try{ r.ref('zoo_deathhour').on('value',s=>{ const v=s.val()||{}; DH.cfg={on:!!v.on,from:+v.from||0,until:+v.until||0}; dhTick(); }); }catch(e){} };
+  setTimeout(dhListen,5000);
+  C.deathSave=function(on,from,until){ const r=RTD(); if(!dhAdm()) return; if(!r){ try{ ZP.toast('Keine Cloud-Verbindung',2500); }catch(e){} return; } try{ r.ref('zoo_deathhour').set({on:!!on,from:from||0,until:until||0,by:String(ZS.player||''),t:Date.now()}); DH.cfg={on:!!on,from:from||0,until:until||0}; dhTick(); }catch(e){} };
+  C.deathAdmin=function(){ if(!dhAdm()){ try{ ZP.toast('Nur für Bu:) und Bu:3',2500); }catch(e){} return; } const old=document.getElementById('zdh-adm'); if(old) old.remove(); const o=document.createElement('div'); o.id='zdh-adm'; o.style.cssText='position:fixed;inset:0;z-index:2147483200;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:10px;font-family:Arial,sans-serif;overflow:auto';
+    const toL=ms=>{ const d=new Date(ms-new Date(ms).getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }; const c=DH.cfg, now=Date.now();
+    const st=c.on&&c.until>now?(c.from<=now?'🔴 LÄUFT: noch '+dhFmt(c.until-now):'🟠 Geplant: startet in '+dhFmt(c.from-now)):'⚪ Aus';
+    const b='border:none;border-radius:10px;color:#fff;font:900 .8rem Arial;padding:9px 10px;cursor:pointer;';
+    o.innerHTML='<div style="background:#150404;border:3px solid #d50000;border-radius:18px;padding:14px;width:min(94vw,420px);color:#fff;max-height:94vh;overflow:auto;box-shadow:0 0 30px rgba(213,0,0,.5)"><div style="font:900 1.2rem Arial;color:#ff5252;text-align:center">☠️ Todesstunde</div><div style="text-align:center;font-size:.8rem;margin:6px 0 10px">Status: <b>'+st+'</b></div>'
+      +'<div style="font:800 .8rem Arial;margin-bottom:4px">Für alle Spieler aktiv?</div><div style="display:flex;gap:6px"><button id="zdh-y" style="'+b+'flex:1;background:'+(c.on?'#2e7d32':'#455a64')+'">✅ Ja</button><button id="zdh-n" style="'+b+'flex:1;background:'+(!c.on?'#c62828':'#455a64')+'">⛔ Nein</button></div>'
+      +'<div style="font:800 .8rem Arial;margin:10px 0 4px">Ab wann?</div><input id="zdh-f" type="datetime-local" value="'+toL(c.from>now?c.from:now+6e4)+'" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:none;font-size:.9rem">'
+      +'<div style="font:800 .8rem Arial;margin:8px 0 4px">Bis wann?</div><input id="zdh-u" type="datetime-local" value="'+toL(c.until>now?c.until:now+66*6e4)+'" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:none;font-size:.9rem">'
+      +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px"><button data-q="5" style="'+b+'background:#37474f">Start in 5 Min.</button><button data-q="30" style="'+b+'background:#37474f">Start in 30 Min.</button><button data-d="30" style="'+b+'background:#37474f">Dauer 30 Min.</button><button data-d="60" style="'+b+'background:#37474f">Dauer 1 Std.</button></div>'
+      +'<div style="font-size:.7rem;opacity:.7;margin-top:8px">5 Minuten vor Start läuft bei allen ein Countdown mit Herzschlag. Dann wird der Bildschirm dunkelrot, die Spannungs-Musik spielt und die Hintergrundmusik schweigt. Spielwerte ändern sich nicht.</div>'
+      +'<div style="display:flex;gap:6px;margin-top:10px"><button id="zdh-s" style="'+b+'flex:2;background:#2e7d32;font-size:.9rem">💾 Speichern</button><button id="zdh-t2" style="'+b+'flex:1;background:#1565c0">👁 Test (nur ich)</button></div><button id="zdh-x" style="'+b+'width:100%;margin-top:8px;background:rgba(255,255,255,.15)">Schliessen</button></div>';
+    let on=!!c.on; const F=o.querySelector('#zdh-f'), U=o.querySelector('#zdh-u'), y=o.querySelector('#zdh-y'), n=o.querySelector('#zdh-n'); const paint=()=>{ y.style.background=on?'#2e7d32':'#455a64'; n.style.background=!on?'#c62828':'#455a64'; };
+    y.onclick=()=>{ on=true; paint(); }; n.onclick=()=>{ on=false; paint(); };
+    o.querySelectorAll('[data-q]').forEach(q=>q.onclick=()=>{ const f=Date.now()+(+q.dataset.q)*6e4; const dur=Math.max(6e4,(new Date(U.value).getTime()||0)-(new Date(F.value).getTime()||0))||36e5; F.value=toL(f); U.value=toL(f+dur); });
+    o.querySelectorAll('[data-d]').forEach(q=>q.onclick=()=>{ const f=new Date(F.value).getTime()||Date.now(); U.value=toL(f+(+q.dataset.d)*6e4); });
+    o.querySelector('#zdh-s').onclick=()=>{ const f=new Date(F.value).getTime(), u=new Date(U.value).getTime(); if(on&&(!f||!u||u<=f||u<=Date.now())){ try{ ZP.toast('Bitte gültige Zeiten wählen (Ende nach Start, in der Zukunft)',3000); }catch(e){} return; } C.deathSave(on,f,u); try{ ZP.toast(on?'☠️ Todesstunde gespeichert':'Todesstunde ausgeschaltet',2500); }catch(e){} o.remove(); setTimeout(C.deathAdmin,150); };
+    o.querySelector('#zdh-t2').onclick=()=>{ o.remove(); DH.test=Date.now()+25000; dhTick(); setTimeout(()=>{ DH.test=0; dhTick(); },25500); };
+    o.querySelector('#zdh-x').onclick=()=>o.remove(); document.body.appendChild(o); };
 })();
