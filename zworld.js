@@ -164,7 +164,7 @@
     _ANIM:{ sway:['pine','oak','palm','cherry','autumn','bush','birch','bamboo','snowpine','flowerbed'], bob:['balloon','star','comet','shooting','satellite','ufo','rocket','alien','astronaut','galaxy','planet','moon','sun','earth','crystal','lantern','rainbow','tulip','sunflower','hibiscus','mushroom','xmas','telescope','spacecrystal'] },
     frame(dt){
       if(!W.grp) return; const t=(performance.now()-W._t0)/1000, cam=ZG.cam&&ZG.cam.position; if(!cam) return;
-      const hide=!!(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._spaceActive); W.grp.visible=!hide; if(hide) return;
+      const hide=!!(ZG._jumpActive||ZG._arcadeActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._spaceActive); W.grp.visible=!hide&&!(window.ZLife&&ZLife.cfg&&ZLife.cfg.deco===false); if(hide) return;
       Object.keys(W.nodes).forEach(id=>{ const n=W.nodes[id], v=W.objs[id]; const d=Math.hypot(n.position.x-cam.x,n.position.z-cam.z); n.visible=d<150; if(!n.visible||d>90) return;
         if(n.userData.upd){ n.userData.upd(t,dt); return; } const tp=v&&v.t; if(!tp) return; const ph=n.userData.ph;
         if(W._ANIM.sway.indexOf(tp)>=0) n.rotation.z=Math.sin(t*1.3+ph)*.035; else if(W._ANIM.bob.indexOf(tp)>=0) n.position.y=(n.userData.by||0)+Math.sin(t*1.5+ph)*.3; else if(tp==='campfire') n.scale.y=(v.s||1)*(1+Math.sin(t*13+ph)*.07); });
@@ -1935,6 +1935,7 @@
   const ready=()=>{ try{ return !!(typeof ZG!=='undefined'&&ZG.scene&&ZG.renderer&&ZG.cam&&ZG.pl&&ZG._skyDome&&typeof THREE!=='undefined'); }catch(e){ return false; } };
   const cfg={fx:true,leaves:true,deco:true};
   try{ const v=JSON.parse(localStorage.getItem('zlife')||'{}'); Object.keys(cfg).forEach(k=>{ if(typeof v[k]==='boolean') cfg[k]=v[k]; }); }catch(e){}
+  try{ if(localStorage.getItem('zlife_mig')!=='2'){ localStorage.setItem('zlife_mig','2'); cfg.fx=true; localStorage.setItem('zlife',JSON.stringify(cfg)); } }catch(e){}
   const save=()=>{ try{ localStorage.setItem('zlife',JSON.stringify(cfg)); }catch(e){} };
   const L=window.ZLife={ cfg, uT:{value:0}, built:false, grp:null, t0:performance.now() };
   const rng=(seed=>()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; })(20261030);
@@ -2161,7 +2162,7 @@
     const now=performance.now(), dt=Math.min(.1,(now-(u.t||now))/1000); u.t=now; const dx=m.position.x-u.lx, dz=m.position.z-u.lz; u.lx=m.position.x; u.lz=m.position.z; const spd=dt>0?Math.hypot(dx,dz)/dt:0;
     if(isSelf){ try{ const cz=ZG.carrying&&ZG.carrying.animal?ZG.carrying.animal.e:null; if(u.cEm!==cz){ if(u.cSp){ m.remove(u.cSp); u.cSp=null; } if(cz){ const sp=emo(cz,1.8); sp.position.set(0,3.1,0); sp.userData._keep=1; m.add(sp); u.cSp=sp; } u.cEm=cz; } if(u.cSp) u.cSp.position.y=3.1+Math.sin(performance.now()/300)*.1; }catch(e){} }
     const st=op||{}; const sweep=!!(window.ZSweeper&&((isSelf&&ZSweeper.on)||(!isSelf&&ZSweeper.all&&st.name&&ZSweeper.all[String(st.name).toLowerCase().replace(/[.#$\[\]\/]/g,'_')])));
-    const on=cfg.fx; u.extra.forEach(e=>{ if(e.isSprite) return; const v=e.userData._keep?on:(on&&!sweep); if(e.visible!==v) e.visible=v; });
+    const on=true; /* v906: Figuren/Skins (3D-Köpfe, Körper, Schweif) hängen NICHT mehr am Schalter „Lebendige Grafik“ */ u.extra.forEach(e=>{ if(e.isSprite) return; const v=e.userData._keep?on:(on&&!sweep); if(e.visible!==v) e.visible=v; });
     try{ L.kindOf=KD.kindOf; const _ov=(isSelf&&ZG._kindOv&&ZG._kindOv.until>Date.now())?ZG._kindOv.kind:null; if(isSelf&&!_ov) L._selfBase=(window.ZSkins&&ZSkins.cur&&ZSkins.cur())||KD.kindOf(u.chr)||null; const wantK=_ov||(isSelf?(window.ZSkins&&ZSkins.cur&&ZSkins.cur()):(op&&op.sk))||KD.kindOf(u.chr); if((wantK||null)!==u.kdKind){ setKind(m,u,wantK); } }catch(e){}
     if(u.head&&u.kd) u.head.visible=!on;
     { const hb=!!(u.kd&&u.kd.hideBody&&on&&!sweep); [u.body].concat(u.arms||[],u.feet||[]).forEach(o=>{ if(o&&o.visible===hb) o.visible=!hb; }); }

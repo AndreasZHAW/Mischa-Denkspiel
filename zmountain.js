@@ -51,9 +51,46 @@
       if(Math.abs(z-CZ)<12&&x<X1) continue; d.position.set(x,terr(r)+5.2,z); d.scale.setScalar(.7+rnd()*.9); d.updateMatrix(); tm.setMatrixAt(ti++,d.matrix); }
     tm.count=ti; tm.instanceMatrix.needsUpdate=true; tm.userData.noCull=true; G.add(tm);
     // ── Gipfel ──
-    const plate=new THREE.Mesh(new THREE.CircleGeometry(47.5,48),MB(0xd6dde3)); plate.rotation.x=-Math.PI/2; plate.position.set(MX,MH+.08,MZ); G.add(plate);
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(46,.14,6,72),MB(0xb71c1c)); ring.rotation.x=Math.PI/2; ring.position.set(MX,MH+1.3,MZ); G.add(ring);
-    const post=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.16,1.5,6),MB(0x6b6f76),48), pd=new THREE.Object3D(); for(let k=0;k<48;k++){ const a=k/48*6.283; pd.position.set(MX+Math.cos(a)*46,MH+.8,MZ+Math.sin(a)*46); pd.updateMatrix(); post.setMatrixAt(k,pd.matrix); } G.add(post);
+    // v907: schöner Gipfel – Schneekuppe mit Felsflecken, Holzzaun, Laternen, Gipfelkreuz, Bänke, Gebetsfahnen, Wolkenmeer
+    const WOOD=0x8d6e63, WOOD2=0x6d4c41;
+    { const pr=[]; for(let k=0;k<=24;k++){ const r=47.5*k/24; pr.push(new THREE.Vector2(r,.08+.45*Math.pow(1-Math.pow(r/47.5,2),1.2))); }
+      const dg=new THREE.LatheGeometry(pr.reverse(),96); const dp=dg.attributes.position, dn=dp.count, dc=new Float32Array(dn*3); const cc=new THREE.Color();
+      for(let q=0;q<dn;q++){ const x=dp.getX(q), z=dp.getZ(q), r=Math.hypot(x,z), a=Math.atan2(z,x); const nz=Math.sin(a*7+r*.31)+Math.sin(a*13-r*.17)*.7+Math.sin(x*.4)*Math.cos(z*.35);
+        const rock=Math.max(0,nz-.9)*(r>34?1.4:.6); const sparkle=.96+.04*Math.sin(x*3.1+z*2.7);
+        cc.setHex(0xe3ecf5).multiplyScalar(sparkle*.96); if(r>40) cc.lerp(new THREE.Color(0xdfe7ee),(r-40)/7.5*.6); cc.lerp(new THREE.Color(0x8d8f94),Math.min(1,rock)); dc[q*3]=cc.r; dc[q*3+1]=cc.g; dc[q*3+2]=cc.b; }
+      dg.setAttribute('color',new THREE.BufferAttribute(dc,3)); const dome=new THREE.Mesh(dg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide})); dome.position.set(MX,MH,MZ); G.add(dome); M._dome=dome; }
+    // Felsrand am Gipfel (grosse Steine, oben mit Schnee)
+    for(let k=0;k<34;k++){ const a=k/34*6.283+rnd()*.15, r=49+rnd()*3.5, sz=.9+rnd()*1.5; const rk=new THREE.Mesh(new THREE.DodecahedronGeometry(sz,0),MB(rnd()>.5?0x7d8087:0x8f939a)); rk.position.set(MX+Math.cos(a)*r,MH+sz*.35,MZ+Math.sin(a)*r); rk.scale.set(1.2,.6,1.1); rk.rotation.y=rnd()*6; G.add(rk);
+      const sn=new THREE.Mesh(new THREE.DodecahedronGeometry(sz*.78,0),MB(0xffffff)); sn.position.set(rk.position.x,MH+sz*.62,rk.position.z); sn.scale.set(1.15,.4,1.05); sn.rotation.y=rk.rotation.y; G.add(sn); }
+    // Holzzaun mit zwei Latten + Laternen
+    [.6,1.1].forEach(h=>{ const rl=new THREE.Mesh(new THREE.TorusGeometry(45.6,.09,5,120),MB(WOOD)); rl.rotation.x=Math.PI/2; rl.position.set(MX,MH+h,MZ); G.add(rl); });
+    const post=new THREE.InstancedMesh(new THREE.CylinderGeometry(.14,.17,1.5,6),MB(WOOD2),48), pd=new THREE.Object3D(); for(let k=0;k<48;k++){ const a=k/48*6.283; pd.position.set(MX+Math.cos(a)*45.6,MH+.75,MZ+Math.sin(a)*45.6); pd.updateMatrix(); post.setMatrixAt(k,pd.matrix); } G.add(post);
+    for(let k=0;k<8;k++){ const a=k/8*6.283+.2, px=MX+Math.cos(a)*45.6, pz=MZ+Math.sin(a)*45.6; const lp=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,3.4,6),MB(0x3b3b3f)); lp.position.set(px,MH+1.7,pz); G.add(lp);
+      const lm=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),MB(0xffe082)); lm.position.set(px,MH+3.6,pz); G.add(lm); const gl=new THREE.Mesh(new THREE.SphereGeometry(.85,10,8),MB(0xffe9a8,{transparent:true,opacity:.28,depthWrite:false})); gl.position.copy(lm.position); G.add(gl); const cap=new THREE.Mesh(new THREE.ConeGeometry(.5,.4,8),MB(0x3b3b3f)); cap.position.set(px,MH+4.05,pz); G.add(cap); }
+    // Gipfelkreuz auf Steinsockel (höchster Punkt)
+    { const cg=new THREE.Group(); cg.position.set(MX,MH+.45,MZ); G.add(cg);
+      [[0,0,0,4.4,1.1],[.6,.8,.2,2.8,.9],[-.5,1.4,-.2,2.2,.8]].forEach((q,i)=>{ const st=new THREE.Mesh(new THREE.DodecahedronGeometry(q[3]*.5,0),MB(i?0x9aa0a6:0x858a91)); st.position.set(q[0],q[1]+(i?0:.4),q[2]); st.scale.set(1.25,q[4]*.6,1.1); cg.add(st); });
+      const sc=new THREE.Mesh(new THREE.DodecahedronGeometry(2.6,0),MB(0xffffff)); sc.position.set(0,1.4,0); sc.scale.set(1.2,.35,1.05); cg.add(sc);
+      box(.5,8,.5,WOOD2,0,5.6,0,cg); box(3.4,.5,.5,WOOD2,0,7.4,0,cg); box(.62,.22,.62,0xffc107,0,9.65,0,cg);
+      const sun=new THREE.Mesh(new THREE.TorusGeometry(.55,.07,6,20),MB(0xffc107)); sun.position.set(0,7.4,.3); cg.add(sun);
+      sign('GIPFEL · 400 m',512,128,3.6,.9,'#3e2723','#ffe082',0,2.4,2.4,0,cg); sign('GIPFEL · 400 m',512,128,3.6,.9,'#3e2723','#ffe082',0,2.4,-2.4,Math.PI,cg);
+      const bk=box(.9,.7,.5,0x4e342e,2.6,1.1,1.4,cg); bk.rotation.y=-.5; sign('📖 Gipfelbuch',256,96,.8,.3,'#ffe082','#3e2723',2.6,1.5,1.66,-.5,cg); }
+    // Steinmännchen
+    [[MX-9,MZ-12],[MX+16,MZ+16]].forEach((q,qi)=>{ [1.1,.85,.6,.4].forEach((r,k)=>{ const st=new THREE.Mesh(new THREE.DodecahedronGeometry(r,0),MB(k%2?0x9aa0a6:0x7d8087)); st.position.set(q[0]+(k%2?.1:-.08),MH+.35+k*.7+(k?0:0),q[1]); st.scale.y=.7; G.add(st); }); });
+    // Holzbänke (schauen nach aussen)
+    [[.9],[2.3],[4.0],[5.4]].forEach(q=>{ const a=q[0], bx0=MX+Math.cos(a)*38, bz0=MZ+Math.sin(a)*38; const bg=new THREE.Group(); bg.position.set(bx0,MH+.2,bz0); bg.rotation.y=-a+Math.PI/2; G.add(bg);
+      box(2.6,.14,.7,WOOD,0,.55,0,bg); box(2.6,.7,.12,WOOD,0,.95,-.32,bg); [-1.1,1.1].forEach(x=>box(.14,.55,.6,WOOD2,x,.28,0,bg)); });
+    // Fernrohr
+    { const tg=new THREE.Group(); tg.position.set(MX+29,MH+.3,MZ-16); G.add(tg); box(.18,1.5,.18,0x37474f,0,.8,0,tg); const tb=new THREE.Mesh(new THREE.CylinderGeometry(.18,.24,1.5,10),MB(0x1565c0)); tb.position.set(0,1.7,.3); tb.rotation.x=Math.PI/2.8; tg.add(tb); box(.6,.12,.6,0x37474f,0,.05,0,tg); tg.rotation.y=-.6; }
+    // Gebetsfahnen-Girlande zwischen zwei Masten
+    { const A=new THREE.Vector3(MX-16,MH+6.6,MZ+22), B=new THREE.Vector3(MX+6,MH+6.6,MZ+28); [A,B].forEach(p=>{ const m=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,6.8,6),MB(0xbdbdbd)); m.position.set(p.x,MH+3.4,p.z); G.add(m); });
+      const cols=[0x1e88e5,0xffffff,0xe53935,0x43a047,0xfdd835]; const pts=[]; for(let k=0;k<=24;k++){ const t=k/24; pts.push(new THREE.Vector3(A.x+(B.x-A.x)*t,A.y+(B.y-A.y)*t-Math.sin(t*Math.PI)*1.5,A.z+(B.z-A.z)*t)); }
+      G.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),40,.04,4,false),MB(0x444444)));
+      for(let k=1;k<24;k++){ const p=pts[k], tr=new THREE.Mesh(new THREE.CircleGeometry(.5,3),MB(cols[k%5],{side:THREE.DoubleSide})); tr.position.set(p.x,p.y-.42,p.z); tr.rotation.set(0,Math.atan2(B.x-A.x,B.z-A.z)+Math.PI/2,Math.PI); tr.rotation.z=Math.PI/2+Math.PI; G.add(tr); } }
+    // Wolkenmeer: weisse Wolkenbänke, die an den Hängen schweben
+    { const nc=240, cm=new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,6),MB(0xffffff,{transparent:true,opacity:.9,depthWrite:false}),nc), cd=new THREE.Object3D(); let ci=0;
+      for(let k=0;k<nc;k++){ const a=rnd()*6.283, r=110+rnd()*560, y=terr(r)+24+rnd()*46; if(y>MH-25) continue; const sz=16+rnd()*30; cd.position.set(MX+Math.cos(a)*r,y,MZ+Math.sin(a)*r); cd.scale.set(sz*1.6,sz*.42,sz); cd.rotation.y=rnd()*3; cd.updateMatrix(); cm.setMatrixAt(ci++,cd.matrix); }
+      cm.count=ci; cm.instanceMatrix.needsUpdate=true; cm.userData.noCull=true; cm.renderOrder=2; G.add(cm); M._clouds=cm; }
     // Gipfelstation (offen an West-/Ostseite: Kabine fährt hinein)
     const SX=MX-34, SZ=CZ, RED=0xd32f2f, CON=0xc9ccd1;
     box(20,.3,12,0x9a9ea4,SX,MH+.15,SZ,G);
@@ -67,7 +104,8 @@
     sign('ZURÜCK: 🚡 Knopf unten',512,128,9,2.2,'#b71c1c','#fff3c4',MX-18,MH+3.2,MZ-20,Math.PI/4,G);
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,16,6),MB(0xdddddd)); pole.position.set(MX+10,MH+8,MZ); G.add(pole);
     const fl=sign('MISCHA ZOO · 400 m',512,256,7,3.5,'#c62828','#fff3c4',MX+13.6,MH+13.5,MZ,0,G); M.flag=fl;
-    [[18,10],[22,-14],[-4,30],[30,20],[-20,-25],[12,34]].forEach((q,i)=>{ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(2+i%3,0),MB(i%2?0x8a8d93:0x9aa0a6)); r.position.set(MX+q[0],MH+1.2+(i%2),MZ+q[1]); r.scale.y=.7; G.add(r); });
+    { const c2=cv(256,256), g2=c2.getContext('2d'); g2.fillStyle='#d32f2f'; g2.fillRect(0,0,256,256); g2.fillStyle='#fff'; g2.fillRect(104,48,48,160); g2.fillRect(48,104,160,48); const sf=new THREE.Mesh(new THREE.PlaneGeometry(3.4,3.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c2),side:THREE.DoubleSide})); sf.position.set(MX+13.6,MH+10,MZ); G.add(sf); M.flag2=sf; }
+    // (alte Einzelfelsen entfernt – der Felsrand mit Schneekappen ersetzt sie)
     // ── Seil + Masten ──
     const poly=M.polyline(); M.poly=poly;
     const cabPts=[]; for(let i=0;i<poly.pts.length;i++){ const p=poly.pts[i]; if(p.x<27) continue; if(i%2===0||i===poly.pts.length-1) cabPts.push(new THREE.Vector3(p.x,p.y+2.6,p.z)); }
@@ -120,6 +158,7 @@
   M._frame=function(){
     const Z=ZGg(); if(!Z||!M.built||!Z.pl) return; const now=performance.now(), dt=Math.min(.1,(now-(M._t||now))/1000); M._t=now; const pl=Z.pl;
     if(M.wheel) M.wheel.rotation.y+=dt*.55;
+    if(M._clouds) M._clouds.rotation.y+=dt*.004; if(M.flag2) M.flag2.rotation.y=Math.sin(now/700)*.12; if(M.flag) M.flag.rotation.y=Math.sin(now/650+1)*.1;
     if(M.riding&&M.poly&&M.cin){ M._cinFrame(dt); }
     else if(M.riding&&M.poly){
       const len=M.poly.len, along=M.dir>0?M.s:len-M.s; M.s+=M.dir*speedAt(along,len)*dt; if(M.s<0) M.s=0; if(M.s>len) M.s=len;
