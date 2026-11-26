@@ -64,3 +64,55 @@ oben — Realtime Database hat eigene Regeln, getrennt von Firestore.
 Das gibt allen bestehenden Pfaden (zoo_hot, zoo_broadcast, zoo_admin_cmd, zoo_device_diag, usw.)
 und jedem zukünftigen Pfad automatisch Zugriff — kein erneuter Rules-Fix nötig, wenn später mal
 ein neuer Pfad dazukommt.
+
+
+---
+
+# 🔒 Sicherere Regeln (Stufe 1, v903) – optional, NICHT automatisch aktiv
+
+**Ehrlich vorweg:** Das Spiel hat keine Firebase-Anmeldung. Darum kann keine Regel sicher
+unterscheiden, ob jemand Admin ist oder nicht. Diese Stufe schützt aber vor dem Häufigsten:
+fremde/zufällige Pfade und Sammlungen werden gesperrt (Müll, Fremdnutzung, Tippfehler-Bots).
+Sie wurde aus dem Code abgeleitet, aber **nicht an echtem Firebase getestet**.
+
+**So gehst du sicher vor:** Alte Regeln vorher kopieren und aufheben. Nach dem Veröffentlichen
+Spiel öffnen (Chat, Zoo, Admin-Panel, Glücksrad). Geht etwas nicht mehr → alte Regeln wieder einfügen.
+
+## Realtime Database (Regeln)
+Das Spiel nutzt dort nur Pfade, die mit `zoo_` beginnen.
+
+```json
+{
+  "rules": {
+    "$top": {
+      ".read": "$top.matches(/^zoo_/)",
+      ".write": "$top.matches(/^zoo_/)"
+    }
+  }
+}
+```
+
+## Firestore (Regeln)
+Nur die Sammlungen, die das Spiel wirklich benutzt, bleiben offen.
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{col}/{document=**} {
+      allow read, write: if col in [
+        'banned_devices','banned_players','calibration','calibration_overrides',
+        'calibration_records','config','mischa_admin','mischa_players','player_bans',
+        'player_device_fonts','player_messages','player_reports','reaction_times',
+        'report_images','score_records','zoo_broadcast','zoo_chat','zoo_config',
+        'zoo_events','zoo_news','zoo_polls','zoo_quests','zoo_reports','zoo_users',
+        'zoo_voice_signal','zoos','zoo_players','zoo_instances','players'
+      ];
+    }
+  }
+}
+```
+
+## Was Stufe 2 bräuchte (später, grösserer Umbau)
+Anonyme Firebase-Anmeldung im Spiel + Admin-Rechte über eine Admin-Liste in der Datenbank.
+Erst dann kann man z. B. `zoo_admin_cmd`, Sperren und `zoo_config` nur für Admins schreibbar machen.
