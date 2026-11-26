@@ -216,6 +216,13 @@
     try{ console.log('[Bots] Slap auf '+name+' · trägt '+(a?a.n:'nichts')); }catch(_){}
     if(!a){ try{ if(window.ZP&&ZP.toast) ZP.toast('🤖 '+name+' trägt gerade kein Tier.',1500); }catch(_){} return; }
     var s=slotOfT(i,t), db=RT(), g=ZGet(); var pos=B.posAt(i,t);
+    // Hat der Bot das Tier einem Spieler GEKLAUT (Diebstahl-Ablauf 'carry'), muss auch dieser Ablauf beendet werden –
+    // sonst trägt er es nach dem Slap einfach weiter (so blieb das Tier trotz vieler Treffer beim Bot).
+    var e0=ep[i], wasEp=!!(e0&&e0.id&&e0.st==='carry'&&t<e0.ta), txKey=wasEp?('e'+e0.id):s;
+    if(wasEp){ try{ var cp=Object.assign({},e0); cp.st='done'; ep[i]=cp; var G0=B.meshes[i]; if(G0&&G0.userData){ pos={x:G0.position.x,z:G0.position.z}; } }catch(_){}
+      upd(i,{st:'done'});
+      try{ if(db) db.ref('zoo_cfg/botenc/'+i).transaction(function(cur){ var l=(cur&&cur.l)||[]; l=l.filter(function(q){ return !(q&&q.at===e0.ta); }); return {l:l}; },function(){},false); }catch(_){}
+    }
     // Sofort lokal: Bot lässt das Tier fallen (wie bei einem echten Spieler – kein Warten auf die Datenbank)
     fx[i]=s;
     var ang=Math.random()*Math.PI*2, dist=3+Math.random()*3, x=pos.x+Math.cos(ang)*dist, z=pos.z+Math.sin(ang)*dist;
@@ -233,7 +240,7 @@
     if(!db||!key) return;
     var cleanup=function(){ try{ if(mine&&g){ var k=g.droppedAnimals.indexOf(mine); if(k>=0){ g.droppedAnimals.splice(k,1); if(mine.mesh&&g.scene) g.scene.remove(mine.mesh); } } }catch(e){} };
     // Gemeinsam: nur EIN Client darf das Tier in die Datenbank legen (sonst fällt es doppelt)
-    db.ref('zoo_cfg/botfx/'+i).transaction(function(cur){ if(cur&&cur.s===s) return; return {s:s,at:t}; },function(err,ok){
+    db.ref('zoo_cfg/botfx/'+i).transaction(function(cur){ if(cur&&cur.s===txKey) return; return {s:txKey,at:t}; },function(err,ok){
       if(err){ try{ console.log('[Bots] botfx-Fehler: '+(err.message||err)+' – Tier wird trotzdem abgelegt'); }catch(_){} }
       else if(!ok){ cleanup(); return; } // ein anderer Spieler war schneller
       db.ref('zoo_dropped/'+key).set({animal:animal,shiny:null,traits:[],x:x,z:z,droppedBy:name,slappedBy:me_,createdAt:t}).catch(function(e){ try{ console.log('[Bots] zoo_dropped-Fehler: '+(e&&e.message)); }catch(_){} });
