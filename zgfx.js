@@ -11,8 +11,8 @@
   const mobile=G.mobile=/Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches);
   const weak=!mobile&&(navigator.hardwareConcurrency||8)<=4;
   // Standard: Computer = Schön (mit Auto-Rückfall), Handy/Tablet/schwacher PC = Normal
-  try{ if(localStorage.getItem('zgfx_mig')!=='2'){ localStorage.removeItem('zgfx_q'); localStorage.setItem('zgfx_mig','2'); } }catch(e){}
-  G.q=lsg()||(weak?'normal':'auto'); // Handy/iPad/Tablet: ebenfalls Schoen, mit Auto-Rueckfall bei Ruckeln
+  try{ if(localStorage.getItem('zgfx_mig')!=='3'){ localStorage.removeItem('zgfx_q'); localStorage.setItem('zgfx_mig','3'); } }catch(e){}
+  G.q=lsg()||'high'; // v905: immer „Schön“ – auch wenn es ruckelt. Runterstellen macht man selbst (Menü → Grafik-Look) // Handy/iPad/Tablet: ebenfalls Schoen, mit Auto-Rueckfall bei Ruckeln
   // Sichtweite (in Welt-Einheiten): Computer 200, Handy/iPad/Tablet 75 – alles dahinter wird nicht mehr gezeichnet
   G.cull=mobile?75:200;
   const level=()=>G.q==='classic'?0:(G.q==='normal'?1:2);
@@ -198,7 +198,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
     try{
       if(!G.U) patch();
       env(); if((frames&7)===0) cullTick();
-      if(G.mobile&&!G._pr&&ZGet()&&ZG.renderer){ G._pr=1; try{ const r=ZG.renderer; if(r.getPixelRatio()>1.5){ r.setPixelRatio(1.5); r.setSize(window.innerWidth,window.innerHeight,true); } }catch(e){} }
+      
       const want=level()===2&&!busy();
       if(want&&!loadedPP&&!loading) loadPP().then(()=>{ if(loadedPP) try{ build(); }catch(e){ console.warn(e); } });
       G.pp=want&&loadedPP&&!!composer;
@@ -209,7 +209,7 @@ if(uZOn>0.5){ float zl=length(vZN); if(zl>0.01){
         const grace=inZ&&G._since&&now-G._since>30000; // 30 s Schonfrist nach dem Laden (da ruckelt jeder kurz)
         // Körnung automatisch wieder an, sobald es ~15 s lang flüssig läuft
         if(G._grainOff&&G.U&&vis){ if(G.fps>=(G.mobile?26:30)){ if(++G._okWin>=5){ G.U.uDet.value=1; G._grainOff=0; try{ ZP.toast('✨ Läuft wieder flüssig → Oberflächen-Körnung wieder an.',3000); }catch(e){} } } else G._okWin=0; }
-        if(vis&&grace&&G.fps<(G.mobile?22:27)){ slow++; if(slow>=(G.mobile?4:3)){ slow=0; perfStep(); } } else slow=0; }
+        slow=0; /* v905: kein automatisches Herunterschalten mehr */ }
     }catch(e){}
     try{ patch(); }catch(e){}
   requestAnimationFrame(loop);
