@@ -701,7 +701,7 @@
     _inited:false,
     init(){ if(C._inited) return; const r=RT(); if(!r) return; C._inited=true; try{ r.ref('.info/serverTimeOffset').on('value',s=>{ _off=+s.val()||0; }); }catch(e){} try{ r.ref('zoo_circus').on('value',s=>{ C.adm=s.val()||null; }); }catch(e){} },
     // aktiv? → {id,until}
-    state(){ const n=tn(), a=C.adm; if(a&&a.until>n) return {id:'a'+a.id,until:a.until,adm:1};
+    state(){ if(window.evGateOk&&!evGateOk()) return null; const n=tn(), a=C.adm; if(a&&a.until>n) return {id:'a'+a.id,until:a.until,adm:1};
       const ph=n%PER; if(ph<DUR) return {id:'t'+Math.floor(n/PER),until:n-ph+DUR}; return null; },
     adminStart(mins){ const r=RT(); if(!r){ toast('❌ Keine Verbindung'); return; } mins=Math.max(1,Math.min(120,+mins||10)); r.ref('zoo_circus').set({id:String(Date.now()),until:tn()+mins*60000,by:ZS.player}).then(()=>toast('🎪 Wanderzirkus für alle gestartet ('+mins+' Min)')).catch(e=>toast('❌ '+e.message)); },
     adminStop(){ const r=RT(); if(!r) return; r.ref('zoo_circus').set({id:String(Date.now()),until:0,by:ZS.player}).then(()=>toast('⏹️ Zirkus beendet (der automatische Zirkus-Termin bleibt)')); },
@@ -1703,7 +1703,7 @@
     },
     // ── Eingesaugt / Rächen ──
     _sucked(from){
-      if(S.on) return; try{ if(ZG.carrying) ZG._dropCarried(from); }catch(e){}
+      if(S.on) return; try{ if(((ZS.zoo&&ZS.zoo.reb)||0)<1) return; }catch(e){} /* v913: vor dem 1. Rebirth nicht einsaugbar */ try{ if(ZG.carrying) ZG._dropCarried(from); }catch(e){}
       const end=Date.now()+SUCK; try{ ZG._slapStunEnd=end; ZG._stunType='suck'; }catch(e){}
       S._tone(120,500,.5); vib([250,70,250]); big('🌀 EINGESAUGT!','#7fd1ff',1800);
       S.rev={from,till:end+45000,done:false}; S._revUI(from,end);
@@ -2242,7 +2242,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* ZAlien (v773) — 👽 Alien-Event: alle 4 Std (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
+/* ZAlien (v773) — 👽 Alien-Event: alle 12 Std ab Rebirth 2 (oder Admin). UFOs saugen Spieler ein → 3 Min Flug → Geschenkschleuder-Klickkampf */
 (function(){
   const RT=()=>{ try{ return (typeof _rtdb!=='undefined'&&_rtdb)?_rtdb:null; }catch(e){ return null; } };
   let _off=0; const tn=()=>Date.now()+_off;
@@ -2255,7 +2255,7 @@
   const isTouch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches; }catch(e){ return false; } };
   const vib=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
   const busy=()=>{ try{ return !!(ZG._arcadeActive||ZG._jumpActive||ZG._mazeActive||ZG._trashActive||ZG._iceRoomActive||ZG._meadowActive||ZG._alienActive||ZG._coasterRide||(window.ZSweeper&&ZSweeper.on)||(typeof Tutorial!=='undefined'&&Tutorial._active)||(window.ZCoaster2&&ZCoaster2.ride)||(window.ZCoaster&&ZCoaster.ride)); }catch(e){ return false; } };
-  const AUTO=4*3600000, AUTO_LEN=10*60000, T=22, NU=3, FLY=180000, CLICKS=30, CLICK_MS=10000;
+  const AUTO=12*3600000, AUTO_LEN=10*60000, T=22, NU=3, FLY=180000, CLICKS=30, CLICK_MS=10000;
   const ease=t=>{ t=Math.max(0,Math.min(1,t)); return t*t*(3-2*t); };
   const A=window.ZAlien={ moving:false, ph:null, admin:null, local:0, _inited:false, ufo:[], immune:0, v:0, vy:0, gas:false, brk:false, up:false, dn:false, clicks:0,
     init(){
@@ -2267,7 +2267,7 @@
       document.addEventListener('pointerdown',e=>{ if(A.ph==='sling'&&A.slingState==='click'){ if(e.target&&e.target.closest&&e.target.closest('#zal-skip')) return; A.clicks++; vib(12); A._clickFx(e.clientX,e.clientY); A._clkUI(); } },true);
     },
     // ── Zeitplan ──
-    until(){ const n=tn(); let u=0; const slot=Math.floor(n/AUTO)*AUTO; if(n-slot<AUTO_LEN) u=slot+AUTO_LEN; if(A.admin&&A.admin.until>n) u=Math.max(u,A.admin.until); if(A.local>n) u=Math.max(u,A.local); return u>n?u:0; },
+    until(){ if(window.evGateOk&&!evGateOk()) return 0; const n=tn(); let u=0; const slot=Math.floor(n/AUTO)*AUTO; if(n-slot<AUTO_LEN) u=slot+AUTO_LEN; if(A.admin&&A.admin.until>n) u=Math.max(u,A.admin.until); if(A.local>n) u=Math.max(u,A.local); return u>n?u:0; },
     nextAuto(){ const n=tn(); return Math.ceil((n+1)/AUTO)*AUTO; },
     adminStart(min){ const r=RT(); if(!r) return; const u=tn()+(min||10)*60000; r.ref('zoo_alien/admin').set({until:u,at:tn(),by:ZS.player}); toast('👽 Alien-Event gestartet ('+(min||10)+' Min)'); },
     adminStop(){ const r=RT(); if(r) r.ref('zoo_alien/admin').remove(); A.local=0; toast('👽 Alien-Event beendet'); },

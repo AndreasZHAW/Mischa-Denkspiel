@@ -259,6 +259,7 @@
   const dhTick=()=>{ try{ const c=DH.cfg, now=Date.now(); let ph='off', left=0;
     if(DH.test&&DH.test>now){ ph='act'; left=DH.test-now; }
     else if(c.on&&c.until>now){ if(c.from<=now){ ph='act'; left=c.until-now; } else if(c.from-now<=5*60000){ ph='pre'; left=c.from-now; } }
+    try{ if(window.evGateOk&&!evGateOk()){ ph='off'; left=0; } }catch(e){} // v913: nicht im Tutorial / vor dem 2. Rebirth
     const cin=!!(C.on||document.body.classList.contains('zrc')); // läuft gerade ein Trailer? Dann schweigt die Todesstunde (Trailer hat Vorrang)
     dhSet(ph);
     ['zdh-v','zdh-f','zdh-h'].forEach(i=>{ const e=document.getElementById(i); if(e) e.style.display=cin?'none':''; });

@@ -547,3 +547,33 @@ body.landscape-mode.mobile-device #game-area canvas {
 body.landscape-mode.mobile-device .task-grid {
   grid-template-columns: repeat(5, 1fr) !important;
 }
+
+/* ===== v913: Handy-QUERFORMAT (Spielewelt + alle Spiele) ===== */
+@media (orientation: landscape) and (max-height: 520px) {
+  html { font-size: 14px; }
+  /* Spielfläche: kein inneres Scroll-Fenster mehr, Seite scrollt normal; nichts wird abgeschnitten */
+  body #game-area { max-height: none !important; overflow: visible !important; }
+  body #game-area > div { overflow-x: visible !important; }
+  /* Canvas-Spiele: Seitenverhältnis behalten (vorher: Breite 100 % + Höhe gedeckelt = gestreckt) */
+  body #game-area canvas {
+    width: auto !important; height: auto !important;
+    max-width: 100% !important; max-height: calc(100dvh - 78px) !important;
+    margin-left: auto !important; margin-right: auto !important; object-fit: contain;
+  }
+  body #game-area { padding-left: 6px; padding-right: 6px; transform: none !important; }
+  body #game-area:has(canvas):has(button) { padding-bottom: 84px; }
+  /* Spiele mit Bildschirm-Tasten: Spielfeld kleiner, damit die Tasten sichtbar bleiben */
+  body #game-area:has(canvas):has(button) canvas { max-height: calc(100dvh - 215px) !important; }
+  .game-header { padding: 2px 8px !important; min-height: 0 !important; }
+  .game-header .game-title { font-size: .82rem !important; }
+  .game-header button { padding: 3px 9px !important; font-size: .8rem !important; min-height: 30px !important; }
+  .game-container { padding: 0 !important; }
+  /* Spielewelt / Weltkarte */
+  .banner-title { font-size: 1.15rem !important; }
+  .world-name { font-size: .95rem !important; }
+  .card { padding: 6px 8px !important; }
+  .task-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 5px !important; }
+  .task-btn { min-height: 56px !important; }
+  /* schwebende Chat-Taste kleiner, damit sie nichts verdeckt */
+  #ds-chat-toggle-btn { width: 50px !important; height: 50px !important; font-size: 1.4rem !important; bottom: 6px !important; left: 6px !important; }
+}

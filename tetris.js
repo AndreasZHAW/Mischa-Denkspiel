@@ -26,7 +26,8 @@ const TetrisGame = {
     // that's actually available a moment later — reserve extra margin
     // (was 200px) so the control buttons below the board don't end up
     // pushed just past the edge once the toolbar reappears.
-    const elH = window.innerHeight - (isMobile ? 260 : 200);
+    const _land = window.innerWidth>window.innerHeight && window.innerHeight<520; // v913: Handy-Querformat
+    const elH = window.innerHeight - (_land ? 215 : (isMobile ? 260 : 200));
     const csFromW = Math.floor((Math.min(elW, isMobile ? 420 : 340)) / COLS);
     const csFromH = Math.floor(elH / ROWS);
     // The old hard floor of 18px-per-cell could FORCE the board to be
@@ -36,7 +37,7 @@ const TetrisGame = {
     // ended up pushed off-screen no matter how much margin was reserved
     // above. Floor lowered to 12px (still just about legible) so the
     // height constraint actually wins when the screen is this tight.
-    const CS = Math.max(12, Math.min(csFromW, csFromH));
+    const CS = Math.max(_land ? 8 : 12, Math.min(csFromW, csFromH));
     console.log('[Tetris-debug] Vor Berechnung: window='+window.innerWidth+'x'+window.innerHeight+' el.offsetWidth='+(el.offsetWidth||'?')+' isMobile='+isMobile+' isTouch='+isTouch+' elW='+elW+' elH='+elH+' csFromW='+csFromW+' csFromH='+csFromH+' → gewähltes CS='+CS+(csFromH<12?' ⚠️ csFromH lag unter dem Minimum — Feld ist trotzdem zu hoch für den Platz!':''));
     const BW = COLS * CS, BH = ROWS * CS;
     const SBW = Math.max(80, CS*4); // sidebar for desktop

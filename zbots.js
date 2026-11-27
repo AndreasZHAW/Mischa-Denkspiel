@@ -184,6 +184,7 @@
       else if(e.st==='grab'&&epLive(e,t)){ busy=true; var d=dropOf(e.dropId); if(!d){ if(t>e.tc+2500) upd(i,{st:'done'}); continue; } if(Math.hypot(G.position.x-d.x,G.position.z-d.z)<2.6) doGrab(i,e,d); }
     }
     if(busy||!steal||t<nextAtk||!g.carrying||!good(g.carrying.animal)) return;
+    try{ if(window.evGateOk&&!evGateOk()) return; }catch(x){}
     try{ if(g.isPrivate||(window.ZHearts&&ZHearts.dead)||(window.ZBattle&&ZBattle.fighting&&ZBattle.fighting())) return; }catch(x){}
     var best=-1,bd=35; for(var j=0;j<B.meshes.length;j++){ var ej=ep[j]; if(ej&&ej.t0&&t<ej.t0+120000) continue; var Gj=B.meshes[j]; var d2=Math.hypot(Gj.position.x-g.pl.x,Gj.position.z-g.pl.z); if(d2<bd){ bd=d2; best=j; } }
     if(best<0||Math.random()>0.25) return;

@@ -730,6 +730,8 @@ const State = {
         if (isNaN(mtEarned) || !isFinite(mtEarned)) mtEarned = 1.0;
       }
 
+      // v913: pro Spiel bis zu 5 MT (statt 2): Skala x2.5 (Referenz-Leistung 1 -> 2.5, sehr gut -> 5)
+      mtEarned = Math.min(5, Math.round(mtEarned*2.5*10)/10);
       // Log MT calculation
       if(typeof GameLog !== 'undefined') GameLog.log('mt','key='+key+' raw='+raw+' mt='+mtEarned+' scores='+rawScores.length+(rawScores.length?(' min='+Math.min(...rawScores)+' max='+Math.max(...rawScores)):''));
       // Save current score to cal store

@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v910';
+const APP_VERSION = 'v913';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -2906,7 +2906,7 @@ const App = {
           p.worlds[wid].tasks[taskIndex] = {
             done:true,
             score:State.calcFinalScore(result,p)||result.rawScore||0,
-            mt: Math.round(Math.min(2.0,Math.max(0,taskMT))*10)/10,
+            mt: (result.passed===false)?Math.round(Math.min(2.0,Math.max(0,taskMT))*10)/10:Math.min(5,Math.round(Math.min(2.0,Math.max(0,taskMT))*2.5*10)/10),
             rawScore:result.rawScore||0, timeMs:result.timeMs||0,
             passed:result.passed!==false, plays:prevPlays+1, lastPlayed:Date.now()
           };

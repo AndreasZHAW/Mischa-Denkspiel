@@ -119,7 +119,7 @@
   const Rob=window.ZRobot={g:null,i:0,wait:2,fl:[],p:null};
   const MOD={tempo:{n:'Tempo',ic:'⚡',d:'Füttert schneller'},luck:{n:'Glück',ic:'🍀',d:'Chance auf Geld-Boost'},coll:{n:'Sammler',ic:'🪙',d:'Mehr Münzen pro Fütterung'}};
   Rob.mods=function(){ const r=Core.r6(); return r.rob||(r.rob={tempo:0,luck:0,coll:0}); };
-  Rob.cost=function(l){ return Math.max(25000,Math.round(Math.max(Core.tick(),100)*600*Math.pow(2,l))); };
+  Rob.cost=function(l){ /* v911: günstiger – nie mehr als 1e15 für die höchste Stufe (Stufe 4→5), darunter jeweils halb so viel */ const old=Math.max(25000,Math.round(Math.max(Core.tick(),100)*600*Math.pow(2,l))); const cap=1e15/Math.pow(2,Math.max(0,4-l)); return Math.max(25000,Math.min(old,cap)); };
   Rob.build=function(){ try{ if(Rob.g||!ZG.scene) return; const g=new THREE.Group(); bx(1.4,1.2,1.0,0xcfd8dc,0,1.0,0,g); bx(1.1,.7,.9,0x90a4ae,0,1.85,0,g); bx(.9,.5,.05,0x263238,0,1.9,.47,g); [-.2,.2].forEach(x=>sp(0x00e5ff,.09,x,1.92,.5,g)); cy(.04,.04,.6,0x90a4ae,0,2.45,0,g,6); sp(0xff5252,.12,0,2.8,0,g);
       [-.6,.6].forEach(x=>{ cy(.34,.34,.3,0x37474f,x,.34,0,g,10).rotation.z=Math.PI/2; bx(.18,.8,.18,0x90a4ae,x*1.25,1.1,.2,g); }); const lb=ZG._txt('🤖 Pfleger',.5,'#fff'); lb.scale.set(3.2,.8,1); lb.position.set(0,3.6,0); g.add(lb);
       g.visible=false; ZG.scene.add(g); Rob.g=g; const q=Rob.points()[0]||ZG.pl; Rob.p={x:q.x+2,z:q.z+2}; }catch(e){ console.warn('ZRobot',e); } };
