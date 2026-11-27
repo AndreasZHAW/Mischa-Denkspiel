@@ -99,6 +99,9 @@
     [-5.9,5.9].forEach(z=>{ box(20,.8,.4,CON,SX,MH+1,SZ+z,G); box(20,5.5,.14,MB(0x7fb8d8,{transparent:true,opacity:.3,depthWrite:false}),SX,MH+4.2,SZ+z,G); });
     sign('GIPFELSTATION',512,120,9,2.1,'#0d47a1','#ffffff',SX,MH+11.5,SZ+6.2,0,G); sign('GIPFELSTATION',512,120,9,2.1,'#0d47a1','#ffffff',SX,MH+11.5,SZ-6.2,Math.PI,G);
     const wh=new THREE.Group(); wh.position.set(SX+8.5,Y1+2.6,SZ); G.add(wh); const tor=new THREE.Mesh(new THREE.TorusGeometry(4.7,.26,6,32),MB(RED)); tor.rotation.x=Math.PI/2; wh.add(tor); M.wheel=wh;
+    // v915: Stütze unter dem Rad (stand vorher frei in der Luft)
+    { const WY=Y1+2.6, sp=new THREE.Mesh(new THREE.CylinderGeometry(.5,.8,WY-MH,10),MB(0x6b6f76)); sp.position.set(SX+8.5,MH+(WY-MH)/2,SZ); G.add(sp);
+      const bs=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.9,.5,14),MB(CON)); bs.position.set(SX+8.5,MH+.25,SZ); G.add(bs); }
     // Schilder & Fahne
     sign('🏔️ 400 m ü. M.',512,128,10,2.5,'#1b5e20','#ffffff',MX-8,MH+4.5,MZ+8,-Math.PI/5,G);
     sign('ZURÜCK: 🚡 Knopf unten',512,128,9,2.2,'#b71c1c','#fff3c4',MX-18,MH+3.2,MZ-20,Math.PI/4,G);

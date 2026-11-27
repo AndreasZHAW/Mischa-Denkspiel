@@ -3136,11 +3136,12 @@
   L.prog=function(){ const z=Zf(), c=L.cur; if(!z||!c) return null; if(!z.letters||z.letters.id!==c.id) z.letters={id:c.id,n:0,last:Date.now(),done:0}; return z.letters; };
   const wordHTML=(w,n,big)=>w.map((ch,i)=>i<n?'<span style="color:#ffe83a;text-shadow:0 2px 0 #b8860b,0 0 8px rgba(255,230,60,.6)">'+ch+'</span>':'<span style="color:rgba(255,255,255,.35)">_</span>').join('<span style="display:inline-block;width:'+(big?6:3)+'px"></span>');
   L.chip=function(){ let e=document.getElementById('lt-chip'); const c=L.cur, st=Zf()&&Zf().letters; if(!c||!Zf()){ if(e) e.remove(); return; }
+    try{ if(localStorage.getItem('zlt_hid')===String(c.id)){ if(e) e.remove(); return; } }catch(_){}
     const w=letters(c.word), n=(st&&st.id===c.id)?st.n:0, done=st&&st.id===c.id&&st.done;
-    if(!e){ e=document.createElement('div'); e.id='lt-chip'; e.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:46px;z-index:115;cursor:pointer;max-width:92vw;font-family:Arial Black,Arial,sans-serif;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))'; e.onclick=()=>L.info(); document.body.appendChild(e); }
+    if(!e){ e=document.createElement('div'); e.id='lt-chip'; e.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:46px;z-index:115;cursor:pointer;max-width:92vw;font-family:Arial Black,Arial,sans-serif;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))'; e.onclick=(ev)=>{ if(ev.target&&ev.target.id==='lt-x'){ ev.stopPropagation(); try{ localStorage.setItem('zlt_hid',String(L.cur&&L.cur.id)); }catch(_){} e.remove(); return; } L.info(); }; document.body.appendChild(e); }
     let tm=''; if(!done){ const left=Math.max(0,300000-(Date.now()-((st&&st.last)||Date.now()))); tm=Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0'); }
     const dist=(!done&&L.pick)?Math.round(Math.hypot(ZG.pl.x-L.pick.x,ZG.pl.z-L.pick.z)):null;
-    e.innerHTML='<div style="background:#fff;border-radius:14px;padding:5px 9px 6px;min-width:150px"><div style="display:flex;align-items:center;gap:7px"><div style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#ffb300,#ff7a00);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:#2e7d32;font-weight:900;text-shadow:0 1px 0 #fff">ABC</div><div style="line-height:1.05"><div style="font-size:.78rem;color:#1b3a8a">Wort-Jagd</div><div style="font-size:.52rem;color:#e65100;letter-spacing:.5px">BUCHSTABEN SUCHEN</div></div>'+(done?'<div style="margin-left:auto;background:#2e9e3e;color:#fff;border-radius:10px;padding:1px 7px;font-size:.62rem">✅ FERTIG</div>':'<div style="margin-left:auto;background:#2e9e3e;color:#fff;border-radius:10px;padding:1px 7px;font-size:.62rem">'+(dist!=null?'📍 '+dist+' m':'⏱ '+tm)+'</div>')+'</div><div style="margin-top:4px;background:#5c6bc0;border-radius:8px;padding:3px 10px;text-align:center;font-size:1.15rem;letter-spacing:2px">'+wordHTML(w,n)+'</div></div>'; };
+    e.innerHTML='<div style="position:relative;background:#fff;border-radius:14px;padding:5px 9px 6px;min-width:150px"><div id="lt-x" style="position:absolute;top:-9px;right:-9px;width:24px;height:24px;border-radius:50%;background:#e53935;color:#fff;font:900 .8rem/24px Arial;text-align:center;border:2px solid #fff">✕</div><div style="display:flex;align-items:center;gap:7px"><div style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#ffb300,#ff7a00);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:#2e7d32;font-weight:900;text-shadow:0 1px 0 #fff">ABC</div><div style="line-height:1.05"><div style="font-size:.78rem;color:#1b3a8a">Wort-Jagd</div><div style="font-size:.52rem;color:#e65100;letter-spacing:.5px">BUCHSTABEN SUCHEN</div></div>'+(done?'<div style="margin-left:auto;background:#2e9e3e;color:#fff;border-radius:10px;padding:1px 7px;font-size:.62rem">✅ FERTIG</div>':'<div style="margin-left:auto;background:#2e9e3e;color:#fff;border-radius:10px;padding:1px 7px;font-size:.62rem">'+(dist!=null?'📍 '+dist+' m':'⏱ '+tm)+'</div>')+'</div><div style="margin-top:4px;background:#5c6bc0;border-radius:8px;padding:3px 10px;text-align:center;font-size:1.15rem;letter-spacing:2px">'+wordHTML(w,n)+'</div></div>'; };
   L.info=function(){ const c=L.cur; if(!c) return; const st=L.prog(), w=letters(c.word); let o=document.getElementById('lt-info'); if(o) o.remove(); o=document.createElement('div'); o.id='lt-info'; o.style.cssText='position:fixed;inset:0;z-index:320;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px'; const rw=(REW.find(r=>r.id==c.rew)||REW[0]).n;
     o.innerHTML='<div style="background:#14143c;border:2px solid #ffd54f;border-radius:18px;padding:16px;max-width:340px;color:#fff;text-align:center;font-family:Arial,sans-serif"><div style="font-weight:900;font-size:1.1rem;color:#ffd54f">🔤 Wort-Jagd</div><div style="font-size:1.5rem;font-weight:900;letter-spacing:4px;margin:10px 0">'+wordHTML(w,st.n,1)+'</div><div style="font-size:.8rem;opacity:.8">Alle 5 Minuten gibt es eine Chance von 30 %, dass im Zoo der nächste Buchstabe erscheint. Laufe zu ihm, um ihn einzusammeln. Hast du alle Buchstaben, bekommst du:</div><div style="font-weight:900;margin:8px 0">'+rw+'</div>'+(st.done?'<div style="color:#7CFC8A;font-weight:900">✅ Schon geschafft!</div>':'<div style="opacity:.7;font-size:.8rem">'+st.n+' / '+w.length+' Buchstaben</div>')+'<button style="margin-top:10px;padding:10px 24px;border:none;border-radius:12px;background:#ffd54f;font-weight:900" onclick="this.closest(\'#lt-info\').remove()">OK</button></div>'; document.body.appendChild(o); };
   const letTex=ch=>{ const c=document.createElement('canvas'); c.width=128; c.height=256; const g=c.getContext('2d'); const gr=g.createLinearGradient(0,0,0,256); gr.addColorStop(0,'#b8ff5a'); gr.addColorStop(.5,'#3ddc3a'); gr.addColorStop(1,'#1f9d2a'); g.fillStyle=gr; g.fillRect(0,0,128,256); g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(8,8,30,240); g.font='900 150px Arial Black,Arial,sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.lineWidth=12; g.strokeStyle='#0b5d14'; g.strokeText(ch,64,134); g.fillStyle='#fff'; g.fillText(ch,64,134); return new THREE.CanvasTexture(c); };
@@ -3324,3 +3325,28 @@
 (function(){ let n=0; const iv=setInterval(()=>{ try{ if(++n>60){ clearInterval(iv); return; } if(typeof ZS!=='undefined'&&ZS.zoo&&window.ZG&&ZG.pl===undefined&&false) return; if(typeof ZS!=='undefined'&&ZS.zoo&&ZS.zoo.tutorialSeen&&!(window.Tutorial&&Tutorial._active)&&!document.getElementById('z-entry-cover')){ clearInterval(iv); setTimeout(()=>{ try{ ZOrient.auto(); }catch(e){} },2500); } }catch(e){} },1500); })();
 
 try{ ZOrient.arm(); }catch(e){}
+
+/* v914: Querformat „merken“ – kommt man aus dem Browser/Handy-Sperrbildschirm zurück und das Handy steht wieder im Hochformat,
+   wird die Querformat-Sperre erneut versucht (klappt auf Android in Chrome oft auch ohne Auto-Drehen); sonst erscheint wieder die Dreh-Aufforderung. */
+(function(){
+  const touch=()=>{ try{ return matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches&&Math.min(screen.width,screen.height)<=820; }catch(e){ return false; } };
+  const land=()=>innerWidth>innerHeight;
+  const KEY='zor_want';
+  const get=()=>{ try{ return localStorage.getItem(KEY)==='1'; }catch(e){ return false; } };
+  const set=v=>{ try{ if(v) localStorage.setItem(KEY,'1'); else localStorage.removeItem(KEY); }catch(e){} };
+  // Merken, sobald der Spieler im Querformat spielt
+  const remember=()=>{ try{ if(touch()&&land()&&!document.hidden&&window.ZS&&ZS.zoo) set(true); }catch(e){} };
+  window.addEventListener('resize',()=>setTimeout(remember,400)); setInterval(remember,5000);
+  // Wer ausdrücklich „Lieber Hochformat“ wählt, wird nicht mehr gefragt
+  document.addEventListener('click',e=>{ try{ if(e.target&&e.target.id==='zor-no') set(false); }catch(_){} },true);
+  const back=()=>{ try{
+    if(document.hidden||!touch()||land()||!get()||!window.ZOrient||!window.ZS||!ZS.zoo) return;
+    if(document.getElementById('zor')) return;
+    ZOrient.tried=false; ZOrient.shown=false; ZOrient._armed=false;
+    ZOrient.lock();                                   // klappt, wenn Chrome noch im Vollbild/Sperr-Modus ist
+    setTimeout(()=>{ try{ if(!land()){ ZOrient.hint(); ZOrient.arm(); } }catch(e){} },900); // sonst: Aufforderung + nächstes Antippen sperrt
+  }catch(e){} };
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(back,400); });
+  window.addEventListener('pageshow',()=>setTimeout(back,600));
+  window.addEventListener('focus',()=>setTimeout(back,600));
+})();

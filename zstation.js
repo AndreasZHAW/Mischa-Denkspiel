@@ -99,7 +99,19 @@
     [[36.7,-9.3],[36.7,9.3],[53.4,-9.3],[53.4,9.3]].forEach(q=>box(.6,7.2+EX,.6,RED,q[0],8.6+EX/2,q[1],CB)); box(18,.5,20,0x3a4a6a,45,12.4+EX,0,CB); box(17.4,.14,19.4,new THREE.MeshBasicMaterial({map:solarTex()}),45,12.7+EX,0,CB);
     [-5,5].forEach(z=>box(17,.5,.4,RED,45,11.2+EX,z,CB)); sign('GEGENSTATION',480,110,6,1.4,'#0d47a1','#fff',45,3.6,9.7,0,CB);
     const wh2=new THREE.Group(); wh2.position.set(CX,YO+2.6,0); CS.add(wh2); S.wheel2=wh2; const t2=new THREE.Mesh(new THREE.TorusGeometry(R+.3,.28,6,40),MB(RED)); t2.rotation.x=Math.PI/2; wh2.add(t2); for(let k=0;k<6;k++){ const sp=box(R*2+.6,.16,.3,0xa82323,0,0,0,wh2); sp.rotation.y=k*Math.PI/6; }
-    const ps=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,YO+2.6-5.2,10),MB(0x6b6f76)); ps.position.set(CX,5.2+(YO+2.6-5.2)/2,0); CS.add(ps);
+    // v915: Rad stand frei in der Luft (Gebäude darunter nicht eingehängt) → richtiger Stütz-Turm vom Boden bis zum Rad
+    { const WY=YO+2.6, ST=0x6b6f76;
+      const fnd=new THREE.Mesh(new THREE.CylinderGeometry(2.6,3,.8,16),MB(CON2)); fnd.position.set(CX,.4,0); CS.add(fnd);
+      const col=new THREE.Mesh(new THREE.CylinderGeometry(.65,1.25,WY-1.2,12),MB(ST)); col.position.set(CX,.8+(WY-1.2)/2,0); CS.add(col);
+      [3.2,7.2,11.2].forEach(y=>{ const r=1.25-(y/WY)*.6+.18; const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.32,12),MB(RED)); c.position.set(CX,y,0); CS.add(c); });
+      // vier rote Streben vom Sockel schräg zum Turm
+      [[1,0],[-1,0],[0,1],[0,-1]].forEach(d=>{ const th=Math.atan2(1.5,5.7), st=new THREE.Mesh(new THREE.BoxGeometry(.28,5.9,.28),MB(RED)); st.position.set(CX+d[0]*1.85,3.65,d[1]*1.85); st.rotation.z=d[0]*th; st.rotation.x=-d[1]*th; CS.add(st); });
+      // Wartungsplattform mit Geländer direkt unter dem Rad
+      const pf=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,.25,16),MB(0x2d3036)); pf.position.set(CX,WY-1.4,0); CS.add(pf);
+      const rl=new THREE.Mesh(new THREE.TorusGeometry(2.35,.07,5,20),MB(RED)); rl.rotation.x=Math.PI/2; rl.position.set(CX,WY-.4,0); CS.add(rl);
+      for(let k=0;k<10;k++){ const a=k/10*6.283; const p=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,1,5),MB(RED)); p.position.set(CX+Math.cos(a)*2.35,WY-.9,Math.sin(a)*2.35); CS.add(p); }
+      const cap=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.5,12),MB(0x30343a)); cap.position.set(CX,WY-1,0); CS.add(cap);
+    }
     // Masten (Gitter)
     S.pylonX.forEach(px=>{ const P=new THREE.Group(); P.position.set(px,0,0); G.add(P); const HY=hgt(px)+2.6, H=Math.round(HY+1.8), tp=.9, bs=2.1; const cor=[[-1,-1],[1,-1],[-1,1],[1,1]];
       cor.forEach(c=>strut(new THREE.Vector3(c[0]*bs,0,c[1]*bs),new THREE.Vector3(c[0]*tp,H,c[1]*tp),.32,0x8e9399,P));
