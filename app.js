@@ -235,7 +235,7 @@ const GameLog = {
 };
 window.GameLog = GameLog;
 
-const APP_VERSION = 'v915';
+const APP_VERSION = 'v916';
 /**
  * app.js v3 — Mischa Denkspiel
  * - Async/await für Firebase
@@ -2751,6 +2751,7 @@ const App = {
       // available alongside a mouse.
       const _isTouchDevice = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
       if (!ga || (window.innerWidth >= 700 && !_isTouchDevice)) return; // desktop: no auto-zoom
+      if (window.innerWidth > window.innerHeight && window.innerHeight < 520) return; // v916: Querformat-Handy: Tasten stehen seitlich, kein Auto-Zoom
       if (_taskType === 'pacman') return; // Bomber passt sich selbst an die Höhe an (Auto-Zoom schob die Knöpfe raus)
       const setZoom = (z) => {
         this._zoomLevel = z;
@@ -4165,3 +4166,55 @@ window.DSChat = DSChat;
 window.mountainSVG = mountainSVG;
 window.worldPathSVG = worldPathSVG;
 window.getTaskInstruction = getTaskInstruction;
+
+
+/* ═══ LandLayout (v916): Handy-Querformat – Steuertasten (und Tasten/Neigen-Knopf) wandern SEITLICH neben das Spielfeld,
+   damit das Spielfeld die volle Höhe nutzen kann. Im Hochformat wird alles wieder an den ursprünglichen Platz gesetzt. ═══ */
+(function(){
+  'use strict';
+  if(window.LandLayout) return;
+  const isLand=()=>innerWidth>innerHeight&&innerHeight<520;
+  const $=s=>document.querySelector(s), par=(s,n)=>{ let e=$(s); for(let i=0;i<(n||1)&&e;i++) e=e.parentElement; return e; };
+  // Steuer-Elemente je Spiel (nur was existiert, wird verschoben)
+  const FIND=[
+    ()=>par('#pc-mode-btn',1), ()=>$('#pc-btns'), ()=>$('#pc-tilt-hint'),                       // Bomber
+    ()=>par('#sn-mode',1), ()=>$('#sn-hint'), ()=>$('#sn-rev-btns'), ()=>$('#sn-btns'),         // Snake
+    ()=>par('#sk-up',2),                                                                         // Sokoban
+    ()=>par('#st-fwd',1),                                                                        // Stunt-Race
+    ()=>par('#sw-fire',1)                                                                        // Star Wars
+  ];
+  let st=null; // {wrap,main,side,pairs}
+  function revert(){
+    if(!st) return;
+    try{ st.pairs.forEach(p=>{ if(p.ph.parentNode) p.ph.replaceWith(p.el); });
+      const ga=document.getElementById('game-area');
+      if(ga&&st.wrap.parentNode){ while(st.main.firstChild) ga.insertBefore(st.main.firstChild,st.wrap); st.wrap.remove(); ga.classList.remove('ll-on'); }
+    }catch(e){ console.warn('LandLayout revert',e); }
+    st=null;
+  }
+  function apply(){
+    const ga=document.getElementById('game-area'); if(!ga) return;
+    let els=[]; FIND.forEach(f=>{ try{ const e=f(); if(e&&ga.contains(e)&&e!==ga&&!els.includes(e)) els.push(e); }catch(_){} });
+    els=els.filter(e=>!els.some(o=>o!==e&&o.contains(e)));            // keine verschachtelten doppelt
+    if(!els.length) return;
+    const wrap=document.createElement('div'), main=document.createElement('div'), side=document.createElement('div');
+    wrap.className='ll-wrap'; main.className='ll-main'; side.className='ll-side';
+    const pairs=[]; els.forEach(e=>{ const ph=document.createComment('ll'); e.replaceWith(ph); pairs.push({el:e,ph}); side.appendChild(e); });
+    while(ga.firstChild) main.appendChild(ga.firstChild);
+    wrap.appendChild(main); wrap.appendChild(side); ga.appendChild(wrap); ga.classList.add('ll-on');
+    st={wrap,main,side,pairs};
+    try{ window.dispatchEvent(new Event('resize')); }catch(e){}
+  }
+  function tick(){
+    try{
+      const ga=document.getElementById('game-area');
+      if(st&&(!ga||!st.wrap.isConnected)){ st=null; }      // Spiel neu aufgebaut / verlassen
+      if(isLand()){ if(!st) apply(); }
+      else if(st) revert();
+    }catch(e){}
+  }
+  window.LandLayout={tick,revert,apply};
+  setInterval(tick,700);
+  window.addEventListener('orientationchange',()=>setTimeout(tick,300));
+  window.addEventListener('resize',()=>setTimeout(tick,300));
+})();

@@ -560,10 +560,7 @@ body.landscape-mode.mobile-device .task-grid {
     max-width: 100% !important; max-height: calc(100dvh - 78px) !important;
     margin-left: auto !important; margin-right: auto !important; object-fit: contain;
   }
-  body #game-area { padding-left: 6px; padding-right: 6px; transform: none !important; }
-  body #game-area:has(canvas):has(button) { padding-bottom: 84px; }
-  /* Spiele mit Bildschirm-Tasten: Spielfeld kleiner, damit die Tasten sichtbar bleiben */
-  body #game-area:has(canvas):has(button) canvas { max-height: calc(100dvh - 215px) !important; }
+  body #game-area { padding-left: 6px; padding-right: 6px; }
   .game-header { padding: 2px 8px !important; min-height: 0 !important; }
   .game-header .game-title { font-size: .82rem !important; }
   .game-header button { padding: 3px 9px !important; font-size: .8rem !important; min-height: 30px !important; }
@@ -576,4 +573,18 @@ body.landscape-mode.mobile-device .task-grid {
   .task-btn { min-height: 56px !important; }
   /* schwebende Chat-Taste kleiner, damit sie nichts verdeckt */
   #ds-chat-toggle-btn { width: 50px !important; height: 50px !important; font-size: 1.4rem !important; bottom: 6px !important; left: 6px !important; }
+  /* v916: Tasten seitlich neben dem Spielfeld */
+  .ll-wrap { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; }
+  .ll-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+  .ll-side { flex: 0 0 196px; width: 196px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .ll-side > * { margin: 0 !important; max-width: 100% !important; width: auto; }
+  .ll-side button { min-width: 0 !important; padding: 8px 6px !important; font-size: .95rem !important; }
+  .ll-side #sn-btns { grid-template-columns: repeat(3, 54px) !important; gap: 6px !important; max-width: none !important; justify-content: center; }
+  .ll-side #sn-btns button { width: 54px; height: 50px; padding: 0 !important; }
+  .ll-side #pc-btns { width: 168px !important; }
+  /* Spielfeld nutzt die volle Höhe (Seitenverhältnis bleibt) */
+  body #game-area.ll-on canvas { height: calc(100dvh - 108px) !important; width: auto !important; max-width: 100% !important; max-height: none !important; }
+  /* Tetris: die feste Tastenleiste wandert an den rechten Rand */
+  #tetris-fixed-controls { left: auto !important; top: 0 !important; bottom: 0 !important; right: 0 !important; width: 96px !important;
+    grid-template-columns: 1fr !important; grid-template-rows: repeat(4, 1fr) !important; align-content: center; padding: 8px 6px !important; background: rgba(0,0,0,.55) !important; }
 }

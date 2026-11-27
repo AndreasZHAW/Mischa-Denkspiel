@@ -15,9 +15,10 @@ const PacmanGame = {
     // + tilt hint below (touch devices only) — without this, a wide-but-
     // short viewport (tablet landscape) could size the maze purely from
     // width and leave no room for the control buttons underneath.
-    const reservedV = isTouch ? 260 : 70;
+    const _land = window.innerWidth > window.innerHeight && window.innerHeight < 520; // v916: Querformat: Tasten stehen seitlich
+    const reservedV = _land ? 70 : (isTouch ? 260 : 70);
     const availH = Math.max(200, window.innerHeight - reservedV);
-    const availW = Math.min(window.innerWidth-16, 460);
+    const availW = Math.min(window.innerWidth-16-(_land?220:0), 460);
     const CELL = Math.max(12, Math.min(24, Math.floor(availW/COLS), Math.floor(availH/ROWS)));
     console.log('[Bomber-debug] Layout: innerWidth='+window.innerWidth+' innerHeight='+window.innerHeight+' isTouch='+isTouch+' reservedV='+reservedV+' availH='+availH+' CELL='+CELL);
     // Legend: 1=wall (indestructible), 0=floor, 2=power stone (extends blast),
@@ -81,6 +82,7 @@ const PacmanGame = {
     // Falls die Steuerknöpfe unten aus dem Bildschirm ragen: Spielfeld verkleinern (nur Darstellung)
     const _fitBtns=()=>{
       try{
+        if(_land) return; // v916: im Querformat stehen die Tasten seitlich – nichts verkleinern
         const bt=document.getElementById('pc-btns'); if(!bt) return;
         const over=bt.getBoundingClientRect().bottom-(window.innerHeight-8);
         if(over>0){

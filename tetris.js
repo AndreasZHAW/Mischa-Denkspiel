@@ -27,7 +27,7 @@ const TetrisGame = {
     // (was 200px) so the control buttons below the board don't end up
     // pushed just past the edge once the toolbar reappears.
     const _land = window.innerWidth>window.innerHeight && window.innerHeight<520; // v913: Handy-Querformat
-    const elH = window.innerHeight - (_land ? 215 : (isMobile ? 260 : 200));
+    const elH = window.innerHeight - (_land ? 150 : (isMobile ? 260 : 200));
     const csFromW = Math.floor((Math.min(elW, isMobile ? 420 : 340)) / COLS);
     const csFromH = Math.floor(elH / ROWS);
     // The old hard floor of 18px-per-cell could FORCE the board to be
